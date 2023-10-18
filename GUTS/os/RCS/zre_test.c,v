@@ -1,0 +1,4184 @@
+head	1.22;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.22
+date	96.04.26.01.56.09;	author albaugh;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.03.14.23.04.18;	author forrest;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.03.14.17.07.16;	author albaugh;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.02.20.21.34.18;	author albaugh;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.02.20.18.32.47;	author albaugh;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.02.16.01.36.17;	author albaugh;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.02.14.22.22.08;	author albaugh;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.02.14.01.07.16;	author albaugh;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.02.08.23.10.47;	author albaugh;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.02.07.17.26.45;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.02.07.02.45.55;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.02.06.21.44.03;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.01.31.21.43.44;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.01.31.20.46.52;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.01.16.18.29.21;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.01.12.02.14.04;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.01.04.00.46.00;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.01.03.18.43.38;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.12.11.16.40.25;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.12.07.19.04.09;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.12.07.00.56.36;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.12.06.02.33.56;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@driver and diags for Zoid Render Engine. This
+file will continue to contain diags, but much
+of the driver code will migrate to ztv_vid.c,
+as the ZIG combines the two boards.
+@
+
+
+1.22
+log
+@Deleted obsolete transparency test, if HOST_BOARD == ASCLEAP
+@
+text
+@/*		zre_test.c
+ *	Diagnostics for the Zoid Render Engine. These tests also depend
+ *	on the ZTV board, but are written to exercise the ZRE via the
+ *	XBUS port, rather than the "normal" TBUS interface to ZMATH. If you
+ *	do not recognize these terms, you should not be messing with the
+ *	code herein.
+ *
+ *		Copyright 1995 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+/* undef (or define as zero) the following when simple traps work */
+#define SIMPLE_TESTS (1)
+
+#include <config.h>
+#include <string.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <zre_defs.h>
+#include <zoid_proto.h>
+#include <intvecs.h>
+
+/*	Following definition is needed because gcc bitches about pointer
+ *	arithmetic when the MSB of the address is set, which it is for
+ *	the XBUS on the HCR4K
+ */
+#ifndef ZTV_BITMAP_OFFSET
+#define ZTV_BITMAP_OFFSET ((ZTV_BITMAP_ADDR-(U32)&ZTV_CTL)/sizeof(ZTV_CTL))
+#endif
+
+/*	Following is MEA's feeble attempt to keep up with
+ *	a moving target: Where are the LEDS (if any) Today?
+ */
+#ifdef IOLEDSADDR0
+# define IOLEDSET(x) (*IOLEDSADDR0 = x)
+#else
+#ifdef XBUSMON0_LED
+#define IOLEDSET(x) do { XBUSMON0_LED = (0xFF-(x)); } while (0)
+#else
+# define IOLEDSET(x)
+#endif /* XBUSMON0_LED defined */
+#endif /* IOLEDSADDR0 defined */
+
+# define  INIT_CSR ((1<<B_ZRE_XLED)|(1<<B_ZRE_REON))
+
+/*	While bringing up new hardware, it is often helpful to have some
+ * simple "strobe" as soon as possible after an error is detected. The
+ * "BLIP" macros are intended to allow this to be customized relatively
+ * painlessly.
+ */
+#if (1)
+/* For example, on a ZTV stack, the following might be used
+ */
+extern volatile unsigned long ztv_latch_shad;
+
+#define BLIP_LOCALS \
+    volatile unsigned long *latp; \
+    unsigned long lval,lvalb;
+
+extern VU32 *ztv_base;
+
+#define BLIP_INIT \
+    do { latp = ztv_base;		\
+    lval = ztv_latch_shad;	\
+    lvalb = lval | 0x200; } while (0)
+
+#define BLIP \
+    do { *latp = lvalb; *latp = lval; } while (0)
+#endif
+
+#ifndef BLIP
+#define BLIP do {;} while (0)
+#define BLIP_INIT do {;} while (0)
+#define BLIP_LOCALS
+#endif
+
+#define STATIC static
+
+#define n_elts(array) (sizeof(array)/sizeof(array[0]))
+
+#if HOST_BOARD != HCR4K
+#define ONE_CLOCK (70)		/* most hosts run XBUS at the spec'd 14MHZ */
+#define XBUS_READ (4*ONE_CLOCK) /* most hosts run XBUS at 4 XBUS clocks/transaction */
+#else
+#define ONE_CLOCK (91)		/* Senthinl/Mark's R4K host runs XBUS at 11MHZ */
+#define XBUS_READ (5*ONE_CLOCK)	/* and for some reason, 5 XBUS clocks/transaction */
+#endif
+#define LOOP_TIME (XBUS_READ)	/* guess at nanosecs each loop */
+#define TOO_LONG (17000000L)	/* A field should not take > 17 milliseconds */
+
+/* extern declarations, which should be in a .h file except that they
+ * should not appear at all :-). The very existence of this file,
+ * separate from ztv_vid.c is an artifact of the "experimental nature"
+ * of this test.
+ */
+extern int bm_rect();
+extern void st_dispmenu(const U8 *menu, U32 opt_bits, int erase);
+extern unsigned long hi_crc(unsigned long, unsigned long *,int);
+extern unsigned long lo_crc(unsigned long, unsigned long *,int);
+
+static int zre_csr_pref;
+
+/* fields to wait for "Holler" ack, 0 means forever */
+#define ACK_TIMEOUT (0)
+
+int holler(int col, int row, const char *msg, U32 csr)
+{
+    int pause;
+    char directions[AN_VIS_COL+2];
+    strncpy(directions,t_msg_next,AN_VIS_COL);
+    strncat(directions,"to acknowledge\007",AN_VIS_COL-strlen(directions));
+    txt_str(col,row,msg,ERROR_PAL);
+    txt_chexnum(csr, 8, RJ_ZF, ERROR_PAL);
+    txt_str(-1,row+1,directions,ERROR_PAL);
+#if ( ACK_TIMEOUT )
+    for ( pause = ACK_TIMEOUT ; pause > 0 ; --pause )
+#else
+    pause = 1;
+    while ( pause )
+#endif
+    {
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	prc_delay(1); 
+    }
+    txt_clr_str(col,row,msg,ERROR_PAL);
+    txt_clr_wid(col+txt_width(msg,ERROR_PAL), row, 8);
+    txt_clr_str(-1,row+1,directions,ERROR_PAL);
+    return ( pause > 0 );
+}
+
+static const unsigned char zre_csr_menu[] =
+    "\001Run/~Reset\000*Reset\000Running\000"
+#if (HOST_BOARD == ASCLEAP) || (HOST_IS_MATHBOX && TBUS_BASE)
+    "\011TBUS Fed from\000TBUS\000*XBUS\000"
+#else
+    "\011TBUS Fed from\000\000*XBUS\000"
+#endif
+    "\021IRQ\000*Disabled\000Enabled\000"
+    "\031IRQ Clear\000*Zero\000one\000"
+    "\041TLACC (N.C.)\000Zero\000one\000"
+    "\051TLEN\000*Enabled (0)\000Disabled (1)\000"
+    "\061THOLD\000Ignore\000*Obey\000"
+    "\071XLED\000Lit\000Dark\000"
+    "\101IDLE\000Lit\000Dark\000"
+    "\111RESET Status\000Zero\000one\000"
+    "\121Frame Done\000Yes\000No\000"
+    "\131TFULL\000Yes\000No\000"
+;
+
+
+#define MAX_BUFF_SWAP_TIME (20000)
+static void unstick() {
+    int spinner,old_ipl;
+    U32 bufbit,curbuf;
+    VU32 *ztv;
+
+    ztv = ztv_base;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+IOLEDSET(0x70);
+
+    /* make darn sure we own the bitmap */
+    ztv_mod_latch(1<<B_Z_XACC);
+    bufbit = (1<<B_Z_BUFSEL);
+IOLEDSET(0x71);
+
+    if ( (curbuf = *ztv & (1<<B_Z_CURBUF)) != 0 ) bufbit = ~bufbit;
+    ztv_mod_latch(bufbit);
+
+IOLEDSET(0x72);
+
+    for ( spinner = MAX_BUFF_SWAP_TIME ; spinner >= 0 ; spinner -= XBUS_READ ) {
+	if ( curbuf != (*ztv & (1<<B_Z_CURBUF)) ) break;
+    }
+
+IOLEDSET(0x73);
+
+    ztv_mod_latch(~bufbit);
+    for ( spinner = MAX_BUFF_SWAP_TIME ; spinner >= 0 ; spinner -= XBUS_READ ) {
+	if ( curbuf == (*ztv & (1<<B_Z_CURBUF)) ) break;
+    }
+
+IOLEDSET(0x74);
+
+    prc_set_ipl(old_ipl);
+}
+
+/*		zre_init()
+ *	Attempt to kick-start the ZRE, from an unknown state.
+ *	Returns -1 if ZRE cannot be initialized,
+ *	else 0. This is a relatively quick, low-level routine.
+ *	See zre_setup() for a more complete setup.
+ */
+VU32 *zre_xtot,xtot_bit;
+
+int
+zre_init()
+{
+    int spinner;
+    VU32 trash;
+    VU32 *csr = &ZRE_CSR;
+
+IOLEDSET(0x60);
+
+    unstick();
+
+IOLEDSET(0x61);
+
+    /* Make sure the ZTV is not listening to _us_,
+     * so we can catch the edge.
+     *  rather than to the XBUS host.
+     */
+    ztv_mod_latch(~(1<<B_Z_XACC));
+    if ( ztv_base == &ZTV_CTL ) {
+	/* Old-style separate ZTV/ZRE, somewhat complex bring-up */
+	zre_xtot = &ZRE_XTOT;
+	xtot_bit = (1<<B_ZRE_XTOT);
+	/* Slap the big ugly knife-switch RESET
+	 */
+	ZRE_RST = 0;
+	/* Spin for 5000 nanoseconds (or more) as timed by fastest
+	 * XBUS Read.
+	 */
+	for ( spinner = 5000 ; spinner >= 0 ; spinner -= XBUS_READ ) {
+	    trash = *csr;
+	}
+	*csr = 0;	/* Just in case that did not work. */
+
+IOLEDSET(0x62);
+
+	ZRE_RUN = 0;
+	/* Spin for 5000 nanoseconds (or more) as timed by fastest
+	 * XBUS Read.
+	 */
+	for ( spinner = 5000 ; spinner >= 0 ; spinner -= XBUS_READ ) {
+	    trash = *csr;
+	}
+    } else {
+#ifdef ZIG
+	/* ZIG, if we have defined it... */
+	zre_xtot = &ZIGTV_XTOT;
+	xtot_bit = 0;
+	*csr = 0;
+IOLEDSET(0x62);
+	/* Spin for 5000 nanoseconds (or more) as timed by fastest
+	 * XBUS Read.
+	 */
+	for ( spinner = 5000 ; spinner >= 0 ; spinner -= XBUS_READ ) {
+	    trash = *csr;
+	}
+IOLEDSET(0x63);
+	*csr = (1<<B_ZRE_SOFTRES);
+#endif
+    }
+    /* Now "cock the trigger", by setting REON, so that when
+     * we de-assert XACC, the clocks will sync up.
+     */
+IOLEDSET(0x64);
+
+    *csr |= (1<<B_ZRE_REON);
+    /* Now make the ZTV listen to _us_,
+     *  rather than to the XBUS host.
+     */
+IOLEDSET(0x65);
+    ztv_mod_latch(1<<B_Z_XACC);
+    /* Set the "running" bits.
+     * We also turn off the LED here, as a visual
+     * indication that we think we are idle.
+     */
+    if ( !zre_csr_pref ) zre_csr_pref = INIT_CSR;
+    /* REON _must_ be one, and TLEN must be zero to have the ZRE
+     * work at all...
+     */
+    zre_csr_pref |= (1<<B_ZRE_REON);
+    zre_csr_pref &= ~(1<<B_ZRE_TLEN);
+#ifdef B_ZRE_THOLD
+    if ( ztv_base != &ZTV_CTL ) {
+IOLEDSET(0x66);
+	/* ZIG has ability to disable THOLD line, but
+	 * we'll set it to '1' (normal, obey THOLD) for now.
+	 * Also, if using ZIG, the "interrupt acknowledge" bit,
+	 * which must "rest" at 0, becomes the "~softres" bit,
+	 * which must "rest" at 1.
+	 */
+	zre_csr_pref |= (1<<B_ZRE_THOLD) | (1<<B_ZRE_SOFTRES);
+    }
+#endif
+    *csr = zre_csr_pref;
+IOLEDSET(0x67);
+    for ( spinner = TOO_LONG ; spinner >= 0 ; spinner -= XBUS_READ ) {
+	if ( *csr & (1<<B_ZRE_TFULL) ) break;
+    }
+    if ( spinner < 0 ) {
+	U32 val = *csr;
+	U32 xtflip = ~xtot_bit & (1<<B_ZRE_XTOT);
+IOLEDSET(0x68);
+	st_dispmenu(zre_csr_menu,val^xtflip,0);
+        txt_str(2, 2, "TFULL bit is stuck on", ERROR_PAL);
+	holler(2, 3, "Therefore unable to initialize ZRE, CSR=0x",val);
+	st_dispmenu(zre_csr_menu,val^xtflip,1);
+	return -1;
+    }
+IOLEDSET(0x69);
+
+    return 0;
+}
+
+#define TEXMAP_PTB (0x4C000000)
+#define TEXMAP_KLUGE_BIT (0x00800000)
+
+static unsigned long tex_offset;
+
+#define TFL_NO_TEXTURE (1)
+
+static int texture_flags;
+int (*alt_texture)(int, const U32*, int);
+
+static int
+zre_text_pattern(smp)
+const struct menu_d *smp;
+{
+    int status;
+
+    if ( alt_texture ) status = alt_texture(0,0,n_elts(TEXRAM));
+    else status = ztv_texture_write(0,0,n_elts(TEXRAM));
+    if ( status >= 0 ) {
+	tex_offset = status;
+	status = 0;
+    }
+    return status;
+}
+
+
+int
+zre_csr(smp)
+const struct menu_d *smp;
+{
+    unsigned long new_csr;
+    U32 xtflip = ~xtot_bit & (1<<B_ZRE_XTOT);
+    zre_init();
+#define CSR_MSG "Current CSR value 0x"
+    txt_str((AN_VIS_COL-(sizeof(CSR_MSG)+8-1))/2, 1, CSR_MSG, MNORMAL_PAL);
+    txt_hexnum((AN_VIS_COL-(sizeof(CSR_MSG)+8-1))/2+sizeof(CSR_MSG)-1, 1, ZRE_CSR, 8, RJ_ZF, MNORMAL_PAL);
+#undef CSR_MSG
+    new_csr = DoOptions(zre_csr_menu,ZRE_CSR^xtflip,SW_EXTRA);
+    ZRE_CSR = zre_csr_pref = new_csr^xtflip;
+    return 0;
+}
+
+/*		zre_irq()
+ *	Called when an IRQ from the ZRE _seems_ to
+ *	have occured. We check whether this is so,
+ *	acknowledge the IRQ, and optionally swap
+ *	buffers. Actually, we only _ask_ for the
+ *	buffers to be swapped, as most of the time
+ *	the user would prefer to switch only during
+ *	blanking. The actual swap is usually performed
+ *	by ztv_irq().
+ */
+static volatile int zre_ints;
+static int non_zre, csr_log;
+static int no_auto_swap;
+static int cur_buf;
+
+static int frames_done;
+
+#define FDONE(x) (((x) & (1<<B_ZRE_FBUSY)) == 0)
+
+void zre_irq()
+{
+    VU32 *csr = &ZRE_CSR;
+
+    csr_log = *csr;
+    if ( ztv_base == &ZTV_CTL ) {
+	/* Non-ZIG Rev 2 ZRE */
+	if ( (*csr & (1<<B_ZRE_INTEN) ) == 0 ) return; /* Can't be us */ 
+	if ( !FDONE(*csr) ) {
+	    /* Not actually done, so this Interrupt is not really
+	     * for me.
+	     */
+	    ++non_zre;
+	    return;
+	}
+	/* ZTV IRQ is "ACKED" by setting and then clearing
+	 * the INTCLR bit in the CSR. This bit is SOFTRES
+	 * on a ZIG, so should not be messed with.
+	 */
+	*csr |= (1<<B_ZRE_INTCLR);
+	*csr &= ~(1<<B_ZRE_INTCLR);
+    }
+
+#ifdef ZIG
+    else if ( ztv_base == &ZIGTV_CTL ) {
+	/* ZIG has write-strobe INTACK, and we must
+	 * hit it and take the interrupt, as there
+	 * is no other way to get rid of it.
+	 */
+	ZIGZRE_INTACK = 0;
+    }
+#endif
+    *csr ^= (1<<B_ZRE_XLED);
+    if ( !no_auto_swap ) {
+	cur_buf = ztv_bufswap();
+	++frames_done;
+    }	
+    ++zre_ints;
+}
+
+unsigned int zre_frames()
+{
+    return frames_done;
+}
+
+#ifndef TSTART_OP
+#define TSTART_OP (6)
+#endif
+#ifndef TSTART_EP
+#define TSTART_EP (0x04000000)
+#endif
+#ifndef SCI_SHF
+#define SCI_SHF (29)
+#endif
+#ifndef FEND_OP
+#define FEND_OP (7)
+#endif
+
+#ifndef SCI_MASK
+#define SCI_MASK (7<<SCI_SHF)
+#endif
+
+int swap_and_wait(void);
+
+/*		zre_frame_end(swap_wait_flag)
+ *	Called to send the FRAME_END command and optionally
+ *	swap buffers when the frame has been done.
+ *	swap_wait_flag indicates how much we want done.
+ *	0 means just send FRAME_END.
+ *	1 means send FRAME_END and wait for FDONE, then swap.
+ *	>1 means wait for swap to actually take effect.
+ *
+ *	Returns 0 on success, -1 on timeout or abort
+ *
+ */
+#define INTERLOCKED_FEND (1)	/* Wait for TFULL to go away before sending FEND */
+int zre_frame_end(swap_it)
+int swap_it;
+{
+    VU32 *csr = &ZRE_CSR;
+    int prev_irqs,prev_swap;
+    unsigned long bufbit;
+    int spinner;
+    VU32 *stat = ztv_base;
+    VU32 *tbus;
+
+    bufbit = *stat & (1<<B_Z_CURBUF);
+
+    tbus = zre_xtot;
+#if TBUS_BASE
+    if ((*csr & (1<<B_ZRE_XTOT)) != xtot_bit ) tbus = (VU32*)TBUS_BASE;
+#endif
+
+    if ( (ztv_base != &ZTV_CTL)
+      || (*csr & (1<<B_ZRE_INTEN)) ) {
+	/* ZRE interrupts are enabled, either because
+	 * we want them to be or because we are on a ZIG rev1.
+	 * Tell the IRQ whether or not to
+	 * swap, then send FEND.
+	 */
+	prev_swap = no_auto_swap;
+	no_auto_swap = !swap_it;
+	prev_irqs = zre_ints;
+#if INTERLOCKED_FEND
+	for ( spinner = TOO_LONG ; spinner >= 0 ; spinner -= LOOP_TIME ) {
+	    if ( *csr & (1<<B_ZRE_TFULL) ) break; 
+	}
+	if ( spinner < 0 ) {
+	    holler(2, 2, "Long TFULL waiting to send FEND, CSR=0x",*csr);
+	    unstick();
+	}
+#endif
+	*tbus = (FEND_OP << SCI_SHF);
+	while ( prev_irqs == zre_ints ) {
+	    if ( (ctl_read_sw(SW_NEXT) & SW_NEXT) != 0 ) break;
+   	}
+	no_auto_swap = prev_swap;
+	if ( prev_irqs == zre_ints ) return -1;
+    } else {
+	/* We are going to be polling for
+	 * FDONE (~FBUSY)
+	 */
+#if INTERLOCKED_FEND
+	for ( spinner = TOO_LONG ; spinner >= 0 ; spinner -= LOOP_TIME ) {
+	    if ( *csr & (1<<B_ZRE_TFULL) ) break; 
+	}
+	if ( spinner < 0 ) {
+	    holler(2, 2, "Long TFULL waiting to send FEND, CSR=0x",*csr);
+	    unstick();
+	}
+#endif
+	*tbus = (FEND_OP << SCI_SHF);
+	for ( spinner = TOO_LONG*6 ; spinner >= 0 ; spinner -= LOOP_TIME ) {
+	    if ( FDONE(*csr) ) break; 
+	}
+	if ( spinner < 0 ) {
+	    holler(-1, AN_VIS_ROW/2, "zre_frame_end: FDONE HELD TOO LONG; CSR=0x", *csr);
+	    return -1;
+	}
+	/* Do we need to clear _IRQ_ to clear _FDONE_? */
+	if ( ztv_base == &ZTV_CTL ) {
+	    *csr |= (1<<B_ZRE_INTCLR);
+	    *csr &= ~(1<<B_ZRE_INTCLR);
+	}
+#ifdef ZIG
+	else {
+	    ZIGZRE_INTACK = 0;
+	}
+#endif
+	if ( swap_it ) cur_buf = ztv_bufswap();
+    }
+    if ( swap_it > 1 ) {
+	for ( spinner = 10 ; spinner >= 0 ; --spinner ) {
+	    if ( bufbit != (*stat & (1<<B_Z_CURBUF)) ) break; 
+	    prc_delay(1);
+	}
+	if ( spinner < 0 ) return -1;
+    }
+    return 0;
+}
+
+/*	The bulk of ZRE tests will be "playbacks" of canned
+ *	trap lists. We'll use a "list of lists", where the
+ *	test descriptor points to an array of pointers to
+ *	traps 
+ */
+struct zre_desc {
+    const struct menu_d	menu_desc;	/* _NOT_ a pointer */
+    const U32 * const *	trap_list;	/* Points to list of pointers to trap*/
+};
+
+/* Following bogosity is to help debug pipeline interlock failure
+ */
+#define PAUSE_OP (4)
+/* Following hack is to allow "inline texture loads" from RAMROM
+ * or pipeline
+ */
+#define TEXTURE_OP (5)
+
+/* ONE_* #defines are used as second parameter to send_poly, to
+ * indicate the extent of data to be sent: one trap, poly, or frame
+ */
+#define ONE_TRAP (0)
+#define ONE_POLY (1)
+#define ONE_FRAME (2)
+
+static const U32 *send_poly(const U32 *, int);
+
+static int zre_poly(smp)
+const struct menu_d *smp;
+{
+    VU32 *csr = &ZRE_CSR;
+    U32	old_csr,old_ztv;
+    int pidx,cidx;		/* "poly" and "Command" Indices */
+    int	new_trap,doit;		/* "state variables" */
+    const struct zre_desc *zp;
+    const U32 * const *plist,*clist;
+
+    zre_init();
+
+    zp = (const struct zre_desc *)smp;
+    plist = zp->trap_list;
+    txt_str(-1,AN_VIS_ROW-5,t_msg_action,MNORMAL_PAL);
+    txt_str(-1,AN_VIS_ROW-4,"to ship TRAPS to ZRE ",MNORMAL_PAL);
+    old_ztv = ztv_mod_latch(0);
+    ztv_mod_latch(1<<B_Z_XACC);
+    old_csr = *csr;
+    *csr = zre_csr_pref | (1<<B_ZRE_REON);
+    *csr &= ~(1<<B_ZRE_TLEN);
+    doit = 0;
+    while (1) {
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) doit = 1;
+	else {
+	    prc_delay(1);
+	    continue;
+	}
+	pidx = 0;
+	new_trap = 1;
+	txt_clr_str(2,4,"DONE ",MNORMAL_PAL);
+	cidx = 0;
+	if ( (clist = plist[pidx] ) == 0 ) break;
+	while (doit > 0) {
+	    if ( send_poly(clist, ONE_FRAME) == 0 ) {
+		/* Some sort of problem bail */
+		doit = -1;
+	    } else {
+		if ( (clist = plist[++pidx]) == 0 ) {
+		    /* End of poly list, send frame_end and
+		     * set flag for normal exit.
+		     */
+		    pidx = 0;	/* Reset for next time */
+		    zre_frame_end(3);
+		    doit = 0;
+		}
+	    }
+	}
+	if ( doit < 0 ) {
+	    txt_str(2,4,"Bailed",ERROR_PAL);
+	    doit = 0;
+	}
+    }
+    *csr = old_csr;
+    if ( (old_ztv & (1<<B_Z_XACC)) == 0 ) ztv_mod_latch(~(1<<B_Z_XACC));
+    return 0;
+}
+
+/*	First cut at the _very_ special trap that clears the screen
+ *	by sending odd combinations of ZCP, ZWE, FWE bits. These otherwise
+ *	pointless combinations trigger special VRAM commands when they
+ *	hit the ZTV.
+ */
+#define PPW_ZCP (0x40000)	/* Do Z comparison */
+#define PPW_ZWE (0x20000)	/* Write Z (if pix_Z < old_Z, or !ZCP ) */
+#define PPW_FWE (0x10000)	/* Write Pixel (if pix_Z < old_Z, or !ZCP ) */
+#define PPW_S2V (PPW_ZCP)	/* compare/no-write triggers SAM->VRAM */
+
+#if (0) /* HOST_BOARD == ASCLEAP */
+/* All ZIGs now have NEW_V2S, while all ZTV2's have old V2S.
+ * We are going to try to auto-kluge this.
+ */
+#define NEW_V2S (1)
+#else
+#define NEW_V2S (0)
+#endif
+
+#if NEW_V2S
+#define PPW_V2S (PPW_ZCP|PPW_ZWE) /* compare/no-F-write triggers VRAM->SAM */
+#else
+#define PPW_V2S (PPW_ZCP|PPW_FWE) /* compare/no-Z-write triggers VRAM->SAM */
+#endif
+#define ZIG_PPW_V2S (PPW_ZCP|PPW_ZWE) /* compare/no-F-write triggers VRAM->SAM */
+
+/*	The two-line trap that we use to clear the lines just above
+ *	the visible screen. These are copied by the VRAM hackery
+ *	in clr_traps (below) to every line on the visible screen.
+ */
+#define JOHN_MOORE_MEMORIAL_KLUGE (0)
+#if JOHN_MOORE_MEMORIAL_KLUGE
+/* Kluge to get around the second line of the screen not getting cleared.
+ * the trick is to move both the "reference lines" and the first lines
+ * to be cleared up by two, so the garbage line is not on the visible
+ * screen.
+ */
+#define CLR_TOP (VIS_V_PIX+2)
+#else
+#define CLR_TOP (VIS_V_PIX)
+#endif
+static const U32 init_trap[] = {
+    0|(CLR_TOP+1),	/* Trap PY 2 above "top of screen" */
+    0x04000000|(1),	/* Left Height. Need two lines */
+    0x08000000|(1),	/* Right Height. Need two lines */
+    0x0C000000|(0<<12),		/* Left X 0 */
+    0x10000000,			/* DLX = 0 (Vertical) */
+    0x14000000|((VIS_H_PIX-1)<<12),	/* Right X  (Need whole line) */
+    0x18000000,			/* DRX = 0 (vertical) */
+
+    0x50000000,		/* TEXMAP PTW, dull black TRAP */
+
+    /* Place background at Z = infinity */
+    0x78FFFFFF,
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+/* The real magic is in PIXOP_PPW */
+    0x7C0B0000,		/* No Z compare, but write Z and pixels */
+    0xCF000000,		/* TSTART with EP,SP,LL,LR */	
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+	
+static const U32 clr_traps[] = {
+	
+/* For (at least) debug purposes, we start with a 1-TRAP poly to
+ * be sure the controls are in a known state.
+ */
+/* First real "TRAP" fetches a line into the SAM of each (even/odd) VRAM */
+    0|(CLR_TOP+1),	/* Trap PY two above "top of screen" */
+    0x04000000|(0),	/* Left Height. Just need one line */
+    0x08000000|(0),	/* Right Height. Just need one line */
+    0x0C000000|(0<<12),	/* Left X 0 (irrelevant) */
+    0x10000000,		/* DLX = 0 (Vertical) */
+    0x14000000|(4<<12),	/* Right X 4 (Need 4 "pixels") */
+    0x18000000,		/* DRX = 0 (vertical) */
+
+    0x50000000,		/* TEXMAP PTW, dull black irrelevant TRAP */
+    TEXMAP_PTB|TEXMAP_KLUGE_BIT,	/* Force invalid texture */
+
+    /* Place background at Z = infinity, this is probably also irrelevant */
+    0x78FFFFFF,
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+/* The real magic is in PIXOP_PPW */
+    0x7C000000|PPW_V2S,
+    0xCF000000,		/* TSTART with EP,SP,LL,LR */
+
+/* Bulk of work done by second TRAP. We should only need to change
+ * preloads for left and right heights, plus PPW. Since controls
+ * (PPW) only change when the TSTART contains SP, we also need to
+ * have a valid PLY.
+ */
+    0|(CLR_TOP),	/* Trap PY one above "top of screen" */
+    0x04000000|(CLR_TOP-1),/* Left Height. Should do full screen */
+    0x08000000|(CLR_TOP-1),/* Right Height. Should do full screen */
+    0x0C000000|(0<<12),	/* Left X 0 (irrelevant) */
+    0x10000000,		/* DLX = 0 (Vertical) */
+    0x14000000|(1<<12),	/* Right X 1 (need 2 "pixels") */
+    0x18000000,		/* DRX = 0 (vertical) */
+
+    0x50000000,		/* TEXMAP PTW, dull black irrelevant TRAP */
+
+    0x7C000000|PPW_S2V,
+    0xCF000000,		/* TSTART with EP,SP,LL,LR */
+/* Finish up with last line. Again, We should only need to change
+ * preloads for left and right heights, plus PPW
+ */
+    0,			/* Trap PY at bottom of screen */
+    0x0C000000,		/* Left X 0 (irrelevant) */
+    0x10000000,		/* DLX = 0 (Vertical) */
+    0x14000000|(1<<12),	/* Right X 1 (Try 2 "pixels") */
+    0x18000000,		/* DRX = 0 (vertical) */
+
+    0x50000000,		/* TEXMAP PTW, dull black irrelevant TRAP */
+
+    0x7C000000,		/* PPW = 0 should produce invisible pixels */
+    0x04000000|(0),	/* Left Height. Just need one line */
+    0x08000000|(0),	/* Right Height. Just need one line */
+    0xCF000000,		/* TSTART with EP,SP,LL,LR */
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+static const U32 zig_clr_traps[] = {
+	
+/* For (at least) debug purposes, we start with a 1-TRAP poly to
+ * be sure the controls are in a known state.
+ */
+/* First real "TRAP" fetches a line into the SAM of each (even/odd) VRAM */
+    0|(CLR_TOP+1),	/* Trap PY two above "top of screen" */
+    0x04000000|(0),	/* Left Height. Just need one line */
+    0x08000000|(0),	/* Right Height. Just need one line */
+    0x0C000000|(0<<12),	/* Left X 0 (irrelevant) */
+    0x10000000,		/* DLX = 0 (Vertical) */
+    0x14000000|(4<<12),	/* Right X 4 (Need 4 "pixels") */
+    0x18000000,		/* DRX = 0 (vertical) */
+
+    0x50000000,		/* TEXMAP PTW, dull black irrelevant TRAP */
+    TEXMAP_PTB|TEXMAP_KLUGE_BIT,	/* Force invalid texture */
+
+    /* Place background at Z = infinity, this is probably also irrelevant */
+    0x78FFFFFF,
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+/* The real magic is in PIXOP_PPW */
+    0x7C000000|ZIG_PPW_V2S,
+    0xCF000000,		/* TSTART with EP,SP,LL,LR */
+
+/* Bulk of work done by second TRAP. We should only need to change
+ * preloads for left and right heights, plus PPW. Since controls
+ * (PPW) only change when the TSTART contains SP, we also need to
+ * have a valid PLY.
+ */
+    0|(CLR_TOP),	/* Trap PY one above "top of screen" */
+    0x04000000|(CLR_TOP-1),/* Left Height. Should do full screen */
+    0x08000000|(CLR_TOP-1),/* Right Height. Should do full screen */
+    0x0C000000|(0<<12),	/* Left X 0 (irrelevant) */
+    0x10000000,		/* DLX = 0 (Vertical) */
+    0x14000000|(1<<12),	/* Right X 1 (need 2 "pixels") */
+    0x18000000,		/* DRX = 0 (vertical) */
+
+    0x50000000,		/* TEXMAP PTW, dull black irrelevant TRAP */
+
+    0x7C000000|PPW_S2V,
+    0xCF000000,		/* TSTART with EP,SP,LL,LR */
+/* Finish up with last line. Again, We should only need to change
+ * preloads for left and right heights, plus PPW
+ */
+    0,			/* Trap PY at bottom of screen */
+    0x0C000000,		/* Left X 0 (irrelevant) */
+    0x10000000,		/* DLX = 0 (Vertical) */
+    0x14000000|(1<<12),	/* Right X 1 (Try 2 "pixels") */
+    0x18000000,		/* DRX = 0 (vertical) */
+
+    0x50000000,		/* TEXMAP PTW, dull black irrelevant TRAP */
+
+    0x7C000000,		/* PPW = 0 should produce invisible pixels */
+    0x04000000|(0),	/* Left Height. Just need one line */
+    0x08000000|(0),	/* Right Height. Just need one line */
+    0xCF000000,		/* TSTART with EP,SP,LL,LR */
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+/*	A few-line version of the special VRAM traps that we use to clear
+ *	the screen.
+ */
+static const U32 mini_clr_traps[] = {
+	
+/* First real "TRAP" fetches a line into the SAM of each (even/odd) VRAM */
+    0|(CLR_TOP+1),	/* Trap PY two above "top of screen" */
+    0x04000000|(0),	/* Left Height. Just need one lines */
+    0x08000000|(0),	/* Right Height. Just need one lines */
+    0x0C000000|(0<<12),	/* Left X 0 (irrelevant) */
+    0x10000000,		/* DLX = 0 (Vertical) */
+    0x14000000|(4<<12),	/* Right X 4 (Need 4 "pixels") */
+    0x18000000,		/* DRX = 0 (vertical) */
+
+    0x50000000,		/* TEXMAP PTW, dull black irrelevant TRAP */
+
+    /* Place background at Z = infinity, this is probably also irrelevant */
+    0x78FFFFFF,
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+/* The real magic is in PIXOP_PPW */
+    0x7C000000|PPW_V2S,
+    0xCF000000,		/* TSTART with EP,SP,LL,LR */
+
+/* Bulk of work done by second TRAP. We should only need to change
+ * preloads for left and right heights, plus PPW. Since controls
+ * (PPW) only change when the TSTART contains SP, we also need to
+ * have a valid PLY.
+ */
+    0|(VIS_V_PIX),	/* Trap PY one above top of screen */
+    0x04000000|(1),/* Left Height. Should do one or two lines screen */
+    0x08000000|(1),/* Right Height. Should do one or two lines screen */
+    0x0C000000|(0<<12),	/* Left X 0 (irrelevant) */
+    0x10000000,		/* DLX = 0 (Vertical) */
+    0x14000000|(1<<12),	/* Right X 1 (Try 2 "pixel"s) */
+    0x18000000,		/* DRX = 0 (vertical) */
+
+    0x50000000,		/* TEXMAP PTW, dull black irrelevant TRAP */
+
+    0x7C000000|PPW_S2V,
+    0xCF000000,		/* TSTART with EP,SP,LL,LR */
+/* Place "ending" line just below the top visible line, to aid
+ * in video triggering.
+ */
+    VIS_V_PIX-2,	/* Trap PY near top screen */
+    0x0C000000,		/* Left X 0 (irrelevant) */
+    0x10000000,		/* DLX = 0 (Vertical) */
+    0x14000000|(1<<12),	/* Right X 1 (Try 2 "pixels") */
+    0x18000000,		/* DRX = 0 (vertical) */
+
+    0x50000000,		/* TEXMAP PTW, dull black irrelevant TRAP */
+
+    0x7C000000,		/* PPW = 0 should produce invisible pixels */
+    0x04000000|(0),	/* Left Height. Just need one line */
+    0x08000000|(0),	/* Right Height. Just need one line */
+    0xCF000000,		/* TSTART with EP,SP,LL,LR */
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+#if SIMPLE_TESTS
+STATIC const U32 trap4a[] = {
+    0x00000100,		/* TRAP PY 100 */
+    0x04000008,		/* TRAP PLH 8 */
+    0x08000008,		/* TRAP PRH 8 */
+    0x0C010000,		/* TRAP PLX (16 pixels in from left) */
+    0x10000000,		/* PDLX Vertical */
+    0x14018000,		/* PRX 8 pixels wide */
+    0x18000000,		/* PDRX Vertical */
+/* PERC is probably irrelevant */
+    0x20200000,
+    0x21100000,
+    0x22100000,
+    0x23100000,
+    0x24000000,
+    0x25000000,
+    0x26300000,
+    0x27200000,
+    0x28300000,
+
+    0x29F00000,
+    0x2AF00000,
+    0x2BF00000,
+    0x2C000000,
+    0x2D200000,
+    0x2E000000,
+    0x2FF00000,
+#if (0)
+    0x480003E0,			/* Documented "TEXMAP PTW" */ 
+#endif
+    0x500003FF,			/* Real "TEXMAP PTW" Cyan */
+
+    0x60000000,
+    0x6100003F,
+    0x62000000,
+    0x63000000,
+    0x64000000,
+    0x6500003F,
+    0x66000000,
+    0x67000000,
+
+    0x68000000,
+    0x6900003F,
+    0x6A000000,
+    0x6B000000,
+    0x6C000000,
+    0x6D000000,
+    0x6E00003F,
+    0x6F00003F,
+
+    0x70000000,
+    0x71000000,
+    0x7200003F,
+    0x7300003F,
+    0x74000000,
+    0x75000000,
+    0x7600003F,
+    0x7700003F,
+
+    0x78200000,
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+    0x7C070000,		/* Flat, do Z compare */
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+STATIC const U32 trap4b[] = {
+    0x00000100,		/* TRAP PY 0x100 */
+    0x04000008,		/* TRAP PLH 8 */
+    0x08000008,		/* TRAP PRH 8 */
+    0x0C011000,		/* TRAP PLX (17 pixels in from left) */
+    0x10000000,		/* Vertical */
+    0x14019000,		/* 8 pixels wide */
+    0x18000000,		/* Vertical */
+    0x50007C1F,		/* Real "TEXMAP PTW" Magenta */
+
+    0x60000000,
+    0x6100003F,
+    0x62000000,
+    0x63000000,
+    0x64000000,
+    0x6500003F,
+    0x66000000,
+    0x67000000,
+
+    0x68000000,
+    0x6900003F,
+    0x6A000000,
+    0x6B000000,
+    0x6C000000,
+    0x6D000000,
+    0x6E00003F,
+    0x6F00003F,
+
+    0x70000000,
+    0x71000000,
+    0x7200003F,
+    0x7300003F,
+    0x74000000,
+    0x75000000,
+    0x7600003F,
+    0x7700003F,
+
+    0x78000000,		/* Z = 0 (in your face) */
+
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+    0x7C030000,		/* Flat, no Z compare */
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+STATIC const U32 trap4c[] = {
+    0x00000100,		/* TRAP PY 0x100 */
+    0x04000008,		/* TRAP PLH 8 */
+    0x08000008,		/* TRAP PRH 8 */
+    0x0C00f000,		/* TRAP PLX (15 pixels in from left) */
+    0x10000000,		/* Vertical */
+    0x14017000,		/* 8 pixels wide */
+    0x18000000,		/* Vertical */
+    0x50007C1F,		/* Real "TEXMAP PTW" Magenta */
+
+    0x60000000,
+    0x6100003F,
+    0x62000000,
+    0x63000000,
+    0x64000000,
+    0x6500003F,
+    0x66000000,
+    0x67000000,
+
+    0x68000000,
+    0x6900003F,
+    0x6A000000,
+    0x6B000000,
+    0x6C000000,
+    0x6D000000,
+    0x6E00003F,
+    0x6F00003F,
+
+    0x70000000,
+    0x71000000,
+    0x7200003F,
+    0x7300003F,
+    0x74000000,
+    0x75000000,
+    0x7600003F,
+    0x7700003F,
+
+    0x78000000,		/* Z = 0 (in your face) */
+
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+    0x7C030000,		/* Flat, no Z compare */
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+#endif
+
+/*	Ship a (trap,poly,frame) to the ZRE. This routine takes a pointer to
+ *	an array of U32's containing TRAP commands and sends them
+ *	to the ZRE, handshaking via the TFULL bit in the ZRE csr.
+ *	Upon encountering a "Frame End" command, returns pointing
+ *	to this command. Most uses will call with the recently added
+ *	parameter <how_much> equal to ONE_FRAME, although the FEND
+ *	command will not actually be sent. The other possibilities
+ *	are ONE_TRAP (which sends commands up to and including a TSTART
+ *	command) and ONE_POLY (which can send multiple TSTART's, but
+ *	stops after sending a TSTART with the EP bit set.)
+ */
+static U32 display_offset;
+
+static int mot_text( int offset, const U32 *src, int cnt)
+{
+    return ztv_texture_write(offset|1, src, cnt<<1);
+}
+
+static int sel_text( const struct menu_d * smp ) {
+    const struct zre_desc *zp;
+    zp = (const struct zre_desc *)smp;
+    if ( zp->trap_list ) alt_texture = mot_text;
+    else alt_texture = 0;
+    return 0;
+}
+
+static const U32 *send_poly(const U32 *src, int how_much)
+{
+    U32 trap_cmd;
+    VU32 *csr = &ZRE_CSR, *tbus;
+    int trap_op,new_trap;
+    int spinner;
+
+    /* for each trap in the list, poke all the commands
+     * to the XBUS->TBUS side door. A list of commands
+     * ends with a "Frame End" command.
+     */
+
+    tbus = zre_xtot;
+#if TBUS_BASE
+    if ((*csr & (1<<B_ZRE_XTOT)) != xtot_bit) tbus = (VU32*)TBUS_BASE;
+#endif
+
+    new_trap = 1;
+    while (1) {
+	if ( new_trap )
+	{
+	    if ((*csr & (1<<B_ZRE_XTOT)) == xtot_bit ) {
+		/* Make sure previous trap has gotten fully into
+		 * the pipe before starting to load next one.
+		 * We only do this if stuffing commands via XTOT
+		 */
+		for (spinner = TOO_LONG ; spinner >= 0 ; spinner -= LOOP_TIME) {
+		    if ( *csr & (1<<B_ZRE_TFULL) ) break;
+		}
+		if ( spinner < 0 ) {
+		    U32 val = *csr;
+		    U32 xtflip = ~xtot_bit & (1<<B_ZRE_XTOT);
+		    st_dispmenu(zre_csr_menu,val^xtflip,0);
+		    holler(2, 2, "send_poly: TFULL HELD TOO LONG; CSR=0x",val);
+		    st_dispmenu(zre_csr_menu,val^xtflip,1);
+		    if ( *csr & (1<<B_ZRE_FBUSY) ) unstick();
+		    val = *csr;
+		    if ( (val & (1<<B_ZRE_TFULL)) == 0 ) {
+			st_dispmenu(zre_csr_menu,val^xtflip,0);
+			holler(2, 2, "Unstick failed; CSR=0x",val);
+			st_dispmenu(zre_csr_menu,val^xtflip,1);
+			zre_init();
+			return 0;
+		    }
+
+		}
+	    }
+	    new_trap = 0;
+	}
+	trap_cmd = *src++;
+	/* check "command" and "plreg" for two special cases which may need
+	 * to be offset. these are TRAP_PY, for possible offset into second
+	 * display, and TEXMAP_PTB, for possible offset into the local texture
+	 * RAM on ZRE20, version 1.
+	 */
+	trap_op = trap_cmd >> 24;
+	if ( trap_op == TRAP_PY ) trap_cmd += display_offset;
+	else if ( trap_op == (TEXMAP_PTB>>24) ) {
+	    /* At one time, this "if" was occupied by a really
+	     * serious kluge to allow "dagwood" to play both
+	     * movies that have "zero-based" textures, and those that
+	     * have been-pre-kluged into LOCTEX ram.
+	     * This has been co-opted to allow test of "Movie" textures.
+	     * The previous clearing of the TEXMAP_KLUGE_BIT has
+	     * been deleted to allow specific non-textured test
+	     * patterns to specify an offset that _used_ to mean
+	     * "ZRE Local texture" and _now_ means "Yo, TEXEDO, pay
+	     * no attention to the texture address. 
+	     */
+	    trap_cmd += (tex_offset>>1);
+	}
+	trap_op = trap_cmd >> SCI_SHF;
+	if ( trap_op == TSTART_OP ) {
+	    *tbus = trap_cmd;
+	    new_trap = 1;
+	    if ( how_much == ONE_FRAME ) continue;
+	    if ( how_much == ONE_TRAP ) return src;
+	    /* else presume how_much == ONE_POLY ) */
+	    if ( trap_cmd & TSTART_EP ) return src;
+	    continue;
+	} else if ( trap_op == FEND_OP ) return --src;
+	else if ( trap_op == PAUSE_OP ) {
+	    if ((*csr & (1<<B_ZRE_XTOT)) == xtot_bit ) {
+		int cnt;
+		*csr &= ~(1<<B_ZRE_XLED);
+		for ( cnt = trap_cmd & 0xFFFFFF ; cnt > 0 ; --cnt ) {;}
+		*csr |= (1<<B_ZRE_XLED);
+	    }
+	} else if ( trap_op == TEXTURE_OP ) {
+	    long cnt;
+	    U32 data;
+	    VU32 *dp;
+	    const U32 *tsrc;	/* points to texture data */
+	    U32 offset;		/* into texture RAM */
+	    cnt = trap_cmd & ((1<<(SCI_SHF-1))-1);
+	    offset = (*src++ & 0x7FFFFF);
+	    tsrc = src;
+	    /* skip over in-line texture */
+	    src += cnt;
+	    if ( !(texture_flags & TFL_NO_TEXTURE) ) {
+	    	/* texture not (yet) suppressed */
+		/* It would be exceptionally rude to steal the
+		 * Texture RAM while it was still painting.
+		 */
+		U32 idle_state;
+		if ( ztv_base == &ZTV_CTL ) idle_state = 0;
+		else idle_state = (1<<B_ZRE_IDLE);
+		for ( spinner = TOO_LONG ; spinner >= 0 ; spinner -= LOOP_TIME ){
+		    if ( (*csr & (1<<B_ZRE_IDLE)) == idle_state ) break;
+		}
+		if ( spinner < 0 ) {
+		    holler(2, 2, "IDLE NOT HAPPENING; CSR=0x",*csr);
+		    return 0;
+		}
+		if ( trap_cmd & (1<<(SCI_SHF-1)) ) {
+		    /* Really a palette write */
+		    dp = (VU32*)ZRE_COLRAM_ADDR+offset;
+		    *csr |= (1<<B_ZRE_TLEN);	/* _DIS_able Texture pipe */
+		    while ( cnt-- ) {
+			data = *tsrc++;
+			*dp++ = data>>16;
+			*dp++ = data;
+		    }
+		    *csr &= ~(1<<B_ZRE_TLEN);	/* _EN_able Texture pipe */
+		}
+		else if ( alt_texture ) tex_offset = alt_texture(offset,tsrc,cnt);
+		else tex_offset = ztv_texture_write(offset,tsrc,cnt<<1);
+	    }
+	} else {
+	    *tbus = trap_cmd;
+	}
+    }
+    return --src;
+}
+
+static const U32 *bkg;
+
+int zre_bkg()
+{
+    U32 save_txof;
+    int status;
+
+    if ( bkg == 0 ) {
+	if ( ztv_base == &ZTV_CTL ) bkg = clr_traps;
+	else bkg = zig_clr_traps;
+    }
+
+    /* take no chances with re-mapping */
+    save_txof = tex_offset;
+    tex_offset = 0;
+
+    status = (send_poly(bkg, ONE_FRAME) == 0);
+    tex_offset = save_txof;
+    return status;
+}
+
+/*	As a preliminary to checking frames via CRC, find out
+ *	how many are in a given movie; If the "movie" is in RAMROM,
+ *	stop checking if we run off the end of RAMROM, and return -1.
+ */
+#define MAX_FRAMES (150)
+#ifndef HOST_BOARD
+/* backwards compatible hack for ascleap version, which pre-dates
+ * HOST_BOARD #defines
+ */
+#  define RR_MOVIE (XBUS_SLOT0)	/* on ASCLEAP, its a RR board on XBUS slot 0 */
+#else
+#if HOST_BOARD == LCR3K
+# define RR_MOVIE (0xBFC40000)	/* on LCR3K its in main memory */
+# if !defined(RR_MOVIE_MAX)
+#  define RR_MOVIE_MAX (0x100000-0x7000) /* only 1 MB (less stub size) on an LCR3K host */
+# endif
+#else
+# if HOST_BOARD == HCR4K
+#  define RR_MOVIE (PROM_BASE+0x370000)	/* on HCR4K, its 9ff70000, just below stub */
+# else
+#  define RR_MOVIE (XBUS_SLOT0)	/* on ASCLEAP, its a RR board on XBUS slot 0 */
+# endif /* HOST_BOARD == HCR4K */
+#endif /* HOST_BOARD == LCR3K */
+#endif /* defined (HOST_BOARD) */
+#if !defined(RR_MOVIE_MAX)
+# define RR_MOVIE_MAX (0x200000) /* 2 MB on an ASCLEAP or HCR4K host */
+#endif
+
+STATIC int count_frames(const U32 *cp, int *tdata, int *texdata, int *paldata)
+{
+    int frames;
+    U32 *rrend;
+    U32 cmd,fend,mend,dcnt,tcnt,pcnt;
+    frames = 0;
+    tcnt = dcnt = pcnt = 0;
+    fend = (FEND_OP << SCI_SHF);
+    mend = fend | 0xE0F;
+    rrend = ((U32 *)RR_MOVIE) + (RR_MOVIE_MAX/sizeof(U32));
+
+    if ( cp < (U32*)RR_MOVIE || cp > rrend ) rrend = 0;
+    do {
+	cmd = *cp++;
+	if ( (cmd&SCI_MASK) == (TEXTURE_OP<<SCI_SHF)) {
+	    /* Either Texture or Palette data */
+	    U32 cnt;
+
+	    cnt = (cmd & ((1<<(SCI_SHF-1))-1))+1; 
+	    cp += cnt;
+	    if ( cmd & (1<<(SCI_SHF-1)) ) pcnt += cnt;
+	    else tcnt += cnt;
+	} else {
+	    if ( (cmd&SCI_MASK) == fend ) ++frames;
+	    ++dcnt;
+	}
+	if ( cp >= rrend ) {
+	    frames = 0;
+	    break;
+	}
+    } while ( cmd != mend );
+    if ( tdata ) *tdata = dcnt-1;
+    if ( texdata ) *texdata = tcnt;
+    if ( paldata ) *paldata = pcnt;
+    return --frames;
+}
+
+STATIC const U32 * find_frame(const U32 *cp, int wanted, int *traps, int *polys)
+{
+    int frames;
+    U32 *rrend;
+    const U32 *found;
+    U32 cmd,fend,mend,tcnt,pcnt;
+    frames = 0;
+    fend = (FEND_OP << SCI_SHF);
+    mend = fend | 0xE0F;
+    rrend = ((U32 *)RR_MOVIE) + (RR_MOVIE_MAX/sizeof(U32));
+
+    if ( cp < (U32*)RR_MOVIE || cp > rrend ) rrend = 0;
+    found = 0;
+    tcnt = pcnt = 0;
+    if ( wanted == 0 ) found = cp;
+    do {
+	cmd = *cp++;
+	if ( (cmd&SCI_MASK) == (TEXTURE_OP<<SCI_SHF)) {
+	    cp += (cmd & ((1<<(SCI_SHF-1))-1))+1;
+	} else {
+	    if ( (cmd&SCI_MASK) == fend ) {
+		/* end of frame, exit if we just counted
+		 * traps in desired frame, else clear trap count for
+		 * next frame. Then, check if the upcoming frame is
+		 * the one we want.
+		 */
+		++frames;
+		if ( found ) break;
+		tcnt = pcnt = 0;
+		if ( frames == wanted ) found = cp;
+	    }
+	    else if ( (cmd&SCI_MASK) == (TSTART_OP<<SCI_SHF) ) {
+		++tcnt;
+		if ( cmd & TSTART_EP ) ++pcnt;
+	    }
+	}
+	if ( cp == rrend ) {
+	    frames = -1;
+	    break;
+	}
+    } while ( cmd != mend );
+    if ( traps ) *traps = tcnt;
+    if ( polys ) *polys = pcnt;
+    return found;
+}
+
+static U32 frame_crc[MAX_FRAMES];
+static int frame_pass[MAX_FRAMES];
+static const char * const passchar[] = { " ", ".", ":", "|", " " };
+
+/*	Derived from zre_poly(), the *movie routines play a series
+ *	of "frames", each ended by a "frame end" command, but
+ *	recognize the "reel end" by a "frame end" with 0xE0F in the
+ *	otherwise unused "parameter". They use the VRAM clear between
+ *	frames.
+ */
+
+/*		swap_and_wait()
+ *	Swaps buffers and waits for actual swap to take
+ *	effect. This routine will "complain" via text messages
+ *	if it encounters problems, and will return -1 if
+ *	it cannot swap. Else returns 0. Not recommended for
+ *	casual use, but rather for diagnostics, particularly
+ *	design diagnostics.
+ */
+int swap_and_wait()
+{
+    unsigned long bufbit;
+    int spinner,cur_buf;
+    VU32 *stat = ztv_base;
+
+    bufbit = *stat & (1<<B_Z_CURBUF);
+    cur_buf = ztv_bufswap();
+    if ( cur_buf < 0 ) {
+	txt_str(2,1,"Unexpected Buffer State",ERROR_PAL);
+    }
+    for ( spinner = TOO_LONG ; spinner >= 0 ; spinner -= XBUS_READ ) {
+	if ( bufbit != (*stat & (1<<B_Z_CURBUF)) ) break; 
+    }
+    if ( spinner < 0 ) {
+	holler(2, 2, "Buffer Swap Failure; ZTV_STAT=0x",*stat);
+	return -1;
+    }
+    return 0;
+}
+
+#define RT_HALF (VIS_H_PIX>>1)
+#define TOP_HALF (TOT_V_PIX>>1)
+
+#define BY_FRAME (1)
+#define BY_POLY  (2)
+#define BY_TRAP  (3)
+
+static int zre_movie(smp)
+const struct menu_d *smp;
+{
+    VU32 *csr = &ZRE_CSR;
+    U32	old_csr,old_ztv;
+    int	new_trap,doit;		/* "state variables" */
+    int slides;			/* != 0 if we want to hit the button for each */
+    int swap_it;		/* != 0 if we want to hit the button for each */
+    int frames;
+    const struct zre_desc *zp;
+    const U32 * clist;
+    unsigned long bufbit;
+    int frame,trapno,traps,polys;
+    int crc_it = 1;
+    int tdata_cnt, texdata_cnt, pdata_cnt;
+    int slowly;
+    int bottom = AN_VIS_ROW-4;
+
+    zre_init();
+    zp = (const struct zre_desc *)smp;
+    slides = zp->menu_desc.mn_label[7] == 'S';
+    if ( zp->menu_desc.mn_label[7] == 'T' ) slides = 2;	/* By traps */
+    swap_it = zp->menu_desc.mn_label[7] != 'N'; 
+    crc_it = zp->menu_desc.mn_label[7] == 'C';
+    slowly = zp->menu_desc.mn_label[0] == 'S'; 
+    trapno = traps = 0;
+    if ( slides ) {
+	bottom = st_insn(bottom,"For each frame",t_msg_action,INSTR_PAL);
+    } else {
+	bottom = st_insn(bottom,"To play movie continuously",t_msg_actionh,INSTR_PAL);
+	bottom = st_insn(bottom,"To play movie once",t_msg_action,INSTR_PAL);
+    }
+    texture_flags &= ~(TFL_NO_TEXTURE);	/* allow one pass of texture load */
+    old_ztv = ztv_mod_latch(0);
+    bufbit = *ztv_base & (1<<B_Z_CURBUF);
+
+    bm_rect(0,TOT_V_PIX-1,TOT_H_PIX-1,TOP_HALF+CLR_TOP+2,
+     bufbit ? RED_MSK|GRN_MSK : RED_MSK|BLU_MSK ,0);
+
+    if ( swap_and_wait() ) return 1;
+
+    bm_rect(0,TOT_V_PIX-1,TOT_H_PIX-1,(TOT_V_PIX>>1)+CLR_TOP+2,
+     bufbit ? RED_MSK|GRN_MSK : RED_MSK|BLU_MSK ,0);
+
+    if ( swap_and_wait() ) return 1;
+    ztv_mod_latch(1<<B_Z_XACC);
+    old_csr = *csr;
+    *csr = zre_csr_pref |= (1<<B_ZRE_REON);
+    *csr &= ~(1<<B_ZRE_TLEN);
+    doit = 1;
+    clist = (const U32 * const) zp->trap_list;
+    txt_str(3,3,"count_frames, clist=0x", MNORMAL_PAL);
+    txt_chexnum((U32)clist, 8, RJ_ZF, MNORMAL_PAL);
+    txt_str(3,4,"RR_MOVIE = 0x", MNORMAL_PAL);
+    txt_chexnum(RR_MOVIE, 8, RJ_ZF, MNORMAL_PAL);
+    frames=count_frames(clist, &tdata_cnt, &texdata_cnt, &pdata_cnt);
+    if ( frames <= 0 ) {
+	/* not a valid movie */
+	holler(2, 2, "Not a valid movie at 0x",(U32)clist);
+	return -1;
+    }
+    txt_decnum(3,3,frames,6,LJ_NF,MNORMAL_PAL);
+    txt_cstr(" Frames",MNORMAL_PAL);
+    txt_decnum(3,4,tdata_cnt,6,LJ_NF,MNORMAL_PAL);
+    txt_cstr(" words of TBUS data",MNORMAL_PAL);
+    txt_decnum(3,5,texdata_cnt,6,LJ_NF,MNORMAL_PAL);
+    txt_cstr(" words of texture data",MNORMAL_PAL);
+    if ( pdata_cnt ) {
+	txt_decnum(3,6,pdata_cnt,6,LJ_NF,MNORMAL_PAL);
+	txt_cstr(" words of palette data",MNORMAL_PAL);
+    }
+    if ( crc_it ) memset(frame_pass,0,sizeof(frame_pass));
+    frame = 0;
+    while (1) {
+	U32 bufbit;
+	U32 ctls;
+	ctls = ctl_read_sw(SW_NEXT|SW_ACTION|JOY_BITS);
+	if ( ctls & SW_NEXT ) break;
+	if ( ctls & SW_ACTION ) { traps = 0; doit = 1; }
+	if ( slides && (ctls & (J_UP|J_DOWN)) ) {
+	    doit = 1;
+	    if ( ctls & J_DOWN ) {
+		frame -= 2;
+	    }
+	    clist = (const U32 * const) zp->trap_list;
+	    clist = find_frame(clist,frame,&traps,&polys);
+	    txt_str(3, 6, "Frame ",MNORMAL_PAL);
+	    txt_cdecnum(frame, 8, LJ_NF, MNORMAL_PAL);
+	    txt_cstr(" has ",MNORMAL_PAL);
+	    txt_cdecnum(traps, 8, LJ_NF, MNORMAL_PAL);
+	    txt_cstr(" Traps", MNORMAL_PAL);
+	    trapno = 0;
+	    if ( clist == 0 ) break;
+	}
+	if ( slides && (ctls & J_RIGHT) ) doit = 1;
+	if ( !doit ) {
+	    prc_delay(1);
+	    continue;
+	}
+	new_trap = 1;
+	if ( clist == (const U32 * const) zp->trap_list ) {
+	    if ( send_poly(init_trap, ONE_FRAME) == 0 ) break;
+	    frame = 0;
+	} else if ( traps == 0 ) ++frame;
+	if ( crc_it ) {
+	    txt_str((frame&3)*10+2,(frame>>2)+4,"*",MNORMAL_PAL);
+	    if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	}
+	if ( traps == 0 ) {
+	    if ( zre_bkg() ) break;
+	}
+	else if ( trapno == 0 ) {
+	    if ( swap_and_wait() ) return 1;
+	    if ( zre_bkg() ) break;
+	}
+	if ( traps == 0 ) {
+	    /* normal mode, send a whole frame */
+	    clist = send_poly(clist, ONE_FRAME);
+	    if ( clist == 0 ) return 1;
+	    if ( crc_it ) {
+		txt_str((frame&3)*10+2,(frame>>2)+4,"**",MNORMAL_PAL);
+	    }
+	    /* End of poly list, send frame_end and
+	     * set flag for normal exit
+	     */
+	    if ( slowly ) prc_delay(10);
+	    if ( zre_frame_end(0) < 0 ) break;
+	    if ( crc_it ) {
+		txt_str((frame&3)*10+2,(frame>>2)+4,"***",MNORMAL_PAL);
+		if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	    }
+	} else {
+	    /* sending one trap at a time, we need to switch
+	     * back to the buffer we are currently viewing, so we
+	     * draw all traps in it.
+	     */
+	    if ( trapno != 0 && swap_and_wait() ) return 1;
+	    clist = send_poly(clist, ONE_TRAP);
+	    if ( clist == 0 ) return 1;
+	    trapno += 1;
+	    /* make each trap into a "frame", so we can see it, then
+	     * swap back so all traps accumulate in a single image.
+	     */
+	    if ( zre_frame_end(3) < 0 ) break;
+	    txt_decnum(3, 7, trapno, 8, LJ_NF, MNORMAL_PAL);
+	    txt_cstr(" done", MNORMAL_PAL);
+	    if ( (*clist >> SCI_SHF) == FEND_OP ) {
+		/* reached end of this frame */
+		clist = (const U32 * const) zp->trap_list;
+		clist = find_frame(clist,frame,&traps,&polys);
+		txt_str(3, 6, "Frame ",MNORMAL_PAL);
+		txt_cdecnum(frame, 8, LJ_NF, MNORMAL_PAL);
+		txt_cstr(" has ",MNORMAL_PAL);
+		txt_cdecnum(traps, 8, LJ_NF, MNORMAL_PAL);
+		txt_cstr(" Traps", MNORMAL_PAL);
+		trapno = 0;
+		if ( clist == 0 ) break;
+	    }
+	    txt_decnum(-1,2,frame,4,RJ_BF,MNORMAL_PAL);
+	    doit = 0;
+	    continue;
+	}
+	bufbit = *ztv_base & (1<<B_Z_CURBUF);
+
+	if ( crc_it ) {
+	    /* we want to check the frame by CRC'ing the
+	     * frame buffer.
+	     */
+	    int pal;
+	    U32 crc_val;
+	    U32 *buff = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+
+	    ztv_mod_latch(~(1<<B_Z_XACC));
+	    ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+	    if ( bufbit ) crc_val=hi_crc(0,buff,VIS_V_PIX*TOT_H_PIX);
+	    else crc_val=lo_crc(0,buff,VIS_V_PIX*TOT_H_PIX);
+	    ztv_mod_latch(1<<B_Z_XACC);
+	    pal = MNORMAL_PAL;
+	    if ( frame < MAX_FRAMES ) {
+		if ( frame_crc[frame] != crc_val ) {
+		    /* we seem do have a difference of opinion */
+		    if ( frame_pass[frame] > 3 ) {
+			/* We have seem the stored value at least
+			 * four times, so we consider it "golden"
+			 */
+			doit = 0;
+			pal = ERROR_PAL;
+		    } else {
+			frame_crc[frame] = crc_val;
+			frame_pass[frame] = 0;
+		    }
+		} else if ( ++frame_pass[frame] > 3 ) pal = MHILITE_PAL; 
+	    }
+	    txt_hexnum((frame&3)*10+2,(frame>>2)+4,crc_val,8,RJ_ZF,pal);
+	    txt_cstr(passchar[(frame_pass[frame] > 3 ? 4 : frame_pass[frame])],
+	      MNORMAL_PAL);
+	    if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	}
+	if (swap_it)
+	{
+		if ( swap_and_wait() ) return 1;
+	}
+	if ( (*clist++ & 0xFFFFFF) == 0xE0F || (*clist >> SCI_SHF) == FEND_OP) {
+	    /* Reset Pointer for next pass */
+	    clist = (const U32 * const) zp->trap_list;
+	    if ( !crc_it && (ctl_read_sw(0) & SW_ACTION) == 0 ) doit = 0;
+	    if ( !slides )
+	    {
+		/* skip texture on 2nd and subs. */
+		texture_flags |= TFL_NO_TEXTURE;;
+	    }
+	}
+	if ( slides ) {
+	    U32 zctl = ztv_mod_latch(0);
+	    doit = 0;
+
+	    txt_str(3,2," Frame: ",MNORMAL_PAL);
+	    txt_cdecnum(frame,4,RJ_BF,MNORMAL_PAL);
+#ifdef B_Z_OVLY_BUF
+	    txt_cstr(" Buf: ",MNORMAL_PAL);
+	    txt_chexnum((zctl>>B_Z_BUFSEL)&1,1,RJ_ZF,MNORMAL_PAL);
+	    txt_cstr(", Disp: ",MNORMAL_PAL);
+	    txt_chexnum((zctl>>B_Z_DISP_SEL)&1,1,RJ_ZF,MNORMAL_PAL);
+	    txt_cstr(", Ovly: ",MNORMAL_PAL);
+	    txt_chexnum((zctl>>B_Z_OVLY_BUF)&1,1,RJ_ZF,MNORMAL_PAL);
+#else
+	    txt_cstr(bufbit ? " X" : " O",MNORMAL_PAL);
+	    txt_cstr((zctl & (1<<B_Z_BUFSEL)) ? " X" : " O",MNORMAL_PAL);
+#endif
+	}
+    }
+    *csr = old_csr;
+    if ( (old_ztv & (1<<B_Z_XACC)) == 0 ) ztv_mod_latch(~(1<<B_Z_XACC));
+    texture_flags &= ~TFL_NO_TEXTURE;
+    return 0;
+}
+
+#if (0)
+static int mot_movie( smp )
+const struct menu_d *smp;
+{
+    int (*old_texture)(int, const U32 *, int);
+    int status;
+    old_texture = alt_texture;
+    alt_texture = mot_text;
+    status = zre_movie( smp );
+    alt_texture = old_texture;
+    return status;
+}
+#endif
+
+#define FULL_BKG_TRAP
+
+STATIC const U32 bkg_trap[] = {
+#ifndef FULL_BKG_TRAP
+    VIS_V_PIX-5,	/* Trap PY just below top of screen */
+    0x04000000|(VIS_V_PIX-10),	/* left side is most of screen height */
+    0x08000000|(VIS_V_PIX-10),	/* right side is most of screen height */
+    0x0C005000,
+    0x10000000,
+    0x14000000|((VIS_H_PIX-10)<<12),
+#else
+    VIS_V_PIX-1,	/* Trap PY just below top of screen */
+    0x04000000|(VIS_V_PIX-1),	/* left side is screen height */
+    0x08000000|(VIS_V_PIX-1),	/* right side is screen height */
+    0x0C000000,
+    0x10000000,
+    0x14000000|((VIS_H_PIX-1)<<12),
+#endif
+    0x18000000,
+    0x20200000,
+
+    0x21100000,
+    0x22100000,
+    0x23100000,
+    0x24000000,
+    0x25000000,
+    0x26300000,
+    0x27200000,
+    0x28300000,
+
+    0x29F00000,
+    0x2AF00000,
+    0x2BF00000,
+    0x2C000000,
+    0x2D200000,
+    0x2E000000,
+    0x2FF00000,
+    0x4C800000,		/* Hammer the TEXMAP to keep non-textured traps that way */
+#if 0
+    0x50000210,		/* Half-intensity Cyan */
+#else
+    0x50000000,		/* Black */
+#endif
+    0x6000003F,
+    0x61000000,
+    0x62000000,
+    0x63000000,
+    0x6400003F,
+    0x65000000,
+    0x66000000,
+    0x67000000,
+
+    0x6800003F,
+    0x69000000,
+    0x6A000000,
+    0x6B000000,
+    0x6C000000,
+    0x6D000000,
+    0x6E000000,
+    0x6F000000,
+
+    0x70000000,
+    0x71000000,
+    0x72000000,
+    0x73000000,
+    0x74000000,
+    0x75000000,
+    0x76000000,
+    0x77000000,
+/* Flat Z */
+
+    /* Place background at Z = infinity */
+    0x78FFFFFF,
+
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+
+#if (0)
+    0x7C3B0000,
+#else
+    /* Try it with PRI = 0 */
+    0x7C030000,
+#endif
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+/* Following is cyan "backdrop" which _depends_ on inheriting most
+ * of its pre-loads from bkg_trap. It must not be used except
+ * immediately after a bkg_trap.
+ */
+STATIC const U32 cyn_drop[] = {
+    VIS_V_PIX-5,	/* Trap PY just below top of screen */
+    0x04000000|(VIS_V_PIX-10),	/* left side is most of screen height */
+    0x08000000|(VIS_V_PIX-10),	/* right side is most of screen height */
+    0x0C005000,
+    0x10000000,
+    0x14000000|((VIS_H_PIX-10)<<12),
+    0x50000210,		/* Half-intensity Cyan */
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+STATIC const U32 curtain_trap[] = {
+    VIS_V_PIX-1,	/* Trap PY just below top of screen */
+    0x04000000|(VIS_V_PIX-1),	/* left side is screen height */
+    0x08000000|(VIS_V_PIX-1),	/* right side is screen height */
+    0x0C000000,
+    0x10000000,
+    0x14000000|((VIS_H_PIX-1)<<12),
+
+    0x18000000,
+    0x20200000,
+
+    0x21100000,
+    0x22100000,
+    0x23100000,
+    0x24000000,
+    0x25000000,
+    0x26300000,
+    0x27200000,
+    0x28300000,
+
+    0x29F00000,
+    0x2AF00000,
+    0x2BF00000,
+    0x2C000000,
+    0x2D200000,
+    0x2E000000,
+    0x2FF00000,
+#if (0)
+    0x50000000,		/* Black */
+#else
+    0x50000210,		/* Half-intensity Cyan */
+#endif
+    0x6000003F,
+    0x61000000,
+    0x62000000,
+    0x63000000,
+    0x6400003F,
+    0x65000000,
+    0x66000000,
+    0x67000000,
+
+    0x6800003F,
+    0x69000000,
+    0x6A000000,
+    0x6B000000,
+    0x6C000000,
+    0x6D000000,
+    0x6E000000,
+    0x6F000000,
+
+    0x70000000,
+    0x71000000,
+    0x72000000,
+    0x73000000,
+    0x74000000,
+    0x75000000,
+    0x76000000,
+    0x77000000,
+/* Flat Z */
+#if (0)
+    /* Place background at Z = 65535 */
+    0x7800FFFF,
+#else
+    /* Place background at Z = infinity */
+    0x78FFFFFF,
+#endif
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+
+#if (0)
+    0x7C3B0000,
+#else
+    /* Try it with PRI = 0 */
+    0x7C030000,
+#endif
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+#if SIMPLE_TESTS
+static const U32 * const test41[] = { bkg_trap, trap4b, trap4a, 0};
+static const U32 * const test42[] = { trap4c, trap4a, 0};
+#endif
+
+/*	Special test for problems with VRAM clear
+ */
+#define ST_INITIAL (0)
+#define ST_CLEAR1 (1)
+#define ST_CLEAR2 (2)
+#define ST_SENT (3)
+#define ST_TRIGGERED (4)
+#define ST_VISIBLE (5)
+
+static int zre_vclr(smp)
+const struct menu_d *smp;
+{
+    VU32 *csr = &ZRE_CSR;
+    U32	old_csr,old_ztv;
+    int	state = ST_INITIAL, abort = 0;
+    const struct zre_desc *zp;
+    const U32 * clist;
+#if (1)
+    U32 *tlp = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+    BLIP_LOCALS
+#endif
+    tlp += ((VIS_V_PIX-2)*VIS_H_PIX)+1;
+    zre_init();
+    zp = (const struct zre_desc *)smp;
+    txt_str(-1,AN_VIS_ROW-7,t_msg_action,MNORMAL_PAL);
+    txt_str(-1,AN_VIS_ROW-6,"To re-clear reference line ",MNORMAL_PAL);
+    old_ztv = ztv_mod_latch(0);
+    bm_rect(0,TOT_V_PIX-1,TOT_H_PIX-1,TOP_HALF+CLR_TOP+2,
+      YEL_MSK,YEL_MSK);
+    swap_and_wait();
+    bm_rect(0,TOT_V_PIX-1,TOT_H_PIX-1,TOP_HALF+CLR_TOP+2,
+      VIO_MSK,VIO_MSK);
+    swap_and_wait();
+    ztv_mod_latch(1<<B_Z_XACC);
+    ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+    old_csr = *csr;
+    *csr = zre_csr_pref | (1<<B_ZRE_REON);
+    *csr &= ~(1<<B_ZRE_TLEN);
+    while (!abort) {
+	U32 bufbit;
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) {
+	    txt_clr_wid(3,4,AN_VIS_COL-5);
+	    txt_str(3,4,"@@",MNORMAL_PAL);
+	    txt_chexnum((U32)tlp,8,RJ_ZF,MNORMAL_PAL);
+	    state = ST_INITIAL;
+	}
+	if ( state < ST_CLEAR2 ) {
+	    if ( zre_bkg() ) {abort = 1; break;}
+	    /* Send init_trap for each of two buffers */
+	    if ( send_poly(init_trap, ONE_FRAME) == 0 ) {abort = 1; break;}
+	    ++state;
+	} else {
+	    clist = (const U32 * const) zp->trap_list;
+	    if ( (clist == clr_traps) && (ztv_base != &ZTV_CTL) ) {
+		clist = zig_clr_traps;
+	    }
+	    if ( send_poly(clist, ONE_FRAME) == 0 ) {abort = 1; break;}
+	    if ( state == ST_CLEAR2 ) state = ST_SENT;
+	}
+	/* End of poly list, send frame_end and
+	 * set flag for normal exit
+	 */
+	bufbit = *ztv_base & (1<<B_Z_CURBUF);
+	abort = zre_frame_end(0);
+	if ( abort < 0 ) break;
+#if (1)
+	if ( state == ST_SENT ) {
+	    U32 got;
+	    ztv_mod_latch(~(1<<B_Z_XACC));
+	    BLIP_INIT;
+	    got = *tlp;
+	    if ( bufbit ) got >>= 16;
+	    if ( got & 0x7FFF ) {
+		BLIP;
+		ztv_mod_latch(1<<B_Z_XACC);
+		state = ST_TRIGGERED;
+		txt_str(3,4,"@@",MNORMAL_PAL);
+		txt_chexnum((U32)tlp,8,RJ_ZF,MNORMAL_PAL);
+		txt_cstr(", read: ",MNORMAL_PAL);
+		txt_chexnum(got,4,RJ_ZF,MNORMAL_PAL);
+	    }
+	    ztv_mod_latch(1<<B_Z_XACC);
+	}
+#endif
+	swap_and_wait();
+    }
+    *csr = old_csr;
+    if ( (old_ztv & (1<<B_Z_XACC)) == 0 ) ztv_mod_latch(~(1<<B_Z_XACC));
+    return 0;
+}
+
+static int set_clr_trap(const struct menu_d *smp)
+{
+    if ( ztv_base == &ZTV_CTL ) bkg = clr_traps;
+    else bkg = zig_clr_traps;
+    return 0;
+}
+static int set_bkg_trap(const struct menu_d *smp)
+{
+    bkg = bkg_trap;
+    return 0;
+}
+
+static int set_curtain_trap(const struct menu_d *smp)
+{
+    bkg = curtain_trap;
+    return 0;
+}
+
+static int set_display(const struct menu_d *smp)
+{
+    int display;
+    const struct zre_desc *zp;
+
+    zp = (const struct zre_desc *)smp;
+    display = zp->menu_desc.mn_label[0] == 'S';
+    display_offset = display ? 0x200 : 0;
+    return 0;
+}
+
+STATIC const U32 trap2[] = {
+    0x00000100,
+    0x04000080,
+    0x08000080,
+    0x0C080000,
+    0x10000800,
+    0x14100000,
+    0x18FFFC00,
+    0x20200000,
+
+    0x21100000,
+    0x22100000,
+    0x23100000,
+    0x24000000,
+    0x25000000,
+    0x26300000,
+    0x27200000,
+    0x28300000,
+
+    0x29F00000,
+    0x2AF00000,
+    0x2BF00000,
+    0x2C000000,
+    0x2D200000,
+    0x2E000000,
+    0x2FF00000,
+    0x480003E0,
+    0x5000001F,
+
+    0x60000000,
+    0x6100003F,
+    0x62000000,
+    0x63000000,
+    0x64000000,
+    0x6500003F,
+    0x66000000,
+    0x67000000,
+
+    0x68000000,
+    0x6900003F,
+    0x6A000000,
+    0x6B000000,
+    0x6C000000,
+    0x6D000000,
+    0x6E00003F,
+    0x6F00003F,
+
+    0x70000000,
+    0x71000000,
+    0x7200003F,
+    0x7300003F,
+    0x74000000,
+    0x75000000,
+    0x7600003F,
+    0x7700003F,
+
+    0x78200000,
+    0x79100000,
+    0x7AF00000,
+    0x7BF00000,
+    0x7C3B0000,		/* Shaded, Ignore Z compare */
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+#define Z_SQ_SIZE (0x8)
+#define Z_SQ_H	(0x80)
+#define Z_SQ_V	(0x80)
+/* First a blue square at Z=0x200000 */
+STATIC const U32 z_square1[] = {
+    (0x0000000|(Z_SQ_V)),		/* TRAP PY 100 */
+    (0x04000000|(Z_SQ_SIZE-1)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-1)),		/* TRAP PRH */
+    (0x0C000000|(Z_SQ_H<<12)),		/* TRAP PLX (16 pixels in from left) */
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE-1)<<12)),	/* TRAP PRX */
+    0x10000000,		/* PDLX Vertical */
+    0x18000000,		/* PDRX Vertical */
+/* PERC is probably irrelevant */
+#if (0)
+    0x20200000,
+    0x21100000,
+    0x22100000,
+    0x23100000,
+    0x24000000,
+    0x25000000,
+    0x26300000,
+    0x27200000,
+    0x28300000,
+
+    0x29F00000,
+    0x2AF00000,
+    0x2BF00000,
+    0x2C000000,
+    0x2D200000,
+    0x2E000000,
+    0x2FF00000,
+#endif
+#if (0)
+    0x480003E0,			/* Documented "TEXMAP PTW" */ 
+#endif
+    0x5000001F,			/* Real "TEXMAP PTW" BLUE */
+
+    0x60000000,
+    0x6100003F,
+    0x62000000,
+    0x63000000,
+    0x64000000,
+    0x6500003F,
+    0x66000000,
+    0x67000000,
+
+    0x68000000,
+    0x6900003F,
+    0x6A000000,
+    0x6B000000,
+    0x6C000000,
+    0x6D000000,
+    0x6E00003F,
+    0x6F00003F,
+
+    0x70000000,
+    0x71000000,
+    0x7200003F,
+    0x7300003F,
+    0x74000000,
+    0x75000000,
+    0x7600003F,
+    0x7700003F,
+
+    0x78200000,
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+#if HOST_BOARD == ASCLEAP
+    /* for board bring-up, we omit the backdrop, so the first
+     * square needs to ignore the existing Z.
+     */
+    0x7C030000,		/* Flat, no Z compare */
+#else
+    0x7C070000,		/* Flat, do Z compare */
+#endif
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+/* The z_square* traps other than the first must not be used before
+ * z_square1, as they depend on "inheriting" most of their preloads.
+ */
+/* a green square at Z=0x100000 (Should show) */
+STATIC const U32 z_square2[] = {
+#ifdef SPREAD_SQUARES
+    (0x0000000|(Z_SQ_V+2)),		/* TRAP PY 100 */
+    (0x04000000|(Z_SQ_SIZE-5)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-5)),		/* TRAP PRH */
+    (0x0C000000|((Z_SQ_H-2)<<12)),		/* TRAP PLX */
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE-4)<<12)),	/* TRAP PRX */
+#else
+    (0x0000000|(Z_SQ_V)),		/* TRAP PY 100 */
+    (0x04000000|(Z_SQ_SIZE-1)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-1)),		/* TRAP PRH */
+    (0x0C000000|(Z_SQ_H<<12)),		/* TRAP PLX (16 pixels in from left) */
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE)<<12)),	/* TRAP PRX */
+#endif
+    0x10000000,		/* PDLX Vertical */
+    0x18000000,		/* PDRX Vertical */
+    0x500003E0,		/* Real "TEXMAP PTW" GREEN */
+    0x78100000,
+    0x7C070000,		/* Flat, do Z compare */
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+/* a red square at Z=0x300000 (Should not show) */
+
+STATIC const U32 z_square3[] = {
+#ifdef SPREAD_SQUARES
+    (0x0000000|(Z_SQ_V-1)),		/* TRAP PY 100 */
+    (0x04000000|(Z_SQ_SIZE-3)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-3)),		/* TRAP PRH */
+    (0x0C000000|((Z_SQ_H+2)<<12)),		/* TRAP PLX */
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE-4)<<12)),	/* TRAP PRX */
+#else
+    (0x0000000|(Z_SQ_V)),		/* TRAP PY 100 */
+    (0x04000000|(Z_SQ_SIZE-1)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-1)),		/* TRAP PRH */
+    (0x0C000000|(Z_SQ_H<<12)),		/* TRAP PLX (16 pixels in from left) */
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE)<<12)),	/* TRAP PRX */
+#endif
+    0x10000000,		/* PDLX Vertical */
+    0x18000000,		/* PDRX Vertical */
+    0x50007C00,		/* Real "TEXMAP PTW" RED */
+    0x78300000,
+    0x7C070000,		/* Flat, do Z compare */
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+/* a yellow square at Z=0x200000 (Should not show) */
+
+STATIC const U32 z_square4[] = {
+#ifdef SPREAD_SQUARES
+    (0x0000000|(Z_SQ_V-2)),		/* TRAP PY 100 */
+    (0x04000000|(Z_SQ_SIZE-7)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-7)),		/* TRAP PRH */
+    (0x0C000000|((Z_SQ_H+2)<<12)),		/* TRAP PLX */
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE-4)<<12)),	/* TRAP PRX */
+#else
+    (0x0000000|(Z_SQ_V)),		/* TRAP PY 100 */
+    (0x04000000|(Z_SQ_SIZE-1)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-1)),		/* TRAP PRH */
+    (0x0C000000|(Z_SQ_H<<12)),		/* TRAP PLX (16 pixels in from left) */
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE)<<12)),	/* TRAP PRX */
+#endif
+    0x10000000,		/* PDLX Vertical */
+    0x18000000,		/* PDRX Vertical */
+    0x50007FE0,		/* Real "TEXMAP PTW" Yellow */
+    0x78200000,
+    0x7C070000,		/* Flat, do Z compare */
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+#define ZD_SPLIT (1)
+STATIC const U32 z_delay_squares[] = {
+#if HOST_BOARD == ASCLEAP
+#undef Z_SQ_SIZE
+#define Z_SQ_SIZE (0x8)
+/* Include modified z_square1 here, to test "left edge" bug
+ */
+    (0x0000000|(Z_SQ_V)),		/* TRAP PY 100 */
+    (0x04000000|(Z_SQ_SIZE-1)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-1)),		/* TRAP PRH */
+    (0x0C000000|(Z_SQ_H<<12)),		/* TRAP PLX (16 pixels in from left) */
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE-1)<<12)),	/* TRAP PRX */
+    0x10000000,		/* PDLX Vertical */
+    0x18000000,		/* PDRX Vertical */
+/* Magic no-perspective PERC, verbatim from pencil sheet */
+    0x20400000,		/* VD PL0 */
+    0x21400000,		/* VD PR0 */
+    0x22000000,		/* VD PDL */
+    0x23000000,		/* VD PDR */
+    0x24000000,		/* VN PL0 */
+    0x25000000,		/* VN PR0 */
+    0x26400000,		/* VN PDL */
+    0x27400000,		/* VN PDR */
+    0x28400000,		/* HD PL0 */
+    0x29000000,		/* HD PR0 */
+    0x2A000000,		/* HD PDL */
+    0x2B000000,		/* HD PDR */
+    0x2C000000,		/* HN PL0 */
+    0x2D400000,		/* HN PR0 */
+    0x2E000000,		/* HN PDL */
+    0x2F000000,		/* HN PDR */
+#if (0)
+    0x480003E0,			/* Documented "TEXMAP PTW" */ 
+#endif
+    0x5000001F,			/* Real "TEXMAP PTW" BLUE */
+    TEXMAP_PTB|TEXMAP_KLUGE_BIT,	/* Force invalid texture */
+
+    0x60000000,
+    0x6100003F,
+    0x62000000,
+    0x63000000,
+    0x64000000,
+    0x6500003F,
+    0x66000000,
+    0x67000000,
+
+    0x68000000,
+    0x6900003F,
+    0x6A000000,
+    0x6B000000,
+    0x6C000000,
+    0x6D000000,
+    0x6E00003F,
+    0x6F00003F,
+
+    0x70000000,
+    0x71000000,
+    0x7200003F,
+    0x7300003F,
+    0x74000000,
+    0x75000000,
+    0x7600003F,
+    0x7700003F,
+#if (0)
+    0x78001000|(Z_SQ_SIZE-1),
+#else
+    0x78001001,
+#endif
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+    /* for board bring-up, we omit the backdrop, so the first
+     * square needs to ignore the existing Z.
+     */
+    0x7C030000,		/* Flat, no Z compare */
+    0xCF000000,
+/* Now a single smaller square _inside_ the first, parallel to it in Z */
+    (0x0000000|(Z_SQ_V-1)),		/* TRAP PY 100 */
+    (0x04000000|(Z_SQ_SIZE-3)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-3)),		/* TRAP PRH */
+    (0x0C000000|((Z_SQ_H+1)<<12)),	/* TRAP PLX */
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE-1)<<12)),	/* TRAP PRX */
+    0x50007C00,			/* Real "TEXMAP PTW" RED */
+#if (0)
+    0x78001000|(Z_SQ_SIZE-2),
+    0x79001001,
+#else
+    0x78001003,
+#endif
+    0x7C070000,		/* Flat, do Z compare */
+    0xCF000000,
+#else
+    (0x0000000|(Z_SQ_V)),		/* TRAP PY 100 */
+    (0x04000000|(Z_SQ_SIZE-1)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-1)),		/* TRAP PRH */
+    (0x0C000000|((Z_SQ_H+Z_SQ_SIZE+ZD_SPLIT)<<12)),	/* TRAP PLX (Abuts first, horizontally) */
+    (0x14000000|((Z_SQ_H+2*Z_SQ_SIZE-1+ZD_SPLIT)<<12)),	/* TRAP PRX */
+    0x7C070000,		/* Flat, do Z compare */
+    0xCF000000,
+    (0x0000000|(Z_SQ_V-Z_SQ_SIZE-1)),	/* Abuts first vertically */
+    (0x04000000|(Z_SQ_SIZE-1)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-1)),		/* TRAP PRH */
+    (0x0C000000|((Z_SQ_H+Z_SQ_SIZE+ZD_SPLIT)<<12)),	/* TRAP PLX (Abuts first, horizontally) */
+    (0x14000000|((Z_SQ_H+2*Z_SQ_SIZE-1+ZD_SPLIT)<<12)),	/* TRAP PRX */
+    0xCF000000,
+    (0x0000000|(Z_SQ_V-Z_SQ_SIZE-1)),	/* Abuts first vertically */
+    (0x04000000|(Z_SQ_SIZE-1)),		/* TRAP PLH */
+    (0x08000000|(Z_SQ_SIZE-1)),		/* TRAP PRH */
+    (0x0C000000|(Z_SQ_H<<12)),		/* TRAP PLX (16 pixels in from left) */
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE-1)<<12)),	/* TRAP PRX */
+    0xCF000000,
+#endif
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+STATIC const U32 txt_ltrap[] = {
+    0x00000100,		/* TRAP PY 0x100 */
+
+    0x04000007,		/* TRAP PLH 8 */
+    0x08000007,		/* TRAP PRH 8 */
+    0x0C00f000,		/* TRAP PLX (15 pixels in from left) */
+    0x10000000,		/* Vertical */
+    0x14016000,		/* 8 pixels wide */
+    0x18000000,		/* Vertical */
+
+/* The SCI_S and SCI_T regs are swapped. */
+#if (0)
+    0x44000000,		/* SCI_S_PL0 = 0.0.0 */
+    0x4500ff00,		/* SCI_S_PR0 = 0.ff.0 */
+    0x46000000,		/* SCI_S_PDL = 0.0.0 */
+    0x47000000,		/* SCI_S_PDR = 0.0.0 */
+    0x40000000,		/* SCI_T_PL0 = 0.0.0 */
+    0x41000000,		/* SCI_T_PR0 = 0.0.0 */
+    0x4200ff00,		/* SCI_T_PDL = 0.ff.0 */
+    0x4300ff00,		/* SCI_T_PDR = 0.ff.0 */
+#else
+    0x44000080,		/* SCI_S_PL0 = 0.0.80 */
+    0x45007f00,		/* SCI_S_PR0 = 0.ff.0 */
+    0x46000000,		/* SCI_S_PDL = 0.0.0 */
+    0x47000000,		/* SCI_S_PDR = 0.0.0 */
+    0x40000080,		/* SCI_T_PL0 = 0.0.80 */
+    0x41000000,		/* SCI_T_PR0 = 0.0.00 */
+    0x4200ff00,		/* SCI_T_PDL = 0.ff.0 */
+    0x4300ff00,		/* SCI_T_PDR = 0.ff.0 */
+#endif
+#if HOST_BOARD != ASCLEAP
+    0x4C000000,		/* Texture RAM base */
+#else
+    0x4C000700,		/* Texture RAM base, 700 for bench */
+#endif
+
+/* Embedded "texture" follows. First word is TEXTURE_OP plus count
+ * of data words. Next is offset in texture RAM, then <count> (host, 32-bit)
+ * words, each containing two (texture, 16-bit) words. The MSBits are
+ * stored first, then the LSBits. 
+ */
+    0x50800433,		/* Texture 16wx8hx16deep */
+    0xA0000040,		/* 64 (0x20) words of texture */
+#if HOST_BOARD != ASCLEAP
+    0x00000000,		/* Offset 0 */
+#else
+    0x00000E00,		/* Moved to DRAM 7 for bench test */
+#endif
+    0x00000001,0x00020003,0x00040005,0x00060007,
+    0x40004001,0x40024003,0x40044005,0x40064007,
+    0x00080009,0x000A000B,0x000C000D,0x000E000F,
+    0x40084009,0x400A400B,0x400C400D,0x400E400F,
+    0x00100011,0x00120013,0x00140015,0x00160017,
+    0x40140011,0x40124013,0x40144015,0x40164017,
+    0x00180019,0x001A001B,0x001C001D,0x001E001F,
+    0x40184019,0x401A401B,0x401C401D,0x401E401F,
+    0x00200021,0x00220023,0x00240025,0x00260027,
+    0x40240021,0x40224023,0x40244025,0x40264027,
+    0x00280029,0x002A002B,0x002C002D,0x002E002F,
+    0x40284029,0x402A402B,0x402C402D,0x402E402F,
+    0x00300031,0x00320033,0x00340035,0x00360037,
+    0x40340031,0x40324033,0x40344035,0x40364037,
+    0x00380039,0x003A003B,0x003C003D,0x003E003F,
+    0x40384039,0x403A403B,0x403C403D,0x403E403F,
+
+/* Magic no-perspective PERC, verbatim from pencil sheet */
+    0x20400000,		/* VD PL0 */
+    0x21400000,		/* VD PR0 */
+    0x22000000,		/* VD PDL */
+    0x23000000,		/* VD PDR */
+    0x24000000,		/* VN PL0 */
+    0x25000000,		/* VN PR0 */
+    0x26400000,		/* VN PDL */
+    0x27400000,		/* VN PDR */
+    0x28400000,		/* HD PL0 */
+    0x29000000,		/* HD PR0 */
+    0x2A000000,		/* HD PDL */
+    0x2B000000,		/* HD PDR */
+    0x2C000000,		/* HN PL0 */
+    0x2D400000,		/* HN PR0 */
+    0x2E000000,		/* HN PDL */
+    0x2F000000,		/* HN PDR */
+/* Z */
+    0x78100000,
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+    0x7C070000,		/* Flat, do Z compare */
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+#define BIG_TEXTURE
+
+STATIC const U32 txt_litrap[] = {
+#ifndef BIG_TEXTURE
+    0x00000100,		/* TRAP PY 0x100 */
+    0x0400003F,		/* TRAP PLH 64 */
+    0x0800003F,		/* TRAP PRH 64 */
+    0x0C00f000,		/* TRAP PLX (15 pixels in from left) */
+    0x10000000,		/* Vertical */
+    0x1404f000,		/* 64 pixels wide */
+#else
+    0x00000100,		/* TRAP PY 0x100 */
+    0x040000FF,		/* TRAP PLH 256 */
+    0x080000FF,		/* TRAP PRH 256 */
+    0x0C00f000,		/* TRAP PLX (15 pixels in from left) */
+    0x10000000,		/* Vertical */
+    0x1410f000,		/* 256 pixels wide */
+#endif
+    0x18000000,		/* Vertical */
+/* Magic no-perspective PERC, verbatim from pencil sheet */
+    0x20400000,		/* VD PL0 */
+    0x21400000,		/* VD PR0 */
+    0x22000000,		/* VD PDL */
+    0x23000000,		/* VD PDR */
+    0x24000000,		/* VN PL0 */
+    0x25000000,		/* VN PR0 */
+    0x26400000,		/* VN PDL */
+    0x27400000,		/* VN PDR */
+    0x28400000,		/* HD PL0 */
+    0x29000000,		/* HD PR0 */
+    0x2A000000,		/* HD PDL */
+    0x2B000000,		/* HD PDR */
+    0x2C000000,		/* HN PL0 */
+    0x2D400000,		/* HN PR0 */
+    0x2E000000,		/* HN PDL */
+    0x2F000000,		/* HN PDR */
+#if (0)
+    0x40000000,		/* SCI_S_PL0 = 0.0.0 */
+    0x4100ff00,		/* SCI_S_PR0 = 0.ff.0 */
+    0x42000000,		/* SCI_S_PDL = 0.0.0 */
+    0x43000000,		/* SCI_S_PDR = 0.0.0 */
+    0x44000000,		/* SCI_T_PL0 = 0.0.0 */
+    0x45000000,		/* SCI_T_PR0 = 0.0.0 */
+    0x4600ff00,		/* SCI_T_PDL = 0.ff.0 */
+    0x4700ff00,		/* SCI_T_PDR = 0.ff.0 */
+#else
+/* The SCI_S and SCI_T regs are swapped. */
+    0x44000000,		/* SCI_S_PL0 = 0.0.0 */
+    0x4500ff00,		/* SCI_S_PR0 = 0.ff.0 */
+    0x46000000,		/* SCI_S_PDL = 0.0.0 */
+    0x47000000,		/* SCI_S_PDR = 0.0.0 */
+    0x40000000,		/* SCI_T_PL0 = 0.0.0 */
+    0x41000000,		/* SCI_T_PR0 = 0.0.0 */
+    0x4200ff00,		/* SCI_T_PDL = 0.ff.0 */
+    0x4300ff00,		/* SCI_T_PDR = 0.ff.0 */
+#endif
+#ifdef LOCTEX_ADDR
+    0x4C800000,		/* Texture RAM base (Local) */
+#else
+    0x4C000000,		/* Texture RAM base */
+#endif
+#ifndef BIG_TEXTURE
+    0x50800330,		/* Texture 8x8x2 */
+/* Embedded "texture" follows. First word is TEXTURE_OP plus count
+ * of data words. Next is offset in texture RAM, then <count> (host, 32-bit)
+ * words, each containing two (texture, 16-bit) words. The MSBits are
+ * stored first, then the LSBits. 
+ */
+    0xA0000014,		/* 20 (0x14) words of texture */
+    0x00000000,		/* Offset 0 */
+    0x00010004,
+    0x00100040,
+    0x01000400,
+    0x1B1BE4E4,
+    0x03F00F3C,0x3C0F3C0F,0x3FFF3C0F,0x3C0F0000,
+    0x0FFF3C0F,0x3C0F0FFF,0x3C0F3C0F,0x0FFF0000,
+    0x0FFC3C0F,0x000F000F,0x000F3C0F,0x0FFC0000,
+    0x03FF0F0F,0x3C0F3C0F,0x3C0F0F0F,0x03FF0000,
+#else
+    0x50800660,		/* Texture 64x64x2 */
+/* Embedded "texture" follows. First word is TEXTURE_OP plus count
+ * of data words. Next is offset in texture RAM, then <count> (host, 32-bit)
+ * words, each containing two (texture, 16-bit) words. The MSBits are
+ * stored first, then the LSBits. 
+ */
+    0xA0000100,		/* 256 words of texture */
+    0x00000000,		/* Offset 0 */
+    0x00030000,0x00000000,0x00000000,0x00000000,
+    0x000C0000,0x00000000,0x00000000,0x00000000,
+    0x00300000,0x00000000,0x00000000,0x00000000,
+    0x00C00000,0x00000000,0x00000000,0x00000000,
+    0x03000000,0x00000000,0x00000000,0x00000000,
+    0x0C000000,0x00000000,0x00000000,0x00000000,
+    0x30000000,0x00000000,0x00000000,0x00000000,
+    0xC0000000,0x00000000,0x00000000,0x00000000,
+    0x00000003,0x00000000,0x00000000,0x00000000,
+    0x0000000C,0x00000000,0x00000000,0x00000000,
+    0x00000030,0x00000000,0x00000000,0x00000000,
+    0x000000C0,0x00000000,0x00000000,0x00000000,
+    0x00000300,0x00000000,0x00000000,0x00000000,
+    0x00000C00,0x00000000,0x00000000,0x00000000,
+    0x00003000,0x00000000,0x00000000,0x00000000,
+    0x0000C000,0x00000000,0x00000000,0x00000000,
+    0x00000000,0x00030000,0x00000000,0x00000000,
+    0x00000000,0x000C0000,0x00000000,0x00000000,
+    0x00000000,0x00300000,0x00000000,0x00000000,
+    0x00000000,0x00C00000,0x00000000,0x00000000,
+    0x00000000,0x03000000,0x00000000,0x00000000,
+    0x00000000,0x0C000000,0x00000000,0x00000000,
+    0x00000000,0x30000000,0x00000000,0x00000000,
+    0x00000000,0xC0000000,0x00000000,0x00000000,
+    0x00000000,0x00000003,0x00000000,0x00000000,
+    0x00000000,0x0000000C,0x00000000,0x00000000,
+    0x00000000,0x00000030,0x00000000,0x00000000,
+    0x00000000,0x000000C0,0x00000000,0x00000000,
+    0x00000000,0x00000300,0x00000000,0x00000000,
+    0x00000000,0x00000C00,0x00000000,0x00000000,
+    0x00000000,0x00003000,0x00000000,0x00000000,
+    0x00000000,0x0000C000,0x00000000,0x00000000,
+    0x00000000,0x00000000,0x00030000,0x00000000,
+    0x00000000,0x00000000,0x000C0000,0x00000000,
+    0x00000000,0x00000000,0x00300000,0x00000000,
+    0x00000000,0x00000000,0x00C00000,0x00000000,
+    0x00000000,0x00000000,0x03000000,0x00000000,
+    0x00000000,0x00000000,0x0C000000,0x00000000,
+    0x00000000,0x00000000,0x30000000,0x00000000,
+    0x00000000,0x00000000,0xC0000000,0x00000000,
+    0x00000000,0x00000000,0x00000003,0x00000000,
+    0x00000000,0x00000000,0x0000000C,0x00000000,
+    0x00000000,0x00000000,0x00000030,0x00000000,
+    0x00000000,0x00000000,0x000000C0,0x00000000,
+    0x00000000,0x00000000,0x00000300,0x00000000,
+    0x00000000,0x00000000,0x00000C00,0x00000000,
+    0x00000000,0x00000000,0x00003000,0x00000000,
+    0x00000000,0x00000000,0x0000C000,0x00000000,
+    0x00000000,0x00000000,0x00000000,0x00030000,
+    0x00000000,0x00000000,0x00000000,0x000C0000,
+    0x00000000,0x00000000,0x00000000,0x00300000,
+    0x00000000,0x00000000,0x00000000,0x00C00000,
+    0x00000000,0x00000000,0x00000000,0x03000000,
+    0x00000000,0x00000000,0x00000000,0x0C000000,
+    0x00000000,0x00000000,0x00000000,0x30000000,
+    0x00000000,0x00000000,0x00000000,0xC0000000,
+    0x00000000,0x00000000,0x00000000,0x00000003,
+    0x00000000,0x00000000,0x00000000,0x0000000C,
+    0x00000000,0x00000000,0x00000000,0x00000030,
+    0x00000000,0x00000000,0x00000000,0x000000C0,
+    0x00000000,0x00000000,0x00000000,0x00000300,
+    0x00000000,0x00000000,0x00000000,0x00000C00,
+    0x00000000,0x00000000,0x00000000,0x00003000,
+    0x00000000,0x00000000,0x00000000,0x0000C000,
+#endif
+    0x54008020,		/* PLB at 2-bit palette #8, GRY/SLT from alphas */
+    0x78100000,
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+    0x7C070000,		/* Flat, do Z compare */
+    0xCF000000,
+#ifndef BIG_TEXTURE
+/* Next trap from next bit of texram */
+    0x0400000F,		/* TRAP PLH 16 */
+    0x0800000F,		/* TRAP PRH 16 */
+    0x0C060000,		/* TRAP PLX */
+    0x1406F000,		/* 16 pixels wide */
+    0x4C800004,		/* Texture RAM base (Local) */
+    0xCF000000,
+    0x0C070000,		/* TRAP PLX */
+    0x1407F000,		/* 16 pixels wide */
+    0x4C800008,		/* Texture RAM base (Local) */
+    0xCF000000,
+    0x0C080000,		/* TRAP PLX */
+    0x1408F000,		/* 16 pixels wide */
+    0x4C80000C,		/* Texture RAM base (Local) */
+    0xCF000000,
+#endif
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+STATIC const U32 txt_rtrap[] = {
+    0x00000000|(VIS_V_PIX-4),		/* TRAP PY */
+    0x04000000|(VIS_V_PIX-9),		/* TRAP PLH */
+    0x08000000|(VIS_V_PIX-9),		/* TRAP PRH */
+    0x0C000000|(4<<12),			/* TRAP PLX (pixels in from left) */
+    0x10000000,				/* Vertical */
+    0x14000000|((VIS_H_PIX-9)<<12),	/* pixels wide */
+    0x18000000,		/* Vertical */
+    0x40000000,		/* SCI_S_PL0 = 0.0.0 */
+    0x4100ff00,		/* SCI_S_PR0 = 0.ff.0 */
+    0x42000000,		/* SCI_S_PDL = 0.0.0 */
+    0x43000000,		/* SCI_S_PDR = 0.0.0 */
+    0x44000000,		/* SCI_T_PL0 = 0.0.0 */
+    0x45000000,		/* SCI_T_PR0 = 0.ff.0 */
+    0x4600ff00,		/* SCI_T_PDL = 0.0.0 */
+    0x4700ff00,		/* SCI_T_PDR = 0.0.0 */
+    0x4C000000,		/* Texture base (ROM) */
+#if (0)
+    0x50800663,		/* Texture 64x64x16 */
+#else
+    0x50800883,		/* Texture 256x256x16 */
+#endif
+    0x78100000,
+    0x79000000,
+    0x7A000000,
+    0x7B000000,
+    0x7C072000,		/* Flat, do Z compare, transparent */
+    0xCF000000,
+    0xE0000000		/* FEND, but not really sent until end of list */
+};
+
+static const U32 * const backdrop[] = { bkg_trap, 0 };
+
+static const U32 * const test2b[] = { bkg_trap, trap2, 0 };
+#ifndef ZIG_PPW_V2S
+static const U32 * const test2c[] = { clr_traps, trap2, 0 };
+static const U32 * const test_clr[] = { bkg_trap, clr_traps, 0 };
+#endif
+static const U32 * const test43[] = {
+#if HOST_BOARD != ASCLEAP
+    bkg_trap,
+#endif
+     z_square1, z_square2, z_square3, z_square4, 0};
+
+static const U32 * const test44[] = {
+#if HOST_BOARD != ASCLEAP
+    bkg_trap,
+#endif
+     z_square1, z_square4, z_square3, z_square2, 0};
+#if (HOST_BOARD == ASCLEAP)
+static const U32 * const test_zdelay[] = { z_delay_squares, 0 };
+#else
+static const U32 * const test_zdelay[] = { z_square1, z_delay_squares, 0 };
+#endif
+static const U32 * const test_ltxt[] = { bkg_trap, txt_ltrap, 0};
+static const U32 * const test_litxt[] = { bkg_trap, txt_litrap, 0};
+static const U32 * const test_rtxt[] = { bkg_trap, txt_rtrap, 0};
+extern int  zre_text_test();
+extern int zre_transp(const struct menu_d *);
+
+static const struct zre_desc zre_menu[] = {
+    { { "ZRE TESTS", 0}, 0},
+#if (HOST_BOARD != ASCLEAP)
+    { { "Transparency Test", zre_transp}, 0},
+#endif
+#if SIMPLE_TESTS
+    { { "FLAT Z TEST A", zre_poly}, test41},
+    { { "FLAT Z TEST B", zre_poly}, test42},
+#endif
+    { { "Z DELAY TEST", zre_poly}, test_zdelay},
+    { { "\nVCLR Mini-test", zre_vclr}, (const U32**)mini_clr_traps},
+#ifdef DO_STRETCH
+    { { "VCLR Stretch-test", zre_vclr}, (const U32**)stretch_clr_traps},
+#endif
+    { { "VCLR Full-test", zre_vclr}, (const U32**)clr_traps},
+    { { "\nZRE CSR", zre_csr}, 0},
+    { { "\nRAMROM Movie", zre_movie}, (const U32 **)RR_MOVIE},
+    { { "USE MOTION TEXRAM", sel_text}, (const U32 **)4},
+    { { "USE MAIN TEXRAM", sel_text}, (const U32 **)0},
+    { { "RAMROM Slides", zre_movie}, (const U32 **)RR_MOVIE},
+    { { "Slow Movie", zre_movie}, (const U32 **)RR_MOVIE},
+    { { "RAMROM Traps", zre_movie}, (const U32 **)RR_MOVIE},
+    { { "RAMROM CRC", zre_movie}, (const U32 **)RR_MOVIE},
+    { { "\nUse VRAM Clear", set_clr_trap}, 0},
+    { { "Use Backdrop", set_bkg_trap}, 0},
+    { { "Use Curtain", set_curtain_trap}, 0},
+    { { "First Display", set_display}, 0},
+    { { "Second Display", set_display}, 0},
+    { { "\nBackdrop", zre_poly}, backdrop},
+#ifdef LOCTEX_ADDR
+    { { "Local Texture on BKG", zre_poly}, test_ltxt},
+    { { "Local Indirect Texture on BKG", zre_poly}, test_litxt},
+#else
+    { { "RAM Texture (8x8) on BKG", zre_poly}, test_ltxt},
+#ifndef BIG_TEXTURE
+    { { "RAM Indirect Texture (64x64x2) on BKG", zre_poly}, test_litxt},
+#else
+    { { "RAM Indirect Texture (256x256x2) on BKG", zre_poly}, test_litxt},
+#endif
+#endif
+    { { "ROM Texture on BKG", zre_poly}, test_rtxt},
+    { { "Shaded on BKG", zre_poly}, test2b},
+#ifndef ZIG_PPW_V2S
+    { { "Shaded on V-CLR'd", zre_poly}, test2c},
+#endif
+    { { "Z TEST BGRY", zre_poly}, test43},
+    { { "Z TEST BYRG", zre_poly}, test44},
+#ifndef ZIG_PPW_V2S
+    { { "VRAM CLR test", zre_poly}, test_clr},
+#endif
+    { { "Pattern Texture RAM", zre_text_pattern}, 0},
+    { { "SLOW ZRE TEXT TEST", zre_text_test}, 0},
+    { { "PALETTE TEXT TEST", zre_text_test}, 0},
+    { { "ALPHANUMERIC STAMPS", zre_text_test}, 0},
+    { { 0, 0}, 0}
+};
+
+STATIC int fill_colram()
+{
+    VU32 *csr = &ZRE_CSR;
+    int idx;
+    U32 *dst;
+    U32 data;
+    /* It would be exceptionally rude to steal the
+     * Texture color RAM while it was still painting.
+     */
+    if ( ztv_base == &ZTV_CTL )	data = 0;
+    else data = (1<<B_ZRE_IDLE);
+    while ((*csr & (1<<B_ZRE_IDLE) ) != data ) {;}
+    *csr |= (1<<B_ZRE_TLEN);	/* _DIS_able Texture pipe */
+    *csr &= ~(1<<B_ZRE_XLED);	/* LED on during color RAM write */
+    dst = (U32*)ZRE_COLRAM_ADDR;
+    for ( idx = 0 ; idx < 0x8000 ; ++idx ) {
+	dst[idx] = idx;
+    }
+    *csr &= ~(1<<B_ZRE_TLEN);	/* _EN_able Texture pipe */
+    *csr |= (1<<B_ZRE_XLED);	/* LED off after color RAM write */
+    return 0;
+}
+
+/*		zre_setup()
+ *	calls zre_init() to initialize hardware, then
+ *	sets up "reference" lines in both buffers
+ *	and clears screen, then writes a "backdrop"
+ *	(cyan rectangle) to the screen for visual confirmation.
+ */
+int zre_setup()
+{
+    int status,buff;
+    VU32 *csr = &ZRE_CSR;
+    U32 old_csr;
+
+IOLEDSET(0x50);
+
+    status = zre_init();
+    if ( status < 0 ) return status;
+    /* Put AlphaNumeric Textures above the Cube-Movie
+     * texture, colors above the kluge for ZIG Direct
+     * textures.
+     */
+    status = zre_text_init(0x10000,0x8000);
+    if ( status < 0 ) {
+IOLEDSET(0x51);
+#if (0)
+	holler(2, 2, "zre_text_init failed. Returned a 0x", status);
+	return status;
+#endif
+    }
+IOLEDSET(0x52);
+    old_csr = *csr;
+    if ( !xtot_bit ) {
+	/* First rev ZIG cannot really do direct textures, so
+	 * we fake it by filling COLRAM with data = address.
+	 */
+	fill_colram();
+	*csr &= (xtot_bit | ~(1<<B_ZRE_XTOT));
+    }
+    else *csr |= (1<<B_ZRE_XTOT);
+    *csr &= ~(1<<B_ZRE_INTEN);
+    for ( buff = 4 ; buff ; --buff ) {
+	if ( send_poly(init_trap, ONE_FRAME) == 0 ) break;
+IOLEDSET(0x53);
+	bkg = 0;	/* force re-selection */
+	if ( zre_bkg() ) break;
+IOLEDSET(0x54);
+	if ( send_poly(cyn_drop, ONE_FRAME) == 0 ) break;
+IOLEDSET(0x55);
+	if ( zre_frame_end(3) < 0 ) break;
+IOLEDSET(0x56);
+    }
+    *csr = old_csr;
+    if ( buff ) {
+IOLEDSET(0x57);
+	/* failed to send initilization to all buffs
+	 */
+	return -3;
+    }
+IOLEDSET(0x58);
+    status = swap_and_wait();
+    *csr |= (1<<B_ZRE_XTOT);
+    *csr &= ~xtot_bit;
+    *csr |= (1<<B_ZRE_INTEN);
+    return status;
+}
+
+int zre_tests( smp )
+const struct menu_d *smp;
+{
+    int status;
+    U32 old_latch;
+
+    old_latch = ztv_mod_latch(0);
+    status = zre_setup();
+    if ( status < 0 ) return status;
+    zre_csr_pref = (zre_csr_pref & ~(1<<B_ZRE_XTOT)) | xtot_bit;
+    ZRE_CSR = zre_csr_pref;
+    status = st_menu((const struct menu_d *)&zre_menu[0],sizeof(zre_menu[0]),
+				   TITLE_PAL,0);
+    if ( (old_latch & (1<<B_Z_XACC)) == 0 ) ztv_mod_latch(~(1<<B_Z_XACC));
+    return status;
+}
+
+@
+
+
+1.21
+log
+@Changed RR_MOVIE for HCR4K to (PROM_BASE+0x370000) for now.
+@
+text
+@d2598 1
+d2600 1
+@
+
+
+1.20
+log
+@Miscellaneous added tests for TEXEDO Bring-up. Auto-select
+of different V2S for ZIG vs ZTV2. Added palette-load to
+"Movie" player, deleted LOCTEX Kluge, as the MSB of Texture
+is now needed to suppress spurious THOLD signals from
+TEXEDO when the TEXMAP chip is not using it, but won't
+cop to the fact.
+@
+text
+@d1228 1
+a1228 1
+#  define RR_MOVIE (XBUS_SLOT6)	/* on HCR4K, its a RR board on XBUS slot 6 */
+@
+
+
+1.19
+log
+@deleted some long #if'd-out code. Moved ltrap texture to chip
+7, which is giving trouble on bench. Relocated AlphaNumeric
+texture. Default ZRE_INTEN on.
+@
+text
+@d319 1
+d327 2
+a328 1
+    status = ztv_texture_write(0,0,n_elts(TEXRAM));
+d629 4
+a632 1
+#if HOST_BOARD == ASCLEAP
+d643 1
+d743 61
+a1025 2
+static const U32 * const test41[] = { trap4b, trap4a, 0};
+static const U32 * const test42[] = { trap4c, trap4a, 0};
+d1041 13
+a1110 1
+#ifdef LOCTEX_ADDR
+d1112 2
+a1113 1
+	    /* Really serious kluge to allow "dagwood" to play both
+d1116 6
+d1123 1
+a1123 1
+	    trap_cmd = (trap_cmd & ~TEXMAP_KLUGE_BIT)+tex_offset;
+a1124 1
+#endif
+d1148 1
+a1148 1
+	    cnt = trap_cmd & ((1<<SCI_SHF)-1);
+d1168 13
+a1180 3
+		data = 0;	/* Stifle warning */
+		dp = 0;
+		ztv_texture_write(offset,tsrc,cnt<<1);
+d1193 15
+a1207 2
+    if ( bkg == 0 ) bkg = clr_traps;
+    return (send_poly(bkg, ONE_FRAME) == 0);
+d1238 1
+a1238 1
+STATIC int count_frames(const U32 *cp, int *tdata, int *texdata)
+d1242 1
+a1242 1
+    U32 cmd,fend,mend,dcnt,tcnt;
+d1244 1
+a1244 1
+    tcnt = dcnt = 0;
+d1253 7
+a1259 2
+	    cp += (cmd & ((1<<SCI_SHF)-1))+1;
+	    tcnt += (cmd & ((1<<SCI_SHF)-1))+1;
+d1264 1
+a1264 1
+	if ( cp == rrend ) {
+d1271 1
+d1293 1
+a1293 1
+	    cp += (cmd & ((1<<SCI_SHF)-1))+1;
+d1382 1
+a1382 1
+    int tdata_cnt, texdata_cnt;
+d1384 1
+a1386 1
+    if ( bkg == 0 ) bkg = clr_traps;
+a1393 1
+    txt_str(-1,AN_VIS_ROW-7,t_msg_action,MNORMAL_PAL);
+d1395 1
+a1395 1
+	txt_str(-1,AN_VIS_ROW-6,"for each frame",MNORMAL_PAL);
+d1397 2
+a1398 3
+	txt_str(-1,AN_VIS_ROW-6,"to play movie once ",MNORMAL_PAL);
+	txt_str(-1,AN_VIS_ROW-5,t_msg_actionh,MNORMAL_PAL);
+	txt_str(-1,AN_VIS_ROW-4,"to play movie continuously",MNORMAL_PAL);
+d1423 1
+a1423 1
+    frames=count_frames(clist, &tdata_cnt, &texdata_cnt);
+d1435 4
+d1477 1
+a1477 1
+	    if ( send_poly(bkg, ONE_FRAME) == 0 ) break;
+d1481 1
+a1481 1
+	    if ( send_poly(bkg, ONE_FRAME) == 0 ) break;
+d1574 2
+a1575 1
+	    if ( !slides ) {
+d1605 14
+d1782 1
+d1785 4
+a1788 1
+
+d1803 5
+d1856 1
+a1856 1
+	    if ( send_poly(bkg_trap, ONE_FRAME) == 0 ) {abort = 1; break;}
+d1862 3
+d1902 2
+a1903 1
+    bkg = clr_traps;
+d2003 1
+a2003 1
+    (0x14000000|((Z_SQ_H+Z_SQ_SIZE)<<12)),	/* TRAP PRX */
+d2151 115
+d2570 1
+d2573 1
+d2585 5
+d2603 1
+d2611 2
+d2636 1
+d2638 1
+d2641 1
+d2643 1
+a2643 3
+#ifdef LOCTEX_ADDR
+    { { "Pattern Local Texture", zre_text_pattern}, 0},
+#else
+a2644 1
+#endif
+d2716 2
+a2717 1
+	if ( send_poly(bkg_trap, ONE_FRAME) == 0 ) break;
+@
+
+
+1.18
+log
+@moved FDONE() test _above_ IRQ acknowledge for ZTV2.
+This bug was introduced as part of a work-around for
+ZIG interrupt botch.
+@
+text
+@a521 5
+#if (0)
+	for ( spinner = TOO_LONG ; spinner >= 0 ; spinner -= LOOP_TIME ) {
+	    if ( bufbit != (*stat & (1<<B_Z_CURBUF)) ) break; 
+	}
+#else
+a525 1
+#endif
+d2039 1
+d2041 3
+d2052 1
+d2054 3
+d2423 5
+a2427 1
+    status = zre_text_init(0,0x8000);
+d2467 1
+a2467 1
+/*    *csr |= (1<<B_ZRE_INTEN); */
+@
+
+
+1.17
+log
+@minor changes to ltrap test pattern. Force non-existant
+texture address on clr_trap (special VRAM Clear trap).
+Modified zre_irq() in hope of getting TBUS working.
+@
+text
+@a197 1
+void zre_irq(void);
+d378 11
+a401 7
+    if ( !FDONE(*csr) ) {
+	/* Not actually done, so this Interrupt is not really
+	 * for me.
+	 */
+	++non_zre;
+	return;
+    }
+@
+
+
+1.16
+log
+@diddled around with 8x8 textured trap, made sure zre_setup()
+leaves TBUS in control and Interrupts enabled, although
+the interrupt-enable actually does nothing!
+@
+text
+@a282 1
+#if HOST_BOARD != ASCLEAP
+a289 5
+#else
+	/* John Moore now wants to try using THOLD_IGNORE line...
+	 */
+	zre_csr_pref |= (1<<B_ZRE_SOFTRES);
+#endif
+a375 8
+    if ( (*csr & (1<<B_ZRE_INTEN) ) == 0 ) return; /* Can't be us */ 
+    if ( !FDONE(*csr) ) {
+	/* Not actually done, so this Interrupt is not really
+	 * for me.
+	 */
+	++non_zre;
+	return;
+    }
+d378 1
+d382 1
+d385 4
+a388 1
+	/* ZIG has write-strobe INTACK */
+d392 7
+d460 4
+a463 2
+    if ( *csr & (1<<B_ZRE_INTEN) ) {
+	/* ZRE interrupts are enabled.
+d694 1
+d2034 1
+a2034 1
+    0x4500ff00,		/* SCI_S_PR0 = 0.ff.0 */
+a2042 1
+    0x50800333,		/* Texture 8x8x16 */
+d2049 1
+a2049 1
+    0x50800343,		/* Texture 8x16x16 */
+d2458 1
+a2458 1
+    *csr |= (1<<B_ZRE_INTEN);
+@
+
+
+1.15
+log
+@Some changes to simple traps, for TEXEDO debug. Pattern
+only first 0x8000 COLRAM entries, and moved text palettes
+up, to allow indirect-texture kluge to work without damaging
+AN palettes.
+@
+text
+@d1102 1
+d2013 1
+a2013 7
+#ifdef LOCTEX_ADDR
+    0x0400003F,		/* TRAP PLH 64 */
+    0x0800003F,		/* TRAP PRH 64 */
+    0x0C00f000,		/* TRAP PLX (15 pixels in from left) */
+    0x10000000,		/* Vertical */
+    0x1404f000,		/* 64 pixels wide */
+#else
+a2018 1
+#endif
+d2020 2
+a2022 10
+    0x40000000,		/* SCI_S_PL0 = 0.0.0 */
+    0x4100ff00,		/* SCI_S_PR0 = 0.ff.0 */
+    0x42000000,		/* SCI_S_PDL = 0.0.0 */
+    0x43000000,		/* SCI_S_PDR = 0.0.0 */
+    0x44000000,		/* SCI_T_PL0 = 0.0.0 */
+    0x45000000,		/* SCI_T_PR0 = 0.ff.0 */
+    0x4600ff00,		/* SCI_T_PDL = 0.0.0 */
+    0x4700ff00,		/* SCI_T_PDR = 0.0.0 */
+#else
+/* The SCI_S and SCI_T regs are swapped. */
+d2031 9
+a2040 4
+#ifdef LOCTEX_ADDR
+    0x4C800000,		/* Texture RAM base (Local) */
+    0x50800663,		/* Texture 64x64x16 */
+#else
+d2043 1
+a2043 1
+#endif
+a2048 24
+#if (0)
+    0xA0000014,		/* 20 (0x14) words of texture */
+    0x00000000,		/* Offset 0 */
+    0x00010004,
+    0x00100040,
+    0x01000400,
+    0x1B1BE4E4,
+    0x03F00F3C,0x3C0F3C0F,0x3FFF3C0F,0x3C0F0000,
+    0x0FFF3C0F,0x3C0F0FFF,0x3C0F3C0F,0x0FFF0000,
+    0x0FFC3C0F,0x000F000F,0x000F3C0F,0x0FFC0000,
+    0x03FF0F0F,0x3C0F3C0F,0x3C0F0F0F,0x03FF0000,
+#endif
+#if (0)
+    0xA0000020,		/* 32 (0x20) words of texture */
+    0x00000000,		/* Offset 0 */
+    0x00010002,0x00040008,0x00100020,0x00400080,
+    0x01000200,0x04000800,0x10002000,0x40008000,
+    0x00010003,0x0006000c,0x00180030,0x006000c0,
+    0x01800300,0x06000c00,0x18003000,0x6000c000,
+    0x00010003,0x0007000e,0x001C0038,0x007000e0,
+    0x01C00380,0x07000e00,0x1C003800,0x7000e000,
+    0x00010003,0x0007000F,0x001E003C,0x007800F0,
+    0x01E003C0,0x07800F00,0x1E003C00,0x7800F000,
+#else
+d2068 1
+a2068 1
+#endif
+d2455 5
+a2459 1
+    return swap_and_wait();
+@
+
+
+1.14
+log
+@added zre_bkg() to paint selected backgorund, exported
+for use in texure-based alphanumerics tests.
+Temporary changes to temporary traps for texture tests.
+@
+text
+@d282 2
+a289 1
+IOLEDSET(0x66);
+d291 5
+d2023 1
+a2023 1
+    0x14017000,		/* 8 pixels wide */
+d2026 1
+a2026 1
+
+d2035 11
+d2069 2
+a2070 1
+#else
+d2081 20
+d2102 18
+d2280 1
+d2427 2
+a2428 2
+    for ( idx = 0 ; idx < n_elts(ZRE_COLRAM) ; ++idx ) {
+	dst[idx] = idx & 0x7fff;
+d2451 1
+a2451 1
+    status = zre_text_init(0,0);
+@
+
+
+1.13
+log
+@Removed ZIG conditionals from around uses of ztv_base,
+as ztv_vid has maintatined ztv_base for some time now.
+fixed zre_setup() handling of xtot_bit, it was exactly
+wrong.
+@
+text
+@d1094 5
+d2031 1
+d2034 29
+a2063 1
+    0x50800663,		/* Texture 64x64x16 */
+@
+
+
+1.12
+log
+@Removed all references to mathbox.
+xtot switches between XBUS and TBUS on 4K MathHost board
+else not switchable _from_ xbus.
+@
+text
+@a64 1
+#ifdef ZIG
+a68 6
+#else
+#define BLIP_INIT \
+    do { latp = &ZTV_CTL;		\
+    lval = ztv_latch_shad;	\
+    lvalb = lval | 0x200; } while (0)
+#endif
+a159 1
+#ifdef ZIG
+d161 1
+a161 3
+#else
+    ztv = &ZTV_STAT;
+#endif
+d193 1
+a193 1
+ *	Also reset ZMB. Returns -1 if ZRE cannot be initialized,
+d446 1
+a446 1
+    VU32 *stat = &ZTV_STAT;
+d448 1
+a448 3
+#ifdef ZIG
+    stat = ztv_base;
+#endif
+d1222 2
+a1223 4
+    VU32 *stat = &ZTV_STAT;
+#ifdef ZIG
+    stat = ztv_base;
+#endif
+a1281 1
+#ifdef ZIG
+d1283 1
+a1283 3
+#else
+    bufbit = ZTV_STAT & (1<<B_Z_CURBUF);
+#endif
+a1405 1
+#ifdef ZIG
+d1407 1
+a1407 3
+#else
+	bufbit = ZTV_STAT & (1<<B_Z_CURBUF);
+#endif
+a1413 1
+#ifdef ZIG
+d1415 1
+a1415 3
+#else
+	    U32 *buff = (U32*)ZTV_BITMAP_ADDR;
+#endif
+a1677 1
+#ifdef ZIG
+a1678 3
+#else
+    U32 *tlp = (U32*)ZTV_BITMAP_ADDR;
+#endif
+a1719 1
+#ifdef ZIG
+a1720 3
+#else
+	bufbit = ZTV_STAT & (1<<B_Z_CURBUF);
+#endif
+d2375 1
+d2377 1
+a2377 2
+    *csr |= (1<<B_ZRE_XTOT);
+#ifndef ZIG
+a2378 3
+#else
+    *csr &= (~xtot_bit & ~(1<<B_ZRE_INTEN));
+#endif
+@
+
+
+1.11
+log
+@now using ztv_texture_write(), instead of ad hoc tricks.
+Ensure non-textured traps hold texture address MSB high.
+Re-labled and modified a few tests for TEXEDO debug.
+Fixed some comments to more accurately describe test trap data.
+@
+text
+@d143 5
+a147 1
+    "\011TBUS Fed from\000*ZMAT\000XBUS\000"
+a436 230
+static VU32 *mb_pointer;
+static int mb_index;
+static int mb_chksum;
+
+#if defined(ZMB_CSR)
+static int old_mb_index;
+static int old_mb_chksum;
+#endif
+
+#define MB_SENTINEL 	0		/* index of SENTINEL word  */
+#define MB_COUNT    	1		/* index of count word */
+#define MB_CHKSUM   	2		/* index of checksum word */
+#define MB_DATA		3		/* index of first DATA word */
+#define MB_STATUS	1		/* index of status word (for real mathbox code) */
+#define MB_FLAG_MASK  0xFFFFFFF0	/* flag mask */
+#define MB_FLAG_IDLE  0x5555AAA0	/* if SENTINEL anded with MASK is this, MB is IDLE */
+#define MB_FLAG_BUSY  0xAAAA5550	/* if SENTINEL anded with MASK is this, MB is BUSY */
+#define MB_FLAG_DONE  0x0000000A	/* if low byte of SENTINEL is this, MB is done with no error */
+#define MB_FLAG_CSERR 0x00000001	/* if low byte of SENTINEL is this, there was a CS error */
+#define MB_FLAG_2MUCH 0x00000002	/* if low byte of SENTINEL is this, MB says there is too much data */
+#define MB_FLAG_GO    0x00000005
+#define MB_FLAG_STOP  0x0000000A
+
+static int zre_mb_init() {
+#ifdef ZMB_CSR
+    mb_pointer = (VU32*)ZMB_ADDR;
+    old_mb_index = mb_index;
+    old_mb_chksum = mb_chksum;
+    mb_index = MB_DATA;
+    mb_chksum = 0;
+    if ((mb_pointer[MB_SENTINEL]&MB_FLAG_MASK) != MB_FLAG_IDLE) {
+	const char *msg;
+	int ii;
+	txt_str(3, 3, "Mathbox not ready. Reseting it...", MNORMAL_PAL);
+	ZMB_CSR = ((1<<B_ZMB_INTACK)) & ~((1<<B_ZMB_RESET_N) | (1<<B_ZMB_HRESET));
+	for (ii=0; ii<120; ++ii) {	/* wait 2 seconds */
+	    prc_delay(1);
+	}
+	msg =         "Waiting for Sentinel ...         ";
+	txt_str(3, 3, msg, MNORMAL_PAL);
+	for (ii=0; ii<60*3; ++ii) {	/* wait about 3 seconds for sentinel to appear */
+	    if ((mb_pointer[MB_SENTINEL]&MB_FLAG_MASK) == MB_FLAG_IDLE) break;
+	    prc_delay(1);
+	}
+	if (ii >= 300) {
+	    holler(3, 3, "Mathbox is not responding. Sentinel=0x", mb_pointer[MB_SENTINEL]);
+	  /* indicate no Mathbox, and switch to XBUS-fed traps */
+	  mb_pointer = 0;
+#ifndef ZIG
+	  ZRE_CSR |= (1<<B_ZRE_XTOT);
+	  zre_csr_pref |= (1<<B_ZRE_XTOT); 
+#else
+	  ZRE_CSR = (ZRE_CSR & ~(1<<B_ZRE_XTOT)) | xtot_bit;
+	  zre_csr_pref = (zre_csr_pref & ~(1<<B_ZRE_XTOT)) | xtot_bit;
+#endif
+	  return 0;
+	}
+    }
+    return 1;
+#else
+/* indicate no Mathbox, and switch to XBUS-fed traps */
+    mb_pointer = 0;
+#ifndef ZIG
+    ZRE_CSR |= (1<<B_ZRE_XTOT);
+    zre_csr_pref |= (1<<B_ZRE_XTOT); 
+#else
+    ZRE_CSR = (ZRE_CSR & ~(1<<B_ZRE_XTOT)) | xtot_bit;
+    zre_csr_pref = (zre_csr_pref & ~(1<<B_ZRE_XTOT)) | xtot_bit;
+#endif
+    return 0;
+#endif
+}
+
+#if defined(ZMB_CSR)
+static int mb_check_error() {
+    int condit;
+    condit = mb_pointer[MB_SENTINEL]&~MB_FLAG_MASK;
+    if (condit != MB_FLAG_DONE) {		/* didn't succeed */
+	if (condit == MB_FLAG_CSERR) {		/* if we got a checksum error */
+	    int ii, cnt, cs0, cs1;
+	    VU32 *csp;
+	    cnt = old_mb_index-MB_DATA;
+	    cs0 = cs1 = 0;
+	    csp = mb_pointer+MB_DATA;
+	    for (ii=MB_DATA; ii < cnt; ++ii) cs0 += *csp++;
+	    csp = mb_pointer+MB_DATA;
+	    for (ii=MB_DATA; ii < cnt; ++ii) cs1 += *csp++;
+	    txt_str(2, 4, "Math Box returned checksum error.", ERROR_PAL);
+	    txt_str(2, 5, "Cksm computed by host is    0x", ERROR_PAL);
+	    txt_chexnum(-old_mb_chksum, 8, RJ_ZF,  ERROR_PAL);
+	    txt_cstr(" on ", ERROR_PAL);
+	    txt_cdecnum(old_mb_index, 7, RJ_BF, ERROR_PAL);
+	    txt_cstr(" words", ERROR_PAL);
+	    txt_str(2, 6, "Cksm computed by MB is      0x", ERROR_PAL);
+	    txt_chexnum(mb_pointer[MB_CHKSUM], 8, RJ_ZF,  ERROR_PAL);
+	    txt_cstr(" on ", ERROR_PAL);
+	    txt_cdecnum(mb_pointer[MB_COUNT], 7, RJ_BF, ERROR_PAL);
+	    txt_cstr(" words", ERROR_PAL);
+	    txt_str(2, 7, "Cksm re-computed by host is 0x", ERROR_PAL);
+	    txt_chexnum(-cs0, 8, RJ_ZF,  ERROR_PAL);
+	    txt_cstr(" on ", ERROR_PAL);
+	    txt_cdecnum(cnt, 7, RJ_BF, ERROR_PAL);
+	    txt_cstr(" words", ERROR_PAL);
+	    holler( 2, 8, "Cksm re-computed by host is 0x", -cs1);
+	} else {
+	    holler(2, 4, "Mathbox returned undefined error. Sentinel=0x", mb_pointer[MB_SENTINEL]);
+	}
+	return 1;
+    }
+    return 0;
+}
+
+static int zre_mb_fend(int swap_it) {
+    int spinner, prev_irqs, prev_swap;
+    VU32 *csr = &ZRE_CSR;
+    unsigned long bufbit;
+    VU32 *stat = &ZTV_STAT;
+#ifdef ZIG
+    stat = ztv_base;
+#endif
+#if defined(TIME_MB_FEND)
+    int mathbox, frame;
+    extern long milliseconds;
+    extern void sleep10(int);
+#endif
+
+    bufbit = *stat & (1<<B_Z_CURBUF);
+
+    prev_swap = no_auto_swap;
+    prev_irqs = zre_ints;
+    if ( mb_pointer == 0 && zre_mb_init() == 0 ) return -1;
+    if ( *csr & (1<<B_ZRE_INTEN) ) {
+	/* ZRE interrupts are enabled.
+	 * Tell the IRQ whether or not to
+	 * swap, then send FEND.
+	 */
+	no_auto_swap = !swap_it;
+    }
+    mb_pointer[mb_index++] = (FEND_OP << SCI_SHF);
+    mb_chksum += (FEND_OP << SCI_SHF);
+    mb_pointer[MB_CHKSUM] = -mb_chksum;
+    mb_pointer[MB_COUNT] = mb_index - MB_DATA;
+    old_mb_chksum = mb_chksum;
+    old_mb_index = mb_index;
+    mb_chksum = 0;				/* reset for next time */
+    mb_index = MB_DATA;
+    if (old_mb_index-MB_DATA > 0x001FFFF00) {
+	holler(2, 4, "Too much trap data in frame", old_mb_index-MB_DATA);
+	return -1;
+    }
+    mb_pointer[MB_SENTINEL] = MB_FLAG_BUSY;	/* signal there's data in the buffer */
+#if defined(TIME_MB_FEND)
+    mathbox = milliseconds;
+#endif
+    for (spinner=TOO_LONG; spinner >= 0; spinner -= LOOP_TIME) {
+	int ii;
+	for (ii=0; ii<100; ++ii);		/* pause for a little to give the MB some time */
+	if ((mb_pointer[MB_SENTINEL]&MB_FLAG_MASK) == MB_FLAG_IDLE) break;	/* peek once in a while to see if it's done */
+    }
+#if defined(TIME_MB_FEND)
+    mathbox = milliseconds - mathbox;		/* compute time it took to do the copy */
+#endif
+    if (spinner >= 0) {
+        if (mb_check_error()) {
+	    no_auto_swap = prev_swap;
+	    return -1;
+	}
+    }
+    if (spinner < 0) {
+	holler(2, 4, "zre_mb_fend: MB took too long to copy data; flag=0x",
+	 mb_pointer[MB_SENTINEL]);
+	no_auto_swap = prev_swap;
+	return -1;
+    }
+#if !defined(TIME_MB_FEND)
+    if ( *csr & (1<<B_ZRE_INTEN) ) {
+	for (spinner=TOO_LONG; spinner >= 0; spinner -= LOOP_TIME) {
+	    if ( prev_irqs != zre_ints) break;
+	}
+	no_auto_swap = prev_swap;
+	if (spinner < 0) {
+	    holler(2, 4, "zre_mb_fend: No ZRE interrupt asserted; CSR=0x", *csr);
+	    return -1;
+	}
+    } else {
+	for (spinner=TOO_LONG; spinner >= 0; spinner -= LOOP_TIME) {
+	    if ( FDONE(*csr) ) break;
+	}
+	if (spinner < 0) {
+	    holler(2, 4, "zre_mb_fend: FDONE HELD TOO LONG; CSR=0x", *csr);
+	    return -1;
+	}
+    }
+    if ( (*csr & (1<<B_ZRE_INTEN)) == 0) {
+	if ( swap_it ) ztv_bufswap();
+	if ( swap_it > 1 ) {
+	    for ( spinner = 10 ; spinner >= 0 ; --spinner ) {
+		if ( bufbit != (*stat & (1<<B_Z_CURBUF)) ) break; 
+		prc_delay(1);
+	    }
+	    if ( spinner < 0 ) return -1;
+	}
+    }
+    if ( swap_it > 1 ) {
+	for ( spinner = 10 ; spinner >= 0 ; --spinner ) {
+	    if ( bufbit != (*stat & (1<<B_Z_CURBUF)) ) break; 
+	    prc_delay(1);
+	}
+	if ( spinner < 0 ) return -1;
+    }
+#else
+    frame = milliseconds;
+    while (frame+10000 > milliseconds) {
+	if ( FDONE(*csr) ) {
+	    if ( FDONE(*csr) ) {
+		break;
+	    }
+	}
+    }
+    if (frame+10000 <= milliseconds) {    
+	holler(2, 4, "zre_mb_fend: FDONE HELD TOO LONG; CSR=0x", *csr);
+	return -1;
+    }
+    frame = milliseconds - frame;
+    if ( swap_it ) ztv_bufswap();
+#endif
+    return 0;
+}
+#endif
+
+d457 1
+d463 3
+a465 2
+#ifdef ZMB_CSR
+    if ( mb_pointer && (*csr & (1<<B_ZRE_XTOT)) != xtot_bit ) return zre_mb_fend(swap_it);
+d485 1
+a485 1
+	*zre_xtot = (FEND_OP << SCI_SHF);
+d504 1
+a504 1
+	*zre_xtot = (FEND_OP << SCI_SHF);
+a577 3
+    if ((*csr & (1<<B_ZRE_XTOT)) != xtot_bit ) {
+        if (!zre_mb_init()) return 0;
+    }
+d987 1
+a987 1
+    VU32 *csr = &ZRE_CSR;
+d995 6
+a1002 4
+#ifdef DAVE
+	/* MEA has no idea why Dave neutered this test... */
+	if ( 1 || new_trap )
+#else
+a1003 1
+#endif
+d1052 1
+a1052 6
+	    if ((*csr & (1<<B_ZRE_XTOT)) == xtot_bit ) {
+		*zre_xtot = trap_cmd;
+	    } else if ( mb_pointer ) {
+		mb_pointer[mb_index++] = trap_cmd;
+		mb_chksum += trap_cmd;
+	    }
+d1098 1
+a1098 6
+	    if ((*csr & (1<<B_ZRE_XTOT)) == xtot_bit ) {
+		*zre_xtot = trap_cmd;
+	    } else if ( mb_pointer ) {
+		mb_pointer[mb_index++] = trap_cmd;
+		mb_chksum += trap_cmd;
+	    }
+a1252 181
+#if defined(ZMB_CSR)
+static int mb_check_buffer(int cur_buf, int row, int *missed, int frames) {
+    if ((cur_buf&31) == 0 || (cur_buf&31) == 31) {
+	*missed += 1;
+	txt_str(3, row, "No ZRE_INT in 5 frames. Miss count so far: ", MNORMAL_PAL);
+	if (*missed < 5) txt_cstr("\007", MNORMAL_PAL);
+	txt_cdecnum(*missed, 6, LJ_BF, MNORMAL_PAL);
+	txt_str(3, row+1, "cur_buf = 0x", MNORMAL_PAL);
+	txt_chexnum(cur_buf, 8, RJ_ZF, MNORMAL_PAL);
+	txt_cstr("  Frames so far: ", MNORMAL_PAL);
+	txt_cdecnum(frames, 8, LJ_BF, MNORMAL_PAL);
+	swap_and_wait();
+	cur_buf ^= 1;
+    }
+    return cur_buf;
+}
+
+static int zre_mathbox_movie(const struct menu_d *smp) {
+    U32	old_csr, old_ztv;
+    int prev_swap, ii;			/* default to one frame at a time */
+    int cur_buf, missed=0, row=3, tot_frames=0;
+    VU32 *csr = &ZRE_CSR;
+    VU32 *stat = &ZTV_STAT;
+#ifdef ZIG
+    stat = ztv_base;
+#endif
+    zre_init();
+    old_ztv = ztv_mod_latch(0);
+    ztv_mod_latch(1<<B_Z_XACC);
+    old_csr = *csr;
+    *csr = (zre_csr_pref | ((1<<B_ZRE_REON)|(1<<B_ZRE_INTEN)));
+    *csr &= ~((1<<B_ZRE_XTOT)|(1<<B_ZRE_TLEN));
+#ifdef ZIG
+    *csr |= ~xtot_bit & (1<<B_ZRE_XTOT);
+#endif
+    prev_swap = no_auto_swap;
+    no_auto_swap = 0;
+#ifdef ZMB_CSR
+    if (!zre_mb_init()) return 0;
+#endif
+
+    txt_str(-1,AN_VIS_ROW-7,t_msg_action,MNORMAL_PAL);
+    txt_str(-1,AN_VIS_ROW-6,"for each frame",MNORMAL_PAL);
+    txt_str(-1,AN_VIS_ROW-5,t_msg_actionh,MNORMAL_PAL);
+    txt_str(-1,AN_VIS_ROW-4,"for continious movie play",MNORMAL_PAL);
+    cur_buf = (*stat & (1<<B_Z_CURBUF)) != 0;
+
+    while (1) {
+	U32 ctls;
+	prc_delay(1);
+	++tot_frames;
+	ctls = ctl_read_sw(SW_NEXT|SW_ACTION);
+	if ( ctls & SW_NEXT ) break;
+	cur_buf = mb_check_buffer((cur_buf<<1) | ((*stat & (1<<B_Z_CURBUF)) != 0), row, &missed, tot_frames);
+	if ((mb_pointer[MB_SENTINEL]&MB_FLAG_MASK) == MB_FLAG_IDLE) {	/* mathbox is stopped */
+	    mb_pointer[MB_SENTINEL] = MB_FLAG_BUSY;	/* start it again */
+	}
+    }
+    mb_pointer[MB_SENTINEL] = MB_FLAG_IDLE;	/* shutdown the mathbox */
+    txt_clr_wid(3, row, AN_VIS_COL-5);		/* erase any existing announcments */
+    txt_clr_wid(3, row+1, AN_VIS_COL-5);
+    txt_str(3, row++, "Total missed ZRE interrupts: ", MNORMAL_PAL);
+    txt_cdecnum(missed, 6, LJ_BF, MNORMAL_PAL);
+    txt_str(3, row++, "cur_buf = 0x", MNORMAL_PAL);
+    txt_chexnum(cur_buf, 8, RJ_ZF, MNORMAL_PAL);
+    txt_cstr("  Total frames: ", MNORMAL_PAL);
+    txt_cdecnum(tot_frames, 8, LJ_BF, MNORMAL_PAL);
+    txt_str(3, row++, "Waiting 10 frames for TBUS fifo to empty", MNORMAL_PAL);
+    for (ii=0; ii<10; ++ii) {
+	prc_delay(1);
+    }
+    no_auto_swap = prev_swap;
+    *csr = old_csr;
+    if ( (old_ztv & (1<<B_Z_XACC)) == 0 ) ztv_mod_latch(~(1<<B_Z_XACC));
+    if (mb_pointer[MB_STATUS] != MB_FLAG_IDLE) holler(3, 3, "Mathbox didn't stop computing. Status=0x", mb_pointer[MB_STATUS]);
+    return 0;
+}
+
+static int zre_mathbox_rrmovie(const struct menu_d *smp) {
+    VU32 *csr = &ZRE_CSR;
+    U32	old_csr, old_ztv;
+    int prev_swap, frames;
+    const struct zre_desc *zp;
+    const U32 * clist;
+    int tdata_cnt, texdata_cnt;
+
+    zre_init();
+    old_ztv = ztv_mod_latch(0);
+    ztv_mod_latch(1<<B_Z_XACC);
+    if (!zre_mb_init()) return 0;
+    if (send_poly(init_trap, ONE_FRAME) == 0) return 0;
+    old_csr = *csr;
+    /* for Mathbox-driven TBUS, we must enable Interrupts, and disable
+     * the XBUS->TBUS side door.
+     */
+    *csr = zre_csr_pref | (1<<B_ZRE_INTEN);
+    *csr &= ~(1<<B_ZRE_XTOT);
+#ifdef ZIG
+    *csr |= ~xtot_bit & (1<<B_ZRE_XTOT);
+#endif
+    prev_swap = no_auto_swap;
+    no_auto_swap = 0;
+    zp = (const struct zre_desc *)smp;
+    clist = (const U32 * const) zp->trap_list;
+    frames=count_frames(clist, &tdata_cnt, &texdata_cnt);
+    if ( frames <= 0 ) {
+	/* not a valid movie */
+	holler(2, 2, "Not a valid movie at 0x",(U32)clist);
+	return -1;
+    }
+    txt_decnum(3,3,frames,6,LJ_NF,MNORMAL_PAL);
+    txt_cstr(" Frames",MNORMAL_PAL);
+    txt_decnum(3,4,tdata_cnt,6,LJ_NF,MNORMAL_PAL);
+    txt_cstr(" words of TBUS data",MNORMAL_PAL);
+    txt_decnum(3,5,texdata_cnt,6,LJ_NF,MNORMAL_PAL);
+    txt_cstr(" words of texture data",MNORMAL_PAL);
+    if ( bkg == 0 ) bkg = clr_traps;
+    txt_str(-1,AN_VIS_ROW-7,t_msg_action,MNORMAL_PAL);
+    txt_str(-1,AN_VIS_ROW-6,"for each sequence of frames",MNORMAL_PAL);
+    txt_str(-1,AN_VIS_ROW-5,t_msg_actionh,MNORMAL_PAL);
+    txt_str(-1,AN_VIS_ROW-4,"for continious movie play",MNORMAL_PAL);
+    while (1) {
+	if (send_poly(bkg, ONE_FRAME) == 0) break;
+	clist = send_poly(clist, ONE_FRAME);
+	if ( clist == 0 ) return 1;
+	mb_pointer[mb_index++] = FEND_OP<<SCI_SHF;	/* follow with a frame end */
+	mb_chksum += FEND_OP<<SCI_SHF;
+	if ( (*clist++ & 0xFFFFFF) == 0xE0F || (*clist >> SCI_SHF) == FEND_OP) {
+	    int ii, cur_buf, missed=0, row=6, tot_frames=0;
+	    VU32 *stat = &ZTV_STAT;
+#ifdef ZIG
+	    stat = ztv_base;
+#endif
+	    old_mb_chksum = mb_chksum;
+	    old_mb_index = mb_index;
+	    mb_index = MB_DATA;
+	    mb_chksum = 0;
+	    cur_buf = (*stat & (1<<B_Z_CURBUF)) != 0;
+	    while (1) {
+		int ctls;
+		prc_delay(1);
+	        ++tot_frames;
+		ctls = ctl_read_sw(SW_NEXT|SW_ACTION);
+		if ( ctls & SW_NEXT ) break;
+		cur_buf = mb_check_buffer((cur_buf<<1) | ((*stat & (1<<B_Z_CURBUF)) != 0), row, &missed, tot_frames);
+		if ((mb_pointer[MB_SENTINEL]&MB_FLAG_MASK) == MB_FLAG_IDLE) {	/* mathbox is done */
+		    if (mb_check_error()) break;
+		    mb_pointer[MB_COUNT] = old_mb_index - MB_DATA;	/* start it up again */
+		    mb_pointer[MB_CHKSUM] = -old_mb_chksum;
+		    mb_pointer[MB_SENTINEL] = MB_FLAG_BUSY;
+		}
+	    }
+	    txt_clr_wid(3, row, AN_VIS_COL-5); 		/* erase announcements in case there were any */
+	    txt_clr_wid(3, row+1, AN_VIS_COL-5);
+	    txt_str(3, row++, "Total missed ZRE interrupts: ", MNORMAL_PAL);
+	    txt_cdecnum(missed, 6, LJ_BF, MNORMAL_PAL);
+	    txt_str(3, row++, "cur_buf = 0x", MNORMAL_PAL);
+	    txt_chexnum(cur_buf, 8, RJ_ZF, MNORMAL_PAL);
+	    txt_cstr("  Total frames: ", MNORMAL_PAL);
+	    txt_cdecnum(tot_frames, 8, LJ_BF, MNORMAL_PAL);
+	    txt_str(3, row++, "Waiting ", MNORMAL_PAL);
+	    txt_cdecnum(2*frames, 6, RJ_BF, MNORMAL_PAL);
+	    txt_cstr(" frames for mathbox to finish",MNORMAL_PAL);
+	    txt_str(3, row++, "and TBUS fifo to empty...",MNORMAL_PAL);
+	    for (ii=0; ii<2*frames; ++ii) {
+		prc_delay(1);
+	    }
+	    if ((mb_pointer[MB_SENTINEL]&MB_FLAG_MASK) != MB_FLAG_IDLE) {
+		holler(3, row, "Mathbox didn't complete. Sentinel=0x", mb_pointer[MB_SENTINEL]);
+	    }
+	    break;
+	}
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+    }
+    no_auto_swap = prev_swap;
+    *csr = old_csr;
+    if ( (old_ztv & (1<<B_Z_XACC)) == 0 ) ztv_mod_latch(~(1<<B_Z_XACC));
+    return 0;
+}
+#endif
+
+a1277 3
+    if ((*csr & (1<<B_ZRE_XTOT)) != xtot_bit ) {
+        if (!zre_mb_init()) return 0;
+    }
+a1709 3
+    if ((*csr & (1<<B_ZRE_XTOT)) != xtot_bit ) {
+        if (!zre_mb_init()) return 1;
+    }
+a2348 4
+#ifdef ZMB_CSR
+    { { "Mathbox movie", zre_mathbox_movie}, 0},
+    { { "Mathbox RR movie", zre_mathbox_rrmovie}, (const U32 **)RR_MOVIE},
+#endif /* def'd ZMB_CSR */
+@
+
+
+1.10
+log
+@made more verbose buffr stats (in RAMROM Slides) conditional
+on B_Z_OVLY_BUF being defined. This is only used when trouble-shooting
+the overlay video.
+@
+text
+@a323 2
+#define TFL_NO_TEXRAM (2)
+#define TFL_NO_LOCTEX (4)
+a330 6
+    VU32 *csr = &ZRE_CSR;
+#if defined(TEXRAM_ADDR) | defined(LOCTEX_ADDR)
+    VU32 *tp;
+    U32 test;
+    int idx;
+#endif
+d333 3
+a335 9
+    *csr |= (1<<B_ZRE_TLEN);	/* _DIS_able Texture pipe */
+    status = -1;
+#ifdef TEXRAM_ADDR
+    tp = (U32*)TEXRAM_ADDR;
+    test = *tp;
+    *tp = ~test;
+    if ( (~test ^ *tp) == 0 ) {
+	/* TEXRAM exists, use it */
+	for ( idx = n_elts(TEXRAM) ; --idx >= 0 ; ) tp[idx] = (idx&0xFFFF)|(idx<<16);
+a336 20
+    } else {
+	texture_flags |= TFL_NO_TEXRAM;
+	holler(2, 2, "No TEXRAM @@ 0x",(U32)tp);
+    }
+#endif /* TEXRAM_ADDR */
+
+#ifdef ZRE_LOCTEX_ADDR
+    tp = (U32*)ZRE_LOCTEX_ADDR;
+    if ( status ) {
+	test = *tp;
+	*tp = ~test;
+	if ( ((~test ^ *tp) & 0xFFFF) == 0 ) {
+	    /* LOCTEX exists, use it */
+	    for ( idx = n_elts(ZRE_LOCTEX) ; --idx >= 0 ; ) tp[idx] = idx;
+	    status = 0;
+	    tex_offset = 0x800000;
+	} else {
+	    texture_flags |= TFL_NO_LOCTEX;
+	    holler(2, 2, "No LOCAL TEXTURE @@ 0x",(U32)tp);
+	}
+a337 2
+#endif /* ZRE_LOCTEX_ADDR */
+    *csr &= ~(1<<B_ZRE_TLEN);	/* _EN_able Texture pipe */
+d1267 1
+d1275 1
+a1323 1
+		*csr |= (1<<B_ZRE_TLEN);
+d1326 1
+a1326 56
+#ifdef TEXRAM_ADDR
+		dp = (U32 *)TEXRAM_ADDR + offset;
+		data = *dp;
+		*dp ^= 0x5555AAAA;
+		if ( (*dp ^ 0x5555AAAA) != data  ) {
+		    if ( !(texture_flags & TFL_NO_TEXRAM) ) {
+			txt_str(-1,2,"Can't write TEXRAM",ERROR_PAL);
+		    }
+		    texture_flags |= TFL_NO_TEXRAM;
+		    dp = 0;
+		} else if ( xtot_bit ) {
+		    /* Ordinary ZTV2, or fixed ZIG */
+		    while ( cnt ) {
+			data = *tsrc++;
+			*dp++ = (data >> 16) | (data&0xFFFF0000);
+			*dp++ = (data&0xFFFF)|(data<<16);
+			--cnt;
+		    }
+		} else while ( cnt ) {
+		    /* loop includes bit-reversal to account for PCB/schematic
+		     * error on first-rev ZIG.
+		     */
+		    data = *tsrc++;
+		    data = ((data & 0x55555555)<<1) | ((data & 0xAAAAAAAA)>>1);
+		    data = ((data & 0x33333333)<<2) | ((data & 0xCCCCCCCC)>>2);
+		    data = ((data & 0x0F0F0F0F)<<4) | ((data & 0xF0F0F0F0)>>4);
+		    data = ((data & 0x00FF00FF)<<8) | ((data & 0xFF00FF00)>>8);
+		    *dp++ = (data&0xFFFF)|(data<<16);
+		    *dp++ = (data >> 16) | (data&0xFFFF0000);
+		    --cnt;
+		}
+#endif
+#ifdef ZRE_LOCTEX_ADDR
+		if ( dp == 0 ) {
+		    /* TEXRAM not defined or not present, try
+		     * ZRE_LOCTEX, on first rev board
+		     */
+		    tex_offset = 0x800000;
+		    dp = (U32 *)ZRE_LOCTEX_ADDR+offset;
+		    data = *dp;
+		    *dp ^= 0x5555;
+		    if ( (*dp ^ 0x5555 ^ data) & 0xFFFF ) {
+			if ( !(texture_flags & TFL_NO_LOCTEX) ) {
+			    txt_str(-1,2,"Can't write Local Texture",ERROR_PAL);
+			}
+			texture_flags |= TFL_NO_LOCTEX;
+			tex_offset = 0;
+		    } else while ( cnt ) {
+			data = *tsrc++;
+			*dp++ = (data >> 16);
+			*dp++ = data;
+			--cnt;
+		    }
+		}
+#endif
+		*csr &= ~(1<<B_ZRE_TLEN);
+d1960 1
+d2054 1
+d2056 3
+a2058 1
+
+d2455 3
+a2457 2
+    0x0400003F,		/* TRAP PLH 128 */
+    0x0800003F,		/* TRAP PRH 128 */
+d2461 7
+d2478 1
+d2480 3
+a2483 1
+
+d2548 1
+d2550 3
+d2747 1
+d2750 8
+d2764 1
+d2766 3
+@
+
+
+1.9
+log
+@stifled warnings when neither TEXRAM nor LOCTEX defined,
+added "slow movie" test. More verbose display of buffer
+usage in "slides", for OVLY debug.
+@
+text
+@d1994 1
+a1994 1
+#if (1)
+@
+
+
+1.8
+log
+@fixed error in init_trap, which failed to clear second
+line of reference line-pair.
+@
+text
+@d334 1
+d337 4
+a340 1
+    int idx,status;
+d1359 1
+d1782 1
+d1794 1
+d1896 1
+d1989 1
+d1991 11
+a2001 1
+	    txt_decnum(-1,2,frame,4,RJ_BF,MNORMAL_PAL);
+d2003 2
+a2004 1
+	    txt_cstr((ztv_mod_latch(0) & (1<<B_Z_BUFSEL)) ? " X" : " O",MNORMAL_PAL);
+d2809 1
+@
+
+
+1.7
+log
+@Removed permanently conditionalled out code.
+@
+text
+@d923 1
+a923 1
+    0|(CLR_TOP),	/* Trap PY 1 above "top of screen" */
+@
+
+
+1.6
+log
+@Put ZMB_CSR conditionals around all references to it.
+@
+text
+@a212 9
+#ifdef DAVE
+    /* The following should _not_ be needed, but Dave put it in
+     * so we won't take it out until we know why...
+     * OTOH, intvecs.h has no such entry on an ASCLEAP, and there
+     * is no way for a cpp #if to check an enum, so...
+     */
+    prc_set_vec(ZRE_INTVEC, zre_irq);
+#endif
+
+a2906 5
+#if HOST_BOARD == ASCLEAP
+    /* MEA encloses this in #if so he doesn't have to get in shouting
+     * match with DMS over defaulting to mathbox before it is known to
+     * work.
+     */
+a2908 1
+#endif
+@
+
+
+1.5
+log
+@slightly modified some tests for ZIG bringup and FPGA debug.
+Enclosed these changes in either (HOST_BOARD == ASCLEAP) or
+( xtot_bit == 0 ), as appropriate. The xtot_bit is flipped
+on the first-rev ZIGs, and there are several other glitches
+that need to be kluged around, so these kluges are controlled
+by xtot_bit, under the presumption that the 2nd-spin ZIG will
+fix them _and_ correct the polarity of xtot_bit. The changes
+that are more related to, e.g. Bruce Rogers NEW_V2S change
+are controlled by HOST_BOARD == ASCLEAP, as an indication that
+the stack is MEA's test-bench.
+@
+text
+@d478 1
+d481 1
+d547 1
+a547 1
+
+d702 1
+d1583 1
+d1762 1
+@
+
+
+1.4
+log
+@added ZTV_BITMAP_OFFSET kluge, to get around spurious warning
+from gcc on 4600.
+@
+text
+@d101 1
+a101 1
+/* extern declaration, which should be in a .h file except that they
+d106 5
+d148 1
+a155 1
+extern void st_dispmenu(const U8 *menu, U32 opt_bits, int erase);
+d843 1
+d900 8
+a907 1
+#ifdef NEW_V2S
+d1140 2
+a1141 2
+    0x04000008,		/* TRAP PLH 128 */
+    0x08000008,		/* TRAP PRH 128 */
+d1187 2
+a1188 2
+    0x04000008,		/* TRAP PLH 128 */
+    0x08000008,		/* TRAP PRH 128 */
+d1372 8
+d1381 3
+d1385 5
+a1390 1
+		    *dp++ = (data&0xFFFF)|(data<<16);
+d1548 1
+a1548 3
+extern int bm_rect();
+extern unsigned long hi_crc(unsigned long, unsigned long *,int);
+extern unsigned long lo_crc(unsigned long, unsigned long *,int);
+d2434 6
+d2441 1
+d2468 1
+d2493 1
+d2518 1
+d2761 11
+a2771 2
+static const U32 * const test43[] = { bkg_trap, z_square1, z_square2, z_square3, z_square4, 0};
+static const U32 * const test44[] = { bkg_trap, z_square1, z_square4, z_square3, z_square2, 0};
+d2820 23
+d2869 6
+d2911 8
+@
+
+
+1.3
+log
+@re-implemented guards for compilation on non-ZIG-aware configurations.
+How these disappeared I have no idea (MEA)
+@
+text
+@d26 8
+d1915 1
+a1915 1
+	    U32 *buff = (U32*)ztv_base + ((U32*)ZTV_BITMAP_ADDR-&ZTV_CTL);
+d2166 1
+a2166 1
+    U32 *tlp = (U32*)ztv_base + ((U32*)ZTV_BITMAP_ADDR-&ZTV_CTL);
+@
+
+
+1.2
+log
+@ re-orged IOLEDS. I hope I'm not going to regret this (MEA)
+@
+text
+@d55 2
+a57 1
+extern VU32 *ztv_base;
+d191 1
+d200 8
+d245 2
+a246 1
+	/* ZIG */
+d259 1
+d422 3
+a424 1
+    } else if ( ztv_base == &ZIGTV_CTL ) {
+d428 1
+d521 1
+a521 1
+#ifdef ZIG
+d886 3
+d890 1
+d1241 7
+a1247 1
+	if ( new_trap ) {
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d26 3
+d32 2
+a33 2
+#if (PROCESSOR == ASAP)
+#define IOLEDSET(x) do { *(VU32*)XBUS_SLOT77 = (0xFF-(x)); } while (0)
+d36 2
+a37 2
+#endif /* PROCESSOR == ASAP */
+#endif /* IOLEDSET defined */
+@

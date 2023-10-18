@@ -1,0 +1,194 @@
+head	1.2;
+access;
+symbols
+	CJ_206:1.2
+	CJ2_05:1.2
+	CJ2_04:1.2
+	CJ2_03:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	95.09.01.16.19.02;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.21.51;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Doubly-linked-list manipulation, used by Robert Birmingham's various
+jaguar utility routines.
+@
+
+
+1.2
+log
+@Removed the dll_unlink() function, was identical to dll_delete().
+@
+text
+@/*******************************************************************
+* DLL.C | Author: Robert M. Birmingham | August 21, 1994           *
+* ================================================================ *
+* G.U.T.S doubly linked list routines: Copyright 1994, Atari Games *
+*******************************************************************/
+
+#include <config.h>
+#include <dll.h>
+
+
+/*
+** *******************************************
+** dll_reset():
+** Reset the head/tail pointers of the doubly
+** linked list so the list is empty.
+** ===========================================
+** Usage:
+**   dll_reset():
+**
+** Returns:
+**   Nothing.
+** *******************************************
+*/
+
+void dll_reset( headnodep, tailnodep )
+DLLNODE *headnodep;
+DLLNODE *tailnodep;
+{
+    headnodep->next = tailnodep;
+    headnodep->prev = 0;
+    tailnodep->next = 0;
+    tailnodep->prev = headnodep;
+
+}   /* End: dll_reset() */
+
+
+/*
+** ******************************************
+** dll_before():
+** Insert a new node in a linked list before
+** the specified reference node.
+** ==========================================
+** Usage:
+**   dll_before( refnodep, newnodep );
+**
+**   DLLNODE *refnodep: ptr to reference node.
+**   DLLNODE *newnodep: prt to node to insert.
+**
+** Returns:
+**   Nothing.
+** ******************************************
+*/
+
+void dll_before( refnodep, newnodep )
+DLLNODE *refnodep;
+DLLNODE *newnodep;
+{
+     /* insert 'newnode' before 'refnodep' */
+    newnodep->prev = refnodep->prev;
+    newnodep->next = refnodep;
+
+    refnodep->prev->next = newnodep;
+    refnodep->prev = newnodep;
+
+}   /* End: dll_before() */
+
+
+/*
+** *******************************************
+** dll_after():
+** Insert a node in a linked list after the
+** specified reference node.
+** ===========================================
+** Usage:
+**   dll_after( refnodep, newnodep );
+**
+**   DLLNODE *refnodep: ptr to reference node.
+**   DLLNODE *newnodep: prt to node to insert.
+**
+** Returns:
+**   Nothing.
+** *******************************************
+*/
+
+void dll_after( refnodep, newnodep )
+DLLNODE *refnodep;
+DLLNODE *newnodep;
+{
+    /* insert 'newnode' after 'refnodep' */
+    newnodep->prev = refnodep;
+    newnodep->next = refnodep->next;
+
+    refnodep->next->prev = newnodep;
+    refnodep->next = newnodep;
+
+}   /* End: dll_after() */
+
+
+/*
+** ************************************************
+** dll_delete():
+** Delete the specified node from the linked list.
+** ================================================
+** Usage:
+**   dll_delete( delnodep );
+**
+**   void *delnodep: ptr to node in list to delete.
+**
+** Returns:
+**   Nothing.
+** ************************************************
+*/
+
+void dll_delete( delnodep )
+DLLNODE *delnodep;
+{
+    delnodep->prev->next = delnodep->next;
+    delnodep->next->prev = delnodep->prev;
+
+}   /* End: dll_delete() */
+
+/*************************************************************************
+* End of file: DLL.C                                                     *
+*************************************************************************/
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a121 27
+
+/*
+** *******************************************
+** dll_unlink():
+** Unlink the specified node from the doubly
+** linked list.  Note that this doesn't change
+** the next/prev pointers of the unlnked node.
+** ===========================================
+** Usage:
+**   dll_unlink( nodep );
+**
+**   DLLNODE *nodep: ptr to DLL node to unlink.
+**
+** Returns:
+**   Nothing.
+** *******************************************
+*/
+
+void dll_unlink( nodep )
+DLLNODE *nodep;
+{
+    /* unlink node from current position */
+    nodep->prev->next = nodep->next;
+    nodep->next->prev = nodep->prev;
+
+}   /* End: dll_unlink() */
+
+@

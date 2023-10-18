@@ -1,0 +1,70 @@
+head	1.1;
+access;
+symbols
+	CJ_206:1.1
+	CJ2_05:1.1
+	CJ2_04:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	95.07.10.18.59.09;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@peek and poke functions for R3K/R4K using jerry on CoJag
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/*******************************************************************
+ *    Jerry.c 
+ *    Functions to talk to Jerry's memory on the R3K host board.
+ *	No commitment that this code will work correctly on a 68k.
+ *    (c) 1995 Time Warner Interactive
+ *    Author:  Mike Albaugh
+ *    Author:  Dave Shepperd (made it work on the R3k)
+ *******************************************************************/
+#include <config.h>
+#include <os_proto.h>
+
+U32 jpeek(VU32 *addr) {
+    U32 tmp = 0;
+
+   if (((long)addr&3) == 0) {
+       VU16 *jerry;
+       int ops;
+
+       jerry = (VU16 *)addr;
+       ops = prc_set_ipl(INTS_OFF);
+       tmp  = *(U32 *)jerry&0xFFFF0000;	/* high word */
+       tmp |= jerry[1];			/* low word */
+       prc_set_ipl(ops);
+   }
+
+   return tmp;
+}
+
+/**************************************************************************************/
+void jpoke(VU32 *where, U32 what) {
+   if (((long)where & 3) == 0) {	/* only copy longwords */
+       int ops;
+       VU16 *jerry;
+
+       jerry = (VU16 *)where;
+       ops = prc_set_ipl(INTS_OFF);
+       *(U32 *)jerry = (what&0xFFFF0000) | (what>>16);
+       jerry[1]	     = what;
+       prc_set_ipl(ops);
+   }
+}
+/*****************************************************************************************/
+
+@

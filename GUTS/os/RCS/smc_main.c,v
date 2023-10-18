@@ -1,0 +1,963 @@
+head	1.8;
+access;
+symbols
+	RUSH_ROCK_1_0:1.6
+	RUSH_ROCK_1_0epst:1.6;
+locks; strict;
+comment	@ * @;
+
+
+1.8
+date	97.10.18.21.18.32;	author forrest;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	97.10.11.03.30.41;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.09.05.00.34.00;	author forrest;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	97.09.05.00.21.45;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	97.08.27.02.48.58;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.08.14.18.22.06;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.06.25.23.30.03;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.03.24.19.02.10;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Work in progress!
+@
+
+
+1.8
+log
+@Zero out "qued" and "sent" fields of pn_array during init.
+@
+text
+@/**********************************************************************/
+/*File:           smc_main.c                                          */
+/*Author:         Mark C van der Pol                                  */
+/*Organisation:   Technology Group, Time Warner Interactive.          */
+/*Contents:       SMC Device functions.                               */
+/*                                                                    */
+/*(C) Copyright Time Warner Interactive 1995                          */
+/*                                                                    */
+/*      This file implements the initialization functions, and some   */
+/*      support routines to open and close interfaces.                */
+/**********************************************************************/
+
+#include <config.h>
+#include <stdlib.h>
+#include <wms_proto.h>
+#include <smc_regs.h>
+#include <net_smc.h>
+#include <smc_data.h>
+#include <net_link.h>
+#include <smc_link.h>
+#include <os_proto.h>
+#include <eer_defs.h>
+#include <intvecs.h>
+#include <string.h>
+
+#define min(a,b) (a<b?a:b)
+#define max(a,b) (a>b?a:b)
+
+#define Delay(pause) {int i=0;while(i++<(pause<<5));}
+
+SMC_Data smc_data[SMC_CHIP_TOTAL];
+
+#ifdef USE_LISR
+void (*old_LISR)(INT);
+#endif /* USE_LISR */
+
+static int SMC_Verify(SMC_Data *smc) ;
+
+U32 SMC_Initialize(Net_Desc *nd_mem)
+{
+/***************************************************************************/
+/*   Set up the global stuff that needs to be done to talk to the SMC      */
+/*   devices in this system.                                               */
+/*   The returned value is 0 if all chips initialized OK, or have a bit    */
+/*   set in groups of 4 for all the ones that failed. (Need to reconsider  */
+/*   if we ever support more than 8 in a given system...)                  */
+/*   First group (bits 0..3) for first SMC, second (4..7) for second, etc. */
+/*   error bit      Meaning                                                */
+/*   0              No SMC found, or response unrecognized                 */
+/*   1              Chip failed to program correctly                       */
+/*   2              Chip failed to reset correctly			   */
+/*   3              Failed to register HISR or LISR                        */
+/***************************************************************************/
+
+    int res,chip_count;
+#ifdef USE_LISR
+    int nres;
+#endif
+    res = 0;
+    for (chip_count=0; chip_count < SMC_CHIP_TOTAL;chip_count++ ) {
+
+        memset((void *)&smc_data[chip_count],0,sizeof(SMC_Data));
+
+        /* The stuff that is the same for every chip, first. */
+        smc_data[chip_count].name[0] = 'S';
+        smc_data[chip_count].name[1] = 'M';
+        smc_data[chip_count].name[2] = 'C';
+        smc_data[chip_count].name[3] = '0' + chip_count;
+
+        smc_data[chip_count].mode = 1;	/* WE'RE BUSY WITH THE CHIP, SO HANDS OFF! */
+
+        /* Now some chip unique stuff... */
+        switch (chip_count) {
+        case 0:
+             /* Where is it at ? */
+             smc_data[chip_count].port = SMC_BASE_ADDRESS0;
+             smc_data[chip_count].intrpt = SMC_INTERRUPT0;
+#ifdef USE_LISR
+#warning Using NUCLEUS LISR functionality. THIS WILL NOT WORK with GUTS!
+             if ( NU_SUCCESS != (nres = NU_Register_LISR( SMC_XBUS_INTERRUPT, /* Vector */
+                                 SMC_Interrupt_Vector0,
+                                 &old_LISR))) {
+                 res |= 4<<chip_count;
+             }
+#if defined(_RISQ) & defined(DEBUG_PRINT)
+    {   char buff[49];
+        isprintf(buff,"NU_Register_LISR completed vec = %x, res = %d\n",
+                SMC_XBUS_INTERRUPT,nres);
+             net_putstr(buff);
+    }
+#endif
+#else
+      /* For now, do this here. Soon, will be the default built into GUTs, */
+      /* when the rest of the Net_Link gets moved into GUTS.               */
+	     prc_set_vec(NET_INTVEC,SMC_Interrupt_Vector0);
+
+#endif
+             break;
+        } /* endswitch */
+
+
+        /* Now more stuff that is the same for each chip */
+        /* Set up stuff in Bank 0, Tx and Rx control stuff */
+        smc_data[chip_count].control.TX_control = (
+            SMC_TX_PADEN |        /* Pad short packets */
+            SMC_TX_FDUPLX |        /* Receive own packets */
+/*        ~ SMC_TX_STPSQET |       Stop on SQET error */
+            SMC_TX_MONCSN |        /* Monitor Carrier */
+            SMC_TX_ENABLE |        /* Enable transmission */
+            0);            /* Just an end of list marker.*/
+         smc_data[chip_count].control.RX_control = (
+            SMC_RX_FLT_CAR |    /* Filter Carrier */
+/*        ~ SMC_RX_ALMUL |         Accept all multicast frames */
+/*        ~ SMC_RX_PRMS |         Promiscuous Mode for now */
+/*        ~ SMC_RX_STRIP_CRC |      CRC stripped */
+            SMC_RX_ENABLE |     /* Enable Receiption */
+            0);            /* Just an end of list marker. */
+
+        /* Now general control registers */
+        smc_data[chip_count].control.Configuration = (
+#if (HOST_BOARD != FLAGSTAFF) && (HOST_BOARD != SEATTLE)
+            SMC_CR_AUISEL |        /* Go for the AUI */
+#endif
+            SMC_CR_INTSEL1 |    /* Just to verify */
+            SMC_CR_INTSEL0 |    /* that we've done */
+            0);
+        smc_data[chip_count].control.Mode = (
+            SMC_CTR_RCVBAD |    /* Rx bad CRCs, for now */
+#if SMC_TX_AUTORLS
+            SMC_CTR_AUTRLS |    /* Tx pkt auto release */
+#endif /* SMC_TX_AUTORLS */
+            SMC_CTR_LEENA |        /* Enable all error  */
+#if 0
+            SMC_CTR_CRENA |        /* flags for now. */
+#endif
+            SMC_CTR_TEENA |
+            0);            /* Just an end of list marker. */
+        /* Now interrupts, etc. */
+        smc_data[chip_count].control.Int_Mask = (
+#if (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE) || !SMC_TX_AUTORLS
+            SMC_EPH_INT |
+#endif
+            SMC_RCV_INT |
+            SMC_RXOVRN_INT |
+            SMC_TX_INT |
+#if SMC_TX_AUTORLS
+            SMC_TX_EMPTY_INT |
+#endif /* SMC_TX_AUTORLS */
+            0);            /* Just an end of list marker. */
+		/* Now set up the Ethernet Address. This is based on  */
+		/* the IEEE assigned number ( not obtained yet ) and  */
+		/* the serial number burned into the game.            */
+	SMC_Init_Network_ID(&smc_data[chip_count]);
+
+        /* Fill in the pointer to the network descriptor array given, with */
+        /* the assumption that there are NET_DESCRIPTORS_TOTAL available   */
+        /* for each chip.                                                  */
+        smc_data[chip_count].descriptors = nd_mem + chip_count * NET_DESCRIPTORS_TOTAL;
+        smc_data[chip_count].nd_count = 0;
+
+        smc_data[chip_count].sig_ctl.sig_low  = 0x0fff;
+        smc_data[chip_count].sig_ctl.sig_high = 0;
+        smc_data[chip_count].sig_ctl.sig_mode = SMC_SIG_COPY_NONE;
+
+        /* Now, see if there IS actually one ? */
+        if (SMC_Verify(&smc_data[chip_count]))
+        {  /* Apparently so, so carry on with the init */
+            if (!SMC_Reset_Chip(&smc_data[chip_count])) {
+		SMC_SET_BANK(smc_data[chip_count].port,SMC_BANK(SMC_REVS));
+		smc_data[chip_count].chip_vers =
+			     SMC_READ_REG(smc_data[chip_count].port,SMC_REVS);
+		smc_data[chip_count].status= SMC_Setup(&smc_data[chip_count]);
+		SMC_SET_BANK(smc_data[chip_count].port,SMC_BANK(SMC_EPHSR));
+		smc_data[chip_count].control.last_EPHSR = SMC_READ_REG(smc_data[chip_count].port,SMC_EPHSR);
+		if ( ( smc_data[chip_count].control.last_EPHSR & SMC_LINK_OK ) == 0 )
+		{
+		    SMC_Set_Loopback(&smc_data[chip_count],NET_LOGICAL_LOOPBACK);
+		}
+	    } else {
+		smc_data[chip_count].status = 2;
+	    }
+	    if (smc_data[chip_count].status) {
+		res |= 2<<(chip_count*8);
+	    }
+         }
+         else {
+             /* No SMC found at set params, so disable this one, carry on. */
+             smc_data[chip_count].status=SMCERR_NO_SMC;
+             res |= 2<<(chip_count*8);
+         } /* endif */
+         if (! (res & (0xf << (chip_count*8)))) { /* If ok for this chip */
+            /* Signal the sem to allow access to the SMC   */
+		EnterCritSec();				/*C*/
+		smc_data[chip_count].mode--;			/*C*/
+		ExitCritSec();					/*C*/
+         }
+         SMC_SET_BANK(smc_data[chip_count].port,SMC_BANK(SMC_ISR));
+    } /* endfor */
+
+    return res;
+}
+
+void SMC_Reset()
+{
+	int chip_count;
+/*   This function releases all the Nucleus resources allocated */
+    for (chip_count=0; chip_count < SMC_CHIP_TOTAL;chip_count++ ) {
+
+        /* For each chip, there is a sempahore and a packet queue      */
+        /* which need removing.                                        */
+#ifdef USE_LISR
+        NU_Register_LISR( SMC_XBUS_INTERRUPT, 0, &old_LISR);
+#endif
+    }
+}
+
+int SMC_Verify(SMC_Data *smc)
+/* Quick check to see the the value 0x33 is obtained at offset E in the
+   bank registers.
+*/
+{
+    int smc_sig;
+#ifdef PC_TEST
+       /* In os/2, first set up access to the ports required. */
+    _portaccess(smc->port,smc->port+16);
+#endif
+    smc_sig = SMC_READ_REG(smc->port,SMC_BSR);
+    smc_sig &= 0xff00;
+    return (0x3300 == smc_sig);
+} /* SMC_Verify */
+
+#ifndef NETWORK_ID_ADJUST
+#define NETWORK_ID_ADJUST 0
+#endif
+
+U32 SMC_Init_Network_ID(SMC_Data *smc)
+{
+ /* Now set up the Ethernet Address.  This is based on  */
+ /* the IEEE assigned number ( 00:A0:AF ) and the WMS   */
+ /* assigned ATARI block ( 80:00:00 through 8F:FF:FF )  */
+
+ int ser = atoi( GetMFG()[MFG_SERIAL] ) + NETWORK_ID_ADJUST;
+
+ smc->my_nid[0]= 0x00;
+ smc->my_nid[1]= 0xA0;
+ smc->my_nid[2]= 0xAF;
+ smc->my_nid[3]= 0x80 | ( ( ser >> 16 ) & 0x0f );
+ smc->my_nid[4]= ( ( ser >> 8 ) & 0xff );
+ smc->my_nid[5]= ( ser & 0xff );
+
+ return 0;
+} /* SMC_Init_Network_ID */
+
+#ifndef SMC_RESET_TIMEOUT
+# define SMC_RESET_TIMEOUT	(3*60)		/* 5 second timeout */
+#endif
+
+struct pkt_ctl pn_array[ N_PKTS ];
+
+int SMC_Reset_Chip(SMC_Data *smc)
+{
+    extern void Net_Restore_MC( SMC_Data *smc );
+    int ii;
+    int timeout;
+/* This function does a complete chip reset. */
+    SMC_SET_BANK(smc->port,smc->control.curr_bank = SMC_BANK(SMC_RCR));
+    SMC_WRITE_REG(smc->port,SMC_RCR,SMC_RX_SOFT_RST);
+    Delay(10);  /* Give it a small delay to action the RESET */
+    SMC_WRITE_REG(smc->port,SMC_RCR,0);
+    Delay(100);  /* Give it a delay to recover from reset */
+    SMC_SET_BANK(smc->port,smc->control.curr_bank = SMC_BANK(SMC_MMUCR));
+    SMC_WRITE_REG(smc->port,SMC_MMUCR,SMC_MMU_RESET);
+    timeout = eer_rtc;
+    while ((eer_rtc-timeout) < SMC_RESET_TIMEOUT) {
+	Delay(10)		 /* Give it a small delay to action the RESET */
+	if ( !(SMC_READ_REG(smc->port,SMC_MMUCR) & SMC_MMU_BUSY) ) break;
+#if !SMC_SA_TESTS
+	timeout = eer_rtc;		/* never timeout if not test mode */
+#endif
+    }
+#if SMC_SA_TESTS
+    if ((eer_rtc-timeout) >= SMC_RESET_TIMEOUT) {
+	smc->status = 1;
+	return 1;
+    }
+#endif
+    for ( ii = 0; ii < N_PKTS; ++ii ) {
+	SMC_WRITE_REG(smc->port,SMC_MMUCR,SMC_MMU_ALLOC);
+	timeout = eer_rtc;
+	while ((eer_rtc-timeout) < SMC_RESET_TIMEOUT) {
+	    Delay(10);
+	    if ( (SMC_READ_REG(smc->port,SMC_ISR) & SMC_ALLOC_INT) != 0 ) break;
+#if !SMC_SA_TESTS
+	    timeout = eer_rtc;	/* never timeout if not test mode */
+#endif
+	}
+#if SMC_SA_TESTS
+	if ((eer_rtc-timeout) >= SMC_RESET_TIMEOUT) {
+	    smc->status = 1;
+	    return 1;
+	}
+#endif
+	pn_array[ ii ].pktn = ( SMC_READ_REG(smc->port,SMC_PNR) & SMC_ARRPNRMSK ) >> 8;
+	pn_array[ ii ].qued = 0;
+	pn_array[ ii ].sent = 0;
+    }
+    Net_Restore_MC( smc );
+    smc->control.curr_bank =  SMC_BANK(SMC_ISR); /* After a chip reset, it reverts to this bank */
+    return 0;
+}
+
+U32 SMC_Setup(SMC_Data *smc)
+{
+/*****************************************************************************/
+/*    This routine actually takes the SMC data structure, and sets up the    */
+/*    actual chip to reflect the desired conditions, including the           */
+/*    interrupt mask. Any bits that fail to set/clear cause non-zero         */
+/*    to be returned. The meaning of the returned bits is complex...         */
+/*****************************************************************************/
+    U16 bank,ires,res,data;
+    ires = res =0;
+    bank = SMC_READ_BANK(smc->port);
+
+#ifdef NET_PRINT
+    net_boot_str(""); net_boot_str(""); net_boot_str("");
+    net_boot_str(""); net_boot_str(""); net_boot_str("");
+    net_boot_str("Initializing Link device... ");
+#endif
+
+    SMC_SET_BANK(smc->port,smc->control.curr_bank = SMC_BANK(SMC_TCR));
+    SMC_WRITE_REG(smc->port,SMC_TCR,smc->control.TX_control);
+    data = SMC_READ_REG(smc->port,SMC_TCR);
+    res |= ( data & SMC_TCRMSK ) ^ (smc->control.TX_control & SMC_TCRMSK);
+#ifdef NET_PRINT
+    if(res) 
+	net_boot_str("failed TX_Control");
+    else net_boot_str("TX_Control");
+#endif
+
+    SMC_WRITE_REG(smc->port,SMC_RCR,smc->control.RX_control);
+    data = SMC_READ_REG(smc->port,SMC_RCR);
+    res |= ( data & SMC_RCRMSK ) ^ (smc->control.RX_control & SMC_RCRMSK);
+#ifdef NET_PRINT
+    if(( data & SMC_RCRMSK ) ^ (smc->control.RX_control & SMC_RCRMSK)) 
+	net_boot_str("failed RX_Control");
+    else net_boot_str("RX_Control");
+#endif
+
+    SMC_SET_BANK(smc->port,smc->control.curr_bank = SMC_BANK(SMC_CR));
+    SMC_WRITE_REG(smc->port,SMC_CR,smc->control.Configuration);
+    data = SMC_READ_REG(smc->port,SMC_CR);
+    res |= ( data & SMC_CONFIGMSK ) ^ (smc->control.Configuration & SMC_CONFIGMSK);
+#ifdef NET_PRINT
+    if(( data & SMC_CONFIGMSK ) ^ (smc->control.Configuration & SMC_CONFIGMSK)) 
+	net_boot_str("failed Configuration");
+    else net_boot_str("Configuration");
+#endif
+
+    SMC_WRITE_REG(smc->port,SMC_IAR0b,smc->my_nid[0] | smc->my_nid[1]<<8);
+    data = SMC_READ_REG(smc->port,SMC_IAR0b);
+    res |= ( data & SMC_IA10MSK ) ^ ((smc->my_nid[0] | smc->my_nid[1]<<8) & SMC_IA10MSK);
+#ifdef NET_PRINT
+    if(( data & SMC_IA10MSK ) ^ ((smc->my_nid[0] | smc->my_nid[1]<<8) & SMC_IA10MSK)) 
+	net_boot_str("failed Address");
+    else net_boot_str("Address 0/1");
+#endif
+
+    SMC_WRITE_REG(smc->port,SMC_IAR2b,smc->my_nid[2] | smc->my_nid[3]<<8) ;
+    data = SMC_READ_REG(smc->port,SMC_IAR2b);
+    res |= ( data & SMC_IA32MSK ) ^ ((smc->my_nid[2] | smc->my_nid[3]<<8) & SMC_IA32MSK);
+#ifdef NET_PRINT
+    if(( data & SMC_IA32MSK ) ^ ((smc->my_nid[2] | smc->my_nid[3]<<8) & SMC_IA32MSK)) 
+	net_boot_str("failed Address 2/3");
+    else net_boot_str("Address 2/3");
+#endif
+
+    SMC_WRITE_REG(smc->port,SMC_IAR4b,smc->my_nid[4] | smc->my_nid[5]<<8);
+    data = SMC_READ_REG(smc->port,SMC_IAR4b);
+    res |= ( data & SMC_IA54MSK ) ^ ((smc->my_nid[4] | smc->my_nid[5]<<8) & SMC_IA54MSK);
+#ifdef NET_PRINT
+    if(( data & SMC_IA54MSK ) ^ ((smc->my_nid[4] | smc->my_nid[5]<<8) & SMC_IA54MSK)) 
+	net_boot_str("failed Address 4/5");
+    else net_boot_str("Address 4/5");
+#endif
+
+    SMC_WRITE_REG(smc->port,SMC_CTR,smc->control.Mode);
+    data = SMC_READ_REG(smc->port,SMC_CTR);
+    res |= ( data & SMC_CONTROLMSK ) ^ (smc->control.Mode & SMC_CONTROLMSK);
+#ifdef NET_PRINT
+    if(( data & SMC_CONTROLMSK ) ^ (smc->control.Mode & SMC_CONTROLMSK)) 
+	net_boot_str("failed Control");
+    else net_boot_str("Control");
+#endif
+
+    EnterCritSec();                                                          /*C*/
+    SMC_SET_BANK(smc->port,smc->control.curr_bank = SMC_BANK(SMC_ISR));      /*C*/
+    SMC_WRITE_REG(smc->port,SMC_ISR,smc->control.Int_Mask<<8);               /*C*/
+    data = SMC_READ_REG(smc->port,SMC_ISR);                                  /*C*/
+    ires = ( data & SMC_ISRMSK ) ^ ((smc->control.Int_Mask<<8) & SMC_ISRMSK);/*C*/
+    ExitCritSec();                                                           /*C*/
+#ifdef NET_PRINT
+    if(ires) 
+	net_boot_str("failed Interrupt Mask");
+    else net_boot_str("Interrupt Mask");
+#endif
+
+#ifdef NET_PRINT
+    if(res | ires) net_boot_str("Link device failed to configure");
+    else net_boot_str("Link device configured");
+#endif
+    /* Leave the chip in bank 2, the default one... */
+    return res|ires;
+} /* SMC_Setup */
+
+
+U32 SMC_Set_Loopback(SMC_Data *smc, U32 loop_mode)
+{
+/*****************************************************************************/
+/*    This routine will modify the SMC data structure to reflect the mode  */
+/*    requested, and updates the chip to be in that mode.                  */
+/*****************************************************************************/
+    U16 bank,res,data;
+    res =0;
+    bank = SMC_READ_BANK(smc->port);
+    if (loop_mode == NET_LOGICAL_LOOPBACK) {
+	smc->control.TX_control |= SMC_TX_EPHLOOP;
+    }
+    else if (loop_mode == NET_PHYSICAL_LOOPBACK) {
+	smc->control.TX_control &= ~ SMC_TX_EPHLOOP;
+	smc->control.TX_control |= SMC_TX_LOOP;
+    }
+    else {
+	smc->control.TX_control &= ~ (SMC_TX_EPHLOOP | SMC_TX_LOOP);
+	if (loop_mode == NET_FULLDUPLEX) {
+		smc->control.TX_control |= SMC_TX_FDUPLX;
+	}
+	else {
+		smc->control.TX_control &= ~ SMC_TX_FDUPLX;
+	}
+    }
+
+    SMC_SET_BANK(smc->port,smc->control.curr_bank = SMC_BANK(SMC_TCR));
+    SMC_WRITE_REG(smc->port,SMC_TCR,smc->control.TX_control);
+    data = SMC_READ_REG(smc->port,SMC_TCR);
+    res |= ( data & SMC_TCRMSK ) ^ (smc->control.TX_control & SMC_TCRMSK);
+    return res;
+}
+
+U32 SMC_Set_Int_Mask(SMC_Data *smc, int int_flag, int int_state)
+{
+    int old_ipl = prc_set_ipl(INTS_OFF);
+/*****************************************************************************/
+/*   This routine safely alters the state of the SMC interrupt enabled mask. */
+/*   It is sensitive to any current or pending interrupt handling, and       */
+/*   also updates the state of the smc_data.control.Int_Mask to reflect      */
+/*   the latest, desired value.                                              */
+/*   It can be called from inside handler routines, and the change will not  */
+/*   be written into the SMC register untill all handlers in the current     */
+/*   batch have finished.                                                    */
+/*   If an interrupt is to be enabled, the corresponding status is           */
+/*   acknowledged to prevent an immediate interrupt. If this was intented,   */
+/*   then it is easier to look at the status register FIRST...               */
+/*****************************************************************************/
+    U32 old_state = smc->control.Int_Mask;
+    if (!(int_flag & ~SMC_ALL_INTS)) {   /* the flag was OK  */
+        U8 new_state;                /* store result of ASSIGNMENT here, too */
+	U8 ack=0;		     /* to acknolwedge any interrupt before it's enabled */
+        if (int_state) {             /* we want the requested flag ON */
+            new_state =
+            smc->control.Int_Mask |=  (ack = int_flag);
+	    ack &= SMC_TX_EMPTY_INT;  /* This is the only(?) one that may need an ACK before we turn it on */
+        }
+        else {                       /* we want the requested flag OFF */
+           new_state =
+           smc->control.Int_Mask &= ~int_flag;
+        } /* endif */
+
+        /* Now try and update the actual chip to this state. */
+        if ( ! smc->control.int_sem) {
+            /* If interrupt is being dealt with when it finishes, the    */
+            /* new mask will be used automatically - so don't do it now  */
+            /* Otherwise, we're clear to set the new value. */
+            U16 old_bank;
+            old_bank = SMC_READ_BANK(smc->port);                           /*C*/
+            if( old_bank != SMC_BANK(SMC_ISR) ){                           /*C*/
+                /* Are we in correct bank? */                              /*C*/
+                /* iif not, we need to switch bank */                      /*C*/
+                SMC_SET_BANK(smc->port,SMC_BANK(SMC_ISR));                 /*C*/
+            } /* endif */                                                  /*C*/
+	    if(ack)	/* If there is some to do, do it */		   /*C*/
+                SMC_WRITE_REG(smc->port,SMC_ISR, ack  );                   /*C*/
+	            /* Doing it in one Write causes a glitch...*/	   /*C*/
+            SMC_WRITE_REG(smc->port,SMC_ISR,(new_state<<8));               /*C*/
+            if( old_bank != SMC_BANK(SMC_ISR) ){                           /*C*/
+                /* if banks changed, reset*/                               /*C*/
+                SMC_SET_BANK(smc->port,old_bank);                          /*C*/
+            } /* endif */                                                  /*C*/
+                                                                           /*C*/
+
+        } /* endif */
+    } /* endif */
+    prc_set_ipl(old_ipl);
+    return old_state;
+} /* SMC_Set_Int_Mask */
+
+Net_Desc *SMC_Open( char *device )
+{
+/*****************************************************************************/
+/*    This function scans the available devices, and returns a blank       */
+/*    network descriptor for use by the network driver.                    */
+/*****************************************************************************/
+   int smc_idx;
+   network_descriptor nd_id = 0;
+   Net_Desc *new_nd;
+   new_nd = 0;
+   for (smc_idx=0; smc_idx < SMC_CHIP_TOTAL ; smc_idx++ ) {
+      /* See if the requested device exists. */
+      if (0 == strncmp((char *)smc_data[smc_idx].name,device,sizeof(smc_data[0].name))) {
+         /* We have a match... */
+         /* So allocate the next Net_Desc. */
+         if (smc_data[smc_idx].nd_count < NET_DESCRIPTORS_TOTAL) {
+             new_nd = smc_data[smc_idx].descriptors + smc_data[smc_idx].nd_count;
+             nd_id = smc_data[smc_idx].nd_count & 0x0f; /* lower 4 bits are index */
+             nd_id |= ~smc_idx << 28 | ((smc_data[smc_idx].nd_count++ & 0x3f)<<4);
+         }
+         else {
+             /* We've allocated all nd's, so see if any have been closed */
+             int nd_idx;
+             for (nd_idx=0; nd_idx < NET_DESCRIPTORS_TOTAL ;nd_idx++ ) {
+                if (0 == smc_data[smc_idx].descriptors[nd_idx].nd_id) {
+                   new_nd = smc_data[smc_idx].descriptors + nd_idx;
+                   nd_id = (~smc_idx << 28) |
+                            ((smc_data[smc_idx].nd_count++ & 0x3f)<<4) |
+                              nd_idx;
+                } /* endif */
+             } /* endfor nd_idx */
+             if (new_nd == 0) {
+                break;     /* We're out of descriptors, so return 0 */
+             } /* endif */
+         }
+         memset(new_nd,0,sizeof(Net_Desc));
+	 new_nd->nd_id = nd_id;
+         smc_data[smc_idx].control.opens++;
+         break;        /* There should only be one matching device, and  */
+                       /* we can only return one nd, anyway, so stop now */
+      } /* endif */
+
+   } /* endfor smc_idx */
+
+   return new_nd;
+} /* SMC_Open */
+
+U32 SMC_Close( network_descriptor old_nd)
+{
+/***************************************************************************/
+/*     Routine to close a network descriptor. Consists of removing the     */
+/*     signature range from the overall one we are using, and setting      */
+/*     the nd_id so we know it has been closed.                            */
+/***************************************************************************/
+        U16 smc_idx;
+        U16 nd_idx;
+        if (old_nd == 0) return NETERR_BADPARAMETER;
+        smc_idx = SMC_IDX_FROM_ND(old_nd);
+	if (smc_idx >= SMC_CHIP_TOTAL) return NETERR_BADPARAMETER;
+        nd_idx = SMC_ND_IDX_FROM_ND(old_nd);
+	if (nd_idx >= NET_DESCRIPTORS_TOTAL) return NETERR_BADPARAMETER;
+        if (smc_data[smc_idx].descriptors[nd_idx].nd_id != old_nd) {
+            return NETERR_BADPARAMETER;
+        }
+        else {
+            SMC_Remove_Sigs(&smc_data[smc_idx], &smc_data[smc_idx].descriptors[nd_idx]);
+            smc_data[smc_idx].descriptors[nd_idx].nd_id = 0;
+            smc_data[smc_idx].control.closes++;
+        } /* endif */
+    return 0;
+} /* SMC_Close */
+
+U32 SMC_Is_Open(network_descriptor query_nd)
+{	U16 smc_idx,nd_idx;
+	if  ((smc_idx = SMC_IDX_FROM_ND(query_nd)) >= SMC_CHIP_TOTAL) return 0;
+	if  ((nd_idx = SMC_ND_IDX_FROM_ND(query_nd)) >= NET_DESCRIPTORS_TOTAL) return 0;
+	if  (smc_data[smc_idx].descriptors[nd_idx].nd_id != query_nd)  return 0;
+        return 1;
+} /* SMC_Is_open */
+
+void SMC_Add_Sigs( Net_Desc *nd)
+{
+/******************************************************************************/
+/* This routine adds the latest signature to the main control for this device */
+/* by updating the sig_ctl structure.                                         */
+/******************************************************************************/
+    U16 smc_idx;        /* The index to the device in question */
+    smc_idx = SMC_IDX_FROM_ND(nd->nd_id);
+#ifdef DEBUG_PRINT
+    {   char buff[49];
+        isprintf(buff,"SMC_Add_Sigs nd=%x, nd_id=%x, smc_idx=%x",nd,nd->nd_id,smc_idx);
+	net_putstr(buff);
+    }
+#endif
+    smc_data[smc_idx].sig_ctl.sig_low = min(nd->signature.sig_offset,smc_data[smc_idx].sig_ctl.sig_low);
+    smc_data[smc_idx].sig_ctl.sig_high = max(nd->signature.sig_offset+nd->signature.sig_len,smc_data[smc_idx].sig_ctl.sig_high);
+    smc_data[smc_idx].sig_ctl.sig_mode = SMC_SIG_COPY_SIGS;
+#ifdef DEBUG_PRINT
+    {   char buff[49];
+        isprintf(buff,",sig_low=%x, sig_high=%x\n",smc_data[smc_idx].sig_ctl.sig_low,smc_data[smc_idx].sig_ctl.sig_high);
+	net_putstr(buff);
+    }
+#endif
+} /* SMC_Add_Sigs */
+
+void SMC_Remove_Sigs( SMC_Data *smc, Net_Desc *nd)
+{
+/******************************************************************************/
+/* This routine removes the signature from the SMC structure. It will have    */
+/* to scan all the other nd's to take care of overlapping sigs.               */
+/******************************************************************************/
+    if (nd->signature.sig_len != 0) {   /* Is there a signature to take care of? */
+        int nd_idx;
+        U16 low_mark, high_mark;
+        low_mark = 0x0fff;
+        high_mark = 0;
+
+        for (nd_idx = 0 ; nd_idx < NET_DESCRIPTORS_TOTAL ; nd_idx++ ) {
+            if ((&smc->descriptors[nd_idx] == nd) | /* the one we want to remove */
+                ((smc->descriptors[nd_idx]).nd_id == 0 )){ /* Empty, skip */
+                continue;
+            }
+            else {      /* A valid, open network descriptor. compare sigs. */
+                 low_mark = min(nd->signature.sig_offset,low_mark);
+                 high_mark = max(nd->signature.sig_offset+nd->signature.sig_len,high_mark);
+             } /* endif */
+        } /* endfor nd_idx */
+        smc->sig_ctl.sig_low = low_mark;
+        smc->sig_ctl.sig_high= high_mark;
+    } /* endif */
+} /* SMC_Remove_Sigs */
+
+U32 SMC_Set_MC_Mask(SMC_Data *smc, int channel, int state)
+{
+    /* This function sets or clears a given multicast channel, as
+       defined by the SMC chip.
+       Channel is a value between 0 and 64, and turns on one of
+       the multicast bits in the mc register bank.
+       The value 64 is special, and means turn on ALL multicast
+       channels. This is acheived through a specail chip state,
+       and once turned off causes the chip to revert back to  whatever
+       was on previously.
+       The value 65 turns on promiscous mode - receive ALL traffic.
+       This can also be acheived by individually turning each channel
+       on, or off, of course.
+
+	Returns the previous state of the MC Channel - if 0, channel 
+	was off, if non-zero, channel was on.
+
+       One possible table of channel versus Address is given below.
+       ( If the 6th character is a ', then the MSB of the normal
+         succeding character is turned on. )
+		00 [0,0] Atari0         32 [4,0] Atari<7f>
+		01 [0,1] Atari'0        33 [4,1] Atari<ff>
+		02 [0,2] Atarip         34 [4,2] Atari?
+		03 [0,3] Atari'p        35 [4,3] Atari'?
+		04 [0,4] Atari;         36 [4,4] Atarit
+		05 [0,5] Atari';        37 [4,5] Atari't
+		06 [0,6] Atari{         38 [4,6] Atari4
+		07 [0,7] Atari'{        39 [4,7] Atari'4
+		08 [1,0] Atari'9        40 [5,0] Atari'v
+		09 [1,1] Atari9         41 [5,1] Atariv
+		10 [1,2] Atari'y        42 [5,2] Atari'6
+		11 [1,3] Atariy         43 [5,3] Atari6
+		12 [1,4] Atari'2        44 [5,4] Atari'}
+		13 [1,5] Atari2         45 [5,5] Atari}
+		14 [1,6] Atari'r        46 [5,6] Atari'=
+		15 [1,7] Atarir         47 [5,7] Atari=
+		16 [2,0] Atari'x        48 [6,0] Atari'7
+		17 [2,1] Atarix         49 [6,1] Atari7
+		18 [2,2] Atari'8        50 [6,2] Atari'w
+		19 [2,3] Atari8         51 [6,3] Atariw
+		20 [2,4] Atari's        52 [6,4] Atari'<
+		21 [2,5] Ataris         53 [6,5] Atari<
+		22 [2,6] Atari'3        54 [6,6] Atari'|
+		23 [2,7] Atari3         55 [6,7] Atari|
+		24 [3,0] Atariq         56 [7,0] Atari>
+		25 [3,1] Atari'q        57 [7,1] Atari'>
+		26 [3,2] Atari1         58 [7,2] Atari~
+		27 [3,3] Atari'1        59 [7,3] Atari'~
+		28 [3,4] Atariz         60 [7,4] Atari5
+		29 [3,5] Atari'z        61 [7,5] Atari'5
+		30 [3,6] Atari:         62 [7,6] Atariu
+		31 [3,7] Atari':        63 [7,7] Atari'u
+
+        A suitable starting set would be:
+            Channel	Actual Address
+		 0	    Atari0
+		26	    Atari1
+		13	    Atari2
+		23	    Atari3
+		38	    Atari4
+	        60	    Atari5
+	        43	    Atari6
+	        49	    Atari7
+		19	    Atari8
+		 9	    Atari9	
+    */
+    U16 bank,data,old=0;
+    bank = SMC_READ_BANK(smc->port);
+    if ( 64 == channel  || 65 == channel) {	/* Need to access the RCR, where the ALMUL/PRMS bit is */
+	old = smc->control.RX_control & (channel ==64 ?SMC_RX_ALMUL:SMC_RX_PRMS);
+        if (state) {             /* we want the requested flag ON */
+            smc->control.RX_control |= (channel ==64 ?SMC_RX_ALMUL:SMC_RX_PRMS);
+        }
+        else {                       /* we want the requested flag OFF */
+           smc->control.RX_control &= ~(channel ==64 ?SMC_RX_ALMUL:SMC_RX_PRMS);
+        } /* endif */
+        SMC_SET_BANK(smc->port,smc->control.curr_bank = SMC_BANK(SMC_RCR));
+        SMC_WRITE_REG(smc->port,SMC_RCR,smc->control.RX_control);
+    }
+    else if (channel >=0 && channel <64) {  /* Need one of the MC registers */
+        SMC_SET_BANK(smc->port,smc->control.curr_bank = SMC_BANK(SMC_MT10));
+        /* Read the current reg for the channel */
+        /* We get best access to the chip in word, so get the word with the 
+           correct bit in it. Then, change the proper bit, and put the word
+           back. We rely on the fact that the MC registers are all contiguous
+           in the SMC, and that SMC_MT10 is the first one, and that by adding
+           the 3 top bits of channel (with lsb OFF) we get the right address.
+        */
+        data=SMC_READ_REG(smc->port, (SMC_MT10 + ((channel>>3) & 6 ))); 
+	old = data & 1<<(channel&15);	/* Find the previous value to return */
+        if (state) {             /* we want the requested flag ON */
+            data |= 1<<(channel&15);
+        }
+        else {                       /* we want the requested flag OFF */
+           data &= ~(1<<(channel&15));
+        } /* endif */
+        SMC_WRITE_REG(smc->port,(SMC_MT10 + ((channel>>3) & 6)),data); /* Change multicast channel */
+    }
+    SMC_SET_BANK(smc->port,bank);
+    return old;
+}
+@
+
+
+1.7
+log
+@Added timeouts for SMC_Reset_Chip. SMC_Initialise not
+looks for an error from SMC_Reset_Chip and returns an
+error itself (Only of SMC_SA_TESTS is set).
+@
+text
+@d304 2
+@
+
+
+1.6
+log
+@*** empty log message ***
+@
+text
+@d38 1
+d51 1
+a51 1
+/*   2              NOT USED ANYMORE Free to re-assign                     */
+d168 17
+a184 14
+            SMC_Reset_Chip(&smc_data[chip_count]);
+            SMC_SET_BANK(smc_data[chip_count].port,SMC_BANK(SMC_REVS));
+            smc_data[chip_count].chip_vers =
+                         SMC_READ_REG(smc_data[chip_count].port,SMC_REVS);
+            smc_data[chip_count].status= SMC_Setup(&smc_data[chip_count]);
+            SMC_SET_BANK(smc_data[chip_count].port,SMC_BANK(SMC_EPHSR));
+            smc_data[chip_count].control.last_EPHSR = SMC_READ_REG(smc_data[chip_count].port,SMC_EPHSR);
+            if ( ( smc_data[chip_count].control.last_EPHSR & SMC_LINK_OK ) == 0 )
+            {
+                SMC_Set_Loopback(&smc_data[chip_count],NET_LOGICAL_LOOPBACK);
+            }
+            if (smc_data[chip_count].status) {
+                res |= 1<<(chip_count*8);
+            }
+d254 4
+d260 1
+a260 1
+void SMC_Reset_Chip(SMC_Data *smc)
+d264 1
+d273 31
+a303 10
+    do {
+     Delay(10);  /* Give it a small delay to action the RESET */
+    } while ( (SMC_READ_REG(smc->port,SMC_MMUCR) & SMC_MMU_BUSY) );
+    for ( ii = 0; ii < N_PKTS; ++ii )
+    {
+     SMC_WRITE_REG(smc->port,SMC_MMUCR,SMC_MMU_ALLOC);
+     do {
+      Delay(10);
+     } while ( (SMC_READ_REG(smc->port,SMC_ISR) & SMC_ALLOC_INT) == 0 );
+     pn_array[ ii ].pktn = ( SMC_READ_REG(smc->port,SMC_PNR) & SMC_ARRPNRMSK ) >> 8;
+d307 1
+@
+
+
+1.5
+log
+@Defined NETWORK_ID_ADJUST with default of 0 to allow the range of
+Ethernet MAC addresses to be assigned per game.
+@
+text
+@a238 1
+ int typ = atoi( GetMFG()[MFG_TYPE] );
+@
+
+
+1.4
+log
+@Protect usage of HST_SERIAL_NUM.
+@
+text
+@d228 4
+d234 3
+a236 6
+		/* Now set up the Ethernet Address.  This is based on  */
+		/* the IEEE assigned number ( 00:A0:AF ) and the WMS   */
+		/* assigned ATARI block ( 80:00:00 through 8F:FF:FF )  */
+	    U32 res = 0;
+	    int ser = atoi( GetMFG()[MFG_SERIAL] );
+	    int typ = atoi( GetMFG()[MFG_TYPE] );
+d238 2
+a239 3
+		/* Rush serial numbers start at 100000.  This is the   */
+		/* first linked game in this series, so start at 0.    */
+	    if ( typ == 315 ) ser -= 100000;
+d241 6
+a246 6
+	    smc->my_nid[0]= 0x00;
+	    smc->my_nid[1]= 0xA0;
+	    smc->my_nid[2]= 0xAF;
+	    smc->my_nid[3]= 0x80 | ( ( ser >> 16 ) & 0x0f );
+	    smc->my_nid[4]= ( ( ser >> 8 ) & 0xff );
+	    smc->my_nid[5]= ( ser & 0xff );
+d248 1
+a248 26
+#ifdef HST_SERIAL_NUM
+	    if ( typ == 528 )
+	    {
+		/* This is a development PIC.  Let the developers set  */
+		/* a unique value.  If none entered, return 1.         */
+		struct hst_ent hsp;
+		EnterCritSec();						/*C*/
+		hsp = *(eer_hstr(0,HST_SERIAL_NUM));			/*C*/
+		ExitCritSec();						/*C*/
+		if(hsp.initials[0]) {
+		    /* for now, use the initials as is, but turn off    */
+		    /* LSB on first one to ensure it is not Multicast!  */
+		    smc->my_nid[0]= hsp.initials[0]&0xfe;
+		    smc->my_nid[1]= hsp.initials[1];
+		    smc->my_nid[2]= hsp.initials[2];
+		    /* Copy over the serial no. */
+		    smc->my_nid[3]= (hsp.score>>16)&0xff;
+		    smc->my_nid[4]= (hsp.score>>8)&0xff;
+		    smc->my_nid[5]= (hsp.score)&0xff;
+		} else {
+		/* The development serial number is being used! */
+		    res = 1;
+		}
+	    }
+#endif
+	return res;
+@
+
+
+1.3
+log
+@Set INTS_OFF for the entire body of function SMC_Set_Int_Mask.
+@
+text
+@d248 1
+d272 1
+@
+
+
+1.2
+log
+@Added seattle support.
+@
+text
+@d442 1
+a474 1
+            EnterCritSec();                      /***CRITICAL SECTION START ***/
+a489 1
+            ExitCritSec();                         /***CRITICAL SECTION END ***/
+d493 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d120 1
+a120 1
+#if HOST_BOARD != FLAGSTAFF
+d139 1
+a139 1
+#if HOST_BOARD == FLAGSTAFF | !SMC_TX_AUTORLS
+@

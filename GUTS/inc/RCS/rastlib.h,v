@@ -1,0 +1,56 @@
+head	1.1;
+access;
+symbols
+	CJ_206:1.1
+	CJ2_05:1.1
+	CJ2_04:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	94.12.16.16.39.07;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@definitions and prototypes for Jaguar raster-ops functions
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/*****************************************************************
+* RASTLIB.H | Author: Robert M. Birmingham | September 16, 1994  *
+* ============================================================== *
+* Header file for the Jaguar/CoJag raster library functions.     *
+* Copyright 1994, Atari Games.                                   *
+*****************************************************************/
+
+#define  RST_REPLACE  (0)
+#define  RST_TRANS    (1)
+#define  RST_LOCK     (2)
+
+typedef struct{
+    U32 imageptr;
+    U16 pixelw;
+    U16 pixelh;
+    U16 blitwid;
+    U16 blitpix;
+    } RASTER;
+
+void rst_copy( RASTER *, RASTER *, RECT *, RECT *, U32, U32 );
+void rst_clear( RASTER *, RECT *, U32 );
+void rst_set( RASTER *, void *, int, int, int, int );
+U32 rst_size( RASTER * );
+
+/*************************************************************************
+* End of file: RASTLIB.H                                                 *
+*************************************************************************/
+
+
+@

@@ -1,0 +1,137 @@
+head	1.4;
+access;
+symbols
+	CJ_206:1.4
+	CJ2_05:1.4
+	CJ2_04:1.4;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	95.07.19.23.41.51;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.06.30.21.33.40;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.06.14.03.35.29;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.21.11.51;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@prototypes for the string functions used in GUTS
+@
+
+
+1.4
+log
+@fixed botched #if usage of M68020 to be the actually defined
+M68EC020. Bah!
+@
+text
+@/*
+ *	string.h
+ *
+ * These routines are defined in string.asm, written by MEA
+ */
+#ifndef NULL
+#define NULL (0)
+#endif
+#ifndef __STDC__
+#define __STDC__ (0)
+#endif
+
+#if __STDC__
+#define PARMS(x) x
+#else
+#define PARMS(x) ()
+#define const
+#define volatile
+#endif
+
+extern	void	*memchr PARMS((const void *, int));
+#ifndef PROCESSOR
+/* called before or without config.h. Don't really have a good way to deal
+ * with this, as gcc is obviously expecting a twisty little maze of include
+ * directories to line up.
+ */
+extern	int	memcmp PARMS((const void *, const void *, size_t ));
+extern	void	*memcpy PARMS((void *, const void *, size_t));
+#else
+/* Being used by a game program that has included config.h, so we can
+ * tailor our prototypes to gcc's expectations.
+ */
+#if (PROCESSOR <= M68EC020)
+extern	int	memcmp PARMS((const void *, const void *, unsigned long ));
+extern	void	*memcpy PARMS((void *, const void *, unsigned long));
+#else
+extern	int	memcmp PARMS((const void *, const void *, unsigned int ));
+extern	void	*memcpy PARMS((void *, const void *, unsigned int));
+#endif
+#endif
+extern	void	*memmove PARMS((void *, const void *, unsigned int));
+extern	void	*memset PARMS((void *, int, unsigned int));
+extern	char	*strcpy PARMS((char *__dst, const char *__src));
+extern	char	*strcat PARMS((char *__dst, const char *__src));
+extern	char	*strncat
+ PARMS((char *__dst, const char *__src, unsigned int size));
+extern	char	*strncpy
+ PARMS((char *__dst, const char *__src, unsigned int size));
+extern	char	*strchr PARMS((const char *, int));
+extern	int	strlen PARMS(( const char * ));
+@
+
+
+1.3
+log
+@kluged work-around for differing built-in memcpy protototype.
+@
+text
+@d33 1
+a33 1
+#if (PROCESSOR <= M68020)
+@
+
+
+1.2
+log
+@modified last parameter of memcmp() and memcpy() in attempt to
+defeat defective type-check versus builtins.
+@
+text
+@d22 19
+a40 2
+extern	int	memcmp PARMS((const void *, const void *, long unsigned int));
+extern	void	*memcpy PARMS((void *, const void *, long unsigned int));
+a42 1
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d22 4
+a25 4
+extern	int	memcmp PARMS((const void *, const void *, unsigned long));
+extern	void	*memcpy PARMS((void *, const void *, unsigned long));
+extern	void	*memmove PARMS((void *, const void *, unsigned long));
+extern	void	*memset PARMS((void *, int, unsigned long));
+d29 4
+a32 2
+extern	char	*strncat PARMS((char *__dst, const char *__src, int size));
+extern	char	*strncpy PARMS((char *__dst, const char *__src, int size));
+@

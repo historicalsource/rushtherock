@@ -1,0 +1,265 @@
+head	1.5;
+access;
+symbols
+	RUSH_1_06A:1.5
+	CJ_206:1.5
+	CJ2_05:1.5
+	CJ2_04:1.5;
+locks; strict;
+comment	@# @;
+
+
+1.5
+date	96.07.29.21.30.50;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.04.15.01.47.16;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.04.14.17.35.32;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.07.21.01.52.19;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.06.26.23.31.47;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Generic makefile for use with Cygnus tools
+@
+
+
+1.5
+log
+@Fixed the .s rule.
+@
+text
+@#	OS makefile for GCC/GAS/GLD,
+
+CC = $(strip gcc$(PROCESSOR))
+ASM = $(strip as$(PROCESSOR))
+ASMFLAGS = $(strip $(GNU_INCS))
+LD = $(strip ld$(PROCESSOR))
+CPP = $(strip cccp$(PROCESSOR))
+CPPFLAGS = $(GNU_INCS) $(DEFS) -DASSEM_ONLY
+RM = /sbin/rm -f
+# Set OUTPUT_LANG to the appropriate assembly language according to definitions
+# found in def_pp.mac
+OUTPUT_LANG = LANG_ASRxk
+
+O	= .o
+
+define LD_RULE
+	@@rm -f $(basename $@@).err date.err $$$$.err;\
+	touch $$$$.err;\
+	ls *.err | grep -v $$$$.err > /dev/null || true;\
+	rm -f $$$$.err;\
+	if [ ! -s *.err ];\
+	then\
+	  if [ -n "$(DATE)" ];\
+	  then\
+	    $(CC) $(CFLAGS) -c -o date.o $(DATE) > date.err 2>&1; \
+	    if [ ! -s date.err ];\
+	    then\
+	      rm -f date.err;\
+            fi;\
+	  else\
+	    echo "No date.c file" > date.err;\
+	  fi;\
+	  if [ -s date.err ];\
+	  then\
+	    echo "Errors compiling date.c...";\
+	    exit 1;\
+          fi;\
+	  rm -f date.err;\
+	  $(ECHO) "	$(LD)'ing $(@@F) ...";\
+	  cp $< /tmp/$$$$; chmod +w /tmp/$$$$;\
+	  echo "INPUT ( $(filter-out %.c, $(filter-out %.lnk, $^)) date.o )" >> /tmp/$$$$;\
+	  $(LD) $(LDFLAGS) -o $(@@F) -Map $(basename $(@@F)).map -T/tmp/$$$$ \
+		$(LIBDIRS) $(LIBS) > $(basename $(@@F)).err 2>&1; \
+	  if [ ! -s $(basename $(@@F)).err ];\
+	  then\
+	    rm -f $(basename $(@@F)).err /tmp/$$$$ ; \
+	  else\
+	    $(ECHO) 'Errors in $(basename $(@@F)).err';\
+	  fi\
+	else\
+	  $(ECHO) 'No link due to .err files:';\
+	  ls -l *.err;\
+	  exit 1;\
+	fi
+endef
+
+%.coff : %.lnk $(DATE)
+	$(LD_RULE)
+
+%.elf : %.lnk $(DATE)
+	$(LD_RULE)
+
+%.dio : %.mix
+	${MIXIT} $<
+
+define ASM_RULE
+	@@rm -f $(basename $(@@F)).lis $(basename $(@@F)).pasm
+	@@$(ECHO) "\tMACPP'ing $< to $(basename $(@@F)).pasm ..."
+	$(PP) $(ASM_PPFLAGS) $(POUT)$(basename $(@@F)).pasm \
+		-assem="OUTPUT_LANG == $(OUTPUT_LANG)" \
+		$(DEF_PP) $< > $(basename $(@@F)).err 2>&1; \
+	if [ ! -s $(basename $(@@F)).err ];\
+	then\
+	  $(ECHO) "\t$(ASM)'ing $(basename $(@@F)).pasm to $(basename $(@@F)).o..."; \
+	  $(ASM) $(ASFLAGS) -o $(basename $(@@F)).o $(basename $(@@F)).pasm > $(basename $(@@F)).err 2>&1;\
+	  if [ ! -s $(basename $(@@F)).err ];\
+	  then\
+	    rm $(basename $(@@F)).err;\
+	  else\
+	    $(ECHO) 'Errors in "$(basename $(@@F)).pasm"';\
+	  fi\
+	else\
+	  $(ECHO) 'Errors in "$<"';\
+	fi
+endef
+
+%.o : %.asm $(DEF_PP)
+	$(ASM_RULE)
+
+%.o : %.mac $(DEF_PP)
+	$(patsubst .asm,.mac,$(ASM_RULE))
+
+%.o : %.c
+	@@$(ECHO) "\tCompiling $<..."
+	@@$(CC) $(CFLAGS) -c $< > $(basename $(@@F)).err 2>&1;\
+	if [ ! -s $(basename $(@@F)).err ];\
+	then\
+	  rm $(basename $(@@F)).err;\
+	else\
+	  $(ECHO) 'Errors in "$<"';\
+	fi
+
+%.E : %.c
+	@@$(ECHO) "\tCCCP'ing $<..."
+	@@$(CC) $(CFLAGS) -E  $< > $(basename $(@@F)).E
+
+%.s : %.c
+	@@$(ECHO) "\tCC'ing $< to $(basename $(@@F)).s..."
+	@@$(CC) $(CFLAGS) -g -S $< 
+@
+
+
+1.4
+log
+@Made it pre-delete the .err file during a link.
+@
+text
+@a102 4
+%.S : %.c
+	@@$(ECHO) "\tCC'ing to .s $<..."
+	@@$(CC) $(CFLAGS) -g -S   $< > $(basename $(@@F)).S
+
+d106 4
+@
+
+
+1.3
+log
+@Added a check for .err files before performing a link.
+@
+text
+@d17 1
+a17 1
+	@@rm -f date.err $$$$.err;\
+@
+
+
+1.2
+log
+@Stripped out some extra spaces and named the ld rule LD instead of LN
+@
+text
+@d17 5
+a21 3
+	@@$(ECHO) "	$(LD)'ing $(@@F) ..."
+	rm -f date.err;\
+	if [ -n "$(DATE)" ];\
+d23 17
+a39 8
+	  $(CC) $(CFLAGS) -c -o date.o $(DATE) > date.err 2>&1; \
+	else\
+	  $(ASM) -o date.o /dev/null;\
+	  touch date.err;\
+	fi
+	if [ ! -s date.err ];\
+	then\
+	  rm date.err;\
+d51 3
+a53 1
+	  $(ECHO) 'Errors in "date.c"';\
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d3 5
+a7 6
+CC = gcc$(PROCESSOR) $(CFLAGS)
+CCO = gcc$(PROCESSOR) -O $(CFLAGS)
+ASM = as$(PROCESSOR)
+ASMFLAGS = $(GNU_INCS) 
+LN = ld$(PROCESSOR)
+CPP = cccp$(PROCESSOR)
+d16 3
+a18 3
+define LN_RULE
+	@@$(ECHO) "	$(LN)'ing $(@@F) ..."
+	@@rm -f date.err;\
+d21 1
+a21 1
+	  $(CC) -g $(CFLAGS) -c -o date.o $(DATE) > date.err 2>&1; \
+d29 1
+a29 1
+	  cp $< /tmp/$$$$; \
+d31 1
+a31 1
+	  $(LN) $(LNFLAGS) -o $(@@F) -Map $(basename $(@@F)).map -T/tmp/$$$$ \
+d35 1
+a35 1
+	    rm -f /tmp/$$$$ $(basename $(@@F)).err;\
+d45 1
+a45 1
+	$(LN_RULE)
+d48 1
+a48 1
+	$(LN_RULE)
+d56 1
+a56 1
+	@@$(PP) $(ASM_PPFLAGS) $(POUT)$(basename $(@@F)).pasm \
+d61 2
+a62 2
+	  $(ECHO) "\tas$(PROCESSOR)'ing $(basename $(@@F)).pasm to $(basename $(@@F)).o..."; \
+	  as$(PROCESSOR) $(ASFLAGS) -o $(basename $(@@F)).o $(basename $(@@F)).pasm > $(basename $(@@F)).err 2>&1;\
+d82 1
+a82 1
+	@@$(CCO) -c -g  $< > $(basename $(@@F)).err 2>&1;\
+d92 1
+a92 1
+	@@$(CCO) -S   $< > $(basename $(@@F)).S
+d96 1
+a96 3
+	@@$(CCO) -E  $< > $(basename $(@@F)).E
+
+
+@

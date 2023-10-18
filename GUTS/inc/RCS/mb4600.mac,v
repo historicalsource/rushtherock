@@ -1,0 +1,370 @@
+head	1.11;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.11
+date	95.10.12.20.04.45;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.10.05.01.58.54;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.10.05.01.55.59;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.10.05.01.52.40;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.10.05.00.56.41;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.10.02.18.02.06;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.09.26.02.46.53;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.08.02.23.04.48;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.07.20.16.34.15;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.06.30.00.28.51;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.06.26.23.39.58;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@MACPP constants, macros and .defines defining the TWI 4600 MathBox board
+@
+
+
+1.11
+log
+@Moved most definitions into mbhost.mac
+@
+text
+@.if ndf, _MB4600_MAC_
+_MB4600_MAC_ == 0
+.if ndf, _CONSTANTS_MAC_
+  .warn ;You should .include constants.mac before including mb4600.mac
+  .include constants.mac
+.endc
+.if ndf, _PPTYPES_MAC_
+  .warn ;You should .include types.mac before including mb4600.mac
+  .include pptypes.mac
+.endc
+;
+.if ndf,HOST_BOARD
+	HEX_CONST HOST_BOARD	MB4600
+.endc
+.if ndf,NUCLEUS_OS
+	HEX_CONST NUCLEUS_OS	0
+.endc
+.if ndf,PROCESSOR
+	HEX_CONST PROCESSOR	MIPS4600
+.endc
+	.include mbhost.mac
+	.include idt.mac
+.endc		; _MB4600_MAC_
+@
+
+
+1.10
+log
+@Fix EEPROM again
+@
+text
+@d1 2
+d4 1
+a4 1
+  .warn ;You should .include constants.mac before including lcr3k.mac
+d8 1
+a8 1
+  .warn ;You should .include types.mac before including lcr3k.mac
+d21 1
+a21 104
+REM <	Senthil's 4600 Mathbox board specific definitions>
+;
+; Big-Endian Byte offset is 32 (or 64) - (bit offset)>>3
+	HEX_CONST WORD0_OFFS 4
+	HEX_CONST WORD32_OFFS 0
+	HEX_CONST SHORT0_OFFS 2
+	HEX_CONST SHORT16_OFFS 0
+	HEX_CONST BYTE0_OFFS 3
+	HEX_CONST BYTE8_OFFS 2
+	HEX_CONST BYTE16_OFFS 1
+	HEX_CONST BYTE24_OFFS 0
+REMB
+REMM <The R4k virtual memory map appears as the	following:		>
+REME
+;  
+	HEX_CONST MEM_KUSEG	0x00000000 < -0x7FFFFFFF (  2GB, mapped, cached)	>
+	HEX_CONST MEM_KSEG0	0x80000000 < -0x9FFFFFFF phys 00000000-1FFFFFFF (512MB, unmapped, cached)	>
+	HEX_CONST MEM_KSEG1	0xA0000000 < -0xBFFFFFFF phys 00000000-1FFFFFFF (512MB, unmapped, uncached)	>
+	HEX_CONST MEM_KSSEG	0xC0000000 < -0xDFFFFFFF (512MB, mapped)		>
+	HEX_CONST MEM_KSEG3	0xE0000000 < -0xFFFFFFFF (512MB, mapped)		>
+;
+	HEX_CONST DRAM_BASE	0x00200000 < DRAM phys 0x80000000-0x803FFFFF >
+	HEX_CONST DRAM_BASEnc	0x00800000 < DRAM phys 0x80000000-0x803FFFFF (uncached) >
+	HEX_CONST DRAM_SIZE	0x00400000 < DRAM size (4Mb) >
+	HEX_CONST TBUS_BASE	0x01000004 < TBUS FIFO phys 0xA0000004-0xA0000FFF (uncached) >
+	HEX_CONST TBUS_SIZE	0x00001000 < TBUS size (4Kb) >
+	HEX_CONST RDRAM_BASE	0x20000000 < Random DRAM phys 0x20000000-0x203FFFFF >
+	HEX_CONST RDRAM_BASEnc	0x20400000 < Random DRAM phys 0x20000000-0x203FFFFF (uncached) >
+	HEX_CONST RDRAM_SIZE	0x00400000 < DRAM size (4Mb) >
+	HEX_CONST SDRAM_BASE	0x40000000 < Sequential DRAM phys 0x40000000-0x40000FFF (uncached) >
+	HEX_CONST SDRAM_SIZE	0x00001000 < SDRAM size (4kb) >
+	HEX_CONST RRBUS_BASE	0x38000000 < Random ROM BUS phys 0x38000000-0x387FFFFF >
+	HEX_CONST RRBUS_BASEnc	0x38800000 < Random ROM BUS phys 0x38000000-0x387FFFFF (uncached) >
+	HEX_CONST RRBUS_SIZE	0x00800000 < ROM BUS size (8Mb)					>
+	HEX_CONST SRBUS_BASE	0x58000000 < Sequential ROM BUS phys 0x58000000-0x587FFFFF (uncached) >
+	HEX_CONST SRBUS_SIZE	0x00001000 < SROM BUS size (4k) >
+	HEX_CONST CTRL_BASE	0x60000000 < Control register phys 0x60000000 >
+REM < Bits within the latch itself >
+	HEX_CONST    CT0_FIFO_RST	      1	< D00: 0=reset FIFO, 1=enable FIFO>
+	HEX_CONST    CT0_FIFO_ENAB	      2	< D01: 0=normal FIFO, 1=enable FIFO readback>
+	HEX_CONST    CT0_ZERO_MAP	      8 < D03: 0=map physical 0x1FCXXXXX to DRAM >
+	HEX_CONST    CT0_FIFO_MTINT	0x10000	< D16: 0=disable and reset FIFO empty interrupt >
+	HEX_CONST    CT0_LED_CR1	0x20000 < D17: 0=turn on LED CR1 >
+	HEX_CONST    CT1_FIFO_FULLINT	      1 < D32: 0=disable and reset FIFO full interrupt >
+	HEX_CONST    CT1_LED_CR2	      2 < D33: 0=turn on LED CR2 >
+	HEX_CONST    CT1_XBUS_INT	0x10000 < D48: 1=assert XBUS interrupt (pulse this) >
+	HEX_CONST    CT1_LED_CR3	0x20000 < D49: 0=turn on LED CR3 >
+.if true, OUTPUT_LANG == LANG_C
+extern unsigned short bitshd;
+.endc
+REM < Bits within the latch shadow register >
+	HEX_CONST    CTS_FIFO_RST	   0x001 < D00: 0=reset FIFO, 1=enable FIFO>
+	HEX_CONST    CTS_FIFO_ENAB	   0x002 < D01: 0=normal FIFO, 1=enable FIFO readback>
+	HEX_CONST    CTS_ZERO_MAP	   0x004 < D02: 0=physical address 0x1fcXXXX maps to DRAM >
+	HEX_CONST    CTS_FIFO_MTINT	   0x008 < D03: 0=disable and reset FIFO empty interrupt >
+	HEX_CONST    CTS_LED_CR1	   0x010 < D04: 0=turn on LED CR1>
+	HEX_CONST    CTS_FIFO_FULLINT	   0x020 < D05: 0=disable and reset FIFO full interrupt >
+	HEX_CONST    CTS_LED_CR2	   0x040 < D06: 0=turn on LED CR2 >
+	HEX_CONST    CTS_XBUS_INT	   0x080 < D07: 1=assert XBUS interrupt (pulse activated, os_shims prevents this bit from staying on) >
+	HEX_CONST    CTS_LED_CR3	   0x100 < D08: 0=turn on LED CR3 >
+	HEX_CONST PROM_BASE	0x9FC00000 < PROM phys 0x1FC00000-0x1FFFFFFF (cached)			>
+	DEC_CONST SWINT0_LVL	0		< Software interrupt 0 >
+	DEC_CONST SWINT1_LVL	1		< Software interrupt 1 >
+	DEC_CONST ICELESS_LVL	2		< ICELESS debugger interrupt >
+	DEC_CONST XBUS_LVL	3		< All XBUS interrupts arrive here >
+	DEC_CONST FIFO_EMPTY_LVL 5		< FIFO is empty >
+	DEC_CONST FIFO_FULL_LVL 6		< FIFO is full >
+	DEC_CONST TIMER_LVL	7		< CPU timer interrupt >
+.if not_defined, NO_INTS
+NO_INTS == 0
+.endc
+.if true, NO_INTS == 0
+  .if true, NUCLEUS_OS == 0
+	HEX_CONST INTS_ON	0xFF01			< Enable all interrupts >
+  .iff
+	HEX_CONST INTS_ON	0x7F01			< Enable all interrupts >
+  .endc
+	HEX_CONST INTS_OFF	0x0701			< Disable all XBUS interrupts >
+.iff
+	HEX_CONST INTS_ON	0x0301
+	HEX_CONST INTS_OFF	0x0300
+.endc
+	HEX_CONST WDOG_BASE	0x70000000 < WDOG (cause TLBS miss)		>
+	HEX_CONST BRAM_BASE	0x28000000 < BRAM phys 0x18000000-0x1BFFFFFF (nocached)			>
+	HEX_CONST BRAM_SIZE	(2040*8)   < BRAM size (almost 2k doublewords)					>
+	HEX_CONST BBRAM_BASE	BRAM_BASE
+	HEX_CONST BBRAM_SIZE	BRAM_SIZE	
+	HEX_CONST BRAM_UNLK	0x28400000 < BRAM unlock >
+.if not_defined,NO_WDOG
+NO_WDOG == 0
+.endc
+.if true, NO_WDOG == 0
+	VAR	WDOG	VU32	WDOG_BASE	< Watchdog kick >
+.endc
+REM <	Work RAM>
+	ARRAY	WRAM,	U32, 	DRAM_BASE, DRAM_SIZE < Working RAM	>
+REM <	EEPROM>
+  .ifndf EEPROM_SIZE
+	EEPROM_SIZE == BRAM_SIZE ; Guaranteed minimum
+ .endc
+	ARRAY	EEPROM	U8	BRAM_BASE+BYTE0_OFFS	EEPROM_SIZE < EEPROM 		>
+REM <	BRAM>
+	ADDR	BRAM 	U8	BRAM_BASE+BYTE0_OFFS	< BRAM	(non-cached)	>
+;
+d23 1
+@
+
+
+1.9
+log
+@Fixed EEPROM again
+@
+text
+@d117 1
+a117 1
+	EEPROM_SIZE == 512 ; Guaranteed minimum
+@
+
+
+1.8
+log
+@Fixed EEPROM
+@
+text
+@d119 1
+a119 1
+	ARRAY	EEPROM	U8	BRAM_BASEnc+BYTE0_OFFS	EEPROM_SIZE < EEPROM 		>
+@
+
+
+1.7
+log
+@Changed virtual address of BRAM_UNLK to match phys address
+@
+text
+@d116 4
+a119 1
+	ADDR	EEPROM	U8	BRAM_BASE+BYTE0_OFFS	< EEPROM 		>
+@
+
+
+1.6
+log
+@Changed the comment on CTS_XBUS_INT.
+@
+text
+@d106 1
+a106 1
+	HEX_CONST BRAM_UNLK	0x2C000000 < BRAM unlock >
+@
+
+
+1.5
+log
+@Changed the sense of numerous bits which have been altered between revs.
+@
+text
+@d77 1
+a77 1
+	HEX_CONST    CTS_XBUS_INT	   0x080 < D07: 1=assert XBUS interrupt (pulse this) >
+@
+
+
+1.4
+log
+@Added a method to disable WDOG
+@
+text
+@d59 4
+a62 3
+	HEX_CONST    CT0_FIFO_INT5	0x10000	< D16: 0=disable and reset FIFO interrupt 5>
+	HEX_CONST    CT0_WDOG		0x20000 < D17: 0=kick the watchdog >
+	HEX_CONST    CT1_FIFO_INT4	      1 < D32: 0=disable and reset FIFO interrupt 4>
+d64 1
+a64 1
+	HEX_CONST    CT1_XBUS_INT	0x10000 < D48: 0=assert XBUS interrupt (pulse this) >
+d70 9
+a78 8
+	HEX_CONST    CTS_FIFO_RST	   0x01	< D00: 0=reset FIFO, 1=enable FIFO>
+	HEX_CONST    CTS_FIFO_ENAB	   0x02	< D01: 0=normal FIFO, 1=enable FIFO readback>
+	HEX_CONST    CTS_FIFO_INT5	   0x04 < D02: 0=disable and reset FIFO interrupt 5>
+	HEX_CONST    CTS_WDOG		   0x08 < D03: 0=kick the watchdog >
+	HEX_CONST    CTS_FIFO_INT4	   0x10 < D04: 0=disable and reset FIFO interrupt 4>
+	HEX_CONST    CTS_LED_CR2	   0x20 < D05: 0=turn on LED CR2 >
+	HEX_CONST    CTS_XBUS_INT	   0x40 < D06: 0=assert XBUS interrupt (pulse this) >
+	HEX_CONST    CTS_LED_CR3	   0x80 < D07: 0=turn on LED CR3 >
+d82 7
+a88 6
+	DEC_CONST ICELESS_LVL	2			< ICELESS debugger interrupt >
+.if true, 0
+	DEC_CONST XBUS0_LVL	3			< XBUS 0 interrupt >
+	DEC_CONST XBUS1_LVL	4			< XBUS 1 interrupt >
+	DEC_CONST XBUS2_LVL	5			< XBUS 2 interrupt >
+	DEC_CONST XBUS3_LVL	6			< XBUS 3 interrupt >
+d90 2
+a91 2
+	DEC_CONST TIMER_LVL	7			< CPU timer interrupt >
+.if true, NUCLEUS_OS == 0
+d93 4
+d98 2
+a99 1
+	HEX_CONST INTS_ON	0x7F01			< Enable all interrupts >
+a100 2
+	HEX_CONST INTS_OFF	0x0701			< Disable all XBUS interrupts >
+
+d107 2
+a108 2
+.if not_defined, NO_WODG
+NO_WODG == 0
+@
+
+
+1.3
+log
+@Made type of bitshd match that in os_proto.h
+@
+text
+@d101 4
+d106 1
+@
+
+
+1.2
+log
+@Moved the DRAM_BASEnc to leave a hole between it and DRAM_BASE
+@
+text
+@d66 1
+a66 1
+extern U32 bitshd;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d40 2
+a41 2
+	HEX_CONST DRAM_BASE	0x00000000 < DRAM phys 0x80000000-0x803FFFFF >
+	HEX_CONST DRAM_BASEnc	0x00800000 < DRAM phys 0x80000000-0x803FFFFF (nocache) >
+d43 1
+a43 1
+	HEX_CONST TBUS_BASE	0x01000004 < TBUS FIFO phys 0xA0000004-0xA0000FFF >
+d46 1
+d48 1
+a48 1
+	HEX_CONST SDRAM_BASE	0x40000000 < Sequential DRAM phys 0x40000000-0x40000FFF >
+d51 1
+d53 1
+a53 1
+	HEX_CONST SRBUS_BASE	0x58000000 < Sequential ROM BUS phys 0x58000000-0x587FFFFF >
+d56 1
+d65 12
+d100 1
+@

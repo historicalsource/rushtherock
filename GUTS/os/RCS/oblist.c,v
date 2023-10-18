@@ -1,0 +1,4603 @@
+head	1.24;
+access;
+symbols
+	CJ_206:1.22
+	CJ2_05:1.22
+	CJ2_04:1.22
+	CJ2_03:1.19;
+locks; strict;
+comment	@ * @;
+
+
+1.24
+date	97.07.01.22.40.48;	author albaugh;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.12.02.22.33.20;	author albaugh;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.06.27.21.44.18;	author albaugh;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.06.20.20.42.30;	author birmingham;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	95.12.21.23.03.39;	author birmingham;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	95.09.13.17.37.29;	author albaugh;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	95.09.13.02.42.53;	author albaugh;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	95.09.01.16.26.25;	author birmingham;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	95.08.09.01.37.51;	author birmingham;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	95.07.27.17.36.45;	author albaugh;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	95.07.09.00.23.59;	author birmingham;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.06.27.20.16.16;	author birmingham;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.06.24.20.16.20;	author birmingham;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.06.14.01.46.23;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.05.19.17.57.57;	author birmingham;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.05.17.00.34.04;	author birmingham;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.04.25.20.11.28;	author birmingham;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.04.11.21.53.58;	author birmingham;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.03.22.21.41.54;	author birmingham;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.02.14.01.40.32;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.02.14.01.28.53;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	94.12.16.22.20.09;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	94.12.16.01.40.47;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.01.28.35;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Object processor manipulatation
+@
+
+
+1.24
+log
+@Added RCS ID string
+@
+text
+@/************************************************************
+* OBLIST.C | Author: Robert M. Birmingham | August 31, 1994 *
+* ========================================================= *
+* G.U.T.S object list routines: Copyright 1994, Atari Games *
+************************************************************/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <os_proto.h>
+#define NO_OBLIST_MACROS
+#include <oblist.h>
+#include <rectlib.h>
+#include <dll.h>
+
+/************************************************************************/
+
+#if (COJAG_GAME & COJAG_NUVID)
+/* Include kluge for single interlaced object.
+ */
+extern int jag_interlace;
+static U32 *klugeptr[2];
+
+static U32 klugedata[4];
+#endif
+extern U16 vdb;                           /* vert. display begin (VIDEO.C) */
+extern U16 vde;                           /* vert. display end (VIDEO.C) */
+
+static U16 olp_active_list;               /* active olp_oblist[] index */
+static U16 num_phrases_used[NUM_OBLISTS]; /* used phrases in each list */
+static U16 usr_max_objects;               /* max. linked list nodes */
+static OBJECT *usr_mem_base;              /* ptr to base of user memory */
+static PHRASE *olp_mem_base;              /* ptr to base of olp memory */
+static PHRASE *olp_oblist[NUM_OBLISTS];   /* array of ptrs to ob. lists */
+static PHRASE *olp_start_addr;            /* ptr to adjusted OBL_OLP addr */
+
+static DLLNODE headnode;                  /* head node of linked list */
+static DLLNODE tailnode;                  /* tail node of linked list */
+
+static U16 mclipflag;                     /* master clipping status off/on */
+static RECT mcliprect;                    /* master clipping rectangle */
+
+/* declare tables for object sizes (in phrases) and alignment (in bytes) */
+static const U16 sizetab[] = { 2, 3, 1, 1, 1, 8 };
+static const U16 aligntab[] = { 16, 32, 8, 8, 8, 32 };
+
+/************************************************************************/
+
+/*
+** Prototypes for functions used only in OBLIST.C.
+*/
+
+static OBJECT *ob_malloc( void );
+static void ob_free( OBJECT * );
+static void ob_set_olp( PHRASE * );
+
+static void store_stop( PHRASE * );
+static void store_gpu( PHRASE *, U32, U32 );
+static void store_branch( PHRASE *, PHRASE *, int, int );
+static U16 store_bitmap( PHRASE *, PHRASE *, OBJECT * );
+static U16 store_parallax( PHRASE *, PHRASE *, PHRASE *, OBJECT * );
+
+static void insert_priority( OBJECT * );
+
+static OBJECT *next_visible_object( OBJECT *obnodep, OBJECT *memo_obp );
+static int ob_check_visibility( OBJECT *obnodep, OBJECT *memo_obp );
+
+/************************************************************************/
+
+/*
+** ********************************************************************
+** ob_mem_init():
+** Initialize the pointers to the memory blocks used for the three
+** Object List Processor lists and the user OBJECT node list.
+**
+** Notes for OLP list memory:
+** --------------------------
+** The memory blocks 'OBL_AUX1' and 'OBL_AUX2' are used to double
+** buffer the object list, so that a finished list can be copied to
+** the hardware object list while the other object list is being built.
+** The other memory block (OBL_OLP) is used only by the hardware and
+** is updated by copying one of the other object lists during every
+** vertical blank period.
+**
+** Notes for USER list memory:
+** ---------------------------
+** This memory is used by the ob_add() function to return OBJECT nodes
+** to the caller.
+** ====================================================================
+** Usage:
+**   ob_mem_init( aux0ptr, aux1ptr, olpptr, usrptr, listsize );
+**
+**   OLPMEM *aux0ptr:    pointer to base of auxilliary list #0
+**   OLPMEM *aux1ptr:    pointer to base of auxilliary list #1
+**   OLPMEM *olpptr:     pointer to base of OLP memory block.
+**   OBJECT *usrptr:     pointer to base of USR memory block.
+**   U16 listsize;       number of elements allocated for each block.
+**
+** Returns:
+**   Nothing.
+** ********************************************************************
+*/
+
+void ob_mem_init( aux0ptr, aux1ptr, olpptr, usrptr, listsize )
+OLPMEM *aux0ptr;
+OLPMEM *aux1ptr;
+OLPMEM *olpptr;
+OBJECT *usrptr;
+U16 listsize;
+{
+    U16 usr_mem_bytes;
+    OBJECT *txt_obptr;
+    OBJECT txt_object;
+
+
+    /* make a copy of the text object before setting object memory */
+    txt_obptr = (OBJECT *)vid_setscr(0);
+    if( txt_obptr != 0 ) txt_object = (*(OBJECT *)txt_obptr);
+
+    /*
+    ** Initialize the array of pointers used by the object list
+    ** handler to keep track of where the packed object lists are.
+    */
+
+    olp_oblist[OBL_AUX0] = (PHRASE *)ALIGNPTR( aux0ptr, sizeof(PHRASE) );
+    olp_oblist[OBL_AUX1] = (PHRASE *)ALIGNPTR( aux1ptr, sizeof(PHRASE) );
+    olp_oblist[OBL_OLP] = (PHRASE *)ALIGNPTR( olpptr, sizeof(PHRASE) );
+
+    /*
+    ** Set the actual starting address of the hardware object list
+    ** used by the Object List Processor.  This pointer skips over
+    ** the STOP object stored at the start of the memory block.
+    */
+
+    olp_start_addr = olp_oblist[OBL_OLP] + 1;
+
+    /*
+    ** align the pointer to where the object handler thinks the USER
+    ** memory is to a 32-bit boundary, then calculate the total number of
+    ** OBJECT nodes that are available from the resulting aligned memory.
+    */
+
+    usr_mem_base = (OBJECT *)ALIGNPTR( usrptr, sizeof(U32) );
+    usr_mem_bytes = listsize * sizeof(OBJECT);
+    usr_mem_bytes -= ((U8 *)usr_mem_base - (U8 *)usrptr);
+    usr_max_objects = usr_mem_bytes / sizeof(OBJECT);
+
+    /* reset the object list to start completely clean */
+    ob_reset();
+
+    /* Clone the previous text object and add it to our new object list */
+    if( txt_obptr != 0 )
+        {
+        txt_obptr = ob_clone( &txt_object );
+        vid_setscr( txt_obptr );
+        ob_build();
+        }
+
+}   /* ob_mem_init() */
+
+
+/*
+** **********************************************************
+** ob_get_mem():
+** Return the pointers to the memory blocks and the size of
+** the object list to the calling function.  You would call
+** ob_get_mem() to retrieve the current memory configuration
+** if you wanted to set-up a temporary object list and intend
+** to restore the previous object list when you are done.
+** See the descriptions of the arguments of ob_mem_init()
+** for more information.
+** **********************************************************
+*/
+
+void ob_get_mem( aux0ptr, aux1ptr, olpptr, usrptr, listsize )
+OLPMEM **aux0ptr;
+OLPMEM **aux1ptr;
+OLPMEM **olpptr;
+OBJECT **usrptr;
+U16 *listsize;
+{
+    *aux0ptr = (OLPMEM *)olp_oblist[OBL_AUX0];
+    *aux1ptr = (OLPMEM *)olp_oblist[OBL_AUX1];
+    *olpptr = (OLPMEM *)olp_oblist[OBL_OLP];
+    *usrptr = (OBJECT *)usr_mem_base;
+    *listsize = usr_max_objects;
+
+}   /* End: ob_get_mem() */
+
+
+/*
+** ************************************************************************
+** ob_set_mem():
+** Set the memory used for OLP lists and OBJECT node lists.
+**
+** Notes for OLP list memory:
+** --------------------------
+** Divide the supplied memory into phrase aligned blocks and put the base
+** address of each block into the olp_oblist[] array.  The olp_oblist[]
+** array is used by the 'ob_' functions to manage multiple 'packed' lists
+** for the object processor.  The defined value of NUM_OBLISTS dictates
+** how many blocks memory is divided into.  Currently, this value is set
+** to '3', and I'm not sure if it would ever be useful to support higher
+** values.  Two of the memory blocks (OBL_AUX1 and OBL_AUX2) are used to
+** double buffer the object list, so that a finished list can be copied to
+** the hardware object list while the other object list is being built.
+** The other memory block (OBL_OLP) is used only by the hardware and is
+** updated by copying one of the other object lists during every vertical
+** blank period.
+**
+** Notes for OLP list memory:
+** --------------------------
+** This memory is used by the ob_add() function to return OBJECT nodes to
+** the caller.
+** ========================================================================
+** Usage:
+**   ob_set_mem( olpbasep, usrbasep, listsize );
+**
+**   OLPBLK *olpbasep:    pointer to base of OLP memory block.
+**   OBJECT *usrbasep:    pointer to base of USR memory block.
+**   U16 listsize;        number of elements allocated for each block.
+**
+** Returns:
+**   Nothing.
+** ************************************************************************
+*/
+
+void ob_set_mem( olpbasep, usrbasep, listsize )
+void *olpbasep;
+void *usrbasep;
+U16 listsize;
+{
+    U16 i;
+    U16 olp_mem_bytes;
+    U16 usr_mem_bytes;
+    U16 olp_max_phrases;    /* max. OLP phrases available */
+
+
+    /* align OLP base ptr and calc. the number of OLP phrases available */
+    olp_mem_base = (PHRASE *)ALIGNPTR( olpbasep, sizeof(PHRASE) );
+    olp_mem_bytes = listsize * sizeof(OLPBLK);
+    olp_mem_bytes -= ((U8 *)olp_mem_base - (U8 *)olpbasep);
+    olp_max_phrases = olp_mem_bytes / (sizeof(PHRASE) * NUM_OBLISTS);
+
+    /* set and phrase align the pointers to each object list */
+    for( i = 0; i < NUM_OBLISTS; i++ )
+         {
+         olp_oblist[i] = olp_mem_base + (olp_max_phrases * i);
+         olp_oblist[i] = (PHRASE *)ALIGNPTR( olp_oblist[i], sizeof(PHRASE) );
+         }
+
+    /* set the real starting address of the hardware object list */
+    olp_start_addr = olp_oblist[OBL_OLP] + 1;
+
+    /* align USR base ptr and calc. the number USR object nodes available */
+    usr_mem_base = (OBJECT *)ALIGNPTR( usrbasep, sizeof(U32) );
+    usr_mem_bytes = listsize * sizeof(OBJECT);
+    usr_mem_bytes -= ((U8 *)usr_mem_base - (U8 *)usrbasep);
+    usr_max_objects = usr_mem_bytes / sizeof(OBJECT);
+
+    /* reset the object list to start completely clean */
+    ob_reset();
+
+}   /* ob_set_mem() */
+
+
+/*
+** ****************************************************
+** ob_copy():
+** If the caller wants to display graphics, copy the
+** active software object list to the object list used
+** by the hardware.   If the caller wants to display a
+** blank screen, point the OLP to a static STOP object.
+**
+** !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+** NOTE: Do not modify the hardware object list because
+** the OLP continues to run during vblank and you might
+** cause it to read garbage.
+** !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+**
+** ====================================================
+** Usage:
+**   ob_copy( show_oblist );
+**
+**   int show_oblist:  controls if oblist is displayed.
+**
+** Returns:
+**   Nothing.
+** ****************************************************
+*/
+
+void ob_copy( show_oblist )
+int show_oblist;
+{
+    U16 i;
+    PHRASE *sptr;
+    PHRASE *dptr;
+    int phrases_used;
+
+    /* get size of list to copy */
+    phrases_used = num_phrases_used[olp_active_list];
+
+    if( show_oblist && phrases_used )
+        {
+        sptr = olp_oblist[olp_active_list];
+        dptr = olp_oblist[OBL_OLP];
+
+#if (COJAG_GAME & COJAG_NUVID)
+            {
+	    U32 *kp = klugeptr[olp_active_list];
+
+	    if( jag_interlace && kp )
+		{
+		int field = ((VC>>11)&1)^1;
+		field |= (olp_active_list<<1);
+		*kp = klugedata[field];
+		}
+            }
+#endif
+        for( i = 0; i < phrases_used; i++ )
+             {
+             *dptr++ = *sptr++;
+             }
+
+        /*
+        ** set the OLP pointer to the first branch object.
+        ** We enable/disable the object list this way, because
+        ** the object processor is running during Vblank,
+        ** because we have to store 0xFFFF in VDE, because
+        ** the second-spin TOMs screwed up refresh or something...
+        */
+
+	ob_set_olp( olp_start_addr );
+        }
+    else
+        {
+        /* blank the screen */
+	ob_set_olp( olp_start_addr - 1 );
+        }
+
+}   /* End: ob_copy() */
+
+
+/*
+** *********************************************************
+** ob_build():
+** Convert the doubly linked list of OBJECT nodes into the
+** packed format used by the Jaguar's Object List Processor.
+** =========================================================
+** Usage:
+**   ob_build();
+**
+** Returns:
+**   Nothing.
+** *********************************************************
+*/
+
+void ob_build( void )
+{
+    U16 olp_new_list;      /* index of object list to build */
+    U16 this_type;         /* shorthand for this object type */
+    U16 next_type;         /* shorthand for next object type */
+
+    PHRASE *aux_listp;     /* pointer to object list for host processor */
+    PHRASE *aux_linkp;     /* link pointer for host processor */
+    PHRASE *aux_stopp;     /* pointer to host processor's stop object */
+    PHRASE *olp_listp;     /* pointer to object list for the OLP */
+    PHRASE *olp_linkp;     /* link pointer for OLP */
+    PHRASE *olp_stopp;     /* pointer to OLP stop object */
+
+    OBJECT *this_obptr;    /* current ptr into linked list of OBJECTs */
+    OBJECT *next_obptr;    /* current ptr into linked list of OBJECTs */
+    OBJECT *this_memoptr;  /* pointer to memo object for current object */
+    OBJECT *next_memoptr;  /* pointer to memo object for next object */
+    OBJECT *temp_memoptr;  /* temp pointer for swapping current and next */
+    OBJECT memo_ob1;       /* memo object #1 */
+    OBJECT memo_ob2;       /* memo object #2 */
+
+
+    /*
+    ** Set the pointers to the current and next memo objects.
+    ** The memo objects are used to hold the clipped/corrected versions
+    ** of the current and next visible objects in the user object list.
+    ** The current memo object is used to create a packed hardware object.
+    ** The next memo object is used to calculate the link pointer for the
+    ** current object.
+    */
+
+    this_memoptr = (OBJECT *)&memo_ob1;
+    next_memoptr = (OBJECT *)&memo_ob2;
+
+    /*
+    ** Set the pointers to the stop objects in the auxilliary and hardware
+    ** object lists to be at the beginning of the list.  Store a stop object
+    ** in the list being built, then bump both of the list pointers.
+    */
+
+    olp_new_list = 1 - olp_active_list;
+    aux_stopp = olp_oblist[olp_new_list];
+    olp_stopp = olp_oblist[OBL_OLP];
+    store_stop( aux_stopp );
+    aux_listp = aux_stopp + sizetab[STOP_OBTYPE];
+    olp_listp = olp_stopp + sizetab[STOP_OBTYPE];
+
+    /*
+    ** Store the two branch objects that look at the vertical scan position
+    ** to check if it is within the display area defined by (vdb) and (vde).
+    ** If not, the object processor will branch to the the above stop object.
+    */
+
+    store_branch( aux_listp, olp_stopp, BR_YLT_VC, vde );
+    aux_listp += sizetab[BRANCH_OBTYPE];
+    olp_listp += sizetab[BRANCH_OBTYPE];
+
+    store_branch( aux_listp, olp_stopp, BR_YGT_VC, vdb );
+    aux_listp += sizetab[BRANCH_OBTYPE];
+    olp_listp += sizetab[BRANCH_OBTYPE];
+
+#if (COJAG_GAME & COJAG_NUVID)
+    klugeptr[olp_new_list] = 0;
+#endif
+    /*
+    ** Convert all of the visible objects into packed hardware objects...
+    */
+
+    /* find the first visible object in the linked list. */
+    this_obptr = next_visible_object( (OBJECT *)headnode.next, this_memoptr );
+
+    if( this_obptr )
+        {
+        /*
+        ** If the current hardware pointer isn't aligned properly for the
+        ** first object in the packed list, add a branch object to skip to
+        ** a location that has the correct alignment.
+        */
+
+        olp_linkp = (PHRASE *)ALIGNPTR(olp_listp,aligntab[this_obptr->obtype]);
+
+        if( olp_listp != olp_linkp )
+            {
+            store_branch( aux_listp, olp_linkp, BR_YEQ_VC, 0x07ff );
+            aux_listp += (olp_linkp - olp_listp);
+            olp_listp = olp_linkp;
+            }
+
+        do{
+          /* find the next visible object in the linked list. */
+          next_obptr = next_visible_object( this_obptr->next, next_memoptr );
+
+          /*
+          ** If there is a next object, calculate its link pointers
+          ** otherwise set the links to point to the final STOP object.
+          */
+
+          this_type = this_obptr->obtype;
+
+          if( next_obptr )
+              {
+              next_type = next_obptr->obtype;
+
+              olp_linkp = olp_listp + sizetab[this_type];
+              olp_linkp = (PHRASE *)ALIGNPTR( olp_linkp, aligntab[next_type] );
+              aux_linkp = aux_listp + (olp_linkp - olp_listp);
+              }
+          else
+              {
+              num_phrases_used[olp_new_list]  = (aux_listp - aux_stopp) + 4;
+              aux_linkp = aux_stopp;
+              olp_linkp = olp_stopp;
+              }
+
+          /* Convert the data in the OBJECT node into its packed form. */
+          if( (this_type == NBMAP_OBTYPE) || (this_type == SBMAP_OBTYPE) )
+              {
+              store_bitmap( aux_listp, olp_linkp, this_memoptr );
+              }
+          else if( this_type == PARALLAX_OBTYPE )
+              {
+              store_parallax( aux_listp, olp_listp, olp_linkp, this_memoptr );
+              }
+          else
+              {
+              prc_panic( "Unknown object type in ob_build()" );
+              }
+
+          /* advance list pointers to the location of the next packed object */
+          aux_listp = aux_linkp;
+          olp_listp = olp_linkp;
+
+          /*
+          ** I don't need to calculate a new current memo object each loop
+          ** since the the information is already stored in the next memo
+          ** object.  Just swap the current/next memo pointers and continue.
+          */
+
+          temp_memoptr = this_memoptr;
+          this_memoptr = next_memoptr;
+          next_memoptr = temp_memoptr;
+
+          /* go to the next node in the linked list and loop */
+          this_obptr = next_obptr;
+
+          } while( this_obptr );
+
+        } /* end: if( this_obptr ) */
+
+    /* store the final stop object */
+    store_stop( aux_listp );
+
+    /* point active index at the object list just built */
+    olp_active_list = olp_new_list;
+
+}   /* End: ob_build() */
+
+
+/*
+** ******************************************************************
+** next_visible_object():
+** Return a pointer to the next visible object after the one
+** specified.  Also, pointers to a memo object and a memo rectangle
+** are passed which are filled in with the bounds checked and clipped
+** forms of the object passed.
+** ==================================================================
+** Usage:
+**   vis_obp = next_visible_object( obnodep, memo_obp, memo_rectp );
+**
+**   OBJECT *obnodep:     pointer to the current object.
+**   OBJECT *memo_obptr:  pointer to the memo object.
+**   RECT *memo_rectptr:  pointer to the memo rectangle.
+**
+** Returns:
+**   A pointer to the next visible object after to current object.
+** ******************************************************************
+*/
+
+static OBJECT *next_visible_object( obnodep, memo_obptr )
+OBJECT *obnodep;
+OBJECT *memo_obptr;
+{
+    while( obnodep->next )
+           {
+           if( ob_check_visibility( obnodep, memo_obptr ) )
+               {
+               return( obnodep );
+               }
+
+           obnodep = obnodep->next;
+           }
+
+    return(0);
+
+}   /* End: next_visible_object() */
+
+
+/*
+** *********************************************************
+** ob_check_visibility():
+** Check if an object is visible.  An object is visible if
+** the NOCLIP flag, or it is not HIDDEN and its real screen
+** coordinates intersect the master clipping rectangle.
+** The processed version of the object is returned in a memo
+** object structure.
+** =========================================================
+** Usage:
+**   is_visible = check_visibility( obnodep, memo_obptr );
+**
+**   OBJECT *obnodep:     pointer to OBJECT node to test.
+**   OBJECT *memo_obptr:  pointer to memo OBJECT.
+**
+** Returns:
+**   Flag indicating whether object is visible.
+**   (0) object is not visible.
+**   (1) object is visible.
+** *********************************************************
+*/
+
+#define  PIXELS_TO_BYTES(a,b)  (((a) << 2) >> (5 - (b)))
+#define  SCALE_TO_SCREEN(a,b)  (((a) * (b)) >> 5)
+#define  SCALE_TO_OBJECT(a,b)  (((a) << 5) / (b))
+
+static int ob_check_visibility( obnodep, memo_obp )
+OBJECT *obnodep;
+OBJECT *memo_obp;
+{
+    /* set table for masking so 'bytes_to_clip' will be PHRASE aligned */
+    static const U16 pixmasktab[] = {0xffc0,0xffe0,0xfff0,0xfff8,0xfffc,0xfffe};
+
+    S16 pixels_to_clip;  /* pixels to clip off an edge */
+    U16 bytes_to_clip;   /* bytes to clip off an edge */
+    U16 screen_pixw;     /* pixel width of object on screen */
+    U16 screen_pixh;     /* pixel height of object on screen */
+    RECT obrect;         /* extents of object to clip */
+
+    U16 is_flipped;
+    U16 is_nbmap;
+    U16 is_sbmap;
+
+    U32 imageptr;        /* pointer to object image data */
+    U16 obtype;          /* object type (normal/scaled bitmap) */
+    S16 xpos;            /* x position of object */
+    S16 ypos;            /* y position of object */
+    U16 pixw;            /* width of object in pixels */
+    U16 pixh;            /* height of object in scanlines */
+    S16 xhotspot;        /* x offset of hotspot */
+    S16 yhotspot;        /* y offset of hotspot */
+    U16 pixdepth;        /* bit depth of pixels */
+    U16 dpitch;          /* data pitch */
+    U16 dwidth;          /* data width in phrases */
+    U16 iwidth;          /* image width in phrases */
+    U16 firstpix;        /* starting pixel index */
+    U16 hscale;          /* horizontal scale (iii.fffff) */
+    U16 vscale;          /* vertical scale (iii.fffff) */
+    U16 usrflags;        /* hidden:reflect:rmw:transparent:release */
+    U16 pal_num;         /* palette number to use (for bit depths 1,2,4) */
+
+
+    /* return FALSE if object is not visible */
+    if( obnodep->usrflags & OBFLAG_HIDDEN )
+        {
+        return(0);
+        }
+
+    /* force the necessary object fields to be within their bounds */
+    obtype = obnodep->obtype;
+    imageptr = H2TADDR( obnodep->imageptr );
+    xpos = obnodep->xpos;
+    ypos = obnodep->ypos;
+    xhotspot = obnodep->xhotspot;
+    yhotspot = obnodep->yhotspot;
+    pixh = obnodep->pixh;
+    pixw = obnodep->pixw;
+    pixdepth = obnodep->pixdepth;
+    dpitch = obnodep->dpitch;
+    dwidth = obnodep->dwidth;
+    iwidth = obnodep->iwidth;
+    usrflags = obnodep->usrflags;
+    pal_num = obnodep->pal_num;
+    firstpix = obnodep->firstpix;
+    hscale = obnodep->hscale;
+    vscale = obnodep->vscale;
+
+    /* I use the flipped and scaled states quite often so keep them handy */
+    is_flipped = (usrflags & OBFLAG_FLIP) ? (1) : (0);
+    is_nbmap = (obtype == NBMAP_OBTYPE) ? (1) : (0);
+    is_sbmap = (obtype == SBMAP_OBTYPE) ? (1) : (0);
+
+    /*
+    ** Calculate the actual X and Y screen position of the bitmap object.
+    ** The real screen position depends on whether it is a normal or scaled
+    ** bitmap, and also whether or not it is flipped.  If the object is a
+    ** scaled bitmap, then the X and Y hotspots must be scaled before using
+    ** them to calculate the screen position.  If the object is not flipped,
+    ** then I need to subtract the xhotspot to get the final X position,
+    ** otherwise I need to add the xhotspot to the X position so that the
+    ** object will appear at the same location as the unflipped version.
+    */
+
+    if( is_sbmap )
+        {
+        xhotspot = SCALE_TO_SCREEN( xhotspot, hscale );
+        yhotspot = SCALE_TO_SCREEN( yhotspot, vscale );
+        }
+
+    if( is_flipped )
+        xpos += xhotspot;
+    else
+        xpos -= xhotspot;
+
+    ypos -= yhotspot;
+
+    /*****************************************************************/
+
+    /*
+    ** Clip the object if the master clipping flag is set and if the
+    ** 'no clipping' flag is not set.
+    */
+
+    if( (mclipflag != 0) && !(obnodep->usrflags & OBFLAG_NOCLIP) )
+        {
+        /*
+        ** Set up a RECT structure with the position and size of the object.
+        ** The information stored in the rectangle structure must represent the
+        ** position and size of the object exactly as it would appear on the
+        ** screen.  This means that if the object is flipped horizontally then
+        ** the X position must be adjusted.  Also, if the object is a scaled
+        ** bitmap then the the width and height must be scaled accordingly.
+        */
+
+        if( is_nbmap )
+            {
+            obrect.w = pixw;
+            obrect.h = pixh;
+            }
+        else
+            {
+            obrect.w = SCALE_TO_SCREEN( pixw, hscale );
+            obrect.h = SCALE_TO_SCREEN( pixh, vscale );
+            }
+
+        if( is_flipped )
+            obrect.x = xpos - obrect.w;
+        else
+            obrect.x = xpos;
+
+        obrect.y = ypos;
+
+        /*
+        ** Determine if the object's rectangle intersects the master
+        ** clipping rectangle.  If the object does not intersect, then
+        ** there's no reason to add it to the packed hardware list.
+        */
+
+        if( !rect_intersect( &mcliprect, &obrect ) )
+            {
+            return(0);
+            }
+
+        /*
+        ** If either the width or height of the object's RECT have changed
+        ** after the call to rect_intersect(), then the object will need to
+        ** be clipped.  Otherwise, the object is completely inside the master
+        ** clipping rectangle and no clipping needs to be done.
+        */
+
+        if( (obrect.h != pixh) )
+            {
+
+            /*
+            ** ==============================================================
+            ** Clip the top edge of the object.
+            ** ==============================================================
+            ** 1) Calculate the number of scanlines to clip off the top of
+            **    the object.  Note: If this is a scaled bitmap object then
+            **    this value will need to be scaled to get the true number
+            **    of scanlines to clip off of the actual object data.
+            **
+            ** 2) Calculate how many bytes the value from step #1 represents
+            **    and add it to the object's image pointer so the top of the
+            **    clipped object will start at the correct memory location.
+            **
+            ** 3) Force the object's Y position to be at the top edge of the
+            **    master clipping rectangle.
+            **
+            ** 4) Reduce the height of the object by the number of scanlines
+            **    calculated in step #1.
+            ** ==============================================================
+            */
+
+            pixels_to_clip = mcliprect.y - ypos;
+
+            if( pixels_to_clip > 0 )
+                {
+                if( is_sbmap )
+                    {
+                    pixels_to_clip = SCALE_TO_OBJECT( pixels_to_clip, vscale );
+                    }
+
+                imageptr += (U32)((S32)pixels_to_clip * ((S32)dwidth << 3));
+                ypos = mcliprect.y;
+                pixh -= pixels_to_clip;
+                }
+
+            /*
+            ** =================================================================
+            ** Clip the bottom edge of the object.
+            ** =================================================================
+            ** 1) Calculate the number of scanlines to clip of the bottom of
+            **    the object and subtract the result from the object's height.
+            **    Note: If this is a scaled bitmap object then this value will
+            **    need to be scaled to get the true number of scanlines to clip.
+            ** =================================================================
+            */
+
+            if( is_nbmap )
+                screen_pixh = pixh;
+            else
+                screen_pixh = SCALE_TO_SCREEN( pixh, vscale );
+
+            pixels_to_clip = (ypos + screen_pixh) - (mcliprect.y + mcliprect.h);
+
+            if( pixels_to_clip > 0 )
+                {
+                if( is_sbmap )
+                    {
+                    pixels_to_clip = SCALE_TO_OBJECT( pixels_to_clip, vscale );
+                    }
+
+                pixh -= pixels_to_clip;
+                }
+
+            }   /* End: if( obrect.h != pixh ) */
+
+        if( (obrect.w != pixw) )
+            {
+
+            /*
+            ** =============================================================
+            ** Clipping the left edge of the object:
+            ** =============================================================
+            ** 1) Calculate the number of pixels to clip off the left edge
+            **    of the object and round the result down so that when the
+            **    number of pixels to clip is converted to the number of
+            **    bytes to clip (see step #2), the result will be divisible
+            **    by a PHRASE.
+            **
+            ** 2) Convert the number of pixels to clip into the number of
+            **    bytes to clip then add it to the object's imageptr.
+            **
+            ** 3) Convert the number of bytes from step #2 into PHRASES and
+            **    subtract it from the object's IWIDTH.
+            **
+            ** 4) Subtract the number of pixels to clip from the object's
+            **    pixel width.
+            **
+            ** 5) Add the number of pixels to clip to the X position of the
+            **    object so it will be placed at the correct screen position.
+            ** ==============================================================
+            */
+
+            /*
+            ** Bug fix [RMB]:
+            ** Horizontally flipped objects were not clipping correctly, the
+            ** fix was to 'basically' treat the right edge of a flipped object
+            ** as if it were really the left edge...and vice-versa.  There are
+            ** some minor problems with clipping flipped objects (i.e. the
+            ** clipped edge doesn't reach the the edge of the clipping rect.
+            ** I don't have time to fix this right now, but will soon.
+            */
+
+            if( is_flipped )
+                {
+                if( is_nbmap )
+                    screen_pixw = pixw;
+                else
+                    screen_pixw = SCALE_TO_SCREEN( pixw, hscale );
+
+                pixels_to_clip = mcliprect.x - (xpos - screen_pixw - 1);
+
+                if( pixels_to_clip > 0 )
+                    {
+                    pixels_to_clip &= pixmasktab[pixdepth];
+
+                    if( is_sbmap )
+                        {
+                        pixels_to_clip = SCALE_TO_OBJECT( pixels_to_clip, hscale );
+                        }
+
+                    bytes_to_clip = PIXELS_TO_BYTES( pixels_to_clip, pixdepth );
+                    iwidth -= (bytes_to_clip >> 3);
+                    pixw -= pixels_to_clip;
+                    }
+                }
+            else
+                {
+                pixels_to_clip = mcliprect.x - xpos;
+
+                if( pixels_to_clip > 0 )
+                    {
+                    pixels_to_clip &= pixmasktab[pixdepth];
+
+                    if( is_sbmap )
+                        {
+                        pixels_to_clip = SCALE_TO_OBJECT( pixels_to_clip, hscale );
+                        }
+
+                    bytes_to_clip = PIXELS_TO_BYTES( pixels_to_clip, pixdepth );
+                    imageptr += bytes_to_clip;
+                    iwidth -= (bytes_to_clip >> 3);
+
+                    pixw -= pixels_to_clip;
+
+                    if( is_nbmap )
+                        xpos += pixels_to_clip;
+                    else
+                        xpos += SCALE_TO_SCREEN( pixels_to_clip, hscale );
+                    }
+                }
+
+            /*
+            ** ================================================================
+            ** Clipping the right edge of the object:
+            ** ================================================================
+            ** 1) Calculate the number of pixels to clip off the right edge
+            **    of the object and round the result so that when the number
+            **    of pixels to clip is converted to the number of bytes to
+            **    clip (see step #2), the result will be divisible by a PHRASE.
+            **
+            ** 2) Convert the number of pixels to clip into the number of
+            **    bytes to clip then add it to the object's imageptr.
+            **
+            ** 3) Convert the number of bytes from step #2 into PHRASES and
+            **    subtract it from the object's IWIDTH.
+            **
+            ** 4) Subtract the number of clipped pixels from the pixel width
+            **    of the object.
+            ** ================================================================
+            */
+
+            if( is_flipped )
+                {
+                pixels_to_clip = xpos - (mcliprect.x + mcliprect.w);
+
+                if( pixels_to_clip > 0 )
+                    {
+                    pixels_to_clip &= pixmasktab[pixdepth];
+
+                    if( is_sbmap )
+                        {
+                        pixels_to_clip = SCALE_TO_OBJECT( pixels_to_clip, hscale );
+                        }
+
+                    bytes_to_clip = PIXELS_TO_BYTES( pixels_to_clip, pixdepth );
+                    imageptr += bytes_to_clip;
+                    iwidth -= (bytes_to_clip >> 3);
+
+                    pixw -= pixels_to_clip;
+
+                    if( is_nbmap )
+                        xpos -= pixels_to_clip;
+                    else
+                        xpos -= SCALE_TO_SCREEN( pixels_to_clip, hscale );
+                    }
+                }
+            else
+                {
+                if( is_nbmap )
+                    screen_pixw = pixw;
+                else
+                    screen_pixw = SCALE_TO_SCREEN( pixw, hscale );
+
+                pixels_to_clip = (xpos + screen_pixw) - (mcliprect.x + mcliprect.w);
+
+                if( pixels_to_clip > 0 )
+                    {
+                    pixels_to_clip &= pixmasktab[pixdepth];
+
+                    if( is_sbmap )
+                        {
+                        pixels_to_clip = SCALE_TO_OBJECT( pixels_to_clip, hscale );
+                        }
+
+                    bytes_to_clip = PIXELS_TO_BYTES( pixels_to_clip, pixdepth );
+                    iwidth -= (bytes_to_clip >> 3);
+                    pixw -= pixels_to_clip;
+                    }
+                }
+
+            }   /* End: if( obrect.w != pixw ) */
+
+        }   /* End: if( (mclipflag != 0) ) */
+
+    memo_obp->obtype = obtype & 0x0007;
+    memo_obp->imageptr = (void *)imageptr;
+    memo_obp->xpos = xpos;
+    memo_obp->ypos = ypos;
+    memo_obp->xhotspot = xhotspot;
+    memo_obp->yhotspot = yhotspot;
+    memo_obp->pixh = pixh & 0x3fff;
+    memo_obp->pixw = pixw;
+    memo_obp->pixdepth = pixdepth & 0x0007;
+    memo_obp->dpitch = dpitch & 0x0007;
+    memo_obp->dwidth = dwidth & 0x03ff;
+    memo_obp->iwidth = iwidth & 0x03ff;
+    memo_obp->usrflags = usrflags;
+    memo_obp->pal_num = pal_num & 0x007f;
+    memo_obp->firstpix = firstpix & 0x003f;
+    memo_obp->hscale = hscale & 0x00ff;
+    memo_obp->vscale = vscale & 0x00ff;
+
+    return(1);
+
+}   /* End: ob_check_visibility() */
+
+
+/*
+** ****************************************************************
+** store_stop():
+** Store a stop object in an object list at the specified location.
+** ================================================================
+** Usage:
+**   store_stop( listptr );
+**
+**   PHRASE *listptr;
+**
+** Returns:
+**   Nothing.
+** ****************************************************************
+*/
+
+static void store_stop( listptr )
+PHRASE *listptr;
+{
+    listptr->hi32 = 0x00000000L;
+    listptr->lo32 = 0x00000000L | (U32)STOP_OBTYPE;
+
+}   /* End: store_stop() */
+
+
+/*
+** *******************************************************************
+** store_branch():
+** Store a branch object at the specified position in an object list.
+** The branch logic in the OLP is actually sort of backwards from
+** what you'd normally expect.  If the specified condition is TRUE,
+** then the OLP will fall through to the next object.  If it is FALSE
+** then the OLP will branch to the location specified by the link.
+** ===================================================================
+** Usage:
+**   store_branch( aux_listp, olp_stopp, brtype, compval );
+**
+**   PHRASE *aux_listp:  ptr to host list to add to
+**   PHRASE *olp_linkp:  ptr to link location for OLP
+**   U16 brtype:         flag indicating branch type
+**   U16 compval:        compare value for branch
+**
+** Example:
+**
+**   store_branch( aux_listp, olp_stopp, BR_YLT_VC, vde );
+**
+** Returns:
+**   Nothing.
+** *******************************************************************
+*/
+
+static void store_branch( aux_listp, olp_linkp, brtype, compval )
+PHRASE *aux_listp;
+PHRASE *olp_linkp;
+U16 brtype;
+U16 compval;
+{
+    U32 t_oblink;
+
+
+    /* convert HOST link to TOM link and phrase align before storing */
+    t_oblink = H2TADDR(olp_linkp) >> 3;
+
+    aux_listp->hi32 = (t_oblink >> 8);
+    aux_listp->lo32 = (t_oblink << 24) |
+                      ((U32)brtype << 14) |
+                      ((U32)compval << 3) |
+                      (U32)BRANCH_OBTYPE;
+
+}   /* End: store_branch() */
+
+
+/*
+** ***************************************************************
+** store_gpu():
+** Store a GPU object at the specified position in an object list.
+** ===============================================================
+** Usage:
+**   store_gpu( aux_listp, lo_data, hi_data );
+**
+**   PHRASE *aux_listp:  ptr to host list to add to
+**   U32 lo_data:        low 32-bits to store in data field.
+**   U32 hi_data:        high 32-bits to store in data field.
+**
+** Returns:
+**   Nothing.
+** ***************************************************************
+*/
+
+static void store_gpu( aux_listp, lo_data, hi_data )
+PHRASE *aux_listp;
+U32 lo_data;
+U32 hi_data;
+{
+    aux_listp->hi32 = hi_data;
+    aux_listp->lo32 = (U32)(lo_data << 3) | (U32)GPU_OBTYPE;
+
+}   /* End: store_gpu() */
+
+
+/*
+** ****************************************************
+** store_bitmap():
+** Store a normal or scaled bitmap object at the
+** specified position in an object list.
+** ====================================================
+** Usage:
+**   PHRASE *aux_listp:  ptr to host list to add to.
+**   PHRASE *olp_linkp:  ptr to link location for OLP.
+**   OBJECT *ob:         ptr to object to add.
+**
+** Returns:
+**   Nothing.
+** ****************************************************
+*/
+
+static U16 store_bitmap( aux_listp, olp_linkp, obargp )
+PHRASE *aux_listp;
+PHRASE *olp_linkp;
+OBJECT *obargp;
+{
+    U32 obdata;          /* accumulated packed object data */
+    U32 t_oblink;        /* TOM object link pointer address */
+    U32 imageptr;        /* pointer to object image data */
+    U16 obtype;          /* object type (normal/scaled bitmap) */
+    S16 xpos;            /* x position of object */
+    S16 ypos;            /* y position of object */
+    U16 pixh;            /* height of object in scanlines */
+    U16 pixdepth;        /* bit depth of pixels */
+    U16 dpitch;          /* data pitch */
+    U16 dwidth;          /* data width in phrases */
+    U16 iwidth;          /* image width in phrases */
+    U16 firstpix;        /* starting pixel index */
+    U16 hscale;          /* horizontal scale (iii.fffff) */
+    U16 vscale;          /* vertical scale (iii.fffff) */
+    U16 usrflags;        /* hidden:reflect:rmw:transparent:release */
+    U16 pal_num;         /* palette number to use (for bit depths 1,2,4) */
+
+
+    /* force the necessary object fields to be within their bounds */
+    obtype = obargp->obtype;
+    imageptr = H2TADDR( obargp->imageptr );
+    xpos = obargp->xpos;
+    ypos = obargp->ypos;
+    pixh = obargp->pixh;
+    pixdepth = obargp->pixdepth;
+    dpitch = obargp->dpitch;
+    dwidth = obargp->dwidth;
+    iwidth = obargp->iwidth;
+    usrflags = obargp->usrflags;
+    pal_num = obargp->pal_num;
+    firstpix = obargp->firstpix;
+    hscale = obargp->hscale;
+    vscale = obargp->vscale;
+
+    /*****************************************************************/
+
+    /*
+    ** Calculate the final x and y positions to be used by the hardware
+    ** and make sure they don't exceed their maximum bit widths.
+    */
+
+    xpos = xpos & 0x0fff;
+    ypos = (vdb + (ypos << 1)) & 0x07ff;
+
+    /* mask off any of my object flags not supported by the hardware */
+    usrflags &= 0x000f;
+
+    /*
+    ** convert HOST link to TOM link and phrase align before storing
+    ** I also have to mask off the upper bits of the link pointer so
+    ** they don't get OR'ed in with the object's image pointer.
+    */
+
+    t_oblink = (H2TADDR(olp_linkp) >> 3) & 0x0007ffff;
+    aux_listp->hi32 = ((imageptr & 0xfffffff8L)<<8)|(t_oblink >> 8);
+
+#if (COJAG_GAME & COJAG_NUVID)
+    if( dwidth != iwidth && jag_interlace )
+        {
+	int new = 1 - olp_active_list;
+	ypos |= 1;
+        klugeptr[new] = &aux_listp->hi32;
+	new <<= 1;
+        klugedata[new] = ((imageptr & 0xfffffff8L)<<8)|(t_oblink >> 8);
+        klugedata[new+1] = (((imageptr + (dwidth<<2)) & 0xfffffff8L)<<8)|(t_oblink >> 8);
+        }
+#endif
+
+    obdata = t_oblink << 10;                       /* object link ptr */
+    obdata = (obdata | (U32)pixh) << 11;           /* height */
+    obdata = (obdata | (U32)ypos) << 3;            /* y position */
+    aux_listp->lo32 = obdata | (U32)obtype;        /* object type */
+    aux_listp++;
+
+    obdata = (U32)firstpix << 4;                   /* firstpix */
+    obdata = (obdata | (U32)usrflags) << 7;        /* rel:trans:rmw:refl */
+    obdata = (obdata | (U32)pal_num) << 6;         /* index */
+    aux_listp->hi32=(obdata | (U32)(iwidth>>4));   /* iwidth: hi 6 bits */
+
+    obdata = (U32)iwidth << 10;                    /* iwidth: low 4 bits */
+    obdata = (obdata | (U32)dwidth) << 3;          /* dwidth */
+    obdata = (obdata | (U32)dpitch) << 3;          /* pitch */
+    obdata = (obdata | (U32)pixdepth) << 12;       /* depth */
+    aux_listp->lo32 = obdata | (U32)xpos;          /* x position */
+
+    /* add the third phrase if this is a scaled bitmap object */
+    if( obtype == SBMAP_OBTYPE )
+        {
+        aux_listp++;
+        aux_listp->hi32 = 0;
+	/* Start remainder at same value as vscale, to avoid
+	 * "missing second line" bug.
+	 */
+        aux_listp->lo32 = ((U32)vscale<<16)| (U32)(vscale << 8) | hscale;
+        }
+
+    /* return SUCCESS to ob_build() */
+    return(1);
+
+}   /* End: store_bitmap() */
+
+
+/*
+** ************************************************************
+** store_parallax():
+** Store the objects that make up a parallax object
+** at the specified position in an object list.
+** ============================================================
+** Usage:
+**   store_parallax( aux_listp, olp_listp, olp_linkp, obargp );
+**
+**   PHRASE *aux_listp:  ptr to host list to add to.
+**   PHRASE *aux_listp:  ptr to HW list for address calc's.
+**   PHRASE *olp_linkp:  ptr to link location for OLP.
+**   OBJECT *obargp:     ptr to object to add.
+**
+** Returns:
+**   Nothing.
+** ************************************************************
+*/
+
+static U16 store_parallax( aux_listp, olp_listp, olp_linkp, obargp )
+PHRASE *aux_listp;
+PHRASE *olp_listp;
+PHRASE *olp_linkp;
+OBJECT *obargp;
+{
+    U32 obdata;          /* accumulated packed object data */
+    U32 t_oblink;        /* TOM object link pointer address */
+    U32 imageptr;        /* pointer to object image data */
+    U16 obtype;          /* object type (normal/scaled bitmap) */
+    S16 xpos;            /* x position of object */
+    S16 ypos;            /* y position of object */
+    U16 pixh;            /* height of object in scanlines */
+    U16 pixdepth;        /* bit depth of pixels */
+    U16 dpitch;          /* data pitch */
+    U16 dwidth;          /* data width in phrases */
+    U16 iwidth;          /* image width in phrases */
+    U16 firstpix;        /* starting pixel index */
+    U16 hscale;          /* horizontal scale (iii.fffff) */
+    U16 vscale;          /* vertical scale (iii.fffff) */
+    U16 usrflags;        /* hidden:reflect:rmw:transparent:release */
+    U16 pal_num;         /* palette number to use (for bit depths 1,2,4) */
+
+
+    /* force the necessary object fields to be within their bounds */
+    obtype = obargp->obtype;
+    obtype = NBMAP_OBTYPE;
+    imageptr = H2TADDR( obargp->imageptr );
+    xpos = obargp->xpos;
+    ypos = obargp->ypos;
+    pixh = obargp->pixh;
+    pixdepth = obargp->pixdepth;
+    dpitch = obargp->dpitch;
+    dwidth = obargp->dwidth;
+    iwidth = obargp->iwidth;
+    usrflags = obargp->usrflags;
+    pal_num = obargp->pal_num;
+    firstpix = obargp->firstpix;
+    hscale = obargp->hscale;
+    vscale = obargp->vscale;
+
+    xpos = xpos & 0x0fff;
+    ypos = (vdb + (ypos << 1)) & 0x07ff;
+
+    /*
+    ** ==========================================================
+    ** The parallax object is actually a combination of several
+    ** types of OLP supported objects.  They are as follows:
+    **
+    ** BRANCH OBJECT: To skip if VC < object's y position.
+    ** BRANCH OBJECT: To skip if VC > object's (ypos + pixh).
+    ** GPU OBJECT:    Used to cause GPU interrupt for object.
+    ** BRANCH OBJECT: To go to next QUAD-PHRASE aligned location.
+    ** BITMAP OBJECT: The actual object that will be parallaxed.
+    ** ==========================================================
+    */
+
+    /* store the two branches that look at the vertical scan pos. */
+    store_branch( aux_listp, olp_linkp, BR_YLT_VC, vdb + ypos + (pixh << 1) );
+    aux_listp += sizetab[BRANCH_OBTYPE];
+    olp_listp += sizetab[BRANCH_OBTYPE];
+
+    store_branch( aux_listp, olp_linkp, BR_YGT_VC, vdb + ypos - 2 );
+    aux_listp += sizetab[BRANCH_OBTYPE];
+    olp_listp += sizetab[BRANCH_OBTYPE];
+
+    /* store the GPU Processor Object */
+    store_gpu( aux_listp, (U32)obargp->extobptr, (U32)olp_listp + 28 );
+    aux_listp += sizetab[GPU_OBTYPE];
+    olp_listp += sizetab[GPU_OBTYPE];
+
+    /* store a BRANCH ALWAYS object so bitmap object is aligned!!! */
+    store_branch( aux_listp, olp_listp + 1, BR_YEQ_VC, 0x07ff );
+    aux_listp += sizetab[BRANCH_OBTYPE];
+    olp_listp += sizetab[BRANCH_OBTYPE];
+
+    /*
+    ** Add the normal or scaled bitmap object...
+    */
+
+    /*
+    ** convert HOST link to TOM link and phrase align before storing
+    ** I also have to mask off the upper bits of the link pointer so
+    ** they don't get OR'ed in with the object's image pointer.
+    */
+
+    t_oblink = (H2TADDR(olp_linkp) >> 3) & 0x0007ffff;
+    aux_listp->hi32 = ((imageptr & 0xfffffff8L)<<8)|(t_oblink >> 8);
+
+    obdata = t_oblink << 10;                       /* object link ptr */
+    obdata = (obdata | (U32)pixh) << 11;           /* height */
+    obdata = (obdata | (U32)ypos) << 3;            /* y position */
+    aux_listp->lo32 = obdata | (U32)obtype;        /* object type */
+    aux_listp++;
+
+    obdata = (U32)firstpix << 4;                   /* firstpix */
+    obdata = (obdata | (U32)usrflags) << 7;        /* rel:trans:rmw:refl */
+    obdata = (obdata | (U32)pal_num) << 6;         /* index */
+    aux_listp->hi32=(obdata | (U32)(iwidth>>4));   /* iwidth: hi 6 bits */
+
+    obdata = (U32)iwidth << 10;                    /* iwidth: low 4 bits */
+    obdata = (obdata | (U32)dwidth) << 3;          /* dwidth */
+    obdata = (obdata | (U32)dpitch) << 3;          /* pitch */
+    obdata = (obdata | (U32)pixdepth) << 12;       /* depth */
+    aux_listp->lo32 = obdata | (U32)xpos;          /* x position */
+
+    /* add the third phrase if this is a scaled bitmap object */
+    if( obtype == SBMAP_OBTYPE )
+        {
+        aux_listp++;
+        aux_listp->hi32 = 0;
+        aux_listp->lo32 = (U32)(vscale << 8) | hscale;
+        }
+
+    /* return SUCCESS to ob_build() */
+    return(1);
+
+}   /* End: store_parallax() */
+
+
+/*
+** **************************************
+** ob_set_olp():
+** Set the hardware Object List Pointer.
+** ======================================
+** Usage:
+**   ob_set_olp( new_addr );
+**
+** Returns:
+**   Nothing.
+** **************************************
+*/
+
+static void ob_set_olp( PHRASE *new_addr )
+{
+    U32 olpaddr;
+
+    olpaddr = H2TADDR( new_addr );
+    OLP = (olpaddr << 16) | (olpaddr >> 16);
+
+}   /* End: ob_set_olp() */
+
+
+/*
+** ***********************************************************
+** ob_reset():
+** Completely reset the internal variables used by the object
+** list handler so that no objects are displayed.  This is a
+** fast way to delete all the objects added by an application
+** and may be useful if called at the beginning of each level.
+** ===========================================================
+** Usage:
+**   ob_reset():
+**
+** Returns:
+**   Nothing.
+** ***********************************************************
+*/
+
+void ob_reset( void )
+{
+    int i;
+
+
+    /* reset list size value back to zero (empty) */
+    num_phrases_used[OBL_AUX0]  = 0;
+    num_phrases_used[OBL_AUX1]  = 0;
+
+#if (COJAG_GAME & COJAG_NUVID)
+    klugeptr[0] = 0;
+    klugeptr[1] = 0;
+#endif
+    /* store STOP object directly into OLP object list */
+    /* MEA: (13SEP95) I am dubious about this, as we have discovered
+     * that, due to the bug that requires VDE be set to 0xFFFF, the
+     * Object Processor is running more-or-less all the time. This
+     * means that storing into the "active" list branch objects
+     * could be dangerous. I have translated the ob_set_mem() below
+     * to it's functional equivalent in the new (parametric) form,
+     * because ob_reset should be rare, and I can wait for Robert
+     * Birmingham to untangle this.
+     */
+    store_stop( olp_oblist[OBL_AUX0] );
+    store_stop( olp_oblist[OBL_AUX1] );
+    store_stop( olp_oblist[OBL_OLP] );
+    store_stop( olp_start_addr );
+    ob_set_olp( olp_start_addr );
+
+    /* reset the head/tail pointers of the linked list */
+    dll_reset( (DLLNODE *)&headnode, (DLLNODE *)&tailnode );
+
+    /* reset the active object list index to the default value */
+    olp_active_list = OBL_AUX0;
+
+    /* clear all of malloc memory (if it exists) */
+    if( usr_mem_base )
+        {
+        for( i = 0; i < usr_max_objects; i++ )
+             usr_mem_base[i].obflags = OBNODE_NONE;
+        }
+
+}   /* End: ob_reset() */
+
+
+/*
+** ****************************************************
+** ob_add():
+** Allocate a new OBJECT structure and insert
+** it into the doubly linked list of objects.
+** ====================================================
+** Usage:
+**   ob_add( obtype );
+**
+**   U16 obtype:       tupe of object.
+**
+** Returns:
+**   A pointer to the node added or NULL if no memory
+**   could be allocated for the new object node.
+** ****************************************************
+*/
+
+OBJECT *ob_add( obtype )
+U16 obtype;
+{
+    OBJECT *newnode;
+
+
+    /* allocate and initialize an object node structure */
+    if( (newnode = (OBJECT *)ob_malloc()) )
+        {
+        newnode->obtype = obtype;
+        newnode->imageptr = 0;
+        newnode->xpos = 0;
+        newnode->ypos = 0;
+        newnode->pixw = 0;
+        newnode->pixh = 0;
+        newnode->xhotspot = 0;
+        newnode->yhotspot = 0;
+        newnode->pixdepth = 0;
+        newnode->dpitch = 0;
+        newnode->dwidth = 0;
+        newnode->iwidth = 0;
+        newnode->firstpix = 0;
+        newnode->hscale = 0;
+        newnode->vscale = 0;
+        newnode->usrflags = 0;
+        newnode->pal_num = 0;
+        newnode->priority = 65535;
+
+        /* Add the object to the end of the doubly linked list */
+        dll_after( (DLLNODE *)tailnode.prev, (DLLNODE *)newnode );
+        }
+
+    return( newnode );
+
+}   /* End: ob_add() */
+
+
+/*
+** *****************************************
+** ob_clone():
+** Make an exact copy of the object passed
+** and add it to the linked list of OBJECTs.
+** =========================================
+** Usage:
+**   newob = ob_clone( curob );
+**
+**   OBJECT *curob:  ptr to object to clone.
+**
+** Returns:
+**   Ptr to new copy of object.
+** *****************************************
+*/
+
+OBJECT *ob_clone( curobp )
+OBJECT *curobp;
+{
+    OBJECT *newobp;
+    OBJECT *sav_next;
+    OBJECT *sav_prev;
+
+
+    /* create an object of the same type */
+    newobp = ob_add( curobp->obtype );
+
+    /* save the node pointers of the new object */
+    sav_next = newobp->next;
+    sav_prev = newobp->prev;
+
+    /* clone the object */
+    *newobp = *curobp;
+
+    /* copy correct node pointers back into clone */
+    newobp->next = sav_next;
+    newobp->prev = sav_prev;
+
+    /* return ptr to clone */
+    return( newobp );
+
+}   /* End: ob_clone() */
+
+
+/*
+** ***********************************************
+** ob_del():
+** Remove the specified node from the linked list.
+** ===============================================
+** Usage:
+**   ob_delete( obptr );
+**
+** Returns:
+**   Nothing.
+** ***********************************************
+*/
+
+void ob_del( obnodep )
+OBJECT *obnodep;
+{
+    dll_delete( (DLLNODE *)obnodep );
+    ob_free( obnodep );
+
+}   /* End: ob_del() */
+
+
+/*
+** ****************************************
+** ob_malloc():
+** Allocate room for an object structure
+** and return the pointer to the caller.
+** ========================================
+** Usage:
+**   obptr = ob_malloc();
+**
+** Returns:
+**   A pointer to a newly allocated object
+**   or NULL if a free object wasn't found
+** ****************************************
+*/
+
+static OBJECT *ob_malloc( void )
+{
+    U16 i;
+
+
+    /*
+    ** Scan the obmalloc memory array to find a free object block.
+    ** If one is found, mark it as in use and return ptr to caller.
+    */
+
+    for( i = 0; i < usr_max_objects; i++ )
+         {
+         if( !(usr_mem_base[i].obflags & OBNODE_USED) )
+             {
+             /* assign (rather than OR) used flag for new allocation!!! */
+             usr_mem_base[i].obflags = OBNODE_USED;
+             return( (OBJECT *)&usr_mem_base[i] );
+             }
+         }
+
+    /* no memory available, add a call to panic() here! */
+#if (0)
+    prc_panic("No Objects");
+#endif
+
+    return(0);
+
+}   /* End: ob_malloc() */
+
+
+/*
+** *****************************************
+** ob_free():
+** Free the specified object structure.
+** =========================================
+** Usage:
+**   ob_free( obptr );
+**
+**   OBJECT *obptr: ptr to allocated object.
+**
+** Returns:
+**   Nothing.
+** *****************************************
+*/
+
+static void ob_free( obptr )
+OBJECT *obptr;
+{
+    /* clear all object flag bits, most importantly 'OBNODE_USED' */
+    obptr->obflags = OBNODE_NONE;
+
+    obptr->next = 0;
+    obptr->prev = 0;
+    obptr->next_visible = 0;
+    obptr->obtype = 0;
+    obptr->imageptr = 0;
+    obptr->xpos = 0;
+    obptr->ypos = 0;
+    obptr->pixw = 0;
+    obptr->pixh = 0;
+    obptr->xhotspot = 0;
+    obptr->yhotspot = 0;
+    obptr->pixdepth = 0;
+    obptr->dpitch = 0;
+    obptr->dwidth = 0;
+    obptr->iwidth = 0;
+    obptr->firstpix = 0;
+    obptr->hscale = 0;
+    obptr->vscale = 0;
+    obptr->usrflags = OBFLAG_NONE;
+    obptr->pal_num = 0;
+    obptr->priority = 0;
+
+}   /* End: ob_free() */
+
+
+/*
+** **************************************************
+** ob_init():
+** Initialize an OBJECT structure by copying the
+** corresponding fields from an OBINIT structure.
+** Any other fields are initialized to zero/defaults.
+** ==================================================
+** Usage:
+**   ob_init( obptr, initptr );
+**
+**   OBJECT *obptr:      ptr to OBJECT to initialize.
+**   OBINIT *initptr:    ptr to initialization data.
+**
+** Returns:
+**   Nothing.
+** **************************************************
+*/
+
+void ob_init( obptr, initptr )
+OBJECT *obptr;
+const OBINIT *initptr;
+{
+    obptr->imageptr = initptr->imageptr;
+    obptr->xpos = initptr->xpos;
+    obptr->ypos = initptr->ypos;
+    obptr->pixw = initptr->pixw;
+    obptr->pixh = initptr->pixh;
+    obptr->xhotspot = initptr->xhotspot;
+    obptr->yhotspot = initptr->yhotspot;
+    obptr->pixdepth = initptr->pixdepth;
+    obptr->dpitch = initptr->dpitch;
+    obptr->dwidth = obptr->pixw >> (6 - obptr->pixdepth);
+    obptr->iwidth = obptr->dwidth;
+    obptr->firstpix = 0;
+    obptr->hscale = 32;
+    obptr->vscale = 32;
+    obptr->usrflags = initptr->usrflags;
+    obptr->pal_num = 0;
+
+}   /* End: ob_init() */ 
+
+
+/*
+** *************************************************************************
+** ob_create():
+** Create an initialized object from scratch based on the parameters passed.
+** =========================================================================
+** Usage:
+**   obptr = ob_create( imageptr, obtype, x, y, w, h, pixdepth, priority );
+**
+**   OBJECT *imgptr:  pointer to image -- if NULL, allocate memory here.
+**   U16 x:           x position to set for new object.
+**   U16 y:           y position to set for new object.
+**   U16 w:           width to set for new object.
+**   U16 h:           height to set for new object.
+**   U16 pixdepth:    pixel depth to set for new object.
+**   U16 priority:    display priority to set for new object.
+**
+** Returns:
+**   OBJECT *obptr:   pointer to newly allocated object.
+** *************************************************************************
+*/
+
+OBJECT *ob_create( imgptr, obtype, x, y, w, h, pixdepth, priority )
+PHRASE *imgptr;
+U16 obtype;
+U16 x;
+U16 y;
+U16 w;
+U16 h;
+U16 pixdepth;
+U16 priority;
+{
+    U16 pixel_size;
+    OBJECT *obptr;
+    OBINIT obinit;
+
+
+    pixel_size = PIXELS_TO_BYTES( 1, pixdepth );
+
+    obptr = ob_add( obtype );
+
+    if( obptr == 0 )
+        {
+        prc_panic( "ob_create(): ob_add() returned NULL pointer" );
+        }
+
+    if( imgptr )
+        obinit.imageptr = imgptr;
+    else
+        obinit.imageptr = dram_alloc((((U32)w*(U32)h*(U32)pixel_size)+7)>>3,0);
+
+    obinit.xpos = x;
+    obinit.ypos = y;
+    obinit.pixw = w;
+    obinit.pixh = h;
+    obinit.xhotspot = 0;
+    obinit.yhotspot = 0;
+    obinit.pixdepth = pixdepth;
+    obinit.dpitch = 1;
+    obinit.usrflags = OBFLAG_NONE;
+    ob_init( obptr, &obinit );
+    ob_set_priority( obptr, priority );
+
+    return( obptr );
+
+}   /* End: ob_create() */
+
+
+/*
+** ********************************************
+** ob_destroy():
+** Deallocate the OBJECT's image memory and
+** delete the object from the linked list.
+** ============================================
+** Usage:
+**   ob_destroy( obptr );
+**
+**   OBJECT *obptr:  ptr to object to destroy.
+**
+** Returns:
+**   Nothing.
+** ********************************************
+*/
+
+void ob_destroy( obptr )
+OBJECT *obptr;
+{
+    U16 pixel_size;
+    U32 psize;
+
+
+    /* destroy the object if it's valid */
+    if( obptr )
+        {
+        /* release memory if it was previously allocated */
+        if( obptr->imageptr )
+            {
+            /* calc. the size of a pixel in bytes */
+            pixel_size = PIXELS_TO_BYTES( 1, obptr->pixdepth );
+
+            /* calculate the size of the object in PHRASES */
+            psize = (((U32)obptr->pixw*(U32)obptr->pixh*(U32)pixel_size)+7)>>3;
+
+            /* release the memory */
+            dram_alloc( -psize, 0 );
+            }
+
+        /* delete the object from the linked list */
+        ob_del( obptr );
+        }
+
+}   /* End: ob_destroy() */
+
+/************************************************************************/
+
+/*
+** ****************************************************
+** ob_set_mcliprect():
+** Set the definition of the master clipping rectangle.
+** ====================================================
+** Usage:
+**   RECT cliprect;
+**
+**   rect_set( &cliprect, 0, 0, 336, 240 );
+**
+**   ob_set_mcliprect( &cliprect );
+**
+** Returns:
+**   Nothing.
+** ****************************************************
+*/
+
+void ob_set_mcliprect( cliprect )
+RECT *cliprect;
+{
+    mcliprect = *cliprect;
+
+}   /* End: ob_set_mcliprect() */
+
+
+/*
+** ****************************************************
+** ob_get_mcliprect():
+** Get the definition of the master clipping rectangle.
+** ====================================================
+** Usage:
+**   RECT cliprect;
+**
+**   ob_get_mcliprect( &cliprect );
+**
+** Returns:
+**   Nothing.
+** ****************************************************
+*/
+
+void ob_get_mcliprect( cliprect )
+RECT *cliprect;
+{
+    *cliprect = mcliprect;
+
+}   /* End: ob_get_mcliprect() */
+
+
+/*
+** *********************************************
+** ob_set_mclipflag():
+** Set the flag which turns the master clipping
+** rectangle ON or OFF.
+** =============================================
+** Usage:
+**
+**   ob_set_mclipflag( OB_MCLIP_ON );
+**   ob_set_mclipflag( OB_MCLIP_OFF );
+**
+** Returns:
+**   Nothing.
+** *********************************************
+*/
+
+void ob_set_mclipflag( clipflag )
+U16 clipflag;
+{
+    mclipflag = clipflag;
+
+}   /* End: ob_set_mclipflag() */
+
+
+/*
+** ******************************************
+** ob_get_mclipflag():
+** Get the state of the flag used to control
+** the master clipping rectangle.
+** ==========================================
+** Usage:
+**   status = ob_get_mclipflag();
+**
+** Returns:
+**   OB_MCLIP_OFF: if master clipping is off.
+**   OB_MCLIP_ON:  if master clipping is on.
+** ******************************************
+*/
+
+U16 ob_get_mclipflag( void )
+{
+    return( mclipflag );
+
+}   /* End: ob_get_mclipflag() */
+
+
+/*
+** *************************************************
+** ob_set_priority():
+** Set the display priority of the specified OBJECT.
+** The priority is a 16-bit value with (0) being the
+** lowest priority and (65535) being the highest.
+** =================================================
+** Usage:
+**   ob_set_priority( obptr, priority );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 priority:   priority to set for object.
+**
+** Returns:
+**   Nothing.
+** *************************************************
+*/
+
+void ob_set_priority( obptr, priority )
+OBJECT *obptr;
+U16 priority;
+{
+    dll_delete( (DLLNODE *)obptr );
+    obptr->priority = priority;
+    insert_priority( obptr );
+
+}   /* End: ob_set_priority() */
+
+
+/*
+** The following functions are disabled and have been replaced by #defines
+*/
+
+#ifdef NO_OBLIST_MACROS
+
+/*
+** *********************************************
+** ob_set_img():
+** Set the image pointer of specified OBJECT.
+** Note: Setting the pointer to an image in ROM
+** will seriously affect the number of objects
+** you can display.
+** =============================================
+** Usage:
+**   ob_set_img( obptr, imgptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   void *imgptr:   ptr to new image.
+**
+** Returns:
+**   Nothing.
+** *********************************************
+*/
+
+void ob_set_img( obptr, imgptr )
+OBJECT *obptr;
+void *imgptr;
+{
+    obptr->imageptr = imgptr;
+}
+
+
+/*
+** *******************************************
+** ob_set_x():
+** Set the x position of the specified OBJECT.
+** ===========================================
+** Usage:
+**   ob_set_x( obptr, xpos );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   S16 xpos:       x position to set.
+**
+** Returns:
+**   Nothing.
+** *******************************************
+*/
+
+void ob_set_x( obptr, xpos )
+OBJECT *obptr;
+S16 xpos;
+{
+    obptr->xpos = xpos;
+}
+
+
+/*
+** *******************************************
+** ob_set_y():
+** Set the y position of the specified OBJECT.
+** ===========================================
+** Usage:
+**   ob_set_y( obptr, ypos );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   S16 ypos:       y position to set.
+**
+** Returns:
+**   Nothing.
+** *******************************************
+*/
+
+void ob_set_y( obptr, ypos )
+OBJECT *obptr;
+S16 ypos;
+{
+    obptr->ypos = ypos;
+}
+
+
+/*
+** ********************************************
+** ob_set_pixw():
+** Set the pixel width of the specified OBJECT.
+** ============================================
+** Usage:
+**   ob_set_pixw( obptr, pixelw );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 pixelw:     pixel width to set.
+**
+** Returns:
+**   Nothing.
+** ********************************************
+*/
+
+void ob_set_pixw( obptr, pixelw )
+OBJECT *obptr;
+U16 pixelw;
+{
+    obptr->pixw = pixelw;
+}
+
+
+/*
+** *********************************************
+** ob_set_pixh():
+** Set the pixel height of the specified OBJECT.
+** =============================================
+** Usage:
+**   ob_set_pixh( obptr, pixelh );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 pixelh:     pixel height to set.
+**
+** Returns:
+**   Nothing.
+** *********************************************
+*/
+
+void ob_set_pixh( obptr, pixelh )
+OBJECT *obptr;
+U16 pixelh;
+{
+    obptr->pixh = pixelh;
+}
+
+
+/*
+** ******************************************
+** ob_set_xhotspot():
+** Set the x hotspot of the specified OBJECT.
+** ==========================================
+** Usage:
+**   ob_set_xhotspot( obptr, xhotspot );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 xhotspot:   x hotspot to set.
+**
+** Returns:
+**   Nothing.
+** ******************************************
+*/
+
+void ob_set_xhotspot( obptr, xhotspot )
+OBJECT *obptr;
+U16 xhotspot;
+{
+    obptr->xhotspot = xhotspot;
+}
+
+
+/*
+** ******************************************
+** ob_set_yhotspot():
+** Set the y hotspot of the specified OBJECT.
+** ==========================================
+** Usage:
+**   ob_set_yhotspot( obptr, yhotspot );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 yhotspot:   y hotspot to set.
+**
+** Returns:
+**   Nothing.
+** ******************************************
+*/
+
+void ob_set_yhotspot( obptr, yhotspot )
+OBJECT *obptr;
+U16 yhotspot;
+{
+    obptr->yhotspot = yhotspot;
+}
+
+
+/*
+** ********************************************
+** ob_set_pixdepth():
+** Set the pixel depth of the specified OBJECT.
+** ============================================
+** Usage:
+**   ob_set_pixdepth( obptr, pixdepth );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 pixdepth:   pixel depth to set.
+**
+** Returns:
+**   Nothing.
+** ********************************************
+*/
+
+void ob_set_pixdepth( obptr, pixdepth )
+OBJECT *obptr;
+U16 pixdepth;
+{
+    obptr->pixdepth = pixdepth;
+}
+
+
+/*
+** *******************************************
+** ob_set_dpitch():
+** Set the data pitch of the specified OBJECT.
+** ===========================================
+** Usage:
+**   ob_set_dpitch( obptr, dpitch );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 dpitch:     data pitch to set.
+**
+** Returns:
+**   Nothing.
+** *******************************************
+*/
+
+void ob_set_dpitch( obptr, dpitch )
+OBJECT *obptr;
+U16 dpitch;
+{
+    obptr->dpitch = dpitch;
+}
+
+
+/*
+** *******************************************
+** ob_set_dwidth():
+** Set the data width of the specified OBJECT.
+** ===========================================
+** Usage:
+**   ob_set_dwidth( obptr, dwidth );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 dwidth:     data width to set.
+**
+** Returns:
+**   Nothing.
+** *******************************************
+*/
+
+void ob_set_dwidth( obptr, dwidth )
+OBJECT *obptr;
+U16 dwidth;
+{
+    obptr->dwidth = dwidth;
+}
+
+
+/*
+** ********************************************
+** ob_set_iwidth():
+** Set the image width of the specified OBJECT.
+** ============================================
+** Usage:
+**   ob_set_iwidth( obptr, iwidth );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 iwidth:     image width to set.
+**
+** Returns:
+**   Nothing.
+** ********************************************
+*/
+
+void ob_set_iwidth( obptr, iwidth )
+OBJECT *obptr;
+U16 iwidth;
+{
+    obptr->iwidth = iwidth;
+}
+
+
+/*
+** ********************************************
+** ob_set_firstpix():
+** Set the first pixel of the specified OBJECT.
+** ============================================
+** Usage:
+**   ob_set_firstpix( obptr, firstpix );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 firstpix:   first pixel value to set.
+**
+** Returns:
+**   Nothing.
+** ********************************************
+*/
+
+void ob_set_firstpix( obptr, firstpix )
+OBJECT *obptr;
+U16 firstpix;
+{
+    obptr->firstpix = firstpix;
+}
+
+
+/*
+** *************************************************
+** ob_set_hscale():
+** Set the horizontal scale of the specified OBJECT.
+** =================================================
+** Usage:
+**   ob_set_hscale( obptr, hscale );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 hscale:     horiz. scale to set for object.
+**
+** Returns:
+**   Nothing.
+** *************************************************
+*/
+
+void ob_set_hscale( obptr, hscale )
+OBJECT *obptr;
+U16 hscale;
+{
+    obptr->hscale = hscale;
+}
+
+
+/*
+** ************************************************
+** ob_set_vscale():
+** Set the vertical scale of the specified OBJECT.
+** ================================================
+** Usage:
+**   ob_set_vscale( obptr, vscale );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 vscale:     vert. scale to set for object.
+**
+** Returns:
+**   Nothing.
+** ************************************************
+*/
+
+void ob_set_vscale( obptr, vscale )
+OBJECT *obptr;
+U16 vscale;
+{
+    obptr->vscale = vscale;
+}
+
+
+/*
+** ********************************************
+** ob_set_flags():
+** Set the user flags of the specified OBJECT.
+** ============================================
+** Usage:
+**   ob_set_flags( obptr, newflags );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 newflags:   new user flag settings.
+**
+** Returns:
+**   Nothing.
+** ********************************************
+*/
+
+void ob_set_flags( obptr, newflags )
+OBJECT *obptr;
+U16 newflags;
+{
+    obptr->usrflags = newflags;
+}
+
+
+/*
+** ***********************************************
+** ob_set_palnum():
+** Set the palette number of the specified OBJECT.
+** ===============================================
+** Usage:
+**   ob_set_palnum( obptr, palnum );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**   U16 palnum:     new user flag settings.
+**
+** Returns:
+**   Nothing.
+** ***********************************************
+*/
+
+void ob_set_palnum( obptr, palnum )
+OBJECT *obptr;
+U16 palnum;
+{
+    obptr->pal_num = palnum;
+}
+
+/************************************************************************/
+
+/*
+** **********************************************
+** ob_get_img():
+** Get the image pointer of the specified OBJECT.
+** ==============================================
+** Usage:
+**   imgptr = ob_get_img( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   void *: pointer to image data for object.
+** **********************************************
+*/
+
+void *ob_get_img( obptr )
+OBJECT *obptr;
+{
+    return( obptr->imageptr );
+}
+
+
+/*
+** *******************************************
+** ob_get_x():
+** Get the x position of the specified OBJECT.
+** ===========================================
+** Usage:
+**   xpos = ob_get_x( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   S16: x position of object.
+** *******************************************
+*/
+
+S16 ob_get_x( obptr )
+OBJECT *obptr;
+{
+    return( obptr->xpos );
+}
+
+
+/*
+** *******************************************
+** ob_get_y():
+** Get the y position of the specified OBJECT.
+** ===========================================
+** Usage:
+**   ypos = ob_get_y( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   S16: y position of object.
+** *******************************************
+*/
+
+S16 ob_get_y( obptr )
+OBJECT *obptr;
+{
+    return( obptr->ypos );
+}
+
+
+/*
+** *********************************************
+** ob_get_pixw():
+** Get the pixel width of the specified OBJECT.
+** =============================================
+** Usage:
+**   pixelw = ob_get_pixw( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: width of object in pixels.
+** *********************************************
+*/
+
+U16 ob_get_pixw( obptr )
+OBJECT *obptr;
+{
+    return( obptr->pixw );
+}
+
+
+/*
+** *********************************************
+** ob_get_pixh():
+** Get the pixel height of the specified OBJECT.
+** =============================================
+** Usage:
+**   pixelw = ob_get_pixh( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: height of object in pixels.
+** *********************************************
+*/
+
+U16 ob_get_pixh( obptr )
+OBJECT *obptr;
+{
+    return( obptr->pixh );
+}
+
+
+/*
+** *******************************************
+** ob_get_xhotspot():
+** Get the x hotspot of the specified OBJECT.
+** ===========================================
+** Usage:
+**   xhotspot = ob_get_xhotspot( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   S16: object's x hotspot position.
+** *******************************************
+*/
+
+S16 ob_get_xhotspot( obptr )
+OBJECT *obptr;
+{
+    return( obptr->xhotspot );
+}
+
+
+/*
+** *******************************************
+** ob_get_yhotspot():
+** Get the y hotspot of the specified OBJECT.
+** ===========================================
+** Usage:
+**   yhotspot = ob_get_yhotspot( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   S16: object's y hotspot position.
+** *******************************************
+*/
+
+S16 ob_get_yhotspot( obptr )
+OBJECT *obptr;
+{
+    return( obptr->yhotspot );
+}
+
+
+/*
+** ********************************************
+** ob_get_pixdepth():
+** Get the pixel depth of the specified OBJECT.
+** ============================================
+** Usage:
+**   pixdepth = ob_get_pixdepth( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: pixel depth of object.
+** *******************************************
+*/
+
+U16 ob_get_pixdepth( obptr )
+OBJECT *obptr;
+{
+    return( obptr->pixdepth );
+}
+
+
+/*
+** ********************************************
+** ob_get_dpitch():
+** Get the data pitch of the specified OBJECT.
+** ============================================
+** Usage:
+**   dpitch = ob_get_dpitch( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: data pitch of object.
+** *******************************************
+*/
+
+U16 ob_get_dpitch( obptr )
+OBJECT *obptr;
+{
+    return( obptr->dpitch );
+}
+
+
+/*
+** ********************************************
+** ob_get_dwidth():
+** Get the data width of the specified OBJECT.
+** ============================================
+** Usage:
+**   dwidth = ob_get_dwidth( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: data width of object in phrases.
+** *******************************************
+*/
+
+U16 ob_get_dwidth( obptr )
+OBJECT *obptr;
+{
+    return( obptr->dwidth );
+}
+
+
+/*
+** ********************************************
+** ob_get_iwidth():
+** Get the image width of the specified OBJECT.
+** ============================================
+** Usage:
+**   iwidth = ob_get_iwidth( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: image width of object in phrases.
+** *******************************************
+*/
+
+U16 ob_get_iwidth( obptr )
+OBJECT *obptr;
+{
+    return( obptr->iwidth );
+}
+
+
+/*
+** **************************************************
+** ob_get_firstpix():
+** Get the first pixel field of the specified OBJECT.
+** ==================================================
+** Usage:
+**   firstpix = ob_get_firstpix( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: object's first pixel field.
+** **************************************************
+*/
+
+U16 ob_get_firstpix( obptr )
+OBJECT *obptr;
+{
+    return( obptr->firstpix );
+}
+
+
+/*
+** *************************************************
+** ob_get_hscale():
+** Get the horizontal scale of the specified OBJECT.
+** =================================================
+** Usage:
+**   hscale = ob_get_hscale( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: horizontal scale value for object.
+** *************************************************
+*/
+
+U16 ob_get_hscale( obptr )
+OBJECT *obptr;
+{
+    return( obptr->hscale );
+}
+
+
+/*
+** ***********************************************
+** ob_get_vscale():
+** Get the vertical scale of the specified OBJECT.
+** ===============================================
+** Usage:
+**   vscale = ob_get_vscale( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: vertical scale value for object.
+** ***********************************************
+*/
+
+U16 ob_get_vscale( obptr )
+OBJECT *obptr;
+{
+    return( obptr->vscale );
+}
+
+
+/*
+** ********************************************
+** ob_get_flags():
+** Get the user flags of the specified OBJECT.
+** ============================================
+** Usage:
+**   flags = ob_get_flags( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: the packed user bit-flags as follows:
+**
+**        OBFLAG_NONE    : All flags clear.
+**        OBFLAG_FLIP    : flipped.
+**        OBFLAG_RMW     : RMW mode.
+**        OBFLAG_TRANS   : transparent.
+**        OBFLAG_RELEASE : bus release mode.
+**        OBFLAG_HIDDEN  : hidden.
+**
+** ********************************************
+*/
+
+U16 ob_get_flags( obptr )
+OBJECT *obptr;
+{
+    return( obptr->usrflags );
+}
+
+
+/*
+** *************************************************
+** ob_get_priority():
+** Get the display priority of the specified OBJECT.
+** The priority is a 16-bit value with (0) being the
+** lowest priority and (65535) being the highest.
+** =================================================
+** Usage:
+**   priority = ob_get_priority( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: display priority of object.
+** *************************************************
+*/
+
+U16 ob_get_priority( obptr )
+OBJECT *obptr;
+{
+    return( obptr->priority );
+}
+
+
+/*
+** ***********************************************
+** ob_get_palnum():
+** Get the palette number of the specified OBJECT.
+** ===============================================
+** Usage:
+**   palnum = ob_get_palnum( obptr );
+**
+**   OBJECT *obptr:  ptr to object structure.
+**
+** Returns:
+**   U16: palette number of object.
+** ***********************************************
+*/
+
+U16 ob_get_palnum( obptr )
+OBJECT *obptr;
+{
+    return( obptr->pal_num );
+}
+
+#endif
+
+/************************************************************************/
+
+/*
+** ******************************************
+** insert_priority():
+** Insert an object into the linked list at
+** the correct position according to it's
+** display priority.
+** ==========================================
+** Usage:
+**   insert_priority( obptr ):
+**
+**   OBJECT *obptr: ptr to object to insert.
+**
+** Returns:
+**   Nothing.
+** ******************************************
+*/
+
+static void insert_priority( obptr )
+OBJECT *obptr;
+{
+    OBJECT *obnodep;
+
+
+    obnodep = (OBJECT *)headnode.next;
+
+    while( obnodep->next && obptr->priority > obnodep->priority )
+           obnodep = obnodep->next;
+
+    dll_before( (DLLNODE *)obnodep, (DLLNODE *)obptr );
+
+}   /* End: insert_priority() */
+
+/************************************************************************/
+
+#if (0)
+static void ob_chrout( U16 *, int, const U8 *, int );
+
+/*
+** **********************************************
+** ob_text():
+** Temporary (i.e. non-GUTS) function to print
+** a NULL terminated ASCII text string to a
+** previously setup object.
+** ==============================================
+** Usage:
+**   ob_text( col, row, txt, color );
+**
+**   int col:        char. cell x position
+**   int row:        char. cell y position
+**   const U8 *txt:  ptr to text string to print.
+**   int color:      color to print text in.
+**
+** Returns:
+**   (int)length of output string.
+** **********************************************
+*/
+
+int ob_text( object, col, row, txtptr, color )
+OBJECT *object;
+int col;
+int row;
+const U8 *txtptr;
+int color;
+{
+    U32 x, y;
+    const U8 *txtbase = txtptr;
+    U16 *dstptr;
+
+
+    /* calculate the starting screen memory address for the text */
+    x = (U32)(col << object->pixdepth);
+    x >>= 1;				/* byte index -> U16 index */
+    y = (row << 3) * (object->dwidth << 3);
+    y >>= 1;				/* byte index -> U16 index */
+
+    dstptr = (U16 *)(object->imageptr) + x + y;
+
+    /* print characters until NULL terminator is reached */
+    while( *txtptr )
+           {
+           ob_chrout( dstptr, object->dwidth << 2, txtptr, color );
+	   txtptr++;
+           dstptr += 8;
+           }
+
+    return( txtptr - txtbase );
+
+}   /* End: ob_text() */
+
+
+/*
+** **********************************************
+** chrout():
+** Print an ASCII character using the specified
+** text color and positioned at the destination
+** screen memory address passed.
+** ==============================================
+** Usage:
+**   chrout( dptr, chr, color );
+**
+**   U16 *scrptr: ptr to dest. screen location
+**   U8 *chrptr:  ptr to ASCII character to print
+**   int color:   color to print character in
+**
+** Returns:
+**   Nothing.
+** **********************************************
+*/
+
+static void ob_chrout( scrptr, width, chrptr, color )
+U16 *scrptr;
+U16 width;
+const U8 *chrptr;
+int color;
+{
+    extern U8 font8x8[];
+    U8 fontdata;
+    U8 *fontptr;
+    U16 i, j;
+    U16 *tmpptr;
+
+
+    /* calculate the starting address of the character in the font image */
+    fontptr = font8x8 + *chrptr;
+
+    /* print 8 lines of character data */
+    for( i = 0; i < 8; i++ )
+         {
+         fontdata = *fontptr;  /* get character data for current line */
+         tmpptr = scrptr;      /* make temp. copy of destination ptr */
+
+         /* expand 8 bits of character data into CRY data for screen mem. */
+#if SHORT16_OFFS
+	/* Brian has made CoJag Mixed-endian, so we have to tell it
+	 * that it is Big Endian and kluge the software.
+	 */
+         for( j = 0; j < 8; j+=2 )
+              {
+              tmpptr[1] = (U16)((fontdata & 0x80) ? color : 0);
+              fontdata <<= 1;
+              *tmpptr = (U16)((fontdata & 0x80) ? color : 0);
+              fontdata <<= 1;
+              tmpptr+= 2;
+              }
+#else
+         for( j = 0; j < 8; ++j )
+              {
+              *tmpptr++ = (U16)((fontdata & 0x80) ? color : 0);
+              fontdata <<= 1;
+              }
+#endif
+         fontptr += 256;     /* update source ptr into font data */
+         scrptr += width;    /* update dest. ptr into screen memory */
+         }
+
+}   /* End: chrout() */
+#endif /* (0) deleting ob_text(), moved to jag_text.c */
+#if (COJAG_GAME & COJAG_NUVID)
+int ob_get_kluge( U32 ***pptr, U32 **dptr )
+{
+    if ( pptr ) *pptr = klugeptr;
+    if ( dptr ) *dptr = klugedata;
+    return olp_active_list;
+}
+#endif
+/**************************************************************************
+* End of file: OBLIST.C                                                   *
+**************************************************************************/
+@
+
+
+1.23
+log
+@Fixed problem of looking for _exactly_ COJAG_NUVID, rather
+than _at_least_ COJAG_NUVID.
+@
+text
+@d6 3
+@
+
+
+1.22
+log
+@Added (conditional on COJAG_GAME == COJAG_NUVID) kluge
+support for single interlaced object. Fixed (hopefully)
+scaled-object dropping second line.
+@
+text
+@d29 1
+a29 1
+#if COJAG_GAME == COJAG_NUVID
+d319 1
+a319 1
+#if COJAG_GAME == COJAG_NUVID
+d430 1
+a430 1
+#if COJAG_GAME == COJAG_NUVID
+d1162 1
+a1162 1
+#if COJAG_GAME == COJAG_NUVID
+d1395 1
+a1395 1
+#if COJAG_GAME == COJAG_NUVID
+d2859 1
+a2859 1
+#if COJAG_GAME == COJAG_NUVID
+@
+
+
+1.21
+log
+@Added ob_create() and ob_destroy().  Moved ob_text() to jag_text.c,
+no longer needs font8x8.
+@
+text
+@d29 8
+a310 1
+
+d319 12
+d430 3
+d1162 12
+d1196 4
+a1199 1
+        aux_listp->lo32 = (U32)(vscale << 8) | hscale;
+d1395 4
+d2859 8
+@
+
+
+1.20
+log
+@This is the new object list handler, I had to rewrite/restructure
+various sections (mainly ob_build()) in order to fix the problem
+where it would get confused when objects (outside of the clipping
+rectangle) were followed by scaled objects (causing alignment errors
+with link pointers, etc.).
+
+I also made the following modifications:
+
+- I added an ob_get_mem() function for retrieving the oblist ptrs.
+- I now set the pointer to the hardware object list on every vblank.
+- ob_reset() no longer clears 'mclipflag' (master clipping on/off).
+- ob_mem_init() now re-initializes the text screen (instead of killing it).
+@
+text
+@a65 2
+static void ob_chrout( U16 *, int, const U8 *, int );
+
+d1642 113
+d2695 3
+d2817 1
+a2817 1
+
+@
+
+
+1.19
+log
+@changed behavior of ob_copy to "bend" OLP instead of
+storing a stop over the first branch. This avoids a hazard
+that occurs because we must leave the Object Processor
+running during Vblank, to compensate for a bug in later TOMs.
+@
+text
+@d6 1
+d15 1
+d29 2
+a30 2
+extern U16 vdb;                          /* vert. display begin (VIDEO.C) */
+extern U16 vde;                          /* vert. display end (VIDEO.C) */
+d32 7
+a38 7
+static U16 olp_active_list;              /* active olp_oblist[] index */
+static U16 num_phrases_used[NUM_OBLISTS];/* used phrases in each list */
+static U16 usr_max_objects;              /* max. linked list nodes */
+static OBJECT *usr_mem_base;             /* ptr to base of user memory */
+static PHRASE *olp_mem_base;             /* ptr to base of olp memory */
+static PHRASE *olp_oblist[NUM_OBLISTS];  /* array of ptrs to ob. lists */
+static PHRASE *olp_start_addr;           /* ptr to adjusted OBL_OLP addr */
+d40 2
+a41 2
+static DLLNODE headnode;                 /* head node of linked list */
+static DLLNODE tailnode;                 /* tail node of linked list */
+d43 2
+a44 2
+static U16 mclipflag;                    /* master clipping status off/on */
+static RECT mcliprect;                   /* master clipping rectangle */
+d46 1
+a46 1
+/* declare tables for object sizes (phrases) and alignment (bytes) */
+d67 1
+a67 1
+static OBJECT *init_visible_objects( OBJECT * );
+d70 2
+a71 94
+/************************************************************************/
+
+/*
+** ****************************************************
+** ob_set_mcliprect():
+** Set the definition of the master clipping rectangle.
+** ====================================================
+** Usage:
+**   RECT cliprect;
+**
+**   rect_set( &cliprect, 0, 0, 336, 240 );
+**
+**   ob_set_mcliprect( &cliprect );
+**
+** Returns:
+**   Nothing.
+** ****************************************************
+*/
+
+void ob_set_mcliprect( cliprect )
+RECT *cliprect;
+{
+    mcliprect = *cliprect;
+
+}   /* End: ob_set_mcliprect() */
+
+
+/*
+** ****************************************************
+** ob_get_mcliprect():
+** Get the definition of the master clipping rectangle.
+** ====================================================
+** Usage:
+**   RECT cliprect;
+**
+**   ob_get_mcliprect( &cliprect );
+**
+** Returns:
+**   Nothing.
+** ****************************************************
+*/
+
+void ob_get_mcliprect( cliprect )
+RECT *cliprect;
+{
+    *cliprect = mcliprect;
+
+}   /* End: ob_get_mcliprect() */
+
+
+/*
+** *********************************************
+** ob_set_mclipflag():
+** Set the flag which turns the master clipping
+** rectangle ON or OFF.
+** =============================================
+** Usage:
+**
+**   ob_set_mclipflag( OB_MCLIP_ON );
+**   ob_set_mclipflag( OB_MCLIP_OFF );
+**
+** Returns:
+**   Nothing.
+** *********************************************
+*/
+
+void ob_set_mclipflag( clipflag )
+U16 clipflag;
+{
+    mclipflag = clipflag;
+
+}   /* End: ob_set_mclipflag() */
+
+
+/*
+** ******************************************
+** ob_get_mclipflag():
+** Get the state of the flag used to control
+** the master clipping rectangle.
+** ==========================================
+** Usage:
+**   status = ob_get_mclipflag();
+**
+** Returns:
+**   OB_MCLIP_OFF: if master clipping is off.
+**   OB_MCLIP_ON:  if master clipping is on.
+** ******************************************
+*/
+
+U16 ob_get_mclipflag( void )
+{
+    return( mclipflag );
+
+}   /* End: ob_get_mclipflag() */
+a75 29
+** **********************************************************
+** ob_get_mem():
+** Return the pointers to the memory blocks and the size of
+** the object list to the calling function.  You would call
+** ob_get_mem() to retrieve the current memory configuration
+** if you wanted to set-up a temporary object list and intend
+** to restore the previous object list when you are done.
+** See the descriptions of the arguments of ob_mem_init()
+** for more information.
+** **********************************************************
+*/
+
+void ob_get_mem( aux0ptr, aux1ptr, olpptr, usrptr, listsize )
+OLPMEM **aux0ptr;
+OLPMEM **aux1ptr;
+OLPMEM **olpptr;
+OBJECT **usrptr;
+U16 *listsize;
+{
+    *aux0ptr = (OLPMEM *)olp_oblist[OBL_AUX0];
+    *aux1ptr = (OLPMEM *)olp_oblist[OBL_AUX1];
+    *olpptr = (OLPMEM *)olp_oblist[OBL_OLP];
+    *usrptr = (OBJECT *)usr_mem_base;
+    *listsize = usr_max_objects;
+
+}   /* End: ob_get_mem() */
+
+
+/*
+d168 29
+d275 11
+a285 2
+** Copy the active software object list to the object
+** list used by the hardware.
+d305 2
+d315 1
+d317 9
+a325 7
+	/*
+	** set the OLP pointer to the first branch object.
+	** We enable/disable the object list this way, because
+	** the object processor is running during Vblank,
+	** because we have to store 0xFFFF in VDE, because
+	** the second-spin TOMs screwed up refresh or something...
+	*/
+d327 1
+a327 1
+	ob_set_olp(olp_start_addr);
+d331 2
+a332 9
+	/* Set OLP to point to our "final" STOP. We do
+	 * this instead of the "store_stop" so we don't
+	 * trash the branch while the Object Processor
+	 * is (erroneously) running during Vblank.
+	 */
+	ob_set_olp( olp_start_addr-1);	
+#if (0)
+        store_stop( olp_start_addr );
+#endif
+a334 1
+
+d354 28
+a381 9
+    U16 this_type;        /* shorthand for this object type */
+    U16 next_type;        /* shorthand for next object type */
+    PHRASE *aux_listp;    /* pointer to object list for host processor */
+    PHRASE *olp_listp;    /* pointer to object list for the OLP */
+    PHRASE *aux_linkp;    /* link pointer for host processor */
+    PHRASE *olp_linkp;    /* link pointer for OLP */
+    PHRASE *aux_stopp;    /* pointer to host processor's stop object */
+    PHRASE *olp_stopp;    /* pointer to OLP stop object */
+    OBJECT *obnodep;      /* current ptr into linked list of OBJECTs */
+d383 11
+a393 2
+    /* Set the stop object addresses to be at the start of the list */
+    aux_stopp = olp_oblist[1 - olp_active_list];
+a395 2
+
+    /* set where the USR list is stored and the OLP links are based from */
+d399 13
+a411 2
+    /* Set the 'next_visible' pointers for skipping over hidden objects */
+    obnodep = init_visible_objects( (OBJECT *)headnode.next );
+d413 3
+a415 8
+    /* Process the objects in the linked list (if any) */
+    if( obnodep != (OBJECT *)&tailnode )
+        {
+        /*
+        ** Store the two branch objects that look at the vertical scan
+        ** position to see if it is within the display area defined by
+        ** (vdb) and (vde).  If not, the list will not be processed.
+        */
+d417 2
+a418 7
+        store_branch( aux_listp, olp_stopp, BR_YLT_VC, vde );
+        aux_listp += sizetab[BRANCH_OBTYPE];
+        olp_listp += sizetab[BRANCH_OBTYPE];
+
+        store_branch( aux_listp, olp_stopp, BR_YGT_VC, vdb );
+        aux_listp += sizetab[BRANCH_OBTYPE];
+        olp_listp += sizetab[BRANCH_OBTYPE];
+d420 2
+d423 3
+a425 3
+        ** If the current hardware pointer isn't aligned properly for
+        ** the first object in the packed list, add a branch object to
+        ** skip to a location that has the correct alignment.
+d428 1
+a428 1
+        olp_linkp = (PHRASE *)ALIGNPTR( olp_listp, aligntab[obnodep->obtype] );
+d437 53
+a489 54
+        /*
+        ** Traverse the doubly linked list and convert all of the
+        ** OBJECT nodes into the packed format used by the hardware.
+        */
+
+        while( obnodep )
+               {
+               /*
+               ** Calculate the link pointers to the next object if it exists,
+               ** otherwise set the links to point to the final STOP object.
+               */
+
+               if( obnodep->next_visible )
+                   {
+                   this_type = obnodep->obtype;
+                   next_type = obnodep->next_visible->obtype;
+
+                   olp_linkp = olp_listp + sizetab[this_type];
+                   olp_linkp = (PHRASE *)ALIGNPTR( olp_linkp, aligntab[next_type] );
+                   aux_linkp = aux_listp + (olp_linkp - olp_listp);
+                   }
+               else
+                   {
+                   num_phrases_used[1-olp_active_list]  = (aux_listp - aux_stopp) + 4;
+                   aux_linkp = aux_stopp;
+                   olp_linkp = olp_stopp;
+                   }
+
+               /*
+               ** Convert the data in the OBJECT node into its packed form.
+               ** Note: Only update the list pointers to the link location
+               ** if the store_bitmap() routines indicates it is OK to do so.
+               ** A case where the list pointers should not be updated is
+               ** when the object is completely outside the master clipping
+               ** rectangle.
+               */
+
+               switch( obnodep->obtype )
+                       {
+                       case NBMAP_OBTYPE:
+                       case SBMAP_OBTYPE:
+                            if( store_bitmap( aux_listp, olp_linkp, obnodep ) )
+                                {
+                                aux_listp = aux_linkp;
+                                olp_listp = olp_linkp;
+                                }
+                            break;
+
+                       case PARALLAX_OBTYPE:
+                            store_parallax( aux_listp, olp_listp, olp_linkp, obnodep );
+                            aux_listp = aux_linkp;
+                            olp_listp = olp_linkp;
+                            break;
+                       }
+d491 2
+a492 2
+               /* go to the next node in the linked list and loop */
+               obnodep = obnodep->next_visible;
+d494 1
+a494 1
+               }  /* end: while( obnodep ) */
+d496 1
+a496 1
+        }  /* end: if( obnodep != (OBJECT *)&tailnode ) */
+d502 1
+a502 1
+    olp_active_list = 1 - olp_active_list;
+d508 7
+a514 4
+** ****************************************************************
+** store_stop():
+** Store a stop object in an object list at the specified location.
+** ================================================================
+d516 1
+a516 1
+**   store_stop( listptr );
+d518 3
+a520 1
+**   PHRASE *listptr;
+d523 2
+a524 2
+**   Nothing.
+** ****************************************************************
+d527 3
+a529 2
+static void store_stop( listptr )
+PHRASE *listptr;
+d531 6
+a536 2
+    listptr->hi32 = 0x00000000L;
+    listptr->lo32 = 0x00000000L | (U32)STOP_OBTYPE;
+d538 2
+a539 1
+}   /* End: store_stop() */
+d541 1
+a541 34
+
+/*
+** *******************************************************************
+** store_branch():
+** Store a branch object at the specified position in an object list.
+** The branch logic in the OLP is actually sort of backwards from
+** what you'd normally expect.  If the specified condition is TRUE,
+** then the OLP will fall through to the next object.  If it is FALSE
+** then the OLP will branch to the location specified by the link.
+** ===================================================================
+** Usage:
+**   store_branch( aux_listp, olp_stopp, brtype, compval );
+**
+**   PHRASE *aux_listp:  ptr to host list to add to
+**   PHRASE *olp_linkp:  ptr to link location for OLP
+**   U16 brtype:         flag indicating branch type
+**   U16 compval:        compare value for branch
+**
+** Example:
+**
+**   store_branch( aux_listp, olp_stopp, BR_YLT_VC, vde );
+**
+** Returns:
+**   Nothing.
+** *******************************************************************
+*/
+
+static void store_branch( aux_listp, olp_linkp, brtype, compval )
+PHRASE *aux_listp;
+PHRASE *olp_linkp;
+U16 brtype;
+U16 compval;
+{
+    U32 t_oblink;
+d543 1
+a544 11
+    /* convert HOST link to TOM link and phrase align before storing */
+    t_oblink = H2TADDR(olp_linkp) >> 3;
+
+    aux_listp->hi32 = (t_oblink >> 8);
+    aux_listp->lo32 = (t_oblink << 24) |
+                      ((U32)brtype << 14) |
+                      ((U32)compval << 3) |
+                      (U32)BRANCH_OBTYPE;
+
+}   /* End: store_branch() */
+
+d547 8
+a554 4
+** ***************************************************************
+** store_gpu():
+** Store a GPU object at the specified position in an object list.
+** ===============================================================
+d556 1
+a556 1
+**   store_gpu( aux_listp, lo_data, hi_data );
+d558 2
+a559 3
+**   PHRASE *aux_listp:  ptr to host list to add to
+**   U32 lo_data:        low 32-bits to store in data field.
+**   U32 hi_data:        high 32-bits to store in data field.
+d562 4
+a565 29
+**   Nothing.
+** ***************************************************************
+*/
+
+static void store_gpu( aux_listp, lo_data, hi_data )
+PHRASE *aux_listp;
+U32 lo_data;
+U32 hi_data;
+{
+    aux_listp->hi32 = hi_data;
+    aux_listp->lo32 = (U32)(lo_data << 3) | (U32)GPU_OBTYPE;
+
+}   /* End: store_gpu() */
+
+
+/*
+** ****************************************************
+** store_bitmap():
+** Store a normal or scaled bitmap object at the
+** specified position in an object list.
+** ====================================================
+** Usage:
+**   PHRASE *aux_listp:  ptr to host list to add to.
+**   PHRASE *olp_linkp:  ptr to link location for OLP.
+**   OBJECT *ob:         ptr to object to add.
+**
+** Returns:
+**   Nothing.
+** ****************************************************
+d572 3
+a574 4
+static U16 store_bitmap( aux_listp, olp_linkp, obargp )
+PHRASE *aux_listp;
+PHRASE *olp_linkp;
+OBJECT *obargp;
+d585 3
+a587 3
+    U16 object_is_flipped;
+    U16 object_is_nbmap;
+    U16 object_is_sbmap;
+a588 2
+    U32 obdata;          /* accumulated packed object data */
+    U32 t_oblink;        /* TOM object link pointer address */
+d608 6
+d615 17
+a631 17
+    obtype = obargp->obtype & 0x0007;
+    imageptr = H2TADDR( obargp->imageptr );
+    xpos = obargp->xpos;
+    ypos = obargp->ypos;
+    xhotspot = obargp->xhotspot;
+    yhotspot = obargp->yhotspot;
+    pixh = obargp->pixh & 0x03ff;
+    pixw = obargp->pixw;
+    pixdepth = obargp->pixdepth & 0x0007;
+    dpitch = obargp->dpitch & 0x0007;
+    dwidth = obargp->dwidth & 0x03ff;
+    iwidth = obargp->iwidth & 0x03ff;
+    usrflags = obargp->usrflags;
+    pal_num = obargp->pal_num & 0x007f;
+    firstpix = obargp->firstpix & 0x003f;
+    hscale = obargp->hscale & 0x00ff;
+    vscale = obargp->vscale & 0x00ff;
+d634 3
+a636 3
+    object_is_flipped = (usrflags & OBFLAG_FLIP) ? (1) : (0);
+    object_is_nbmap = (obtype == NBMAP_OBTYPE) ? (1) : (0);
+    object_is_sbmap = (obtype == SBMAP_OBTYPE) ? (1) : (0);
+d649 1
+a649 1
+    if( object_is_sbmap )
+d655 1
+a655 1
+    if( object_is_flipped )
+d669 1
+a669 1
+    if( (mclipflag != 0) && !(obargp->usrflags & OBFLAG_NOCLIP) )
+d680 1
+a680 1
+        if( object_is_nbmap )
+d691 1
+a691 1
+        if( object_is_flipped )
+d699 3
+a701 4
+        ** Determine if the object's rectangle intersects the master clipping
+        ** rectangle.  If the object does not intersect, then there's no reason
+        ** to add it to the packed hardware list.  Return zero to ob_build() so
+        ** it knows not to do anything.
+d716 1
+a716 1
+        if( obrect.h != pixh )
+d744 1
+a744 1
+                if( object_is_sbmap )
+d765 1
+a765 1
+            if( object_is_nbmap )
+d774 1
+a774 1
+                if( object_is_sbmap )
+d784 1
+a784 1
+        if( obrect.w != pixw )
+d821 1
+a821 1
+            if( object_is_flipped )
+d823 1
+a823 1
+                if( object_is_nbmap )
+d834 1
+a834 1
+                    if( object_is_sbmap )
+d852 1
+a852 1
+                    if( object_is_sbmap )
+d863 1
+a863 1
+                    if( object_is_nbmap )
+d890 1
+a890 1
+            if( object_is_flipped )
+d898 1
+a898 1
+                    if( object_is_sbmap )
+d909 1
+a909 1
+                    if( object_is_nbmap )
+d917 1
+a917 1
+                if( object_is_nbmap )
+d928 1
+a928 1
+                    if( object_is_sbmap )
+d943 177
+a1203 1
+    U16 pixw;            /* width of object in pixels */
+a1204 2
+    S16 xhotspot;        /* x offset of hotspot */
+    S16 yhotspot;        /* y offset of hotspot */
+d1217 1
+a1217 1
+    obtype = obargp->obtype & 0x0003;
+d1222 10
+a1231 47
+    xhotspot = obargp->xhotspot;
+    yhotspot = obargp->yhotspot;
+    pixh = obargp->pixh & 0x03ff;
+    pixw = obargp->pixw;
+    pixdepth = obargp->pixdepth & 0x0007;
+    dpitch = obargp->dpitch & 0x0007;
+    dwidth = obargp->dwidth & 0x03ff;
+    iwidth = obargp->iwidth & 0x03ff;
+    usrflags = obargp->usrflags & 0xffff;
+    pal_num = obargp->pal_num & 0x007f;
+    firstpix = obargp->firstpix & 0x003f;
+    hscale = obargp->hscale & 0x00ff;
+    vscale = obargp->vscale & 0x00ff;
+
+    /*
+    ** Calculate the final x,y position of the bitmap object.  The final
+    ** position depends on whether it is a normal or scaled bitmap, and
+    ** also whether or not it is flipped.  If the object is flipped, I
+    ** need to add the width of the object to the x position so that it
+    ** will appear at the same screen location as the unflipped version.
+    ** If the object is scaled, I'll need to scale the hotspot before
+    ** subtracting it.
+    */
+
+    if( obtype == NBMAP_OBTYPE )
+        {
+        if( usrflags & OBFLAG_FLIP )
+            xpos += xhotspot;
+        else
+            xpos -= xhotspot;
+
+        ypos -= yhotspot;
+        }
+    else
+        {
+        if( usrflags & OBFLAG_FLIP )
+            xpos += (((U32)xhotspot * (U32)hscale) >> 5);
+        else
+            xpos -= (((U32)xhotspot * (U32)hscale) >> 5);
+
+        ypos -= (((U32)yhotspot * (U32)vscale) >> 5);
+        }
+
+    /*
+    ** Calculate the final x and y positions to be used by the hardware
+    ** and make sure they don't exceed their maximum bit widths.
+    */
+a1312 59
+** ******************************************************
+** init_visible_objects():
+** Traverse the linked list of object structures and set
+** the 'next_visible' pointer of each visible object to
+** skip over any objects that have their HIDDEN flag set.
+** ======================================================
+** Usage:
+**   obnode = init_visible_objects( firstnodep );
+**
+**   OBJECT *firstnode: ptr to first OBJECT node in list.
+**
+** Returns:
+**   A pointer to the first visible OBJECT in the list.
+** ******************************************************
+*/
+
+static OBJECT *init_visible_objects( obstartp )
+OBJECT *obstartp;
+{
+    OBJECT *obmainp;
+    OBJECT *obscanp;
+
+
+    /* set main object pointer to starting node in linked list */
+    obmainp = obstartp;
+
+    /* find next visible object and set pointer until we're at the tail */
+    while( obmainp->next )
+           {
+           /* scan for the next visible object, or until we reach the tail */
+           obscanp = obmainp->next;
+
+           while( obscanp->next && (obscanp->usrflags & OBFLAG_HIDDEN) )
+                  obscanp = obscanp->next;
+
+           /*
+           ** Set the main's visible pointer to the last scan pointer.
+           ** (this could be a valid next node, or a pointer to the tail)
+           */
+
+           obmainp->next_visible = (obscanp->next) ? obscanp : 0;
+
+           /* skip main pointer to the next visible object (or tail!) */
+           obmainp = obscanp;
+           }
+
+    /* start from the beginning and find the first visible node */
+    obscanp = obstartp;
+
+    while( obscanp->next && (obscanp->usrflags & OBFLAG_HIDDEN) )
+           obscanp = obscanp->next;
+
+    /* return first visible node at or after starting node */
+    return( obscanp );
+
+}   /* End: init_visible_objects() */
+
+
+/*
+d1645 94
+@
+
+
+1.18
+log
+@Double-buffered num_phrases_used, to protect against possible
+mis-timed Vblank hazard.
+@
+text
+@d56 1
+a56 1
+static void ob_set_olp( void );
+d395 9
+d407 7
+d415 1
+a417 6
+    /*
+    ** set the OLP pointer each vblank.
+    ** (to make sure the screen doesn't go black)
+    */
+
+    ob_set_olp();
+d1348 1
+a1348 1
+**   ob_set_olp();
+d1355 1
+a1355 1
+static void ob_set_olp( void )
+d1359 1
+a1359 1
+    olpaddr = H2TADDR( olp_start_addr );
+d1391 9
+d1404 1
+a1404 1
+    ob_set_olp();
+@
+
+
+1.17
+log
+@Added code to set the OLP every vblank, and changed the call to remove a
+node in the code for changing object priority from dll_unlink() to
+dll_delete() since the underlying code was identical.
+@
+text
+@d31 1
+a31 1
+static U16 num_phrases_used;             /* used phrases in active list */
+d384 1
+d386 1
+d388 1
+a388 1
+    if( show_oblist && num_phrases_used )
+d393 1
+a393 1
+        for( i = 0; i < num_phrases_used; i++ )
+a436 1
+
+d504 1
+a504 1
+                   num_phrases_used  = (aux_listp - aux_stopp) + 4;
+d1376 2
+a1377 1
+    num_phrases_used  = 0;
+@
+
+
+1.16
+log
+@Added ob_get_mem() function for returning the pointers to memory
+blocks used by the object list handler.  Added code to retain the
+text object in ob_mem_init() so it is no longer necessary for the
+game programmer to do it.  Changed ob_reset() so that it no
+longer clears the master clipping flag.
+@
+text
+@d56 1
+d399 7
+d1676 1
+a1676 1
+    dll_unlink( (DLLNODE *)obptr );
+@
+
+
+1.15
+log
+@made several internal routines "static".
+made link-pointer trimming constant 0x7FFFF (19 bits)
+instead of 0x3FFFF (18 bits). Added (conditional) hack
+for ob_text to work on little-endian CPU.
+@
+text
+@d165 29
+d235 3
+d239 3
+d274 8
+d1366 1
+a1366 1
+    ob_set_mclipflag( 0 );
+@
+
+
+1.14
+log
+@The link pointer problem mentioned in the previous version
+turned out not to have been fixed correctly.  It should now
+work fine.
+@
+text
+@d515 1
+a515 1
+void store_stop( listptr )
+d1007 1
+a1007 1
+    t_oblink = (H2TADDR(olp_linkp) >> 3) & 0x0003ffff;
+d1186 1
+a1186 1
+    t_oblink = (H2TADDR(olp_linkp) >> 3) & 0x0003ffff;
+d1292 1
+a1292 1
+void ob_set_olp( void )
+d1484 1
+a1484 1
+OBJECT *ob_malloc( void )
+d1529 1
+a1529 1
+void ob_free( obptr )
+d2430 1
+a2430 1
+void insert_priority( obptr )
+d2542 5
+a2546 1
+         for( j = 0; j < 8; j++ )
+d2548 2
+d2552 7
+a2558 1
+              tmpptr++;
+d2560 1
+a2560 1
+
+@
+
+
+1.13
+log
+@Added imageptr/oblink bank #1 fix (from previous version)
+to code which stores parallax objects.
+@
+text
+@d226 3
+a228 3
+    ** PHRASE align the pointer to where the object handler thinks
+    ** the USER memory is, then calculate the total number of OBJECT
+    ** nodes that are available from the resulting aligned memory.
+d1007 1
+a1007 1
+    t_oblink = (H2TADDR(olp_linkp) >> 3) & 0x0000ffff;
+d1186 1
+a1186 1
+    t_oblink = (H2TADDR(olp_linkp) >> 3) & 0x0000ffff;
+@
+
+
+1.12
+log
+@Fixed a problem in store_bitmap() that would include the
+upper bits of the link pointer in the image pointer when the
+object list was store in DRAM BANK 1.
+@
+text
+@d1180 5
+a1184 2
+    /* convert HOST link to TOM link and phrase align before storing */
+    t_oblink = H2TADDR(olp_linkp) >> 3;
+d1186 1
+@
+
+
+1.11
+log
+@added MIPS/68K kluge vis-a-vis jag_defs include. Added explicit include
+of dll.h, instead of the hidden one in oblist.h
+@
+text
+@d1001 5
+a1005 2
+    /* convert HOST link to TOM link and phrase align before storing */
+    t_oblink = H2TADDR(olp_linkp) >> 3;
+d1007 1
+@
+
+
+1.10
+log
+@Fixed clipping bug for right edge of flipped & scaled objects.
+@
+text
+@d6 9
+a14 1
+
+d16 3
+d23 1
+@
+
+
+1.9
+log
+@Added clipping for scaled objects and corrected a problem
+with the usrflags in store_bitmap().
+@
+text
+@d943 1
+a943 1
+                        xpos += pixels_to_clip;
+d945 1
+a945 1
+                        xpos += SCALE_TO_SCREEN( pixels_to_clip, hscale );
+@
+
+
+1.8
+log
+@Added master clipping rectangle for normal bitmap objects.
+@
+text
+@d603 3
+a605 1
+#define  PIXELS_TO_BYTES(a,b)  ((a << 2) >> (5 - b))
+d615 1
+a615 4
+    S16 tclip;           /* amount to clip off top of object */
+    S16 bclip;           /* amount to clip off bottom of object */
+    S16 lclip;           /* amount to clip off left of object */
+    S16 rclip;           /* amount to clip off right of object */
+d617 2
+d621 4
+d665 5
+d671 8
+a678 7
+    ** Calculate the final x,y position of the bitmap object.  The final
+    ** position depends on whether it is a normal or scaled bitmap, and
+    ** also whether or not it is flipped.  If the object is flipped, I
+    ** need to add the width of the object to the x position so that it
+    ** will appear at the same screen location as the unflipped version.
+    ** If the object is scaled, I'll need to scale the hotspot before
+    ** subtracting it.
+d681 1
+a681 1
+    if( obtype == NBMAP_OBTYPE )
+d683 3
+a685 4
+        if( usrflags & OBFLAG_FLIP )
+            xpos += xhotspot;
+        else
+            xpos -= xhotspot;
+d687 2
+a688 2
+        ypos -= yhotspot;
+        }
+d690 1
+a690 5
+        {
+        if( usrflags & OBFLAG_FLIP )
+            xpos += (((U32)xhotspot * (U32)hscale) >> 5);
+        else
+            xpos -= (((U32)xhotspot * (U32)hscale) >> 5);
+d692 1
+a692 2
+        ypos -= (((U32)yhotspot * (U32)vscale) >> 5);
+        }
+d697 2
+a698 1
+    ** Clip the object if the master clipping flag is set.
+d701 1
+a701 3
+    if( (mclipflag != 0) &&
+        !(obargp->usrflags & OBFLAG_NOCLIP) &&
+        (obtype == NBMAP_OBTYPE) )
+a702 1
+
+d704 6
+a709 4
+        ** Determine if the object intersects the master clipping rectangle.
+        ** If the object does not intersect, then there's no reason to add
+        ** it to the packed hardware list.  Return zero to ob_build() so it
+        ** knows nothing was done.
+d712 1
+a712 1
+        if( usrflags & OBFLAG_FLIP )
+a713 2
+            obrect.x = xpos - pixw;
+            obrect.y = ypos;
+d719 2
+a720 4
+            obrect.x = xpos;
+            obrect.y = ypos;
+            obrect.w = pixw;
+            obrect.h = pixh;
+d723 14
+d757 3
+a759 1
+            **    the object.
+d773 1
+a773 1
+            tclip = mcliprect.y - ypos;
+d775 1
+a775 1
+            if( tclip > 0 )
+d777 6
+a782 1
+                imageptr += (U32)((S32)tclip * ((S32)dwidth << 3));
+d784 1
+a784 1
+                pixh -= tclip;
+d788 1
+a788 1
+            ** ===============================================================
+d790 1
+a790 1
+            ** ===============================================================
+d793 3
+a795 1
+            ** ===============================================================
+d798 4
+a801 1
+            bclip = (ypos + pixh) - (mcliprect.y + mcliprect.h);
+d803 3
+a805 1
+            if( bclip > 0 )
+d807 6
+a812 1
+                pixh -= bclip;
+d854 1
+a854 1
+            if( usrflags & OBFLAG_FLIP )
+d856 4
+d861 1
+a861 1
+                lclip = mcliprect.x - (xpos - pixw - 1);
+d863 1
+a863 1
+                if( lclip > 0 )
+d865 8
+a872 2
+                    lclip &= pixmasktab[pixdepth];
+                    bytes_to_clip = PIXELS_TO_BYTES( lclip, pixdepth );
+d874 1
+a874 1
+                    pixw -= lclip;
+d879 1
+a879 1
+                lclip = mcliprect.x - xpos;
+d881 1
+a881 1
+                if( lclip > 0 )
+d883 8
+a890 2
+                    lclip &= pixmasktab[pixdepth];
+                    bytes_to_clip = PIXELS_TO_BYTES( lclip, pixdepth );
+d893 7
+a899 2
+                    pixw -= lclip;
+                    xpos += lclip;
+d923 1
+a923 1
+            if( usrflags & OBFLAG_FLIP )
+d925 1
+a925 1
+                rclip = xpos - (mcliprect.x + mcliprect.w);
+d927 1
+a927 1
+                if( rclip > 0 )
+d929 8
+a936 2
+                    rclip &= pixmasktab[pixdepth];
+                    bytes_to_clip = PIXELS_TO_BYTES( rclip, pixdepth );
+d939 7
+a945 2
+                    pixw -= rclip;
+                    xpos -= rclip;
+d950 4
+a953 1
+                rclip = (xpos + pixw) - (mcliprect.x + mcliprect.w);
+d955 3
+a957 1
+                if( rclip > 0 )
+d959 8
+a966 2
+                    rclip &= pixmasktab[pixdepth];
+                    bytes_to_clip = PIXELS_TO_BYTES( rclip, pixdepth );
+d968 1
+a968 1
+                    pixw -= rclip;
+d985 3
+@
+
+
+1.7
+log
+@cleaned up object x,y calculations, skip trying to clip scaled bitmaps
+@
+text
+@d654 1
+a654 1
+    usrflags = obargp->usrflags & 0x000f;
+d695 3
+a697 1
+    if( (mclipflag != 0) && !(obargp->usrflags & OBFLAG_NOCLIP) && (obtype == NBMAP_OBTYPE) )
+d707 14
+a720 4
+        obrect.x = xpos;
+        obrect.y = ypos;
+        obrect.w = pixw;
+        obrect.h = pixh;
+d723 1
+d725 1
+d734 1
+a734 1
+        if( (obrect.h != pixh) || (obrect.w != pixw) )
+d781 5
+d810 9
+a818 1
+            lclip = mcliprect.x - xpos;
+d820 1
+a820 1
+            if( lclip > 0 )
+d822 10
+a831 6
+                lclip &= pixmasktab[pixdepth];
+                bytes_to_clip = PIXELS_TO_BYTES( lclip, pixdepth );
+                imageptr += bytes_to_clip;
+                iwidth -= (bytes_to_clip >> 3);
+                pixw -= lclip;
+                xpos += lclip;
+d833 3
+d837 11
+d868 3
+a870 1
+            rclip = (xpos + pixw) - (mcliprect.x + mcliprect.w);
+d872 11
+a882 1
+            if( rclip > 0 )
+d884 9
+a892 4
+                rclip &= pixmasktab[pixdepth];
+                bytes_to_clip = PIXELS_TO_BYTES( rclip, pixdepth );
+                iwidth -= (bytes_to_clip >> 3);
+                pixw -= rclip;
+d895 1
+a895 1
+            }   /* End: if( (obrect.h != pixh) || (obrect.w != pixw) ) */
+d1005 1
+a1005 1
+    usrflags = obargp->usrflags & 0x000f;
+d1223 1
+@
+
+
+1.6
+log
+@Added object clipping, parallax objects, general cleanup and
+optimization.
+@
+text
+@d642 1
+a642 1
+    obtype = obargp->obtype & 0x0003;
+d695 1
+a695 1
+    if( (mclipflag != 0) && !(obargp->usrflags & OBFLAG_NOCLIP) )
+d839 5
+a843 1
+    /* make sure x and y positions don't exceed their maximum bit widths */
+d845 1
+a845 1
+    ypos = (ypos << 1) & 0x07ff;
+d854 1
+a854 1
+    obdata = (obdata | (U32)(vdb + ypos)) << 3;    /* y position */
+d978 5
+a982 1
+    /* make sure x and y positions don't exceed their maximum bit widths */
+d984 1
+a984 1
+    ypos = (ypos << 1) & 0x07ff;
+a985 1
+
+d1029 1
+a1029 1
+    obdata = (obdata | (U32)(vdb + ypos)) << 3;    /* y position */
+@
+
+
+1.5
+log
+@renamed ob_xset_mem() to ob_mem_init()
+@
+text
+@d11 1
+a19 1
+static U16 olp_max_phrases;              /* max. OLP phrases available */
+d24 1
+a25 2
+PHRASE *olp_start_addr;                  /* ptr to adjusted OBL_OLP addr */
+
+d29 7
+d39 1
+a39 1
+** Prototypes for functions used internally.
+a41 1
+
+d44 1
+d46 1
+d48 3
+a50 1
+static void store_bitmap( PHRASE *, PHRASE *, OBJECT * );
+d57 134
+a190 6
+#if 1
+PHRASE *ob_mem_init( olp0p, olp1p, olp2p, usrbasep, listsize )
+PHRASE *olp0p;
+PHRASE *olp1p;
+PHRASE *olp2p;
+OBJECT *usrbasep;
+a192 1
+    U16 olp_mem_bytes;
+d196 4
+a199 3
+    olp_oblist[OBL_AUX0] = (PHRASE *)ALIGNPTR( olp0p, sizeof(PHRASE) );
+    olp_oblist[OBL_AUX1] = (PHRASE *)ALIGNPTR( olp1p, sizeof(PHRASE) );
+    olp_oblist[OBL_OLP] = (PHRASE *)ALIGNPTR( olp2p, sizeof(PHRASE) );
+d201 10
+a210 1
+    /* set the real starting address of the hardware object list */
+d213 5
+a217 3
+    olp_mem_bytes = (listsize - 2) * sizeof(OLP2BLK);
+    olp_mem_bytes -= ((U8 *)olp_oblist[OBL_OLP] - (U8 *)olp2p);
+    olp_max_phrases = olp_mem_bytes / sizeof(PHRASE);
+d219 3
+a221 4
+    /* align USR base ptr and calc. the number of USR object nodes available */
+    usr_mem_base = (OBJECT *)ALIGNPTR( usrbasep, sizeof(U32) );
+    usr_mem_bytes = (listsize - 2) * sizeof(OBJECT);
+    usr_mem_bytes -= ((U8 *)usr_mem_base - (U8 *)usrbasep);
+a226 2
+    return( olp_start_addr );
+
+a227 1
+#endif
+a228 1
+/************************************************************************/
+d275 1
+d347 1
+a347 1
+** ************************************************
+d349 3
+a351 4
+** Convert the object list maintained in a linked
+** list of OBJECT structures into the packed format
+** used by the Jaguar's Object List Processor.
+** ================================================
+d357 1
+a357 1
+** ************************************************
+a361 8
+    /* declare tables for object sizes (phrases) and alignment (bytes) */
+    static const U16 sizetab[] = { 2, 3, 1, 1, 1 };
+#if 0
+    static const U16 aligntab[] = { 15, 31, 7, 7, 7 };
+#else
+    static const U16 aligntab[] = { 16, 32, 8, 8, 8 };
+#endif
+
+a363 1
+    U16 next_align;       /* shorthand for next object alignment */
+a372 1
+
+d388 6
+a393 1
+        /* store the two branches that look at the vertical scan pos. */
+d404 2
+a405 2
+        ** the first object in the linked list, add a branch object to
+        ** skip to a location which has the correct alignment.
+d413 1
+a413 2
+
+            aux_listp += (((U32)olp_linkp - (U32)olp_listp) / sizeof(PHRASE));
+d417 5
+a421 1
+        /* Add all of the visible objects in the linked list */
+d425 2
+a426 2
+               ** Link to the next object if it exists, otherwise
+               ** set the links to point to the final STOP object.
+a432 1
+                   next_align = aligntab[next_type];
+d435 2
+a436 3
+                   olp_linkp = (PHRASE *)ALIGNPTR( olp_linkp, next_align );
+
+                   aux_linkp = aux_listp + (((U32)olp_linkp - (U32)olp_listp) / sizeof(PHRASE));
+d440 1
+a440 2
+                   num_phrases_used  = (aux_listp - aux_stopp) + 16;
+
+d445 8
+a452 4
+               /* convert node to packed data */
+               store_bitmap( aux_listp, olp_linkp, obnodep );
+               aux_listp = aux_linkp;
+               olp_listp = olp_linkp;
+d454 18
+d475 1
+a475 1
+               }    /* end: while( obnodep ) */
+d477 1
+a477 1
+        }      /* if( obnodep != (OBJECT *)&tailnode ) */
+d487 1
+a487 1
+ 
+d489 25
+a513 1
+** **************************************************
+d515 6
+a520 3
+** Store a branch object at the specified position
+** in an object list.
+** ==================================================
+d522 2
+d529 4
+d535 1
+a535 1
+** **************************************************
+d551 4
+a554 2
+    aux_listp->lo32 = (t_oblink << 24) | ((U32)brtype << 14) |
+                      ((U32)compval << 3) | (U32)BRANCH_OBTYPE;
+d560 29
+a588 1
+** **************************************************
+d592 1
+a592 1
+** ==================================================
+d600 1
+a600 1
+** **************************************************
+d603 3
+a605 1
+static void store_bitmap( aux_listp, olp_linkp, obargp )
+d610 2
+a611 2
+    U32 obdata;
+    U32 t_oblink;
+d613 10
+a623 1
+    U32 imageptr;        /* pointer to object image data */
+d626 1
+a638 1
+ 
+d640 1
+d644 2
+a645 2
+    xpos = obargp->xpos & 0x0fff;
+    ypos = obargp->ypos & 0x07ff;
+d649 1
+a659 2
+
+
+d661 6
+a666 7
+    ** Calculate the final x,y position of the bitmap object.
+    ** The final position depends on whether it is a normal
+    ** or scaled bitmap, and also whether or not it is flipped.
+    ** If the object is flipped, I need to add the width of the
+    ** object to the x position so that it will appear at the
+    ** same screen location as the unflipped version.  If the
+    ** object is scaled, I'll need to scale the hotspot before
+d689 1
+a689 2
+    xpos &= 0x0fff;
+    ypos &= 0x07ff;
+d691 150
+a840 1
+    /* convert y position to half-lines expected by hardware */
+d873 3
+d880 5
+a884 5
+** ************************************
+** store_stop():
+** Store a stop object at the specified
+** location in an object list.
+** ====================================
+d886 1
+a886 1
+**   store_stop( listptr );
+d888 5
+d895 1
+a895 1
+** ************************************
+d898 5
+a902 2
+void store_stop( listptr )
+PHRASE *listptr;
+d904 19
+a922 2
+    listptr->hi32 = 0x00000000L;
+    listptr->lo32 = 0x00000000L | (U32)STOP_OBTYPE;
+a923 1
+}   /* End: store_stop() */
+d925 19
+d945 106
+d1054 3
+a1056 3
+** Traverses the linked list of object structures and
+** sets the 'next_visible' pointer of each visible object
+** to point directly to the next object which is visible.
+d1064 1
+a1064 1
+**   A pointer to the first visible object in the list.
+d1134 1
+a1134 1
+** ***************************************
+d1136 5
+a1140 5
+** Reset the object list handler so that
+** all malloc memory is available and all
+** variables indicate there are no objects
+** displayed.
+** =======================================
+d1146 1
+a1146 1
+** ****************************************
+d1176 1
+a1176 1
+}   /* ob_reset() */
+d1222 1
+d1224 1
+a1224 1
+        newnode->priority = 65535;
+d1362 1
+a1362 1
+    /* clear all object flag bits, most importantly the 'used' flag */
+d1463 1
+a1463 1
+** The following functions are disabled and have been replace by #defines
+d2236 1
+a2236 1
+    return (obptr->pal_num );
+@
+
+
+1.4
+log
+@re-instated ob_xset_mem
+@
+text
+@d49 5
+a53 5
+PHRASE *ob_xset_mem( olp0p, olp1p, olp2p, usrbasep, listsize )
+void *olp0p;
+void *olp1p;
+void *olp2p;
+void *usrbasep;
+d82 1
+a82 1
+}   /* ob_xset_mem() */
+d1777 1
+d1779 2
+@
+
+
+1.3
+log
+@testing
+@
+text
+@d48 2
+a49 2
+#if 0
+void ob_xset_mem( olp0p, olp1p, olp2p, usrbasep, listsize )
+a61 1
+
+a62 3
+    olp_mem_bytes = (listsize - 2) * sizeof(OLPBLK);
+    olp_mem_bytes -= ((U8 *)olp_oblist[OBL_OLP] - (U8 *)olp2p);
+    olp_max_phrases = olp_mem_bytes / sizeof(PHRASE);
+d67 5
+a71 1
+    /* align USR base ptr and calc. the number USR object nodes available */
+d73 1
+a73 1
+    usr_mem_bytes = listsize * sizeof(OBJECT);
+d80 3
+a82 1
+}   /* ob_set_mem() */
+d221 1
+d223 3
+d239 1
+d270 1
+a270 1
+        next_align = aligntab[obnodep->obtype];
+d272 1
+a272 1
+        if( olp_listp != (PHRASE *)ALIGNPTR( olp_listp, next_align ) )
+a273 2
+            aux_linkp = (PHRASE *)ALIGNPTR( aux_listp, next_align );
+            olp_linkp = (PHRASE *)ALIGNPTR( olp_listp, next_align );
+d275 2
+a276 1
+            aux_listp = aux_linkp;
+a293 3
+                   aux_linkp = aux_listp + sizetab[this_type];
+                   aux_linkp = (PHRASE *)ALIGNPTR( aux_linkp, next_align );
+
+d296 2
+d301 1
+a301 1
+                   num_phrases_used  = (aux_listp - aux_stopp) + 4;
+d424 2
+d458 1
+@
+
+
+1.2
+log
+@trim xpos and ypos after adding hotspots in store_bitmap
+@
+text
+@d36 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d448 2
+@

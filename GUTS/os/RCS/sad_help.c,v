@@ -1,0 +1,112 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	96.01.10.23.51.13;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Standalone diagnostics first stab at online help.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#include LCD_GUTS_ONLY
+#include <config.h>
+#include <proto.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+static char * const help_msg[] = {
+    "HELP [subj] - displays help on [subj] or briefly on all subjects",
+    "If [subj] is left blank, HELP displays brief (one line) help on ",
+    "on the various commands available in this diagnostic.",
+    "Otherwise, it displays more comprehensive help on the subject."
+    0
+};
+    
+static char * const range_msg[] = {
+    "range - specifies a range of address.",
+    "The syntax for typing a range is one of the following:",
+    "start",
+    "start TO end",
+    "start LENGTH number\r\n",
+    "where start and end are actually HEX numbers representing the start and end",
+    "addresses respectively and number is a HEX value representing the length in",
+    "BYTES of the address range. The end address is inclusive to the address range",
+    "(i.e. it is the last address referenced). The keywords TO and LENGTH are case",
+    "insensitive and may be abbreviated to one or more characters. 'start', 'end'",
+    "and 'number' are all expected to be case insensitive HEX numbers.",
+    "Some examples:\r\n",
+    "9FC00000		  - simple start address",
+    "9FC00000 LEN 40	  - starts at 9FC00000 and runs for 0x40 bytes",
+    "9FC00000 TO 9FC0003F - starts at 9FC00000 and runs through 9FC0003F",
+    "20000000 t 2000ffff  - keyword TO is lowercase, abbreviated to 't'",
+    "			    and the hex digits 'f' are lowercase",
+    0
+};
+
+static char * const fifo_msg[] = {
+    "FIFO [range] - Run FIFO tests. If no arguments, all FIFO tests are run.",
+    "The FIFO test has two personalities depending on whether a range has been",
+    "specified on the command line. If no range is supplied, the command runs a",
+    "sequence of tests specific to the FIFO hardware. It prints the results",
+    "of the test as 'ok' if it passed, or a description of what went wrong",
+    "if it failed.
+    
+};
+    
+static char * const generic_help_msg[] = {
+    "\r\nR4k diagnostics. The following commands are available. All commands can be",
+    "abbreviated to one or more characters. In the case of ambiguity, the command",
+    "listed here first takes precedence. []'s indicates optional (hex) arguments.",
+    "Pressing the \"BREAK\" key will stop runaway commands and may abort",
+    "the scope loops. If not, you will need to reset to regain control.",
+    "The syntax for [range] is either: \"start\" or \"start [LENGTH n]\"",
+    "or \"start TO end\". The keywords LENGTH and TO can be abbreviated.",
+    "The 'n' after LENGTH specifies the number of bytes, the 'end' after TO",
+    "specifies the end address. In _all_ cases numbers are expected to be HEX.",
+    "",
+    "HELP - Displays this message",
+    "? - Same as HELP",
+    "DRAM [range] - Run DRAM tests. If no arguments, it tests most of DRAM",
+    "BRAM [range] - Run BRAM tests. If no arguments, it tests all of BRAM",
+    "ODRAM [range] - Run Object DRAM tests. If no args, it tests all of ODRAM",
+    "RROM [range] - Run RAMROM memory tests. If no args, tests most of RAMROM",
+    "READ range - Read from memory (scope loop)",
+    "WRITE range [data0 [data1...]] - Write data to memory (scope loop)",
+    "RW range [data0 [data1...]] - Write data then read (scope loop)",
+    "DUMP range - Display memory",
+    "SET range data0 [data1 ...] - Write data (32 bit) to memory once",
+    "XBUS - look on XBUS for 2Mb memory and write/read it",
+    "LOOP test [test ...] - run test(s) until error (no [range]'s allowed on test(s))",
+    "TEST test [test ...] - run test(s) once (no [range]'s allowed on test(s))",
+    0
+};
+
+static int help(int dummy) {
+    char *s;
+    s = strtok(0, " ");
+    if (s == 0) s = generic_help_msg;
+
+    while (*s) {
+	diag_serial_str(*s);
+	diag_serial_str("\r\n");
+	++s;
+    }
+    return 0;
+}
+
+static char * const help_
+@

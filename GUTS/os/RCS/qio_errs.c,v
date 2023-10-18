@@ -1,0 +1,302 @@
+head	1.7;
+access;
+symbols
+	RUSH_ROCK_1_0:1.7
+	RUSH_ROCK_1_0epst:1.7
+	MACE_1_0e:1.7
+	MACE_1_0d:1.7
+	RUSH_1_06A:1.7
+	AREA_52_00:1.7
+	MACE_1_0a:1.7;
+locks; strict;
+comment	@ * @;
+
+
+1.7
+date	97.01.07.23.07.52;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.01.07.00.19.14;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	97.01.02.23.28.50;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.11.20.00.18.48;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.10.26.17.48.53;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.10.07.16.47.54;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.10.01.18.12.32;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Support routine for QIO and FSYS subsystems.
+@
+
+
+1.7
+log
+@Moved facility definition and strings to qio.h.
+@
+text
+@/*
+ *	errmsgs.c
+ *
+ *		Copyright 1996 Atari Games, Corp.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#include <os_proto.h>
+#include <string.h>
+#include <qio.h>
+#if HOST_BOARD
+# include <nsprintf.h>
+#else
+# include <stdio.h>
+#endif
+
+#ifndef n_elts
+# define n_elts(x) (sizeof(x)/sizeof(x[0]))
+#endif
+
+typedef struct errmsg {
+    int sts;
+    const char *msg;
+} ErrMsg;
+
+static const ErrMsg errmsgs[] = {
+#define QIO_ERR_MSG(name, init, text) { name, text }
+#include <qio.h>
+#undef QIO_ERR_MSG
+    { 0, 0 }
+};
+
+/* NOTE: The order of the following must match exactly the
+ * order as listed in the enum error_codes found in qio.h.
+ * If not, then the facility name listed in message won't match
+ * the faciltiy that actually generated the code .
+ */
+
+static const char * const facility[] = {
+    0,
+#define QIO_FACILITY_MSG(name,text) text
+#include <qio.h>
+#undef QIO_FACILITY_MSG
+    0
+};
+
+static const char * const sev_msg[] = {
+    " error, ",
+    " fyi, ",
+    " fatal, ",
+    " warning, "
+};
+
+int qio_errmsg(int sts, char *ans, int size) {
+    char *s;
+    int ii, fac, sev, len;
+
+    if (size && ans) {
+#if !HOST_BOARD
+	char tmp[80];
+#endif
+	ans[size-1] = 0;
+	--size;
+	fac = sts>>FACILITY_SHIFT;
+	sev = (sts>>SEVERITY_SHIFT)&3;
+	sts &= ~(3<<SEVERITY_SHIFT);
+	if (fac > 0 && fac < n_elts(facility)-1) {
+	    strncpy(ans, facility[fac], size);
+        } else {
+	    strncpy(ans, "???", size);
+	}
+	len = strlen(ans);
+	s = ans + len;
+	size -= len;
+	if (size > 0) {
+	    strncpy(s, sev_msg[sev], size);
+	    len = strlen(s);
+	    size -= len;
+	    s += len;
+	}
+	if (size > 0) {
+	    if (sts) {
+		for (ii=0; ii < n_elts(errmsgs); ++ii) {
+		    if (sts == errmsgs[ii].sts) {
+			strncpy(s, errmsgs[ii].msg, size);
+			return strlen(ans);
+		    }
+		}
+	    }
+#if HOST_BOARD
+	    nsprintf(s, size, "Unknown status of 0x%08X", sts);
+#else
+	    sprintf(tmp, "Unknown status of %08X", sts);
+	    strncpy(s, tmp, size-1);
+	    s[size-1] = 0;
+#endif
+	}
+    }
+    return ans ? strlen(ans) : 0;
+}
+
+
+@
+
+
+1.6
+log
+@Made qio_err() return length of message rather than redundant pointer.
+@
+text
+@d29 1
+d31 2
+a32 3
+
+static const ErrMsg errmsgs[] = {
+#include "qio.h"
+a34 1
+#define INIT_FAC(txt, array) { txt, array, n_elts(array) }
+d44 4
+a47 13
+    "FSYSIO", 	/* FACILITY_FSYS_IO, filesystem I/O	*/
+    "MOUNT", 	/* FACILITY_MOUNT, filesystem mounter	*/
+    "INITFS", 	/* FACILITY_INITFS, filsystem init	*/
+    "CREATE", 	/* FACILITY_CREATE, filesystem file create */
+    "DELETE", 	/* FACILITY_DELETE, filesystem file delete */
+    "LOOKUP", 	/* FACILITY_LOOKUP, filesystem file lookup */
+    "OPEN", 	/* FACILITY_OPEN, filesystem file open	*/
+    "EXTEND", 	/* FACILITY_EXTEND, filesystem file extend */
+    "SYNC", 	/* FACILITY_SYNC, filesystem volume sync */
+    "FREE",	/* FACILITY_FREE, filesystem resource free */
+    "MUTEX",  	/* FACILITY_MUTEX, mutex handler	*/
+    "QIO", 	/* FACILITY_QIO, general qio operations	*/
+    "HDIO", 	/* FACILITY_HDIO, harddisk I/O		*/
+d70 1
+a70 1
+	if (fac > 0 && fac < n_elts(facility)) {
+@
+
+
+1.5
+log
+@There is no qio_elst.h anymore. #include <qio.h> instead.
+@
+text
+@d67 1
+a67 1
+char *qio_errmsg(int sts, char *ans, int size) {
+d71 1
+a71 1
+    if (size) {
+d99 1
+a99 1
+			return ans;
+d112 1
+a112 1
+    return ans;
+@
+
+
+1.4
+log
+@Moved the contents of qio_errs.h into qio.h and removed all
+references to qio_errs.h.
+@
+text
+@d11 1
+a12 1
+#define QIO_INCLUDE_ONLY_ERRS	1
+d32 1
+a32 1
+#include "qio_elst.h"
+@
+
+
+1.3
+log
+@This version of qio and fsys stuff all works. It isn't done yet,
+but since it works, I checked in what there is so far.
+/
+@
+text
+@d10 1
+a10 1
+#include "config.h"
+d12 2
+a13 1
+#include "qio_errs.h"
+d38 1
+a38 1
+ * order as listed in the enum error_codes found in qio_errs.h.
+@
+
+
+1.2
+log
+@Still under development. Not ready for prime time.
+@
+text
+@d61 1
+a61 1
+    " informational, ",
+d71 1
+d73 1
+d103 1
+a103 1
+	    nsprintf(tmp, (size > sizeof(tmp)) ? sizeof(tmp) : size, "Unknown status of 0x%08X", sts);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d10 1
+d36 7
+a42 1
+static const char *facility[] = {
+d44 13
+a56 12
+    "QIO", 
+    "MUTEX", 
+    "FSYS",
+    "MOUNT",
+    "INITFS",
+    "CREATE",
+    "DELETE",
+    "LOOKUP",
+    "OPEN",
+    "EXTEND",
+    "SYNC",
+    "FREE"
+d59 1
+a59 1
+static const char *sev_msg[] = {
+d66 1
+a66 1
+char *io_errmsg(int sts, char *ans, int size) {
+@

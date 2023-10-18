@@ -1,0 +1,766 @@
+head	1.9;
+access;
+symbols
+	RUSH_ROCK_1_0:1.9
+	RUSH_ROCK_1_0epst:1.9
+	MACE_1_0e:1.8
+	MACE_1_0d:1.8
+	RUSH_1_06A:1.7
+	AREA_52_00:1.9
+	MACE_1_0a:1.8
+	CJ_206:1.7
+	CJ2_05:1.7
+	CJ2_04:1.7
+	CJ2_03:1.6;
+locks; strict;
+comment	@ * @;
+
+
+1.9
+date	97.07.01.22.48.44;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	97.01.10.21.09.29;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.04.17.00.41.09;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.09.22.15.54.00;	author forrest;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.07.27.23.28.50;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.07.27.17.32.00;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.02.23.21.19.46;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.02.17.21.47.12;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.05.07;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@scope loops for trouble-shooting without an emulator
+@
+
+
+1.9
+log
+@Added RCS ID string
+@
+text
+@/* THIS VERSION SPECIAL FOR MINH, DO NOT USE */
+/*	scope.c
+ *
+ *		Copyright 1994 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+ *	This module provides "scope loop" functions to aid in testing new
+ *	hardware. Parameter entry is done via the functions in entry.c.
+ */
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+#include <config.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <string.h>
+
+#define	STATIC	static
+
+#define OP_2WRT	(4)
+#define OP_WRT	(2)
+#define OP_RD	(1)
+
+#define SZ_BYT	(0)
+#define SZ_HWD	(1)
+#define SZ_WD	(2)
+
+#ifdef MINH_WATCH
+#define SZ_DWD	(3)
+#define OP_NOINT (8)
+#endif
+
+struct sl_desc {
+    unsigned long addr;
+    unsigned long data1;
+    unsigned long data2;
+    unsigned long loops;
+    int		size;
+    int		op;
+};
+
+struct slt {
+    struct menu_d	menu_desc;	/* _NOT_ a pointer */
+    int			option;		/* one of OP_* */
+};
+#ifdef DEBUG
+/* Scope-loop code, should only be visible in development.
+ * Else delete all but the name to save space without change
+ * to makefile
+ */
+STATIC int scope_loop
+PARMS((
+const struct menu_d *parm_mp
+));
+
+STATIC const struct slt SCOPE_LIST[] =
+{
+    { {"SCOPE LOOPS", 0}, 0},
+    { {"READ", scope_loop}, OP_RD},
+    { {"WRITE", scope_loop}, OP_WRT},
+    { {"WRITE/READ", scope_loop}, OP_WRT|OP_RD},
+    { {"WRITE/READ/WRITE/READ", scope_loop}, OP_RD|OP_WRT|OP_2WRT},
+#ifdef OP_NOINT
+    { {"WRITE/READ/WRITE/READ(NO IRQ)", scope_loop}, OP_RD|OP_WRT|OP_2WRT|OP_NOINT},
+#endif
+    { { 0, 0 }, 0 }
+};
+
+STATIC void
+scope_host(stp)
+struct sl_desc *stp;
+{
+    int op = stp->op;
+    int	size = stp->size;
+    int	count = stp->loops;
+    int old_fields,old_ipl;
+
+    old_ipl = INTS_ON;
+    old_fields = 42;
+
+    if ( (op & OP_2WRT) && !(op & OP_WRT) ) {
+	/* Double-data scope loop without write? */
+	return;
+    }
+#ifdef OP_NOINT
+    if ( op & OP_NOINT ) {
+	old_fields = vid_fields(-1);
+	if ( old_fields >= 0 ) prc_delay(old_fields);
+	old_ipl = prc_set_ipl(INTS_OFF);	
+	op &= ~OP_NOINT;
+    }
+#endif
+    if ( op & OP_2WRT ) {
+	/* write alternate patterns, and possibly read back */
+	op &= OP_RD;	/* leave only the "read" indication */
+	switch (size) {
+	    case SZ_BYT : {
+		char ds1,ds2,dl;
+		volatile char *ptr = (volatile char *)(stp->addr);
+		ds1 = stp->data1;
+		ds2 = stp->data2;
+		if ( op ) while ( count-- ) {
+		    *ptr = ds1 ; dl = *ptr; *ptr = ds2 ; dl = *ptr;
+		}
+		else while ( count-- ) { *ptr = ds1 ; *ptr = ds2; }
+		break;
+	    }
+	    case SZ_HWD : {
+		short ds1,ds2,dl;
+		volatile short *ptr = (volatile short *)(stp->addr);
+		ds1 = stp->data1;
+		ds2 = stp->data2;
+		if ( op ) while ( count-- ) {
+		    *ptr = ds1 ; dl = *ptr; *ptr = ds2 ; dl = *ptr;
+		}
+		else while ( count-- ) { *ptr = ds1 ; *ptr = ds2; }
+		break;
+	    }
+	    case SZ_WD : {
+		long ds1,ds2,dl;
+		volatile long *ptr = (volatile long *)(stp->addr);
+		ds1 = stp->data1;
+		ds2 = stp->data2;
+		if ( op ) while ( count-- ) {
+		    *ptr = ds1 ; dl = *ptr; *ptr = ds2 ; dl = *ptr;
+		}
+		else while ( count-- ) { *ptr = ds1 ; *ptr = ds2; }
+		break;
+	    }
+#ifdef SZ_DWD
+	    case SZ_DWD : {
+		long ds1,ds2,dl;
+		volatile long *ptr = (volatile long *)(stp->addr);
+		volatile long *ptr1 = ptr+1;
+		ds1 = stp->data1;
+		ds2 = stp->data2;
+		if ( op ) while ( count-- ) {
+		    *ptr = ds1 ; *ptr1 = ds2 ; dl = *ptr; dl = *ptr1 ;
+		    *ptr = ds2 ; *ptr1 = ds1 ; dl = *ptr; dl = *ptr1 ;
+		}
+		else while ( count-- ) {
+		    *ptr = ds1 ; *ptr1 = ds2; *ptr = ds2; *ptr1 = ds1;
+		    }
+		break;
+	    }
+#endif
+	}
+    } else if ( op & OP_WRT ) {
+	/* write, and possibly read back */
+	op &= OP_RD;	/* leave only the "read" indication */
+	switch (size) {
+	    case SZ_BYT : {
+		char ds,dl;
+		volatile char *ptr = (volatile char *)(stp->addr);
+		ds = stp->data1;
+		if ( op ) while ( count-- ) { *ptr = ds ; dl = *ptr; }
+		else while ( count-- ) *ptr = ds;
+		break;
+	    }
+	    case SZ_HWD : {
+		short ds,dl;
+		volatile short *ptr = (volatile short *)(stp->addr);
+		ds = stp->data1;
+		if ( op ) while ( count-- ) { *ptr = ds ; dl = *ptr; }
+		else while ( count-- ) *ptr = ds;
+		break;
+	    }
+	    case SZ_WD : {
+		long ds,dl;
+		volatile long *ptr = (volatile long *)(stp->addr);
+		ds = stp->data1;
+		if ( op ) while ( count-- ) { *ptr = ds ; dl = *ptr; }
+		else while ( count-- ) *ptr = ds;
+		break;
+	    }
+#ifdef SZ_DWD
+	    case SZ_DWD : {
+		long ds1,ds2,dl;
+		volatile long *ptr = (volatile long *)(stp->addr);
+		volatile long *ptr1 = ptr+1;
+		ds1 = stp->data1;
+		ds2 = stp->data2;
+		if ( op ) while ( count-- ) {
+		    *ptr = ds1 ; *ptr1 = ds2 ; dl = *ptr; dl = *ptr1 ;
+		}
+		else while ( count-- ) {
+		    *ptr = ds1 ; *ptr1 = ds2;
+		    }
+		break;
+	    }
+#endif
+	}
+    } else {
+	/* read-only loop */
+	switch (size) {
+	    case SZ_BYT : {
+		char dl;
+		volatile char *ptr = (volatile char *)(stp->addr);
+		while ( count-- ) dl = *ptr;
+		break;
+	    }
+	    case SZ_HWD : {
+		short dl;
+		volatile short *ptr = (volatile short *)(stp->addr);
+		while ( count-- ) dl = *ptr;
+		break;
+	    }
+	    case SZ_WD : {
+		long dl;
+		volatile long *ptr = (volatile long *)(stp->addr);
+		while ( count-- ) dl = *ptr;
+		break;
+	    }
+#ifdef SZ_DWD
+	    case SZ_DWD : {
+		long dl;
+		volatile long *ptr = (volatile long *)(stp->addr);
+		volatile long *ptr1 = ptr+1;
+		while ( count-- ) { dl = *ptr; dl = *ptr1; }
+		break;
+	    }
+#endif
+	} /* end switch */
+    }
+    if ( old_fields != 42 ) {
+	/* This was a "NO_INT" case */
+	prc_set_ipl(old_ipl);
+	vid_fields(old_fields);
+    }
+}
+
+/*		Use generic parameter entry to build descriptor,
+ *	then run test.
+ */
+
+/*	Provide a "safe" location to loop on, so just hitting
+ *	ACTION will not do something deadly.
+ */
+STATIC U32 test_cell;
+#if (HOST_BOARD == HCR4K)
+/* For reasons known only to Dave and Forrest, the whole world was
+ * presumed to use the MIPS method of specifying an address to be
+ * "un-cached". Perhaps they will re-consider... (16APR96 MEA)
+ */
+#define TEST_CELL ( (U32) ( &test_cell + ( 0x20000000 / sizeof(U32) ) ) )
+#else
+#define TEST_CELL ( (U32) &test_cell )
+#endif
+
+/*		plist[] (below) describes the parameters we wish to
+ *	enter.
+ */
+#if GUN_CNT
+#define TOP (5)
+#else
+#define TOP (3)
+#endif
+
+static const struct parm plist [] = {
+    /* Label		value		col/row		sigdig		curdig	*/
+    { "Base Address: ",	TEST_CELL,	4,TOP,		(HEX_FIELD|8),	0 	},
+#define PIDX_ADDR (0)
+    { "Size:         ",	2,		4,TOP+2,	(HEX_FIELD|1),	0 	},
+#define PIDX_SIZE  (1)
+    { "Loop Counter: ",	1000,		4,TOP+4,	5,		0 	},
+#define PIDX_LOOPS (2)
+    { "Data 1:       ",	0,		4,TOP+6,	(HEX_FIELD|8),	0 	},
+#define PIDX_DATA1 (3)
+    { "Data 2:       ",	0xffffffff,	4,TOP+8,	(HEX_FIELD|8),	0 	},
+#define PIDX_DATA2 (4)
+    { 0,		0,		0,0,	0,		0 	}};
+
+#define NPARMS (sizeof (plist)/sizeof(plist[0]))
+
+/* Provide a place to "remember" last-used scope parameters for any
+ * given diagnostic session.
+ */
+static struct parm work[NPARMS];
+
+STATIC const char * const size_names[] = { "BYTE", "SHORT", "LONG"
+#ifdef SZ_DWD
+    , "64-BIT"
+#endif
+};
+#define N_SIZES (sizeof(size_names)/sizeof(size_names[0]))
+
+/*		sl_cb() is the "callback". That is, it is called by the
+ *	parameter entry code to validate changes to the parameters and
+ *	possibly copy them to the descriptor.
+ */
+STATIC int
+sl_cb(struct parm *pp, int idx,struct opaque *op)
+{
+    struct sl_desc *sdp = (struct sl_desc *)op;
+    unsigned long val;
+    long	 delta;
+    unsigned long mask;
+
+    val = pp->val;
+    switch ( idx ) {
+	case PIDX_ADDR :
+	    /* Validate address for loop. Force increment or
+	     * decrement to occur only on boundaries appropriate to size.
+	     */
+	    mask = (1<<sdp->size)-1;
+	    delta = val - sdp->addr;
+	    if ( delta >= 0 && delta < mask ) val += mask;
+	    val &= ~mask;
+	    pp->val = val;
+	    sdp->addr = val;
+	    break;
+
+	case PIDX_SIZE : {
+	    int row,col;
+
+	    delta = val;	/* get it into a signed var */
+	    if ( delta < 0 ) val = N_SIZES-1;
+	    else if ( val >= N_SIZES ) val = 0;
+	    mask = (1<<val)-1;
+	    row = plist[PIDX_SIZE].row;
+	    col = plist[PIDX_SIZE].col + strlen(plist[PIDX_SIZE].label)+2;
+	    txt_clr_str(col,row,size_names[sdp->size],MNORMAL_PAL);
+	    txt_str(col,row,size_names[sdp->size = val],MNORMAL_PAL);
+	    pp->val = val;
+	    sdp->addr &= ~mask;
+	    break;
+	}
+
+	case PIDX_LOOPS : {
+	    int row,col;
+
+	    row = plist[PIDX_LOOPS].row;
+	    col = plist[PIDX_LOOPS].col + strlen(plist[PIDX_LOOPS].label)+5;
+	    txt_str(col,row,"000",MNORMAL_PAL);
+	    sdp->loops = val * 1000;
+	    break;
+	}
+
+	case PIDX_DATA1 :
+	    sdp->data1 = val;
+	    break;
+
+	case PIDX_DATA2 :
+	    sdp->data2 = val;
+	    break;
+
+    } /* end switch */
+    return 1;
+}
+
+STATIC
+int scope_loop( parm_mp )
+const struct menu_d *parm_mp;
+{
+    struct parm *wp;
+    const struct parm *cwp;
+    struct sl_desc descrip;
+    int idx,status,which;
+
+    wp = work;
+    cwp = plist;
+
+    if ( wp->label == 0 ) {
+	/* first time we have been called, copy
+	 * initial values to work.
+	 */
+	do {
+	    *wp++ = *cwp++;
+	} while (wp[-1].label != 0);
+    }
+    else {
+	/* Just re-generate any labels which may
+	 * have been clobbered last time.
+	 */
+	do {
+	    (wp++)->label = (cwp++)->label;
+	} while (wp[-1].label != 0);
+    }
+
+    which = ((struct slt *)parm_mp)->option;
+
+    if ( !(which & OP_2WRT) ) {
+	/* no need for second data */
+	work[PIDX_DATA2].label = 0;
+    }
+    if ( !(which & OP_WRT) ) {
+	/* no need for first data */
+	work[PIDX_DATA1].label = 0;
+    }
+
+    memset(&descrip,0,sizeof(descrip));
+    descrip.op = which;
+
+    for ( idx = 0 ; idx < NPARMS ; ++idx ) {
+	if ( work[idx].label == 0 ) break;
+	sl_cb(work+idx,idx,(struct opaque *)&descrip);
+    }
+    while (1) {
+	status = utl_enter(work,sl_cb,(struct opaque *)&descrip);
+	if ( status & SW_NEXT ) return 0;
+	if ( status & SW_ACTION ) {
+	    do {
+		scope_host(&descrip);
+		/* Some implementations of GUTS, especially
+		 * those running "over" an OS, need to call
+		 * prc_delay0() just to update the status
+		 * of the controls.
+		 */
+		prc_delay0();
+	    } while ( ! (ctl_read_sw(SW_NEXT) & SW_NEXT) );
+	}
+    }
+    return 0;
+}
+
+int
+scope_loops( smp )
+const struct menu_d *smp;	/* Selected Menu Pointer */
+{
+    return st_menu((struct menu_d *)&SCOPE_LIST[0],sizeof(SCOPE_LIST[0]),RED_PALB,0);
+}
+#else
+int
+scope_loops( smp )
+const struct menu_d *smp;	/* Selected Menu Pointer */
+{
+    txt_str(-1,AN_VIS_ROW/2,"REMOVED_TO_SAVE_SPACE",RED_PALB|AN_BIG_SET);
+    while ( (ctl_read_sw(SW_NEXT) & SW_NEXT) == 0 ) prc_delay0();
+    return 0;
+}
+#endif
+@
+
+
+1.8
+log
+@Added extra options for Minh's debug of CoJag 3 boards, conditional
+on #ifdef MINH_WATCH.
+Shifted entries down if using GUN control. This is an interim
+fix. A better one would use "margins" and callbacks as done for
+the "option setting" code.
+@
+text
+@d12 3
+a14 1
+
+@
+
+
+1.7
+log
+@fix assumption of R4K style "uncached" hack. "remember"
+scope parameters from one call to the next. default to 32-bit
+memrefs. Allow for running under an OS which needs to "sleep"
+to see controls.
+@
+text
+@d1 1
+d29 5
+d64 3
+d77 1
+d79 15
+a95 4
+	if ( (op & OP_WRT) == 0 ) {
+	    /* Double-data scope loop without write? */
+	    return;
+	}
+d131 17
+d177 16
+d215 9
+d226 5
+d254 5
+d261 2
+a262 2
+    /* Label		value		col/row	sigdig		curdig	*/
+    { "Base Address: ",	TEST_CELL,	4,3,	(HEX_FIELD|8),	0 	},
+d264 1
+a264 1
+    { "Size:         ",	2,		4,5,	(HEX_FIELD|1),	0 	},
+d266 1
+a266 1
+    { "Loop Counter: ",	1000,		4,7,	5,		0 	},
+d268 1
+a268 1
+    { "Data 1:       ",	0,		4,9,	(HEX_FIELD|8),	0 	},
+d270 1
+a270 1
+    { "Data 2:       ",	0xffffffff,	4,11,	(HEX_FIELD|8),	0 	},
+d281 5
+a285 1
+STATIC const char * const size_names[] = { "BYTE", "SHORT", "LONG" };
+@
+
+
+1.6
+log
+@Added new loop counter parameter to setup screen.
+Made base address (test_cell) uncached.
+Moved test of bail-out switch to outside of scope_host.
+@
+text
+@d173 5
+d179 3
+d191 1
+a191 1
+    { "Size:         ",	0,		4,5,	(HEX_FIELD|1),	0 	},
+d203 5
+d279 1
+a279 1
+    struct parm work[NPARMS],*wp;
+d287 16
+a302 3
+    do {
+	*wp++ = *cwp++;
+    } while (wp[-1].label != 0);
+d325 11
+a335 3
+	if ( status & SW_ACTION )
+	    do scope_host(&descrip);
+	    while ( ! (ctl_read_sw(SW_NEXT) & SW_NEXT) );
+@
+
+
+1.5
+log
+@caught one more mystic number and changed to symbol OP_RD
+@
+text
+@d32 1
+d62 1
+a62 1
+scope_host(stp,atp,nmask)
+a63 2
+VU32 *atp;		/* "Attention" pointer, watch for exit */
+U32 nmask;		/* "NEXT" mask. Bit in *atp to watch for exit */
+d67 1
+d82 1
+a82 1
+		if ( op ) while ( !(*atp & nmask) ) {
+d85 1
+a85 1
+		else while ( !(*atp & nmask) ) { *ptr = ds1 ; *ptr = ds2; }
+d93 1
+a93 1
+		if ( op ) while ( !(*atp & nmask) ) {
+d96 1
+a96 1
+		else while ( !(*atp & nmask) ) { *ptr = ds1 ; *ptr = ds2; }
+d104 1
+a104 1
+		if ( op ) while ( !(*atp & nmask) ) {
+d107 1
+a107 1
+		else while ( !(*atp & nmask) ) { *ptr = ds1 ; *ptr = ds2; }
+d119 2
+a120 2
+		if ( op ) while ( !(*atp & nmask) ) { *ptr = ds ; dl = *ptr; }
+		else while ( !(*atp & nmask) ) *ptr = ds;
+d127 2
+a128 2
+		if ( op ) while ( !(*atp & nmask) ) { *ptr = ds ; dl = *ptr; }
+		else while ( !(*atp & nmask) ) *ptr = ds;
+d135 2
+a136 2
+		if ( op ) while ( !(*atp & nmask) ) { *ptr = ds ; dl = *ptr; }
+		else while ( !(*atp & nmask) ) *ptr = ds;
+d146 1
+a146 1
+		while ( !(*atp & nmask) ) dl = *ptr;
+d152 1
+a152 1
+		while ( !(*atp & nmask) ) dl = *ptr;
+d158 1
+a158 1
+		while ( !(*atp & nmask) ) dl = *ptr;
+d173 1
+d181 1
+a181 1
+    { "Base Address: ",	(U32)&test_cell, 4,3,	(HEX_FIELD|8),	0 	},
+d185 6
+a190 4
+    { "Data 1:       ",	0,		4,7,	(HEX_FIELD|8),	0 	},
+#define PIDX_DATA1 (2)
+    { "Data 2:       ",	0,		4,9,	(HEX_FIELD|8),	0 	},
+#define PIDX_DATA2 (3)
+d239 11
+d299 3
+a301 5
+	if ( status & SW_ACTION ) {
+	    /* do this test */
+	    scope_host(&descrip, &dbswitch, (U32) SW_NEXT);
+	    ctl_read_sw(SW_NEXT);	/* kill the edge that got us here */
+	}
+@
+
+
+1.4
+log
+@clean-up and reconciliation with Zoid Guts. Changed from
+absolute to symbolic names for palettes and OP_*
+@
+text
+@d113 1
+a113 1
+	op &= 1;	/* leave only the "read" indication */
+d302 1
+a302 1
+scope_loops(smp)
+@
+
+
+1.3
+log
+@added "return 0" to null incarnation of scope-loop test
+@
+text
+@d75 1
+a75 1
+	op &= 1;	/* leave only the "read" indication */
+d111 1
+a111 1
+    } else if ( op & 2 ) {
+d230 2
+a231 2
+	    txt_clr_str(col,row,size_names[sdp->size],WHT_PAL);
+	    txt_str(col,row,size_names[sdp->size = val],WHT_PAL);
+d276 2
+d301 2
+a302 1
+int scope_loops(smp)
+@
+
+
+1.2
+log
+@changed PRIVATE to STATIC, also use working ram "default test cell"
+instead of COLRAM (which may not exist)
+@
+text
+@d304 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d18 1
+a18 1
+#define	PRIVATE	static
+d45 1
+a45 1
+PRIVATE int scope_loop
+d50 1
+a50 6
+PRIVATE int scope_loops
+PARMS((
+const struct menu_d *parm_mp
+));
+
+PRIVATE const struct slt SCOPE_LIST[] =
+d60 1
+a60 1
+PRIVATE void
+d169 5
+d177 1
+d180 1
+a180 1
+    { "Base Address: ",	(U32)COLRAM,	4,3,	(HEX_FIELD|8),	0 	},
+d192 1
+a192 1
+PRIVATE const char * const size_names[] = { "BYTE", "SHORT", "LONG" };
+d199 1
+a199 1
+PRIVATE int
+d248 1
+a248 1
+PRIVATE
+a291 5
+void scopeLoops()
+{
+    scope_loops((const struct menu_d *)&SCOPE_LIST[0]);    
+}
+
+d299 2
+a300 1
+void scopeLoops()
+@

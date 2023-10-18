@@ -1,0 +1,25 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	94.12.16.20.45.19;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@(currently empty) list of symbols to export from GUTS to game that are
+_NOT_ currently include in vectors.asm.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@@

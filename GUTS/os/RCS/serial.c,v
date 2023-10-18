@@ -1,0 +1,571 @@
+head	1.7;
+access;
+symbols
+	RUSH_1_06A:1.5
+	CJ_206:1.5
+	CJ2_05:1.5
+	CJ2_04:1.5
+	CJ2_03:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.7
+date	97.07.01.22.48.44;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.02.14.20.33.39;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.02.29.01.03.31;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.02.29.00.52.11;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.02.23.22.24.37;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.02.21.03.19.53;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.11.01.00.04.04;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@code to insert serial number in game EEPROM, entered via
+"bit-boffing" on coin (or other) input.
+@
+
+
+1.7
+log
+@Added RCS ID string
+@
+text
+@/*	serial.c
+ *		Copyright 1988-1994 ATARI GAMES.
+ *	Unauthorized reproduction, adaptation, distribution, performance or
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited
+ */
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <eer_defs.h>
+#include <string.h>
+
+#define SER_BITS (8)
+/* following may require tweaking for edge effects */
+ 
+#define INIT_DATA_CLK ((SER_BITS-1)*8+5)
+#define START_CONFIRM (INIT_DATA_CLK+2)
+#define INIT_CLK (START_CONFIRM+4)
+
+const int init_data_clk = INIT_DATA_CLK;
+const int start_confirm = START_CONFIRM;
+const int init_clk = INIT_CLK;
+
+/* Atari-style serial numbers are 8 characters: Three alphanumeric
+ * and 5 numeric. They are stored in a "High score table" entry
+ * with the three Alphanumerics in the "initials" and the five
+ * numerics as a number in "score".
+ *
+ * Williams serial numbers are 14-digit numbers. To get Max Force
+ * out the door, we have kluged in a scheme where the first five
+ * digits are stored as "initials", with the remaining nine digits
+ * as a "score" number.
+ */
+#ifndef SERIAL_LEN
+#define SERIAL_LEN (8)	/* AAAnnnnn */
+#define SERIAL_DIGS (5)
+#endif
+
+#define SERIAL_INITS (SERIAL_LEN-SERIAL_DIGS)
+
+static struct sbuf {
+    unsigned char clk;
+    unsigned char build;
+    unsigned char idx;
+    char match;
+    char buff[SERIAL_LEN+1];	/* Room for '\0' */
+    char cmp[SERIAL_LEN+1];	/* Room for '\0' */
+} sstat;
+
+#ifdef SERIAL_INPUT
+
+#ifndef SERIAL_BIT
+#define SERIAL_BIT B_COINL
+#endif
+
+/*	Below is called every 4 Milliseconds from the timer interrupt
+ */
+void ser_sample()
+{
+    int bit,clk;
+    struct sbuf *sbp;
+
+    sbp = &sstat;
+
+/* if for some reason the input is inverted, complement the input here */
+    bit = SERIAL_INPUT & (1<<SERIAL_BIT);
+
+    if ( (clk = sbp->clk) == 0 && bit ) return;
+
+    /* getting here means either we have just read a start bit, or
+     * we are currently receiving.
+     */
+    if ( clk ) {
+	/* check for valid start bit first */
+	if ( --clk >= start_confirm ) {
+	    /* re-check start bit and either set up data timer or
+	     * reset to scan for another start bit.
+	     */
+	    if ( bit ) clk = 0;
+	    else if ( clk == start_confirm ) clk = init_data_clk;
+	}
+	else if ( (clk & 7) == 0 ) {
+	    int rcd = sbp->build;
+	    rcd >>= 1;
+	    if ( bit ) rcd |= (1<<(SER_BITS-1));
+	    sbp->build = rcd;
+	    if ( !clk ) {
+		/* done receiving one character.
+		 */
+		if ( rcd >= '0' && rcd <= 'z' ) {
+		    sbp->buff[sbp->idx] = rcd;
+		    if ( sbp->idx < SERIAL_LEN ) sbp->idx += 1;
+		}
+		if ( rcd == '\n' ) {
+		    /* End of line. Check for having rec'd a complete
+		     * serial number. If so, compare with cmp[]. If not
+		     * equal, move to cmp, else set match.
+		     */
+		    if ( sbp->idx == SERIAL_LEN ) {
+			/* <lf> came where expected */
+			if ( memcmp(sbp->cmp,sbp->buff,SERIAL_LEN) ) {
+			    strcpy(sbp->cmp,sbp->buff);
+			    sbp->match = 0;
+			}
+			else sbp->match |= 1;
+		    }
+		    sbp->idx = 0;
+		}
+		sbp->buff[sbp->idx] = '\0';
+	    }
+	}
+    } else clk = init_clk;
+    sbp->clk = clk;
+    return; 
+}
+#endif
+
+void ser_show(col,row)
+int col,row;
+{
+    struct sbuf *sbp;
+    m_int	idx;
+    int pal;
+    char serbuf[2];
+    struct hst_ent eeprom_serial;
+    sbp = &sstat;
+
+    serbuf[1] = '\0';
+    if ( sbp->match ) {
+	/* have a stable number. Just display it in green */
+	txt_str(col,row,sbp->cmp,GRN_PAL);
+	if ( !(sbp->match & 2) ) {
+#ifdef HST_SERIAL_NUM
+	    unsigned long acc;
+	    m_int dig;
+	    memcpy(eeprom_serial.initials,sbp->cmp,SERIAL_INITS);
+	    eeprom_serial.initials[SERIAL_INITS] = '\0';
+	    acc = 0;
+	    for ( idx = SERIAL_INITS ; idx < SERIAL_LEN ; ++idx ) {
+		dig = sbp->cmp[idx];
+		if ( dig < '0' || dig > '9' ) break;
+		acc *= 10;
+		acc += (dig - '0'); 
+	    }
+	    eeprom_serial.score = acc;
+	    eer_hstw(0,&eeprom_serial,HST_SERIAL_NUM);
+#endif
+	    sbp->match |= 2;
+	}
+	return;
+    }
+    /* if serial number is not yet stable, display it in wht/yel */
+    for ( idx = 0 ; idx < SERIAL_LEN ; ++idx ) {
+	serbuf[0] = sbp->buff[idx];
+	pal = WHT_PAL;
+	if ( idx >= sbp->idx ) {
+	    serbuf[0] = sbp->cmp[idx];
+	    pal = YEL_PAL;
+	}
+	txt_str(col+idx,row,serbuf,pal);
+    }
+}
+
+void
+ser_display(col,row,pal)
+int col,row,pal;
+{
+
+#ifdef HST_SERIAL_NUM
+    struct hst_ent *hsp;
+    char alphas[SERIAL_LEN+2];
+    hsp = eer_hstr(0,HST_SERIAL_NUM);
+    if ( hsp ) {
+#if (SERIAL_LEN == 8)
+	if ( (hsp->initials[0] < 'A') /* Valid Atari Serial starts w/ Letter*/
+#else
+	if ( (hsp->initials[0] == '\0') /* Must have serial number */
+#endif
+	     && (col < 0) ) {
+	    /* a Valid serial Number starts with a Letter. If we
+	     * don't have a serial number and are called from the
+	     * game (centered), be explicit about the problem.
+	     */
+	    txt_str(col,row,"No Serial Number",pal);
+	    return;
+	}
+	memcpy(alphas,hsp->initials,SERIAL_INITS);
+	utl_cdec(hsp->score,alphas+SERIAL_INITS,SERIAL_DIGS,RJ_ZF);
+	txt_str(col,row,alphas,pal);
+    }
+#endif
+}
+
+#ifdef HST_SERIAL_NUM
+#ifndef SERIAL_INPUT
+
+/*
+ *	plist[] (below) describes the parameters we wish to enter.
+ */
+
+static const struct parm plist [] = {
+    /* Label		value		col/row	sigdig	curdig	*/
+    { "1st Initial:  ",	110,		4,4,	(2),	0 	},
+#define PIDX_1ST (0)
+    { "2nd Initial:  ",	100,		4,5,	(2),	0 	},
+#define PIDX_2ND (1)
+    { "3rd Initial:  ",	100,		4,6,	(2),	0 	},
+#define PIDX_3RD (2)
+    { "Number:       ",	100000,		4,7,	(5),	0 	},
+#define PIDX_NUM (3)
+    { 0,		0,		0,0,	0,		0 	}};
+
+#define NPARMS ( sizeof(plist) / sizeof(plist[0]) )
+#define NCHARS ( NPARMS - 1 )
+
+#define TOALPHA(x) ( 'A' - 110 + ( x ) )
+#define TONUMER(x) ( '0' - 100 + ( x ) )
+#define ISNUMER(x) ( ( x ) < 110 )
+#define FROM_AN(x) ( ( ( x ) < 'A' ) ? ( x ) + 100 - '0' : ( x ) + 110 - 'A' )
+#define TO_AN(x)   ( ISNUMER( x ) ? TONUMER( x ) : TOALPHA( x ) )
+
+struct temp
+{
+ U32 val;
+ char c[2];
+};
+
+int ser_cb(struct parm *pp, int idx, struct opaque *op)
+{
+ unsigned long val;
+ struct temp *tp = (struct temp *)op;
+
+ val = pp->val;
+
+ switch (idx)
+ {
+  case PIDX_1ST:
+   if ( pp->cur_dig == 1)
+   {
+    if ( val < 110 ) val += 26;
+    if ( val > 135 ) val -= 26;
+   }
+   else
+   {
+    if ( val < 106 ) val += 30;
+    if ( val < 110 ) val += 20;
+    if ( val > 139 ) val -= 30;
+    if ( val > 135 ) val -= 20;
+   }
+   ( tp + idx )->c[0] = TOALPHA( val );
+   ( tp + idx )->c[1] = '\0';
+   txt_str(pp->col + 18, pp->row, ( tp + idx )->c, WHT_PAL);
+   break;
+  case PIDX_2ND:
+  case PIDX_3RD:
+   if ( pp->cur_dig == 1)
+   {
+    if ( val < 100 ) val += 36;
+    if ( val > 135 ) val -= 36;
+   }
+   else
+   {
+    if ( val < 96  ) val += 40;
+    if ( val < 100 ) val += 30;
+    if ( val > 139 ) val -= 40;
+    if ( val > 135 ) val -= 30;
+   }
+   ( tp + idx )->c[0] = ISNUMER( val ) ? TONUMER( val ) : TOALPHA( val );
+   ( tp + idx )->c[1] = '\0';
+   txt_str(pp->col + 18, pp->row, ( tp + idx )->c, WHT_PAL);
+   break;
+  case PIDX_NUM:
+   if ( val < 100000 ) val += 100000;
+   if ( val > 199999 ) val -= 100000;
+ } /* end switch (idx) */
+
+ pp->val = val;
+
+ return 1;
+}
+
+int ser_set_serial( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+{
+ struct temp tmp[NPARMS], *tp;
+ struct parm wrk[NPARMS], *wp;
+ const struct parm *cwp;
+ struct hst_ent *hsp, eeprom_serial;
+ int bottom = AN_VIS_ROW-2;
+
+ bottom = st_insn(bottom,t_msg_save_ret, t_msg_next, INSTR_PAL);
+ bottom = st_insn(bottom,t_msg_restore, t_msg_action, INSTR_PAL);
+
+ wp = wrk;
+ cwp = plist;
+
+ do
+ {
+  *wp++ = *cwp++;
+ } while ( wp[-1].label != 0 );
+
+ hsp = eer_hstr(0, HST_SERIAL_NUM);
+
+ if ( hsp->initials[0] != 0 )
+ {
+  wrk[PIDX_1ST].val = FROM_AN( hsp->initials[0] );
+  wrk[PIDX_2ND].val = FROM_AN( hsp->initials[1] );
+  wrk[PIDX_3RD].val = FROM_AN( hsp->initials[2] );
+  wrk[PIDX_NUM].val = hsp->score + 100000;
+ }
+
+ tp = tmp;
+ wp = wrk;
+
+ do
+ {
+  tp->val = wp->val;
+  tp->c[0] = TO_AN( wp->val );
+  tp->c[1] = '\0';
+  txt_str(wp->col + 18, wp->row, tp->c, WHT_PAL);
+  tp++;
+  wp++;
+ } while ( wp[1].label != 0 );
+
+ tp->val = wp->val;
+
+ if ( utl_enter(wrk, ser_cb, (struct opaque *)&tmp[0]) == SW_NEXT )
+ {
+  tp = tmp;
+  wp = wrk;
+  do
+  {
+   if ( tp->val != wp->val )
+   {
+    int i;
+    tmp[PIDX_NUM].c[0] = '\0';
+    for ( i = 0; i < NCHARS; i++ )
+     eeprom_serial.initials[i] = tmp[i].c[0];
+    eeprom_serial.score = wrk[PIDX_NUM].val - 100000;
+    eer_hstw(0,&eeprom_serial,HST_SERIAL_NUM);
+    return 0;
+   }
+   tp++;
+   wp++;
+  } while ( wp->label != 0 );
+ }
+ return 0;
+}
+#endif /* not def'd SERIAL_INPUT */
+#endif /* def'd HST_SERIAL_NUM */
+@
+
+
+1.6
+log
+@Modified for Williams-style 14-digit serial number.
+@
+text
+@a0 1
+
+d7 3
+a9 1
+
+@
+
+
+1.5
+log
+@Put back the include.
+@
+text
+@d26 11
+d38 5
+d138 2
+a139 2
+	    memcpy(eeprom_serial.initials,sbp->cmp,3);
+	    eeprom_serial.initials[3] = '\0';
+d141 1
+a141 1
+	    for ( idx = 3 ; idx < SERIAL_LEN ; ++idx ) {
+d176 6
+a181 1
+	if ( (hsp->initials[0] < 'A') && (col < 0) ) {
+d189 2
+a190 2
+	memcpy(alphas,hsp->initials,3);
+	utl_cdec(hsp->score,alphas+3,5,RJ_ZF);
+@
+
+
+1.4
+log
+@Removed an include directive.
+@
+text
+@d13 1
+@
+
+
+1.3
+log
+@Fixed "bug" and cleaned up the code.
+@
+text
+@a12 1
+#include <string.h>
+@
+
+
+1.2
+log
+@Added routines for a serial number entry screen in self test.
+@
+text
+@d194 2
+a195 1
+#define NPARMS (sizeof (plist)/sizeof(plist[0]))
+d197 12
+d212 1
+a212 1
+ char c[2];
+d231 3
+a233 3
+   c[0] = 'A' - 110 + val;
+   c[1] = '\0';
+   txt_str(pp->col + 18, pp->row, c, WHT_PAL);
+d249 3
+a251 3
+   c[0] = ( val < 110 ) ? '0' - 100 + val : 'A' - 110 + val;
+   c[1] = '\0';
+   txt_str(pp->col + 18, pp->row, c, WHT_PAL);
+d266 2
+a267 1
+ struct parm work[NPARMS], *wp;
+a269 1
+ char c[2];
+d275 1
+a275 1
+ wp = work;
+d281 1
+a281 1
+ } while (wp[-1].label != 0);
+a283 1
+ wp = work;
+d287 4
+a290 7
+  wp->val = hsp->initials[0] + 110 - 'A';
+  wp++;
+  wp->val = ( hsp->initials[1] < 'A' ) ? hsp->initials[1] + 100 - '0' : hsp->initials[1] + 110 - 'A';
+  wp++;
+  wp->val = ( hsp->initials[2] < 'A' ) ? hsp->initials[2] + 100 - '0' : hsp->initials[2] + 110 - 'A';
+  wp++;
+  wp->val = hsp->score + 100000;
+d293 2
+a294 12
+ wp = work;
+ c[0] = 'A' - 110 + wp->val;
+ c[1] = '\0';
+ txt_str(wp->col + 18, wp->row, c, WHT_PAL);
+ wp++;
+ c[0] = ( wp->val < 110 ) ? '0' - 100 + wp->val : 'A' - 110 + wp->val;
+ c[1] = '\0';
+ txt_str(wp->col + 18, wp->row, c, WHT_PAL);
+ wp++;
+ c[0] = ( wp->val < 110 ) ? '0' - 100 + wp->val : 'A' - 110 + wp->val;
+ c[1] = '\0';
+ txt_str(wp->col + 18, wp->row, c, WHT_PAL);
+d296 1
+a296 1
+ if ( utl_enter(work, ser_cb, (struct opaque *)&work[0]) == SW_NEXT )
+d298 5
+a302 2
+  wp = work;
+  eeprom_serial.initials[0] = 'A' - 110 + wp->val;
+d304 23
+a326 10
+  eeprom_serial.initials[1] = ( wp->val < 110 ) ? '0' - 100 + wp->val : 'A' - 110 + wp->val;
+  wp++;
+  eeprom_serial.initials[2] = ( wp->val < 110 ) ? '0' - 100 + wp->val : 'A' - 110 + wp->val;
+  eeprom_serial.initials[3] = '\0';
+  eeprom_serial.score = work[PIDX_NUM].val - 100000;
+  if ( ( eeprom_serial.initials[0] != hsp->initials[0] ) ||
+       ( eeprom_serial.initials[1] != hsp->initials[1] ) ||
+       ( eeprom_serial.initials[2] != hsp->initials[2] ) ||
+       ( eeprom_serial.score != hsp->score ) )
+   eer_hstw(0,&eeprom_serial,HST_SERIAL_NUM);
+a327 1
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a14 7
+#ifndef SERIAL_INPUT
+#define SERIAL_INPUT CN_STATUS
+#endif
+#ifndef SERIAL_BIT
+#define SERIAL_BIT B_COINL
+#endif
+
+d36 6
+d102 1
+d174 144
+@

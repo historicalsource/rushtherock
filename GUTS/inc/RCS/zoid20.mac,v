@@ -1,0 +1,811 @@
+head	1.10;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.10
+date	96.03.04.16.59.01;	author forrest;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.03.04.16.35.27;	author forrest;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.03.04.15.57.04;	author forrest;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.03.04.15.41.41;	author forrest;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.03.04.15.37.12;	author forrest;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.01.23.21.29.05;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.12.30.20.36.35;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.09.26.23.38.04;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.07.20.16.34.59;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.07.11.17.28.03;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@ZOID 20 variables for 'config.mac'
+@
+
+
+1.10
+log
+@Changed VERS_VALID definition.
+@
+text
+@;
+;	zoid20.mac
+;
+;	The language-independant file which is included in config.mac for
+;	games using ZOID20 hardware. config.mac is the file from
+;	which config.i and config.h are	automatically derived. This is to
+;	assure agreement between assembly and C files.
+;
+;	Traditionally, config.mac was a single file describing a "hardware"
+;	for the purpose of configuring GUTS (Game Utility and Test Software.)
+;	With the advent of Xbus, a game may "mix and match" a variety of
+;	different boards, so config.mac now contains ".include" directives
+;	for the various pieces.
+;
+;	Project:	Zoid
+;	Date:		August 1995
+;	Team:		Mike Albaugh, Dave Shepperd, Forrest Miller
+;
+.if ndf, _CONSTANTS_MAC_
+  .warn  ;You should .include constants.mac before including zoid20.mac
+  .include constants.mac
+.endc
+.if ndf, _PPTYPES_MAC_
+  .warn ;You should .include types.mac before including zoid20.mac
+  .include pptypes.mac
+.endc
+.if ndf,HOST_BOARD
+  .error ;You must .include a HOST board file before including zoid20.mac
+  .include hcr4k.mac	;assume it's an HC R4K host board
+.endc
+;
+REM < Special Game Flags	>
+	HEX_CONST VIDEO_BOARD	ZOID20_V
+	HEX_CONST ZTV_VERS 2
+;
+	HEX_CONST VERS_MAJOR	0x1	< major structure version >
+	HEX_CONST VERS_MINOR	0x1	< minor structure version >
+	HEX_CONST VERS_VALID	((VERS_MAJOR<<24)+(VERS_MINOR<<16)+0xFEEB) < value to validate pconfigb >
+;
+REM <	Game config (PBASE) structure >
+	STR_START	pconfigb 
+	STR_FPTR	p_reset	void	1	< Points to code >
+	STR_ELT		p_optmenu <const unsigned char *> 1 < game option menu >
+	STR_ELT		p_coinmenu <const unsigned char *> 1 < coin opt menu >
+	STR_ELT		p_linktime <const char *> 1 < Main program link time >
+	STR_ELT		p_trapmode char	1	< trap type 0:STOP +:68K -:68010 >
+	STR_ELT		p_debug_options char 1	< Normally 0>
+	.if df,GAME_SPECIFIC
+	STR_FPTR	p_pf_draw int	1	< Points to code >
+	.endc
+	STR_ELT		p_oblist <void *> 1 <game-allocated object list memory>
+	STR_ELT		p_oblen <unsigned long> 1 <length in bytes of above>
+	STR_ELT		p_vers_valid <unsigned long> 1 <pconfigb version and validation>
+	STR_ELT		p_bss_start <const void *> 1 <start of working ram>
+	STR_ELT		p_bss_end <const void *> 1 <end of working ram>
+	STR_ELT		p_stats <const void *> 1 < pointer to game stats >
+;
+	STR_END		pconfigb
+;
+	STR_START	pconfigp
+	STR_ELT		p_validate long 1	< validation word	>
+	STR_PTR		p_configb <pconfigb> 1	< configuration pointer	>
+	STR_END		pconfigp
+;
+	HEX_CONST PB_VALID 0xDEADBEEF		<value to validate PTR	>
+;
+REM <		HARDWARE CONFIGURATION>
+; >>-> Set appropriately for your game
+;
+; ASAP (and MIPS) use bits, rather than a number, but we will hack it for
+; now
+ .if true, HOST_BOARD == LCR3K
+  .if defined, XBUS0_LVL
+	HEX_CONST VBI_LVL	XBUS0_LVL	< ZTV IRQ includes v-blank >
+  .endc
+ .iff
+  .if defined, XBUS_LVL
+	HEX_CONST VBI_LVL	XBUS_LVL	< ZTV IRQ includes v-blank >
+  .endc
+ .endc
+;	HEX_CONST MS1_LVL	1		< 1mS interrupt level DON'T USE>
+;	HEX_CONST COM_LVL	2		< ARCnet comm interrupt level >
+.if ndf,POT_CNT
+	HEX_CONST POT_CNT	0
+.endc
+;
+REM <			EOF				>
+;
+@
+
+
+1.9
+log
+@Changed p_bss_start and p_bss_end to const void *.
+@
+text
+@a35 1
+	HEX_CONST VERS_VALID	0xFEEB	< value to validate pconfigb >
+d38 1
+@
+
+
+1.8
+log
+@One more time:  changed const char * to const void *.
+@
+text
+@d54 2
+a55 2
+	STR_ELT		p_bss_start <unsigned long> 1 <start of working ram>
+	STR_ELT		p_bss_end <unsigned long> 1 <end of working ram>
+@
+
+
+1.7
+log
+@MACPP did not like struct opague *; changed to const char *.
+@
+text
+@d56 1
+a56 1
+	STR_ELT		p_stats <const char *> 1 < pointer to game stats >
+@
+
+
+1.6
+log
+@Added 4 words to structure pconfigb starting with p_vers_valid.
+@
+text
+@d56 1
+a56 1
+	STR_ELT		p_stats <struct opaque *> 1 < pointer to game stats >
+@
+
+
+1.5
+log
+@Protected references to XBUSx_LVL
+@
+text
+@d36 4
+d53 4
+@
+
+
+1.4
+log
+@Ripped out everything that conflicts with the many new .mac files which have
+been created during the development of Zoid 20 and the Math Host.
+@
+text
+@d65 1
+d67 1
+d69 1
+d71 1
+@
+
+
+1.3
+log
+@Changed AN_PAL_SHF, AN_PAL_MSK and AN_NXT_PAL
+@
+text
+@d16 2
+a17 2
+;	Date:		April 1995
+;	Team:		Mike Albaugh, Dave Shepperd, Steve Bennetts
+d25 1
+a25 1
+  .include types.mac
+a33 5
+	HEX_CONST ZOID_PROTO		1		< game specific information	>
+;	HEX_CONST HOOPS 2
+;	HEX_CONST G3D 4
+	HEX_CONST ZOID20_DIAG 8
+	HEX_CONST ZOID_GAME (ZOID20_DIAG)
+d47 2
+a60 6
+	HEX_CONST B_NO_ROM_TEST	0	< bit # in p_debug_options to skip ROM checksum	>
+	HEX_CONST NO_ROM_TEST	(1<<B_NO_ROM_TEST)
+	HEX_CONST B_NO_RAM_TEST	1	< bit # in p_debug_options to skip RAM test	>
+	HEX_CONST NO_RAM_TEST	(1<<B_NO_RAM_TEST)
+	HEX_CONST B_NO_LOG_RESET 2	< bit # in p_debug_options to skip logging RESET>
+	HEX_CONST NO_LOG_RESET	(1<<B_NO_LOG_RESET)
+d64 7
+a70 3
+	HEX_CONST VBI_LVL	0		< ZTV IRQ includes v-blank >
+	HEX_CONST MS1_LVL	1		< 1mS interrupt level DON'T USE>
+	HEX_CONST COM_LVL	2		< ARCnet comm interrupt level >
+a73 513
+; >>-> Set appropriately for your game
+	HEX_CONST VIS_H_PIX	512.	< horizontal screen resolution	>
+	HEX_CONST TOT_H_PIX	512.	< pixel count to next line	>
+	HEX_CONST VIS_V_PIX	384.	< vertical screen resolution	>
+	HEX_CONST TOT_V_PIX	1024.	< Total vertical screen size	>
+;
+REM <	Color pair constants>
+; >>-> Set appropriately for your game.
+ .if	true, ZTV_VERS < 2
+; values below (0x400, 0x10, 1) are for ZTV with 6-6-4 RGB
+	HEX_CONST RED_LSB	0x0400		< RED gun LSB		>
+	HEX_CONST GRN_LSB	0x0010		< GREEN gun LSB		>
+	HEX_CONST BLU_LSB	0x0001		< BLUE gun LSB		>
+	HEX_CONST ALL_LSB	<RED_LSB | GRN_LSB | BLU_LSB>
+;	HEX_CONST INTEN_MSK	0x8000		< INTENSITY MASK	>
+ .endc
+ .if	true, ZTV_VERS == 2
+; values below (0x400, 0x20, 1) are for ZTV2 with 5-5-5 RGB
+	HEX_CONST RED_LSB	0x0400		< RED gun LSB		>
+	HEX_CONST GRN_LSB	0x0020		< GREEN gun LSB		>
+	HEX_CONST BLU_LSB	0x0001		< BLUE gun LSB		>
+	HEX_CONST ALL_LSB	<RED_LSB | GRN_LSB | BLU_LSB>
+;	HEX_CONST INTEN_MSK	0x8000		< INTENSITY MASK	>
+ .endc
+; >>-> Set appropriately for your game.
+ .if	true, ZTV_VERS < 2
+; values below are for ZTV with 6-6-4 RGB
+	HEX_CONST RED_MSK	0xFC00		< RED INTENSITY MASK	>
+	HEX_CONST GRN_MSK	0x03F0		< GREEN INTENSITY MASK	>
+	HEX_CONST BLU_MSK	0x000F		< BLUE INTENSITY MASK	>
+	HEX_CONST RED_SHF	10.		< RED INTENSITY SHIFT	>
+	HEX_CONST GRN_SHF	4		< GREEN INTENSITY SHIFT	>
+	HEX_CONST BLU_SHF	0		< BLUE INTENSITY SHIFT	>
+ .endc
+ .if	true, ZTV_VERS == 2
+; values below are for ZTV2 with 5-5-5 RGB
+	HEX_CONST RED_MSK	0x7C00		< RED INTENSITY MASK	>
+	HEX_CONST GRN_MSK	0x03E0		< GREEN INTENSITY MASK	>
+	HEX_CONST BLU_MSK	0x001F		< BLUE INTENSITY MASK	>
+	HEX_CONST RED_SHF	10.		< RED INTENSITY SHIFT	>
+	HEX_CONST GRN_SHF	5		< GREEN INTENSITY SHIFT	>
+	HEX_CONST BLU_SHF	0		< BLUE INTENSITY SHIFT	>
+ .endc
+; >>-> These are derived, sometimes badly...
+	HEX_CONST ALL_MSK	<RED_MSK | GRN_MSK | BLU_MSK>
+	HEX_CONST BITS_PER_GUN	4		< (KLUGE) # of bits/gun	>
+;
+	HEX_CONST YEL_MSK	<RED_MSK | GRN_MSK>
+	HEX_CONST CYN_MSK	<GRN_MSK | BLU_MSK>
+	HEX_CONST VIO_MSK	<RED_MSK | BLU_MSK>
+	HEX_CONST RED_QTR	((RED_MSK+RED_LSB)>>2)
+	HEX_CONST GRN_QTR	((GRN_MSK+GRN_LSB)>>2)
+	HEX_CONST BLU_QTR	((BLU_MSK+BLU_LSB)>>2)
+	HEX_CONST WHT_FUL	(ALL_MSK-RED_QTR-GRN_QTR-BLU_QTR)
+	HEX_CONST SLT_FUL	(ALL_MSK-(2*(RED_QTR+GRN_QTR+BLU_QTR)))
+	HEX_CONST GRY_FUL	(ALL_MSK-(3*(RED_QTR+GRN_QTR+BLU_QTR)))
+	HEX_CONST GRY_BAK	(GRY_FUL<<16.)
+;
+	HEX_CONST BLK_SLT	SLT_FUL		< Slate on black	>
+	HEX_CONST BLK_WHT	WHT_FUL		< White on black	>
+	HEX_CONST BLK_YEL	YEL_MSK		< Yellow on Black	>
+	HEX_CONST BLK_RED	RED_MSK		< Red on black		>
+	HEX_CONST BLK_GRN	GRN_MSK		< Green on Black	>
+	HEX_CONST BLK_CYN	CYN_MSK		< Cyan on black		>
+	HEX_CONST BLK_VIO	VIO_MSK		< Violet on black	>
+	HEX_CONST BLK_BLU	BLU_MSK		< Blue on black		>
+	HEX_CONST GRY_SLT	<GRY_BAK + SLT_FUL>
+	HEX_CONST GRY_WHT	<GRY_BAK + WHT_FUL>
+	HEX_CONST GRY_YEL 	<GRY_BAK + YEL_MSK>
+	HEX_CONST GRY_RED	<GRY_BAK + RED_MSK>
+	HEX_CONST GRY_GRN	<GRY_BAK + GRN_MSK>
+	HEX_CONST GRY_CYN	<GRY_BAK + CYN_MSK>
+	HEX_CONST GRY_VIO	<GRY_BAK + VIO_MSK>
+	HEX_CONST GRY_BLU	<GRY_BAK + BLU_MSK>
+;
+; NOTE: much of the code that uses the NXT_ROW or NXT_COL relies on the fact
+;	that the step-size is given in BYTES and the data size is WORDS of
+;	exactly two bytes.  This is done because pointer arithmetic is scaled
+;	in C by the data size but isn't scaled at all in the assembled modules.
+;       We should examine the uses of these constants with an eye to either
+;	having them generated differently by MACPP or having a scale factor
+;	explicitly declared.  We might also explictly define an ORIENTATION
+;	(vertical or horizontal).  For now, note that the orientation is
+;	VERTICAL (sequential addresses display vertically) if AN_NEXT_ROW
+;	is equal to "sizeof(some-data-pointer)".
+;
+REM <	Alpha size, count, and stamp constants>
+;	HEX_CONST AN_BIT_DEPTH	4.
+;	HEX_CONST AN_STMP_CNT	4096.	< AN total stamps in 1Meg ROM	>
+;	HEX_CONST AN_PALS	16.
+;	HEX_CONST AN_PAL_SEP	(1<<AN_BIT_DEPTH)
+; >>-> GAME SPECIFIC, below is ZTV medium-res
+	HEX_CONST AN_TOT_COL	0x40	< AN total stamps horiz.	>
+	HEX_CONST AN_TOT_ROW	0x40	< AN total stamps vert.		>
+	HEX_CONST AN_VIS_COL	0x40	< AN visible stamps horiz.	>
+	HEX_CONST AN_VIS_ROW	0x30	< AN visible stamps vert.	>
+	HEX_CONST AN_TOT_SIZ	<AN_TOT_COL * AN_TOT_ROW>
+	HEX_CONST AN_NXT_COL	0x04	< AN offset to next horz. stamp (bytes)	>
+	HEX_CONST AN_NXT_ROW	(-0x100) < AN offset to next vert. stamp (bytes)	>
+	HEX_CONST AN_RC_BUMP	((AN_NXT_ROW<<16.)+AN_NXT_COL)	< ROW-COLUMN BUMP CONST	>
+; Below are bogus as HELL
+;	HEX_CONST AN_TOP_STMP	0x230	< AN stamp # top half filled	>
+;	HEX_CONST AN_BOT_STMP	0x231	< AN stamp # bottom half filled	>
+;	HEX_CONST AN_LFT_STMP	0x22A	< AN stamp # left half filled	>
+;	HEX_CONST AN_RGT_STMP	0x228	< AN stamp # right half filled	>
+;	HEX_CONST AN_BLANK	0x00	< AN stamp # completely empty	>
+	HEX_CONST AN_A_STMP	0x41	< code for 'A' stamp		>
+	HEX_CONST AN_SQUARE	0x2E	< AN stamp # completely filled	>
+;	HEX_CONST AN_BARG	0xF3	< AN stamp # for empty to full	>
+;	HEX_CONST AN_UP		0x1E	< AN stamp # for up arrow	>
+;	HEX_CONST AN_DOWN	0x1F	< AN stamp # for down arrow	>
+;	HEX_CONST AN_NUMER	0x10	< AN stamp # for '1/' to '7/'	>
+;	HEX_CONST AN_DENOM	0x17	< AN stamp # for '/2' to '/8'	>
+;	HEX_CONST AN_HALFSQ	AN_LFT_STMP	< AN half square for histos	>
+	HEX_CONST AN_BORDER	AN_SQUARE
+	HEX_CONST AN_VOL_BAR	0x166	< AN stamp for volume stamp	>
+;
+	HEX_CONST BGBIT		0x8000
+	HEX_CONST AN_PAL_MSK	0x7F00
+	HEX_CONST AN_PAL_SHF	0xA
+	HEX_CONST AN_NXT_PAL	(1<<AN_PAL_SHF)
+	HEX_CONST AN_PAL0	0x0000
+	HEX_CONST AN_PAL0B	<AN_PAL0 | BGBIT>
+	HEX_CONST AN_PAL1	<AN_PAL0 + AN_NXT_PAL>
+	HEX_CONST AN_PAL1B	<AN_PAL1 | BGBIT>
+	HEX_CONST AN_PAL2	<AN_PAL1 + AN_NXT_PAL>
+	HEX_CONST AN_PAL2B	<AN_PAL2 | BGBIT>
+	HEX_CONST AN_PAL3	<AN_PAL2 + AN_NXT_PAL>
+	HEX_CONST AN_PAL3B	<AN_PAL3 | BGBIT>
+	HEX_CONST AN_PAL4	<AN_PAL3 + AN_NXT_PAL>
+	HEX_CONST AN_PAL4B	<AN_PAL4 | BGBIT>
+	HEX_CONST AN_PAL5	<AN_PAL4 + AN_NXT_PAL>
+	HEX_CONST AN_PAL5B	<AN_PAL5 | BGBIT>
+	HEX_CONST AN_PAL6	<AN_PAL5 + AN_NXT_PAL>
+	HEX_CONST AN_PAL6B	<AN_PAL6 | BGBIT>
+	HEX_CONST AN_PAL7	<AN_PAL6 + AN_NXT_PAL>
+	HEX_CONST AN_PAL7B	<AN_PAL7 | BGBIT>
+	HEX_CONST GRY_PAL	AN_PAL0		< GREY is palette 0	>
+	HEX_CONST GRY_PALB	AN_PAL0B
+	HEX_CONST WHT_PAL	AN_PAL1		< WHITE is palette 1	>
+	HEX_CONST WHT_PALB	AN_PAL1B
+	HEX_CONST YEL_PAL	AN_PAL2		< YELLOW is palette 2	>
+	HEX_CONST YEL_PALB	AN_PAL2B
+	HEX_CONST RED_PAL	AN_PAL3		< RED is palette 3	>
+	HEX_CONST RED_PALB	AN_PAL3B
+	HEX_CONST GRN_PAL	AN_PAL4		< GREEN is palette 4	>
+	HEX_CONST GRN_PALB	AN_PAL4B
+	HEX_CONST CYN_PAL	AN_PAL5		< CYAN is palette 5	>
+	HEX_CONST CYN_PALB	AN_PAL5B
+;
+	HEX_CONST BOLD_FONT	(1)
+	HEX_CONST UL_FONT	(2)
+	HEX_CONST REVERSE_FONT	(4)
+	HEX_CONST NORMAL_FONT	(0)
+	HEX_CONST MNORMAL_PAL NORMAL_FONT
+;	HEX_CONST TITLE_PAL	RED_PALB
+	HEX_CONST TITLE_PAL	UL_FONT
+;	HEX_CONST INSTR_PAL	GRN_PALB
+	HEX_CONST INSTR_PAL	NORMAL_FONT
+;	HEX_CONST BORDER_PAL	RED_PAL
+	HEX_CONST BORDER_PAL	NORMAL_FONT
+;	HEX_CONST VERSION_PAL	CYN_PALB
+	HEX_CONST VERSION_PAL	NORMAL_FONT
+;	HEX_CONST MHILITE_PAL	YEL_PALB
+	HEX_CONST MHILITE_PAL	BOLD_FONT
+;	HEX_CONST MNORMAL_PAL	GRY_PAL
+;	HEX_CONST ERROR_PAL	RED_PALB
+	HEX_CONST ERROR_PAL	(BOLD_FONT|REVERSE_FONT)
+;
+REMB
+REMM <	Playfield size, count, and stamp constants>
+REMM <  On ZTV1, PF and AN are the same, 64x48 8x8 stamp "overlay" screen>
+REME
+	HEX_CONST PF_BIT_DEPTH	8
+	HEX_CONST PF_CNT	1	< Number of playfields		>
+	HEX_CONST PF_SEP_PAL	0	< PF palettes in parallel RAM	>
+;	HEX_CONST PF_LUT_CNT	0x80
+;	HEX_CONST PF_LUT_0	0
+;	HEX_CONST PF_LUT_1	1
+;	HEX_CONST PF_LUT_2	2
+	HEX_CONST PF_PALS	0x80
+;	HEX_CONST PF_HFLIP	0x8000
+	HEX_CONST PF_PAL_SEP	(((1<<PF_BIT_DEPTH)))
+	HEX_CONST PF_PAL_SHF	24.
+	HEX_CONST PF_PAL_MSK	((PF_PALS-1)<<PF_PAL_SHF)
+	HEX_CONST PF_STMP_CNT	32768.	< PF total stamps in 2Meg ROM	>
+	HEX_CONST PF_TOT_COL	0x40	< PF total stamps horiz.	>
+	HEX_CONST PF_TOT_ROW	0x40	< PF total stamps vert.		>
+	HEX_CONST PF_TOT_SIZ	<PF_TOT_COL * PF_TOT_ROW>
+	HEX_CONST PF_VIS_COL	0x40	< PF visible stamps horiz.	>
+	HEX_CONST PF_VIS_ROW	0x30	< PF visible stamps vert.	>
+	HEX_CONST PF_NXT_COL	0x04	< PF offset to next horz. stamp (bytes)	>
+	HEX_CONST PF_NXT_ROW	(-0x100) < PF offset to next vert. stamp (bytes)	>
+	HEX_CONST PF_BLANK	0x00	< PF stamp # for blank		>
+	HEX_CONST PF_COLOR0	0x00	< PF stamp # for color 0 solid	>
+;	HEX_CONST PF_COLOR01	0x11	< PF stamp # for color 0,1 split>
+	HEX_CONST PF_CROSSHTCH	0x227	< PF stamp # for crosshatch display (convergence)	>
+	HEX_CONST PF_CH_COLOR	3	< color index of crosshatch	>
+;	HEX_CONST PF_CB_NUM	(PF_CNT-1)	< PF # of color bar test	>
+
+	HEX_CONST PF_PAL0	(0<<PF_PAL_SHF)
+	HEX_CONST PF_PAL1	(1<<PF_PAL_SHF)
+	HEX_CONST PF_PAL2	(2<<PF_PAL_SHF)
+	HEX_CONST PF_PAL3	(3<<PF_PAL_SHF)
+;
+REM <	Hardware I/O>
+.if true, HOST_BOARD != MB4600
+; >>-> Need to resolve POT/COMM location
+	HEX_CONST XCOM XBUS_SLOT5	<XComm board on Slot 5>
+	ARRAY	SMC  VU32 XCOM+0x40000 8 <SMC chip, may not really be there>
+REM	ARRAY	UART VU32 XCOM+???
+;
+ .if	ne,POT_CNT
+	ARRAY	AD_PORTS VU32 XCOM+0x20000 POT_CNT
+	VAR	AD_STATUS VU32	XCOM		< AtoD STATUS (XCOM)	>
+	VAR	POTL_H	VU32	AD_PORTS	< Joystick H AtoD Ports	>
+	VAR	POTL_V	VU32	AD_PORTS+4	< Joystick V AtoD Ports	>
+	VAR	POTR_H	VU32	AD_PORTS+8	< Thumb Button		>
+	VAR	POTR_V	VU32	AD_PORTS+0x0c	< Trigger		>
+;
+REM	ARRAY	AD_PORTS,VU16,0xFFC70000,<9>	<AtoD Read Ports (XCOM)	>
+REM	VAR	POTL_H	VU8	AD_PORTS+0x7	< Joystick H AtoD Ports	>
+REM	VAR	POTL_V	VU8	AD_PORTS+0x5	< Joystick V AtoD Ports	>
+REM	VAR	POTR_H	VU8	AD_PORTS+0xf	< Joystick H AtoD Ports	>
+REM	VAR	POTR_V	VU8	AD_PORTS+0xd	< Joystick V AtoD Ports	>
+REM	VAR	AD_STATUS VU8	0xFFC60001	< AtoD STATUS (XCOM)	>
+;
+	HEX_CONST BA_AD_DONE	3	< AtoD finished	== 1		>
+	HEX_CONST MA_AD_DONE	(1<<BA_AD_DONE)
+ .endc
+	VAR	INPUTS	VU32	XCOM		< SWITCH INPUTS		>
+;	VAR	OUTPUTS	VU8	0xFFE80000	< VARIOUS OUTPUTS	>
+;
+;	VAR	STICKS	VU16	INPUTS+0x00	< JOYSTICK INPUTS	>
+;	VAR	STICKS1	VU16	INPUTS+0x02	< JOYSTICK INPUTS	>
+;
+;	VAR	LAMPS	VU8	0xFFE04000	< LEDS ON PCB-->LIGHTS?	>
+;REM <	Lamp bit assignments >
+;	HEX_CONST LB_MASTER	0		< blinks if master >
+;	HEX_CONST LB_STROBE	1		< enables strobe light >
+;	HEX_CONST LB_CABLIGHT	2		< enables cab light >
+;
+; .if ne,HAS_COMM
+;	VAR	HDWRCONFIG	VU16	INPUTS+0x02	< HDWR CONFIG SWITCH ADDR	>
+;	HEX_CONST B_RIGHT	4	< RIGHT == 0		>
+;	HEX_CONST B_DOUBLE	5	< DOUBLE == 0		>
+; .endc
+;
+;;;; B_START used ONLY in ROOT.ASM
+;
+	VAR	START	VU32	INPUTS+0x00	< START SWITCH ADDR	>
+	HEX_CONST B_START	6	< START SWITCH BIT	>
+;
+	VAR	DIAG	VU8	INPUTS+0x4	< Diagnostic switches	>
+; >>-> See definitions for ZTV board (Below)
+;	VAR	VBLANK	VU8	0x800003	< VBLANK SWITCH ADDR	>
+;	HEX_CONST B_VBL		1	< VBLANK SWITCH BIT	>
+; >>-> If you are just bringing up hardware (e.g. Zoid) and do not have
+;	a selftest switch, don't define its location and selftest.c will
+;	cope somehow :-)
+;	VAR	TEST	VU8	INPUTS+0x4	< SELFTEST SWITCH ADDR	>
+;	HEX_CONST B_TEST	6	< SELFTEST SWITCH BIT	>
+;
+	VAR	CN_STATUS VU8	INPUTS+5	< Coin SWITCHES ADDR	>
+	HEX_CONST BC_AUX_LFT	5	< AUX LEFT Coin switch	>
+	HEX_CONST BC_AUX_RGT	4	< AUX RIGHT Coin switch	>
+	HEX_CONST B_COINL	7	< COIN LEFT>
+	HEX_CONST B_COINR	6	< COIN RIGHT >
+;
+;	VAR	EXT_STATUS VU8	INPUTS+0x2005	< EXTERNAL SWITCHES ADDR	>
+;	HEX_CONST B_EXT_BSY	3	< EXTERNAL BUSY		>
+;	HEX_CONST B_EXT_IRQ	2	< EXTERNAL IRQ		>
+;
+	HEX_CONST VCR_RECORD	-1	< turn on vcr RECORD		>
+	HEX_CONST VCR_STOP	0	< STOP vcr			>
+;
+;	VAR	UNLK_EP	VU8	0xFFFC0000	< EEPROM UNLOCK STROBE	>
+;	VAR	WDOG	VU16	0xFFFB0000	< WATCH DOG RESET	>
+; >>-> See below at ZTV definitions
+;	VAR	VBACK	VU16	0xFFE0C000	< VIDEO INTERRUPT ACK	>
+;	VAR	MS4ACK	VU16	0xFFE0A000	< 4 MS INTERRUPT FOR COINS >
+;
+;
+;
+REM <	SELFTEST common definitions>
+	DEC_CONST TEST_DWELL	<15.*60.> < How long to wait for NEXT in P.O.R>
+	HEX_CONST WDI_MASK	0x3FF	< longwords to try to clear btw wdogs>
+
+	HEX_CONST SW_EDGES	0xFFFFFFFF
+	HEX_CONST SW_LEVELS	0x00000000
+;
+REM <	SELFTEST switch definitions coming OUT of sf_swtch>
+	HEX_CONST J1_UP		0x80000000
+	HEX_CONST J1_DOWN	0x40000000
+	HEX_CONST J1_LEFT	0x20000000
+	HEX_CONST J1_RIGHT	0x10000000
+	HEX_CONST J2_UP		0x00008000
+	HEX_CONST J2_DOWN	0x00004000
+	HEX_CONST J2_LEFT	0x00002000
+	HEX_CONST J2_RIGHT	0x00001000
+	HEX_CONST J3_UP		0x00800000
+	HEX_CONST J3_DOWN	0x00400000
+	HEX_CONST J3_LEFT	0x00200000
+	HEX_CONST J3_RIGHT	0x00100000
+	HEX_CONST J_UP		<J1_UP | J2_UP>
+	HEX_CONST J_DOWN	<J1_DOWN | J2_DOWN>
+REM <	J_LEFT/RIGHT, JOY_ defs moved below so the can use SW_ defs	>
+;
+	HEX_CONST J1_VERT	<J1_UP | J1_DOWN>
+	HEX_CONST J1_BITS	<J1_UP | J1_DOWN | J1_LEFT | J1_RIGHT>
+;
+	HEX_CONST J2_VERT	<J2_UP | J2_DOWN>
+	HEX_CONST J2_BITS	<J2_UP | J2_DOWN | J2_LEFT | J2_RIGHT>
+;
+	HEX_CONST J3_VERT	<J3_UP | J3_DOWN>
+	HEX_CONST J3_BITS	<J3_UP | J3_DOWN | J3_LEFT | J3_RIGHT>
+;
+	HEX_CONST SW_P1_1	0x02000000
+	HEX_CONST SW_P1_2	0x04000000
+	HEX_CONST SW_P1_3	0x08000000
+	HEX_CONST SW_P1_START	0x01000000
+	HEX_CONST SW_P1_4	0x00000002
+	HEX_CONST SW_P1_5	0x00000001
+	HEX_CONST SW_P1_ALL	<SW_P1_1 | SW_P1_2 | SW_P1_3 | SW_P1_4 | SW_P1_5 | SW_P1_START>
+;
+	HEX_CONST SW_P2_1	0x00000200
+	HEX_CONST SW_P2_2	0x00000400
+	HEX_CONST SW_P2_3	0x00000800
+	HEX_CONST SW_P2_START	0x00000100
+	HEX_CONST SW_P2_4	0x00000008
+	HEX_CONST SW_P2_5	0x00000004
+	HEX_CONST SW_P2_ALL	<SW_P2_1 | SW_P2_2 | SW_P2_3 | SW_P2_4 | SW_P2_5 | SW_P2_START>
+;
+	HEX_CONST SW_P3_1	0x00080000
+	HEX_CONST SW_P3_2	0x00040000
+	HEX_CONST SW_P3_3	0x00020000
+	HEX_CONST SW_P3_START	0x00010000
+	HEX_CONST SW_P3_4	0x00000020
+	HEX_CONST SW_P3_5	0x00000010
+	HEX_CONST SW_P3_ALL	<SW_P3_1 | SW_P3_2 | SW_P3_3 | SW_P3_4 | SW_P3_5 | SW_P3_START>
+;
+REM <	the switches let you do s/t options w/o L/R on stix	>
+	HEX_CONST J_LEFT	<J1_LEFT | J2_LEFT>
+	HEX_CONST J_RIGHT	<J1_RIGHT | J2_RIGHT>
+	HEX_CONST JOY_BITS	<J_UP | J_DOWN | J_LEFT | J_RIGHT>
+	HEX_CONST JOY_VERT	<J_UP | J_DOWN>
+;
+	HEX_CONST SW_NEXT	<SW_P2_2>	< right thumb trigger >
+	HEX_CONST SW_ACTION	<SW_P2_1>	< right trigger >
+	HEX_CONST SW_EXTRA	<SW_P1_2>	< left thumb >
+;
+	HEX_CONST JOY_ALL	<JOY_BITS | SW_NEXT | SW_ACTION>
+	HEX_CONST SW_ALL	<SW_ACTION | SW_NEXT | SW_EXTRA>
+	HEX_CONST SW_BITS	<SW_P1_ALL | SW_P2_ALL | SW_P3_ALL>
+;
+.endc
+REM <	Work RAM>
+.if true, (PROCESSOR & -16) == M68000
+; These values must be moved to the host specific .mac file
+	ARRAY	WRAM,	U16, 0xFFFE0000, <0x10000> < Working RAM	>
+;	ADDR	INIT_SP	U16	WRAM+0x20000	< Initial stack pointer	>
+;
+;
+REM <	EEPROM>
+;	ADDR	EEPROM	U8	0xFFFD0001	< EEPROM		>
+;
+.endc
+REM <	Color RAM>
+;
+.if true, HOST_BOARD != MB4600
+REM <	Video RAM>
+	HEX_CONST ZTV XBUS_SLOT1 <ZTV (Zoid TV) board on Xbus at slot 1>
+	VAR	ZTV_CTL, VU32 ZTV <ZTV control register>
+ .if true, ZTV_VERS == 1
+	HEX_CONST B_Z_RUN 0	< ZTV RUN/~HALT bitmap available if 0 >
+	HEX_CONST B_Z_BUFSEL 1	< ZTV Buffer Select (0=AB), posted>
+	HEX_CONST B_Z_TAVEN 2	< ZTV Trapezoid H averaging >
+	HEX_CONST B_Z_ZCMP 3	< ZTV Z sort direction (N.C.) >
+	HEX_CONST B_Z_RESOL 4	< ZTV Resolution select D4-5 (N.C)>
+;	D6,D7 unused
+	HEX_CONST B_Z_BANK 8	< ZTV Parameter bank select (D8-10)>
+ .endc
+ .if true, ZTV_VERS == 2
+	HEX_CONST B_Z_XACC 0	< ZTV bitmap available to XBUS if 0 >
+	HEX_CONST B_Z_BUFSEL 1	< ZTV Buffer Select (0=AB), posted>
+	HEX_CONST B_Z_DSM_OFF 2	< ZTV Display State machine off if 1 >
+	HEX_CONST B_Z_ZBUFF_EN 3 < ZTV Z buffer mapped to XBUS DRAM AREA if 1>
+	HEX_CONST B_Z_RESOL 4	< ZTV Resolution select D4-5 MUST BE 00>
+	HEX_CONST B_Z_TWO_DISP 6 < ZTV drives two displays if == 1 >
+	HEX_CONST B_Z_DISP_SEL 7 < Select which display is filled from overlay >
+	HEX_CONST B_Z_HAS_OVLY 8 < Overlay board installed, no frame-buff clear>
+; D9 Unused
+	HEX_CONST B_Z_REFRESH 10. < 1 enables refresh, 0 suppresses (for diag)>
+ .endc
+;
+	HEX_CONST B_Z_SOFTRES 11. < ZTV Soft reset (0=reset)>
+	HEX_CONST B_Z_INTENB 12. < ZTV IRQ enable (1=enabled)>
+ .if true, ZTV_VERS == 2
+; D13..14 Unused
+	HEX_CONST B_Z_SYNC_MASTER 15. < 1 supplies SYNC, 0 uses external SYNC>
+ .endc
+	HEX_CONST B_Z_SOFT_REFRESH 16. < 1 allows software refresh in IRQ>
+	.if	eq,OUTPUT_LANG-LANG_C
+#define ZTV_OPT_SOFT_REFRESH (1<<B_Z_SOFT_REFRESH)
+	.endc
+;
+	VAR	ZTV_STAT, VU32 ZTV <ZTV status register>
+	HEX_CONST B_Z_INT 0	< ZTV IRQ status in D0 (1==ACTIVE)>
+	HEX_CONST B_Z_VB 1	< ZTV Vblank status in D1 (0==Vert Blank)>
+	HEX_CONST B_Z_VIDB 2	< ZTV Vid (H|V) blank status (0==blanked)>
+	HEX_CONST B_Z_CURBUF 3	< ZTV Currently displayed (0=AB) in D3 >
+;
+	VAR	VBLANK	VU8	(ZTV+BYTE0_OFFS) < VBLANK SWITCH ADDR >
+	HEX_CONST B_VBL		B_Z_VB	< VBLANK SWITCH BIT	>
+;
+ .if true, ZTV_VERS < 2
+	VAR	ZTV_INTACK, VU32 (ZTV+0x60000) <Interupt Acknowledge>
+	VAR	VBACK VU16 (ZTV_INTACK)
+	ARRAY	PF_RAM,U32,ZTV+0x20000,<AN_TOT_ROW,AN_TOT_COL>	< ALPHA-NUMERIC RAM		>
+	ARRAY	COLRAM,U32,ZTV+0x40000,0x8000	<Overlay color RAM>
+;	
+	ARRAY	ZTV_BITMAP, U32, ZTV+0x80000, <0x10000> <Direct access to bitmap for diags>
+	ARRAY	ZTV_ZBUF, U32, ZTV+0x100000, <0x20000> <Direct access to Z-buf>
+ .endc
+ .if true, ZTV_VERS >= 2
+REMB
+REMM < ZTV 2 maps Display Bitmap and Z-Buffer to same address. Selection >
+REMM < of which to "see" is via bit B_Z_ZBUFF_EN in ZTV_CTL. When this bit >
+REMM < is '1', the Z buffer is visible on the 24 LSBs of the data bus. When >
+REMM < it is '0', the "active" bitmap is visible in the 16 LSBs of the data >
+REMM < bus, with the "displaying" bitmap visible in the 16 MSBs, if B_Z_DSM_OFF>
+REMM < is also a '1'. In either case, address lines A2..A10 select a pixel>
+REMM < within a line (512 pixels) while A11..A20 select one of 1024 lines.>
+REME
+	VAR	ZTV_INTACK, VU32 (ZTV+0x20000) <Interupt Acknowledge>
+	VAR	VBACK VU32 (ZTV_INTACK)
+	ARRAY	ZTV_BITMAP, U32, ZTV+0x200000, <0x80000> <Direct access to bitmap for diags>
+	ARRAY	ZTV_ZBUF, U32, ZTV+0x200000, <0x80000> <Direct access to Z-buf>
+REMB
+REMM < Gamma-correction is applied to each of the possible two displays via >
+REMM < a "gamma RAM", with 8 bits each of Red (D16..D23), Green (D8..D15) >
+REMM < and Blue (D0..D7) in each 32-bit word. The words are addressed by the >
+REMM < five-bit "pixel value" in A12..A16 and five bits each of "row" (A7..A10)>
+REMM < and "column" (A2..A6), to experiment with "dithering" gamma. > 
+REME
+	ARRAY	ZTV_GAMMA1, U32, ZTV+0x40000, <0x8000>
+	ARRAY	ZTV_GAMMA2, U32, ZTV+0x60000, <0x8000>
+REMB
+REMM < The ZRE20 (Zoid Render Engine) has converts TRAPs on the>
+REMM < TBUS to Pixels on the VBUS. It has the following "presence">
+REMM < on the XBUS.>
+REME
+	ARRAY	ZRE, U32, XBUS_SLOT2, <0x80000> < Base address >
+	VAR	ZRE_CSR VU32 (ZRE)		< Control and status>
+	VAR	ZRE_RST VU32 (ZRE+0x10000)	< Assert RESET on any write>
+	VAR	ZRE_RUN VU32 (ZRE+0x20000)	< De-assert RESET on any write>
+	VAR	ZRE_XTOT VU32 (ZRE+0x40000)	< XBUS Side-door to TBUS>
+	ARRAY	ZRE_LOCTEX, U32, (ZRE+0x100000), <0x20000> < Local Texture RAM >
+	ARRAY	ZRE_COLRAM, U32, (ZRE+0x180000), <0x20000> < Texture Color RAM >
+REM <Bit assignments in CSR. First 8 are R/W>
+	DEC_CONST B_ZRE_REON (0) <Reset on??>
+	DEC_CONST B_ZRE_XTOT (1) <TBUS Source 0: TBUS, 1: XBUS>
+	DEC_CONST B_ZRE_INTEN (2) <0: IRQ disabled, 1: IRQ enabled>
+	DEC_CONST B_ZRE_INTCLR (3) <0: ???, 1: IRQ cleared>
+	DEC_CONST B_ZRE_TLACC (4) <???>
+	DEC_CONST B_ZRE_TLEN (5) <Textle pipe enable???>
+REM <D6 not used>
+	DEC_CONST B_ZRE_XLED (7) <0: Lit 1: Dark led:XLED>
+REM <Following bits are read-only>
+	DEC_CONST B_ZRE_IDLE (8) <Tex Pipe idle led:IDLE>
+	DEC_CONST B_ZRE_RESET (9) <Reset Status of board>
+	DEC_CONST B_ZRE_FBUSY (10) <Frame BUSY (~done) status led:FRAME DONE>
+	DEC_CONST B_ZRE_TFULL (11) <Tex Pipe full led:TFULL>
+REM <D12-D15 not used>
+ .if ne,0
+REMB
+REMM < The ZTV2 bench setup includes the "FEEB", a buffer of commands that>
+REMM < host can load and then squirt over to the ZTV as is they came from>
+REMM < the ZRE.>
+REME
+	ARRAY	FEEB, U32, XBUS_SLOT5, <0x80000> < Slot #5 >
+	HEX_CONST FEEB_MEM_OFFSET, 0x40000	<longword index of start of mem>
+	HEX_CONST FEEB_MEM_SIZE, 0x100000	<size in bytes of memory area>
+REMB
+REMM < The memory of the FEEB is "banked", with the bank selected by access >
+REMM < to various "words" at the start of the FEEB address space. Because we>
+REMM < might want to use both C and assembly, this first area is defined as >
+REMM < a C struct. Note that _any_ access, not only writes, will trigger action>
+REME
+	STR_START feeb
+	STR_ELT	go U32 1	<Any access starts transfer?>
+	STR_ELT sel_xy U32  1	<Any access selects xy/cmd RAM>
+	STR_ELT sel_z U32 1	<Any access selects z-value RAM>
+	STR_ELT sel_rgb U32 1	<Any access selects rgb-value RAM>
+	STR_ELT sel_ctls U32 1	<Any access selects control RAM>
+	STR_ELT	clk_init U32 1	<Any access starts clock after reset>
+	STR_ELT	notused U32 1	<Any access does what?>
+	STR_ELT clr_sel	U32 1	<Any access de-selects previous RAM>
+	STR_END feeb
+ .endc ; No feeb anymore
+ .endc ; ZTV Version 2
+.endc  ; HOST_BOARD != MB4600
+;
+REM <	MESSAGE ROUTINE CONFIGURATION>
+	HEX_CONST MAX_MESS	3	< maximum # of special message types	>
+	HEX_CONST BIG_CHAR	0x0080	< BIG character bit offset		>
+	HEX_CONST COLMSK	<BGBIT | AN_PAL_MSK>	< palette mask+bgbit	>
+	HEX_CONST SETMSK	0x0003	< character set mask	>
+	HEX_CONST AN_SET0	0x0000		
+	HEX_CONST AN_SET1	0x0001
+	HEX_CONST AN_SET2	0x0002
+;	HEX_CONST AN_BIG_SET	0x0003
+	HEX_CONST AN_BIG_SET	0x0004 < Cannot match, No Big alphas yet>
+@
+
+
+1.2
+log
+@Added a pconfigb struct
+@
+text
+@d196 4
+a199 4
+	HEX_CONST BGBIT		0x80000000
+	HEX_CONST AN_PAL_MSK	0x7F000000
+	HEX_CONST AN_PAL_SHF	0x18
+	HEX_CONST AN_NXT_PAL	0x1000000
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d41 11
+d53 9
+a62 1
+.if true, HOST_BOARD != MB4600
+a63 1
+	ADDR	PBASE	PB_TYP	0xF000		< base addr for game config block	>
+d76 1
+a76 4
+ .if ne,(ZOID_GAME & ZOID_PROTO)
+	HEX_CONST POT_CNT	4		< # of analog pots we have		>
+ .endc
+ .if ndf,POT_CNT
+a77 1
+ .endc
+a83 1
+;
+@

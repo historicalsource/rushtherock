@@ -1,0 +1,34 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	96.01.13.00.16.48;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@placeholders for MathBox routines, pointless in
+the Ascleap version because MEA does not rate a MBox.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/*	mb_stubs.c
+ *	Placeholder for Math Box text routines.
+ */
+int mbtxt_str(int col, int row, const char *ptr, int palette )
+{ return 0; }
+void mbtxt_stamp( int col, int row, int stamp, int color ) {return;}
+void mbtxt_clr_wid( int col, int row, int width ){return;}
+
+int zmb_reset() { return -1; }
+@

@@ -1,0 +1,604 @@
+head	1.7;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.7
+date	96.05.03.20.12.53;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.02.27.20.32.14;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.02.27.00.03.16;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.02.26.23.22.56;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.02.26.22.41.52;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.02.21.23.02.19;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.02.21.22.48.43;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@low-level "driver" for Universal I/O board which attaches
+via SLONet to the Stream Board or its equivalent on the
+ZAG.
+@
+
+
+1.7
+log
+@AVOID_RESET #define to work-around hdw bug. Probably moot.
+@
+text
+@/*		uio.c
+ *	User interface routines for the Universal I/O board,
+ *	which is connected via SLONet to the Stream board, or
+ *	to a Stream-board equivalent on ZAG. This file contains
+ *	the minimal "driver" routines. Diagnostics will continue to
+ *	be developed in stream_bd.c, in GUTS_HOME/zoid/mea/stream/os.
+ */
+
+#include <config.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+
+#ifndef STREAM_BOARD
+#define STREAM_BOARD (XBUS_SLOT76)
+#endif
+#ifndef STREAM_STAT
+#define STREAM_STAT (*(VU32 *)(STREAM_BOARD+0x1c0))
+#endif
+#ifndef SLONET_ADDR
+#define SLONET_ADDR ((VU32 *)(STREAM_BOARD+0xC0))
+#endif
+#ifndef UIO_ID
+#define UIO_ID (0x10)
+#endif
+
+#define AVOID_RESET (1)	/* Don't try to reset SLONET very often, until hdw upgrade */
+
+#define MRBFull (0x8)
+#define MXBEmpty (4)
+
+static U8 def_vbuf[3],*dbg_vbuf;
+U8 *uio_dbg_buf( U8 *new ) {
+    U8 *was;
+    int old_ipl;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    was = dbg_vbuf;
+    if ( was == 0 ) was = dbg_vbuf = def_vbuf;
+    if ( new ) dbg_vbuf = new;
+    prc_set_ipl(old_ipl);
+    return was;
+}
+
+/*		ctl_uio_put(idx, buff, cnt)
+ *	Puts <cnt> bytes from user's buffer @@ <buff> via SLONet
+ *	to UIO offset <idx> and successive offsets.
+ *	non-negative <idx>'s are "addresses" in the board's
+ *	space, while negative <idx>'s might in the future be
+ *	used for the _rare_ occurence of explicitely writing
+ *	the "registers" of the SLONET psuedo-device.
+ *	Returns count successfully sent, or -1 for error.
+ */
+#define UIO_BP_LEN (6)
+int ctl_uio_put(idx,buff,cnt)
+int idx,cnt;
+U8 *buff;
+{
+    VU32 *slp = SLONET_ADDR;
+    VU32 *strp = &STREAM_STAT;
+    int old_ipl;
+    int spinner;
+    U16 cmdbuf[UIO_BP_LEN];
+    U8 *vbuf;
+    int sofar;
+    int end_addr;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+
+    if ( (vbuf = dbg_vbuf) == 0 ) vbuf = def_vbuf;
+
+    cmdbuf[0] = 0;		/* RE-SYNCH slaves, just in case */
+    cmdbuf[1] = 0x101;		/* Reg-select (CIR) gets ID regno */
+    cmdbuf[2] = UIO_ID;		/* Will be sent to ID reg. */
+    cmdbuf[3] = 0xF;		/* Set WRAP start (D7:4 = 0), End (D3:0) = 15 */
+    /* turn "idx" into "byte-select" (D3:0) and "Bank-select" (D5),
+     * and set Read/Write Auto-increment (D7:6)
+     */
+    cmdbuf[4] = (idx&0xF) | ((idx&0x10)<<1) | 0xC0;
+    cmdbuf[5] = 0x100;		/* select TD (data) register */
+
+    for ( sofar = 0 ; sofar < UIO_BP_LEN ; ++sofar ) {
+	int regno = cmdbuf[sofar]>>8;
+	int data = cmdbuf[sofar] & 0xFF;
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) {
+		slp[regno] = data;
+		break;
+	    }
+	}
+	if ( spinner < 0 ) break;
+    }
+    if ( sofar < UIO_BP_LEN ) {
+	prc_set_ipl(old_ipl);
+	return -1-sofar;
+    }
+
+    /* Now that we have set it all up, send the user's data,
+     * all to "register 0", which is where the register-pointer
+     * will be set after the above dance.
+     */
+    for ( sofar = 0; sofar < cnt ; ++sofar ) {
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) {
+		*slp = buff[sofar];
+		break;
+	    }
+	}
+	if ( spinner < 0 ) break;
+    }
+    if ( spinner >= 0 ) {
+	/* finish up by verifying ID, Wrap, Mode at end */
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) {
+		slp[1] = 1;	/* Select ID */
+		break;
+	    }
+	}
+	/* calculate end address as bank/byte pair */
+	end_addr = (idx + cnt) & 0xF;
+	end_addr |= ((idx & 0x10) <<1);
+	if ( spinner < 0 ) sofar = -0x20;
+	else {
+	    /* We need to wait to make sure the last
+	     * write has taken place, before we read.
+	     */
+	    for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+		if ( *strp & MXBEmpty ) break;
+	    }
+	    if ( spinner >= 0 ) {
+		idx = slp[4];	/* Priming trash read */
+		for ( idx = 0 ; idx < 3 ; ++idx ) {
+		    for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+			if ( *strp & MRBFull ) {
+			    vbuf[idx] = slp[(idx < 1)<<2];
+			    break;
+			}
+		    }
+		    if ( spinner < 0 ) {
+			sofar = -0x30-idx;
+			spinner = 0;
+			break;
+		    }
+		}
+	    } else vbuf[0] = 0xFF;	/* Force mis-match */
+	} /* end "else for" */
+	if ( vbuf[0] == UIO_ID
+	  && vbuf[1] == 0x0F
+	  && vbuf[2] == (0xC0 | end_addr) ) {
+#if !AVOID_RESET
+	    /* Verified, de-select in obscure way :-) */
+	    for ( idx = 1 ; idx >= 0 ; --idx ) {
+		for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+		    if ( *strp & MXBEmpty ) {
+			slp[idx] = idx ? 1 : 0xFF;
+			break;
+		    }
+		}
+	    }
+#endif
+	} else sofar = -0x50;
+	spinner = 0;
+    }
+    prc_set_ipl(old_ipl);
+    if ( spinner < 0 ) sofar = -(UIO_BP_LEN+1);
+    return sofar;
+}
+
+/*		ctl_uio_get(idx, buff, cnt)
+ *	Gets <cnt> bytes from uio offset <idx> (and successive
+ *	offsets) into user's buffer @@ <buff>.
+ *	Returns count successfully gotten, or -1 for error.
+ */
+
+int ctl_uio_get(idx,buff,cnt)
+int idx,cnt;
+U8 *buff;
+{
+    VU32 *slp = SLONET_ADDR;
+    VU32 *strp = &STREAM_STAT;
+    int old_ipl;
+    int spinner;
+    U16 cmdbuf[UIO_BP_LEN];
+    U8 *vbuf;
+    int sofar,status;
+    int data;
+    int end_addr;
+
+    status = 0;
+    old_ipl = prc_set_ipl(INTS_OFF);
+#if !AVOID_RESET
+    *strp = 0x1;	/* pmcc */
+    *strp = 0x0;	/* pmcc */
+#endif
+    if ( (vbuf = dbg_vbuf) == 0 ) vbuf = def_vbuf;
+
+    cmdbuf[0] = 0;		/* RE-SYNCH slaves, just in case */
+    cmdbuf[1] = 0x101;		/* Reg-select (CIR) gets ID regno */
+    cmdbuf[2] = UIO_ID;		/* Will be sent to ID reg. */
+    cmdbuf[3] = 0x0F;		/* Set WRAP start (D7:4 = 0), End (D3:0) = 15 */
+    /* turn "idx" into "byte-select" (D3:0) and "Bank-select" (D5),
+     * and set Read/WRITE Auto-increment (D7:6)
+     */
+    cmdbuf[4] = (idx&0xF) | ((idx&0x10)<<1) | 0xC0;
+    cmdbuf[5] = 0x100;		/* select TD (data) register */
+
+    for ( sofar = 0 ; sofar < UIO_BP_LEN ; ++sofar ) {
+	int regno = cmdbuf[sofar]>>8;
+	int data = cmdbuf[sofar] & 0xFF;
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) {
+		slp[regno] = data;
+		break;
+	    }
+	}
+	if ( spinner < 0 ) break;
+    }
+    if ( sofar < UIO_BP_LEN ) {
+	status = -1-sofar;
+    }
+
+    if ( status >= 0 ) {
+	/* Now that we have set it all up, get the user's data,
+	 * but first make sure the last write completed.
+	 */
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) break;
+	}
+	if ( spinner < 0 ) status = -0x10;
+    }
+
+    if ( status >= 0 ) {
+	/* Run-down of transmit succeeded.
+	 */
+	/* The stream board has to be "primed", as it returns
+	 * the data for the current read when you do the next read.
+	 * It also needs to be put into "stream mode" by adding
+	 * an offset of 4 to the address read, _iff_ you are
+	 * going to read more than two bytes at a time. The
+	 * _last_ two bytes must be read at "register 0", to
+	 * "run-down" the streaming read.
+	 */
+	int prime = (cnt >= 2)<<2;	/* "Prime", in streaming mode if cnt >= 2 */ 
+	data = slp[prime];
+
+	for ( sofar = 0; sofar < cnt ; ++sofar ) {
+	    for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+		if ( (cnt - sofar) <= 2 ) prime = 0;
+		if ( *strp & MRBFull ) {
+		    buff[sofar] = slp[prime];
+		    break;
+		}
+	    }
+	    if ( spinner < 0 ) break;
+	}
+	if ( spinner < 0 ) status = -(0x20+sofar);
+    }
+
+    if ( status >= 0 ) {
+	/* Made it through cmd-send, first xmit wait,
+	 * data-recv. Now verify.
+	 */
+
+	/* finish up by verifying ID, Wrap, Mode at end */
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) {
+		slp[1] = 1;	/* Select ID */
+		break;
+	    }
+	}
+	if ( spinner < 0 ) status = -(0x40);
+    }
+
+    /* calculate end address as bank/byte pair, to
+     * prepare for verification below.
+     */
+    end_addr = (idx + cnt) & 0xF;
+    end_addr |= ((idx & 0x10) <<1);
+
+    if ( status >= 0 ) {
+	/* Wait for xmit of "ID reg" to finish
+	 */
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) break;
+	}
+	if ( spinner < 0 ) status = -(0x42);
+    }
+
+    if ( status >= 0 ) {
+	idx = slp[4];	/* Priming trash read */
+	for ( idx = 0 ; idx < 3 ; ++idx ) {
+	    for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+		if ( *strp & MRBFull ) {
+		    vbuf[idx] = slp[(idx < 1)<<2];
+		    break;
+		}
+	    }
+	    if ( spinner < 0 ) {
+		status = -(0x48+idx);
+		break;
+	    }
+	}
+    }
+
+    if ( status >= 0 ) {
+	if ( vbuf[0] == UIO_ID
+	  && vbuf[1] == 0x0F
+	  && vbuf[2] == (0xC0 | end_addr) ) {
+#if !AVOID_RESET
+	    /* Verified, de-select in obscure way :-) */
+	    for ( idx = 1 ; idx >= 0 ; --idx ) {
+		for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+		    if ( *strp & MXBEmpty ) {
+			slp[idx] = idx ? 1 : 0xFF;
+			break;
+		    }
+		}
+		if ( spinner < 0 ) {
+		    status = -(0x60+idx);
+		    break;
+		}
+	    }
+#endif
+	} else sofar = -0x50;
+	spinner = 0;
+    }
+    prc_set_ipl(old_ipl);
+    if ( status == 0 ) status = sofar;
+    return status;
+}
+
+U32 ctl_uio_swt(which)
+int which;
+{
+    int status;
+    U32 val;
+    U8 buf[4];
+
+    status = ctl_uio_get(which<<2, buf, 4);
+    if ( status != 4 ) return 0;
+    val = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+    return val;
+}
+@
+
+
+1.6
+log
+@Patched to allow read-uio to work.
+commented out the port deselect, cause it screwes the whole thing up.
+@
+text
+@d27 2
+d150 1
+d160 1
+d191 1
+a191 1
+#if 0
+a304 1
+#if 0
+d309 1
+d323 1
+a326 1
+#endif
+@
+
+
+1.5
+log
+@changed "priming" in ctl_uio_get(), again
+@
+text
+@d187 4
+a190 1
+
+d301 1
+d322 1
+@
+
+
+1.4
+log
+@cleaned up status checking in ctl_uio_get(), in hope
+of tracking down further Slonet problems.
+@
+text
+@d236 2
+a237 1
+	data = slp[(cnt >= 2)<<2];	/* "Prime", in streaming mode if cnt >= 2 */
+d241 1
+d243 1
+a243 1
+		    buff[sofar] = slp[(cnt>=2)<<2];
+@
+
+
+1.3
+log
+@added extra check for TXBEmpty before "turn-around"
+on all reads to slonet.
+@
+text
+@d181 1
+a181 1
+    int sofar;
+d185 1
+d212 1
+a212 2
+	prc_set_ipl(old_ipl);
+	return -1-sofar;
+d215 8
+a222 5
+    /* Now that we have set it all up, get the user's data,
+     * but first make sure the last write completed.
+     */
+    for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	if ( *strp & MXBEmpty ) break;
+d224 4
+a227 1
+    if ( spinner >= 0 ) {
+d238 1
+a238 1
+	for ( sofar = 0; sofar < (cnt-2) ; ++sofar ) {
+d241 1
+a241 1
+		    buff[sofar] = slp[4];
+d247 1
+a247 11
+	if ( spinner >= 0 ) {
+	    for ( ; sofar < cnt ; ++sofar ) {
+		for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+		    if ( *strp & MRBFull ) {
+			buff[sofar] = *slp;
+			break;
+		    }
+		}
+		if ( spinner < 0 ) break;
+	    }
+	}
+d249 6
+a254 1
+    if ( spinner >= 0 ) {
+d262 21
+a282 5
+	/* calculate end address as bank/byte pair */
+	end_addr = (idx + cnt) & 0xF;
+	end_addr |= ((idx & 0x10) <<1);
+	if ( spinner < 0 ) sofar = -0x20;
+	else {
+d284 4
+a287 1
+		if ( *strp & MXBEmpty ) break;
+d289 3
+a291 16
+	    if ( spinner < 0 ) vbuf[0] = 0xFF;	/* Force failure */
+	    else {
+		idx = slp[4];	/* Priming trash read */
+		for ( idx = 0 ; idx < 3 ; ++idx ) {
+		    for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+			if ( *strp & MRBFull ) {
+			    vbuf[idx] = slp[(idx < 1)<<2];
+			    break;
+			}
+		    }
+		    if ( spinner < 0 ) {
+			sofar = -0x30-idx;
+			spinner = 0;
+			break;
+		    }
+		}
+d293 4
+a296 1
+	} /* end "else for" */
+d308 4
+d317 2
+a318 2
+    if ( spinner < 0 ) sofar = -(UIO_BP_LEN+1);
+    return sofar;
+@
+
+
+1.2
+log
+@added ctl_uio_swt() to match semantics of READ_RAW_SWITCH
+macro in swt_test.c
+@
+text
+@d62 1
+d64 1
+d68 2
+d93 1
+a93 1
+	return -2;
+d109 51
+d161 1
+a161 1
+    if ( spinner < 0 ) sofar = -1;
+d215 2
+a216 8
+    /* Now that we have set it all up, get the user's data.
+     * The stream board has to be "primed", as it returns
+     * the data for the current read when you do the next read.
+     * It also needs to be put into "stream mode" by adding
+     * an offset of 4 to the address read, _iff_ you are
+     * going to read more than two bytes at a time. The
+     * _last_ two bytes must be read at "register 0", to
+     * "run-down" the streaming read.
+d218 2
+a219 10
+    data = slp[(cnt >= 2)<<2];	/* "Prime", in streaming mode if cnt >= 2 */
+
+    for ( sofar = 0; sofar < (cnt-2) ; ++sofar ) {
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MRBFull ) {
+		buff[sofar] = slp[4];
+		break;
+	    }
+	}
+	if ( spinner < 0 ) break;
+d222 11
+a232 1
+	for ( ; sofar < cnt ; ++sofar ) {
+d235 1
+a235 1
+		    buff[sofar] = *slp;
+d241 11
+d266 16
+a281 5
+	    idx = slp[4];	/* Priming trash read */
+	    for ( idx = 0 ; idx < 3 ; ++idx ) {
+		for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+		    if ( *strp & MRBFull ) {
+			vbuf[idx] = slp[(idx < 1)<<2];
+a283 5
+		}
+		if ( spinner < 0 ) {
+		    sofar = -0x30-idx;
+		    spinner = 0;
+		    break;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d238 13
+@

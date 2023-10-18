@@ -1,0 +1,115 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	96.01.03.21.48.44;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Standalone diagnostics config file
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@;
+;	config.mac
+;
+;	The "config.mac skeleton" for CoJag (Coin Operated Jaguar) games.
+;	This file defines which game (for the game-specific stuff) and
+;	"includes" the appropriate files for host board, video hardware,
+;	and game controls.
+;
+;	Traditionally, config.mac was a single file describing a "hardware"
+;	for the purpose of configuring GUTS (Game Utility and Test Software.)
+;	With the advent of Xbus, a game may "mix and match" a variety of
+;	different boards, so config.mac now contains ".include" directives
+;	for the various pieces.
+;
+;	Project:	Zoid20 MathBox
+;	Date:		May 1995
+;	Team:		Dave Shepperd, Mike Albaugh, Senthil Vinayagam, Mark Hess
+;
+;
+ .if true, OUTPUT_LANG == LANG_C
+#if !defined(_CONFIG_H_)
+#define _CONFIG_H_
+ .endc
+; Set some local variables
+	DEC_CONST TINY_MODE		0
+	DEC_CONST DIAG_MODE		1	;We're in diag only mode
+;	DEC_CONST TEST_SENTHIL	   	1
+;	DEC_CONST STOP_ON_EXCEPTION	1
+	DEC_CONST DELAY_LED_DISPLAY	1	;Delay during LED display at boot
+	DEC_CONST INCLUDE_SERIAL_IO	1	;Include the serial I/O routines
+	DEC_CONST VIDEO_BOARD		0	;there's no video in this mode
+	DEC_CONST TEST_SERIAL		0	;don't test the serial I/O
+	DEC_CONST ANN_TEST_SERIAL	1	;Announce the tests on serial port
+	DEC_CONST TEST_MEM64		1	;Test DRAM in 64 bit mode
+	DEC_CONST TEST_MEM32		1	;Test DRAM in 32 bit mode
+;	DEC_CONST TEST_FIFO		1	;Test the FIFO
+;	DEC_CONST TEST_ONLY		1	;Stay in test loop forever
+	DEC_CONST CPU_SPEED		133000000 ;we're running on a 133MHz cpu
+;	DEC_CONST CPU_SPEED		 87000000 ;we're running on a 100MHz cpu
+;	DEC_CONST CPU_SPEED		 51000000 ;we're running on a 100MHz cpu
+	DEC_CONST INCLUDE_ICE_TEST	0	;include the Iceless I/O test code
+	DEC_CONST DO_AUTOBAUD		1	;autobaud the input
+	DEC_CONST HAS_LCD		0	;no LCD present in STREAM_I/O mode
+;
+; Get the "config" constants (Look in /usr/local/gnu/include/constants.mac
+; for details).
+;
+	.include constants.mac
+;
+; Next you need to pick a processor. Look in constants.mac for the names of those
+; from which to choose.
+;
+	HEX_CONST PROCESSOR	MIPS4600
+;
+; Next you need to get the default config types (some are needed by the host.mac
+; file).
+;
+	.include pptypes.mac
+;
+; Pick a host board (if the default selected by the host.mac file included
+; below is not adequate).
+;
+	HEX_CONST B_TEST	-1
+	HEX_CONST NO_WDOG	1
+	HEX_CONST NO_INTS	1
+;
+; Then include the config details for that host board.
+;
+;	.include mb4600.mac
+	.include hcr4k.mac
+	.include xbusmon.mac
+;	HEX_CONST SERIAL_ADDRESS	(XBUS_SLOT75)
+	HEX_CONST SERIAL_ADDRESS	(STREAMIO_BASE)
+;	HEX_CONST SERIAL_ADDRESS	(RRBUS_BASEnc+0x00400000) ;Fake a stream I/O addr
+	HEX_CONST	ICELESS_BASE	RRBUS_BASEnc+0x00400000	< ICELESS board is found here >
+;	HEX_CONST	ICELESS_BASE	STREAMIO_BASE		< ICELESS board is found here >
+	DEC_CONST	F_FILLER	3	< Space from address to first data byte >
+	DEC_CONST	RUN_FROM_DRAM	0	< Set when running stub code from DRAM >
+.if true, OUTPUT_LANG == LANG_C
+#define BOARD_ADDR1	((IcelessBoard *)((char *)(ICELESS_BASE) + (0<<BOARD_SHF)))
+#define BOARD_SHF	5
+.endc
+;
+; Next to lastly, set the defaults for the specific game
+	HEX_CONST AN_VIS_COL	(0x40)
+	HEX_CONST AN_VIS_ROW	(0x30)
+; Done protecting ourself
+ .if	true, OUTPUT_LANG == LANG_C
+#endif		/* _CONFIG_H_ */
+ .endc
+
+@

@@ -1,0 +1,196 @@
+head	1.4;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	96.03.29.03.50.03;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.03.20.03.42.17;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.02.08.20.44.59;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.01.02.21.39.18;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@R4K StandAlone Diagnostics main program
+@
+
+
+1.4
+log
+@Fixed bug in ZAG/ZMATH autodetect.
+rcsdiff sad_parse.c
+@
+text
+@#include <config.h>
+#include <sad_proto.h>
+
+#define ENABLE_TIMER	0		/* set .ne. if to enable the cpu timer interrupt */
+
+void (*ms4vec)(void);
+void (*prc_delay_vec)(void);
+void (*tpllvec)();
+
+void cputimerint(void) {
+}
+
+void timer_pll(void) {
+}
+
+U16 bitshd;
+
+void (* const exception_funcs[VN_MAX])(void) = {
+    0, 0, 0, 0, 0, 0, 0, 0
+};
+
+static const char * const cause_msgs[] = {
+      "Interrupt",
+      "Write to read-only memory",
+      "Read from non-existant memory",
+      "Write to non-existant memory",
+      "Address alignment error on read",
+      "Address alignment error on write",
+      "Bus error on I fetch",
+      "Bus error on D fetch",
+      "SYCALL",
+      0,				/* breakpoint */
+      "Reserved Instruction",
+      "CoProcessor unusable",
+      "Arithmetic Overflow",
+      "Trap exception",
+      "Reserved exception",
+      "Floating point exception",
+      "Undefined exception"
+};
+
+char emsg[132];
+
+#if ENABLE_TIMER
+static void timer(void) {
+    int adj;
+    adj = adj_usclock();
+    usclock += adj;
+}
+#endif
+
+U32 *exception_handler(U32 *regs) {
+    int cause;
+    cause = (regs[CAUSE_REGNUM_W]/4)&0x3F;
+    if (cause > 0xF) cause = 0xF;
+#if ENABLE_TIMER
+    if (cause == 0 && (regs[CAUSE_REGNUM_W]&(0x100<<TIMER_LVL)) != 0) {
+	timer();
+    } else {
+#endif
+	nisprintf(emsg, sizeof(emsg), "\r\n\n*** Got an exception \"%s\" ***\r\n", cause_msgs[cause]);
+	diag_serial_str(emsg);
+	nisprintf(emsg, sizeof(emsg), "EPC=%08lX, ERRPC=%08lX, SR=%08lX, CAUSE=%08lX\r\n",
+	    regs[EPC_REGNUM_W], regs[ERRPC_REGNUM_W], regs[PS_REGNUM_W], regs[CAUSE_REGNUM_W]);
+	diag_serial_str(emsg);
+	nisprintf(emsg, sizeof(emsg), "BADDV=%08lX, SP=%08lX\r\n",
+	    regs[BADVADDR_REGNUM_W], regs[SP_REGNUM_W]);
+	diag_serial_str(emsg);
+	while(1);
+#if ENABLE_TIMER
+    }
+#endif
+    return regs;
+}
+
+extern U8 INIT_SP[], _etext[], bss_end[], FREE_DRAM[], FREE_RAMROM[];
+
+int BootUp() {
+    U32 tmp;
+
+    reent_init();
+#if ENABLE_TIMER
+    set_timer_rate(CPU_SPEED/2000);
+    prc_set_ipl((0x100<<TIMER_LVL)|(0x100<<ICELESS_LVL)|(0x300)|SR_IE);
+#else
+    prc_set_ipl((0x100<<ICELESS_LVL)|(0x300)|SR_IE);
+#endif
+
+#if 0
+    nisprintf(emsg, sizeof(emsg), "\r\nRAM size %dk, stack used %dk, stack free %dk, bss size %dk, prog size %dk\r\n",
+    	((U32)INIT_SP-DRAM_BASE+511)/1024, ((INIT_SP-(U8*)&t)+511)/1024,
+    	((INIT_SP-bss_end)+511)/1024, (bss_end-(U8*)DRAM_BASE+511)/1024,
+    	((_etext-(U8*)begin)+511)/1024);
+    diag_serial_str(emsg);
+#else
+    tmp = *(VU32*)(CTRL_BASE+4);
+    if (tmp&CTA_BRAM_WE) {
+	diag_serial_str("\r\nZAG board, ASIC version 1.0\r\n");
+    } else {
+	diag_serial_str("\r\nZMATH/ZHOST board, EPLD version 0.0\r\n");
+    }
+#endif
+
+    bitshd |= CTS_XBUS_RST;
+    lcl_set_latch(bitshd);
+
+    while (1) {
+	parse();
+    }
+
+#if 0
+    while (1) {
+	t = usclock+1000;
+	while (t > usclock);
+	diag_serial_hex(usclock/1000);
+	diag_serial_out('\r');
+    }
+#endif
+    return 0;
+}
+@
+
+
+1.3
+log
+@Added support for the ASIC version of ZAG. Keyed on ZAG_VERSION. See
+os_rootr4k.mac for details.
+@
+text
+@d96 1
+a96 1
+    tmp = *(VU32*)CTRL_BASE;
+@
+
+
+1.2
+log
+@Changed the name of proto.h to sad_proto.h
+@
+text
+@d79 1
+d96 6
+a101 1
+    diag_serial_str("\r\n");
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d2 1
+a2 1
+#include <proto.h>
+d8 8
+@

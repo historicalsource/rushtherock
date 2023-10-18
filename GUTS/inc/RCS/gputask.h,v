@@ -1,0 +1,164 @@
+head	1.6;
+access;
+symbols
+	CJ_206:1.6
+	CJ2_05:1.6
+	CJ2_04:1.6;
+locks; strict;
+comment	@ * @;
+
+
+1.6
+date	96.07.17.23.16.43;	author birmingham;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.06.14.17.12.48;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.07.29.00.08.00;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.07.18.18.16.51;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.06.01.20.12.27;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.05.26.22.41.43;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@definitions and declaration for use with the GPU task switcher.
+@
+
+
+1.6
+log
+@Added new gpu task number ND16_DECOMP (16-bit null packed decompressor).
+@
+text
+@/****************************************************************
+* GPUTASK.H | Author: Robert M. Birmingham | September 20, 1994 *
+* ============================================================= *
+* Header file for RISC.C, which contains the functions for      *
+* managing GPU on the Jaguar hardware.                          *
+****************************************************************/
+
+#define MAX_GPU_TASKS      (16)
+
+#define GPU_INT_DISPATCH    (0)
+#define GPU_TASK_DISPATCH   (1)
+#define GPU_IDE_INTERRUPT   (2)
+#define GPU_OBP_INTERRUPT   (3)
+#define GPU_NPACK_DECOMP    (4)
+#define GPU_MOVIE_DECOMP    (5)
+#define GPU_MEMORY_TEST     (6)
+#define GPU_IDE_READ        (7)
+#define GPU_MAKE_SHADOW     (8)
+#define GPU_SHUT_DOWN       (9)
+#define GPU_IDE_READ_DECOMP (10)
+#define GPU_BLITTER_INTERRUPT (11)
+#define GPU_ND16           (12)
+
+#define TASK_USES_BLITTER  (0x0001)
+
+typedef struct{
+    U32 id;
+    U32 codesize;
+    U32 stacksize;
+    U32 taskflags;
+    } GPU_TASK_HEADER;
+
+typedef struct gpu_task{
+    U32 *runaddr;
+    U32 *bssbase;
+    U32 *stackbase;
+    U32 *stackptr;
+    U32 taskflags;
+    } GPU_TASK_NODE;
+
+void gpu_task_init( void );
+U32 gpu_load_task( GPU_TASK_HEADER *, U32 task_id );
+void gpu_run_task( int task_id );
+void gpu_push_stack( int task_id, U32 stackparm );
+void gpu_set_bss( int task_id, U32 bss_slot, U32 bss_val );
+U32 gpu_get_bss( int task_id, U32 bss_slot );
+U16 gpu_task_complete( void );
+
+/*************************************************************************
+* End of file: GPUTASK.H                                                 *
+*************************************************************************/
+@
+
+
+1.5
+log
+@reconcile with Silencer "branch".
+@
+text
+@d22 1
+@
+
+
+1.4
+log
+@Added identification numbers for GPU_MAKE_SHADOW and GPU_SHUTDOWN.
+(make shadow is currently being implemented, the shutdown code has
+not been started yet).
+@
+text
+@d10 12
+a21 10
+#define GPU_INT_DISPATCH   (0)
+#define GPU_TASK_DISPATCH  (1)
+#define GPU_IDE_INTERRUPT  (2)
+#define GPU_OBP_INTERRUPT  (3)
+#define GPU_NPACK_DECOMP   (4)
+#define GPU_MOVIE_DECOMP   (5)
+#define GPU_MEMORY_TEST    (6)
+#define GPU_IDE_READ       (7)
+#define GPU_MAKE_SHADOW    (8)
+#define GPU_SHUT_DOWN      (9)
+@
+
+
+1.3
+log
+@Added constant definition for GPU_IDE_READ task identifier.
+@
+text
+@d18 2
+@
+
+
+1.2
+log
+@added memory test task, reduced MAX_GPU_TASKS.
+@
+text
+@d17 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d8 1
+a8 1
+#define MAX_GPU_TASKS      (32)
+d16 1
+@

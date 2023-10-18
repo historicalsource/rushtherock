@@ -1,0 +1,1645 @@
+head	1.7;
+access;
+symbols
+	RUSH_ROCK_1_0:1.7
+	RUSH_ROCK_1_0epst:1.7
+	RUSH_ROCK_1_0boot:1.7
+	MACE_1_0e:1.7
+	MACE_1_0d:1.7
+	RUSH_1_06A:1.6
+	AREA_52_00:1.7
+	MACE_1_0a:1.6
+	CJ_206:1.6
+	CJ2_05:1.6
+	CJ2_04:1.6;
+locks; strict;
+comment	@;; @;
+
+
+1.7
+date	97.07.01.20.54.19;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.09.24.20.16.29;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.10.25.18.59.57;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.10.25.18.06.11;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.10.02.18.02.40;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.07.20.16.25.42;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.12.18.58.18;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@pre-processing macros for making xxx.h and xxx.i from xxx.mac
+@
+
+
+1.7
+log
+@Added a $Id$ to get file's version number.
+@
+text
+@; $Id$
+;	.ESCAPE	MACRO_OPEN	'['
+;	.ESCAPE	MACRO_CLOSE	']'
+;	This file contains macro definitions intended to make it easier to
+; have a common definitions file and generate appropriate .i and .h files that
+; allow (inter alia) passing structures between C and assembly. For structures
+; They define offsets corresponding to those produce by the C compiler.
+...SSP==0			; Beginning software "stack pointer" is zero
+...SAP==0			; Beginning structure allocation pointer is 0
+...SAL==0			; Beginning strictest alignment is 0 (byte)
+...SSN==0			; Beginning structure sequence number
+;
+; The following defaults match GNU CC (or GreenHill -x132) on a 68000
+	.iif	ndf,MAX_ALIGN,MAX_ALIGN == 1
+	.iif	ndf,MIN_ALIGN,MIN_ALIGN == 0
+	.iif	ndf,PTR_SIZ,PTR_SIZ == 4
+LANG_ASM	== 0		; Microtek
+LANG_MAC	== 1		; MACxx
+LANG_C		== 2		; C
+LANG_TXT	== 3		; Plain text
+LANG_ASRxk	== 4		; GNU AS for the R3k or R4k
+LANG_NONE	== 5		; No output (just keep the MACPP variables)
+	.if	ndf,OUTPUT_LANG
+OUTPUT_LANG	== LANG_C
+	.endc
+;
+; One more try at stand-alone comments
+.MACRO .REM. code body
+ .if true, (OUTPUT_LANG != LANG_C) && (OUTPUT_LANG != LANG_NONE)
+'code'body
+ .endc
+.endm
+;
+; The following two macros are "helpers", which set a (possibly numbered)
+; symbol to a value. .SET_SYM. sets a non-numbered symbol while
+; .SET_NSYM. sets a numbered one. When the elided-parameter bug in macxx
+; is fixed, we can merge the two.
+; The majority of calls to .SET_NSYM. are used to create a "stack" by
+; defining a set of symbols with names of the form ...SSP<stack level>.
+;
+.MACRO	.SET_SYM. dname sloc sname 
+	.if	b,sname
+dname == sloc
+	.iff
+dname == sname'sloc
+	.endc
+	.ENDM
+;
+.MACRO	.SET_NSYM. dname dloc sloc sname 
+	.if	b,sname
+dname'dloc == sloc
+	.iff
+dname'dloc == sname'sloc
+	.endc
+	.ENDM
+; This one is like .SET_NSYM., but uses .define instead, for string substitution.
+; It is needed to save the names of enclosing structs for use in emitting qualified
+; structure tag offsets, e.g foo.bar.head, where head in an element of a struct
+; named bar which is in turn a part of a struct named foo
+.MACRO	.DEF_NSYM. dname dloc sname 
+	.define dname'dloc sname
+	.ENDM
+;
+; The following is to "export" a symbol as having a value. These are the
+; only part that makes it into macpp's output for structure offsets in assembly.
+;
+.MACRO	.EXPORT. name val type number comment
+    .if true, OUTPUT_LANG == LANG_C
+	.if	eq,number-1
+	    .if	b,comment
+type name;
+	    .iff
+type name;	/* comment */
+	    .endc
+	.iff
+	    .if	b,comment
+type name[number];
+	    .iff
+type name[number];	/* comment */
+	    .endc
+	.endc
+    .iff	; else must be assembly
+	.if true, OUTPUT_LANG != LANG_NONE
+	    ...more == 0
+	    .iif	nb,type,...more==1
+	    .iif	nb,number,...more==1
+	    .if	b,comment
+	    .iff
+		...more==1
+	    .endc
+	    .if	true, OUTPUT_LANG == LANG_MAC
+		.if	eq,...more
+name	=	val
+		.iff
+name	=	val	; number type comment
+		.endc
+	    .iff
+		.if	eq,...more
+name	EQU	val
+		.iff
+		    .if true, OUTPUT_LANG == LANG_ASRxk
+name	=	val	;# number type comment
+		    .iff
+name	EQU	val	; number type comment
+		    .endc
+		.endc
+	    .endc	; MAC versus ASM
+	.endc	; OUTPUT_LANG != LANG_NONE
+    .endc	; C versus assembly
+.endm
+;
+; These export qualified names
+.MACRO	.EXQ1. qual name val type number comment
+.if true, OUTPUT_LANG != LANG_NONE
+...more == 0
+    .iif	nb,type,...more==1
+    .iif	nb,number,...more==1
+    .iif	nb,comment,...more==1
+    .if	true, OUTPUT_LANG == LANG_MAC
+	.if	eq,...more
+qual'.'name	=	val
+	.iff
+qual'.'name	=	val	; number type comment
+	.endc
+    .iff
+	.if	eq,...more
+qual'.'name	EQU	val
+	.iff
+	    .if true, OUTPUT_LANG == LANG_ASRxk
+qual'.'name	=	val	;# number type comment
+	    .iff
+qual'.'name	EQU	val	; number type comment
+	    .endc
+	.endc
+    .endc
+.endc
+.endm
+;
+.if true, OUTPUT_LANG == LANG_MAC
+;
+	.MACRO	.EXQ2. qual1 qual2 name val
+qual1'.'qual2'.'name = val
+	.endm
+
+	.MACRO	.EXQ3. qual1 qual2 qual3 name val
+qual1'.'qual2'.'qual3'.'name = val
+	.endm
+;
+.iff
+;
+	.MACRO	.EXQ2. qual1 qual2 name val
+qual1'.'qual2'.'name EQU val
+	.endm
+
+	.MACRO	.EXQ3. qual1 qual2 qual3 name val
+qual1'.'qual2'.'qual3'.'name EQU val
+	.endm
+;
+.endc
+;
+;
+; The macro STR_START is intended to start a structure definition.
+; It stacks the current value of the allocation pointer and alignment
+; and resets them to 0
+.MACRO	STR_START str_name
+.if true, OUTPUT_LANG != LANG_NONE
+    .if	eq,OUTPUT_LANG-LANG_C
+	.SET_NSYM. STR_STK,\...SSP,\...SSN 
+	.SET_SYM. SSN'str_name,\...SSN
+	.SET_SYM. ...SSN,\...SSN+1
+	...SSP == ...SSP+1
+struct str_name {
+    .iff	; else must be assembly
+	.if	ndf,QUAL_NAMES
+	    .if true, OUTPUT_LANG == LANG_ASRxk
+		.REM. <;#* > < offsets in struct str_name'>
+	    .iff
+		.REM. * < offsets in struct str_name'>
+	    .endc
+	.endc
+	.SET_NSYM. STR_STK,\...SSP,\...SAP 
+	.SET_NSYM. STR_STK,\...SSP+1,\...SAL 
+	.SET_NSYM. STR_STK,\...SSP+2,\...SSN 
+	...SAP == 0
+	...SAL == 0
+	.DEF_NSYM. STRN_NAME,\...SSP,str_name
+	.SET_SYM. SSN'str_name,\...SSN
+	.SET_SYM. ...SSN,\...SSN+1
+	...SSP == ...SSP+3
+    .endc	; C versus assembly
+.endc
+.endm
+;
+;
+; The macro .PAD. sets <label> to <oldval> rounded up to the next value
+; which is 0 modulo 2**<align>. Actually, <align> is massaged a bit first.
+; the value used is max(MIN_ALIGN,min(align,MAX_ALIGN)). For the 68000
+; 68000, MAX_ALIGN should be 1. For the 68020 or 80386, MAX_ALIGN can be 0,
+; but things will run faster with it >=2. For ASAP, it should be 2. There
+; is no benefit in enforcing a larger MAX_ALIGN than the bus-width of the
+; processor, but you can if you need to be compatible with some compiler.
+; Similarly, MIN_ALIGN should always be 0, unless you must be compatible
+; with a compiler that over-zealously pads (e.g. GreenHills without -x132).
+; As a "side-effect", the variable ...SAL is updated to contain the largest
+; alignment needed so far.
+.MACRO	.PAD.	label oldval align
+	.if	lt,align-MIN_ALIGN
+...alp	==	MIN_ALIGN
+	.iff
+	.if	gt,align-MAX_ALIGN
+...alp	==	MAX_ALIGN
+	.iff
+...alp	==	align
+	.endc
+	.endc
+	.if	gt,...alp-...SAL
+...SAL	==	...alp
+	.endc
+...alm	==	(1<<...alp)-1
+label	==	(oldval+...alm)&^C...alm
+	.endm
+;
+; The macro .ALIGN. is intended to align the storage allocation pointer
+; ('.' in MACXX) to the boundary given
+;
+	.macro	.ALIGN. ...pwr
+	.if true, OUTPUT_LANG != LANG_NONE
+	    .if	ne,...pwr
+	    .align	...pwr
+	    .endc
+	.endc
+	.endm
+;
+; The macro .RESERVE. is intended to reserve an area of storage. It is a
+; macro primarily to allow passing its parameter by value
+;
+.MACRO	.RESERVE. qty comment
+	.if true, OUTPUT_LANG != LANG_NONE
+	DS.B	qty	; comment
+	.endc
+	.endm
+;
+; The macro STR_END is intended to end a structure definition. If the optional
+; parameter QTY is omitted, it is assumed to be one. The previous value of the
+; allocation pointer is popped, then incremented by the size of the just-ended
+; structure (plus padding) times QTY.
+.MACRO	STR_END NAME QTY
+	.if true, OUTPUT_LANG != LANG_NONE
+	.if	eq,OUTPUT_LANG-LANG_C
+	.IF	B,QTY
+};
+	.IFF
+}<0x'QTY>;
+	.ENDC
+...SSP	== ...SSP-1
+	.SET_SYM. ...tmp,\...SSP,STR_STK
+	.iif	ne,...tmp-(SSN'NAME),.error	;structure nesting error
+; End of C version
+	.iff	; else must be assembly
+S_ALN_'NAME == ...SAL
+	.iif	df,EXPORT_ALN,.EXPORT. S_ALN_'NAME,\...SAL
+	.PAD.	...tmp \...SAP \...SAL
+	.IF	B,QTY
+S_SIZ_'NAME	==	...tmp
+	.iif	df,EXPORT_SIZ,.EXPORT. S_SIZ_'NAME,\...tmp
+	.IFF
+S_SIZ_'NAME	== ...tmp*<'QTY'>
+	.iif	df,EXPORT_SIZ,.EXPORT. S_SIZ_'NAME,\...tmp*<'QTY'>
+	.ENDC
+...SSP	== ...SSP-3
+; pop sequence number and test for match
+	.SET_SYM. ...tmp,\...SSP+2,STR_STK
+	.iif	ne,...tmp-(SSN'NAME),.error	;structure nesting error
+; pop previous alignment and force max of (prev,new) if not at top level
+	.SET_SYM. ...tmp,\...SSP+1,STR_STK
+	.if	ne,...SSP
+	.iif	gt,...tmp-...SAL,...SAL	==	...tmp
+	.endc
+; pop previous allocation ptr and add size contribution of just-closed struct
+	.SET_SYM. ...tmp,\...SSP,STR_STK
+...SAP	== S_SIZ_'NAME+...tmp
+	.endc	; C versus assembly
+	.endc	; != LANG_NONE
+	.ENDM
+;
+.UNS_FLAG.	==	0x10
+.VOL_FLAG.	==	0x20
+.CNST_FLAG.	==	0x40
+.PTR_FLAG.	==	0x80
+.SGN_FLAG	==	0x100
+	.macro	.SET_TYPE. ...var ...type
+...flags	==	0
+	.irp	...token,<'...type'>
+	.if	idn,...token,unsigned
+...flags	==	...flags | .UNS_FLAG.
+	.rexit
+	.endc
+	.if	idn,...token,const
+...flags	==	...flags | .CNST_FLAG.
+	.rexit
+	.endc
+	.if	idn,...token,volatile
+...flags	==	...flags | .VOL_FLAG.
+	.rexit
+	.endc
+	.if	idn,...token,signed
+...flags	==	...flags | .SGN_FLAG.
+	.rexit
+	.endc
+	.if	idn,...token,char
+...flags	==	(...flags & 0xFFFFFFF8 ) | 1
+	.rexit
+	.endc
+	.if	idn,...token,short
+...flags	==	(...flags & 0xFFFFFFF8 ) | 2
+	.rexit
+	.endc
+	.if	idn,...token,long
+...flags	==	(...flags & 0xFFFFFFF8 ) | 4
+	.rexit
+	.endc
+	.if	idn,...token,int
+	.iif	ne,...flags & 7,.rexit	; Already spec'd "long" or "short"
+...flags	==	(...flags & 0xFFFFFFF8 ) | 4
+	.rexit
+	.endc
+; Getting here means none of the usual keywords. Could be a "*" or a typedef
+	.irpc	...char,<'...token'>
+	.if	idn,...char,*
+...flags	==	...flags | .PTR_FLAG.
+	.endc
+	.endr
+	.iif	ne,...flags & .PTR_FLAG., .rexit
+; Not a pointer either
+	.if	df,...token'_size
+...flags	==	(...flags & 0xFFFFFFF8 ) | ...token'_size
+	.iff
+	.if	dif,...token,void
+	.error	; Cannot determine basic size of ...type
+	.endc
+	.endc
+	.endr
+...var	==	...flags
+	.endm
+;
+;
+.if true, OUTPUT_LANG == LANG_C
+; C version
+    .macro	STR_ELT name,type,number,comment
+	.if true, number == 1
+	    .if	b,comment
+type name;
+	    .iff
+type name;	/* comment */
+	    .endc
+	.iff
+	    .if	b,comment
+type name[number];
+	    .iff
+type name[number];	/* comment */
+	    .endc
+	.endc
+    .endm
+.iff
+; Assembly version
+    .macro	.STR_ELT. name, type, elt_pwr, n_elts, comment
+	.if true, OUTPUT_LANG != LANG_NONE
+	    .PAD.	...tmp ...SAP elt_pwr
+    ...serad	== 10
+	    .radix	10.
+	    .if	ndf,QUAL_NAMES
+		.EXPORT. name,\...tmp,<'type'>,n_elts,<'comment'>
+	    .iff
+		.EXQ1. STRN_NAME0,name,\...tmp,<'type'>,n_elts,<'comment'>
+		.if	gt,...SSP-3
+		    .SET_SYM. ...cum1,\...SSP-3,STR_STK
+		    .EXQ2. STRN_NAME0 STRN_NAME3 name \...tmp+...cum1
+		.endc
+		.if	gt,...SSP-6
+		    .SET_SYM. ...cum2,\...SSP-6,STR_STK
+		    .EXQ3. STRN_NAME0 STRN_NAME3 STRN_NAME6 name \...tmp+cum1+cum2
+		.endc
+	    .endc
+	    .radix	...serad
+    ...SAP	==	...tmp+((1<<elt_pwr)*n_elts)
+	.endc
+    .endm
+    .macro	STR_ELT name, type, n_elts, comment
+	.if true, OUTPUT_LANG != LANG_NONE
+	    .SET_TYPE. ...var_type <'type'>
+    elt_pwr	== -1
+	    .if	ne,...var_type & .PTR_FLAG.
+    elt_pwr == 2						; All ptrs 4 bytes
+	    .iff
+; Not a pointer, get base type
+		.iif true, (...var_type & 7) >= 4, elt_pwr == 2	; long and int
+		.iif true, (...var_type & 7) == 2, elt_pwr == 1	; short
+		.iif true, (...var_type & 7) == 1, elt_pwr == 0	; char
+	    .endc
+	    .if true, elt_pwr < 0
+		.error	; Unknown alignment for type
+		.mexit
+	    .endc
+	    .STR_ELT. name,<'type'>,elt_pwr,n_elts,<'comment'>
+	.endc
+    .endm
+.endc	; C versus assembly STR_ELT
+;
+;
+.if	eq,OUTPUT_LANG-LANG_C
+; C version
+    .macro	STR_REF name,sname,number,comment
+...num	== 1
+	.iif	nb,number,...num==number
+	.if	eq,...num-1
+	    .if	b,comment
+struct sname name;
+	    .iff
+struct sname name;	/* comment */
+	    .endc
+	.iff
+	    .if	b,comment
+struct sname name[number];
+	    .iff
+struct sname name[number];	/* comment */
+	    .endc
+	.endc
+	.endm
+.iff
+; else must be assembly
+    .macro	STR_REF name,sname,n_elts,comment
+	.if true, OUTPUT_LANG != LANG_NONE
+	    .if	ndf,S_ALN_'sname
+		.error ;reference to undefined struct
+	    .iff
+		.PAD.	...tmp ...SAP \S_ALN_'sname
+		.SET_SYM. ...siz,\S_SIZ_'sname
+		.if	ndf,QUAL_NAMES
+		    .EXPORT. name,\...tmp,<struct sname>,n_elts,<'comment'>
+		.iff
+		    .EXQ1. STRN_NAME0 name \...tmp,<struct sname>,n_elts,<'comment'>
+		    .if	gt,...SSP-3
+			.SET_SYM. ...cum1,\...SSP-3,STR_STK
+			.EXQ2. STRN_NAME0 STRN_NAME3 name \...tmp+...cum1
+		    .endc
+		    .if	gt,...SSP-6
+			.SET_SYM. ...cum2,\...SSP-6,STR_STK
+			.EXQ3. STRN_NAME0 STRN_NAME3 STRN_NAME6 name \...tmp+cum1+cum2
+		    .endc
+		.endc
+		...SAP	==	...tmp+(...siz*n_elts)
+	    .endc
+	.endc
+    .endm
+.endc
+;
+.if	eq,OUTPUT_LANG-LANG_C
+    .macro	STR_PTR name,sname,number,comment
+...num	== 1
+	.iif	nb,number,...num==number
+	.if	eq,...num-1
+	    .if	b,comment
+struct sname *'name;
+	    .iff
+struct sname *'name;	/* comment */
+	    .endc
+	.iff
+	    .if	b,comment
+struct sname *'name[number];
+	    .iff
+struct sname *'name[number];	/* comment */
+	    .endc
+	.endc
+    .endm
+.iff
+; Assembly version
+    .macro	STR_PTR name,sname,number,comment
+	.if true, OUTPUT_LANG != LANG_NONE
+	    .STR_ELT. name,<struct sname' *>,2,number,<'comment'>
+	.endc
+    .endm
+.endc
+;
+.if	eq,OUTPUT_LANG-LANG_C
+    .macro	STR_FPTR name,ret_type,number,comment
+...num	== 1
+	.iif	nb,number,...num==number
+	.if	eq,...num-1
+	    .if	b,comment
+ret_type (*'name)();
+	    .iff
+ret_type (*'name)();	/* comment */
+	    .endc
+	.iff
+	    .if	b,comment
+ret_type name'[number]();	/* comment */
+	    .iff
+ret_type name'[number]();	/* comment */
+	    .endc
+	.endc
+    .endm
+.iff
+; Assembly version
+    .macro	STR_FPTR name,ret_type,number,comment
+	.STR_ELT. name,<'ret_type ()>,2,number,<'comment'>
+    .endm
+.endc
+;
+; This is used to actually declare a struct (reserve storage)
+.if	eq,OUTPUT_LANG-LANG_C
+    .macro	STR_DECL name sname qty comment
+	STR_REF name sname qty <'comment'>
+    .endm
+.iff
+; Assembly version
+    .macro	STR_DECL name sname qty=1 comment
+	.if	ndf,S_ALN_'sname
+	    .ERROR ;undefined structure type sname
+	.iff
+	    .ALIGN.	\S_ALN_'sname
+name:
+	    .RESERVE.	\qty*S_SIZ_'sname <'qty struct sname comment'>
+	.endc
+    .endm
+.endc
+;
+; This is used to output an appropriate 'extern' declaration
+.if	eq,OUTPUT_LANG-LANG_C
+    .macro	STR_IMPORT name sname qty comment
+extern
+	STR_REF name sname qty <'comment'>
+    .endm
+    .macro	IMPORT name type comment
+extern type name; /* comment */
+    .endm
+.iff
+    .macro	STR_IMPORT name sname qty=1 comment
+	.if true, OUTPUT_LANG != LANG_NONE
+	    .if	ndf,S_ALN_'sname
+		.ERROR ;undefined structure type sname
+	    .iff
+	xref	name	; qty struct sname comment
+	    .endc
+	.endc
+    .endm
+    .macro	IMPORT name type comment
+	.if true, OUTPUT_LANG != LANG_NONE
+	xref	name ; type comment
+	.endc
+    .endm
+.endc
+.macro	RTN_IMPORT name type params comment
+	.if true, OUTPUT_LANG != LANG_NONE
+	    .if	eq,OUTPUT_LANG-LANG_C
+extern type name(); /* (params) comment */
+	    .iff
+	xref name ; type (params) comment
+	    .endc
+	.endc
+.endm
+;
+; This is the "inner" macro to output a constant in decimal form for various languages.
+; It assumes that it will be called with the default radix = 10. for both the input
+; (val) and its output.
+.MACRO	__DC__ name val comment
+.if true, OUTPUT_LANG != LANG_NONE
+    .if	b,comment
+	.if	eq,OUTPUT_LANG-LANG_C
+#define name (val)
+	.iff
+	    .if	eq,OUTPUT_LANG-LANG_ASM
+name	EQU	val
+	    .iff
+name	=	val
+	    .endc	; Which assembly
+	.endc	; C or assembly
+    .iff	; Non-blank comment
+	.if	true, OUTPUT_LANG == LANG_C
+#define name (val)	/*'comment'*/
+	.iff
+	    .if	true, OUTPUT_LANG == LANG_ASM
+name	EQU	val	; comment
+	    .iff
+name	=	val	;# comment
+	    .endc	; Which assembly
+	.endc	; C or assembly
+    .endc	; non-blank Comment
+.endc
+.endm
+;
+;
+; This is the "inner" macro to output a constant in hexadecimal form for various
+; languages. It assumes that it will be called with the default radix = 16. for both
+; the input (val) and its output.
+.MACRO	__HC__ name val comment
+.if true, OUTPUT_LANG != LANG_NONE
+    .if	b,comment
+	.if true, OUTPUT_LANG == LANG_C
+#define name (0x'val')
+	.iff
+	    .if	true, OUTPUT_LANG == LANG_ASM
+name	EQU	$'val
+	    .iff
+name	=	0x'val
+	    .endc	; Which assembly
+	.endc	; C or assembly
+    .iff	; Non-blank comment
+	.if true, OUTPUT_LANG == LANG_C
+#define name (0x'val')	/*'comment'*/
+	.iff
+	    .if	true, OUTPUT_LANG == LANG_ASM
+name	EQU	$'val	; comment
+	    .iff
+name	=	0x'val	;# comment
+	    .endc	; Which assembly
+	.endc	; C or assembly
+    .endc	; non-blank Comment
+.endc
+.endm
+;
+;
+; This is the "inner" macro to output an address in hexadecimal form for various
+; languages. It assumes that it will be called with the default radix = 16. for both
+; the input (val) and its output.
+.MACRO	__AC__ name type val comment
+.if true, OUTPUT_LANG != LANG_NONE
+    .if	true, OUTPUT_LANG == LANG_C
+	.if	b,comment
+#define name (('type'*)(0x'val))
+	.iff
+#define name (('type'*)(0x'val))	/*'comment'*/
+	.endc	; non-blank Comment
+    .iff
+	.if true, OUTPUT_LANG == LANG_ASM
+name	EQU	$'val	; ('type') comment
+	.iff
+name	=	0x'val	;# ('type') comment
+	.endc	; Which assembly
+    .endc	; C or Assembly
+.endc
+.endm
+;
+; This is the "inner" macro to output an address in hexadecimal form for various
+; languages. It assumes that it will be called with the default radix = 16. for both
+; the input (val) and its output.
+; It differs from __AC__ by including a "dereference", Which makes a difference in C
+.MACRO	__VR__ name type val comment
+.if true, OUTPUT_LANG != LANG_NONE
+    .if	true, OUTPUT_LANG == LANG_C
+	.if b,comment
+#define name (*('type'*)(0x'val))
+	.iff
+#define name (*('type'*)(0x'val))	/*'comment'*/
+	.endc	; non-blank Comment
+    .iff
+	.if true, OUTPUT_LANG == LANG_ASM
+name	EQU	$'val	; ('type') comment
+	.iff
+name	=	0x'val	;# ('type') comment
+	.endc	; Which assembly
+    .endc	; C or Assembly
+.endc
+.endm
+;
+;
+.MACRO	DEC_CONST name val comment
+name	==	val
+.if true, OUTPUT_LANG != LANG_NONE
+...rad	== 10
+	.radix	10.
+	__DC__ name \('name') <'comment'>
+	.radix	...rad
+.endc
+	.endm
+;
+.MACRO	HEX_CONST name val comment
+name	==	val
+.if true, OUTPUT_LANG != LANG_NONE
+...rad	== 10
+	.radix	16.
+	__HC__ name \('name') <'comment'>
+	.radix	...rad
+.endc
+	.endm
+;
+.MACRO	REG_CONST name val comment
+.if true, OUTPUT_LANG != LANG_NONE
+	.if true, (OUTPUT_LANG != LANG_C) 
+.define	name	val
+	.endc	; All assemblers 
+.endc
+.endm
+;
+;
+.MACRO	VAR name type val comment
+name	==	val
+.if true, OUTPUT_LANG != LANG_NONE
+...rad	== 10
+	.radix	16.
+	__VR__ name <'type'> \('name') <'comment'>
+	.radix	...rad
+.endc
+	.endm
+;
+.MACRO	ADDR name type val comment
+name	==	val
+.if true, OUTPUT_LANG != LANG_NONE
+...rad	== 10
+	.radix	16.
+	.if	eq,OUTPUT_LANG-LANG_ASM
+	.endc
+	__AC__ name <'type'> \('name') <'comment'>
+	.radix	...rad
+.endc
+	.endm
+;
+.MACRO	TYPE name type size_in_bytes comment
+.if true, OUTPUT_LANG != LANG_NONE
+	.if	eq,OUTPUT_LANG-LANG_C
+#ifndef __'name'_TYPE_DEFINED
+#define __'name'_TYPE_DEFINED
+	.if	b,comment
+typedef type name;
+	.iff
+typedef type name;	/*'comment'*/
+	.endc
+#endif /* __'name'_TYPE_DEFINED */
+	.endc
+.endc
+name'_size == size_in_bytes
+	.endm
+;
+.MACRO	sval base sub val
+base'sub == val
+	.endm
+;
+.MACRO	DECL_C_ARRAY_1 name base_type dim_1 comment
+.if true, OUTPUT_LANG != LANG_NONE
+	.if	b,comment
+extern base_type name['dim_1'];
+	.iff
+extern base_type name['dim_1'];	/*'comment'*/
+	.endc
+.endc
+	.endm
+;
+.MACRO	DECL_C_ARRAY_2 name base_type dim_1 dim_2 comment
+.if true, OUTPUT_LANG != LANG_NONE
+	.if	b,comment
+extern base_type name['dim_1']['dim_2'];
+	.iff
+extern base_type name['dim_1']['dim_2'];	/*'comment'*/
+	.endc
+.endc
+	.endm
+;
+.MACRO	DECL_C_ARRAY_3 name base_type dim_1 dim_2 dim_3 comment
+.if true, OUTPUT_LANG != LANG_NONE
+	.if	b,comment
+extern base_type name['dim_1']['dim_2']['dim_3'];
+	.iff
+extern base_type name['dim_1']['dim_2']['dim_3'];	/*'comment'*/
+	.endc
+.endc
+	.endm
+;
+.MACRO	ARRAY	name base_type address dimensions comment
+...dims == 0
+...tot_siz == 1
+...rad	==	10
+	.radix	10.
+	.irp	...dim_siz,<'dimensions'>
+	sval dim_ \...dims \...dim_siz
+...tot_siz == ...tot_siz * ...dim_siz
+...dims	==	...dims+1
+	.endr
+	.if	df,base_type'_size
+...tot_siz	== ...tot_siz * base_type'_size
+	.endc
+;
+	.if	eq,OUTPUT_LANG-LANG_C
+name	==	address
+	.if	eq,...dims-1
+DECL_C_ARRAY_1 name base_type \dim_0 <'comment'>
+	.endc
+	.if	eq,...dims-2
+DECL_C_ARRAY_2 name base_type \dim_0 \dim_1 <'comment'>
+	.endc
+	.if	eq,...dims-3
+DECL_C_ARRAY_3 name base_type \dim_0 \dim_1 \dim_2 <'comment'>
+	.endc
+	HEX_CONST name'_ADDR \address
+ 	.iff
+; Assembly
+	HEX_CONST name address <'comment'>
+	HEX_CONST name'_size \...tot_siz
+	.endc
+	.radix	...rad
+	.endm
+;
+.if	true, OUTPUT_LANG == LANG_C
+	.MACRO	REM comments
+		.REM. </*>
+		.REM. < *> <'comments'>
+		.REM. < */>
+		.endm
+.iff
+    .if	true, OUTPUT_LANG == LANG_TXT
+	.MACRO	REM comments
+		.REM. <  >
+		.REM. <  > <'comments'>
+		.REM. <  >
+		.endm
+    .iff
+	.if true, OUTPUT_LANG == LANG_ASRxk
+	    .MACRO   REM comments
+		    .REM. <;#* >
+		    .REM. <;#* 'comments'>
+		    .REM. <;#* >
+		    .endm
+	.iff
+	    .if true, OUTPUT_LANG != LANG_NONE
+		.MACRO   REM comments
+			.REM. *
+			.REM. * <'comments'>
+			.REM. *
+			.endm
+	    .iff
+		.MACRO REM comments
+			.endm
+	    .endc
+	.endc
+    .endc
+.endc
+;
+; Use REMB,REMM,REME for multi-line comments, to be set off in output
+;
+.MACRO	REMB comments
+.if true, OUTPUT_LANG != LANG_NONE
+    .if true, OUTPUT_LANG == LANG_C
+	    .REM. </*>
+    .iff
+	.if	true, OUTPUT_LANG == LANG_TXT
+	    .REM. <  >
+	.iff
+	    .if true, OUTPUT_LANG == LANG_ASRxk
+		.REM. <;#*>
+	    .iff
+		.REM. *
+	    .endc
+	.endc
+    .endc
+.endc
+.endm
+;
+.MACRO	REMM comments
+.if true, OUTPUT_LANG != LANG_NONE
+    .if true, OUTPUT_LANG == LANG_C
+	.REM. < *> <'comments'>
+    .iff
+	.if true, OUTPUT_LANG == LANG_TXT
+	    .REM. <  > <'comments'>
+	.iff
+	    .if true, OUTPUT_LANG == LANG_ASRxk
+		.REM. <;#* 'comments'>
+	    .iff
+		.REM. * <'comments'>
+	    .endc
+	.endc
+    .endc
+.endc
+.endm
+;
+.MACRO	REME comments
+.if true, OUTPUT_LANG != LANG_NONE
+    .if true, OUTPUT_LANG == LANG_C
+	.REM. < */>
+    .iff
+	.if true, OUTPUT_LANG == LANG_TXT
+	    .REM. <  >
+	.iff
+	    .if true, OUTPUT_LANG == LANG_ASRxk
+		.REM. <;#*>
+	    .iff
+		.REM. *
+	    .endc
+	.endc
+    .endc
+.endc
+.endm
+;
+	.radix	10.
+@
+
+
+1.6
+log
+@Allow modifier "signed" in TYPE definition.
+@
+text
+@d1 1
+@
+
+
+1.5
+log
+@Ooooh, there were more places where arrays were declared with <> instead of [].
+@
+text
+@d289 1
+d303 4
+@
+
+
+1.4
+log
+@Fixed STR_ELT in C version where number != 1
+@
+text
+@d76 1
+a76 1
+type name<number>;
+d78 1
+a78 1
+type name<number>;	/* comment */
+d463 1
+a463 1
+struct sname *'name<number>;
+d465 1
+a465 1
+struct sname *'name<number>;	/* comment */
+d490 1
+a490 1
+ret_type name'<number>();	/* comment */
+d492 1
+a492 1
+ret_type name'<number>();	/* comment */
+@
+
+
+1.3
+log
+@Added a new LANG_NONE which only keeps MACPP commands.
+@
+text
+@d352 1
+a352 1
+type name<number>;
+d354 1
+a354 1
+type name<number>;	/* comment */
+@
+
+
+1.2
+log
+@Added lots of new stuff to support R3k tools
+@
+text
+@d21 1
+d28 1
+d30 1
+d67 1
+a67 1
+    .if	eq,OUTPUT_LANG-LANG_C
+d82 10
+a91 9
+	...more == 0
+	.iif	nb,type,...more==1
+	.iif	nb,number,...more==1
+	.if	b,comment
+	.iff
+	    ...more==1
+	.endc
+	.if	true, OUTPUT_LANG == LANG_MAC
+	    .if	eq,...more
+d93 3
+d97 1
+a97 4
+name	=	val	; number type comment
+	    .endc
+	.iff
+	    .if	eq,...more
+d99 2
+a100 2
+	    .iff
+		.if true, OUTPUT_LANG == LANG_ASRxk
+d102 1
+a102 1
+		.iff
+d104 1
+d106 2
+a107 2
+	    .endc
+	.endc	; MAC versus ASM
+d113 1
+d135 1
+d165 1
+d190 1
+d226 4
+a229 2
+	.if	ne,...pwr
+	.align	...pwr
+d237 1
+d239 1
+d247 1
+d282 1
+d361 16
+a376 10
+	.PAD.	...tmp ...SAP elt_pwr
+...serad	== 10
+	.radix	10.
+	.if	ndf,QUAL_NAMES
+	    .EXPORT. name,\...tmp,<'type'>,n_elts,<'comment'>
+	.iff
+	    .EXQ1. STRN_NAME0,name,\...tmp,<'type'>,n_elts,<'comment'>
+	    .if	gt,...SSP-3
+		.SET_SYM. ...cum1,\...SSP-3,STR_STK
+		.EXQ2. STRN_NAME0 STRN_NAME3 name \...tmp+...cum1
+d378 2
+a379 4
+	    .if	gt,...SSP-6
+		.SET_SYM. ...cum2,\...SSP-6,STR_STK
+		.EXQ3. STRN_NAME0 STRN_NAME3 STRN_NAME6 name \...tmp+cum1+cum2
+	    .endc
+a380 2
+	.radix	...serad
+...SAP	==	...tmp+((1<<elt_pwr)*n_elts)
+d383 6
+a388 5
+	.SET_TYPE. ...var_type <'type'>
+elt_pwr	== -1
+	.if	ne,...var_type & .PTR_FLAG.
+elt_pwr == 2						; All ptrs 4 bytes
+	.iff
+d390 9
+a398 7
+	    .iif true, (...var_type & 7) >= 4, elt_pwr == 2	; long and int
+	    .iif true, (...var_type & 7) == 2, elt_pwr == 1	; short
+	    .iif true, (...var_type & 7) == 1, elt_pwr == 0	; char
+	.endc
+	.if true, elt_pwr < 0
+	    .error	; Unknown alignment for type
+	    .mexit
+a399 1
+	.STR_ELT. name,<'type'>,elt_pwr,n_elts,<'comment'>
+d404 1
+a404 1
+	.if	eq,OUTPUT_LANG-LANG_C
+d406 1
+a406 1
+	.macro	STR_REF name,sname,number,comment
+d410 5
+a414 2
+	.if	b,comment
+	struct sname name;
+d416 5
+a420 7
+	struct sname name;	/* comment */
+	.endc
+	.iff
+	.if	b,comment
+	struct sname name[number];
+	.iff
+	struct sname name[number];	/* comment */
+a421 1
+	.endc
+d423 1
+a423 1
+	.iff
+d425 22
+a446 13
+	.macro	STR_REF name,sname,n_elts,comment
+	.if	ndf,S_ALN_'sname
+	.error ;reference to undefined struct
+	.iff
+	.PAD.	...tmp ...SAP \S_ALN_'sname
+	.SET_SYM. ...siz,\S_SIZ_'sname
+	.if	ndf,QUAL_NAMES
+	.EXPORT. name,\...tmp,<struct sname>,n_elts,<'comment'>
+	.iff
+	.EXQ1. STRN_NAME0 name \...tmp,<struct sname>,n_elts,<'comment'>
+	.if	gt,...SSP-3
+	.SET_SYM. ...cum1,\...SSP-3,STR_STK
+	.EXQ2. STRN_NAME0 STRN_NAME3 name \...tmp+...cum1
+d448 2
+a449 9
+	.if	gt,...SSP-6
+	.SET_SYM. ...cum2,\...SSP-6,STR_STK
+	.EXQ3. STRN_NAME0 STRN_NAME3 STRN_NAME6 name \...tmp+cum1+cum2
+	.endc
+	.endc
+...SAP	==	...tmp+(...siz*n_elts)
+	.endc
+	.endm
+	.endc
+d451 2
+a452 2
+	.if	eq,OUTPUT_LANG-LANG_C
+	.macro	STR_PTR name,sname,number,comment
+d456 5
+a460 2
+	.if	b,comment
+	struct sname *'name;
+d462 5
+a466 1
+	struct sname *'name;	/* comment */
+d468 2
+a469 9
+	.iff
+	.if	b,comment
+	struct sname *'name<number>;
+	.iff
+	struct sname *'name<number>;	/* comment */
+	.endc
+	.endc
+	.endm
+	.iff
+d471 3
+a473 3
+	.macro	STR_PTR name,sname,number,comment
+	.STR_ELT. name,<struct sname' *>,2,number,<'comment'>
+	.endm
+d475 2
+d478 2
+a479 2
+	.if	eq,OUTPUT_LANG-LANG_C
+	.macro	STR_FPTR name,ret_type,number,comment
+d483 5
+a487 2
+	.if	b,comment
+	ret_type (*'name)();
+d489 5
+a493 1
+	ret_type (*'name)();	/* comment */
+d495 2
+a496 9
+	.iff
+	.if	b,comment
+	ret_type name'<number>();	/* comment */
+	.iff
+	ret_type name'<number>();	/* comment */
+	.endc
+	.endc
+	.endm
+	.iff
+d498 1
+a498 1
+	.macro	STR_FPTR name,ret_type,number,comment
+d500 2
+a501 2
+	.endm
+	.endc
+d504 2
+a505 2
+	.if	eq,OUTPUT_LANG-LANG_C
+.macro	STR_DECL name sname qty comment
+d507 2
+a508 2
+	.endm
+	.iff
+d510 1
+a510 1
+.MACRO	STR_DECL name sname qty=1 comment
+d512 1
+a512 1
+	.ERROR ;undefined structure type sname
+d514 3
+a516 2
+	.ALIGN.	\S_ALN_'sname
+name:	.RESERVE.	\qty*S_SIZ_'sname <'qty struct sname comment'>
+d518 2
+a519 2
+	.endm
+	.endc
+d522 2
+a523 2
+	.if	eq,OUTPUT_LANG-LANG_C
+.macro	STR_IMPORT name sname qty comment
+d526 2
+a527 2
+	.endm
+.macro	IMPORT name type comment
+d529 7
+a535 6
+	.endm
+	.iff
+.MACRO	STR_IMPORT name sname qty=1 comment
+	.if	ndf,S_ALN_'sname
+	.ERROR ;undefined structure type sname
+	.iff
+d537 1
+d539 3
+a541 2
+	.endm
+.macro	IMPORT name type comment
+a542 1
+	.endm
+d544 2
+d547 2
+a548 1
+	.if	eq,OUTPUT_LANG-LANG_C
+d550 1
+a550 1
+	.iff
+d552 1
+d554 1
+a554 1
+	.endm
+d560 1
+d582 1
+d590 1
+d612 1
+d620 1
+d634 1
+d642 1
+d656 1
+d662 1
+d667 1
+d672 1
+d677 1
+d681 1
+d685 1
+d691 1
+d696 1
+d701 1
+d708 1
+d712 1
+d723 1
+d732 1
+d738 1
+d742 1
+d748 1
+d752 1
+d758 1
+d816 10
+a825 5
+	    .MACRO   REM comments
+		    .REM. *
+		    .REM. * <'comments'>
+		    .REM. *
+		    .endm
+d833 1
+d847 1
+d851 1
+d865 1
+d869 1
+d883 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d16 5
+a20 4
+LANG_ASM	== 0
+LANG_MAC	== 1
+LANG_C		== 2
+LANG_TXT	== 3
+d26 1
+a26 1
+.macro .REM. code body
+d28 2
+a29 1
+	.endm
+d62 3
+a64 2
+	.MACRO	.EXPORT. name val type number comment
+	.if	eq,OUTPUT_LANG-LANG_C
+d66 11
+a76 10
+	.if	b,comment
+	type name;
+	.iff
+	type name;	/* comment */
+	.endc
+	.iff
+	.if	b,comment
+	type name<number>;
+	.iff
+	type name<number>;	/* comment */
+d78 2
+a79 3
+	.endc
+	.iff	; else must be assembly
+...more == 0
+d84 1
+a84 1
+...more==1
+d86 2
+a87 2
+	.if	eq,OUTPUT_LANG-LANG_MAC
+	.if	eq,...more
+d89 1
+a89 1
+	.iff
+d91 1
+a91 1
+	.endc
+d93 1
+a93 1
+	.if	eq,...more
+d95 4
+a98 1
+	.iff
+d100 2
+a101 1
+	.endc
+d103 3
+a105 2
+	.endc	; C versus assembly
+	.endm
+d107 1
+a107 1
+	.MACRO	.EXQ1. qual name val type number comment
+d109 4
+a112 4
+	.iif	nb,type,...more==1
+	.iif	nb,number,...more==1
+	.iif	nb,comment,...more==1
+	.if	eq,OUTPUT_LANG-LANG_MAC
+d118 1
+a118 1
+	.iff
+d122 3
+d126 1
+d128 5
+a132 3
+	.endc
+	.endm
+	.if	eq,OUTPUT_LANG-LANG_MAC
+d136 1
+d140 3
+a142 1
+	.iff
+d146 1
+d150 2
+a151 1
+	.endc
+d157 2
+a158 2
+	.macro	STR_START str_name
+	.if	eq,OUTPUT_LANG-LANG_C
+d164 1
+a164 1
+	.iff	; else must be assembly
+d166 5
+a170 1
+	.REM. * < offsets in struct str_name'>
+d181 3
+a183 2
+	.endc	; C versus assembly
+	.endm
+d242 1
+a242 1
+	.iif	ne,...tmp-(SSN'NAME),.error	structure nesting error
+d258 1
+a258 1
+	.iif	ne,...tmp-(SSN'NAME),.error	structure nesting error
+d325 2
+a326 1
+	.if	eq,OUTPUT_LANG-LANG_C
+d328 13
+a340 13
+	.macro	STR_ELT name,type,number,comment
+	.if	eq,number-1
+	.if	b,comment
+	type name;
+	.iff
+	type name;	/* comment */
+	.endc
+	.iff
+	.if	b,comment
+	type name<number>;
+	.iff
+	type name<number>;	/* comment */
+	.endc
+d342 2
+a343 2
+	.endm
+	.iff
+d345 1
+a345 1
+	.macro	.STR_ELT. name,type,elt_pwr,n_elts,comment
+d350 1
+a350 1
+	.EXPORT. name,\...tmp,<'type'>,n_elts,<'comment'>
+d352 9
+a360 9
+	.EXQ1. STRN_NAME0,name,\...tmp,<'type'>,n_elts,<'comment'>
+	.if	gt,...SSP-3
+	.SET_SYM. ...cum1,\...SSP-3,STR_STK
+	.EXQ2. STRN_NAME0 STRN_NAME3 name \...tmp+...cum1
+	.endc
+	.if	gt,...SSP-6
+	.SET_SYM. ...cum2,\...SSP-6,STR_STK
+	.EXQ3. STRN_NAME0 STRN_NAME3 STRN_NAME6 name \...tmp+cum1+cum2
+	.endc
+d364 2
+a365 2
+	.endm
+	.macro	STR_ELT name,type,n_elts,comment
+d372 7
+a378 7
+	.iif	eq,(...var_type & 7)-4,elt_pwr == 2		; long and int
+	.iif	eq,(...var_type & 7)-2,elt_pwr == 1		; short
+	.iif	eq,(...var_type & 7)-1,elt_pwr == 0		; char
+	.endc
+	.if	lt,elt_pwr
+	.error	; Unknown alignment for type
+	.mexit
+d381 3
+a383 2
+	.endm
+	.endc	; C versus assembly STR_ELT
+d408 1
+a408 1
+	.error reference to undefined struct
+d489 1
+a489 1
+	.ERROR undefined structure type sname
+d509 1
+a509 1
+	.ERROR undefined structure type sname
+d530 1
+a530 1
+	.if	b,comment
+d534 1
+a534 1
+	.if	eq,OUTPUT_LANG-LANG_ASM
+d536 1
+a536 1
+	.iff
+d538 1
+a538 1
+	.endc	; Which assembly
+d540 2
+a541 2
+	.iff	; Non-blank comment
+	.if	eq,OUTPUT_LANG-LANG_C
+d544 1
+a544 1
+	.if	eq,OUTPUT_LANG-LANG_ASM
+d546 3
+a548 3
+	.iff
+name	=	val	; comment
+	.endc	; Which assembly
+d550 3
+a552 2
+	.endc	; non-blank Comment
+	.endm
+d558 2
+a559 2
+	.if	b,comment
+	.if	eq,OUTPUT_LANG-LANG_C
+d562 1
+a562 1
+	.if	eq,OUTPUT_LANG-LANG_ASM
+d564 1
+a564 1
+	.iff
+d566 1
+a566 1
+	.endc	; Which assembly
+d568 2
+a569 2
+	.iff	; Non-blank comment
+	.if	eq,OUTPUT_LANG-LANG_C
+d572 1
+a572 1
+	.if	eq,OUTPUT_LANG-LANG_ASM
+d574 3
+a576 3
+	.iff
+name	=	0x'val	; comment
+	.endc	; Which assembly
+d578 3
+a580 2
+	.endc	; non-blank Comment
+	.endm
+d586 1
+a586 1
+	.if	eq,OUTPUT_LANG-LANG_C
+d592 2
+a593 2
+	.iff
+	.if	eq,OUTPUT_LANG-LANG_ASM
+d596 1
+a596 1
+name	=	0x'val	; ('type') comment
+d598 2
+a599 2
+	.endc	; C or Assembly
+	.endm
+d606 2
+a607 2
+	.if	eq,OUTPUT_LANG-LANG_C
+	.if	b,comment
+d612 2
+a613 2
+	.iff
+	.if	eq,OUTPUT_LANG-LANG_ASM
+d616 1
+a616 1
+name	=	0x'val	; ('type') comment
+d618 3
+a620 2
+	.endc	; C or Assembly
+	.endm
+d638 7
+d730 1
+d739 26
+a764 19
+	.if	eq,OUTPUT_LANG-LANG_C
+.MACRO	REM comments
+	.REM. </*>
+	.REM. < *> <'comments'>
+	.REM. < */>
+	.endm
+	.iff
+	.if	eq,OUTPUT_LANG-LANG_TXT
+.MACRO	REM comments
+	.REM. <  >
+	.REM. <  > <'comments'>
+	.REM. <  >
+	.endm
+	.iff
+.MACRO	REM comments
+	.REM. *
+	.REM. * <'comments'>
+	.REM. *
+	.endm
+d766 2
+a767 1
+	.endc
+d772 11
+a782 7
+	.if	eq,OUTPUT_LANG-LANG_C
+	.REM. </*>
+	.iff
+	.if	eq,OUTPUT_LANG-LANG_TXT
+	.REM. <  >
+	.iff
+	.REM. *
+d784 3
+a786 2
+	.endc
+	.endm
+d788 1
+a788 1
+	.if	eq,OUTPUT_LANG-LANG_C
+d790 9
+a798 5
+	.iff
+	.if	eq,OUTPUT_LANG-LANG_TXT
+	.REM. <  > <'comments'>
+	.iff
+	.REM. * <'comments'>
+d800 3
+a802 2
+	.endc
+	.endm
+d804 1
+a804 1
+	.if	eq,OUTPUT_LANG-LANG_C
+d806 9
+a814 5
+	.iff
+	.if	eq,OUTPUT_LANG-LANG_TXT
+	.REM. <  >
+	.iff
+	.REM. *
+d816 3
+a818 2
+	.endc
+	.endm
+@

@@ -1,0 +1,2575 @@
+head	1.41;
+access;
+symbols
+	CJ_206:1.35
+	CJ2_05:1.34
+	CJ2_04:1.32
+	CJ2_03:1.20;
+locks; strict;
+comment	@ * @;
+
+
+1.41
+date	97.07.01.22.31.02;	author albaugh;	state Exp;
+branches;
+next	1.40;
+
+1.40
+date	97.02.14.20.32.47;	author albaugh;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	97.02.11.17.47.25;	author albaugh;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	97.01.29.22.58.53;	author albaugh;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	97.01.10.21.07.39;	author albaugh;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	96.12.12.19.11.17;	author albaugh;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	96.11.11.18.17.49;	author albaugh;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	96.10.24.16.43.39;	author albaugh;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	96.10.24.02.17.51;	author albaugh;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	96.10.01.22.58.41;	author albaugh;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	96.08.09.19.04.20;	author forrest;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	96.06.20.21.01.42;	author albaugh;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	96.05.31.00.14.53;	author albaugh;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	96.05.08.20.57.34;	author albaugh;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.05.07.16.18.03;	author albaugh;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.05.03.22.25.19;	author albaugh;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.05.03.20.20.01;	author albaugh;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.03.11.22.29.25;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.02.21.16.50.13;	author forrest;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	95.11.07.22.49.03;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	95.10.31.18.32.04;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	95.10.20.21.47.52;	author albaugh;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	95.09.18.17.11.19;	author albaugh;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	95.09.13.02.43.34;	author albaugh;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	95.08.01.21.42.47;	author albaugh;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	95.07.27.23.20.11;	author albaugh;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	95.07.18.00.49.15;	author albaugh;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	95.06.21.16.08.19;	author albaugh;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.06.09.00.30.08;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.05.17.01.09.30;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.05.12.23.18.38;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.05.08.22.14.49;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.05.08.21.13.54;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.04.27.23.44.13;	author birmingham;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.04.25.20.08.50;	author birmingham;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.04.12.02.25.32;	author birmingham;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.04.11.22.22.45;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.02.23.22.29.03;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.02.14.01.57.45;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.01.31.00.27.53;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.27.38;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@The driver for CoJag (Coin Operated Jaguar) video. Provides
+relatively conventional interface.
+@
+
+
+1.41
+log
+@Added RCS ID string
+@
+text
+@/**************************************************************
+* jag_vid.c Derived by Michael Albaugh from:                  *
+* VIDEO.C | Author: Robert M. Birmingham | June 29, 1994      *
+* =========================================================== *
+* G.U.T.S video support routines: Copyright 1994, Atari Games *
+**************************************************************/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <oblist.h>
+#include <decomp.h>
+#include <gputask.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <eer_defs.h>
+#include <string.h>
+#define MAKE_EXTERNS
+#include <intvecs.h>
+#undef MAKE_EXTERNS
+#include <intvecs.h>
+
+#define STATIC static
+
+U16 vdb;
+U16 vde;
+
+typedef struct jag_init_tab {
+   U16 val;
+   VU16 *ptr;
+} InitTab;
+
+#define H_BORDER_SIZE (12)
+#define V_BORDER_SIZE (0)
+#if ( (H_BORDER_SIZE <<1) < N_HBE )
+#define H_BORDER (H_BORDER_SIZE<<1)
+#else
+#define H_BORDER (N_HBE)
+#endif
+#if ( (V_BORDER_SIZE <<1) < N_VBE )
+#define V_BORDER (V_BORDER_SIZE<<1)
+#else
+#define V_BORDER (N_VBE)
+#endif
+#ifndef VC_PER_PIX
+#define VC_PER_PIX (2)
+#endif
+#ifndef VIDEO_MODE_DEFAULT
+#ifdef VIDEO_MODE_MIX
+#define VIDEO_MODE_DEFAULT (VIDEO_MODE_MIX)
+#else
+#define VIDEO_MODE_DEFAULT (VIDEO_MODE_CRY)
+#endif	/* _MIX defined */
+#endif /* _DEFAULT un-defined */
+#ifndef VMODE_MASK
+#define VMODE_MASK (6)	/*Bits selecting basic mode CRY/RBG*/
+#endif
+
+const InitTab *init_tab, def_tab[] = {
+    /* This is initialized according to Brian's numbers */
+   {N_HP, &HP },
+   {N_HBB+H_BORDER, &HBB },
+   {N_HBE-H_BORDER, &HBE },
+   {N_HS, &HS },
+   {N_HVS, &HVS },
+   {N_HDB1, &HDB1 },
+   {N_HDB2, &HDB2 },
+   /* _Calculate_ N_HDE, because it is critical */
+   {(N_HDB1+(VC_PER_PIX*VIS_H_PIX)-N_HP-1)|0x400, &HDE},
+   {N_VP, &VP },
+   {N_VBB, &VBB },
+   {N_VBE-V_BORDER, &VBE },
+   {N_VS, &VS },
+   {N_VDB, &VDB },
+   {N_VDE, &VDE },
+   {N_VEB, &VEB },
+   {N_VEE, &VEE },
+   {N_HEQ, &HEQ },
+   {VIDEO_MODE_DEFAULT, &VMODE},
+   {0, 0}
+};
+
+int jag_interlace;
+
+const struct jag_init_tab * vid_set_init( const struct jag_init_tab *new )
+{
+    const struct jag_init_tab *old = init_tab;
+    if ( old == 0 ) init_tab = old = def_tab;
+    if ( new ) init_tab = new;
+    return old;
+}
+
+void (*gameint)();
+
+void (*vid_set_vb ( void (*new_rtn)() ))()
+{
+    return prc_set_vec(GAMEVB_INTVEC,new_rtn);
+}
+
+static int fields_per_frame;
+
+/* Dummy vblank does minimum needed to keep the screen alive and eer_rtc
+ * counting.
+ */
+static void
+dummy_vblank() {
+#ifdef WDOG
+    WDOG = 0;
+#endif
+    ob_copy(1);
+}
+
+/* Jaguar DRAM banks are 2Megabytes, but we work in phrases. The DRAM interface
+ * (in TOM) interleaves them with two physical banks per logical bank, so a 4Meg
+ * system has a hole between the two banks it can use.
+ */
+#define DRAM_BANK_SIZE ((2<<20)/sizeof(PHRASE))
+#define DRAM_BANK_OFFSET (DRAM_BANK_SIZE*2)
+
+#ifndef PHYS_DRAM_BANKS
+#define PHYS_DRAM_BANKS (4)
+#endif
+
+#ifndef WDB_RESERVE
+#define WDB_RESERVE (0x20)
+#endif
+
+#define WDB_PHRASES (WDB_RESERVE/sizeof(PHRASE))
+
+static const struct region {
+    PHRASE *begin;
+    PHRASE *end;
+} dram_regions[] = {
+    { ((PHRASE *)HOST_MEM_BASE)+WDB_PHRASES,
+#if (PHYS_DRAM_BANKS > 2)
+      ((PHRASE *)HOST_MEM_BASE)+DRAM_BANK_OFFSET-1
+#else
+      ((PHRASE *)HOST_MEM_BASE)+DRAM_BANK_SIZE-1
+#endif
+    }
+#if (PHYS_DRAM_BANKS > 1)
+    ,{ ((PHRASE *)HOST_MEM_BASE)+DRAM_BANK_OFFSET,
+#if (PHYS_DRAM_BANKS > 3)
+      ((PHRASE *)HOST_MEM_BASE)+(2*DRAM_BANK_OFFSET)-1 },
+#else
+      ((PHRASE *)HOST_MEM_BASE)+DRAM_BANK_OFFSET+DRAM_BANK_SIZE-1 },
+#endif
+#endif
+};
+
+#define N_DRAM_REGIONS (sizeof(dram_regions)/sizeof(dram_regions[0]))
+
+static PHRASE *dram_curr_brk[N_DRAM_REGIONS];
+
+/*		dram_alloc(len,region)
+ *	The newer, prefered, way to allocate DRAM. This one allows
+ *	caller to specify which of the two regions to use. If
+ *	region < 0, will use the one which currently has most room.
+ */
+PHRASE *dram_alloc(len,region)
+int len;	/* in phrases */
+int region;
+{
+    PHRASE *retval;
+    PHRASE **cbp;
+    const struct region *rp;
+    long remaining;
+    int old_ipl;
+    U32 test,*tp;
+
+    cbp = dram_curr_brk;
+    rp = dram_regions;
+    old_ipl = prc_set_ipl(INTS_OFF);
+    if ( region < 0 ) {
+	/* we don't care which region */
+	int best = 0;
+	long best_len;
+	if ( len < 0 ) prc_panic("De-alloc of unknown DRAM");
+	best_len = 0;
+	for ( region = 0 ; region < N_DRAM_REGIONS ; ++region ) {
+	    if ( *cbp == 0 ) {
+		*cbp = rp->begin;
+	    }
+	    remaining = rp->end-*cbp;
+	    if ( remaining < len ) continue;
+	    /* test for physical presence of memory */
+	    tp = (U32 *)*cbp;
+	    tp += (len<<1)-1;
+	    test = *tp;
+	    *tp = (test ^= ~0);
+	    /* if we could not invert it, it's not there */
+	    if ( test != *tp ) continue;
+
+	    if ( remaining > best_len ) {
+		best_len = remaining;
+		best = region;
+	    }
+	    ++rp;
+	    ++cbp;
+	}
+	if ( best_len < len ) {
+	    prc_set_ipl(old_ipl);
+	    return 0;
+	}
+	cbp = dram_curr_brk+best;
+	retval = *cbp;
+	*cbp += len;
+	prc_set_ipl(old_ipl);
+	return retval;
+    } else if ( region < N_DRAM_REGIONS ) {
+	/* user specified region */
+	cbp += region;
+	rp += region;
+	if ( *cbp == 0 ) {
+	    *cbp = rp->begin;
+	}
+	if ( len < 0 ) {
+	    /* giving it back */
+	    retval = *cbp + len;
+	    if ( retval < rp->begin ) retval = rp->begin;
+	    *cbp = retval;
+	    len = 0;
+	}
+	retval = *cbp;
+	remaining = rp->end-retval;
+	if ( remaining < len ) retval = 0;
+	else {
+	    /* test for physical presence of memory */
+	    tp = (U32 *)*cbp;
+	    tp += (len<<1)-1;
+	    test = *tp;
+	    *tp = (test ^= ~0);
+	    /* if we could not invert it, it's not there */
+	    if ( test != *tp ) retval = 0;
+	    else *cbp += len;
+	}
+    } else retval = 0;
+    prc_set_ipl(old_ipl);
+    return retval;
+}
+
+/*
+** *************************************
+** vid_init():
+** Initialize the Jaguar for NTSC video.
+** =====================================
+** Usage:
+**   vid_init();
+**
+** Returns:
+**   Nothing.
+** *************************************
+*/
+#define MAX_OBLIST_SIZE  (100)
+#define OLP_LIST_SIZE (MAX_OBLIST_SIZE*sizeof(OLPBLK))
+#define USR_LIST_SIZE    (MAX_OBLIST_SIZE*sizeof(OBJECT))
+
+static int logo_shown;
+extern int logo_test( const struct menu_d *);
+
+/* BEWARE: the following definition is a kluge that "knows" that VIS_H_PIX is
+ * evenly divisible by sizeof(PHRASE)
+ */
+#if NYBBLE_TEXT
+/* Text pixels are 4 bits each, so 16 to a phrase */
+#define TEXT_SCREEN_SIZE ((VIS_V_PIX*VIS_H_PIX)/(2*sizeof(PHRASE)))
+#else
+/* Text pixels are 16 bits each, so 4 to a phrase */
+#define TEXT_SCREEN_SIZE ((VIS_V_PIX*VIS_H_PIX*2)/sizeof(PHRASE))
+#endif
+
+static OBJECT *alpha_screen;
+static unsigned short def_bg;
+OBJECT *vid_setscr( OBJECT *new);
+static int vmode_shad;
+static int white_val;
+
+int vid_set_vmode(new_mode)
+int new_mode;
+{
+    int old_mode,old_ipl;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    old_mode = vmode_shad;
+    if ( new_mode ) {
+	vmode_shad = new_mode;
+	VMODE = new_mode;
+	new_mode &= VMODE_MASK;
+	if ( new_mode == (VIDEO_MODE_CRY&VMODE_MASK) ) {
+	    white_val = WHT_FUL;
+	}
+	else white_val = 0xE7BC;	/* KLUGE */
+	prc_set_ipl(old_ipl);
+	setancolors();
+	return old_mode;
+    }
+    prc_set_ipl(old_ipl);
+    return old_mode;
+}
+
+int vid_set_bg(new)
+int new;
+{
+    int old_ipl;
+    int old_bg;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    old_bg = def_bg;
+    BG = def_bg = new;
+    prc_set_ipl(old_ipl);
+    return old_bg;
+}
+
+STATIC U32 def_bord;
+
+int vid_set_border(new)
+U32 new;
+{
+    int old_ipl;
+    U32 old_bord;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    old_bord = def_bord;
+    def_bord = new;
+    BORD1 = (new >> 8);
+    BORD2 = new;
+    prc_set_ipl(old_ipl);
+    return old_bord;
+}
+
+static unsigned short tomint_shad;
+extern int gun_v_init();
+static void rawvb();
+static void rawvi();
+void (*tomvec)();
+void tomint(void);
+extern void wait_n_usecs( int );
+
+void vid_init( void )
+{
+    const InitTab *it;
+    int old_ipl;
+    void (*old_vb)();
+    int i;
+    U32 oblist_size;
+    OLPBLK *olpmem;
+    OBJECT *usrmem;
+    unsigned char * kluge_screen;
+
+#ifdef ADD_OBJECTS
+    OBJECT *obptrs[ADD_OBJECTS];
+#endif
+    OBJECT *obptr;
+
+#if (0) /* def COJAG_NUVID */
+    /* Try shutting down object processor (with bogus
+     * values for "Horizontal Display Begin". while we
+     * mess with the video. 18MAR96 MEA.
+    */
+    HDB1 = 0x7FF;
+    HDB2 = 0x7FF;
+#if (1)
+    VMODE = VIDEO_MODE_MIX;
+    VMODE = 1;
+    { int tick;
+	for ( tick = 31 ; tick >= 0 ; --tick ) {
+	    wait_n_usecs(30000);
+	    vid_set_border(((0x1f-tick)<<19) | (tick<<11) );
+	}
+    }
+#else
+    VMODE = 1;
+    for ( i = 0 ; i < 10000000 ; ++i ) {
+	if ( (i & 0xFFFF) == 0 ) WDOG = 0;
+    }
+#endif
+#endif
+    for ( i = 0 ; i < N_DRAM_REGIONS ; ++i ) {
+	dram_curr_brk[i] = 0;
+    }
+    /* Actual CoJag has provison for game to over-ride size and
+     * location of object lists.
+     */
+    if ( (usrmem = pbase->p_oblist) != 0 ) {
+	/* User wants to supply memory for object lists.
+	 */
+	oblist_size = pbase->p_oblen/sizeof(OBJECT);
+    } else
+    /* game has not allocated working ram for object list, use
+     * default list in DRAM.
+     */
+    {
+	usrmem = (OBJECT *)dram_alloc(USR_LIST_SIZE/sizeof(PHRASE),0);
+	if ( !usrmem ) prc_panic("No DRAM for USRMEM");
+	oblist_size = MAX_OBLIST_SIZE;
+    }
+
+    olpmem = (OLPBLK *)dram_alloc((oblist_size*sizeof(OLPBLK))/sizeof(PHRASE),0);
+    if ( !olpmem ) prc_panic("No DRAM for OLPMEM");
+    ob_set_mem( olpmem, usrmem, oblist_size );
+
+    /* Clear latches and disable interrupts */
+    INT1 = 0x1f00;
+    old_vb = vid_set_vb(dummy_vblank);
+
+    /* set video timing regs per table supplied, or
+     * default table. "watch for" vertical begin/end values and
+     * set variables used by oblist.c
+    */
+    if ( (it = init_tab) == 0 ) init_tab = it = def_tab;
+    while (  it->ptr )
+    {
+	VU16 *rp = it->ptr;
+	if ( rp == &VDE ) {
+	    /* Buggy Toms require us to use 0xFFFF for
+	     * Vertical Display End, but ob_build() has
+	     * to know the real value, so it can construct
+	     * the branch objects that are used instead.
+	     */
+	    vde = it->val;
+	    *rp = 0xFFFF;
+	} else if ( rp == &VMODE ) vid_set_vmode(it->val);
+	else {
+	    *rp = it->val;
+	    if ( rp == &VDB ) vdb = it->val;
+	    /* VP is programmed with "(Number of half-lines) -1".
+	     * If this number is even, then the number of half-lines
+	     * per field is odd, and we have an interlaced display.
+	     */
+	    if ( rp == &VP ) jag_interlace = (it->val+1)&1;
+	}
+	++it;
+    }
+
+    kluge_screen = (U8 *)dram_alloc(TEXT_SCREEN_SIZE,0);
+
+    /* initialize the background and border colors */
+    vid_set_bg(0);
+    vid_set_border(0L);
+    old_ipl = prc_set_ipl(INTS_OFF);
+
+    VI = (vde | 1);
+#if ((PROCESSOR&-16) == MIPS3000) || ((PROCESSOR&-16) == MIPS4000)
+    prc_set_vec(TOMINT_INTVEC, tomint);
+#endif
+    prc_set_vec(RAWVB_INTVEC,rawvb);
+    /* Following also enables the IRQ in TOM */
+    prc_set_vec(RAWVI_INTVEC,rawvi);
+    if ( old_vb ) vid_set_vb(old_vb);
+    prc_set_ipl(old_ipl);
+    obptr = ob_add( NBMAP_OBTYPE );
+    ob_set_x( obptr, 0 );
+    ob_set_y( obptr, 0 );
+    ob_set_pixw( obptr, VIS_H_PIX );
+    ob_set_pixh( obptr, VIS_V_PIX );
+#if NYBBLE_TEXT
+    ob_set_pixdepth( obptr, OBPIX4 );	/* test CLUT-mapped ALPHAS */
+#else
+    ob_set_pixdepth( obptr, OBPIX16 );	/* KLUGE, until CLUT-mapped ALPHAS */
+#endif
+    ob_set_dpitch( obptr, 1 );
+    ob_set_dwidth( obptr, ob_get_pixw( obptr ) >> (6 - ob_get_pixdepth(obptr) ));
+    ob_set_iwidth( obptr, ob_get_dwidth( obptr ) );
+    ob_set_flags( obptr, OBFLAG_TRANS );
+    ob_set_img( obptr, kluge_screen );
+    ob_set_priority(obptr,0xFFFE);	/* in front of everything but gun cursor */
+    vid_setscr(obptr);
+    vid_clear();
+    ob_build();
+
+    /* call GPU task manager as soon as possible! */
+    gpu_task_init();
+
+    decomp_init();
+    if ( !logo_shown ) {
+	logo_shown = 1;
+#if WANTS_LOGO
+	logo_test((struct menu_d *)0);
+#endif
+    }
+#if GUN_CNT
+    gun_v_init();	/* re-Allocate gun video objects */
+#endif
+#ifdef IDE_INTS_ON
+    ide_force_reinit();
+#endif
+}   /* End: vid_init() */
+
+OBJECT *vid_setscr(OBJECT *new)
+{
+    OBJECT *old = alpha_screen;
+    if ( new ) {
+	alpha_screen = new;
+    }
+    return old;
+}
+
+/*
+** *******************************
+** vid_clear():
+** Clear the entire video display.
+** ===============================
+** Usage:
+**   vid_clear();
+**
+** Returns:
+**   Nothing.
+** *******************************
+*/
+extern void gun_hide();
+
+void vid_clear( void )
+{
+    U32 i, *ptr;
+    U32 size;
+    OBJECT *ap = alpha_screen;
+
+    if ( !ap ) return;
+    size = ob_get_dwidth(ap);
+    size *= ob_get_pixh(ap);
+    size *= sizeof( struct phrase ) / sizeof(U32);
+    ptr = (U32 *)ob_get_img(ap);
+    for( i = 0; i < size ; i++ ) {
+	*ptr++ = 0L;
+    }
+#if GUN_CNT
+    gun_hide();
+#endif
+}   /* End: vid_clear() */
+
+/*		vid_fields( frame_rate )
+ *	Establish the frame rate, for such hardware as needs special
+ *	treatment to switch buffers, show the current screen, etc.
+ *	If <frame_rate> < 0, that part of the video (e.g. GXn video RAM)
+ *	will be turned off. If <frame_rate> == 0, buffer switching can
+ *	occur at any time. Otherwise, <frame_rate> specifies the number
+ *	of fields (vertical traces of the CRT screen) to display for each
+ *	frame (unique visual image) of video. <frame_rate>s from -1,0..4
+ *	should be supported on any hardware. Video hardware that does not
+ *	have such a concept can simply return 0.
+ *
+ *	NOTE: the change in range in interpretation for <frame_rate == 0>.
+ *	This was added to support game which wish to swap buffers without
+ *	regard to V-Blank. The main GUTS caller of this routine is
+ *	the RAM test, which calls with (-1) to "turn off video", Which
+ *	this version does by setting HDB1 and 2 (Horizontal Display Begin)
+ *	to _past_ the maximum Horizontal Period. We used to mess with
+ *	VMODE, but John M. said "Don't do that". The code was changed some
+ *	time ago... (MEA 15MAR96)
+ */
+
+int vid_fields( frame_rate )
+int frame_rate;
+{
+    int retval;
+    retval = fields_per_frame;
+    fields_per_frame = frame_rate;
+    if ( frame_rate < 0 ) {
+	HDB1 = N_HP+1;
+	HDB2 = N_HP+1;
+    } else {
+	HDB1 = N_HDB1;
+	HDB2 = N_HDB2;
+    }
+    return retval;
+}
+
+#if GUN_CNT>0
+extern int gun_vb();
+#endif
+
+void st_vblank()
+{
+    int flash;
+#ifdef WDOG
+    WDOG = 0;
+#endif
+#ifdef TEST
+# ifdef WMS_TEST_SWITCH
+WMS_TEST_SWITCH
+# else
+{
+ static int ts_debounce;
+    if ( (TEST & (1<<B_TEST)) == 0 ) ts_debounce = 0;
+    else if ( ++ts_debounce > 8 ) {
+	if (!eer_busy()) prc_reboot();
+	if ((ts_debounce&0xF) == 0) {
+	    unsigned long old_pos = txt_setpos(0L);
+	    int pal = (ts_debounce&0x10) ? RED_PALB : YEL_PALB;
+	    txt_str(-1, AN_VIS_ROW-1, "WAITING FOR EEPROM", pal);
+	    txt_setpos(old_pos);
+	}
+    }
+}
+# endif
+#endif
+#if (GUN_CNT>0)
+    if ( (flash = gun_vb()) != 0 ) {
+	BG = white_val;
+	BORD1 = 0xF8F8;
+	BORD2 = 0xF8;
+    } else {
+	BG = def_bg;
+	BORD1 = def_bord >> 8;
+	BORD2 = def_bord;
+    }
+#else
+    flash = 0;
+#endif
+    ob_copy(!flash);
+}
+
+int ANTest PARMS(( const struct menu_d *));
+
+
+#define	AN_COL_CNT	16
+#define	AN_COL_SEP 	2
+#define	AN_LFT_COL		((AN_VIS_COL - (AN_COL_CNT * AN_COL_SEP))/2)
+
+#define	AN_ROW_CNT	10
+#define	AN_ROW_SEP 	2
+#define	AN_TOP_ROW	((AN_VIS_ROW - (AN_ROW_CNT * AN_ROW_SEP))/2)
+#define	AN_MAX_ROWS	((AN_STMP_CNT / AN_COL_CNT) - AN_ROW_CNT)
+
+int
+AN_stamp_test(smp)
+const struct menu_d *smp;
+{
+    U32	edges;
+    m_int	i,j,update;
+    m_uint	stamp,textPal;
+    m_int	baserow;
+    m_int	addrow;
+    int		bottom;
+
+    setancolors();
+    bottom = st_frame(smp,TITLE_PAL,INSTR_PAL|BGBIT,0);
+    st_insn(bottom,"To see more characters,",t_msg_control,INSTR_PAL);
+    
+    for (i=0; i < AN_COL_CNT; i++)		/* display col #'s	*/
+	txt_hexnum(AN_LFT_COL + (i * AN_COL_SEP),AN_TOP_ROW - 2,i,1,RJ_ZF,
+	MNORMAL_PAL);
+    
+    baserow = 0;
+    
+    ctl_autorepeat(JOY_VERT,30,15);	/* Autorepeat after 1/2secs @@ 1/4 */
+
+    update = 1;
+
+    textPal = MNORMAL_PAL;
+    while (1)
+    {
+	prc_delay0();
+	edges = ctl_read_sw(JOY_ALL|SW_EXTRA);	/* get edges	*/
+	if (edges & SW_NEXT)
+	    break;			/* done with this test...	*/
+
+	if (edges & SW_ACTION)
+	{
+	    textPal ^= BGBIT;
+	    if ( (textPal & BGBIT) == 0 ) {
+		/* change palette on "falling edge" of BGBIT */
+#if DRSHBIT
+		textPal += DRSHBIT;
+#else
+		textPal += AN_NXT_PAL;
+#endif
+		textPal &= ~BGBIT;
+	    }
+	    update = 1;
+	}
+
+	if (ctl_read_sw(0) & SW_EXTRA)		/* SHIFT key?		*/
+	    addrow = AN_ROW_CNT;
+	else
+	    addrow = 1;
+
+	if (edges & J_UP)
+	{
+	    update = (baserow != 0);
+	    if ((baserow -= addrow) < 0)
+		baserow = 0;
+	}
+	else
+	if (edges & J_DOWN)
+	{
+	    update = (baserow != AN_MAX_ROWS);
+	    if ((baserow += addrow) > AN_MAX_ROWS)
+		baserow = AN_MAX_ROWS;
+	}
+
+	if (update)
+	{
+	    stamp = (baserow * AN_COL_CNT);
+	    for (j=0; j < AN_ROW_CNT; j++)
+	    {
+		m_int x,y;
+
+		x = AN_LFT_COL - 3;
+		y = AN_TOP_ROW + (j * AN_ROW_SEP);
+		txt_hexnum(x,y,stamp/16,2,RJ_ZF,MNORMAL_PAL);
+
+		for (i=0,x = AN_LFT_COL; i < AN_COL_CNT; i++,x += AN_COL_SEP)
+		    txt_stamp(x,y,stamp++,textPal);
+	    }
+	    update = 0;	/* done with update	*/
+	}
+    }
+    return 0;
+}
+static const struct an_sample {
+    U32 font_pal;
+    const char *string;
+} an_samps[] = {
+    {GRY_PAL, "Grey"},
+    {WHT_PAL, "White"},
+    {YEL_PAL, "Yellow"},
+    {RED_PAL, "Red"},
+    {GRN_PAL, "Green"},
+    {CYN_PAL, "Cyan"},
+    {GRY_PALB, "-Grey-"},
+    {WHT_PALB, "-White-"},
+    {YEL_PALB, "-Yellow-"},
+    {RED_PALB, "-Red-"},
+    {GRN_PALB, "-Green-"},
+    {CYN_PALB, "-Cyan-"},
+    {GRY_PAL|AN_BIG_SET, "Grey"},
+    {WHT_PAL|AN_BIG_SET, "White"},
+    {YEL_PAL|AN_BIG_SET, "Yellow"},
+    {RED_PAL|AN_BIG_SET, "Red"},
+    {GRN_PAL|AN_BIG_SET, "Green"},
+    {CYN_PAL|AN_BIG_SET, "Cyan"},
+    {GRY_PALB|AN_BIG_SET, "-Grey-"},
+    {WHT_PALB|AN_BIG_SET, "-White-"},
+    {YEL_PALB|AN_BIG_SET, "-Yellow-"},
+    {RED_PALB|AN_BIG_SET, "-Red-"},
+    {GRN_PALB|AN_BIG_SET, "-Green-"},
+    {CYN_PALB|AN_BIG_SET, "-Cyan-"},
+};
+
+int
+ANTest(smp)
+const struct menu_d *smp;
+{
+    int row,i;
+    int col, max_col;
+    U32 font_pal;
+    U32 start_time;
+    const char *string;
+    int repeats = 100;
+
+    col = max_col = 2;
+    prc_delay0();
+    start_time = eer_rtc;
+
+    while ( --repeats >= 0 ) {
+	txt_str(2,3,"AB12? \";!#:.,_'*+-/()$&%",AN_BIG_SET|RED_PAL);
+	row = 6;
+	col = max_col = 2;
+
+	for ( i = 0 ; i < n_elts(an_samps) ; ++i ) {
+	    int width;
+	    font_pal = an_samps[i].font_pal;
+	    string = an_samps[i].string;
+	    width = txt_str(col,row,string,font_pal);
+	    row += txt_height(string,font_pal);
+	    if ( (col + width) > max_col ) {
+		max_col = col + width;
+	    }
+	    if ( row >= (AN_VIS_ROW-4) ) {
+		row = 6;
+		col = max_col + 2;
+		if ( col > (AN_VIS_COL-10) ) break;
+	    }
+	}
+    }
+    txt_decnum(2,AN_VIS_ROW-2,eer_rtc-start_time,3,RJ_BF,WHT_PALB);
+    while ( (ctl_read_sw(SW_NEXT) & SW_NEXT) == 0 ) prc_delay0();
+    return 0;
+}
+
+struct col_desc {
+    const char * const text;
+    m_uint color;
+};
+
+#define GREY(lum) ((lum<<1)|(lum<<6)|(lum<<11))
+
+static const struct col_desc purity_colors[] = {
+    {"  Red   ", 0xF800 },
+    {" Green  ", 0x003F },
+    {"  Blue  ", 0x07C0 },
+    {" White  ", GREY(26) },
+    {"  Grey  ", GREY(9) },
+    {"  Ones  ", 0x842 },
+    {" Black  ", 0}
+};
+#define N_PUR (sizeof(purity_colors)/sizeof(purity_colors[0]))
+
+#define CBAR_WHITE	0xE738
+#define CBAR_RED	0xF800
+#define CBAR_BLUE	0x07c0
+#define CBAR_GREEN	0x003f
+#define	CBAR_PURPLE	(CBAR_RED-(CBAR_RED>>2)+CBAR_BLUE-(CBAR_BLUE>>2))
+
+static	const struct col_desc converg_colors[] = {
+    {" White  ", CBAR_WHITE },
+    {" Violet ", CBAR_PURPLE },
+    {" Green  ", CBAR_GREEN }
+};
+
+static int purity( smp )
+const struct menu_d *smp;
+{
+    int old_mode,text,colp;
+    int oflags;
+    int old_bg;
+    unsigned long ctls;
+    OBJECT *txtscr;
+    int bottom;
+
+    old_mode = vid_set_vmode(VIDEO_MODE_RBG5);
+    setancolors();
+    bottom = st_frame(smp,TITLE_PAL,INSTR_PAL|BGBIT,0);
+    bottom = st_insn(bottom,"To change color,",t_msg_action,INSTR_PAL|BGBIT);
+    txtscr = vid_setscr(0);
+    text = 1;
+    colp = 0;
+    txt_str(-1,2,purity_colors[colp].text,TITLE_PAL);
+    old_bg = vid_set_bg(purity_colors[colp].color);
+    while ( ((ctls = ctl_read_sw(SW_NEXT|SW_ACTION)) & SW_NEXT) == 0 ) {
+	if ( (ctls & SW_ACTION) ) {
+	    oflags = ob_get_flags(txtscr);
+	    if ( ++colp >= N_PUR ) {
+		colp = 0;
+		text = 1-text;
+	    }
+	    if ( text == 0 ) ob_set_flags(txtscr,oflags | OBFLAG_HIDDEN);
+	    else ob_set_flags(txtscr,oflags & ~OBFLAG_HIDDEN);
+	    ob_build();
+	    txt_str(-1,2,purity_colors[colp].text,TITLE_PAL);
+	    vid_set_bg(purity_colors[colp].color);
+	}
+	prc_delay0();
+    }
+    oflags = ob_get_flags(txtscr);
+    ob_set_flags(txtscr,oflags & ~OBFLAG_HIDDEN);
+    ob_build();
+    vid_set_bg(old_bg);
+    vid_set_vmode(old_mode);
+    setancolors();
+    return 0;
+}
+
+
+#define BAR_WID_MAX (VIS_H_PIX-16)
+#define BAR_HT (VIS_V_PIX-48)
+#define SWATH_HT (BAR_HT/4)
+#define BAND_WID (BAR_WID_MAX/64)
+#define BAR_WID (BAND_WID*64)
+#define BAR_PHRASES (((BAR_WID*BAR_HT*2)+sizeof(PHRASE)-1)/sizeof(PHRASE))
+static const U16 cb_filts[] = { 0xFFFF, 0x07C0, 0x003F, 0xF800  };
+static int color_bars( smp )
+const struct menu_d *smp;
+{
+    int old_mode,old_bg;
+    int border;		/* 2: Text on grey, 1: grey, 0: black */
+    int oflags;
+    unsigned long ctls;
+    OBJECT *obptr,*txtscr;
+    U16 *bars;
+    int bottom;
+
+    old_mode = vid_set_vmode(VIDEO_MODE_RBG5);
+    setancolors();
+    old_bg = vid_set_bg(0x39CE);	/* Medium grey in RBG5 */
+    st_frame(smp,TITLE_PAL,INSTR_PAL,STF_NOEXIT);
+    bottom = st_insn(AN_VIS_ROW-2,t_msg_ret_menu,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,"To remove border,",t_msg_action,INSTR_PAL);
+    txtscr = vid_setscr(0);
+    obptr = 0;
+    bars = (U16 *)dram_alloc(BAR_PHRASES,0);
+    border = 2;
+    if ( !bars ) {
+	/* NO DRAM?!? */
+	txt_str(-1,AN_VIS_ROW/2,"No DRAM for color bars",WHT_PALB);
+    } else {
+	obptr = ob_add( NBMAP_OBTYPE );
+	if ( obptr ) {
+#if NO_GRN_LSB
+	    /* X is offset slightly to left, because we are
+	     * suppressing the lowest value of green.
+	     */
+	    ob_set_x(obptr,((VIS_H_PIX-BAR_WID)>>1)-BAND_WID);
+#else
+	    ob_set_x(obptr,((VIS_H_PIX-BAR_WID)>>1));
+#endif
+	    ob_set_y(obptr,(VIS_V_PIX-BAR_HT)>>1);
+	    ob_set_pixw( obptr, BAR_WID );
+	    ob_set_pixh( obptr, BAR_HT );
+	    ob_set_pixdepth(obptr, 4);
+	    ob_set_dpitch( obptr, 1 );
+	    ob_set_dwidth( obptr, ob_get_pixw( obptr ) >> (6 - ob_get_pixdepth(obptr) ));
+	    ob_set_iwidth( obptr, ob_get_dwidth( obptr ) );
+#if (0)
+	    ob_set_flags( obptr, OBFLAG_TRANS );
+#endif
+	    ob_set_img( obptr, (U8 *)bars );
+	    ob_build();
+	}
+    }
+    if ( bars ) {
+	int pixel,gun,filter,x,y;
+	int band_lft,swtop,swath;
+	swath = 3;
+	swtop = swath*SWATH_HT;
+	pixel = 0;
+	filter = cb_filts[swath];
+	for ( y = BAR_HT - 1 ; y >= 0 ; --y ) {
+	    if ( y < swtop ) {
+		/* change "filter" */
+		filter = cb_filts[--swath];
+		swtop -= SWATH_HT;
+	    }
+	    gun = -1;
+	    band_lft = BAR_WID-BAND_WID;
+	    pixel = filter;
+	    for ( x = BAR_WID-1 ; x >= 0 ; --x )
+	    {
+		if ( x < band_lft ) {
+		    --gun;
+		    pixel = (gun & 0x3F)|((gun&0x3E)<<5)|((gun&0x3E)<<10);
+		    pixel &= filter;
+#if NO_GRN_LSB
+		    if ( pixel == 1 ) pixel = 0; /* kill darkest green */
+#endif
+		    band_lft -= BAND_WID;
+		}
+		bars[x] = pixel;
+	    }
+	    bars += BAR_WID;
+	}
+    }
+    while ( ((ctls = ctl_read_sw(SW_NEXT|SW_ACTION)) & SW_NEXT) == 0 ) {
+	if ( (ctls & SW_ACTION) ) {
+	    oflags = ob_get_flags(txtscr);
+	    if ( --border < 0 ) {
+		border = 2;
+		ob_set_flags(txtscr,oflags & ~OBFLAG_HIDDEN);
+	    }
+	    else ob_set_flags(txtscr,oflags | OBFLAG_HIDDEN);
+	    if ( border ) vid_set_bg(0x39CE);	/* Medium grey in RBG5 */
+	    else vid_set_bg(0);			/* Black */
+	    ob_build();
+	}
+	prc_delay0();
+    }
+    if ( obptr ) ob_del(obptr);
+    if ( bars ) dram_alloc(-BAR_PHRASES,0);
+    oflags = ob_get_flags(txtscr);
+    ob_set_flags(txtscr,oflags & ~OBFLAG_HIDDEN);
+    ob_build();
+    vid_set_vmode(old_mode);
+    setancolors();
+    vid_set_bg(old_bg);
+    return 0;
+}
+
+#ifndef AN_CROSSHTCH
+#define AN_CROSSHTCH (4)
+#endif
+#ifndef CNV_TEXT_PAL
+#define CNV_TEXT_PAL GRY_PALB
+#endif
+
+static int converge( smp )
+const struct menu_d *smp;
+{
+    U32 cntrls;
+    m_int y,x,i,old_i,alphas;
+    int old_mode,old_bg;
+
+    i = 0;
+    old_i = -1;
+    alphas = 1;
+    old_mode = vid_set_vmode(VIDEO_MODE_RBG5);
+    setancolors();
+#if (0)
+    old_bg = vid_set_bg(0x39CE);	/* Medium grey in RBG5 */
+#else
+    old_bg = vid_set_bg(0);		/* Make sure it's black */
+#endif
+    while (1) {
+	prc_delay0();
+	cntrls = ctl_read_sw(SW_ACTION|SW_NEXT);
+	if ( cntrls & SW_NEXT ) break;
+	if ( cntrls & SW_ACTION ) {
+	    if ( ++i >= n_elts(converg_colors)  ) {
+		i = 0;
+		alphas = 1-alphas;
+	    }
+	}
+	if ( old_i != i ) {
+	    SetANPal(WHT_PAL,converg_colors[i].color);
+	    for ( y = AN_VIS_ROW-1 ; y >= 0 ; --y ) {
+		for ( x = AN_VIS_COL-1 ; x >= 0 ; --x )
+		    txt_stamp(x,y,AN_CROSSHTCH,WHT_PAL);
+	    }
+	    if ( alphas ) {
+		int bottom;
+		txt_str(-1,2,converg_colors[i].text,CNV_TEXT_PAL);
+		bottom = st_frame(smp,TITLE_PAL,INSTR_PAL|BGBIT,0);
+		st_insn(bottom,"To change colors,",t_msg_action,INSTR_PAL|BGBIT);
+	    }
+	    old_i = i;
+	}
+	prc_delay0();
+    }
+    vid_set_vmode(old_mode);
+    setancolors();
+    vid_set_bg(old_bg);
+    return 0;
+}
+
+
+STATIC const struct menu_d mon_list[] = {
+    { "MONITOR TESTS", 0},
+    { "COLOR BARS", color_bars },
+    { "\nCONVERGENCE", converge },
+    { "\nPURITY",	    purity },
+    { "?\nLOGO", logo_test},
+    { 0, 0 }
+};
+
+int st_mon_group( smp )
+const struct menu_d *smp;
+{
+    return st_menu(&mon_list[0],sizeof(mon_list[0]),RED_PALB,0);
+}
+
+/*
+* On the Jaguar, there are several devices on a single interrupt.
+* The cause of an interrupt is determined by looking in TOM_INT1,
+* and acknowledged by writing another bit in TOM_INT1. When all
+* interrupts have been serviced, a write to TOM_INT2 is used to
+* lower the CPU priority for access to DRAM
+*/
+
+/*	Individual vectors for the possible Interrupts from TOM */
+
+void (*dspvec)();
+void (*pitvec)();
+void (*objvec)();
+void (*gpuvec)();
+void (*vbvec)();
+void (*vivec)();
+
+/*
+* The following vectors are in order for scanning D0..D4 while
+* counting _down_ from 4, a minor optimization for the 68K. If
+* we get a reason to sub-prioritze differently we will re-visit
+* this code.
+*/
+
+void (** const tomvecs[])() = { &dspvec, &pitvec, &objvec, &gpuvec, &vivec };
+
+/* Because Grisafi won't call gun_vb all the time, and we don't want
+ * to smoke the gun-thud solenoid, we put in a hack that's a lot
+ * harder to disable.
+ */
+extern void gun_wdog();
+
+/*	Following is the 'C' version of the routine VBINT formerly
+ *	in os_root.asm. It is normally pointed to by vbvec, and should
+ *	not be casually replaced. Note that it does some houskeeping and
+ *	then jumps via gameint, which is the normal "bending point"
+ *	for installing user VBLANK routines.
+ */
+
+static void rawvb()
+{
+#if PROCESSOR == M68EC020
+    VU32 trash;
+    /* On an EC020 board, Synchronize the 4 millisecond timer to VBLANK*/
+    trash = CPU_TIMER;
+#endif
+#if HAS_SMC_COM
+    COMVBlank();
+#endif
+    if ( gameint == 0 ) ob_copy(1);
+    else gameint();
+    ctl_upd_sw();
+    eer_hwt();
+#ifdef GUTS_OPT_AUD_TEMPO
+    if ( (debug_mode & GUTS_OPT_AUD_TEMPO ) == 0 )
+#endif
+    { aud_irq(16666); }
+#if POT_CNT > 0
+    VBIReadPots();
+    PotsToSwitches();
+#endif /* POTS */
+#if GUN_CNT
+    gun_wdog();
+#endif
+}
+
+
+static int viqtr;
+
+#ifdef HST_SERIAL_NUM
+#ifdef SERIAL_INPUT
+extern void ser_sample();
+#endif
+#endif
+
+static void rawvi()
+{
+    int qtr = viqtr;
+    int vival;
+    unsigned int line;
+
+    /* use incremented qtr to compute the next Vertical line we want an
+     * interrupt. The reason we do this is that from a cold start.
+     * we ask for an interrupt at vde(end of screen), and qtr is 0.
+     * we want to count (1,2,3,4)*vde/4, rather than 0,1,2,3.
+     */
+    line = VC;
+    qtr += 1;
+    viqtr = qtr & 3;
+    vival = (((vde+2) * qtr)>>2)|1;
+    if ( jag_interlace ) {
+	/* Must match "field" on all but the first quarter */
+	if ( qtr == 1 ) vival &= ~((line>>11)&1);
+	else vival &= ~(((line>>11)^1)&1);
+    }
+    VI = vival;
+    if ( (line & 0x7FE) >= (vde-2) )
+    {
+	/* VC, shorn of half-line and field bits, is greater than
+	 * VDE (Vertical Display End), so we are in VBLANK.
+	 */
+	if ( rawvb ) rawvb();
+    }
+
+    tq_maint(4170);
+#ifdef GUTS_OPT_AUD_TEMPO
+    if ( debug_mode & GUTS_OPT_AUD_TEMPO ) aud_irq(4166);
+#endif
+    cn_irq();
+#ifdef HST_SERIAL_NUM
+#ifdef SERIAL_INPUT
+    if ( gameint == st_vblank ) {
+	/* The only reliable way to know we are
+	 * in selftest, now that we accomodate
+	 * Williams-style momentary-contact test
+	 * switch.
+	*/
+	ser_sample();
+    }
+#endif
+#endif
+}
+
+void tom_install(const struct irq_tab *tbp, void (*new)()) {
+    int bitno;
+
+    bitno = tbp->notes;
+    if ( new ) TOM_INT1 = (tomint_shad |= (1<<bitno));
+    else  TOM_INT1 = (tomint_shad &= ~(1<<bitno));
+}
+
+void tomint(void) {
+    int idx;
+    int bit;
+    void (*ivec)();
+
+    VU16 *tvip = &TOM_INT1;
+    bit = 1;
+    idx = n_elts(tomvecs)-1;
+
+    if ( vbvec == 0 ) vbvec = rawvb;
+
+    do {
+	if ( bit & *tvip ) {
+	    /* bits set are interrupts pending. First clear
+	     * the IRQ by setting the bit 8 above the "pending"
+	     * one, then pick up the appropriate vector and jump through it.
+	     */
+	    *tvip = (tomint_shad | (bit <<8));
+	    if ( tomvecs[idx] && (ivec = *(tomvecs[idx])) != 0 ) ivec();
+	    else *tvip = (tomint_shad &= ~(bit));
+	}
+	bit <<= 1;
+    } while ( --idx >= 0 );
+    TOM_INT2 = 0;		/* set interrupt resume register */
+}
+
+/*		vid_waitvb(edge)
+ *	Waits for edge of Vertical Blanking signal and returns.
+ *	if parameter <edge> is zero, waits for leading edge, else
+ *	waits for trailing edge. In any case, does whatever is needed
+ *	to keep the vertical blank signal recurring. If no vertical blank
+ *	is sensed within approximately 20 Milliseconds, returns 0, else 1.
+ *
+ *	The timing of this routine will be almost totally dependant
+ *	on the time it takes to "reach over the wall" to TOM. We
+ *	assume it is no faster that 100nSec, for purposes of bailing
+ *	out.
+ */
+#define TOM_VI_IRQ (1)
+
+int vid_waitvb(edge)
+int edge;
+{
+    unsigned int my_vde;
+    int old_ipl;
+    int bail_cnt,ok;
+    unsigned int vc0,vc1;
+    my_vde = vde;
+    if ( my_vde < (N_VDE-16) || my_vde > N_VP ) my_vde = N_VDE;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    vc0 = VC&0x7FE;
+    ok = 1;
+    if ( edge == 0) {
+	/* Wants leading edge, so first find VC < vde.
+	 * This should never take more than 22 scan-lines,
+	 * so give up after about two milliseconds.
+	 * Using 100nSec as a rough guess, this should
+	 * loop 20000 times
+	 */
+	for ( bail_cnt = 20000 ; bail_cnt > 0 ; --bail_cnt ) {
+	    vc1 = VC&0x7FE;
+	    if (vc1 < my_vde ) break;
+	}
+	if ( !bail_cnt ) ok = 0;
+    }
+    if ( ok ) {
+	/* Look for VC >= vde, either because (edge == 0),
+	 * so we are looking for the leading edge and
+	 * have already seen (VC < vde), or because (edge != 0),
+	 * so we are looking for the trailing edge and must
+	 * first be _in_ VBlank. This could take up to 16
+	 * Milliseconds, so loop 160000 times.
+	 */
+	for ( bail_cnt = 160000 ; bail_cnt > 0 ; --bail_cnt ) {
+	    vc1 = VC&0x7FE;
+	    if (vc1 >= my_vde ) break;
+	}
+	if ( !bail_cnt ) ok = 0;
+    }
+    if ( ok && edge ) {
+	/* If we wanted the trailing edge, repeat first test.
+	 */        
+	for ( bail_cnt = 20000 ; bail_cnt > 0 ; --bail_cnt ) {
+	    vc1 = VC&0x7FE;
+	    if (vc1 < my_vde ) break;
+	}
+	if ( !bail_cnt ) ok = 0;
+    }
+    prc_set_ipl(old_ipl);
+    return ok;
+}
+
+unsigned long vid_linecount()
+{
+    unsigned long line,f1,f2;
+
+    do {
+	f1 = eer_rtc;
+	line = VC & 0x7FE;
+	f2 = eer_rtc;
+    } while ( f1 != f2 );
+    if ( line >= (vde-2) ) --f1;
+    return (f1*262)+(line>>1); 
+}
+
+/*
+** *****************************************************
+** vid_set_pal():
+** Set a range of entries in the hardware CLUT.
+** =====================================================
+** Usage:
+**   vid_set_pal( palptr, start_color, num_colors );
+**
+**   U16 *palptr:  pointer to source of palette data.
+**   U16 start_color:  index of first color in range
+**   U16 num_colors:   number of colors in range to set.
+**
+** Returns:
+**   Nothing.
+** *****************************************************
+*/
+
+void vid_set_pal( p_palptr, start_color, num_colors )
+void *p_palptr;
+U16 start_color;
+U16 num_colors;
+{
+    U16 i;
+    U16 *clutptr;
+    U16 *palptr = p_palptr;
+
+
+    clutptr = (U16 *)COLRAM_ADDR;
+
+    for( i = 0; i < num_colors; i++ )
+         {
+         clutptr[start_color + i] = palptr[i];
+         }
+
+}   /* End: vid_set_pal() */
+@
+
+
+1.40
+log
+@Added "belt and suspenders" software watchdog for NAMCO
+solenoid gun kicker.
+@
+text
+@d7 3
+@
+
+
+1.39
+log
+@Force re-init of IDE driver when vid_init() is called,
+as dram_alloced memory is no longer valid.
+@
+text
+@d1076 6
+d1088 1
+d1111 3
+@
+
+
+1.38
+log
+@changed test for "in selftest" (for ser_sample) to allow
+use of momentary-contact test switch.
+@
+text
+@d493 3
+@
+
+
+1.37
+log
+@added vid_linecount(), for profiling use. First cut, may
+not be reliable around Vblank.
+@
+text
+@d1148 8
+a1155 2
+    if ( ( TEST & (1<<B_TEST) ) == 0 )
+      ser_sample();
+@
+
+
+1.36
+log
+@Allow game to substitute init_tab even on non-NUVID GUTS.
+Fix bug in interlace code.
+@
+text
+@d1255 13
+@
+
+
+1.35
+log
+@Don't shut off the Object-Processor during vid_init(), even
+though Corp. told us too. This may be re-visited if we can
+find a way to do it that _doesn't_ crash randomly.
+Also, re-wrote vid_waitvb() to be more robust. No longer
+depends on VI_IRQ working, and has timeouts to fail, rather
+than wedging.
+@
+text
+@a93 1
+#if COJAG_GAME == COJAG_NUVID
+a100 1
+#endif
+d435 4
+d1116 1
+d1123 1
+d1127 5
+a1131 1
+    if ( jag_interlace ) vival &= ~(((VC>>11)^1)&1);
+d1133 1
+a1133 1
+    if ( (VC & 0x7FE) >= (vde-2) )
+d1140 1
+@
+
+
+1.34
+log
+@Deleted debug-write to COJAG_2_VCR_REG, left in by
+mistake at last checkin.
+@
+text
+@d348 1
+d366 1
+a366 1
+#ifdef COJAG_NUVID
+d373 2
+d376 8
+d388 1
+d1180 10
+a1189 3
+ *	On CoJag, it may not be possible to find the _trailing_
+ *	edge of VBlank, but we will just ignore "edge" and return
+ *	on the leading edge.
+d1196 1
+a1196 1
+    VU16 *tvip = &TOM_INT1;
+d1198 5
+d1204 40
+a1243 4
+    while ( (*tvip & TOM_VI_IRQ) == 0 ) {;}
+    *tvip = (TOM_VI_IRQ << 8) | tomint_shad;
+    tvip[1] = 0;
+    return 1;
+a1244 1
+
+@
+
+
+1.33
+log
+@Added WatchDog strokes to long delay for TOM to
+settle (when re-initting). Deleted old stuff within
+#if (0). Deleted references to Zover as COJAG_REV 4,
+as Silencer is not up to rev 4.
+@
+text
+@a376 1
+    COJAG_2_CF_REG &= ~CM_VCR_REC;
+@
+
+
+1.32
+log
+@many changes to monitor tests: 1) Use next-to-lsb of green
+for "ones" purity screen. 2) Add choice of color-bars on black
+to cyclical choice with/without text on grey. 3) display "bottom"
+two colors in color-bars (0000:black, 0001:darkest green).
+4) display convergence pattern on black, not medium-grey, per
+Rick Meyette.
+@
+text
+@a20 6
+#ifndef JERRY_BASE
+/* Hack to discover running on Zover board, which has no Jerry Chip
+ * and several more subtle differences.
+ */
+#define COJAG_REV (4)
+#endif
+a112 5
+#if (0)
+unsigned char * kluge_screen;
+unsigned char **draw_pt;
+#endif
+
+d373 3
+a375 1
+    for ( i = 0 ; i < 10000000 ; ++i ) {;}
+d377 1
+a380 1
+#if COJAG_REV<4
+d382 1
+a382 2
+     * location of object lists. Zover board uses fixed size,
+     * at least for now
+a388 1
+#endif
+a432 5
+#if (0)
+    /* let other modules know where our bitmap is */
+    draw_pt = (unsigned char **)&kluge_screen;
+#endif
+
+a466 1
+#if COJAG_REV<=4
+a479 1
+#endif /* COJAG_REV < 4 */
+a485 3
+#if (0)
+	kluge_screen = ob_get_img(new);
+#endif
+@
+
+
+1.31
+log
+@Added use of WMS_TEST_SWITCH macro if defined.
+@
+text
+@d809 1
+a809 1
+    {"  Ones  ", 0x841 },
+d880 2
+a881 1
+    int old_mode,old_bg,text;
+d897 1
+a897 1
+    text = 1;
+d904 1
+d909 3
+d919 1
+d921 1
+d948 1
+d950 1
+d961 7
+a967 3
+	    text = 1-text;
+	    if ( text == 0 ) ob_set_flags(txtscr,oflags | OBFLAG_HIDDEN);
+	    else ob_set_flags(txtscr,oflags & ~OBFLAG_HIDDEN);
+d1002 1
+d1004 3
+@
+
+
+1.30
+log
+@Deleted "side door globals" draw_pt and kluge_screen. Now using
+defined constants OBPIX*. Minor cleanup of #if (0)'d code.
+@
+text
+@a581 4
+#ifdef TEST
+static int ts_debounce;
+#endif
+
+d593 5
+d608 2
+@
+
+
+1.29
+log
+@changed default VMODe to MIXed, if defined. undef'd BPPIXEL
+to enable variable-depth alphas. TEXT_SCREEN_SIZE still needs work.
+Cleaned up instructions and palette handling in monitor tests.
+Default to 4-bit alphas still not in force. It is keyed on NYBBLE_TEXT,
+but that may change. This should be considered an interim release.
+@
+text
+@d119 1
+d122 1
+d369 1
+d444 1
+d447 1
+a462 4
+#if (0)
+    vid_set_vmode(VIDEO_MODE_DEFAULT);
+    vid_clear();
+#endif
+d469 1
+a469 1
+    ob_set_pixdepth( obptr, 2 );	/* test CLUT-mapped ALPHAS */
+d471 1
+a471 1
+    ob_set_pixdepth( obptr, 4 );	/* KLUGE, until CLUT-mapped ALPHAS */
+d504 1
+d506 1
+@
+
+
+1.28
+log
+@un-mess-up colors in AN_Stamp_test(), also allow
+checking for drop-shadow.
+@
+text
+@d64 3
+d68 2
+a69 1
+#endif
+a280 4
+#ifndef BPPIXEL
+#define BPPIXEL (2)
+#endif
+
+d284 8
+a291 1
+#define TEXT_SCREEN_SIZE ((VIS_V_PIX*VIS_H_PIX*BPPIXEL)/sizeof(PHRASE))
+d467 3
+d471 1
+d642 1
+a643 5
+#if (0)
+    txt_str(-1,AN_VIS_ROW-5,t_msg_control,INSTR_PAL);
+    txt_str(-1,AN_VIS_ROW-4,"to see more characters",INSTR_PAL);
+    SetANPal(MNORMAL_PAL,GRY_WHT);
+#else
+d645 2
+a646 3
+    st_insn(AN_VIS_ROW-5,"To see more characters,",t_msg_control,INSTR_PAL);
+#endif
+
+d968 1
+a968 1
+#define CNV_TEXT_PAL WHT_PALB
+d982 1
+a999 1
+	    setancolors();
+@
+
+
+1.27
+log
+@show "alpha test" timing to 3 digits, not two.
+@
+text
+@d635 1
+d637 1
+a640 1
+    SetANPal(MNORMAL_PAL,GRY_WHT);
+d663 9
+@
+
+
+1.26
+log
+@loop "text test" 100 times, to get better resolution timing.
+@
+text
+@d769 1
+a769 1
+    txt_decnum(2,AN_VIS_ROW-2,eer_rtc-start_time,2,RJ_BF,WHT_PALB);
+@
+
+
+1.25
+log
+@A few changes for cleaner alternate video parameters.
+@
+text
+@d742 1
+d748 4
+a751 2
+    txt_str(2,3,"AB12? \";!#:.,_'*+-/()$&%",AN_BIG_SET|RED_PAL);
+    row = 6;
+d753 14
+a766 12
+    for ( i = 0 ; i < n_elts(an_samps) ; ++i ) {
+	font_pal = an_samps[i].font_pal;
+	string = an_samps[i].string;
+	txt_str(col,row,string,font_pal);
+	row += txt_height(string,font_pal);
+	if ( (col + txt_width(string,font_pal)) > max_col ) {
+	    max_col = col + txt_width(string,font_pal);
+	}
+	if ( row >= (AN_VIS_ROW-4) ) {
+	    row = 6;
+	    col = max_col + 2;
+	    if ( col > (AN_VIS_COL-10) ) break;
+@
+
+
+1.24
+log
+@Prevents a prc_reboot() call while eer_busy() returns true.
+Writes a message on the bottom line indicating it is waiting
+for EEPROM to finish before allowing the reboot.
+@
+text
+@a39 4
+#if (0)
+static U16 hdb;
+static U16 hde;
+#endif
+d43 1
+a43 1
+typedef struct {
+d63 9
+a71 1
+const InitTab init_tab[] = {	/* This is initialized according to Brian's numbers */
+d79 1
+a79 3
+#if (0)
+   {N_HDE, &HDE },
+#else
+a80 1
+#endif
+a85 1
+#if (0)
+a86 3
+#else
+   {0xFFFF, &VDE },
+#endif
+d90 1
+d94 12
+d301 4
+a304 1
+	if ( new_mode == VIDEO_MODE_CRY ) white_val = WHT_FUL;
+a350 3
+#ifndef VIDEO_MODE_DEFAULT
+#define VIDEO_MODE_DEFAULT (VIDEO_MODE_CRY)
+#endif
+d353 1
+a353 1
+    const InitTab *it = init_tab;
+d366 10
+d407 24
+a430 12
+    /* set horizontal begin/end and vertical begin/end variables */
+#if (0)
+    hdb = N_HDB1;
+    hde = N_HDE;
+#endif
+    vdb = N_VDB;
+    vde = N_VDE;
+
+    for( it = init_tab; it->ptr; ++it )
+         {
+         *(VU16 *)it->ptr = it->val;
+         }
+d451 1
+d454 1
+d468 1
+d515 2
+d518 6
+a523 2
+    ptr = (U32 *)draw_pt[0];
+    for( i = 0; i < (TEXT_SCREEN_SIZE*(sizeof(PHRASE)/sizeof(U32))); i++ ) {
+d546 4
+a549 3
+ *	this version does by setting VMODE to zero. This is a _bit_ tricky
+ *	because a value of zero normally means "just return current vmode
+ *	from shadow". We use 0x10000 instead :-)
+a584 1
+# define WCHR(x) (x+6)
+d587 1
+a587 3
+	    static const unsigned char waiting_msg[] = "WAITING FOR EEPROM";
+	    int col = (AN_VIS_COL-sizeof(waiting_msg)-1)/2;
+	    const unsigned char *m = waiting_msg;
+d589 2
+a590 1
+	    for (; *m; ++m) txt_stamp(col++, AN_VIS_ROW-1, (*m==' ') ? 0 : *m+6, pal);
+d1084 1
+a1084 1
+     * we want to count (1,2,3,4)*vde/4, rather tahn 0,1,2,3.
+d1089 1
+d1091 4
+a1094 3
+    if ( qtr == 1 ) {
+	/* We just set VI to end of first quarter screen, so
+	 * we are in VBLANK.
+@
+
+
+1.23
+log
+@Added #ifdef SERIAL_INPUT protection around ser_sample().
+@
+text
+@d542 11
+a552 1
+    else if ( ++ts_debounce > 8 ) prc_reboot();
+@
+
+
+1.22
+log
+@Protected the prc_set_vec(TOMINT_INTVEC) since the 68k doesn't have one.
+@
+text
+@d1021 1
+d1024 1
+d1052 1
+d1055 1
+@
+
+
+1.21
+log
+@Added a prc_set_vec() to set tomint to a vector.
+@
+text
+@d411 1
+d413 1
+@
+
+
+1.20
+log
+@misc modifications for Area51, including better dependence
+on defined screen size, implementation of vid_fields(<0),
+gun initialization. Also added "best guess microseconds
+since last call" to aud_irq() call.
+@
+text
+@d335 2
+d411 1
+d1061 1
+a1061 3
+void tomint(vecno)
+int vecno;
+{
+@
+
+
+1.19
+log
+@added "hook" for serial number input via coin door.
+@
+text
+@d40 1
+d43 1
+d64 3
+a66 1
+
+d75 1
+d77 3
+d332 1
+a332 1
+extern int gun_init();
+d386 1
+d389 1
+d427 1
+d442 2
+a443 2
+#if N_GUNS
+    gun_init();
+d470 1
+d480 3
+a482 1
+
+d499 4
+a502 2
+ *	the RAM test, which calls with (-1) to "turn off video", an option
+ *	which this file does not yet support.
+d504 1
+d511 8
+a518 1
+    return retval; 
+d525 1
+a525 1
+#if N_GUNS>0
+d539 1
+a539 1
+#if (N_GUNS>0)
+d577 1
+d580 3
+d604 1
+a604 1
+	if (edges & SW_EXTRA)
+d610 1
+a610 1
+	if (ctl_read_sw(0) & SW_ACTION)		/* SHIFT key?		*/
+d752 1
+d756 2
+a757 1
+    st_frame(smp,TITLE_PAL,INSTR_PAL,0);
+d788 2
+a789 2
+#define BAR_WID (320)
+#define BAR_HT (192)
+d791 3
+a793 2
+#define BAND_WID (BAR_WID/64)
+#define BAR_PHRASES ((BAR_WID*BAR_HT*2)/sizeof(PHRASE))
+d798 1
+a798 1
+    int old_mode,text;
+d803 1
+d807 4
+a810 1
+    st_frame(smp,TITLE_PAL,INSTR_PAL,0);
+d821 4
+a824 1
+	    ob_set_x(obptr,(VIS_H_PIX-BAR_WID)>>1);
+d853 2
+a854 1
+	    for ( x = BAR_WID-1 ; x >= 0 ; --x ) {
+d859 1
+d884 1
+d900 1
+a900 1
+    int old_mode;
+d906 1
+d925 1
+a925 2
+		txt_str(-1,2,converg_colors[i].text,WHT_PALB); 
+		st_frame(smp,TITLE_PAL,INSTR_PAL,0);
+d927 2
+a928 2
+		txt_str(-1,AN_VIS_ROW-5,t_msg_action,CNV_TEXT_PAL);
+		txt_str(-1,AN_VIS_ROW-4,"to change colors",CNV_TEXT_PAL);
+d936 1
+d944 3
+a946 3
+    { "CONVERGENCE", converge },
+    { "PURITY",	    purity },
+    { "?LOGO", logo_test},
+a955 6
+void
+MonGroup()
+{
+    st_mon_group(&mon_list[0]);
+}
+
+d1005 1
+a1005 1
+    { aud_irq(); }
+d1041 1
+a1041 1
+    if ( debug_mode & GUTS_OPT_AUD_TEMPO ) aud_irq();
+@
+
+
+1.18
+log
+@Moved VI lines down by two half-lines, to make sure Object processor
+has plenty of time to "run down" before we ob_copy().
+@
+text
+@d31 1
+d979 4
+d1008 4
+@
+
+
+1.17
+log
+@made several variables local or static instead of global.
+added conditional compilation to accomodate Zover (stripped
+CoJag for Zoid Overlay) board. This deletes gun support
+(conditional on N_GUNS) and also allows non-existant
+bendable vectors. Call vid_set_bg() instead of direct store.
+fixed vid_clear(). Reduced WDB_RESERVE to 0x20 bytes, instead
+of 64K (No longer support Tramiel Tools (tm))
+@
+text
+@d981 1
+d990 2
+a991 1
+    VI = ((vde * qtr)>>2)|1;
+@
+
+
+1.16
+log
+@added comments in re: vid_fields(), which is not yet
+fully implemented.
+Also added #ifdef TEST to account for test-bench cases
+using the CPU switches on the LCR3K host
+@
+text
+@d21 6
+a36 5
+#ifndef BPPIXEL
+#define BPPIXEL (2)
+#endif
+#define    SCREENSIZ ((AN_VIS_COL * AN_VIS_ROW * 64) * BPPIXEL)
+
+d39 2
+a40 2
+U16 hdb;
+U16 hde;
+d122 1
+a122 1
+#define WDB_RESERVE (0x10000)
+a257 3
+OLPBLK *olpmem;
+OBJECT *usrmem;
+
+d259 1
+a259 1
+#define BBPIXEL (2)
+d322 1
+a322 1
+unsigned short tomint_shad;
+d337 2
+d348 7
+a354 3
+    if ( (usrmem = pbase->p_oblist) == 0 ) {
+	/* game has not allocated working ram for object list, use
+	 * default list in DRAM.
+d356 7
+d366 1
+a366 1
+    } else oblist_size = pbase->p_oblen/sizeof(OBJECT);
+d393 1
+a393 1
+    BG = def_bg = 0;
+d419 1
+d426 1
+a426 1
+#ifdef WANTS_LOGO
+d430 1
+d432 2
+d464 3
+a466 1
+    for( i = 0; i < (SCREENSIZ/4); i++ ) *ptr++ = 0L;
+d500 1
+d502 1
+d514 1
+d524 3
+d720 1
+d731 1
+a731 1
+    def_bg = purity_colors[colp].color;
+d743 1
+a743 1
+	    def_bg = purity_colors[colp].color;
+d750 1
+a750 1
+    def_bg = 0;
+d1031 1
+a1031 2
+	    ivec = *(tomvecs[idx]);
+	    if ( ivec ) ivec();	    
+@
+
+
+1.15
+log
+@added several punctuation marks to the BIG character
+string. Development only. This test and the AlphaNumeric
+stamp test should be moved to jag_text.c anyway.
+@
+text
+@d456 3
+a458 2
+ *	if <frame_rate> == 0, that part of the video (e.g. GXn video RAM)
+ *	will be turned off. Otherwise, <frame_rate> specifies the number
+d460 2
+a461 2
+ *	frame (unique visual image) of video. <frame_rate>s from 0..4
+ *	should be supported on any hardware. Video hardwares that do not
+d463 6
+d479 1
+d481 2
+d491 1
+d494 1
+@
+
+
+1.14
+log
+@made call to aud_irq() optionally once or four times per frame,
+keyed on GUTS_OPT_AUD_TEMPO
+@
+text
+@d628 1
+a628 1
+    txt_str(2,3,"AB12? \";!#:.,_'",AN_BIG_SET|RED_PAL);
+@
+
+
+1.13
+log
+@added kluge for MIPS or 68k style includes (jag_defs)
+also make VI interrupt four times per frame (nominal 4 mSec).
+@
+text
+@d929 4
+d961 3
+a963 1
+    aud_irq();
+@
+
+
+1.12
+log
+@added setancolors() in vid_set_vmode(), when new mode
+is actually selected.
+@
+text
+@d7 9
+a15 4
+/* default to COJAG unless ordered otherwise */
+#ifndef COJAG
+#define COJAG (1)
+#endif
+d17 1
+d19 1
+d327 2
+d387 1
+d389 1
+a389 1
+    prc_set_vec(RAWVB_INTVEC,rawvb);
+d898 1
+d907 1
+a907 1
+void (** const tomvecs[])() = { &dspvec, &pitvec, &objvec, &gpuvec, &vbvec };
+a928 6
+    /* Other boards do not have a sync-able timer, so we use VBlank
+     * to run the software timer queue. This is a transitional hack,
+     * in that we hope to use the VI for a four-times-per-field IRQ.
+     */
+    tq_maint(16666);
+    aud_irq();
+d932 27
+a958 1
+#endif
+@
+
+
+1.11
+log
+@fixed convergence screen to use RBG, also fixed palette
+for Purity screen. Instructions still need work. Added optional
+TWI logo.
+@
+text
+@d279 3
+@
+
+
+1.10
+log
+@overide-able default video mode.
+@
+text
+@d18 1
+d247 3
+d399 6
+d636 1
+d655 6
+d662 3
+a664 5
+    {" White  ", WHT_FUL},
+#if (0)
+    {" Violet ", (RED_LSB * 63) | (BLU_LSB * 15)},
+#endif
+    {" Green  ",  GRN_MSK}
+d676 2
+d703 1
+d724 2
+d793 1
+d809 1
+a810 1
+    ExitInst(INSTR_PAL);
+d814 1
+d831 1
+a831 1
+	    SetANPal(WHT_PAL,GRY_WHT);
+d843 2
+d848 1
+d854 1
+@
+
+
+1.9
+log
+@flash border (as well as background) for gun-shot. Also, select
+appropriate background color based on video-mode
+@
+text
+@d313 3
+a315 1
+
+d375 1
+a375 5
+#if (0)
+    vid_set_vmode(VIDEO_MODE_CRY);
+#else
+    vid_set_vmode(VIDEO_MODE_RBG5);
+#endif
+@
+
+
+1.8
+log
+@moved call to ide_init() from this file to selftest.c and ide_test() in ide2.c
+@
+text
+@d40 12
+d55 2
+a56 2
+   {N_HBB, &HBB },
+   {N_HBE, &HBE },
+d64 1
+a64 1
+   {N_VBE, &VBE },
+d261 2
+d273 2
+d293 17
+d365 1
+a365 1
+    BORD1 = ~0L;
+d373 1
+a373 1
+
+d375 3
+d462 9
+a470 2
+    if ( (flash = gun_vb()) != 0 ) BG = WHT_FUL;
+    else BG = def_bg;
+@
+
+
+1.7
+log
+@Added code to initialize new GPU task manager
+and IDE device driver.
+@
+text
+@a15 1
+#include <ide.h>
+a358 6
+
+    /* initialize IDE device driver */
+    if( ide_init() == 0 )
+        {
+        /* no hard drive was found */
+        }
+@
+
+
+1.6
+log
+@added vid_set_pal()
+@
+text
+@d15 2
+d357 10
+@
+
+
+1.5
+log
+@cleaned up vector setting. Used new "installer" and published
+prc_set_vec() to set and enable vblank IRQ's instead of hand-hacking.
+@
+text
+@d910 37
+@
+
+
+1.4
+log
+@added ifdef in case WDOG not defined, also added routine vid_waitvb(),
+to wait for VBlank without IRQ running. On non-EC020 boards, added
+call to tq_maint() from within tomint(). This will later be a 4x per frame
+IRQ.
+@
+text
+@d17 4
+d69 1
+a69 8
+    int old_ipl;
+    void (*old_rtn)();
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    old_rtn = gameint;
+    gameint = new_rtn;
+    prc_set_ipl(old_ipl);
+    return old_rtn;
+d277 2
+d335 2
+a336 2
+    INT1 = (tomint_shad |= 1);
+
+d356 1
+a842 1
+#if PROCESSOR != M68EC020
+d848 1
+a848 1
+#endif
+d855 8
+d885 1
+@
+
+
+1.3
+log
+@moved TOM interrupt processing from assembly in os_root.asm to C in this file
+@
+text
+@d85 1
+d87 1
+a341 1
+
+d416 1
+d418 1
+d843 7
+d882 19
+@
+
+
+1.2
+log
+@stifle warnings from gcc 2.* about implicit comparison to zero and unsigned
+long constants.
+@
+text
+@d50 1
+d52 3
+d61 1
+a61 1
+extern void (*gameint)();
+a75 2
+void vid_lister(int);
+void ob_copy(int);
+d79 4
+d84 4
+a87 1
+dummy_vblank() { WDOG = 0; ob_copy(1); eer_hwt();}
+d264 5
+a268 1
+extern unsigned short tomint_shad;
+d270 9
+d338 1
+a339 2
+#if (0)
+    ob_set_olp();
+a340 4
+    /* do ob_build() twice so it builds both double-buffered object lists */
+    ob_build();
+    ob_build();
+#endif
+d795 78
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d308 1
+a308 1
+    BORD1 = 0xffffffffL;
+d401 1
+a401 1
+    if ( flash = gun_vb() ) BG = WHT_FUL;
+@

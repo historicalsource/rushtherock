@@ -1,0 +1,213 @@
+head	1.1;
+access;
+symbols
+	RUSH_ROCK_1_0:1.1
+	RUSH_ROCK_1_0epst:1.1
+	MACE_1_0e:1.1
+	MACE_1_0d:1.1
+	MACE_1_0a:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	97.04.09.00.24.52;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@WMS IOASIC and Galileo code
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/****************************************************************************/
+/*                                                                          */
+/* gt64010.c - Support functions for GT-64010                               */
+/*                                                                          */
+/* Written by:  Jason Skiles, Michael J. Lynch                              */
+/* Version:     1.00                                                        */
+/* Date:        10/27/95                                                    */
+/*                                                                          */
+/* Copyright (c) 1995 by Williams Electronics Games Inc.                    */
+/* All Rights Reserved                                                      */
+/*                                                                          */
+/* Use, duplication, or disclosure is strictly forbidden unless approved    */
+/* in writing by Williams Electronics Games Inc.                            */
+/*                                                                          */
+/****************************************************************************/
+
+#include <config.h>
+#include <os_proto.h>
+#include <phx_proto.h>
+#include <nsc_gt64010.h>
+
+#define ICAUSE *(VU32*)GALILEO_INT_CAUSE
+#define IMASK  *(VU32*)GALILEO_CPU_I_ENA
+
+#define PCI_ADDR_REG (VU32*)(GALILEO_PCI_CFG)
+#define PCI_DATA_REG (VU32*)(GALILEO_PCI_DTA)
+
+extern int GT64010rev;
+
+static unsigned int GetGT64010rev(void) {
+  unsigned int data;
+
+  data = 0x8 | 0x80000000;
+  
+  *(PCI_ADDR_REG) = GTREG(data);
+
+  data = GTREG(*(PCI_DATA_REG));
+
+  if ((data & 0xff) == 2)
+    {
+      GT64010rev = 2;
+      return 2;
+    }
+  else
+    {
+      GT64010rev = 1;
+      return 1;
+    }
+}
+
+/****************************************************************************/
+/* get_pci_config_reg() - This function returns the value of the PCI config */
+/* register specified by "reg_num" from the PCI device specified by         */
+/* "dev_num".                                                               */
+/****************************************************************************/
+int get_pci_config_reg(int dev_num, int reg_num)
+{
+    T_pci_internal_config_addr_data	ca;
+    int	data, oldps;
+    long	oldie;
+
+    oldie = IMASK;	/* save old galileo interrupt mask */
+    IMASK = 0;		/* shut everything off for now */
+
+    ca.data = RESET;
+    if (!GT64010rev) GT64010rev = GetGT64010rev();
+    if (!dev_num && GT64010rev == 1) {
+	ca.d.reg_num = reg_num << 2;
+    } else {
+	ca.d.reg_num = reg_num;
+    }
+    ca.d.dev_num = dev_num;
+    ca.d.access_ctrl = ALLOW_ACCESS;
+    oldps = prc_set_ipl(INTS_OFF);
+    ICAUSE = ~((1<<20)|(1<<19)|(1<<18)|(1<<17)|(1<<16)|(1<<15)|(1<<14)|(1<<13)|(1<<12));
+    *((volatile int *)GT_PCI_INTERNAL_CONFIG_ADDRESS_REG) = GTREG(ca.data);
+    data = *((volatile int *)GT_PCI_INTERNAL_CONFIG_DATA_REG);
+    ICAUSE = ~((1<<20)|(1<<19)|(1<<18)|(1<<17)|(1<<16)|(1<<15)|(1<<14)|(1<<13)|(1<<12));
+    prc_set_ipl(oldps);
+    IMASK = oldie;
+    if (!dev_num) return(GTREG(data));
+    return(data);
+}
+
+/****************************************************************************/
+/* put_pci_config_reg() - This function writes the data specified by "data" */
+/* to the PCI configuration register specified by "reg_num" on the device   */
+/* specified by "dev_num".                                                  */
+/****************************************************************************/
+void put_pci_config_reg(int dev_num, int reg_num, int data)
+{
+    T_pci_internal_config_addr_data	ca;
+    int	dtmp, oldps;
+    long	oldie;
+
+    oldie = IMASK;			/* save old galileo interrupt mask */
+    IMASK = 0;			/* shut everything off for now */
+
+    dtmp = data;
+    ca.data = RESET;
+    if (!GT64010rev) GT64010rev = GetGT64010rev();
+    if (!dev_num && GT64010rev == 1) {
+	ca.d.reg_num = reg_num << 2;
+    } else {
+	ca.d.reg_num = reg_num;
+    }
+    ca.d.dev_num = dev_num;
+    ca.d.access_ctrl = ALLOW_ACCESS;
+    oldps = prc_set_ipl(INTS_OFF);
+    *((int *)GT_PCI_INTERNAL_CONFIG_ADDRESS_REG) = GTREG(ca.data);
+    if (!dev_num) dtmp = GTREG(data);
+    *((int *)GT_PCI_INTERNAL_CONFIG_DATA_REG) = dtmp;
+    prc_wait_n_usecs(1);
+
+    ICAUSE = ~((1<<20)|(1<<19)|(1<<18)|(1<<17)|(1<<16)|(1<<15)|(1<<14)|(1<<13)|(1<<12));
+    IMASK = oldie;
+    prc_set_ipl(oldps);
+}
+
+/****************************************************************************/
+/* gt64010_init() - This function initializes the GT-64010 controller.      */
+/****************************************************************************/
+void gt64010_init(void)
+{
+	T_gt64010_pci_config_reg1	sc;
+
+/* First release the PCI bus from reset */
+#if RESET_CTL
+	*((int *)RESET_CTL) |= (1<<B_RESET_IDE)|(1<<B_RESET_3DFX);
+#else
+# if PCI_RESET
+	*((VU32*)PCI_RESET) = -1;
+# endif
+#endif
+        
+/* First read the PCI Status and Command Register from the GT-64010 */
+	sc.data = get_pci_config_reg(GT64010_DEVICE_NUMBER, PCI_CONFIG_REG1);
+
+/* Make the GT-64010 a PCI Master */
+	sc.d.mas_en = ENABLE;		/* GT-64010 is PCI master */
+	sc.d.mem_en = ENABLE;		/* Allow memory access */
+	put_pci_config_reg(GT64010_DEVICE_NUMBER, PCI_CONFIG_REG1, sc.data);
+#if 0
+	dma.data = RESET;
+#endif
+
+/* Disable all of the DMA channels and set the dma arbiter */
+#if 0
+	disable_dma(0);
+	disable_dma(1);
+	disable_dma(2);
+	disable_dma(3);
+	*((int *)GT_DMA_ARBITER_REG) = GTREG(dma.data);
+#endif
+}
+
+
+/****************************************************************************/
+/* get_pci_slot_configuration_info() - This function filles the structure   */
+/* specified by "*to" with the 64 bytes of configuration data from the PCI  */
+/* device specified by "dev_num".                                           */
+/****************************************************************************/
+void get_pci_slot_configuration_info(int *to, int dev_num)
+{
+	int				i;
+
+	for(i = 0; i < 16; i++)
+	{
+		*to++ = get_pci_config_reg(dev_num, i);
+	}
+}
+
+
+void disable_dma(int channel)
+{
+	int				*dc_ptr;
+	T_dma_control	dc;
+
+	dc_ptr = (int *)GT_DMA_CHANNEL_0_CONTROL_REG;
+	dc_ptr += channel;
+	dc.data = GTREG((*dc_ptr));
+	dc.d.enable = DISABLE;
+	*dc_ptr = GTREG(dc.data);
+}
+@

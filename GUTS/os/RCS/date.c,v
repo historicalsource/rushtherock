@@ -1,0 +1,86 @@
+head	1.3;
+access;
+symbols
+	CJ_206:1.3
+	CJ2_05:1.3
+	CJ2_04:1.3
+	CJ2_03:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	96.09.25.00.01.01;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.05.31.20.32.33;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.16.44.22;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@date-stamp for OS build
+@
+
+
+1.3
+log
+@Deleted bogus whitespace as part of merge with PSX
+@
+text
+@/* Establish Date and Time of last OS build */
+#ifndef __STDC__
+#define __STDC__ (0)
+#endif
+
+#define revstr(str) #str
+#define reveval(rev) revstr(rev)
+#if __STDC__
+const char LINK_TIME[] =
+#ifdef MAJOR_REV
+reveval(MAJOR_REV)
+#ifdef MINOR_REV
+"."
+reveval(MINOR_REV)
+#endif
+" "
+#endif
+ __DATE__ " " __TIME__;
+#else
+unsigned const char * const LINK_TIME[2] =
+{
+	(const unsigned char * const)__DATE__,
+	(const unsigned char * const)__TIME__
+};
+#endif
+@
+
+
+1.2
+log
+@added optional revision label
+@
+text
+@d20 1
+a20 1
+unsigned const char * const LINK_TIME[2] = 
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d6 2
+d9 10
+a18 1
+const char LINK_TIME[] = __DATE__ " " __TIME__;
+@

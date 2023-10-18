@@ -1,0 +1,100 @@
+head	1.1;
+access;
+symbols
+	CJ_206:1.1
+	CJ2_05:1.1;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	95.05.26.18.48.56;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@heavily editted version of os_macros.i, intended to almost work
+and pass through the brain-dead HAC port os gas for the 68k. NOT
+to be considered a useful reference, this file exists solely to
+allow building CoJag GUTS under the cygnus/HAC tools.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@*
+*	MACRO Definitions used by OS, in selftest, memory tests
+*
+*	Both Motorola and MAC68K style macros are supported
+*
+*
+*	Motorola style MACROS...
+*
+*
+*	MAC68k style MACROS...
+*
+
+	.MACRO	WATCHDOG
+	MOVE.W	D0,WDOG		;The way God intended watchdog to work
+	.ENDM
+
+	.MACRO	IFNEXT tgt
+	BTST	#B_START,START	;If start is pressed, branch
+	BEQ	tgt
+	.ENDM
+
+	.MACRO	NOTNEXT tgt
+	BTST	#B_START,START	;If start is NOT pressed, branch
+	BNE	tgt
+	.ENDM
+
+	.MACRO	IFTEST tgt
+	BTST	#B_TEST,TEST		;If test switch is on, branch
+	BEQ	tgt
+	.ENDM
+
+	.MACRO	NOTTEST tgt
+	BTST	#B_TEST,TEST		;If test switch is NOT on, branch
+	BNE	tgt
+	.ENDM
+
+	.MACRO	WFVBL ?lp
+lp:	WATCHDOG
+	BTST	#B_VBL,VBLANK
+	BEQ.S	lp
+	.ENDM
+
+	.MACRO	WFNVBL ?lp
+lp:	WATCHDOG
+	BTST	#B_VBL,VBLANK
+	BNE.S	lp
+	.ENDM
+
+	.MACRO	CALL4 tgt ?rr
+	LEA	rr(PC),A4
+	BRA	tgt
+rr:
+	.ENDM
+	.MACRO	RET4
+	JMP	(A4)
+	.ENDM
+
+	.MACRO	CALL6 tgt ?rr
+	LEA	rr(PC),A6
+	BRA	tgt
+rr:
+	.ENDM
+
+	.MACRO	RET6
+	JMP	(A6)
+	.ENDM
+
+* RERROR now just returns to caller of subtest ([FQ]_RAM_TEST), leaving regs alone
+	.MACRO	RERROR
+	JMP	(A4)
+	.ENDM
+@

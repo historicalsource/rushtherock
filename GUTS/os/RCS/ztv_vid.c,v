@@ -1,0 +1,3452 @@
+head	1.20;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.20
+date	96.05.10.00.00.16;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.03.29.00.34.21;	author forrest;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.03.28.20.40.20;	author forrest;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.03.18.23.42.01;	author albaugh;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.03.07.01.22.27;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.03.07.01.18.43;	author albaugh;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.02.21.17.41.40;	author albaugh;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.02.20.18.31.31;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.02.16.01.37.38;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.02.14.01.05.05;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.02.06.22.23.21;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.02.06.21.41.17;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.01.31.20.31.17;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.01.23.22.17.31;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.01.23.20.51.29;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.01.23.20.41.28;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.01.17.00.23.48;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.12.07.20.49.39;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.12.07.00.55.32;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.12.06.02.32.12;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Driver and Diags for Zoid TV (Version 2) or ZIG
+(Zoid Image Generator) board. ZTV Version 1 support
+has been removed before checking this in.
+ZRE functions will migrate to this file, as the ZIG
+combines the two functions on one board.
+@
+
+
+1.20
+log
+@Added get_vb_count function.
+@
+text
+@/*		ztv_vid.c
+ *	Video handling subroutines for Zoid TV video board.
+ *	This version handles the ZTV, Version 2 and ZIG boards. Support
+ *	for ZTV, Version 1 has been removed. Also, the low-level interface
+ *	to the Zoid Render Engine will be moved to this file from zre_test.c.
+ *
+ *	The most visible difference between versions one and two of the ZTV
+ *	(besides speed) is that ZTV_2 does not have an "overlay" or
+ *	"Alphanumerics" plane, or the related color RAM. Also, ZTV_2 maps the
+ *	Z-Buffer and bit-map DRAM in the same address space, with the selection
+ *	of which responds controlled in the status/control register. This
+ *	particular mis-feature has been un-done in ZIG.
+ *
+ *		Copyright 1994 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#ifndef B_TEST
+#define B_TEST (-1)
+#endif
+/* Fall-back definitions for those who can't wait for
+ * a proper check-in of ztv2.mac with ztv_vid.mac
+ */
+#ifndef B_Z_HBL_WAIT
+#define B_Z_HBL_WAIT (20)
+#endif
+#ifndef ZTV_OPT_HBL_WAIT
+#define ZTV_OPT_HBL_WAIT (1<<B_Z_HBL_WAIT)
+#endif
+#include <string.h>
+#include <limits.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <intvecs.h>
+#include <eer_defs.h>
+#include <zoid_proto.h>
+
+#define STATIC static
+
+#define n_elts(array) (sizeof(array)/sizeof(array[0]))
+
+struct ztv_timing {
+    U32 vactive;
+    U32 vblank;
+    U32 hblank;
+    int status;
+};
+#define VB_LOW (4)
+#define VIDB_IS_HB (8)
+
+STATIC int timing(VU32 *, struct ztv_timing *);
+STATIC void show_timing(int row, struct ztv_timing *);
+STATIC int show_spur(int row);
+
+U32 ztv_restore_defaults();
+
+/*	The ZTV (rev 2) and ZIG (combined ZTV/ZRE) are very
+ *	similar, and we are going to try to combine the code.
+ *	A first cut makes sure all references to the ZTV are
+ *	made via the pointer below (ztv_base).
+ */
+VU32 *ztv_base;
+
+#define DISPLAY_2 (0x200)
+#define GAMMA_RED (0xFF0000)
+#define GAMMA_GRN (0x00FF00)
+#define GAMMA_BLU (0x0000FF)
+#define GAMMA_ORG (0xFF7F00)
+#define GAMMA_YEL (0xFFFF00)
+#define GAMMA_CYN (0x00FFFF)
+#define GAMMA_VIO (0xFF00FF)
+
+/*	ZTV 2 has a somewhat odd gamma-correction RAM. Please
+ *	forgive the hard-coded numbers, but I doubt this routine
+ *	has any lasting utility for any other hardware.
+ */
+/* Bruce hacked the combination gamma and color correction
+ * table from his 3DO code, and uses GRN for all three guns.
+ * I do the "green takes all" hack here, in the table initialization,
+ * rather than as we run.
+ */
+#define GI(R,G,B) ((G<<16)|(G<<8)|(G))
+
+static const U32 gamma_colors[32] = 
+{
+    GI(22,26,30),
+    GI(25,29,34),
+    GI(27,32,38),
+    GI(30,36,42),
+    GI(34,39,46),
+    GI(37,43,51),
+    GI(40,47,56),
+    GI(44,52,61),
+    GI(48,56,66),
+    GI(52,61,71),
+    GI(56,66,77),
+    GI(60,71,83),
+    GI(65,76,89),
+    GI(70,82,96),
+    GI(75,87,102),
+    GI(80,93,109),
+    GI(85,99,116),
+    GI(90,106,124),
+    GI(96,112,132),
+    GI(102,119,140),
+    GI(108,126,148),
+    GI(114,133,156),
+    GI(120,141,165),
+    GI(127,149,174),
+    GI(134,156,183),
+    GI(141,165,193),
+    GI(148,173,202),
+    GI(155,181,212),
+    GI(163,190,223),
+    GI(170,199,233),
+    GI(178,209,244),
+    GI(186,218,255)
+};
+
+/*		ztv_gamma_init(which,what)
+ *	Initializes gamma-correction RAM with either
+ *	a supplied table (*what), or a linear mapping,
+ *	if what == 0. <which> selects display to initialize.
+ */
+#define GAMMA1_OFFSET ((ZTV_GAMMA1_ADDR-(U32)&ZTV_CTL)/sizeof(ZTV_CTL))
+#define GAMMA2_OFFSET ((ZTV_GAMMA2_ADDR-(U32)&ZTV_CTL)/sizeof(ZTV_CTL))
+
+void ztv_gamma_init(int which, const U32 *what)
+{
+    VU32 *gamma_ram;
+    int pix,idx;
+    unsigned long gval;
+    if ( ztv_base == 0 ) return;
+    if ( !which ) gamma_ram = ztv_base + GAMMA1_OFFSET;
+    else gamma_ram = ztv_base + GAMMA2_OFFSET;
+    if ( what == 0 ) {
+	for ( idx = 0 ; idx < 32 ; ++idx ) {
+	    /* Start with linear */
+	    gval = (idx<<3) | (idx << 11) | (idx << 19);
+	    for ( pix = 1023 ; pix >= 0 ; --pix ) {
+		*gamma_ram++ = gval;
+	    }
+	}
+    } else {
+	for ( idx = 0 ; idx < 32 ; ++idx ) {
+	    /* User_supplied table */
+	    gval = what[idx];
+	    for ( pix = 1023 ; pix >= 0 ; --pix ) {
+		*gamma_ram++ = gval;
+	    }
+	}
+    }
+}
+
+STATIC void gamma_flood(int which, U32 gval)
+{
+    VU32 *gamma_ram;
+    int pix,idx;
+    if ( ztv_base == 0 ) return;
+    if ( !which ) gamma_ram = ztv_base + GAMMA1_OFFSET;
+    else gamma_ram = ztv_base + GAMMA2_OFFSET;
+    for ( idx = 0 ; idx < 32 ; ++idx ) {
+	/* Flood all positions with gval */
+	for ( pix = 1023 ; pix >= 0 ; --pix ) {
+	    *gamma_ram++ = gval;
+	}
+    }
+}
+
+/*		This odd little snippet is to allow systems
+ *	with two displays (and no zover) to not get linker
+ *	errors and change the screen to which output is directed.
+ *	It is an appendix, and will likely go away. MEA 6DEC95
+ */
+#ifndef MEMCON
+STATIC int which_screen;
+
+int
+vid_setscr(which)
+int which;
+{
+    int old = which_screen;
+    if ( which >= 0 ) which_screen = which;
+    return old;
+}
+#endif
+
+void (*gameint)();
+void (*ztvint)();	/* dummy to keep cobbled-up dispatch.c happy */
+#if HOST_BOARD == ASCLEAP
+void (*framevec)();	/* DMS added this to intvecs.mac, which we can't use... */
+#endif
+
+void (*vid_set_vb ( void (*new_rtn)() ))()
+{
+    return prc_set_vec(GAMEVB_INTVEC,new_rtn);
+}
+
+/*	In self-test, we call eer_hwt to update EEPROM (and bump eer_rtc)
+ *	and call ctl_upd_swtch() to debounce switches. Separately "debounce"
+ *	self-test switch (if any :-) to transit from selftest to game.
+ */
+#if B_TEST >= 0
+static int ts_debounce;
+#endif
+
+/*		vid_fields( frame_rate )
+ *	Establish the frame rate, for such hardware as needs special
+ *	treatment to switch buffers, show the current screen, etc.
+ *	if <frame_rate> < 0, that part of the video (e.g. GXn video RAM)
+ *	will be turned off. Otherwise, <frame_rate> specifies the number
+ *	of fields (vertical traces of the CRT screen) to display for each
+ *	frame (unique visual image) of video. <frame_rate>s from 0..4
+ *	should be supported on any hardware. Video hardwares that do not
+ *	have such a concept can simply return 0.
+ *
+ *	The meaning of ( fields == 0 ) was changed for Zoid20, and will
+ *	be phased in to other hardware. (fields < 0) now means "video
+ *	generation off", while (fields == 0) now means "do not wait at
+ *	all to swap buffers".
+ */
+static int fields_per_frame;
+
+/*		ztv_mod_latch()
+ *	Acts like prc_mod_latch(), but with respect to the (write only)
+ *	control latch on the ZTV board. In addition to the actual bits
+ *	in the latch, the shadow (ztv_latch_shad, below) also contains
+ *	"software" bits that are philosophically akin to the hardware
+ *	ones. The most important is B_Z_SOFT_REFRESH, which determines
+ *	whether the irq routine should do a software refresh of the
+ *	Z buffer and bitmap. This is only needed (or done) when the
+ *	render engine is turned off, and is only intended for use
+ *	in diagnostics. The only reason it would be turned _off_ is
+ *	during particularly obscure troubleshooting.
+ */
+/* static */ U32 ztv_latch_shad;
+
+U32 ztv_mod_latch(change)
+U32 change;
+{
+    int old_ipl;
+    U32 *lsp,lval;
+    VU32 *latp;
+
+    latp = ztv_base;
+    lsp = &ztv_latch_shad;
+    if ( change & (1<<31) ) {
+	/* clearing bits */
+	old_ipl = prc_set_ipl(INTS_OFF);
+	lval = *lsp & change;
+    } else {
+	/* clearing bits */
+	old_ipl = prc_set_ipl(INTS_OFF);
+	lval = *lsp | change;
+    }
+    if ( latp ) *latp = lval;
+    *lsp = lval;
+    prc_set_ipl(old_ipl);
+    return lval;
+}
+
+#ifdef B_Z_DSM_OFF
+/* The sense of the DSM_OFF bit may be reversed from the documentation.
+ * We'll try it both ways.
+ */
+#ifndef DSM_OFF
+#define DSM_OFF (1<<B_Z_DSM_OFF)
+#endif
+#ifndef DSM_ON
+#define DSM_ON (~(1<<B_Z_DSM_OFF))
+#endif
+#endif /* def B_Z_DSM_OFF */
+
+/*	The bit that essentially controls whether the host or
+ *	the ZRE has control of the non-display bitmap is called
+ *	different things on versions 1 and 2, and has slightly
+ *	different functions, but for the vast majority of cases
+ *	they can be treated the same.
+ */
+#ifndef ZRE_RUNNING
+#ifdef B_Z_RUN
+#define ZRE_RUNNING (1<<B_Z_RUN)
+#else
+#define ZRE_RUNNING (1<<B_Z_XACC)
+#endif
+#endif
+
+int vid_fields( frame_rate )
+int frame_rate;
+{
+    int retval;
+    retval = fields_per_frame;
+    fields_per_frame = frame_rate;
+#ifdef B_Z_RUN
+    /* ZTV 1 had single RUN/HALT bit */
+    if ( frame_rate >= 0 ) ztv_mod_latch(1<<B_Z_RUN);
+    else  ztv_mod_latch(~(1<<B_Z_RUN));
+#else
+    /* ZTV 2 splits Display State Machine control
+     * and XBus access.
+     */
+    if ( frame_rate >= 0 ) {
+	/* turn _off_ Xbus access to Bitmap and Z-Buffer,
+	 * then turn _on_ the Display State Machine.
+	 */
+	ztv_mod_latch(1<<B_Z_XACC);
+	ztv_mod_latch(DSM_ON);
+    } else {
+	/* Frame rate < 0, turn _on_ Xbus access to Bitmap and Z-Buffer,
+	 * then turn _off_ the Display State Machine.
+	 */
+	ztv_mod_latch(~(1<<B_Z_XACC));
+	ztv_mod_latch(DSM_OFF);
+    }
+#endif
+    return retval; 
+}
+
+#ifndef WDOG
+int WDOG;
+#endif
+
+void
+st_vblank()
+{
+    WDOG = 0;
+#if B_TEST >= 0
+    if ( (TEST & (1<<B_TEST)) == 0 ) ts_debounce = 0;
+    else if ( ++ts_debounce > 8 ) prc_reboot();
+#endif
+}
+
+static void
+dummy_vblank() { WDOG = 0;}
+
+#define ZTV_INIT ((1<<B_Z_SOFTRES)|(1<<B_Z_INTENB))
+
+const int ztv_init = ZTV_INIT;
+
+void ztv_irq(struct opaque *cookie);
+
+volatile unsigned long vb_count;
+STATIC int no_irq;
+static int vid_warm;
+static int find_texture( int row );
+const int vid_init_verbose = (HOST_BOARD == ASCLEAP);
+extern void ser_sample();	/* Move to st_proto.h with other such hacks */
+extern int zre_setup();
+void vid_clr_alphas();
+#ifdef MEMCON
+extern int zover_init();
+#endif
+
+U32 get_vb_count(void) {
+    return vb_count;
+}
+
+extern void st_dispmenu(const U8 *menu, U32 opt_bits, int erase);
+
+static const unsigned char ztv_menu[] =
+    "\042Resolution\000*Medium\000\000\000\000"
+    "\061Second Display\000*Disable\000Enable\000"
+    "\071Which Display\000*Primary\000Secondary\000"
+#if HOST_BOARD == ASCLEAP
+    "\101Overlay Video\000No\000*Yes\000"
+#else
+    "\101Overlay Video\000*No\000Yes\000"
+#endif
+    "\121FSM Refresh\000Off\000*On\000"
+    "\131ZTV Software Reset\000Assert (DON'T)\000*Negate\000"
+    "\141ZTV IRQs\000Disable\000*Enable\000"
+    "\171Sync Master\000Other\000*Me\000"
+#ifdef ZTV_OPT_SOFT_REFRESH
+    "\201ZTV Software Refresh\000No\000*Yes\000"
+#endif
+#ifdef ZTV_OPT_HBL_WAIT
+#if HOST_BOARD != ASCLEAP
+    "\241Host Text Waits for Hblank\000*No\000Yes\000"
+#else
+    "\241Host Text Waits for Hblank\000No\000*Yes\000"
+#endif /* ASCLEAP or not */
+#endif /* ZTV_OPT_HBL_WAIT */
+    "\213Frame rate\000No Delay\000*60 Hz\00030 Hz\00020 Hz\000"
+    "15 Hz\00012 Hz\00010 Hz\000No ZRE\000"
+#ifdef B_Z_ONE_BANK
+    "\251Display RAM banks\000*Two\000One\000"
+#endif
+;
+
+extern int ztv_bufsel();
+#define ONE_CLOCK (70)
+#define XBUS_READ (300)
+#if (0)
+#define LOOP_TIME ((9*ONE_CLOCK)+XBUS_READ) /* guess at nanosecs each loop */
+#else
+#define LOOP_TIME (XBUS_READ) /* guess at nanosecs each loop */
+#endif
+#define TOO_LONG (17000000L)	/* A field should not take > 17 milliseconds */
+
+static U32 ztv_opt_memo;
+
+int no_wait_for_hblank;
+
+/*	Following is MEA's feeble attempt to keep up with
+ *	a moving target: Where are the LEDS (if any) Today?
+ */
+#ifdef IOLEDSADDR0
+# define IOLEDSET(x) (*IOLEDSADDR0 = x)
+#else
+#ifdef XBUSMON0_LED
+#define IOLEDSET(x) do { XBUSMON0_LED = (0xFF-(x)); } while (0)
+#else
+# define IOLEDSET(x)
+#endif /* XBUSMON0_LED defined */
+#endif /* IOLEDSADDR0 defined */
+
+#if (HOST_BOARD == ASCLEAP)
+#undef IOLEDSET
+#define IOLEDSET(x) do { int ledval = (x); \
+ if ( (ledval & 0xF0 ) == 0x50 ) ledval = ztv_mod_latch(0) >> 4; \
+    XBUSMON0_LED = (0xFF-ledval); } while (0)
+#endif
+#define ZTV_OPT_HZ_BITS (17)
+void
+vid_init()
+{
+    void (*old_vb)();
+    int old_ipl;
+    int countdown;
+    int status;
+    unsigned long old_count;
+    long options;
+    int second = 0;
+    int row = 0;
+    VU32 *ztv;
+    struct ztv_timing time_info;
+
+    /* make sure ints are off while messing with HSYNC programming.
+     * Then force a blank screen and safe dummy vblank while initializing
+     * palettes etc.
+     */
+
+    IOLEDSET(0x51);
+
+    gamma_flood(0, GAMMA_RED);
+    gamma_flood(1, GAMMA_RED);
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    no_irq = 0;
+    ztv = ztv_base;
+    if ( ztv == 0 ) {
+	/* Don't know whether we have a ZTV or a ZIG, yet
+	 */
+	ztv = &ZTV_CTL;
+#ifdef ZIG
+	if ( (timing(&ZIGTV_CTL, &time_info) & 3) == 0 ) ztv = &ZIGTV_CTL;
+	else 
+#endif
+	if ( (timing(ztv, &time_info) & 3 ) != 0 ) {
+	    /* Nobody home, bail as gracefully as we can
+	     */
+	    ztv_base = ztv = 0;
+	    vid_warm = 0;
+	    txt_select(TXT_NONE);
+	    prc_set_ipl(old_ipl);
+	    txt_str(-1,2,"NO VIDEO CARD",ERROR_PAL);
+	    return;
+	}
+	ztv_base = ztv;
+    }
+    *ztv = 0;
+    prc_set_vec(ZTV_INTVEC, ztv_irq);
+    prc_set_ipl(old_ipl);
+
+    /* Set ZTV controls, shadow, and "soft options" to
+     * a safe value, our menu defaults.
+     */
+    ztv_latch_shad = 0;
+#if (0)
+    options = ztv_init;
+    if ( !vid_warm ) options = ztv_restore_defaults();
+#else
+    options = ztv_opt_memo;
+    if ( !options ) options = ztv_opt_memo = factory_setting(ztv_menu);;
+#endif
+    ztv_mod_latch(options|(1<<B_Z_SOFTRES));
+    IOLEDSET(0x52);
+    gamma_flood(0, GAMMA_ORG);
+    gamma_flood(1, GAMMA_ORG);
+
+    if ( !vid_warm && vid_init_verbose ) {
+	setancolors();
+	vid_clr_alphas();
+	txt_str(1,row,"Initializing ",MNORMAL_PAL);
+	txt_cstr((ztv_base == &ZTV_CTL) ? "ZTV2 @@" : "ZIG @@" , MNORMAL_PAL);
+	txt_chexnum((U32)ztv_base,8,RJ_ZF,MNORMAL_PAL);
+	prc_delay(100);
+	++row;
+    }
+    IOLEDSET(0x53);
+    if ( !vid_warm && vid_init_verbose ) {
+	txt_str(1,row++,"ztv_latch_shad @@:",MNORMAL_PAL);
+	txt_chexnum((U32)&ztv_latch_shad,8,RJ_ZF,MNORMAL_PAL);
+	txt_cstr(" = ",MNORMAL_PAL);
+	txt_chexnum(ztv_latch_shad,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(1,row++,"ZTV Status:",MNORMAL_PAL);
+	txt_chexnum(*ztv,3,RJ_ZF,MNORMAL_PAL);
+#if (0)
+	txt_str(1,row++,"ENTRY IPL = 0x",MNORMAL_PAL);
+	txt_chexnum(old_ipl,8,RJ_ZF,MNORMAL_PAL);
+#endif
+	txt_str(1,row++,"Enabling ZTV IRQ",MNORMAL_PAL);
+	prc_delay(100);
+    }
+    IOLEDSET(0x54);
+    ztv_mod_latch(ztv_init);
+    gamma_flood(0, GAMMA_YEL);
+    gamma_flood(1, GAMMA_YEL);
+    if ( !vid_warm && vid_init_verbose ) {
+	txt_str(1,row++,"ztv_latch_shad = ",MNORMAL_PAL);
+	txt_chexnum(ztv_latch_shad,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(1,row++,"ZTV Status:",MNORMAL_PAL);
+	txt_chexnum(*ztv,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(1,row++,"Getting default ZTV settings (",MNORMAL_PAL);
+	txt_chexnum(ztv_opt_memo,8,RJ_ZF,MNORMAL_PAL);
+	txt_cstr(")",MNORMAL_PAL);
+	prc_delay(100);
+    }
+    options = ztv_opt_memo;
+#if defined(EER_ZTV_OPT)
+    options = eer_gets(EER_ZTV_OPT);
+    if ( !options ) {
+	options = ztv_opt_memo;
+	eer_puts(EER_ZTV_OPT,options);
+    } else {
+	ztv_opt_memo = options;
+    }
+#endif
+    if ( ~options & ztv_mod_latch(options) ) ztv_mod_latch(options|0x80000000);
+    if ( !vid_warm && vid_init_verbose ) {
+	txt_str(1,row++,"ztv_latch_shad = ",MNORMAL_PAL);
+	txt_chexnum(ztv_latch_shad,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(1,row++,"ZTV Status:",MNORMAL_PAL);
+	txt_chexnum(*ztv,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(1,row++,"Jiggling buffer select",MNORMAL_PAL);
+	prc_delay(100);
+    }
+    ztv_bufsel(1);
+    prc_delay(10);
+    ztv_bufsel(0);
+    IOLEDSET(0x55);
+    gamma_flood(0, GAMMA_CYN);
+    gamma_flood(1, GAMMA_CYN);
+    if ( !vid_warm && vid_init_verbose ) {
+	txt_str(1,row++,"ZTV Status:",MNORMAL_PAL);
+	txt_chexnum(*ztv,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(1,row++,"Pointing to dummy vblank",MNORMAL_PAL);
+	prc_delay(100);
+    }
+    IOLEDSET(0x56);
+    old_vb = vid_set_vb(dummy_vblank);
+    gamma_flood(0, GAMMA_VIO);
+    gamma_flood(1, GAMMA_VIO);
+    WDOG = 0;
+    if ( !vid_warm ) {
+	if ( vid_init_verbose ) {
+	    txt_str(1,row++,"ZTV Status:",MNORMAL_PAL);
+	    txt_chexnum(*ztv,8,RJ_ZF,MNORMAL_PAL);
+	    txt_str(1,row++,"Checking Video Timing",MNORMAL_PAL);
+	    prc_delay(100);
+	}
+	timing(ztv_base, &time_info);
+	if ( (time_info.status & VIDB_IS_HB) == 0) {
+	    if ( vid_init_verbose ) {
+		txt_str(1,row++,"HBLANK Broken, don't wait",ERROR_PAL);
+	    }
+	    ztv_mod_latch(~ZTV_OPT_HBL_WAIT);
+	    ztv_opt_memo &= ~(ZTV_OPT_HBL_WAIT);
+	    options &= ~(ZTV_OPT_HBL_WAIT);
+#ifdef EER_ZTV_OPT
+	    eer_puts(EER_ZTV_OPT,ztv_opt_memo);
+#endif
+	}
+    }
+    IOLEDSET(0x57);
+    gamma_flood(0, GAMMA_GRN);
+    gamma_flood(1, GAMMA_GRN);
+    IOLEDSET(0x58);
+#ifdef B_Z_ONE_BANK
+    if ( !(options & (1<<B_Z_ONE_BANK)) ) {
+	/* claims to have both banks, check it out.
+	 */
+	U32 zctl;
+	struct rdb tst;
+	tst.rd_len = 0x20;
+	tst.rd_misc = 0xFFFF;
+	tst.rd_base = (U32 *)ZIGTV_BITMAP_ADDR;
+	/* If we are running on a ZTV2, move the
+	 * base pointer _and_ make sure we see the
+	 * bitmap, not the Z buffer.
+	 */
+	if ( ztv_base == &ZTV_CTL ) {
+	    tst.rd_base = (U32 *)ZTV_BITMAP_ADDR;
+	    ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+	}
+	/* Bump whatever pointer to the second line,
+	 * which will not exist on an EconoZig.
+	 */
+	tst.rd_base += TOT_H_PIX;
+	zctl = ztv_mod_latch(0);
+	ztv_mod_latch(ZTV_OPT_SOFT_REFRESH);
+	ztv_mod_latch(~(1<<B_Z_XACC));
+	/* Select which half (MSBs or LSBs) based on current
+	 * buffer.
+	 */
+	if ( (*ztv_base & (1<<B_Z_CURBUF)) != 0 ) tst.rd_misc <<= 16;
+	if ( q_ram_test(&tst,0) ) {
+	    /* Failed, assume only one bank is stuffed.
+	     */
+	    ztv_mod_latch(1<<B_Z_ONE_BANK);
+	    ztv_opt_memo |= (1<<B_Z_ONE_BANK);
+	    options |= (1<<B_Z_ONE_BANK);
+#ifdef EER_ZTV_OPT
+	    eer_puts(EER_ZTV_OPT,ztv_opt_memo);
+#endif
+	}
+	if ( !(zctl & ZTV_OPT_SOFT_REFRESH) ) {
+	    ztv_mod_latch(~ZTV_OPT_SOFT_REFRESH);
+	}
+    }
+#endif
+    IOLEDSET(0x59);
+    txt_select(TXT_HOST);		/* default text drawing directly into bitmap */
+    if ( !vid_warm && vid_init_verbose ) {
+	txt_str(1,row++,"ztv_irq ( ",MNORMAL_PAL);
+	txt_chexnum((U32)(ztv_irq),8,RJ_ZF,MNORMAL_PAL);
+	txt_cstr("): ",MNORMAL_PAL);
+	txt_chexnum(*(U32*)(ztv_irq),8,RJ_ZF,MNORMAL_PAL);
+	show_timing(row, &time_info);
+	row += 3;
+	countdown = 60;
+    } else countdown = 9;
+    old_count = vb_count;
+    IOLEDSET(0x5A);
+#if (1)
+    while (1) {
+	unsigned long count;
+	long no_frame;
+	no_frame = TOO_LONG;
+	while ( (count = vb_count) == old_count ) {
+	    /* Normally we would just spin here, but let's
+	     * look for missing IRQs
+	     */
+	    if ( *ztv & *ztv & (1<<B_Z_INT) ) {
+		ztv_irq(0);
+		++no_irq;
+	    } else {
+		no_frame -= XBUS_READ;
+		if ( no_frame < 0 ) break;
+	    }
+	}
+	old_count = count;
+	if ( second != (countdown/60) ) {
+	    second = countdown/60;
+	    txt_decnum(3,row,second,2,RJ_BF,MNORMAL_PAL);
+	}
+	if ( --countdown < 0 ) break;
+    }
+    if ( !vid_warm && vid_init_verbose ) {
+	U32 cur_ipl;
+	txt_str(3,row++,"Missed IRQs: ",MNORMAL_PAL);
+	txt_cdecnum(no_irq,5,RJ_BF,MNORMAL_PAL);
+	cur_ipl=prc_set_ipl(INTS_OFF);
+	prc_set_ipl(cur_ipl);
+	txt_str(3,row++,"IPL = 0x",MNORMAL_PAL);
+	txt_chexnum(cur_ipl,8,RJ_ZF,MNORMAL_PAL);
+	if ( no_irq ) prc_delay(200);
+    }
+#else
+	/* second should be zero, use it to avoid "unused variable"
+	 * warning.
+	 */
+	txt_str(3+second,row++,"Blowing past IRQ check",MHILITE_PAL);
+#endif
+
+    if ( !vid_warm && vid_init_verbose ) {
+	txt_str(1,row++,"ZTV Status:",MNORMAL_PAL);
+	txt_chexnum(*ztv,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(1,row++,"(Re-)Enabling HOST Text",MNORMAL_PAL);
+	prc_delay(100);
+    }
+    txt_select(TXT_HOST);
+
+    if ( !vid_warm && vid_init_verbose ) {
+	txt_str(1,row++,"ZTV Status:",MNORMAL_PAL);
+	txt_chexnum(*ztv,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(1,row++,"Initializing ZRE",MNORMAL_PAL);
+	prc_delay(100);
+    }
+    IOLEDSET(0x5B);
+    if ( (status = zre_setup()) == 0 ) {
+	/* ZRE alive, set frame rate per options */
+	int Hz;
+	Hz = (options>>ZTV_OPT_HZ_BITS)&7;
+	if ( Hz == 7 ) Hz = -1;
+	vid_fields(Hz);
+    } else {
+	txt_str(1,row++,"zre_setup() failed, returning: ",MNORMAL_PAL);
+	txt_chexnum(status,8,RJ_ZF,MNORMAL_PAL);
+	prc_delay(100);
+    }
+    IOLEDSET(0x5C);
+    row = show_spur(row);
+    if ( ztv_mod_latch(0) & (1<<B_Z_HAS_OVLY) ) {
+	if ( vid_init_verbose ) txt_str(3,++row,"Starting Zover",MNORMAL_PAL);
+	status = zover_init(1);
+	if ( vid_init_verbose ) {
+	    txt_cstr("Status: 0x",MNORMAL_PAL);
+	    txt_chexnum((U32)status,8,RJ_ZF,MNORMAL_PAL);
+	}
+	if ( status < 0 ) {
+	    txt_str(3,++row,"Disabling Overlay",MNORMAL_PAL);
+	    ztv_mod_latch(~(1<<B_Z_HAS_OVLY));
+	    options &= ~(1<<B_Z_HAS_OVLY);
+	    ztv_opt_memo = options;
+#ifdef EER_ZTV_OPT
+	    eer_puts(EER_ZTV_OPT,options);
+#endif
+	}
+	prc_delay(120);
+    } else zover_init(0);
+    ztv_gamma_init(0,0);
+    ztv_gamma_init(1,0);
+    if ( find_texture( vid_init_verbose ? ++row : -1 ) < 0 ) {
+	txt_str(-1,++row,"NO TEXTURE RAM",ERROR_PAL);
+	prc_delay(30);
+    }
+    if ( !vid_warm && vid_init_verbose ) {
+	vid_clear();
+	txt_str(-1,2,"ZOID TV IS ON THE AIR",GRY_PAL | AN_BIG_SET);
+	st_dispmenu(ztv_menu,(U32)ztv_mod_latch(0), 0);
+	prc_delay(120);
+	st_dispmenu(ztv_menu,(U32)ztv_mod_latch(0), 0);
+    }
+    IOLEDSET(0x5D);
+    vid_clear();
+    IOLEDSET(0x5E);
+    setancolors();
+    if ( old_vb ) vid_set_vb(old_vb);
+#ifdef EER_ZTV_OPT
+    ztv_mod_latch(eer_gets(EER_ZTV_OPT) & ZTV_OPT_SOFT_REFRESH);
+#endif
+    vid_warm = 1;
+}
+
+#define MAX_WAIT (320000L)
+
+#define U32S_PER_LINE (VIS_H_PIX)
+
+static unsigned int buf_wanted;	/* 0 or (1<<B_Z_BUFSEL) */
+static int disp_wanted;
+static int buf_swap_errors;	/* If requested != current at start of Vblank */
+#if (B_Z_BUFSEL < B_Z_CURBUF)
+#define cur2sel(val) ((val)>>(B_Z_CURBUF-B_Z_BUFSEL))
+#define sel2cur(val) ((val)<<(B_Z_CURBUF-B_Z_BUFSEL))
+#else
+#define cur2sel(val) ((val)<<(B_Z_BUFSEL-B_Z_CURBUF))
+#define sel2cur(val) ((val)>>(B_Z_BUFSEL-B_Z_CURBUF))
+#endif
+#define M_CURBUF (1<<B_Z_CURBUF)
+#define M_SELBUF (1<<B_Z_BUFSEL)
+#ifdef B_Z_OVLY_BUF
+#define M_OVLYBUF (1<<B_Z_OVLY_BUF)
+#else
+#define M_OVLYBUF (0)
+#endif
+#define M_DISPBUF (1<<B_Z_DISP_SEL)
+#define BCONFIG( disp12, ovly, show ) ( \
+    ((disp12)*M_DISPBUF) /* Which display area gets overlay video */ \
+  | ((ovly)*M_OVLYBUF) /* Which buffer (within display) gets overlay video */ \
+  | ((show)*M_SELBUF) ) /* Which half of buffer is shown (ZRE->other) */
+#ifdef B_Z_OVLY_BUF
+static const U16 buf_dance[] = {
+#if (0)
+    BCONFIG ( 1, 0, 0 ),
+    BCONFIG ( 1, 0, 1 ),
+    BCONFIG ( 1, 1, 0 ),
+    BCONFIG ( 1, 1, 1 ),
+#else
+    BCONFIG ( 0, 0, 0 ),
+    BCONFIG ( 0, 0, 1 ),
+    BCONFIG ( 0, 1, 0 ),
+    BCONFIG ( 0, 1, 1 ),
+#endif
+};
+#endif
+static int buf_idx;
+
+/*		ztv_bufswap()
+ *	swap buffers and return an int contatining one or zero
+ *	in the bit corresponding to CURBUF when the swap has
+ *	finished. In other words, to swap and wait for the
+ *	swap to have finished, the following is the minimal
+ *	code:
+ *
+ *	int newbuf = ztv_bufswap();
+ *	while ( (*ztv_base & M_CURBUF) != newbuf) {;}
+ *
+ *	This routine will return -1 if the currently expected buffer
+ *	is not the current buffer, so the above code will hang, and
+ *	should probably be extended in some way to deal with the
+ *	error.
+ */
+static int swaps_wanted,swaps_done;
+
+int ztv_bufswap()
+{
+    int old_ipl;
+    U32 should_be;
+    VU32 *ztv = ztv_base;
+    long spinner;
+    int which,idx;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    should_be = sel2cur(buf_wanted) & M_CURBUF;
+    buf_wanted ^= M_SELBUF;
+    which = buf_wanted;
+    idx = buf_idx;
+#ifdef B_Z_OVLY_BUF
+    if ( !which ) idx &= ~1;		/* Re-sync on screw-up */
+    if ( ztv_latch_shad & (1<<B_Z_HAS_OVLY) ) {
+	/* If we have overlay video, we need to specify
+	 * which buffer to capture into next, and possibly
+	 * which display.
+	 */
+	disp_wanted = buf_dance[idx];
+	if ( ztv_latch_shad & (1<<B_Z_TWO_DISP) ) {
+	    disp_wanted &= (1<<B_Z_DISP_SEL);
+	    disp_wanted |= buf_dance[idx] & (1<<B_Z_BUFSEL);
+	}
+    } else disp_wanted = 0;
+    buf_idx = (++idx)&(n_elts(buf_dance)-1);
+#else
+    if ( !which && (ztv_latch_shad & (1<<B_Z_HAS_OVLY)) ) {
+	/* "falling edge" of BUFSEL toggles DISP_SEL to paint
+	 * rendered objects over video captured from Zover.
+	 */
+	disp_wanted ^= (1<<B_Z_DISP_SEL);
+    }
+#endif
+    if ( should_be ^ (*ztv & M_CURBUF) ) {
+	/* hardware seems to have not responded to last request.
+	 * Whap it again.
+	 */
+	if ( should_be ) ztv_mod_latch(M_SELBUF);
+	else ztv_mod_latch(~M_SELBUF);
+	for ( spinner = MAX_WAIT ; spinner > 0 ; spinner -= XBUS_READ ) { 
+	    if ( (should_be ^ (*ztv & M_CURBUF)) == 0  ) break;
+	}
+	if ( spinner < 0 ) {
+	    which = -1;
+	    ZRE_CSR &= ~(1<<B_ZRE_XLED);
+	} else {
+	    ZRE_CSR |= (1<<B_ZRE_XLED);
+	}
+    } 
+    if ( which >= 0 && ( fields_per_frame == 0 ) ) ztv_bufsel(which);
+    else ++swaps_wanted;
+    prc_set_ipl(old_ipl);
+    if ( which >= 0 ) which = sel2cur(which);
+    return which;
+}
+
+/*	ztv_bufsel(which) sets the current display buffer. If (which == 0),
+ *	buffer AB will be displayed. Else buffer CD will be displayed.
+ *	In either case, we _draw_ into the other buffer.
+ */
+int ztv_bufsel(int which)
+{
+    int old_val,buf_bit;
+    int	tries;
+    old_val = ztv_mod_latch(0);
+    buf_bit = 0;
+    if ( !which ) {
+	buf_wanted = 0;
+	ztv_mod_latch(~(1<<B_Z_BUFSEL));
+    } else {
+	buf_wanted = (1<<B_Z_BUFSEL);
+	ztv_mod_latch(1<<B_Z_BUFSEL);
+	buf_bit = (1<<B_Z_CURBUF);
+    }
+    for ( tries = MAX_WAIT ; tries >= 0 ; --tries ) {
+	if ( (*ztv_base & (1<<B_Z_CURBUF)) == buf_bit ) break;
+    }
+    return tries;
+}
+
+#if (0)
+/*		bm_clear(which)
+ *	For Diags and initialization, clear the BitMap (AB if <which> == 0,
+ *	else CD) via the processor. This is _slightly_ complicated by the
+ *	fact that when the processor has control, the VRAM refresh is disabled,
+ *	so we have to do our own refresh, both during the clear and until
+ *	we "hand over" this screen to the video.
+ */
+
+STATIC int
+bm_clear(int which)
+{
+    int ctl_val,old_val,buf_bit;
+    m_int y,x;
+    unsigned long *lp;
+    int	tries;
+
+    buf_bit = 0;
+    old_val = ztv_mod_latch(0);
+    ctl_val = ztv_mod_latch(~ZRE_RUNNING);
+    tries = ztv_bufsel(!which);
+    if ( tries >= 0 ) {
+	/* OK, we have control and agree which buf we are talking to */
+	lp = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+	for ( x = 0 ; x <= (U32S_PER_LINE) ; ++x ) {
+	    /* ooooozing across the screen one pixel at a time */
+	    for ( y = VIS_V_PIX-1 ; y >= 0 ; --y ) {
+		lp[x] = 0;	/* write whichever half... */
+		lp += (U32S_PER_LINE);	/* next line */
+	    }
+	    lp -= (VIS_V_PIX*U32S_PER_LINE);
+	}
+	tries = ztv_bufsel(which);
+    }
+    if ( old_val & ZRE_RUNNING ) {
+	ctl_val = ztv_mod_latch(ZRE_RUNNING);
+    }
+    return ( tries >= 0 );
+}
+#endif
+
+#define ZTV_BITMAP_OFFSET ((ZTV_BITMAP_ADDR-(U32)&ZTV_CTL)/sizeof(ZTV_CTL))
+
+/*		bm_rect()
+ *	Draw a rectangle in the currently _active_ (not visible, but
+ *	being drawn into) frame buffer. This is done by the HOST,
+ *	via Xbus, rather than by the render engine. It is not "static"
+ *	because some of the tests in zre_test.c use it at the moment.
+ */
+/* STATIC */ int
+bm_rect( x1, y1, x2, y2, outside, inside)
+int x1, y1, x2, y2, outside, inside;
+{
+    int ul_x, ul_y, lr_x, lr_y;
+    int ctl_val,old_val;
+    m_int y,x;
+    unsigned long *lp;
+    int	which;
+    int v_retrace;
+    U32 display_hack = 0;
+    int next_line = TOT_H_PIX;
+
+    /* Guard against inversion of upper-left and lower-right
+     */ 
+    ul_x = x1;
+    lr_x = x2;
+    if ( lr_x < ul_x ) {
+	ul_x = x2;
+	lr_x = x1;
+    }
+    ul_y = y1;
+    lr_y = y2;
+    if ( lr_y > ul_y ) {
+	ul_y = y2;
+	lr_y = y1;
+    }
+    /* Clip to within visible screen, being careful to remember that
+     * y = 0 is _bottom_ of the screen.
+     */
+    if ( ul_x < 0 ) ul_x = 0;
+    if ( lr_x >= VIS_H_PIX ) lr_x = VIS_H_PIX-1;
+    if ( lr_y < 0 ) lr_y = 0;
+    /* We allow any line number that is _physically_ within the
+     * buffer RAM to be written. This allows both display buffers
+     * to be used, and also lets us easily pre-clear the lines that
+     * are used by the VRAM-trick screen-clear.
+     */
+    if ( ul_y >= TOT_V_PIX ) {
+	ul_y = TOT_V_PIX-1;
+	if ( lr_y >= TOT_V_PIX ) lr_y = TOT_V_PIX-1;
+    }
+#ifdef B_Z_ZBUFF_EN
+    old_val = ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+#else
+    old_val = ztv_mod_latch(0);
+#endif
+#ifdef B_Z_ONE_BANK
+    if ( old_val & (1<<B_Z_ONE_BANK) ) {
+	next_line <<= 1;
+    }
+#endif
+    if ( ul_y >= DISPLAY_2 && lr_y >= DISPLAY_2 ) {
+	/* Hack for rectangles drawn within display two area.
+	 * We need to account for the flip of the least-significant
+	 * line address.
+	 */
+	display_hack = (U32S_PER_LINE*sizeof(U32));
+    }
+    v_retrace = (ul_y-lr_y)-1;
+    if ( v_retrace < 0 ) v_retrace = 0;
+    v_retrace *= next_line;
+
+    /*	Duplicate colors so we don't care which 16-bit word
+     *	we are trying to store.
+     */
+    outside &= 0x7FFF;
+    outside |= (outside << 16);
+
+    inside &= 0x7FFF;
+    inside |= (inside << 16);
+
+    ztv_mod_latch(ZTV_OPT_SOFT_REFRESH);
+    ctl_val = ztv_mod_latch(~ZRE_RUNNING);
+    which = (old_val & (1<<B_Z_BUFSEL));
+    {
+	/* OK, we have control and agree which buf we are talking to.
+	 * First draw inside
+	 */
+	lp = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+	lp += next_line*(lr_y+1);
+	for ( y = ul_y-1 ; y > lr_y ; --y ) {
+	    lp = (U32 *)((U32) lp ^ display_hack);
+	    for ( x = ul_x+1 ; x < lr_x ; ++x ) lp[x] = inside;
+	    lp = (U32 *)((U32) lp ^ display_hack);
+	    lp += next_line;
+	}
+#ifdef B_Z_ZBUFF_EN
+	/* On ZTV2, set Z buffer separately */
+#ifdef ZIG
+	if ( ztv_base == &ZTV_CTL )
+#endif
+	{
+	    /* REV 2 ZTV */
+	    ztv_mod_latch(1<<B_Z_ZBUFF_EN);
+	    lp = ((U32 *)ZTV_BITMAP_ADDR);
+	}
+#ifdef ZIG
+	else {
+	    /* ZIG */
+	    lp = ((U32 *)ZIGTV_ZBUF_ADDR);
+	}
+#endif
+	lp += next_line*(lr_y+1);
+	for ( y = ul_y-1 ; y > lr_y ; --y ) {
+	    lp = (U32 *)((U32) lp ^ display_hack);
+	    for ( x = ul_x+1 ; x < lr_x ; ++x ) lp[x] = 0xFFFFFF;
+	    lp = (U32 *)((U32) lp ^ display_hack);
+	    lp += next_line;
+	}
+	ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+#endif
+	/* Now draw top and bottom */
+	lp = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+	lp += next_line*lr_y;
+	lp = (U32 *)((U32) lp ^ display_hack);
+	for ( x = ul_x ; x <= lr_x ; ++x ) {
+	    lp[x] = outside;
+	}
+	lp = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+	lp += next_line*ul_y;
+	lp = (U32 *)((U32) lp ^ display_hack);
+	for ( x = ul_x ; x <= lr_x ; ++x ) {
+	    lp[x] = outside;
+	}
+	/* now the sides */
+	lp = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+	lp += next_line*(lr_y+1);
+	for ( y = ul_y-1 ; y > lr_y ; --y ) {
+	    lp = (U32 *)((U32) lp ^ display_hack);
+	    lp[ul_x] = outside;		/* write whichever half... */
+	    lp[lr_x] = outside;		/* write whichever half... */
+	    lp = (U32 *)((U32) lp ^ display_hack);
+	    lp += next_line;
+	}
+    }
+    if ( old_val & ZRE_RUNNING ) {
+	ctl_val = ztv_mod_latch(ZRE_RUNNING);
+    }
+    if ( !(old_val & ZTV_OPT_SOFT_REFRESH) ) {
+	/* Some loon has turned off refresh, do what
+	 * he asks.
+	 */
+	ztv_mod_latch(~ZTV_OPT_SOFT_REFRESH);
+    }
+    return 0;
+}
+
+void
+vid_clr_alphas()
+{
+    m_int y;
+    for ( y = AN_VIS_ROW-1 ; y >= 0 ; --y ) {
+	/* egregious hack for remote-alphas selftest with ztv board */
+	txt_clr_wid(0,y,AN_VIS_COL);
+    }
+}
+
+void
+vid_clear()
+{
+    int which;
+#if (0)
+    /* Clearing only during HBLANK is painfully slow, while
+     * messing with DSM_OFF during active video is messy
+     * on non-overlaid systems and _really_ nasty on
+     * systems with overlaid video. So, we return to
+     * clearing the buffers individually.
+     */
+    int old_hblank;
+    old_hblank = ztv_mod_latch(0);
+/*    ztv_mod_latch(~ZTV_OPT_HBL_WAIT); */
+
+    vid_clr_alphas();
+
+    if ( old_hblank & ZTV_OPT_HBL_WAIT ) ztv_mod_latch(ZTV_OPT_HBL_WAIT);
+
+    if ( ztv_mod_latch(0) & ZRE_RUNNING ) return; /* ZRE alive, leave alone */
+    which = *ztv_base & (1<<B_Z_CURBUF);
+
+#else
+
+    which = txt_select(TXT_NONE);
+    txt_select(which);
+    vid_clr_alphas();
+    if ( which != TXT_HOST ) {
+	/* Host text exists only in the bitmap (for now), so
+	 * the vid_clr_alphas() call makes clearing the bitmap
+	 * redundant. Also, only bother to clear the other buffer if
+	 * it is used, either for overlay video or a second display.
+	 */
+	 U32 more;
+	 more = ztv_mod_latch(0) & ((1<<B_Z_TWO_DISP)|(1<<B_Z_HAS_OVLY));
+#if (0)
+    /* We may re-instate bm_clear() as a special case, now that
+     * we know we need it. For now, it is easier to use bm_rect(),
+     * which is "ZIG-aware" :-)
+     */
+	if ( !bm_clear( which ) ) {
+	    /* problem with clear */
+	    txt_str(-1,(AN_VIS_ROW/2),"ZTV BITMAP NOT AVAILABLE",MHILITE_PAL);
+	}
+	which = !which;
+	if ( !bm_clear( which ) ) {
+	    /* problem with clear */
+	    txt_str(-1,(AN_VIS_ROW/2),"ZTV BITMAP NOT AVAILABLE",MHILITE_PAL);
+	}
+#else
+	for ( which = 2 ; which > 0 ; --which ) {
+	    bm_rect(0, 0, VIS_H_PIX-1, VIS_V_PIX-1, 0, 0);
+	    if ( more ) {
+		bm_rect(0, DISPLAY_2, VIS_H_PIX-1, DISPLAY_2+VIS_V_PIX-1, 0,0);
+	    }
+	    swap_and_wait();
+	}
+#endif /* using bm_clear() vs bm_rect() */
+#endif /* DSM_OFF versus clearing offscreen */
+    } 
+}
+
+void
+stamp_atxy(num,x,y,color)
+int num,x,y,color;
+{
+}
+/*	lmul_div(start,mul,div,mod_p) computes the function (start*mul)/div
+ *	with enough precision in the intermediate result for exact results.
+ *	If mod_p is non-null, the remainder is also returned.
+ */
+#ifndef ULONG_MAX
+#define ULONG_MAX ((unsigned long)-1L)
+#endif
+
+unsigned long
+lmul_div(start,mul,div,mod_p)
+unsigned long start,mul,div,*mod_p;
+{
+    unsigned long acc_hi,acc_mid,acc_lo;
+    unsigned int s_hi,s_lo,m_hi,m_lo;
+    int bit;
+
+    s_hi = (start >> 16) & 0xFFFF;
+    s_lo = (start & 0xFFFF);
+    m_hi = (mul >> 16) & 0xFFFF;
+    m_lo = (mul & 0xFFFF);
+
+    /*	First the easy partial products.
+     */
+    acc_lo = s_lo * m_lo;
+    acc_hi = s_hi * m_hi;
+
+    /*	Now the "middle" partials, accumulating as we go into lo and hi
+     */
+    acc_mid = s_hi * m_lo;
+
+    acc_hi += (acc_mid >> 16);
+    acc_mid &= 0xFFFF;
+
+    acc_mid += (acc_lo >> 16);
+    acc_lo &= 0xFFFF;
+    acc_hi += (acc_mid >> 16);
+    acc_lo |= (acc_mid << 16);
+
+    acc_mid = s_lo * m_hi;
+
+    acc_hi += (acc_mid >> 16);
+    acc_mid &= 0xFFFF;
+
+    acc_mid += (acc_lo >> 16);
+    acc_lo &= 0xFFFF;
+    acc_hi += (acc_mid >> 16);
+    acc_lo |= (acc_mid << 16);
+
+    if ( div <= acc_hi ) {
+#if (0)
+	fprintf(stderr,"0x%08lX%08lX / 0x%08lX will not fit in 32 bits\n",
+	  acc_hi,acc_lo,div);
+#endif
+	return ULONG_MAX;
+    }
+    for ( bit = 32 ; bit ; --bit ) {
+	int qbit = 0;
+	acc_hi += acc_hi;
+	if ( acc_lo & 0x80000000L ) ++acc_hi;
+	if ( div <= acc_hi ) {
+	    qbit = 1;
+	    acc_hi -= div;
+	}
+	acc_lo = ((acc_lo << 1) + qbit) & 0xFFFFFFFFL;
+    }
+    if ( mod_p ) *mod_p = acc_hi;
+    return acc_lo;
+}
+
+STATIC int timing( VU32 *ptr, struct ztv_timing *ztp )
+{
+    unsigned long nsec,active,blank,loop_time;
+    U32 mask;
+    int old_ipl,status;
+
+    active = blank = 0;
+
+    if ( !ptr ) return -1;
+
+    mask = (1<<B_Z_VB);
+    loop_time = LOOP_TIME;
+
+    status = 0;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    for ( nsec = TOO_LONG ; nsec > loop_time ; nsec -= loop_time ) {
+	if ( *ptr & mask ) break;
+    }
+    if ( nsec <= loop_time ) {
+	/* timed out waiting for VBlank asserted */
+	status = 1;
+    }
+    if ( !status ) {
+	for ( nsec = TOO_LONG ; nsec > loop_time ; nsec -= loop_time ) {
+	    if ( !(*ptr & mask) ) break;
+	}
+	if ( nsec <= loop_time ) {
+	    /* timed out waiting for VBlank negated */
+	    status = 2;
+	}
+    }
+    if ( !status ) {
+	for ( nsec = TOO_LONG ; nsec > loop_time ; nsec -= loop_time ) {
+	    if ( *ptr & mask ) break;
+	}
+	if ( nsec <= loop_time ) {
+	    /* timed out waiting for VBlank re-asserted */
+	    status = 3;
+	}
+	active = (TOO_LONG - nsec);
+    }
+    if ( !status ) {
+	for ( nsec = TOO_LONG ; nsec > loop_time ; nsec -= loop_time ) {
+	    if ( !(*ptr & mask) ) break;
+	}
+	if ( nsec <= loop_time ) {
+	    /* timed out waiting for VBlank re-negated */
+	    status = 2;
+	}
+	blank = (TOO_LONG - nsec);
+    }
+    prc_set_ipl(old_ipl);
+    if ( blank > active ) {
+	/* VB status is low-true */
+	nsec = active;
+	active = blank;
+	blank = nsec;
+	status |= VB_LOW;
+    }
+    old_ipl = prc_set_ipl(INTS_OFF);
+    /* Make sure HBLANK really is, by seeing if it is _ever_ off when
+     * vblank is on.
+     */
+    mask = (1<<B_Z_VIDB)|(1<<B_Z_VB);
+    for ( nsec = TOO_LONG ; nsec > loop_time ; nsec -= loop_time ) {
+	if ( (*ptr & mask) == (1<<B_Z_VIDB) ) break;	
+    }
+    prc_set_ipl(old_ipl);
+    if ( nsec > loop_time ) status |= VIDB_IS_HB;
+    if ( ztp ) {
+	ztp->vactive = active;
+	ztp->vblank = blank;
+	ztp->status = status;
+    }
+    return status;
+}
+
+static const char * const timing_errs[] = {
+    "OK",
+    "no First Vblank high",
+    "no Vblank low",
+    "no Second Vblank high"
+};
+
+STATIC void show_timing(int row, struct ztv_timing *ztp)
+{
+
+    VU32 *ptr;
+    U32 total,fudged;
+
+    ptr = ztv_base;
+    if ( !ptr ) {
+	txt_str(2,row,"No pointer to ZTV??",ERROR_PAL);
+	return;
+    }
+    txt_str(2,row,"ZTV STATUS: ",MNORMAL_PAL);
+    txt_chexnum(*ptr & 0xFF,2,RJ_ZF,MNORMAL_PAL);
+    txt_cstr(" Timing: ",MNORMAL_PAL);
+    txt_cstr(timing_errs[ztp->status&3],MNORMAL_PAL);
+    if ( ztp->status & VB_LOW ) {
+	txt_cstr(", Vblank LOW TRUE", MNORMAL_PAL);
+    }
+    if ( ztp->status & VIDB_IS_HB ) {
+	txt_cstr(", D2 is HBLANK", MNORMAL_PAL);
+    } else txt_cstr(", D2 is VIDBLANK", MNORMAL_PAL); 
+    txt_str(2,++row,"ACTIVE nSec: ",MNORMAL_PAL);
+    txt_cdecnum(ztp->vactive,10,LJ_NF,MNORMAL_PAL);
+    txt_cstr(" Blanking nSec: ",MNORMAL_PAL);
+    txt_cdecnum(ztp->vblank,10,LJ_NF,MNORMAL_PAL);
+    total = ztp->vactive + ztp->vblank;
+    txt_str(2,++row,"Total Period (loops):",MNORMAL_PAL);
+    txt_cdecnum(total,10,LJ_NF,MNORMAL_PAL);
+    total = lmul_div(total,16666667,10000000,&fudged);
+    txt_cstr(" nsec: ",MNORMAL_PAL);
+    txt_cdecnum(total,10,LJ_NF,MNORMAL_PAL);
+}
+
+/*	which_texture tells ztv_texture_write() and ztv_texture_read()
+ *	what sort of texture memory (if any) this stack has. The
+ *	possible values are:
+ *
+ */
+#define TEXTURE_NONE (-1)	/* We know that we have none */
+#define TEXTURE_UNK (0)		/* We don't know */
+#define TEXTURE_LOCTEX (1)	/* We know that we have LOCTEX */
+#define TEXTURE_TEXRAM (2)	/* We know we have TEXRAM */
+#define TEXTURE_TEXEDO (3)	/* We know that we have TEXEDO */
+static const char * const tex_names[] = {
+    "No Texture", "Unknown Texture", "LOCTEX", "TEXRAM", "TEXEDO"
+};
+
+int which_texture;
+#ifdef TEXEDO_BASE
+/* A little table to "pattern-recognize" a TEXEDO board */
+
+static const unsigned char txp[] = {
+    (TEX_XBUS_SEL)|(1<<(B_TEX_NOT_P+4)),
+    (TEX_PATNET_SEL)|(1<<(B_TEX_NOT_X+4)),
+    (TEX_ZRE_SEL)|((1<<(B_TEX_NOT_X+4))|(1<<(B_TEX_NOT_P+4))),
+    (TEX_XBUS_SEL)|(1<<(B_TEX_NOT_P+4))
+};
+/* Another little table, to translate the "status" of a TEXEDO
+ * board (combinations of select lines, B_TEX_NOT_X, B_TEX_NOT_P)
+ * into appropriate "controls" to produce the same status.
+ */
+static const unsigned char tx_rest[] = {
+    TEX_ZRE_SEL,	/* "00" Both selected is illegal, make it neither */
+#if ( B_TEX_NOT_P < B_TEX_NOT_X )
+/* Bit for Patnet select is "1" bit of control, so "01" is XBUS */
+    TEX_XBUS_SEL, TEX_PATNET_SEL,
+#else
+/* Bit for Patnet select is "2" bit of control, so "01" is PATNET */
+    TEX_PATNET_SEL, TEX_XBUS_SEL, 
+#endif
+    TEX_ZRE_SEL		/* "11" is neither selected, ZRE has access */ 
+};
+#endif
+
+static int tswaps_wanted,tswaps_done;
+
+/*			ztv_texture_swap()
+ *	_requests_ a swap of the "Movie" buffer on the TEXEDO
+ *	board. This will normally occur just before the next
+ *	video buffer-swap, on the assumption that the render
+ *	engine will be idle at that time. If "now" is non-zero,
+ *	the swap will _not_ wait, but will force the swap,
+ *	_assuming_ the render engine is not using TEXEDO.
+ *	if "now" is zero, the "who" and "what" parameters will
+ *	be saved, and the corresponding routine will be invoked
+ *	when the swap _is_ done.
+ */
+void (*tswap_crtn)(void *);
+void *tswap_crtn_param;
+
+int ztv_texture_swap(now,who,what)
+int now;
+void (*who)(void *);
+void *what;
+{
+#ifdef TEXEDO_BASE
+    if ( which_texture != TEXTURE_TEXEDO ) return -1;
+    if ( now == 0 ) {
+	int old_ipl = prc_set_ipl(INTS_OFF);
+	tswap_crtn_param = what;
+	tswap_crtn = who;
+	++tswaps_wanted;
+	prc_set_ipl(old_ipl);
+	return 0;
+    } else {
+	/* This will hopefully _only_ be true when called by
+	 * ztv_irq, or possibly by some knowledgeable diagnostic.
+	 */
+	VU32 *tcp = (VU32 *)TEXEDO_BASE;
+	int old,new;
+	old = *tcp;
+	new = (old ^ (1<<B_TEX_MOBUF)) & ((1<<B_TEX_OWNER)-1);
+	new |= tx_rest[old>>B_TEX_OWNER];
+	*tcp = new;
+	if ( tswap_crtn ) tswap_crtn(tswap_crtn_param);
+	return 0;
+    }
+#endif
+    return -1;
+}
+
+/*	Following hack is to allow operation on rev-1 ZIG, which
+ * has an inverted sense to the XTOT bit. This will hopefully
+ * be fixed in rev 2 (A?).
+ */
+extern U32 xtot_bit;
+
+static int find_texture( row )
+int row;
+{
+    VU32 *csr = &ZRE_CSR;
+    VU32 *tp;
+    U32 test;
+    int idx;
+    int which = which_texture;
+
+    *csr |= (1<<B_ZRE_TLEN);	/* _DIS_able Texture pipe */
+#ifdef TEXEDO_BASE
+    if ( which == TEXTURE_UNK ) {
+	int spinner,old;
+	U32 save;
+
+	tp = (VU32*)TEXEDO_BASE;
+	test = *tp;
+	save = test;
+	for ( idx = 0 ; idx < sizeof(txp) ; ++idx ) {
+	    /* try to cycle the main-buffer enables
+	     * through their whole dance.
+	     */
+	    old = test & 0xF;
+	    *tp = txp[idx];
+	    for ( spinner = 6 ; spinner >= 0 ; spinner -= 2 ) {
+		/* Give each change a few XBUS cycles
+		 * to take effect.
+		 */
+		test = *tp & 0xF;
+		if ( test == (txp[idx]>>4) ) break;
+		if ( test == old ) ++spinner;
+	    }
+	    if ( spinner < 0 ) break; /* Timed out */
+	}
+	if ( idx < sizeof(txp) ) {
+	    /* One or more steps faltered. Just in
+	     * case this is TEXRAM (at the same address),
+	     * put back what we started with
+	     */
+	    *tp = save; 
+#if (HOST_BOARD == ASCLEAP)
+	    if ( row >= 0 ) {
+		txt_str(1,++row,"TEXEDO DETECT FAILS @@ step ",ERROR_PAL);
+		txt_cdecnum(idx+1,1,RJ_ZF,ERROR_PAL);
+		txt_cstr(", wrote: ",ERROR_PAL);
+		txt_chexnum(txp[idx] & 0xF,1,RJ_ZF,ERROR_PAL);
+		txt_cstr(", got: ",ERROR_PAL);
+		txt_chexnum(test,1,RJ_ZF,ERROR_PAL);
+		txt_cstr(", not: ",ERROR_PAL);
+		txt_chexnum(txp[idx]>>4,1,RJ_ZF,ERROR_PAL);
+		prc_delay(600);
+	    }
+#endif
+	} else {
+	    /* Pretty sure we have a TEXEDO, and we left it
+	     * with the main buffer under XBUS control.
+	     * Give it by default to ZRE.
+	     */
+	    which = TEXTURE_TEXEDO;
+	    *tp = (save & 3) | TEX_ZRE_SEL; 
+	}
+    }
+#endif
+#ifdef TEXRAM_ADDR
+    if ( which == TEXTURE_UNK ) {
+	tp = (U32*)TEXRAM_ADDR;
+	test = *tp;
+	*tp = ~test;
+	if ( (~test ^ *tp) == 0 ) {
+	    /* TEXRAM exists, use it */
+	    which = TEXTURE_TEXRAM;
+	}
+#ifdef TEXEDO_BASE
+	else {
+	    /* May be a slightly-bent TEXEDO, set harmless
+	     * value to CSR.
+	     */
+	    *tp = TEX_ZRE_SEL;
+	}
+#endif
+    }
+#endif
+#ifdef ZRE_LOCTEX_ADDR
+    if ( which == TEXTURE_UNK ) {
+	tp = (U32*)ZRE_LOCTEX_ADDR;
+	test = *tp;
+	*tp = ~test;
+	if ( ((~test ^ *tp) & 0xFFFF) == 0 ) {
+	    /* LOCTEX exists, use it */
+	    which = TEXTURE_LOCTEX;
+	}
+    }
+#endif
+    if ( which == TEXTURE_UNK ) {
+	/* Nobody home at any of the places we know about.
+	 */
+	which = TEXTURE_NONE;
+    }
+    if ( row >= 0 ) {
+	/* We have been asked to report on Texture
+	 * RAM choice.
+	 */
+	txt_str(2,row,"Using ",MNORMAL_PAL);
+	txt_cstr(tex_names[which+1],MNORMAL_PAL);
+    }
+    *csr &= ~(1<<B_ZRE_TLEN);	/* _EN_able Texture pipe */
+    return which;
+}
+
+/*		ztv_texture_write(dst_off,src,cnt)
+ *	Writes <cnt> 16-bit words of texture pointed to by src
+ *	to texture memory at destination offset dst_off (in 16-bit
+ *	texture words). Note that src is a pointer to U32, and dst_off
+ *	should be even, as texture memory may need to be read/written
+ *	32-bits at a time.
+ *
+ *	There are some special cases:
+ *	If (dst_off < 0), allocate some texture memory at an offset
+ *		with the same number of zero-LSBs as dst_off. i.e.
+ *		top allocate an area align on a 128-texel boundary,
+ *		dst_offs = -128.
+ *	If (src == 0), simply allocate the memory (if dst_off < 0)
+ *		or pattern it with data = addr (if dst_off >= 0)
+ *
+ *	Returns offset actually used, or < 0 on failure.
+ */
+
+int
+ztv_texture_write( int dst_off, const U32 *src, int size) {
+    VU32 *csr = &ZRE_CSR;
+    VU32 *tp;
+
+    int offset = dst_off;
+
+    if ( offset < 0 ) return -1;	/* allocation not yet supported */
+
+    if ( which_texture == TEXTURE_UNK ) which_texture = find_texture(-1);
+    if ( which_texture == TEXTURE_NONE ) return -1;
+
+    *csr |= (1<<B_ZRE_TLEN);	/* _DIS_able Texture pipe */
+    switch (which_texture) {
+#ifdef ZRE_LOCTEX_ADDR
+	case TEXTURE_LOCTEX :
+	    tp = (U32*)ZRE_LOCTEX_ADDR;
+	    if ( src == 0 ) {
+		/* just wants to pattern, or allocate, which is not yet
+		 * supported.
+		 */
+		for ( idx = 0 ; idx < size ; ++idx ) tp[dst_off+idx] = idx;
+	    } else {
+		/* wants to copy from src */
+		U32 data;
+		tp += dst_off;
+		size >>= 1;
+		for ( idx = 0 ; idx < size ; ++idx ) {
+		    data = *src++;
+		    *tp++ = (data >> 16);
+		    *tp++ = data;			
+		}
+	    }
+	    dst_off |= 0x800000;
+	    break;
+#endif
+#ifdef TEXRAM_ADDR
+	case TEXTURE_TEXRAM :
+	    tp = (U32*)TEXRAM_ADDR;
+	    if ( src == 0 ) {
+		/* just wants to pattern, or allocate, which is not yet
+		 * supported.
+		 */
+		U32 data;
+		tp += dst_off;
+		/* For patterning, we don't really care about bit-rev.
+		 */
+		while ( size ) {
+		    data = (size & 0xFFFF)|(size<<16);
+		    *tp++ = (data >> 16) | (data&0xFFFF0000);
+		    *tp++ = (data&0xFFFF)|(data<<16);
+		    --size;
+		}
+	    } else {
+		/* wants to copy from src */
+		U32 data;
+		tp += dst_off;
+		size >>= 1;
+		if ( xtot_bit ) {
+		    /* Ordinary ZTV2, or fixed ZIG */
+		    while ( size ) {
+			data = *src++;
+			*tp++ = (data >> 16) | (data&0xFFFF0000);
+			*tp++ = (data&0xFFFF)|(data<<16);
+			--size;
+		    }
+		} else while ( size ) {
+		    /* loop includes bit-reversal to account for PCB/schematic
+		     * error on first-rev ZIG.
+		     */
+		    data = *src++;
+		    data = ((data & 0x55555555)<<1) | ((data & 0xAAAAAAAA)>>1);
+		    data = ((data & 0x33333333)<<2) | ((data & 0xCCCCCCCC)>>2);
+		    data = ((data & 0x0F0F0F0F)<<4) | ((data & 0xF0F0F0F0)>>4);
+		    data = ((data & 0x00FF00FF)<<8) | ((data & 0xFF00FF00)>>8);
+		    *tp++ = (data >> 16) | (data&0xFFFF0000);
+		    *tp++ = (data&0xFFFF)|(data<<16);
+		    --size;
+		}
+	    }
+	    break;
+#endif
+#ifdef TEXEDO_BASE
+	case TEXTURE_TEXEDO :
+	{
+	    int spinner,old,want;
+	    U32 save,test,flip;
+	    VU32 *tcp = (VU32*)TEXEDO_BASE;
+
+	    tp = (U32*)TEXEDO_MAIN_ADDR;
+
+	    test = *tcp;
+	    save = test;
+	    old = test & 0xF;
+	    flip = 0;
+	    if ( dst_off & 1 ) {
+		/* Wants "motion" area, which is both
+		 * addressed at a different offset,
+		 * and accessed with a different set of
+		 * control bits.
+		 */
+		tp = (U32*)TEXEDO_MOTION_ADDR;
+		tp += (dst_off >> 1);	/* Write two words at a time */
+		*tcp = (save & (1<<B_TEX_MOBUF)) | tx_rest[(save>>2)&3];
+		want = (save & (1<<B_TEX_MOBUF)) | (save&(3<<B_TEX_OWNER));
+		dst_off = (dst_off & ~1)|0x400000;
+		flip = 0x7FFF7FFF;
+	    }
+	    else
+	    {
+		/* Need to select "XBUS controls MAIN"
+		 */
+		tp += (dst_off >> 1);	/* Write two words at a time */
+		*tcp = (save & 3) | TEX_XBUS_SEL;
+		want = (save & 3) | (1<<B_TEX_NOT_P);
+	    }
+	    for ( spinner = 3 ; spinner >= 0 ; --spinner ) {
+		/* Give it a few XBUS cycles
+		 * to take effect.
+		 */
+		test = *tcp & 0xF;
+		if ( test == want ) break;
+	    }
+	    if ( spinner < 0 ) {
+		/* Timed out */
+		offset = -1;
+		break;
+	    }
+	    old = test & 0xF;
+
+	    if ( src == 0 ) {
+		/* just wants to pattern, or allocate, which is not yet
+		 * supported.
+		 */
+		U32 data;
+		/* For patterning, we don't really care about bit-rev.
+		 */
+		while ( size ) {
+		    data = ((size+1) & 0xFFFF)|(size<<16);
+		    data &= ~(0x10001);	/* Prevent transparent */
+		    *tp++ = data;
+		    *tp++ = (data&0xFFFF)|(data<<16);
+		    size -= 2;
+		}
+	    } else {
+		/* wants to copy from src */
+		U32 data;
+		size >>= 1;
+		if ( xtot_bit ) {
+		    /* Ordinary ZTV2, or fixed ZIG */
+		    while ( size ) {
+			*tp++ = *src++;
+			--size;
+		    }
+		} else while ( size ) {
+		    /* loop includes bit-reversal to account for PCB/schematic
+		     * error on first-rev ZIG.
+		     */
+#if (0)
+		    data = *src++ ^ flip;
+#else
+		    data = *src++;
+#endif
+		    data = ((data & 0x55555555)<<1) | ((data & 0xAAAAAAAA)>>1);
+		    data = ((data & 0x33333333)<<2) | ((data & 0xCCCCCCCC)>>2);
+		    data = ((data & 0x0F0F0F0F)<<4) | ((data & 0xF0F0F0F0)>>4);
+		    data = ((data & 0x00FF00FF)<<8) | ((data & 0xFF00FF00)>>8);
+		    *tp++ = data;
+		    --size;
+		}
+	    }
+	    /* Return main buffer to owner before we stepped in. This will
+	     * probably need to be handled better.
+	     * In the future, we need to watch out for PATNET.
+	     */
+	    if ( flip ) save ^= 1;
+	    *tcp = (save & 3) | tx_rest[(save>>2)&3];	/* Bogus, but for now... (MEA 5feb96) */
+	    break;
+	} /* end case TEXTURE_TEXEDO */
+#endif
+	default :
+	    dst_off = -1;
+    }
+    *csr &= ~(1<<B_ZRE_TLEN);	/* _EN_able Texture pipe */
+    return dst_off;
+}
+
+/*		ztv_texture_read(dst, src_off, cnt)
+ *	Reads from texture memory into normal memory.
+ *	Again, src_off and cnt are expressed in terms of 16-bit texture
+ *	words, but dst points to a U32.
+ *
+ *	returns 0 for success, <0 for failure.
+ */
+extern int ztv_texture_read ( U32 *dst, int src_off, int cnt);
+
+
+/*		SetANPal(f_and_b)
+ *	Sets one AlphaNumeric palette to have the colors specified
+ *	in f_and_b. The lower 16 bits of f_and_b specify the foreground
+ *	color (in game's coding) while the upper 16 bits specify the
+ *	background color. An alias color is synthesized "halfway between"
+ *	the two.
+ */
+extern void SetANPal(int, U32);
+
+void
+setancolors()
+{
+    SetANPal(GRY_PAL,GRY_SLT);
+    SetANPal(BLU_PAL,GRY_BLU);
+    SetANPal(GRN_PAL,GRY_GRN);
+    SetANPal(CYN_PAL,GRY_CYN);
+    SetANPal(RED_PAL,GRY_RED);
+    SetANPal(VIO_PAL,GRY_VIO);
+    SetANPal(YEL_PAL,GRY_YEL);
+    SetANPal(WHT_PAL,GRY_WHT);
+}
+
+static const int col_bar_desc[] = {
+    RED_MSK, GRN_MSK, BLU_MSK, ALL_MSK, 0
+};
+
+struct col_desc {
+    const char * const text;
+    unsigned long color;
+};
+
+/*	On ZTV2, we use the bitmap for purity. Later, we may merge this
+ *	with ZTV1, which will make us less dependant on the ALPHA ROM
+ */
+
+static const struct col_desc purity_colors[] = {
+    {"  Red   ", RED_MSK},
+    {" Green  ", GRN_MSK},
+    {"  Blue  ", BLU_MSK},
+    {" BRIGHT ", (RED_MSK|GRN_MSK|BLU_MSK)},
+    {" White  ",  (((RED_MSK*13)>>4)&RED_MSK)
+		| (((GRN_MSK*13)>>4)&GRN_MSK)
+		| (((BLU_MSK*13)>>4)&BLU_MSK)},
+    {"50% Grey",  ((RED_MSK+RED_LSB)>>1)
+		| ((GRN_MSK+GRN_LSB)>>1)
+		| ((BLU_MSK+BLU_LSB)>>1) },
+    {"  Grey  ",  (((RED_MSK*9)>>5)&RED_MSK)
+		| (((GRN_MSK*9)>>5)&GRN_MSK)
+		| (((BLU_MSK*9)>>5)&BLU_MSK)},
+    {"  Ones  ", ALL_LSB},
+    {" Black  ", 0}
+};
+
+int purity( smp )
+const struct menu_d *smp;
+{
+    U32 cntrls;
+    m_int i,old_i;
+    U32 color;
+    i = 0;
+    old_i = -1;
+    while (1) {
+	prc_delay0();
+	cntrls = ctl_read_sw(SW_ACTION|SW_NEXT);
+	if ( cntrls & SW_NEXT ) break;
+	if ( cntrls & SW_ACTION ) {
+	    if ( ++i >= n_elts(purity_colors)  ) {
+		i = 0;
+	    }
+	}
+	color = purity_colors[i].color;
+	if ( old_i != i ) {
+	    bm_rect(0,0,VIS_H_PIX-1,VIS_V_PIX-1,color,color);
+	    bm_rect(0,DISPLAY_2,VIS_H_PIX-1,DISPLAY_2+VIS_V_PIX-1,color,color);
+	    if ( old_i >= 0 ) {
+		txt_clr_str(-1,2,purity_colors[old_i].text,MNORMAL_PAL);
+	    }
+	    txt_str(-1,2,purity_colors[i].text,MNORMAL_PAL); 
+	    st_insn(AN_VIS_ROW-4,"To change color,",t_msg_action,INSTR_PAL);
+	    old_i = i;
+	    ztv_bufswap();
+	}
+	prc_delay0();
+    }
+    return 0;
+}
+
+static	const struct col_desc converge_colors[] = {
+    {" White  ", ALL_MSK },
+    {" Violet ", RED_MSK | BLU_MSK },
+    {" Green  ", GRN_MSK }
+};
+
+int converge( smp )
+const struct menu_d *smp;
+{
+    U32 cntrls;
+    m_int i,old_i,x,y;
+    U32 color;
+    int which,ctl_val,old_val;
+    int next_line = TOT_H_PIX;
+
+    i = 0;
+    old_i = -1;
+#ifdef B_Z_ZBUFF_EN
+    old_val = ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+#else
+    old_val = ztv_mod_latch(0);
+#endif
+    ztv_mod_latch(ZTV_OPT_SOFT_REFRESH);
+    ctl_val = ztv_mod_latch(~ZRE_RUNNING);
+    which = !(old_val & (1<<B_Z_BUFSEL));
+    ztv_bufsel(!which);
+#ifdef B_Z_ONE_BANK
+    if ( old_val & (1<<B_Z_ONE_BANK) ) {
+	next_line <<= 1;
+    }
+#endif
+    while (1) {
+	prc_delay0();
+	cntrls = ctl_read_sw(SW_ACTION|SW_NEXT);
+	if ( cntrls & SW_NEXT ) break;
+	if ( cntrls & SW_ACTION ) {
+	    if ( ++i >= n_elts(converge_colors)  ) {
+		i = 0;
+	    }
+	}
+	if ( old_i != i ) {
+	    U32 *lp = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+	    ztv_mod_latch(~ZRE_RUNNING);
+	    color = converge_colors[i].color;
+	    color |= (color << 16);
+	    for ( y = VIS_V_PIX-1 ; y >= 0 ; --y ) {
+		for ( x = VIS_H_PIX-1 ; x >= 0 ; --x ) {
+		    if ( (x & 7) == 0 || (y & 7) == 0 || 
+			( (x & 7) == 4 && (y & 7) == 4 ) )
+			*lp++ = color;
+		    else *lp++ = 0;
+		}
+		lp += (next_line - VIS_H_PIX);
+	    }
+	    if ( old_val & ZRE_RUNNING ) ztv_mod_latch(ZRE_RUNNING);
+	    ztv_bufswap();
+	    if ( old_i >= 0 ) {
+		txt_clr_str(-1,2,converge_colors[old_i].text,MNORMAL_PAL);
+	    }
+	    txt_str(-1,2,converge_colors[i].text,MNORMAL_PAL); 
+	    st_insn(AN_VIS_ROW-4,"To change color,",t_msg_action,INSTR_PAL);
+	    old_i = i;
+	}
+	prc_delay0();
+    }
+    if ( !(old_val & ZTV_OPT_SOFT_REFRESH) ) {
+	ztv_mod_latch(~ZTV_OPT_SOFT_REFRESH);
+    }
+    return 0;
+}
+
+/*		bm_color_bars(mp, display)
+ *	paints color bars into ZTV bitmap via direct XBus access.
+ *	mp points to a table of masks for the bands of color, top to bottom.
+ *	If display != 0, paints color bars on second display.
+ *	returns x offset to left edge of color bars. This is a hack
+ *	to speed drawing of color bars.
+ */
+STATIC const int block_y = 20;
+#define BAND_HT (VIS_V_PIX-(block_y<<1))
+STATIC
+int bm_color_bars( mp , display)
+const int *mp;
+int display;
+{
+    m_int y,swath,band_y,band_x,max_col,n_bands,band_ht;
+    int block_x,pix_per_band;
+    unsigned long color,incr;
+    int log_max,bits;
+    int red_msk,grn_msk,blu_msk,red_shf,grn_shf,blu_shf;
+    int next_line = TOT_H_PIX;
+    
+    const int *wmp;
+
+    unsigned long *lp,*top;
+
+    /* count how many bands we need, then figure the band height needed */
+    wmp = mp;
+    n_bands = 0;
+    while ( *wmp ) { ++wmp, ++n_bands; }
+    band_ht = BAND_HT/n_bands;
+
+    /* first figure out max value of any gun. Some assumptions:
+     *	The bits of a gun are contiguous and increase in significance
+     * right-to-left
+     *	The maximum value for a gun is all-ones, i.e. (xxx_MSK >> xxx_SHF)
+     */
+    max_col = (RED_MSK >> RED_SHF);
+    if ( max_col < (GRN_MSK >> GRN_SHF) ) max_col = (GRN_MSK >> GRN_SHF);  
+    if ( max_col < (BLU_MSK >> BLU_SHF) ) max_col = (BLU_MSK >> BLU_SHF);  
+
+    for ( log_max = 0 ; max_col > (1<<log_max) ; ++log_max ) {;}
+
+    /* Build a word with ones at the bottom of three equal-sized fields.
+     * This will be used to increment all guns simultaneously.
+     */
+    incr = 1 | (1<<log_max) | (1<<(log_max<<1));
+
+    /* Now figure out how much we need to shift each equal-sized field to
+     * get it into the hardware location, and how to mask for only the
+     * bits for each gun.
+     */
+    /* find how many bits of RED */
+    red_msk = RED_MSK>>RED_SHF;
+    for ( bits = 0 ; red_msk > (1<<bits) ; ++bits ) {;}
+    red_shf = (log_max<<1)+(log_max-bits);
+    red_msk <<= red_shf;
+
+    grn_msk = GRN_MSK>>GRN_SHF;
+    for ( bits = 0 ; grn_msk > (1<<bits) ; ++bits ) {;}
+    grn_shf = (log_max)+(log_max-bits);
+    grn_msk <<= grn_shf;
+
+    blu_msk = BLU_MSK>>BLU_SHF;
+    for ( bits = 0 ; blu_msk > (1<<bits) ; ++bits ) {;}
+    blu_shf = (log_max-bits);
+    blu_msk <<= blu_shf;
+
+    if ( ztv_base ) {
+	top = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+    } else return -1;
+#ifdef B_Z_ONE_BANK
+    if ( ztv_mod_latch(0) & (1<<B_Z_ONE_BANK) ) {
+	/* Econ-o-zig has only one bank of memory,
+	 * every other line. In medium-res, this
+	 * leaves no room for second display.
+	 */
+	next_line <<= 1;
+	if ( display ) return -1;
+    }
+#endif
+
+    /* screen coordinates have (0,0) at bottom left */
+    top += (VIS_V_PIX-block_y)*next_line;
+    /* When talking to the second display, we need to both add DISPLAY_2
+     * and invert the LSB of the line address. We do the first here, and
+     * re-work the variable <display> for convenient XOR in the loop.
+     * We have not yet figured out how a two-display standard econ-o-zig
+     * will address its memory, but we won't be here on a medium-res
+     * Econo-O-Zig.
+     */
+    if ( display ) {
+	top += (DISPLAY_2*TOT_H_PIX);
+	display = TOT_H_PIX*sizeof(U32);
+    }
+
+    /* Figure out how many pixels we need to paint of each color to get
+     * a "reasonable" block. This depends on the maximum available
+     * resolution (max_col) and the space we have to paint it in.
+     * to allow for some margin, we add 4 "colors" worth.
+     */
+    pix_per_band = VIS_H_PIX/(max_col+4);
+    block_x = (VIS_H_PIX-(pix_per_band*(max_col+1)))/2;
+
+    /* Now paint bands of pixels vertically down the screen, changing
+     * the mask for each major horizontal section.
+     */
+    color = 0;
+    band_x = block_x;
+IOLEDSET(0x81);
+    for ( swath = 0 ; swath <= max_col ; swath += 1 ) {
+	/* top of swath, reset mask pointer and bitmap pointer */
+	wmp = mp;
+	lp = top + band_x;
+	band_y = band_ht;
+	while (*wmp) {
+	    /* one band of swath */
+	    unsigned long hdw_col;
+	    hdw_col  = ((color & red_msk) >> red_shf) << RED_SHF;
+	    hdw_col |= ((color & grn_msk) >> grn_shf) << GRN_SHF;
+	    hdw_col |= ((color & blu_msk) >> blu_shf) << BLU_SHF;
+	    hdw_col &= *wmp;
+	    hdw_col |= (hdw_col << 16);
+	    for ( y = 0 ; y < band_y ; ++y ) {
+		/* draw a rectangle <pix_per_band> wide by <band_ht> high */
+		int pix_idx;
+		lp = (U32 *)((U32) lp ^ display);
+		for ( pix_idx = 0 ; pix_idx < pix_per_band ; ++pix_idx ) {    
+		    lp[pix_idx] = hdw_col;
+		}
+		lp = (U32 *)((U32) lp ^ display);
+		lp -= next_line;	/* remember, 0,0 is bottom left */
+	    } /* end of drawing one vertical band of pixels */
+	    ++wmp;	/* next band gets different mask */
+	} /* end of swath */
+	band_x += pix_per_band;
+	color += incr;
+    } /* end of swath */
+IOLEDSET(0x82);
+    return block_x;
+}
+
+STATIC int color_bars( smp )
+const struct menu_d *smp;
+{
+    int old_latch;
+    int which,xpos;
+    int do_it,color,format;
+    U32 ctls;
+#ifdef B_Z_ZBUFF_EN
+    old_latch = ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+#else
+    old_latch = ztv_mod_latch(0);
+#endif
+    ztv_mod_latch(ZTV_OPT_SOFT_REFRESH);
+    which = old_latch & (1<<B_Z_BUFSEL);
+    format = -1;
+    do_it = 1;
+    while ( ((ctls = ctl_read_sw(SW_NEXT|SW_ACTION)) & SW_NEXT) == 0 ) {
+	if ( ctls & SW_ACTION ) do_it = 1;
+	if ( do_it ) {
+	    do_it = 0;
+	    ++format;
+	    if ( format & 2 ) color = 0;
+	    else color = SLT_FUL;
+	    if ( format & 1 ) {
+		ztv_gamma_init(0,gamma_colors);
+		ztv_gamma_init(1,gamma_colors);
+	    } else {
+		ztv_gamma_init(0,0);
+		ztv_gamma_init(1,0);
+	    }
+	    ztv_mod_latch(~ZRE_RUNNING);
+	    xpos = bm_color_bars(&col_bar_desc[0],0);
+	    if ( xpos < 0 ) break;
+IOLEDSET(0x83);
+	    bm_rect(0,0,VIS_H_PIX-1,block_y,color,color);
+	    bm_rect(0,VIS_V_PIX-block_y,VIS_H_PIX-1,VIS_V_PIX-1,color,color);
+	    bm_rect(0,block_y,xpos,VIS_V_PIX-block_y,color,color);
+	    bm_rect(VIS_H_PIX-xpos,block_y,VIS_H_PIX-1,VIS_V_PIX-block_y,color,color);
+	    txt_str(-1,2,which ? "1CD" : "1AB", GRN_PAL);
+	    if ( format & 1 ) txt_cstr("G",GRN_PAL);
+	    bm_rect(0,DISPLAY_2,VIS_H_PIX-1,DISPLAY_2+VIS_V_PIX-1,color,color);
+	    txt_str(-1,2,which ? "2CD" : "2AB", GRN_PAL);
+	    if ( format & 1 ) txt_cstr("G",GRN_PAL);
+	    bm_color_bars(&col_bar_desc[0],1);
+	    if ( old_latch & ZRE_RUNNING ) {
+		ztv_mod_latch(ZRE_RUNNING);
+	    }
+	    ztv_bufswap();
+IOLEDSET(0x89);
+	    which = !which;
+	}
+	prc_delay0();
+    }
+    if ( !(old_latch & ZTV_OPT_SOFT_REFRESH) ) {
+	ztv_mod_latch(~ZTV_OPT_SOFT_REFRESH);
+    }
+    return 0;
+}
+
+STATIC int rectangles( smp )
+const struct menu_d *smp;
+{
+    int old_latch;
+    int which,redraw;
+
+#ifdef B_Z_ZBUFF_EN
+    old_latch = ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+#else
+    old_latch = ztv_mod_latch(0);
+#endif
+    ztv_mod_latch(ZTV_OPT_SOFT_REFRESH);
+    ztv_mod_latch(~ZRE_RUNNING);
+    which = old_latch & (1<<B_Z_BUFSEL);
+    ztv_bufsel(1);
+    bm_rect(0,0,VIS_H_PIX-1,VIS_V_PIX-1,0x7FFF,0);
+    bm_rect(0,DISPLAY_2,VIS_H_PIX-1,DISPLAY_2+VIS_V_PIX-1,0x7C00,0);
+    ztv_bufsel(0);
+    bm_rect(0,0,VIS_H_PIX-1,VIS_V_PIX-1,0x7FFF,0);
+    bm_rect(0,DISPLAY_2,VIS_H_PIX-1,DISPLAY_2+VIS_V_PIX-1,0x3E0,0);
+    redraw = 1;
+    while ( (ctl_read_sw(SW_NEXT) & SW_NEXT) == 0 ) {
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) redraw = 1;
+	if ( redraw ) {
+	    /* Draw rectangle in "active" buffer then toggle
+	     * buffers to display it.
+	     */
+	    int in,out;
+	    redraw = 0;
+	    out = RED_MSK;
+	    if ( which ) {
+		in = GRN_MSK;
+		which = 0;
+	    } else {
+		in = BLU_MSK;
+		which = 1;
+	    }
+	    bm_rect(8,8,VIS_H_PIX-9,VIS_V_PIX-9,out,in);
+	    ztv_bufswap();
+	}
+	prc_delay0();
+    }
+    if ( old_latch & ZRE_RUNNING ) {
+	ztv_mod_latch(ZRE_RUNNING);
+    } else {
+	ztv_mod_latch(~ZRE_RUNNING);
+    }
+    if ( !(old_latch & ZTV_OPT_SOFT_REFRESH) ) {
+	ztv_mod_latch(~ZTV_OPT_SOFT_REFRESH);
+    }
+    return 0;
+}
+
+STATIC int timing_check( smp )
+const struct menu_d *smp;
+{
+    struct ztv_timing time_info;
+    int do_it = 1;
+    U32 ctls;
+
+    while (1) {
+	ctls = ctl_read_sw(SW_NEXT|SW_ACTION);
+	if ( ctls & SW_NEXT ) break;
+	if ( ctls & SW_ACTION ) do_it = 1;
+	if ( do_it ) {
+	    timing(ztv_base, &time_info);
+	    show_timing(10, &time_info);
+	    do_it = 0;
+	}
+	prc_delay0();
+    }
+    return 0;
+}
+
+STATIC const struct menu_d mon_list[] = {
+    { "MONITOR TESTS", 	0	},
+    { "COLOR BARS", 	color_bars },
+    { "CONVERGENCE",	converge},
+    { "PURITY",	    	purity	},
+    { "RECTANGLES",	rectangles },
+    { "TIMING",		timing_check },
+    { 0, 0 }
+};
+
+int st_mon_group( smp )
+const struct menu_d *smp;
+{
+    return st_menu(&mon_list[0],sizeof(mon_list[0]),RED_PALB,0);
+}
+
+int disp_toggle( smp )
+const struct menu_d *smp;
+{
+    U32 cntrls;
+    int old_errs;
+    int which_test,do_it;
+
+    old_errs = buf_swap_errors - 1;
+    which_test = smp->mn_label[0] == 'C';
+    txt_str(2,3,"Errors: ",MNORMAL_PAL);
+    do_it = which_test;
+    do {
+	cntrls = ctl_read_sw(SW_NEXT|SW_ACTION);
+	if ( cntrls & SW_ACTION ) do_it = 1;
+	if ( do_it ) {
+	    /* Quick test of buffer-swap subroutine */
+	    ztv_bufswap();
+	    if ( !which_test ) txt_decnum(-1,2,buf_wanted,10,LJ_NF,MNORMAL_PAL);
+	}
+	if ( old_errs != buf_swap_errors ) {
+	    if ( old_errs > 0 ) do_it = 0;
+	    old_errs = buf_swap_errors;
+	    txt_decnum(10,3,old_errs,10,LJ_NF,MNORMAL_PAL);
+	}
+	if ( !which_test ) do_it = 0;
+	prc_delay(4);
+    } while ( (cntrls & SW_NEXT) == 0 );
+    return 0;
+}
+
+/*	Other than saving the "Callee-save" registers,
+ *	IRQ processing is now in C.
+ */
+int MS4Field;
+static int rfp;		/* refresh pointer */
+static int field_count;
+
+#ifndef ZTV_REFRESH_LINE_SIZE
+#define ZTV_REFRESH_LINE_SIZE (0x400)	/* in bytes, the "RAS part" */
+#endif
+
+extern void tq_maint(unsigned long);
+extern void zre_irq();
+
+#if (0)
+/* 		gamma_hack()
+ *	A convenient way to check out the function
+ *	of the timer interrupt on host-boards that are
+ *	not ready for prime time.
+ */
+static void gamma_hack(idx)
+int idx;
+{
+    static const unsigned long qcols[] =
+     { 0xFF0000, 0x00FF00, 0xFFFF00, 0xFFFFFF};
+    VU32 *gcp = ztv_base;
+    if ( !gcp ) return;
+    gcp += ((VU32*)ZTV_GAMMA1_ADDR-ZTV_CTL);
+    unsigned long qcol;
+    qcol = qcols[idx&3];
+    gcp[0] = qcol;
+    gcp[1] = qcol;
+    gcp[32] = qcol;
+    gcp[33] = qcol;
+}
+#endif
+
+#define ZTV_INTACK_OFFSET (((U32)&ZTV_INTACK - (U32)&ZTV_CTL)/sizeof(ZTV_CTL))
+#define LOG_LEN (16)
+static U32 spur_log[LOG_LEN];
+static int spur_irq;
+
+static int show_spur(row) 
+int row;
+{
+    int cnt;
+    int idx;
+    int col;
+    cnt = spur_irq;
+    idx = 0;
+    txt_str(2,row++,"Spurious IRQs: ",MNORMAL_PAL);
+    txt_cdecnum(cnt,3,LJ_NF,MNORMAL_PAL);
+    if ( cnt >= LOG_LEN ) {
+	cnt = LOG_LEN;
+    } else idx = cnt & (LOG_LEN-1);
+    col = 2;
+    while ( cnt-- ) {
+	if ( (col + 7) >= AN_VIS_COL ) {
+	    col = 2;
+	    ++row;
+	}
+	txt_hexnum(col,row,spur_log[idx]>>4,4,RJ_ZF,MNORMAL_PAL);
+	txt_hexnum(col+5,row,spur_log[idx]&0xF,1,RJ_ZF,MNORMAL_PAL);
+	col += 7;
+	idx = (idx + 1)&(LOG_LEN-1);
+    }
+    return row;
+}
+
+void ztv_irq(cookie)
+struct opaque *cookie;
+{
+    int refidx,refsize,refbump;
+    /* First version had three separate areas for the
+     * DRAM we need to refresh. ZIG has two (bitmap and ZBuf)
+     */
+    VU32 *refptz1;
+    VU32 *refptbm;
+    int which;
+    /* Second version needs "bank switch" to get to each section.
+     */
+    U32 *lsp;
+    VU32 *latp;
+    U32 lval;
+
+
+    /* We may need to point to one of two places, the "original" ZTV or
+     * the ZTV portion of the ZIG.
+     */
+    latp = ztv_base;
+    if ( latp == 0 ) prc_panic("ZTV_IRQ with no ztv_base pointer");
+    lsp = &ztv_latch_shad;
+
+    /* see if this came from the ZRE. Both versions (ZRE20 and ZIG)
+     * have oddities. The original did not bring out the "Frame
+     * Done IRQ" signal for inspection, but did have a working ZRE_INTEN.
+     * Zig has an INTEN that has no effect on the interrupt, but does
+     * bring the interrupt bit out to the status register, where it can
+     * be read at the same bit as the old ZRE used for "RESET". MEA has
+     * split the check and re-orderd it to try ZIG first...
+     */
+    if ( latp == &ZIGTV_CTL ) {
+	if ( ZRE_CSR & (1<<B_ZRE_RESET) ) {
+	    /* We have a ZIG ZRE interrupt, which there is no way
+	     * to disable except an ACK.
+	     */
+	    zre_irq();
+	}
+    }
+    else if ( (ZRE_CSR & ((1<<B_ZRE_INTEN)|(1<<B_ZRE_FBUSY))) == (1<<B_ZRE_INTEN)) {
+	/* An old ZRE, wherein FDONE is a reliable indication of
+	 * Frame Done, but which cannot be interrupting me if its
+	 * ZRE_INTEN is not set.
+	 */
+	zre_irq();
+    }
+
+    if ( !((lval = *latp) & (1<<B_Z_INT)) ) {
+	 VU32 *csr = &ZRE_CSR;
+IOLEDSET(0xBB);
+	/* A spurious interrupt, since the ZRE interrupt
+	 * should have been acknowledged, and a new one
+	 * cannot have happened without the bufswap that
+	 * we are going to do below.
+	 * Since we do seem to be getting these spurious IRQs,
+	 * and we are locked up by them, try thwacking both
+	 * IRQ_ACKnowledges and logging the status.
+	 */
+	spur_log[spur_irq&(LOG_LEN-1)] = (lval&0xF) | (*csr<<4);
+	++spur_irq;
+	latp[ZTV_INTACK_OFFSET] = 0;
+	if ( latp == &ZIGTV_CTL ) {
+	    /* ZIG, has a write-strobe acknowledge */
+	    ZIGZRE_INTACK = 0;
+	} else {
+	    *csr |= (1<<B_ZRE_INTCLR);
+	    *csr &= ~(1<<B_ZRE_INTCLR);
+	}
+	return;
+    }
+
+    latp[ZTV_INTACK_OFFSET] = 0;
+    lval = *lsp;
+    if ( (*latp & (1<<B_Z_VB)) == 0 && MS4Field ) {
+	/* In Vertical blank period */
+	++vb_count;
+#if (0)
+	gamma_hack(vb_count>>4);
+#endif
+	MS4Field = -1;
+#if HAS_SMC_COM
+	COMVBlank();
+#endif
+	/* check which buffer we last asked for, and convert the bit to the
+	 * right position to check against _current_ buffer.
+	 */
+	which = sel2cur(lval) & (1<<B_Z_CURBUF);
+ 
+	if ( (*latp ^ which) & (1<<B_Z_CURBUF) )
+	{
+	    ++buf_swap_errors;
+	} 
+	if ( gameint ) gameint();
+	if ( --field_count <= 0 && (swaps_wanted != swaps_done) ) {
+	    /* time to swap buffer */
+	    if ( tswaps_wanted != tswaps_done ) ztv_texture_swap(1,0,0);
+	    lval = *lsp & ~(M_SELBUF|M_OVLYBUF|M_DISPBUF);
+	    lval |=  buf_wanted | disp_wanted;
+	    *lsp = lval;
+	    *latp = lval;
+/* The following two lines more-or-less assume that the chosen
+ * frame-rate is approximately correct. If not, the system
+ * will "free-run" at 60Hz for quite a while, trying to catch
+ * up...
+ */
+	    field_count += fields_per_frame;
+	    ++swaps_done;
+	    if (framevec) framevec();		/* call user's frame interrupt routine */
+	}
+	ctl_upd_sw();
+	/* Run EEPROM/Stats stuff */
+	eer_hwt();
+#if POT_CNT
+	{ /* Until I find out where to prototype these ... */
+	extern void VBIReadPots();
+	extern void PotsToSwitches();
+	VBIReadPots();
+	PotsToSwitches();
+	} /* ... fom 3/28/96 */
+#endif
+   }
+#if (0)
+    else gamma_hack(3);
+#endif
+#ifdef CN_STATUS
+    /* when we need to do coins, here is where... */
+    cn_irq();
+#endif
+#ifdef HST_SERIAL_NUM
+#ifdef SERIAL_INPUT
+    if ( ( TEST & (1<<B_TEST) ) == 0 ) ser_sample();
+#endif /* def'd SERIAL_INPUT */
+#endif /* def'd HST_SERIAL_NUM */
+    /* maintain the timer queue by running tq_maint() with an
+     * argument that says it has been 4000 microseconds since the
+     * last call.
+    */
+#if HOST_BOARD != HCR4K	/* moved to cputimerint if R4K ... */
+    tq_maint(4000);
+#endif			/* ... fom 3/28/96 */
+    ++MS4Field;
+    if ( ((lval & ZRE_RUNNING) == 0)
+      && (ztv_latch_shad & ZTV_OPT_SOFT_REFRESH) )
+    {
+	/* If ZTV is not running, we do a burst refresh here.
+	 * How much we do each time depends on how often we
+	 * expect to be called.
+	 */
+#ifdef B_Z_ZBUFF_EN
+	U32 lvalz,lvalb;
+	lvalz = lval | (1<<B_Z_ZBUFF_EN);
+	lvalb = lval & ~(1<<B_Z_ZBUFF_EN);
+#endif
+	/* Size of RAM we have to "touch" per interrupt.
+	 * The VRAMs used on ZTV_2 have only an 8 millisecond
+	 * refresh interval, so we need to hit twice as much
+	 * per 4mS IRQ. ZTV_2 will not work at all without the
+	 * 4mS IRQ.
+	 */
+	refsize = sizeof(ZTV_BITMAP)/sizeof(ZTV_BITMAP[0]);
+	refsize >>= 1;
+	/* The starting index for each IRQs refresh is refsize
+	 * longwords below the starting index of the previous IRQ,
+	 * modulo whole memory size. On ZTV2 this will ping-pong
+	 * two sections. On ZTV1, this will rotate through four
+	 * sections if HAS_4MSINT, else do one burst every frame,
+	 * which is not guaranteed to work but may anyway.
+	 */
+	refidx = rfp - refsize;
+	if ( refidx <= 0 ) {
+	    refidx = sizeof(ZTV_BITMAP)/sizeof(ZTV_BITMAP[0]);
+	}
+	rfp = refidx;
+	/* refbump is the number of longwords per refresh line,
+	 * as refidx is a longword index and we need hit only
+	 * one longword per refresh line.
+	 */
+	refbump = ZTV_REFRESH_LINE_SIZE/sizeof(ZTV_ZBUF[0]);
+	refptbm = ztv_base + ZTV_BITMAP_OFFSET;
+
+	refptz1 = 0;	/* Shut up warnings on non-zig compile */
+	if ( ztv_base == &ZTV_CTL ) do {
+	    /* non-ZIG ZTV rev 2 */
+	    U32 touch;
+	    refidx -= refbump;
+	    *latp = lvalz;
+	    touch = refptbm[refidx];
+	    *latp = lvalb;
+	    touch = refptbm[refidx];
+	} while ( (refsize -= refbump) >= 0 );
+#ifdef ZIGTV_ZBUF_ADDR
+	else {
+	    refptz1 = (VU32*)ZIGTV_ZBUF_ADDR;
+	    do {
+		U32 touch;
+		refidx -= refbump;
+		touch = refptz1[refidx];
+		touch = refptbm[refidx];
+	    } while ( (refsize -= refbump) >= 0 );
+	}
+#endif /* def'd ZIGTV_ZBUF_ADDR */
+    }
+#if (0)
+    if ( which_texture == TEXTURE_TEXEDO ) {
+	VU32 * tp = (VU32 *)TEXEDO_BASE;
+	if ( !(*tp & (1<<B_TEX_MOPAT)) ) {
+	    int refcnt = 256;
+	    U32 trash;
+	    tp = (VU32*)TEXEDO_MOTION_ADDR;
+	    while ( --refcnt ) trash = *tp;
+	}
+    }
+#endif
+    *latp = lval;
+}
+
+int
+ztv_options(smp)
+const struct menu_d *smp;
+{
+    unsigned long gopts;
+    gopts = ztv_opt_memo;
+#ifdef EER_ZTV_OPT
+    gopts = eer_gets(EER_ZTV_OPT);
+#endif
+    gopts = DoOptions(ztv_menu,gopts|ztv_init,SW_EXTRA);
+#ifdef EER_ZTV_OPT
+    eer_puts(EER_ZTV_OPT,gopts);
+#endif
+    ztv_opt_memo = gopts;
+    vid_init();
+    return 0;
+}
+
+U32
+ztv_restore_defaults()
+{
+    unsigned long options;
+    options = factory_setting(ztv_menu);
+    ztv_opt_memo = options;
+#ifdef EER_ZTV_OPT
+    eer_puts(EER_ZTV_OPT,options);
+#endif
+    return options;
+}
+
+
+#define VB_MASK	 (1<<B_Z_VB)		/* zoid 2 vblank bit position */
+#define VB_ACT	 0			/* active state of vblank bit */
+#define VB_INACT VB_MASK		/* inactive state, vblank bit */
+#define VB_DATA	 (*ztv_base & VB_MASK )	/* actual state of vblank bit */
+
+int vid_waitvb(int edge)
+{
+ extern volatile unsigned long eer_rtc; /* ztv_irq calls eer_hwt()... */
+ int old_rtc = eer_rtc;			/*  ... which changes eer_rtc */
+ int count = TOO_LONG;
+
+ /*
+ * If edge == 0, skip initial active state;
+ * otherwise, skip initial inactive state.
+ */
+
+ int skip = (edge) ? VB_INACT : VB_ACT;
+
+ while (VB_DATA == skip)
+ {
+  count -= XBUS_READ;
+  if (count <= 0) return 0;
+ }
+
+ while (VB_DATA != skip)
+ {
+  count -= XBUS_READ;
+  if (count <= 0) return 0;
+ }
+
+ /* return 0 if ztv_irq did not execute */
+
+ return ( (old_rtc == eer_rtc) ? 0 : 1 );
+}
+@
+
+
+1.19
+log
+@Moved tq_maint call to cputimerint if HCR4K.
+@
+text
+@d358 4
+@
+
+
+1.18
+log
+@Added temporary prototypes for VBIReadPots() and PotsToSwitches().
+@
+text
+@d2462 3
+a2464 1
+    tq_maint(4000);	
+@
+
+
+1.17
+log
+@kluged in a declaration for framevec, which is only needed
+on the ASCLEAP
+@
+text
+@d2438 3
+d2443 1
+@
+
+
+1.16
+log
+@Added call to framevec when frame changes.
+@
+text
+@d194 3
+@
+
+
+1.15
+log
+@added logging of spurious IRQs. Added support for
+"motion" section of TEXEDO (including ztv_texture_swap())
+@
+text
+@d2429 1
+@
+
+
+1.14
+log
+@added extern for ser_sample(), for when we define SERIAL_INPUT
+@
+text
+@d57 1
+d710 1
+d1369 1
+a1369 1
+#if (1)
+d1397 47
+d1662 2
+a1663 2
+	    int spinner,old;
+	    U32 save,test;
+d1666 2
+d1671 22
+a1692 1
+	    *tcp = TEX_XBUS_SEL;
+d1698 1
+a1698 2
+		if ( test == old ) continue;
+		if ( test == (1<<B_TEX_NOT_P) ) break;
+a1706 1
+	    tp = (U32*)TEXEDO_MAIN_ADDR;
+a1711 1
+		tp += (dst_off >> 1);	/* Write two words at a time */
+d1716 1
+a1723 1
+		tp += (dst_off >> 1);	/* Write two words at a time */
+d1735 3
+d1739 1
+d1752 1
+d1763 1
+a1763 1
+#endif
+d2290 31
+d2369 2
+a2370 1
+    if ( !(*latp & (1<<B_Z_INT)) ) {
+d2376 14
+a2389 1
+	 */
+d2417 1
+d2517 11
+@
+
+
+1.13
+log
+@fixed compensating bugs which made a ZTV2 always come up
+"Econo", while somehow letting a ZIG tell the difference.
+@
+text
+@d347 1
+@
+
+
+1.12
+log
+@Fixed bug in TEXEDO version of ztv_texture_write(),
+to account for two texture-words per 32-bit XBUS write.
+Modified ztv_irq() to accoiunt for non-functional ZRE_INTEN.
+@
+text
+@d611 1
+a611 1
+	if ( (ZTV_STAT & (1<<B_Z_CURBUF)) == 0 ) tst.rd_misc <<= 16;
+@
+
+
+1.11
+log
+@Still working on ztv_texture_write(). Added conditional call to
+cn_irq() and ser_sample().
+@
+text
+@d1641 1
+a1641 1
+		tp += dst_off;
+d1653 1
+a1653 1
+		tp += dst_off;
+d1670 1
+a1670 1
+		    *tp++ = ~data;
+a2231 10
+    /* see if this came from the ZRE */
+    if ( (ZRE_CSR & ((1<<B_ZRE_INTEN)|(1<<B_ZRE_FBUSY))) == (1<<B_ZRE_INTEN)) {
+	zre_irq();
+    }
+#ifdef ZIGZRE_INTACK
+    else if ( (ztv_base == &ZIGTV_CTL) && (ZRE_CSR & (1<<B_ZRE_RESET)) ) {
+	ZIGZRE_INTACK = 0;
+    }
+#endif
+
+d2239 24
+d2265 5
+a2269 6
+#ifdef ZIGZRE_INTACK
+	ZIGZRE_INTACK = 0;
+#endif
+#if (0)
+	ZRE_CSR &= ~(1<<B_ZRE_SOFTRES);
+#endif
+@
+
+
+1.10
+log
+@Made the array txp a const.
+Per GCC suggestion, added parens around B_TEX_NOT_P+4
+@
+text
+@d345 1
+d728 4
+d1363 3
+d1377 15
+d1400 2
+a1401 2
+static int find_texture( verbose )
+int verbose;
+d1424 1
+a1424 1
+	    for ( spinner = 3 ; spinner >= 0 ; --spinner ) {
+a1428 1
+		if ( test == old ) continue;
+d1430 1
+d1440 13
+d1456 1
+d1459 1
+d1472 8
+d1498 7
+d1536 1
+a1536 1
+    if ( which_texture == TEXTURE_UNK ) which_texture = find_texture(0);
+d1602 1
+a1603 1
+		    *tp++ = (data >> 16) | (data&0xFFFF0000);
+d1670 1
+a1670 1
+		    *tp++ = data;
+d1674 5
+a1678 1
+	    *tcp = TEX_ZRE_SEL;	/* Bogus, but for now... (MEA 5feb96) */
+d2192 5
+d2306 2
+d2311 5
+@
+
+
+1.9
+log
+@revamped timing(), now check for working Hblank. Preliminary
+implementation of ztv_texture_write(). Changed a few IOLEDSETs,
+check for _no_ video board, rather than assuming that if
+it isn't a ZIG, it _must_ be a ZTV2 :-)
+@
+text
+@d1363 1
+a1363 1
+static unsigned char txp[] = {
+d1366 1
+a1366 1
+    (TEX_ZRE_SEL)|((1<<(B_TEX_NOT_X+4))|(1<<B_TEX_NOT_P+4)),
+@
+
+
+1.8
+log
+@Published  ztv_gamma_init() (renamed from static gamma_init)
+Identify Which board (ZIG or ZTV2) and what address if verbose
+Delete report of old IPL
+Identify ONE_BANK (econ-o-zig) and account for it
+Attempt zover_init() whenever OVLY is selected, and turn OVLY off on failure
+Do "buffer dance" only if OVLY enabled
+Add BLU_PAL, VIO_PAL to setancolors()
+Fixed "50% grey" Purity screen
+Added instructions to purity and crosshatch.
+@
+text
+@d52 2
+d411 6
+d451 1
+d453 10
+d480 1
+a480 1
+    ztv_mod_latch(options);
+d567 11
+d626 1
+d638 1
+a638 1
+    IOLEDSET(0x59);
+d694 1
+a694 1
+    IOLEDSET(0x5A);
+d706 1
+a706 1
+    IOLEDSET(0x5B);
+d734 1
+a734 1
+    IOLEDSET(0x5C);
+d736 1
+a736 1
+    IOLEDSET(0x5D);
+d1288 9
+a1296 1
+	status |= 4;
+d1298 2
+d1330 1
+a1330 1
+    if ( ztp->status & 4 ) {
+d1333 1
+a1333 1
+    if ( ztp->status & 8 ) {
+d1335 1
+a1335 1
+    }
+d1347 294
+@
+
+
+1.7
+log
+@faster vid_clear() by avoiding redundant bitmap clear
+after vid_clr_alphas() if in TXT_HOST mode.
+default non-ASCLEAP systems to not have overlay, pending
+solution to overlay bit "sticking". Added software switch
+for "economy model" with one RAM bank.
+@
+text
+@d121 1
+a121 1
+/*		gamma_init(which,what)
+d129 1
+a129 1
+STATIC void gamma_init(int which, const U32 *what)
+d469 3
+a471 1
+	txt_str(1,row++,"About to init video",MNORMAL_PAL);
+d473 1
+d482 2
+a483 1
+	txt_chexnum(*ztv,8,RJ_ZF,MNORMAL_PAL);
+d486 1
+d553 43
+d603 1
+a603 1
+	row += 2;
+a675 1
+#ifdef MEMCON
+d679 4
+a682 2
+	txt_cstr("Status: 0x",MNORMAL_PAL);
+	txt_chexnum((U32)status,8,RJ_ZF,MNORMAL_PAL);
+d694 2
+a695 3
+#endif
+    gamma_init(0,0);
+    gamma_init(1,0);
+d789 11
+a799 5
+    disp_wanted = buf_dance[idx];
+    if ( ztv_latch_shad & (1<<B_Z_TWO_DISP) ) {
+	disp_wanted &= (1<<B_Z_DISP_SEL);
+	disp_wanted |= buf_dance[idx] & (1<<B_Z_BUFSEL);
+    }
+a914 1
+    int old_refresh = ztv_mod_latch(0) & ZTV_OPT_SOFT_REFRESH;
+d916 1
+d947 10
+d966 1
+a966 1
+    v_retrace *= U32S_PER_LINE;
+d976 1
+a976 5
+#ifdef B_Z_ZBUFF_EN
+    old_val = ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+#else
+    old_val = ztv_mod_latch(0);
+#endif
+d985 1
+a985 1
+	lp += U32S_PER_LINE*(lr_y+1);
+d990 1
+a990 1
+	    lp += (U32S_PER_LINE);	/* next line */
+d1008 1
+a1008 1
+	lp += U32S_PER_LINE*(lr_y+1);
+d1013 1
+a1013 1
+	    lp += (U32S_PER_LINE);	/* next line */
+d1019 1
+a1019 1
+	lp += U32S_PER_LINE*lr_y;
+d1025 1
+a1025 1
+	lp += U32S_PER_LINE*ul_y;
+d1032 1
+a1032 1
+	lp += U32S_PER_LINE*(lr_y+1);
+d1038 1
+a1038 1
+	    lp += (U32S_PER_LINE);	/* next line */
+d1044 6
+a1049 1
+    if ( !old_refresh ) ztv_mod_latch(~ZTV_OPT_SOFT_REFRESH);
+d1320 1
+a1320 3
+    SetANPal(WHT_PAL,GRY_WHT);
+    SetANPal(YEL_PAL,GRY_YEL);
+    SetANPal(RED_PAL,GRY_RED);
+d1323 4
+d1350 3
+a1352 1
+    {"50% Grey", ((RED_MSK+1)>>1) | ((GRN_MSK+1)>>1) | ((BLU_MSK+1)>>1) },
+a1367 2
+    txt_str(-1,AN_VIS_ROW-4,"To change color",INSTR_PAL);
+    txt_str(-1,AN_VIS_ROW-3,t_msg_action,INSTR_PAL);
+d1385 1
+d1407 1
+a1410 2
+    txt_str(-1,AN_VIS_ROW-4,"To change color",INSTR_PAL);
+    txt_str(-1,AN_VIS_ROW-3,t_msg_action,INSTR_PAL);
+d1420 5
+d1446 1
+d1454 1
+d1484 2
+d1535 11
+d1547 1
+a1547 1
+    top += (VIS_V_PIX-block_y)*TOT_H_PIX;
+d1551 3
+d1595 1
+a1595 1
+		lp -= TOT_H_PIX;	/* remember, 0,0 is bottom left */
+d1630 2
+a1631 2
+		gamma_init(0,gamma_colors);
+		gamma_init(1,gamma_colors);
+d1633 2
+a1634 2
+		gamma_init(0,0);
+		gamma_init(1,0);
+@
+
+
+1.6
+log
+@fixed over-write of messages around missed-IRQ check.
+Defaulted verbose ztv_init only on ASCLEAP
+@
+text
+@d356 1
+d358 3
+d377 3
+d1022 2
+d1025 8
+a1032 1
+
+d1038 9
+a1046 9
+    if ( !bm_clear( which ) ) {
+	/* problem with clear */
+	txt_str(-1,(AN_VIS_ROW/2),"ZTV BITMAP NOT AVAILABLE",MHILITE_PAL);
+    }
+    which = !which;
+    if ( !bm_clear( which ) ) {
+	/* problem with clear */
+	txt_str(-1,(AN_VIS_ROW/2),"ZTV BITMAP NOT AVAILABLE",MHILITE_PAL);
+    }
+d1048 7
+a1054 5
+    for ( which = 2 ; which > 0 ; --which ) {
+        bm_rect(0, 0, VIS_H_PIX-1, VIS_V_PIX-1, 0, 0);
+        bm_rect(0, DISPLAY_2, VIS_H_PIX-1, DISPLAY_2+VIS_V_PIX-1, 0, 0);
+	swap_and_wait();
+    }
+d1057 1
+@
+
+
+1.5
+log
+@fixed timing() calculation, made timing screen repeat measurement
+on demand. Defaulted non-ASCLEAP stacks to not wait for HBLANK.
+Tried to make vid_clear less messy (with limitted success)
+defaulted LOOP_TIME to just one XBUS_READ. Fixed clobber of
+EEPROM-saved ZTV_OPTIONS.
+@
+text
+@d343 1
+a343 1
+const int vid_init_verbose = 1;
+d579 1
+a579 1
+	txt_str(3,++row,"Missed IRQs: ",MNORMAL_PAL);
+d583 1
+a583 1
+	txt_str(3,++row,"IPL = 0x",MNORMAL_PAL);
+d591 1
+a591 1
+	txt_str(3+second,++row,"Blowing past IRQ check",MHILITE_PAL);
+@
+
+
+1.4
+log
+@attempting to move "wait for Hblank" from a variable to
+a bit in ZTV options, and to normalize timing reports
+to nanoseconds, and incidentally detect the sense
+(High-True or Low-True) of the Vblank and Hblank bits
+@
+text
+@d24 9
+d56 1
+a56 1
+STATIC U32 ztv_restore_defaults();
+d365 3
+d369 2
+a370 1
+#endif
+d378 1
+d380 3
+d498 2
+d995 7
+a1001 1
+#ifdef B_Z_HBLANK
+d1005 1
+a1005 1
+#endif
+d1007 1
+a1007 1
+#ifdef B_Z_HBLANK
+d1009 1
+a1009 1
+#endif
+d1013 4
+d1018 4
+d1031 8
+a1038 1
+#endif
+a1145 1
+	blank = (TOO_LONG - nsec);
+d1157 10
+d1613 2
+d1616 11
+a1626 3
+    timing(ztv_base, &time_info);
+    show_timing(10, &time_info);
+    while ( (ctl_read_sw(SW_NEXT) & SW_NEXT) == 0 ) prc_delay0();
+@
+
+
+1.3
+log
+@Fixed vid_waitvb() so that it returns 1 if it thinks ztv_irq() has executed.
+Also using TOO_LONG and XBUS_READ to establish the loop timeout period.
+@
+text
+@d37 10
+a46 2
+STATIC int timing(VU32 *);
+STATIC void show_timing();
+d334 1
+a334 1
+const int vid_init_verbose = 0;
+d347 1
+a347 1
+    "\101Overlay Video\000*No\000Yes\000"
+d355 3
+d367 1
+a367 1
+#ifndef EER_ZTV_OPT
+a368 1
+#endif
+a369 1
+#ifdef B_Z_HBLANK
+a370 1
+#endif
+d398 2
+a399 3
+#ifdef B_Z_HBLANK
+    int old_hblank;
+#endif
+a404 4
+#ifdef B_Z_HBLANK
+    old_hblank = no_wait_for_hblank;
+    no_wait_for_hblank = 1;
+#endif
+a411 1
+    ztv_latch_shad = 0;
+d418 1
+a418 1
+	if ( timing(&ZIGTV_CTL) == 0 ) ztv = &ZIGTV_CTL;
+d425 6
+d433 4
+d470 3
+a472 1
+	txt_str(1,row++,"Getting default ZTV settings",MNORMAL_PAL);
+d475 1
+d478 4
+a481 2
+#else
+    options = ztv_opt_memo;
+d513 1
+a513 1
+	    txt_str(1,row++,"Pointing to dummy vblank",MNORMAL_PAL);
+d516 1
+a516 1
+	timing(ztv_base);
+d528 1
+a528 1
+	show_timing(row);
+d574 1
+a574 1
+#if (1)
+d578 1
+a578 1
+	txt_str(1,row++,"Enabling HOST Text",MNORMAL_PAL);
+d582 1
+a582 1
+#endif
+d612 1
+a636 3
+#ifdef B_Z_HBLANK
+    no_wait_for_hblank = old_hblank;
+#endif
+d978 2
+a979 2
+    old_hblank = no_wait_for_hblank;
+    no_wait_for_hblank = 1;
+d982 3
+a998 3
+#ifdef B_Z_HBLANK
+    no_wait_for_hblank = old_hblank;
+#endif
+d1006 68
+d1075 1
+a1075 3
+int ztv_err;
+STATIC unsigned long ztv_active,ztv_blank;
+STATIC int timing( VU32 *ptr )
+d1077 1
+a1077 1
+    unsigned long nsec,blank,loop_time;
+d1079 1
+a1079 1
+    int old_ipl;
+d1081 1
+a1081 1
+    ztv_active = ztv_blank = 0;
+d1088 2
+d1096 1
+a1096 3
+	ztv_err = 1;
+	prc_set_ipl(old_ipl);
+	return ztv_err;
+d1098 9
+a1106 2
+    for ( nsec = TOO_LONG ; nsec > loop_time ; nsec -= loop_time ) {
+	if ( !(*ptr & mask) ) break;
+d1108 9
+a1116 9
+    if ( nsec <= loop_time ) {
+	/* timed out waiting for VBlank negated */
+	ztv_err = 2;
+	prc_set_ipl(old_ipl);
+	return ztv_err;
+    }
+    blank = (TOO_LONG - nsec);
+    for ( nsec = TOO_LONG ; nsec > loop_time ; nsec -= loop_time ) {
+	if ( *ptr & mask ) break;
+d1119 1
+a1119 7
+    if ( nsec <= loop_time ) {
+	/* timed out waiting for VBlank re-asserted */
+	ztv_err = 3;
+	return ztv_err;
+    }
+    nsec = (TOO_LONG - nsec);
+    if ( blank > nsec ) {
+d1121 9
+a1129 5
+	ztv_active = blank;
+	ztv_blank = nsec;
+    } else {
+	ztv_active = nsec;
+	ztv_blank = blank;
+d1131 1
+a1131 1
+    return 0;
+d1141 1
+a1141 2
+STATIC void show_timing(row)
+int row;
+d1145 1
+d1155 7
+a1161 1
+    txt_cstr(timing_errs[ztv_err&3],MNORMAL_PAL);
+d1163 1
+a1163 1
+    txt_cdecnum(ztv_active,10,LJ_NF,MNORMAL_PAL);
+d1165 7
+a1171 1
+    txt_cdecnum(ztv_blank,10,LJ_NF,MNORMAL_PAL);
+d1563 1
+d1565 2
+a1566 1
+    show_timing(10);
+d1819 1
+a1821 2
+#else
+    gopts = ztv_opt_memo;
+d1826 1
+a1826 1
+#else
+a1827 1
+#endif
+d1837 1
+a1839 2
+#else
+    ztv_opt_memo = options;
+@
+
+
+1.2
+log
+@re-orged IOLEDS. I hope I'm not going to regret this (MEA)
+@
+text
+@d1748 1
+a1748 1
+#define VB_MASK	 (1<<B_Z_VB)		/* zoid 1 vblank bit position */
+a1751 1
+#define VB_DELAY 45920			/* tested at 20.0 msec zoid 1 */
+d1755 3
+a1757 1
+ int count = VB_DELAY;
+d1768 2
+a1769 1
+  if (--count == 0) return 0;
+d1774 2
+a1775 1
+  if (--count == 0) return 0;
+d1778 3
+a1780 1
+ return 1;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d364 3
+d370 2
+a371 2
+#if (PROCESSOR == ASAP)
+#define IOLEDSET(x) do { *(VU32*)XBUS_SLOT77 = (0xFF-(x)); } while (0)
+d374 2
+a375 2
+#endif /* PROCESSOR == ASAP */
+#endif /* IOLEDSET defined */
+@

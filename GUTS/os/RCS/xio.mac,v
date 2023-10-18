@@ -1,0 +1,417 @@
+head	1.6;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.6
+date	97.08.29.17.58.34;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.04.03.23.52.18;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.03.12.04.36.11;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.03.08.04.15.44;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.02.27.19.40.41;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.12.30.02.29.57;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Defines and equates for the XIO board.
+@
+
+
+1.6
+log
+@Added definition for XIOOUT_T and LETA_RESET.
+@
+text
+@;
+;	xio.mac - defines and equates for the XIO board
+;
+;	Project:	Zoid
+;	Date:		April 1995
+;	Team:		Mike Albaugh, Dave Shepperd, Steve Bennetts
+;
+.if ndf, _XIO_MAC_
+_XIO_MAX_ == 0
+ .if ndf, LANG_C
+   .error ;You must .include def_pp.mac before .including xio.mac
+ .endc
+;
+.macro MK_OPT name value comments
+ .iif not_defined, name, DEC_CONST name value <comments>
+.endm
+	MK_OPT HAS_AUX1		0	< set .ne. if have a second set of switches >
+	MK_OPT FAKE_SWITCHES	0	< set .ne. if to use fake (RAM based) switches >
+	MK_OPT NO_IOLEDS0	0	< set .ne. if not to use LEDS >
+	MK_OPT USE_XIO_STUBS	0	< set .ne. if to use XIO stubs >
+;
+ .if true, OUTPUT_LANG == LANG_C
+#if !defined(_XIO_H_)
+#define _XIO_H_
+;
+  .if true, FAKE_SWITCHES == 0
+   .if true, NO_IOLEDS0 == 0
+#  define IOLEDSADDR0	((VU32 *)(XBUS_SLOT5+0x080))
+   .endc
+;
+# define IOSWITCH0 	((VU32 *)(XBUS_SLOT5+0x100))
+# define IOSWITCH1 	((VU32 *)(XBUS_SLOT5+0x104))
+# define XIOOUT0_T	*(VU32 *)(XBUS_SLOT5+0x180)
+# define AUXSWITCH0	((VU32 *)(XBUS_SLOT5+0x280))
+   .if true, HAS_AUX1
+#  define IOSWITCH2 	((VU32 *)(XBUS_SLOT70+0x100))
+#  define IOSWITCH3 	((VU32 *)(XBUS_SLOT70+0x104))
+#  define XIOOUT1_T	*(VU32 *)(XBUS_SLOT70+0x180)
+#  define AUXSWITCH1	((VU32 *)(XBUS_SLOT70+0x280))
+   .endc
+;
+# define LETA_RESET	(0x80)
+;
+  .iff			; FAKE_SWITCHES == 0
+;
+# define IOLEDSADDR0	((VU32 *)0x9FC0015C)
+
+# define IOSWITCH0 	((VU32 *)0x9FC00160)
+# define IOSWITCH1 	((VU32 *)0x9FC00164)
+   .if true, HAS_AUX1
+#  define IOSWITCH2 	((VU32 *)0x9FC00168)
+#  define IOSWITCH3 	((VU32 *)0x9FC0016C)
+   .endc
+# define AUXSWITCH0	((VU32 *)0x9FC00170)
+   .if true, HAS_AUX1
+#  define AUXSWITCH1	((VU32 *)0x9FC00174)
+   .endc
+  .endc			; FAKE_SWITCHES == 0
+
+  .if true, USE_XIO_STUBS
+extern U32 ctl_mod_latch(int);
+
+# define LM_EMC_L	1
+# define LM_EMC_R	2
+# define LM_VCR_REC	4
+   .if true, NO_IOLEDS0 
+# define IOLEDS0(x)	do {;} while(0)
+# define IOLEDS0CLEAR	do {;} while(0)
+# define IOLEDS0SET(x)	do {;} while(0)
+   .iff
+# define IOLEDS0(x)	do { int ii = 1<<(x); if (ii != LM_EMC_L && ii != LM_EMC_R) ctl_mod_latch(ii); } while (0)
+# define IOLEDS0CLEAR	ctl_mod_latch(0x80000000|(LM_EMC_L|LM_EMC_R))
+# define IOLEDS0SET(x)	ctl_mod_latch((x)&~(LM_EMC_L|LM_EMC_R))
+   .endc
+# define COUNTER_ON(x)	ctl_mod_latch(emc_map[x])
+# define COUNTER_OFF(x)	ctl_mod_latch(~emc_map[x])
+  .iff			; USE_XIO_STUBS
+   .if true, NO_IOLEDS0
+# define IOLEDS0(x)	do {;} while(0)
+# define IOLEDS0CLEAR	do {;} while(0)
+# define IOLEDS0SET(x)	do {;} while(0)
+   .iff
+# define IOLEDS0(x)	(*IOLEDSADDR0 = 1<<(x))
+# define IOLEDS0CLEAR	(*IOLEDSADDR0 = 0)
+# define IOLEDS0SET(x)	(*IOLEDSADDR0 = (x))
+   .endc
+  .endc			; USE_XIO_STUBS
+
+#define BIT0		0x001L
+#define BIT1		0x002L
+#define BIT2		0x004L
+#define BIT3		0x008L
+#define BIT4		0x010L
+#define BIT5		0x020L
+#define BIT6		0x040L
+#define BIT7		0x080L
+
+
+#define SW0BIT0		(!(*IOSWITCH0 & BIT0))
+#define SW0BIT1		(!(*IOSWITCH0 & BIT1))
+#define SW0BIT2		(!(*IOSWITCH0 & BIT2))
+#define SW0BIT3		(!(*IOSWITCH0 & BIT3))
+#define SW0BIT4		(!(*IOSWITCH0 & BIT4))
+#define SW0BIT5		(!(*IOSWITCH0 & BIT5))
+#define SW0BIT6		(!(*IOSWITCH0 & BIT6))
+#define SW0BIT7		(!(*IOSWITCH0 & BIT7))
+
+#define SW1BIT0		(!(*IOSWITCH1 & BIT0))
+#define SW1BIT1		(!(*IOSWITCH1 & BIT1))
+#define SW1BIT2		(!(*IOSWITCH1 & BIT2))
+#define SW1BIT3		(!(*IOSWITCH1 & BIT3))
+#define SW1BIT4		(!(*IOSWITCH1 & BIT4))
+#define SW1BIT5		(!(*IOSWITCH1 & BIT5))
+#define SW1BIT6		(!(*IOSWITCH1 & BIT6))
+#define SW1BIT7		(!(*IOSWITCH1 & BIT7))
+
+  .if true, HAS_AUX1
+# define SW2BIT0	(!(*IOSWITCH2 & BIT0))
+# define SW2BIT1	(!(*IOSWITCH2 & BIT1))
+# define SW2BIT2	(!(*IOSWITCH2 & BIT2))
+# define SW2BIT3	(!(*IOSWITCH2 & BIT3))
+# define SW2BIT4	(!(*IOSWITCH2 & BIT4))
+# define SW2BIT5	(!(*IOSWITCH2 & BIT5))
+# define SW2BIT6	(!(*IOSWITCH2 & BIT6))
+# define SW2BIT7	(!(*IOSWITCH2 & BIT7))
+
+# define SW3BIT0	(!(*IOSWITCH3 & BIT0))
+# define SW3BIT1	(!(*IOSWITCH3 & BIT1))
+# define SW3BIT2	(!(*IOSWITCH3 & BIT2))
+# define SW3BIT3	(!(*IOSWITCH3 & BIT3))
+# define SW3BIT4	(!(*IOSWITCH3 & BIT4))
+# define SW3BIT5	(!(*IOSWITCH3 & BIT5))
+# define SW3BIT6	(!(*IOSWITCH3 & BIT6))
+# define SW3BIT7	(!(*IOSWITCH3 & BIT7))
+  .endc
+
+#define AUX0BIT0	(!(*AUXSWITCH0 & BIT1))
+#define AUX0BIT1	(!(*AUXSWITCH0 & BIT2))
+
+  .if true, HAS_AUX1
+# define AUX1BIT0	(!(*AUXSWITCH1 & BIT1))
+# define AUX1BIT1	(!(*AUXSWITCH1 & BIT2))
+  .endc
+
+
+#define REDBUTTON	SW0BIT0
+#define BLACKBUTTON	SW0BIT1
+#define JOYLEFT		SW0BIT2
+#define JOYUP		SW0BIT3
+#define JOYRIGHT	SW0BIT4
+#define JOYDOWN		SW0BIT5
+#define SELFTEST	SW0BIT6
+#define DODEBUG		SW0BIT7
+
+#define WHITEBUTTON	SW1BIT0
+#define BLUEBUTTON	SW1BIT1
+#define STARTBUTTON	SW1BIT6
+
+#define JOY0B0		SW0BIT0
+#define JOY0B1		SW0BIT1
+#define JOY0LT		SW0BIT2
+#define JOY0UP		SW0BIT3
+#define JOY0RT		SW0BIT4
+#define JOY0DN		SW0BIT5
+
+#define JOY1B0		SW1BIT0
+#define JOY1B1		SW1BIT1
+#define JOY1LT		SW1BIT2
+#define JOY1UP		SW1BIT3
+#define JOY1RT		SW1BIT4
+#define JOY1DN		SW1BIT5
+
+  .if true, HAS_AUX1
+# define JOY2B0		SW2BIT0
+# define JOY2B1		SW2BIT1
+# define JOY2LT		SW2BIT2
+# define JOY2UP		SW2BIT3
+# define JOY2RT		SW2BIT4
+# define JOY2DN		SW2BIT5
+
+# define JOY3B0		SW3BIT0
+# define JOY3B1		SW3BIT1
+# define JOY3LT		SW3BIT2
+# define JOY3UP		SW3BIT3
+# define JOY3RT		SW3BIT4
+# define JOY3DN		SW3BIT5
+  .endc
+
+  .if true, FAKE_SWITCHES
+# define DEFAULT_DEBUG	(1)
+  .endc
+
+  .if true, FAKE_SWITCHES
+# define DEBUG0		DEFAULT_DEBUG
+# define DEBUG1		DEFAULT_DEBUG
+# define DEBUG2		DEFAULT_DEBUG
+# define DEBUG3		DEFAULT_DEBUG
+# define DEBUG4		DEFAULT_DEBUG
+# define DEBUG5		DEFAULT_DEBUG
+  .iff
+# define DEBUG0		(AUX0BIT1 ? 1 : 0)
+# define DEBUG1		(AUX0BIT0 ? 1 : 0)
+   .if true, HAS_AUX1
+#  define DEBUG2	(SW2BIT7 ? 1 : 0)
+#  define DEBUG3	(SW2BIT6 ? 1 : 0)
+#  define DEBUG4	(AUX1BIT1 ? 1 : 0)
+#  define DEBUG5	(AUX1BIT0 ? 1 : 0)
+   .endc		; HAS_AUX1
+  .endc			; FAKE_SWITCHES
+
+  .if true, 0
+# define BLACKBTN	0x01
+# define BLUEBTN	0x02
+# define LEFT 		0x04
+# define UP		0x08
+# define RIGHT		0x10
+# define DOWN		0x20
+# define BIGBTN		0x40
+# define STARTBTN	0x100
+  .endc
+
+#endif					/* _XIO_H_ */
+ .endc					;/* OUTPUT_LANG == LANG_C */
+.endc					;/* _XIO_MAC_ */
+@
+
+
+1.5
+log
+@Added a bit for VCR control.
+@
+text
+@d33 1
+d38 1
+d41 2
+@
+
+
+1.4
+log
+@Changed the definitions of IOLEDS0 et al.
+@
+text
+@d61 1
+@
+
+
+1.3
+log
+@Fixed the COUNTER_ON/OFF macro.
+@
+text
+@d61 4
+a64 4
+   .if true, NO_IOLEDS0 == 0
+#  define IOLEDS0(x)	do { int ii = 1<<(x); if (ii != LM_EMC_L && ii != LM_EMC_R) ctl_mod_latch(ii); } while (0)
+#  define IOLEDS0CLEAR	ctl_mod_latch(0x80000000|(LM_EMC_L|LM_EMC_R))
+#  define IOLEDS0SET(x)	ctl_mod_latch((x)&~(LM_EMC_L|LM_EMC_R))
+d66 3
+a68 3
+#  define IOLEDS0(x)
+#  define IOLEDS0CLEAR
+#  define IOLEDS0SET(x)
+d73 5
+d81 1
+@
+
+
+1.2
+log
+@Reworked a number of entries.
+@
+text
+@d70 2
+a71 2
+# define COUNTER_ON(x)	ctl_mod_latch(x)
+# define COUNTER_OFF(x)	ctl_mod_latch(~(x))
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 9
+d25 6
+a30 8
+
+#define HAS_AUX1	0	/* set .ne. if have a second set of switches */
+#define FAKE_SWITCHES	0	/* set .ne. if to use fake (RAM based) switches */
+
+#if !FAKE_SWITCHES
+
+# define IOLEDSADDR0	((VU32 *)(XBUS_SLOT5+0x080))
+
+d34 1
+a34 1
+# if HAS_AUX1
+d38 4
+a41 4
+# endif
+
+#else
+
+d46 1
+a46 1
+# if HAS_AUX1
+d49 1
+a49 1
+# endif
+d51 1
+a51 1
+# if HAS_AUX1
+d53 2
+a54 1
+# endif
+d56 2
+a57 1
+#endif
+d59 18
+a76 3
+#define IOLEDS0(x)	(*(IOLEDSADDR0) = (1<<(x)))
+#define IOLEDS0CLEAR	(*IOLEDSADDR0 = 0)
+#define IOLEDS0SET(x)	(*IOLEDSADDR0 = x)
+d106 1
+a106 1
+#if HAS_AUX1
+d124 1
+a124 1
+#endif
+d129 1
+a129 1
+#if HAS_AUX1
+d132 1
+a132 1
+#endif
+d162 1
+a162 1
+#if HAS_AUX1
+d176 1
+a176 1
+#endif
+d178 1
+a178 1
+#if FAKE_SWITCHES
+d180 1
+a180 1
+#endif
+d182 1
+a182 1
+#if FAKE_SWITCHES
+d189 1
+a189 1
+#else
+d192 1
+a192 1
+# if HAS_AUX1
+d197 2
+a198 2
+# endif
+#endif
+d200 1
+a200 1
+#if 0
+d209 1
+a209 1
+#endif
+@

@@ -1,0 +1,100 @@
+head	1.2;
+access;
+symbols
+	RUSH_1_06A:1.2;
+locks; strict;
+comment	@;; @;
+
+
+1.2
+date	95.12.02.01.55.44;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.11.28.13.26.46;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Defines for GUTS LCD driver and XBUSMON interface board.
+Created from Dave Shepperd's xbusmon.h
+@
+
+
+1.2
+log
+@Changed GUTS_ONLY to LCD_GUTS_ONLY to avoid namespace collision
+@
+text
+@
+.if not_defined, _XBUSMON_MAC_
+_XBUSMON_MAC_ == 0
+
+ .if not_defined,LANG_C
+  .error ;You must .include def_pp.mac before .including xbusmon.mac
+ .endc
+
+.if true, OUTPUT_LANG == LANG_C
+#if !defined(_XBUSMON_H_)
+#define _XBUSMON_H_
+.endc
+
+.if not_defined, XBUSMON_BASE
+
+ .if not_defined,XBUS_SLOT75
+  .error ;You must .include <host board>.mac before .including xbusmon.mac
+ .endc
+	HEX_CONST XBUSMON_BASE XBUS_SLOT75
+.endc
+
+	VAR	XBUSMON0_LED	VU32	XBUSMON_BASE
+	VAR	XBUSMON0_SW	VU32	XBUSMON_BASE
+	VAR	XBUSMON0_LCD	VU32	XBUSMON_BASE+0x100
+
+	VAR	XBUSMON1_LED	VU32	XBUSMON_BASE+0x200
+	VAR	XBUSMON1_SW	VU32	XBUSMON_BASE+0x200
+	VAR	XBUSMON1_LCD	VU32	XBUSMON_BASE+0x300
+
+	HEX_CONST XBUSMON_SW1_UP	0x8000
+	HEX_CONST XBUSMON_SW1_DOWN	0x4000
+	HEX_CONST XBUSMON_SW1_LEFT	0x2000
+	HEX_CONST XBUSMON_SW1_RIGHT	0x1000
+	HEX_CONST XBUSMON_SW1_START	0x0800
+	HEX_CONST XBUSMON_SW1_STOP	0x0400
+
+	HEX_CONST XBUSMON_SW0_UP	0x0080
+	HEX_CONST XBUSMON_SW0_DOWN	0x0040
+	HEX_CONST XBUSMON_SW0_LEFT	0x0020
+	HEX_CONST XBUSMON_SW0_RIGHT	0x0010
+	HEX_CONST XBUSMON_SW0_START	0x0008
+	HEX_CONST XBUSMON_SW0_STOP	0x0004
+	HEX_CONST XBUSMON_SW0_SERIN	0x0001
+
+	HEX_CONST XBUSMON_SEROUT	0x0001
+
+.if true, OUTPUT_LANG == LANG_C
+extern void lcd_wait(int);
+extern void lcd_update(void);
+extern char *lcd_reset(void);
+# if defined(LCD_GUTS_ONLY)
+extern VU32 lcd_time;
+extern char lcd_buf[81];
+# endif
+;
+#endif			/* _XBUSMON_H_ */
+.endc
+.endc			; _XBUSMON_MAC_
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d51 1
+a51 1
+# if defined(GUTS_ONLY)
+@

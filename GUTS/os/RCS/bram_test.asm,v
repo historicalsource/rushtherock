@@ -1,0 +1,287 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	94.12.16.18.11.29;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@a modified version of the memory test that began life as the Applied
+Microsystems "SF" test. This one allows the testing of memory regions
+where parts of a 32-bit word are not present.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@	TTL	'bram_test.mac'
+* RAM test modified to test only some bits of each word. The bits to test are
+* indicated by a mask. As this test is slower than a full-word test, it would
+* never be used to test working RAM, so it does assume valid RAM for the stack.
+* That is, it uses conventional BSRs and saves any "callee-save" registers.
+* It also assumes the memory to be test is an integral multiple of four bytes long,
+* as otherwise such common cases as 24-bit playfield might be un-testable.
+
+	SECTION	9
+
+*	Prototype: bram_test(void *base, int len, int bits, struct rr *result).
+* Parameter offsets after saving 11 regs
+BASE	SET	48
+LEN	SET	52
+BITS	SET	56
+RESULT	SET	60
+* offsets in struct rr
+rr_address	SET 0
+rr_expected	SET 4
+rr_got		SET 8
+rr_test_no	SET 12
+	xdef	bram_test
+bram_test:
+	MOVEM.L	D2-D7/A2-A6,-(SP)	; all callee-save regs (11)
+	MOVE.L	BASE(SP),A1
+	MOVE.L	LEN(SP),D0
+	MOVE.L	BITS(SP),D1
+	LEA	-4(A1,D0.L),A2		; set end
+	SUB.W	#136,SP			; reserve space for table of bits (34 longs)
+	MOVE.L	SP,A3
+	CLR.L	(A3)+			; Initial 0 sentinal
+	MOVE.L	A3,A4
+	MOVE.L	D1,D3			; Get mask in position
+	MOVEQ.L	#1,D0			; Starting from LSB
+.rt00:	MOVE.L	D0,D1
+	AND.L	D3,D1
+	BEQ.S	.rt10
+	MOVE.L	D1,(A4)+		; Save a longword mask for each "interesting"
+.rt10:	ADD.L	D0,D0
+	BCC.S	.rt00
+	CLR.L	(A4)			; Final 0 sentinal
+	MOVE.L	A4,A5
+	BSR	BRTEST2
+.rt20:	ADD.W	#136,SP			; "De-allocate" table of bits
+	EOR.L	D1,D0
+	AND.L	D3,D0
+	MOVEM.L	(SP)+,D2-D7/A2-A6
+	RTS
+
+; ERRORS jump to here, so need to rip two return addresses off stack
+RET_ERR:
+	ADDQ.L	#8,SP			; Rip subtest and "BRTEST2" ret addrs
+	MOVE.L	RESULT+136(SP),A4	; Get caller's "result struct" pointer
+	CMPA.W	#0,A4
+	BEQ	.rt20			; No result pointer, just return D0^D1
+	MOVE.L	D6,rr_test_no(A4)
+	MOVE.L	A0,rr_address(A4)
+	MOVE.L	D0,rr_expected(A4)
+	MOVE.L	D1,rr_got(A4)
+	BRA	.rt20
+
+*>>>>> Below block of comments lifted from a not-necessarily-identical file
+*	Applied Microsystems' Extensive RAM test
+*
+* Register usage within this RAM test routine:
+* D0 - Write pattern (temp copy of D5)
+* D1 - Read Pattern 
+* D2 - Bit to flip
+* D3 - mask of relevant bits
+* D5 - Starting pattern for test loop
+* D6 - Test # currently being executed
+*
+* A0 - Current location being tested
+* A1 - Bottom address of area to test
+* A2 - Top address of area to test (last tested longword)
+* A3 - "list" of "interesting" bits, one bit per longword.
+* A4 - pointer into list of bits
+* A5 - Pointer to end of list
+*>>>>> Above block of comments lifted from a not-necessarily-identical file
+
+BRTEST2:
+	CLR.L	D6		;TEST #=0
+	CLR.L	D0		;Pattern=0
+	BSR.S	FILL		; Fill with 0
+	BSR.S	TST1		; Start with 0, turn on each bit, (D0-D15)
+	BNE.S	EXIT		;  check word, next bit, next word, forward.
+	BSR.S	TST2		; Start with -1, turn off each bit, (D0-D15)
+	BNE.S	EXIT		;  check word, next bit, next word, forward.
+	BSR.S	TST3		; Start with 0, turn on each bit, (D15-D0)
+	BNE.S	EXIT		;  check word, next bit, next word, backward.
+	BSR.S	TST4		; Start with -1, turn off each bit, (D15-D0)
+	BNE.S	EXIT		;  check word, next bit, next word, backward.
+	BSR	TST5		; Start with 0, turn each bit (D15-D0) on then
+	BNE.S	EXIT		;  off, check word, next bit, next word, forward.
+	BSR	TST6		; Start with 0, turn each bit (D0-D15) on then
+	BNE.S	EXIT		;  off, check word, next bit, next word, backward.
+	MOVEQ.L	#-01,D0
+	BSR.S	FILL		; Fill with -1
+	BSR	TST7		; Start with -1, turn each bit (D15-D0) off then
+	BNE.S	EXIT		;  on, check word, next bit, next word, forward.
+	BSR	TST8		; Start with -1, turn each bit (D0-D15) off then
+*				  on, check word, next bit, next word, backward.
+
+*	BSR	TST9		; start with -1
+*				; use read, modify, write address mode
+*				; which has failed when all else worked
+
+EXIT:	RTS
+
+FILL:	MOVE.L	A1,A0		; Work pointer <- start
+	MOVE.L	A2,D1
+	SUB.L	A0,D1		; Length (-4) = last - first
+	LSR.L	#2,D1		; Form count of longwords to fill, -1
+* We fall through to compensate for length -1
+.FL00:	MOVE.L	D0,(A0)+
+	DBF	D1,.FL00
+	SUB.L	#$10000,D1
+	BCC.S	.FL00
+	RTS
+
+TST1:	CLR.L	D5		;Expect memory to be 0
+	BRA.S	TST12C
+TST2:	MOVE.L	D3,D5		;Expect an FFFF (anded with "interest")
+TST12C:	ADDQ.L	#1,D6		;Bump test #
+	LEA.L	-4(A1),A0	;Pre-compensate for looping add
+LOOP12:	ADDQ	#4,A0		;Bump to new address
+	MOVE.L	A3,A4		; Init working pointer for "bit to flip"
+	MOVE.L	(A4)+,D2	;Fresh bit-flipper
+	MOVE.L	D5,D0		;Fresh Comparison standard
+* Check on our expectations so far (starting or after each flip)
+GET12:
+        MOVE.L	(A0),D1
+	AND.L	D3,D1
+	CMP.L	D1,D0
+	BNE	RET_ERR		; Return syndrome on error
+	EOR.L	D2,D0		; Flip a bit
+        MOVE.L	D0,(A0)
+	MOVE.L	(A4)+,D2	; Next bit?
+	BNE.S	GET12		; If there is one, flip it
+*	MOVE.W	D0,WDOG
+	CMPA.L	A2,A0
+	BNE.S	LOOP12		;Loop until we have tested last longword
+
+	ADDQ	#4,A0		; Compensate for -(A0) below
+BACK12:
+        MOVE.L	-(A0),D1
+	AND.L	D3,D1
+	CMP.L	D1,D0
+	BNE	RET_ERR
+GB12:	CMPA.L	A1,A0
+	BNE.S	BACK12		;Loop backwards until we have tested first longword
+	RTS
+
+TST3:	CLR.L	D5		;Expect a 0
+	BRA.S	COM34
+TST4:	MOVE.L	D3,D5		;Expect an FFFF (anded with "interest")
+COM34:	ADDQ.L	#1,D6		;Bump test #
+	LEA.L	$04(A2),A0	; Compensate for SUBQ.L below, start at last long
+LOOP34:	SUBQ.L	#4,A0
+	MOVE.L	A5,A4		; Start at "top" of list
+	MOVE.L	-(A4),D2	; Fresh bit-flipper
+	MOVE.L	D5,D0
+GET34:
+*	MOVE.W	D0,WDOG
+        MOVE.L	(A0),D1
+	AND.L	D3,D1
+	CMP.L	D1,D0
+	BNE	RET_ERR		; Exit with syndrome on error
+	EOR.L	D2,D0		; Flip a bit
+        MOVE.L	D0,(A0)
+	MOVE.L	-(A4),D2	; Next Bit
+	BNE.S	GET34
+
+	CMPA.L	A1,A0
+	BNE.S	LOOP34
+
+UP34:	MOVE.L	(A0)+,D1
+	AND.L	D3,D1
+	CMP.L	D1,D0
+	BNE	RET_ERR
+
+	CMPA.L	A2,A0
+	BNE.S	UP34
+	MOVE.L	(A0),D1
+	AND.L	D3,D1
+	CMP.L	D1,D0
+	BNE	RET_ERR
+	RTS
+
+TST5:	CLR.L	D5
+	BRA.S	COM57
+TST7:	MOVE.L	D3,D5
+COM57:	ADDQ.L	#1,D6	
+	LEA.L	-4(A1),A0	; Compensate for ADDQ below
+LOOP57:	ADDQ.L	#4,A0
+	MOVE.L	A3,A4
+	MOVE.L	(A4)+,D2
+FRSH57:	MOVE.L	D5,D0
+        MOVE.L	(A0),D1
+	AND.L	D3,D1
+	CMP.L	D1,D0
+	BNE	RET_ERR
+	EOR.L	D2,D0			;Flip a bit
+        MOVE.L	D0,(A0)
+        MOVE.L	D5,(A0)
+	MOVE.L	(A4)+,D2
+	BNE.S	FRSH57			;Loop for all bits in word
+*	MOVE.W	D0,WDOG
+	CMPA.L	A2,A0
+	BNE.S	LOOP57			;Loop for all words in range
+* Now scan back to make sure nothing changed
+	MOVE.L	D5,D0
+	ADDQ	#4,A0
+BACK57:
+*	MOVE.W	D0,WDOG
+        MOVE.L	-(A0),D1
+	AND.L	D3,D1
+	CMP.L	D1,D0
+	BNE	RET_ERR
+	CMPA.L	A1,A0
+	BNE.S	BACK57
+	RTS
+
+TST6:	CLR.L	D5			;Expect a 0
+	BRA.S	COM68
+TST8:	MOVE.L	D3,D5
+COM68:	ADDQ.L	#1,D6
+	LEA.L	4(A2),A0		; Start just past end (last longword + 4)
+LOOP68:
+*	MOVE.W	D0,WDOG
+	SUBQ	#4,A0
+	MOVE.L	A5,A4
+	MOVE.L	-(A4),D2
+FRSH68:	MOVE.L	D5,D0
+        MOVE.L	(A0),D1
+	AND.L	D3,D1
+	CMP.L	D1,D0
+	BNE	RET_ERR
+
+	EOR.L	D2,D0
+        MOVE.L	D0,(A0)
+        MOVE.L	D5,(A0)
+	MOVE.L	-(A4),D2
+	BNE.S	FRSH68
+	CMPA.L	A1,A0
+	BNE.S	LOOP68
+* Now scan up checking that it all took
+	MOVE.L	D5,D0
+*	MOVE.W	D0,WDOG
+UP68:	MOVE.L	(A0)+,D1
+	AND.L	D3,D1
+	CMP.L	D1,D0
+	BNE	RET_ERR
+	CMPA.L	A2,A0
+	BNE.S	UP68
+* We bail just before checking last longword, so finish it now...
+	MOVE.L	(A0),D1
+	AND.L	D3,D1
+	CMP.L	D1,D0
+	BNE	RET_ERR
+	RTS
+@

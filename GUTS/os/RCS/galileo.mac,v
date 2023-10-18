@@ -1,0 +1,449 @@
+head	1.10;
+access;
+symbols
+	RUSH_ROCK_1_0:1.10
+	RUSH_ROCK_1_0epst:1.10
+	RUSH_ROCK_1_0boot:1.10
+	MACE_1_0e:1.10
+	MACE_1_0d:1.10
+	RUSH_1_06A:1.9
+	MACE_1_0a:1.9;
+locks; strict;
+comment	@;; @;
+
+
+1.10
+date	97.07.01.20.54.19;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.07.20.01.23.43;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.04.17.23.18.29;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.04.16.02.58.25;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.04.14.23.04.23;	author forrest;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.04.14.22.47.28;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.04.13.02.58.58;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.04.11.18.58.55;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.04.10.00.02.39;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.04.07.00.05.54;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Phoenix devsys support files
+@
+
+
+1.10
+log
+@Added a $Id$ to get file's version number.
+@
+text
+@; $Id$
+;
+.if not_defined, _GALILEO_MAC_
+_GALILEO_MAC_ == 0
+GB == GALILEO_BASE
+	HEX_CONST GALILEO_CPUINTFC	GB+0x000	<CPU Interface configuration>
+	HEX_CONST GALILEO_CPUINTFC_CacheOpMap_b	0
+	HEX_CONST GALILEO_CPUINTFC_CachePres_b	9
+	HEX_CONST GALILEO_CPUINTFC_WriteMod_b	11
+	HEX_CONST GALILEO_CPUINTFC_Endian_b	12
+	HEX_CONST GALILEO_CPUINTFC_CacheOpMap_m	1<<0
+	HEX_CONST GALILEO_CPUINTFC_CachePres_m	1<<9
+	HEX_CONST GALILEO_CPUINTFC_WriteMod_m	1<<11
+	HEX_CONST GALILEO_CPUINTFC_Endian_m	1<<12
+	HEX_CONST GALILEO_RAS10_LOW	GB+0x008	< RAS[1:0] Low decode Address >
+	HEX_CONST GALILEO_RAS10_HIGH	GB+0x010	< RAS[1:0] High decode Address >
+	HEX_CONST GALILEO_RAS32_LOW	GB+0x018	< RAS[3:2] Low decode Address >
+	HEX_CONST GALILEO_RAS32_HIGH	GB+0x020	< RAS[3:2] High decode Address >
+	HEX_CONST GALILEO_CS20_LOW	GB+0x028	< CS[2:0] Low decode Address >
+	HEX_CONST GALILEO_CS20_HIGH	GB+0x030	< CS[2:0] High decode Address >
+	HEX_CONST GALILEO_CS3BOOT_LOW	GB+0x038	< CS[3] & Boot Low decode Address >
+	HEX_CONST GALILEO_CS3BOOT_HIGH	GB+0x040	< CS[3] & Boot High decode Address >
+	HEX_CONST GALILEO_PCIIO_LOW	GB+0x048	< PCI I/O Low decode Address >
+	HEX_CONST GALILEO_PCIIO_HIGH	GB+0x050	< PCI I/O High decode Address >
+	HEX_CONST GALILEO_PCIMEM_LOW	GB+0x058	< PCI Memory Low decode Address >
+	HEX_CONST GALILEO_PCIMEM_HIGH	GB+0x060	< PCI Memory High decode Address >
+	HEX_CONST GALILEO_Internal 	GB+0x068	< Galileo internal space decode Address >
+	HEX_CONST GALILEO_BUSERR_LOW	GB+0x070	< Address bits 31:0 after Bus Error >
+	HEX_CONST GALILEO_BUSERR_HIGH	GB+0x078	< Address bits 35:32 after Bus Error >
+	HEX_CONST GALILEO_RAS0_LOW	GB+0x400	< RAS[0] Low decode Address >
+	HEX_CONST GALILEO_RAS0_HIGH	GB+0x404	< RAS[0] High decode Address >
+	HEX_CONST GALILEO_RAS1_LOW	GB+0x408	< RAS[1] Low decode Address >
+	HEX_CONST GALILEO_RAS1_HIGH	GB+0x40C	< RAS[1] High decode Address >
+	HEX_CONST GALILEO_RAS2_LOW	GB+0x410	< RAS[2] Low decode Address >
+	HEX_CONST GALILEO_RAS2_HIGH	GB+0x414	< RAS[2] High decode Address >
+	HEX_CONST GALILEO_RAS3_LOW	GB+0x418	< RAS[3] Low decode Address >
+	HEX_CONST GALILEO_RAS3_HIGH	GB+0x41C	< RAS[3] High decode Address >
+	HEX_CONST GALILEO_CS0_LOW	GB+0x420	< CS[0] Low decode Address >
+	HEX_CONST GALILEO_CS0_HIGH	GB+0x424	< CS[0] High decode Address >
+	HEX_CONST GALILEO_CS1_LOW	GB+0x428	< CS[1] Low decode Address >
+	HEX_CONST GALILEO_CS1_HIGH	GB+0x42C	< CS[1] High decode Address >
+	HEX_CONST GALILEO_CS2_LOW	GB+0x430	< CS[2] Low decode Address >
+	HEX_CONST GALILEO_CS2_HIGH	GB+0x434	< CS[2] High decode Address >
+	HEX_CONST GALILEO_CS3_LOW	GB+0x438	< CS[3] Low decode Address >
+	HEX_CONST GALILEO_CS3_HIGH	GB+0x43C	< CS[3] High decode Address >
+	HEX_CONST GALILEO_BOOT_LOW	GB+0x440	< CS[3] Low decode Address >
+	HEX_CONST GALILEO_BOOT_HIGH	GB+0x444	< CS[3] High decode Address >
+	HEX_CONST GALILEO_DRAM_CFG	GB+0x448	< DRAM configuration >
+	HEX_CONST GALILEO_DRAM_CFG_RefIntCnt_b	0	< Refresh interval count >
+	HEX_CONST GALILEO_DRAM_CFG_StagRef_b	16	< Staggered Refresh >
+	HEX_CONST GALILEO_DRAM_CFG_ADSFunct_b	17	< ADS pin function >
+	HEX_CONST GALILEO_DRAM_CFG_DRAMLatch_b	18	< DRAM latch operation >
+	HEX_CONST GALILEO_DRAM_CFG_RefIntCnt_m	1<<0	< Refresh interval count >
+	HEX_CONST GALILEO_DRAM_CFG_StagRef_m	1<<16	< Staggered Refresh >
+	HEX_CONST GALILEO_DRAM_CFG_ADSFunct_m	1<<17	< ADS pin function >
+	HEX_CONST GALILEO_DRAM_CFG_DRAMLatch_m	1<<18	< DRAM latch operation >
+	HEX_CONST GALILEO_DRAM0_CFG	GB+0x44c	< DRAM Bank 0 configuration >
+	HEX_CONST GALILEO_DRAMBK_CFG_CASWr_b	0	< Number of CAS cycles during writes >
+	HEX_CONST GALILEO_DRAMBK_CFG_RAStoCASWr_b 1	< Number of cycles between RAS and CAS during writes >
+	HEX_CONST GALILEO_DRAMBK_CFG_CASRd_b	2	< Number of CAS cycles during read >
+	HEX_CONST GALILEO_DRAMBK_CFG_RAStoCASRd_b 3	< Number of cycles between RAS and CAS during reads >
+	HEX_CONST GALILEO_DRAMBK_CFG_Refresh_b	4	< Refresh type >
+	HEX_CONST GALILEO_DRAMBK_CFG_BankWidth_b 6	< Width (32/64) >
+	HEX_CONST GALILEO_DRAMBK_CFG_BankLoc_b	7	< Even/Odd side if width = 32 >
+	HEX_CONST GALILEO_DRAMBK_CFG_Parity_b	8	< Parity support >
+	HEX_CONST GALILEO_DRAMBK_CFG_CASWr_m	1<<0	< Number of CAS cycles during writes >
+	HEX_CONST GALILEO_DRAMBK_CFG_RAStoCASWr_m 1<<1	< Number of cycles between RAS and CAS during writes >
+	HEX_CONST GALILEO_DRAMBK_CFG_CASRd_m	1<<2	< Number of CAS cycles during read >
+	HEX_CONST GALILEO_DRAMBK_CFG_RAStoCASRd_m 1<<3	< Number of cycles between RAS and CAS during reads >
+	HEX_CONST GALILEO_DRAMBK_CFG_Refresh_m	1<<4	< Refresh type >
+	HEX_CONST GALILEO_DRAMBK_CFG_BankWidth_m 1<<6	< Width (32/64) >
+	HEX_CONST GALILEO_DRAMBK_CFG_BankLoc_m	1<<7	< Even/Odd side if width = 32 >
+	HEX_CONST GALILEO_DRAMBK_CFG_Parity_m	1<<8	< Parity support >
+	HEX_CONST GALILEO_DRAM1_CFG	GB+0x450	< DRAM Bank 1 configuration >
+	HEX_CONST GALILEO_DRAM2_CFG	GB+0x454	< DRAM Bank 2 configuration >
+	HEX_CONST GALILEO_DRAM3_CFG	GB+0x458	< DRAM Bank 3 configuration >
+	HEX_CONST GALILEO_DEV0_CFG	GB+0x45c	< Device Bank 0 (PCS0) Configuration >
+	HEX_CONST GALILEO_DEV_CFG_TurnOff_b	0	< Cycles between OE's >
+	HEX_CONST GALILEO_DEV_CFG_AccToFirst_b	3	< Cycles between CS's >
+	HEX_CONST GALILEO_DEV_CFG_AccToNext_b	7	< Cycles between CS's >
+	HEX_CONST GALILEO_DEV_CFG_ADStoWr_b	11	< Cycles between ADS and WR >
+	HEX_CONST GALILEO_DEV_CFG_WrActive_b	14	< Cycles Wr held assetred >
+	HEX_CONST GALILEO_DEV_CFG_WrHigh_b	17	< Cycles between assertions of Wr >
+	HEX_CONST GALILEO_DEV_CFG_DevWidth_b	20	< Device bus width >
+	HEX_CONST GALILEO_DEV_CFG_DevLoc_b	23	< Even/Odd side if width != 64>
+	HEX_CONST GALILEO_DEV_CFG_LatchFunct_b	25	< Latch enable function >
+	HEX_CONST GALILEO_DEV_CFG_Parity_b	30	< Parity support >
+	HEX_CONST GALILEO_DEV_CFG_TurnOff_m	1<<0	< Cycles between OE's >
+	HEX_CONST GALILEO_DEV_CFG_AccToFirst_m	1<<3	< Cycles between CS's >
+	HEX_CONST GALILEO_DEV_CFG_AccToNext_m	1<<7	< Cycles between CS's >
+	HEX_CONST GALILEO_DEV_CFG_ADStoWr_m	1<<11	< Cycles between ADS and WR >
+	HEX_CONST GALILEO_DEV_CFG_WrActive_m	1<<14	< Cycles Wr held assetred >
+	HEX_CONST GALILEO_DEV_CFG_WrHigh_m	1<<17	< Cycles between assertions of Wr >
+	HEX_CONST GALILEO_DEV_CFG_DevWidth_m	1<<20	< Device bus width >
+	HEX_CONST GALILEO_DEV_CFG_DevLoc_m	1<<23	< Even/Odd side if width != 64>
+	HEX_CONST GALILEO_DEV_CFG_LatchFunct_m	1<<25	< Latch enable function >
+	HEX_CONST GALILEO_DEV_CFG_Parity_m	1<<30	< Parity support >
+	HEX_CONST GALILEO_DEV1_CFG	GB+0x460	< Device Bank 0 (PCS0) Configuration >
+	HEX_CONST GALILEO_DEV2_CFG	GB+0x464	< Device Bank 0 (PCS0) Configuration >
+	HEX_CONST GALILEO_DEV3_CFG	GB+0x468	< Device Bank 0 (PCS0) Configuration >
+	HEX_CONST GALILEO_BOOT_CFG	GB+0x46C	< Boot Device (BOOTCS) Configuration >
+	HEX_CONST GALILEO_ERRADDR	GB+0x470	< Address of accesses to invalid ranges >
+	HEX_CONST GALILEO_DMA0_BC	GB+0x800	< DMA channel 0 byte count >
+	HEX_CONST GALILEO_DMA1_BC	GB+0x804	< DMA channel 1 byte count >
+	HEX_CONST GALILEO_DMA2_BC	GB+0x808	< DMA channel 2 byte count >
+	HEX_CONST GALILEO_DMA3_BC	GB+0x80C	< DMA channel 3 byte count >
+	HEX_CONST GALILEO_DMA0_SRC	GB+0x810	< DMA channel 0 Source address >
+	HEX_CONST GALILEO_DMA1_SRC	GB+0x814	< DMA channel 1 Source address >
+	HEX_CONST GALILEO_DMA2_SRC	GB+0x818	< DMA channel 2 Source address >
+	HEX_CONST GALILEO_DMA3_SRC	GB+0x81C	< DMA channel 3 Source address >
+	HEX_CONST GALILEO_DMA0_DST	GB+0x820	< DMA channel 0 Destination address >
+	HEX_CONST GALILEO_DMA1_DST	GB+0x824	< DMA channel 1 Destination address >
+	HEX_CONST GALILEO_DMA2_DST	GB+0x828	< DMA channel 2 Destination address >
+	HEX_CONST GALILEO_DMA3_DST	GB+0x82C	< DMA channel 3 Destination address >
+	HEX_CONST GALILEO_DMA0_NXTRCD	GB+0x830	< DMA channel 0 Next Record pointer >
+	HEX_CONST GALILEO_DMA1_NXTRCD	GB+0x834	< DMA channel 1 Next Record pointer >
+	HEX_CONST GALILEO_DMA2_NXTRCD	GB+0x838	< DMA channel 2 Next Record pointer >
+	HEX_CONST GALILEO_DMA3_NXTRCD	GB+0x83C	< DMA channel 3 Next Record pointer >
+	HEX_CONST GALILEO_DMA0_CTL	GB+0x840	< DMA channel 0 control register >
+	HEX_CONST GALILEO_DMA1_CTL	GB+0x844	< DMA channel 0 control register >
+	HEX_CONST GALILEO_DMA2_CTL	GB+0x848	< DMA channel 0 control register >
+	HEX_CONST GALILEO_DMA3_CTL	GB+0x84C	< DMA channel 0 control register >
+	DEC_CONST GALILEO_DMA_INC	0		< DMA Increment the address >
+	DEC_CONST GALILEO_DMA_DEC	1		< DMA Decrement the address >
+	DEC_CONST GALILEO_DMA_HOLD	2		< DMA Hold the address >
+	DEC_CONST GALILEO_DMA_XFER4	0		< DMA Xfer 4 bytes per transaction >
+	DEC_CONST GALILEO_DMA_XFER8	1		< DMA Xfer 8 bytes per transaction >
+	DEC_CONST GALILEO_DMA_XFER16	3		< DMA Xfer 16 bytes per transaction >
+	DEC_CONST GALILEO_DMA_XFER32	7		< DMA Xfer 32 bytes per transaction >
+	DEC_CONST GALILEO_DMA_SRCDIR_b	2		< DMA Source direction bits start here >
+	DEC_CONST GALILEO_DMA_DSTDIR_b	4		< DMA Destination direction bits start here >
+	DEC_CONST GALILEO_DMA_XFER_b	6		< DMA Xfer size bits start here >
+	DEC_CONST GALILEO_DMA_NCHAIN_b	9		< DMA Not chained mode bit >
+	DEC_CONST GALILEO_DMA_INTMODE_b	10		< DMA Interrupt mode bit >
+	DEC_CONST GALILEO_DMA_BLOCK_b	11		< DMA Block mode XFER bit >
+	DEC_CONST GALILEO_DMA_ENABLE_b	12		< DMA Channel enable bit >
+	DEC_CONST GALILEO_DMA_FNEXT_b	13		< DMA Fetch next record enable bit >
+	DEC_CONST GALILEO_DMA_ACTIVE_b	14		< DMA Channel active status bit >
+	HEX_CONST GALILEO_TIMER0	GB+0x850	< TIMER/COUNTER 0 >
+	HEX_CONST GALILEO_TIMER1	GB+0x854	< TIMER/COUNTER 0 >
+	HEX_CONST GALILEO_TIMER2	GB+0x858	< TIMER/COUNTER 0 >
+	HEX_CONST GALILEO_TIMER3	GB+0x85C	< TIMER/COUNTER 0 >
+	HEX_CONST GALILEO_TIMER_CTL	GB+0x864	< Timer/Counter control >
+	HEX_CONST GALILEO_PCI_CMD	GB+0xC00	< PCI Command register >
+	HEX_CONST GALILEO_PCI_CMD_SWAP	GB+0x000	< PCI byte swap >
+	HEX_CONST GALILEO_PCI_CMD_SYNC	GB+0x001	< Sync mode: 0=normal, 1=Pclk>Tclk/2, 2=Pclk==Tclk/2>
+	HEX_CONST GALILEO_PCI_RETRY	GB+0xC04	< Timeout and retry register >
+	HEX_CONST GALILEO_PCI_RETRY_TO0_b  0x00		< Timeout 0, 8 bits (default to 0xF) >
+	HEX_CONST GALILEO_PCI_RETRY_TO1_b  0x08		< Timeout 1, 8 bits (default to 0x7) >
+	HEX_CONST GALILEO_PCI_RETRY_CTR_b  0x10		< Number of retries, 24 bits >
+	HEX_CONST GALILEO_PCI_RETRY_TO0_m  (1<<0x00)	< Timeout 0, 8 bits (default to 0xF) >
+	HEX_CONST GALILEO_PCI_RETRY_TO1_m  (1<<0x08)	< Timeout 1, 8 bits (default to 0x7) >
+	HEX_CONST GALILEO_PCI_RETRY_CTR_m  (1<<0x10)	< Number of retries, 24 bits >
+	HEX_CONST GALILEO_PCI_CFG	GB+0xCF8	< PCI Configuration register >
+	HEX_CONST GALILEO_PCI_DTA	GB+0xCFC	< PCI Configuration data register >
+	HEX_CONST GALILEO_INT_CAUSE	GB+0xC18	< Galileo Interrupt Cause register >
+	HEX_CONST GALILEO_INT_DMA0_b	(4)		< DMA 0 interrupt >
+	HEX_CONST GALILEO_INT_DMA1_b	(5)		< DMA 1 interrupt >
+	HEX_CONST GALILEO_INT_DMA2_b	(6)		< DMA 2 interrupt >
+	HEX_CONST GALILEO_INT_DMA3_b	(7)		< DMA 3 interrupt >
+	HEX_CONST GALILEO_INT_DMA0_m	(1<<4)		< DMA 0 interrupt >
+	HEX_CONST GALILEO_INT_DMA1_m	(1<<5)		< DMA 1 interrupt >
+	HEX_CONST GALILEO_INT_DMA2_m	(1<<6)		< DMA 2 interrupt >
+	HEX_CONST GALILEO_INT_DMA3_m	(1<<7)		< DMA 3 interrupt >
+	HEX_CONST GALILEO_INT_TIMER0_b	(8)		< Timer 0 interrupt >
+	HEX_CONST GALILEO_INT_TIMER1_b	(9)		< Timer 1 interrupt >
+	HEX_CONST GALILEO_INT_TIMER2_b	(10)		< Timer 2 interrupt >
+	HEX_CONST GALILEO_INT_TIMER3_b	(11)		< Timer 3 interrupt >
+	HEX_CONST GALILEO_INT_TIMER0_m	(1<<8)		< Timer 0 interrupt >
+	HEX_CONST GALILEO_INT_TIMER1_m	(1<<9)		< Timer 1 interrupt >
+	HEX_CONST GALILEO_INT_TIMER2_m	(1<<10)		< Timer 2 interrupt >
+	HEX_CONST GALILEO_INT_TIMER3_m	(1<<11)		< Timer 3 interrupt >
+	HEX_CONST GALILEO_CPU_INT_m	0x03E00000	< Galileo CPU Interrupt Mask (to PCI) >
+	HEX_CONST GALILEO_PCI_INT_m	0x3C000000	< Galileo PCI Interrupt Mask (to CPU) >
+	HEX_CONST GALILEO_CPU_I_ENA	GB+0xC1C	< Galileo CPU Interrupt Mask register >
+	HEX_CONST GALILEO_PCI_I_ENA	GB+0xC24	< Galileo PCI Interrupt Mask register >
+ .if true, OUTPUT_LANG == LANG_C
+#  define FLUSH_WB() do { U32 junk; junk = *(VU32 *)GALILEO_PCI_CFG; } while (0)
+ .endc
+.endc
+@
+
+
+1.9
+log
+@Added definitions for the DMA channels.
+@
+text
+@d1 2
+@
+
+
+1.8
+log
+@Renamed some bit fields to _b and _m as appropriate.
+@
+text
+@d117 20
+@
+
+
+1.7
+log
+@Added offset to all addresses.
+Added bit masks for the bit fields
+@
+text
+@d126 6
+a131 3
+	HEX_CONST GALILEO_PCI_RETRY_TO0	GB+0x000	< Timeout 0, 8 bits (default to 0xF) >
+	HEX_CONST GALILEO_PCI_RETRY_TO1	GB+0x008	< Timeout 1, 8 bits (default to 0x7) >
+	HEX_CONST GALILEO_PCI_RETRY_CTR GB+0x010	< Number of retries, 24 bits >
+@
+
+
+1.6
+log
+@Defined the CPU and PCI interrupt fields.
+@
+text
+@d3 149
+a151 101
+	HEX_CONST GALILEO_CPUINTFC	0x000	<CPU Interface configuration>
+	HEX_CONST GALILEO_CPUINTFC_CacheOpMap_v	0
+	HEX_CONST GALILEO_CPUINTFC_CachePres_v	9
+	HEX_CONST GALILEO_CPUINTFC_WriteMod_v	11
+	HEX_CONST GALILEO_CPUINTFC_Endian_v	12
+	HEX_CONST GALILEO_RAS10_LOW	0x008	< RAS[1:0] Low decode Address >
+	HEX_CONST GALILEO_RAS10_HIGH	0x010	< RAS[1:0] High decode Address >
+	HEX_CONST GALILEO_RAS32_LOW	0x018	< RAS[3:2] Low decode Address >
+	HEX_CONST GALILEO_RAS32_HIGH	0x020	< RAS[3:2] High decode Address >
+	HEX_CONST GALILEO_CS20_LOW	0x028	< CS[2:0] Low decode Address >
+	HEX_CONST GALILEO_CS20_HIGH	0x030	< CS[2:0] High decode Address >
+	HEX_CONST GALILEO_CS3BOOT_LOW	0x038	< CS[3] & Boot Low decode Address >
+	HEX_CONST GALILEO_CS3BOOT_HIGH	0x040	< CS[3] & Boot High decode Address >
+	HEX_CONST GALILEO_PCIIO_LOW	0x048	< PCI I/O Low decode Address >
+	HEX_CONST GALILEO_PCIIO_HIGH	0x050	< PCI I/O High decode Address >
+	HEX_CONST GALILEO_PCIMEM_LOW	0x058	< PCI Memory Low decode Address >
+	HEX_CONST GALILEO_PCIMEM_HIGH	0x060	< PCI Memory High decode Address >
+	HEX_CONST GALILEO_Internal 	0x068	< Galileo internal space decode Address >
+	HEX_CONST GALILEO_BUSERR_LOW	0x070	< Address bits 31:0 after Bus Error >
+	HEX_CONST GALILEO_BUSERR_HIGH	0x078	< Address bits 35:32 after Bus Error >
+	HEX_CONST GALILEO_RAS0_LOW	0x400	< RAS[0] Low decode Address >
+	HEX_CONST GALILEO_RAS0_HIGH	0x404	< RAS[0] High decode Address >
+	HEX_CONST GALILEO_RAS1_LOW	0x408	< RAS[1] Low decode Address >
+	HEX_CONST GALILEO_RAS1_HIGH	0x40C	< RAS[1] High decode Address >
+	HEX_CONST GALILEO_RAS2_LOW	0x410	< RAS[2] Low decode Address >
+	HEX_CONST GALILEO_RAS2_HIGH	0x414	< RAS[2] High decode Address >
+	HEX_CONST GALILEO_RAS3_LOW	0x418	< RAS[3] Low decode Address >
+	HEX_CONST GALILEO_RAS3_HIGH	0x41C	< RAS[3] High decode Address >
+	HEX_CONST GALILEO_CS0_LOW	0x420	< CS[0] Low decode Address >
+	HEX_CONST GALILEO_CS0_HIGH	0x424	< CS[0] High decode Address >
+	HEX_CONST GALILEO_CS1_LOW	0x428	< CS[1] Low decode Address >
+	HEX_CONST GALILEO_CS1_HIGH	0x42C	< CS[1] High decode Address >
+	HEX_CONST GALILEO_CS2_LOW	0x430	< CS[2] Low decode Address >
+	HEX_CONST GALILEO_CS2_HIGH	0x434	< CS[2] High decode Address >
+	HEX_CONST GALILEO_CS3_LOW	0x438	< CS[3] Low decode Address >
+	HEX_CONST GALILEO_CS3_HIGH	0x43C	< CS[3] High decode Address >
+	HEX_CONST GALILEO_BOOT_LOW	0x440	< CS[3] Low decode Address >
+	HEX_CONST GALILEO_BOOT_HIGH	0x444	< CS[3] High decode Address >
+	HEX_CONST GALILEO_DRAM_CFG	0x448	< DRAM configuration >
+	HEX_CONST GALILEO_DRAM_CFG_RefIntCnt_v	0	< Refresh interval count >
+	HEX_CONST GALILEO_DRAM_CFG_StagRef_v	16	< Staggered Refresh >
+	HEX_CONST GALILEO_DRAM_CFG_ADSFunct_v	17	< ADS pin function >
+	HEX_CONST GALILEO_DRAM_CFG_DRAMLatch_v	18	< DRAM latch operation >
+	HEX_CONST GALILEO_DRAM0_CFG	0x44c	< DRAM Bank 0 configuration >
+	HEX_CONST GALILEO_DRAMBK_CFG_CASWr_v	0	< Number of CAS cycles during writes >
+	HEX_CONST GALILEO_DRAMBK_CFG_RAStoCASWr_v 1	< Number of cycles between RAS and CAS during writes >
+	HEX_CONST GALILEO_DRAMBK_CFG_CASRd_v	2	< Number of CAS cycles during read >
+	HEX_CONST GALILEO_DRAMBK_CFG_RAStoCASRd_v 3	< Number of cycles between RAS and CAS during reads >
+	HEX_CONST GALILEO_DRAMBK_CFG_Refresh_v	4	< Refresh type >
+	HEX_CONST GALILEO_DRAMBK_CFG_BankWidth_v 6	< Width (32/64) >
+	HEX_CONST GALILEO_DRAMBK_CFG_BankLoc_v	7	< Even/Odd side if width = 32 >
+	HEX_CONST GALILEO_DRAMBK_CFG_Parity_v	8	< Parity support >
+	HEX_CONST GALILEO_DRAM1_CFG	0x450	< DRAM Bank 1 configuration >
+	HEX_CONST GALILEO_DRAM2_CFG	0x454	< DRAM Bank 2 configuration >
+	HEX_CONST GALILEO_DRAM3_CFG	0x458	< DRAM Bank 3 configuration >
+	HEX_CONST GALILEO_DEV0_CFG	0x45c	< Device Bank 0 (PCS0) Configuration >
+	HEX_CONST GALILEO_DEV_CFG_TurnOff_v	0	< Cycles between OE's >
+	HEX_CONST GALILEO_DEV_CFG_AccToFirst_v	3	< Cycles between CS's >
+	HEX_CONST GALILEO_DEV_CFG_AccToNext_v	7	< Cycles between CS's >
+	HEX_CONST GALILEO_DEV_CFG_ADStoWr_v	11	< Cycles between ADS and WR >
+	HEX_CONST GALILEO_DEV_CFG_WrActive_v	14	< Cycles Wr held assetred >
+	HEX_CONST GALILEO_DEV_CFG_WrHigh_v	17	< Cycles between assertions of Wr >
+	HEX_CONST GALILEO_DEV_CFG_DevWidth_v	20	< Device bus width >
+	HEX_CONST GALILEO_DEV_CFG_DevLoc_v	23	< Even/Odd side if width != 64>
+	HEX_CONST GALILEO_DEV_CFG_LatchFunct_v	25	< Latch enable function >
+	HEX_CONST GALILEO_DEV_CFG_Parity_v	30	< Parity support >
+	HEX_CONST GALILEO_DEV1_CFG	0x460	< Device Bank 0 (PCS0) Configuration >
+	HEX_CONST GALILEO_DEV2_CFG	0x464	< Device Bank 0 (PCS0) Configuration >
+	HEX_CONST GALILEO_DEV3_CFG	0x468	< Device Bank 0 (PCS0) Configuration >
+	HEX_CONST GALILEO_BOOT_CFG	0x46C	< Boot Device (BOOTCS) Configuration >
+	HEX_CONST GALILEO_ERRADDR	0x470	< Address of accesses to invalid ranges >
+	HEX_CONST GALILEO_DMA0_BC	0x800	< DMA channel 0 byte count >
+	HEX_CONST GALILEO_DMA1_BC	0x804	< DMA channel 1 byte count >
+	HEX_CONST GALILEO_DMA2_BC	0x808	< DMA channel 2 byte count >
+	HEX_CONST GALILEO_DMA3_BC	0x80C	< DMA channel 3 byte count >
+	HEX_CONST GALILEO_DMA0_SRC	0x810	< DMA channel 0 Source address >
+	HEX_CONST GALILEO_DMA1_SRC	0x814	< DMA channel 1 Source address >
+	HEX_CONST GALILEO_DMA2_SRC	0x818	< DMA channel 2 Source address >
+	HEX_CONST GALILEO_DMA3_SRC	0x81C	< DMA channel 3 Source address >
+	HEX_CONST GALILEO_DMA0_DST	0x820	< DMA channel 0 Destination address >
+	HEX_CONST GALILEO_DMA1_DST	0x824	< DMA channel 1 Destination address >
+	HEX_CONST GALILEO_DMA2_DST	0x828	< DMA channel 2 Destination address >
+	HEX_CONST GALILEO_DMA3_DST	0x82C	< DMA channel 3 Destination address >
+	HEX_CONST GALILEO_DMA0_NXTRCD	0x830	< DMA channel 0 Next Record pointer >
+	HEX_CONST GALILEO_DMA1_NXTRCD	0x834	< DMA channel 1 Next Record pointer >
+	HEX_CONST GALILEO_DMA2_NXTRCD	0x838	< DMA channel 2 Next Record pointer >
+	HEX_CONST GALILEO_DMA3_NXTRCD	0x83C	< DMA channel 3 Next Record pointer >
+	HEX_CONST GALILEO_PCI_CMD	0xC00	< PCI Command register >
+	HEX_CONST GALILEO_PCI_CMD_SWAP	0x000	< PCI byte swap >
+	HEX_CONST GALILEO_PCI_CMD_SYNC	0x001	< Sync mode: 0=normal, 1=Pclk>Tclk/2, 2=Pclk==Tclk/2>
+	HEX_CONST GALILEO_PCI_RETRY	0xC04	< Timeout and retry register >
+	HEX_CONST GALILEO_PCI_RETRY_TO0	0x000	< Timeout 0, 8 bits (default to 0xF) >
+	HEX_CONST GALILEO_PCI_RETRY_TO1	0x008	< Timeout 1, 8 bits (default to 0x7) >
+	HEX_CONST GALILEO_PCI_RETRY_CTR 0x010	< Number of retries, 24 bits >
+	HEX_CONST GALILEO_PCI_CFG	0xCF8	< PCI Configuration register >
+	HEX_CONST GALILEO_PCI_DTA	0xCFC	< PCI Configuration data register >
+	HEX_CONST GALILEO_INT_CAUSE	0xC18	< Galileo Interrupt Cause register >
+	HEX_CONST GALILEO_CPU_INT	0x03E00000	< Galileo CPU Interrupt Mask (to PCI) >
+	HEX_CONST GALILEO_PCI_INT	0x3C000000	< Galileo PCI Interrupt Mask (to CPU) >
+	HEX_CONST GALILEO_CPU_I_ENA	0xC1C	< Galileo CPU Interrupt Mask register >
+	HEX_CONST GALILEO_PCI_I_ENA	0xC24	< Galileo PCI Interrupt Mask register >
+d153 1
+a153 1
+#  define FLUSH_WB() do { U32 junk; junk = *(VU32 *)(GALILEO_BASE+GALILEO_PCI_CFG); } while (0)
+@
+
+
+1.5
+log
+@Defined the interrupt control register addresses.
+@
+text
+@d100 2
+@
+
+
+1.4
+log
+@Added some PCI definitions.
+@
+text
+@d99 3
+@
+
+
+1.3
+log
+@m
+Added PCI_DTA
+@
+text
+@d90 7
+@
+
+
+1.2
+log
+@Added a FLUSH_WB() macro.
+@
+text
+@d91 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 2
+d90 5
+@

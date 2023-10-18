@@ -1,0 +1,106 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	95.07.21.01.42.20;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@ICELESS packet 68k assembly subroutines
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@   .bss
+_level7sema:
+   .space 4		/* level 7 interrupt semaphore */
+   
+   .globl _disable_int, _level7sema, _enable_int
+
+   .text
+/**********************************************************
+ * disable interrupts
+ * At entry:
+ *	no requirements
+ * At exit:
+ *	interrupts are disabled.
+ *	returns current PSW
+ */
+
+_disable_int:
+   move sr, d0
+   ori #0x0700, sr
+   rts
+   
+/**********************************************************
+ * enable interrupts
+ * At entry:
+ *	ps = value to set in the PS
+ * At exit:
+ *	processor status set to value in parameter
+ */
+
+_enable_int:
+   move sr, d0
+   movel 4(sp), d1
+   eorw d1, d0
+   andw #0xF8FF, d0
+   eorw d1, d0
+   move d0, sr
+   rts
+   
+   .globl __catchException, _level7int, _text_start, _text_end
+_level7int:
+   move.l a0, -(sp)		/* save a reg */
+   lea.l _xbaddrs, a0		/* point to xb addresses */
+   move.l (a0), a0		/* get pointer to xbus board 0 */
+   move.l 8(a0), a0 		/* this should clear the interrupt */
+   move.l (sp)+, a0		/* restore the register */
+   tst.b _level7sema		/* currently executing a level 7 interrupt? */
+   bne 10f			/* yep, dismiss it */
+|   move.l d0, -(sp)		/* save a reg */
+|   move.l 2+4(sp), d0		/* get PC at time of exception */
+|   cmp.l #_text_start, d0	/* are we already running in this code? */
+|   blt do_atten			/* nope */
+|   cmp.l #_text_end, d0
+|   bgt do_atten
+|   move.l (sp)+, d0		/* restore reg */
+|   rte				/* and dismiss interrupt */
+
+do_atten:
+|   move.l (sp)+, d0		/* restore reg */
+   move.b #1, _level7sema	/* signal we're doing a level 7 interrupt */
+   movem.l d0-d7/a0-a6, -(sp)	/* save all the regs */
+   movew 15*4(sp), d0		/* get the old ps */
+   move sr, d1			/* get current ps */
+   eorw d1, d0			/* mix new and old */
+   andw #0x0700, d0		/* zap everything except IPL bits */
+   eorw d1, d0			/* this puts only the old IPL bits in the new ps */
+   movew d0, sr			/* set the IPL to what it was (probably re-enables interrupts) */
+   move.l #255, -(sp)
+   bsr _got_attention		/* jump to C routine */
+   tstl (sp)+
+   tst.l d0			/* packet destined for gdb? */
+   bne 20f			/* yep */
+   movem.l (sp)+, d0-d7/a0-a6	/* restore regs */
+   clr.b _level7sema		/* done with this interrupt */
+10:
+   rte
+
+20:
+   or.w #0x700, sr		/* disable all interrupts */
+   movem.l (sp)+, d0-d7/a0-a6	/* restore all the regs */
+   clr.b _level7sema		/* done with this interrupt */
+   bra __catchException		/* do normal GDB trap handling */
+
+@

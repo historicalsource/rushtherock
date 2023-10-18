@@ -1,0 +1,798 @@
+head	1.4;
+access;
+symbols
+	AREA_52_00:1.4;
+locks; strict;
+comment	@;; @;
+
+
+1.4
+date	97.07.11.20.43.22;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.07.10.18.10.35;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.05.30.04.17.35;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.05.17.01.49.58;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Chameleon files
+@
+
+
+1.4
+log
+@Moved the DBG interrupt enable to shims.c
+@
+text
+@;/* $Id: cham_vecs.mac,v 1.3 1997/07/10 18:10:35 shepperd Exp shepperd $
+; *
+; *		Copyright 1997 Atari Games Corporation
+; *	Unauthorized reproduction, adaptation, distribution, performance or 
+; *	display of this computer program or the associated audiovisual work
+; *	is strictly prohibited.
+; *
+; *	This file is processed by MACPP to produce dispatch.c and intvecs.h.
+; *
+; *	The definitions placed in intvecs.h declare virtual vector numbers
+; *	in the form of xxx_INTVEC and a cross reference table(s) so the
+; *	dispatcher can call the appropriate functions.
+; *
+; *	intvecs.h should be #include'd by any module that uses prc_set_vec().
+; */
+;
+; This file recursivley '.includes' itself to succesively build up the approprate
+; tables and functions in C and places the results in one of two files (the
+; first -out=file supplied on the MACPP command line is expected to be dispatch.c
+; and the second -out=file is expected to be intvecs.h and the third is expected to
+; be /dev/null). If you don't speak fluent MACPP, then you probably shouldn't be
+; changing anything in this file other than the VDF table listed below.
+;
+.if not_defined, _DISPATCH_MAC_		;1 +++++
+_DISPATCH_MAC_ == 0			;2 Don't move ...
+OUTPUT_LANG == 5 ;LANG_NONE		;3 ... or change ... 
+	.outfile 2			;4 ... anything on ...
+	.include config.mac		;5 ... these ...
+	.outfile 0			;6 ... nine  ...
+.endc					;7 ... lines ...
+.if true, (_DISPATCH_MAC_&1) != 0	;8
+ .if true, 0				;9 -----
+
+You are free to add or remove entries from this table according to your
+requirements. There are 10 fields used on each line in this table. The
+description of each field follows:
+
+Field 1 = macro call
+
+It must always be the keyword VDF (case is not significant).
+
+Field 2 = condition
+
+This is a dual operand field, so the two operands together must be enclosed in
+<>'s. The first operand is one of T, F, D or N representing True, False,
+Defined or Not_defined respectively. Case is significant, use uppercase only
+please. For the conditions T or F the second operand must be an expression
+which must resolve to non-zero (True) or zero (False) in order for the macro
+to be processed (else it is ignored). The expression can contain no embedded
+spaces. For the conditions D and N, the second operand must only be a symbol
+which must be Defined or Not-defined respectively in order for the macro to be
+processed. Some short cut expressions have been preprocessed to make using the
+expressions a little more concise. These are:
+
+	CHM = not zero if HOST_BOARD == CHAMELEON
+
+Field 3 = vector name
+
+The NAME field is the name of the virtual vector. An _INTVEC will be appended
+to it in the C definitions in intvecs.h, but otherwise the name is unmolested.
+Case is significant only if you want it to be. The R3K/R4K has an option where
+a number of vectors are maintained in an array of pointers rather than each
+one having its own name. The index into the array is same as the number
+returned in the processor's CAUSE register for that particluar interrupt. This
+procedure is done simply for performance reasons. The option is selected by
+using a 0 for this field and using an installer function with the vector index
+as the parameter to the installer.
+
+Field 4 = Vector pointer
+
+This field identifies the name of a variable in BSS that contains a pointer
+to the function to call at interrupt (or will be set by the prc_set_vec()
+function). This is the name of the "soft" or logical vector and is either
+declared in dispatch.c or externally according to the INT/EXT field described
+next.
+
+Field 5 = INTernal or EXTernal vector
+
+This field contains the keywords INT, EXT, VINT or VEXT identifying the vector
+in field 4 as being defined INTernally, EXTernally, Volatile INTernally or
+Volatile Externally to dispatch.c respectively.
+
+Field 6 = name of vector installer
+
+This field identifies the name of a function that prc_set_vec() will call to
+actually install the vector or 0 if there is no special stuff that needs to
+be performed during vector installation.
+
+Field 7 = Notes for the installer.
+
+The Notes field is a parameter that is passed to the installer if there is one.
+
+Field 8 = Physical vector attachment.
+
+A dispatch routine is constructed for each of the 4 XBUS interrupts and for each of
+the 6 CPU interrupts.  This field instructs cham_vecs.mac into which of the XBUS or
+INTx dispatchers a caller to this vector belongs.  If this vector is not associated
+with an XBUS or an INTx interrupt, it needs to be -1.  Place the interrupt routines
+in this table in the order in which you want them executed.
+
+Field 9 = Default function.
+
+Name of default routine to install in the vector, or 0 if none.  cham_vecs.mac builds
+a function called prc_init_vecs(void) which, when called, will perform a string of
+prc_set_vec()'s for all the vectors having this field non-zero.  After the vectors
+have been loaded, prc_init_vecs(void) will map the phoenix and galileo interrupts as
+specified in phoenix.mac.
+
+Field 10 = Comments.
+
+The Comments field is placed on selected lines in intvecs.h and/or dispatch.c
+as simple 'C' comments.
+
+ .endc				; Don't move this line
+;
+;   Condit	Name	   Vector   I/E	Installer   Notes      Phys	Default	Comments
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+VDF <T,1>	GAMEVB,	   gameint, EXT	0,          0,		-1,	0,	< post-wierdness Vblank >
+VDF <T,1>	MS4,       ms4vec,  EXT	0,          0,		-1,	0,	< 4 Millisecond timer >
+VDF <T,1>	PRC_DELAY, prc_delay_vec, EXT 0,    0,		-1,	sst_prc_delay, < prc_delay soft vector >
+VDF <T,1>	PRC_SET_IPL, set_ipl_vec, INT 0,    0,		-1,	0,	< prc_set_ipl soft vector >
+VDF <T,1>	SAVE,      savintp, EXT 0,          0,		-1,	0,	< context save soft vector >
+VDF <T,1>	RESTORE,   restintp,EXT 0,          0,		-1,	0,	< context restore soft vector >
+VDF <T,1>	SW0,	   0,	    INT hwvinst,    VN_IRQ0,    -1,	0,	< Software interrupt 0 >
+VDF <T,1>	SW1,	   0,       INT hwvinst,    VN_IRQ1,    -1,	0,	< Software interrupt 0 >
+VDF <T,1>	INT0,	   0,       INT hwvinst,    VN_IRQ2,    -1,	int0_irq, < Hardware interrupt 0 >
+VDF <T,1>	INT1,	   0,	    INT hwvinst,    VN_IRQ3,    -1,	int1_irq, < Hardware interrupt 1 >
+VDF <T,1>	INT2,	   0,	    INT hwvinst,    VN_IRQ4,    -1,	int2_irq, < Hardware interrupt 2 >
+VDF <T,1>	INT3,	   0,       INT hwvinst,    VN_IRQ5,    -1,	int3_irq, < Hardware interrupt 3 >
+VDF <T,1>	INT4,	   0,	    INT hwvinst,    VN_IRQ6,    -1,	int4_irq, < Hardware interrupt 4 >
+VDF <T,1>	INT5,	   0,	    INT hwvinst,    VN_IRQ7,	-1,	0,	< CPU timer interrupt >
+VDF <T,1>	TLBMOD,	   0,	    INT hwvinst,    VN_TLBM,    -1,	0,	< TLB modification >
+VDF <T,1>	TLBLOAD,   0,	    INT hwvinst,    VN_TLBL,    -1,	0,	< TLB miss on I or D fetch >
+VDF <T,1>	TLBSTORE,  0,	    INT hwvinst,    VN_TLBS,    -1,	0,	< TLB miss on store >
+VDF <T,1>	ADDRERRL,  0,	    INT hwvinst,    VN_ADDRL,   -1,	0,	< Address error on I or D fetch >
+VDF <T,1>	ADDRERRS,  0,	    INT hwvinst,    VN_ADDRS,   -1,	0,	< Address error on store >
+VDF <T,1>	BUSERRI,   0,	    INT hwvinst,    VN_BUSERRI, -1,	0,	< Bus error on I-fetch >
+VDF <T,1>	BUSERRD,   0,	    INT hwvinst,    VN_BUSERRD, -1,	0,	< Bus error on D-fetch >
+VDF <T,1>	SYSCALL,   0,       INT hwvinst,    VN_SYSCALL, -1,	0,	< SYSCALL instruction >
+VDF <T,1>	BREAK,     0,       INT hwvinst,    VN_BREAK,   -1,	0,	< Breakpoint instruction >
+VDF <T,1>	RESERV,    0,       INT hwvinst,    VN_RESERV,  -1,	0,	< Reserved instruction >
+VDF <T,1>	COPROC,    0,       INT hwvinst,    VN_COPROC,  -1,	0,	< Coprocessor unusable >
+VDF <T,1>	OVRFLOW,   0,       INT hwvinst,    VN_OVERFL,  -1,	0,	< Integer Arithmetic Overflow >
+VDF <T,1>	TRAP,      0,       INT hwvinst,    VN_TRAPV,   -1,	0,	< TRAP exception >
+VDF <T,1>	FLOAT,     0,       INT hwvinst,    VN_FPE,     -1,	0,	< FLoating point exception >
+VDF <T,1>	TIMER,	   timervec,INT 0,	    0,          -1,	0,	< Soft Timer interrupt >
+VDF <T,1>	TIMERPLL,  tpllvec, VEXT 0,	    0,		-1,	0,	<Adjust 1MS timer>
+VDF <T,1>	GAMEFRAME, framevec,INT 0,	    0,		-1,	0,	< Frame complete >
+VDF <T,1>	NI3,	   0,	    INT hwvinst,    VN_IRQ2,	-1,	0,	< NILE III interrupt >
+VDF <T,1>	IDE,	   0,	    INT hwvinst,    VN_IRQ3,    -1,	0,	< IDE interrupt >
+VDF <T,IOA>	IOA,	   ioaintp, INT pvinst,	    IOA_NOTES,  IOA_LVL,ioa_irq,< IOASIC interrupt>
+VDF <D,NSS_LVL>	NSS,	   nssintp, INT pvinst,	    NSS_NOTES,  NSS_LVL, 0,	< NSS interrupt>
+VDF <D,AUART_LVL> URT,	   auartip, INT pvinst,	    URT_NOTES,  AUART_LVL, 0	< Aux UART interrupt>
+VDF <D,PC0_LVL>	PC0,       pc0intp, INT pvinst,	    PC0_NOTES,	PC0_LVL,0,	< PCI slot 0 interrupt >
+VDF <D,PC1_LVL>	PC1,       pc1intp, INT pvinst,	    PC1_NOTES,	PC1_LVL,0,	< PCI slot 1 interrupt >
+VDF <D,PC2_LVL>	PC2,       pc2intp, INT pvinst,	    PC2_NOTES,	PC2_LVL,0,	< PCI slot 2 interrupt >
+VDF <D,ADC_LVL>	ADC,	   adcintp, INT pvinst,	    ADC_NOTES,	ADC_LVL,0,	< A/D Converter interrupt >
+VDF <D,SMC_LVL>	SMC,	   smcintp, INT pvinst,	    SMC_NOTES,  SMC_LVL,0,	< SMC E/N interrupt>
+VDF <D,DBG_LVL>	DBG,	   dbgintp, INT pvinst,	    DBG_NOTES,	DBG_LVL,0,	< Debug switch interrupt >
+VDF <D,VSY_LVL>	VSY,	   vsyintp, INT pvinst,	    VSY_NOTES,	VSY_LVL,0,	< VSYNC interrupt >
+VDF <D,UART_LVL> UART,	   uartintp,INT ioainst,    UART_NOTES,	UART_LVL,0,	< I/O ASIC UART interrupts >
+VDF <D,SND_LVL>	SND,	   sndintp, INT ioainst,    SND_NOTES,	SND_LVL, 0,	< I/O ASIC Sound interrupts >
+VDF <D,MC_LVL>	MC,	   mcintp,  INT ioainst,    MC_NOTES,	MC_LVL,	0,	< I/O ASIC Microcontroller interrupt >
+;
+.endc			; (_DISPATCH_MAC_&1) != 0 *** DON'T MOVE THIS LINE EITHER ***
+;
+;+++++++ From here on, there are few user servicable parts inside. ++++
+;
+; This is sortof how it works:
+; The first pass through, _DISPATCH_MAC_ will be 0 (set above by the .if not_defined).
+; First the copyright boilerplate is inserted into both output files and the macro VDF
+; is defined to create externs. Some struct definitions and unique externs are depositied
+; into the .h file. Next _DISPATCH_MAC_ is set to 1 and this file is .included
+; again. This will cause MACPP to read the VDF table above and output the appropriate
+; information in the .h file but ignore the rest of the file. The VDF macro is redefined,
+; and the procedure is repeated causing the creation of different items according to what
+; is needed. Once the whole .h file is built, the procedure repeats for the building of the
+; .c file.
+;
+.if true, _DISPATCH_MAC_ == 0		; First (main) pass
+ CHM == 0
+ .iif true, HOST_BOARD == CHAMELEON, CHM == 1 ;set the appropriate ones true as desired
+;
+	.macro .condit flag,exp		; The .condit macro does an expression test ...
+	.if identical,<flag>,<T>
+		.iif false,exp,.mexit 10 ; ... and aborts higher level macros if false
+		.mexit
+	.endc
+	.if identical,<flag>,<F>
+		.iif true,exp,.mexit 10	; ... etc.
+		.mexit
+	.endc
+	.if identical,<flag>,<D>
+		.iif not_defined,exp,.mexit 10
+		.mexit
+	.endc
+	.if identical,<flag>,<N>
+		.iif defined,exp,.mexit 10
+		.mexit
+	.endc
+	.endm
+;	
+	.macro boilerplate file_name
+/*		file_name
+ *
+ *		Copyright 1996,1997 Atari Games Corporation
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+ * ++++++ WARNING WARNING WARNING WARNING WARNING +++++
+ * This file is machine generated. Any changes you put in here will be lost
+ * the next time cham_vecs.mac is touched. You need to make your changes to
+ * cham_vecs.mac instead of this file.
+ */
+	.endm
+	boilerplate dispatch.c
+	.outfile	1		;The externs go into the .h file
+	boilerplate intvecs.h
+#if !defined(_INTVECS_H_)
+#define _INTVECS_H_
+
+struct irq_tab {
+	void 	(**softvec)();
+	void    (*(*installer)(const struct irq_tab *, void(*new)()))();
+	int	notes;
+};
+;
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+ .if dif,<softvec>,<0>
+  ...1 == 0
+  .iif idn,<intern>,<VINT>,...1 == 1
+  .iif idn,<intern>,<VEXT>,...1 == 1
+  .if true, ...1
+extern	void (* volatile softvec)();	/* comments */
+  .iff
+extern  void (*softvec)();	/* comments */
+  .endc
+ .endc
+	.endm
+;
+	_DISPATCH_MAC_ == 1		;next time we process the IRQ table
+	.include cham_vecs.mac		;Make the externs
+
+enum vecs {
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+    name'_INTVEC,
+	.endm
+	.include cham_vecs.mac		;Make the enums
+    N_INTVECS
+};
+
+void (*prc_set_vec (unsigned int vecnum, void (*routine)() ))();
+void prc_init_vecs(void);		/* set the default vectors */
+;
+; Add a prototype for an as yet unused function
+.if true, 0
+
+/*		prc_set_vecp(which, what)
+ *	Sets a special vector for the interrupt identified by <which>
+ *	to call the routine specified by <what>. <what> is
+ *	a struct that contains both a pointer to the code
+ *	to execute and an optional pointer to the private
+ *	variables for that routine. This is a change from the
+ *	behavior of prc_set_vec, and is intended to allow
+ *	multiple incarnations of a given device to share code.
+ */
+
+struct opaque;
+extern struct VECP_vector {
+    void (*function)(struct opaque *);	/* Who you gonna call */
+    struct opaque *cookie;		/* a magic cookie to hand him */
+} prc_set_vecp (
+    int __which,			/* one of xxx_INTVEC */
+    struct IRQ_vector __what		/* BY VALUE!!! */
+);
+.endc
+#endif		/* _INTVECS_H_ */
+;
+; At this point, we have completed all processing of the .h file
+; so switch back to the .c file
+;
+	.outfile	0		;switch back to dispatch.c
+;
+#include <config.h>			/* begining of dispatch.c */
+#include <os_proto.h>
+#include <intvecs.h>
+
+#ifndef BLABF
+# define BLABF(x)
+#endif
+
+#ifndef BLAB
+# define BLAB(x)
+#endif
+
+ .if true, 1
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+  .iif idn,<name>,<INT0>,.mexit
+  .iif idn,<name>,<INT1>,.mexit
+  .iif idn,<name>,<INT2>,.mexit
+  .iif idn,<name>,<INT3>,.mexit
+  .iif idn,<name>,<INT4>,.mexit
+  .iif idn,<name>,<INT5>,.mexit
+  .if true, physical == INT0_LVL
+    	...INT0 == ...INT0 + 1
+	.mexit
+  .endc
+  .if true, physical == INT1_LVL
+    	...INT1 == ...INT1 + 1
+	.mexit
+  .endc
+  .if true, physical == INT2_LVL
+    	...INT2 == ...INT2 + 1
+	.mexit
+  .endc
+  .if true, physical == INT3_LVL
+    	...INT3 == ...INT3 + 1
+	.mexit
+  .endc
+  .if true, physical == INT4_LVL
+    	...INT4 == ...INT4 + 1
+	.mexit
+  .endc
+  .if true, physical == INT5_LVL
+    	...INT5 == ...INT5 + 1
+	.mexit
+  .endc
+  .if defined, IOASIC_LVL
+   .if true, physical == IOASIC_LVL
+    	...IOA == ...IOA + 1
+    .if ndf, notes
+#define notes IO_MAIN_GLOBAL_INT
+    .endc
+	.mexit
+   .endc
+  .endc
+	.endm
+...INT0 == 0
+...INT1 == 0
+...INT2 == 0
+...INT3 == 0
+...INT4 == 0
+...INT5 == 0
+...IOA == 0
+	.include cham_vecs.mac	; count vectors requiring dispatch
+ .endc
+; 
+.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+ .condit cond	
+ .if dif,<softvec>,<0>
+  .if idn,<intern>,<INT>
+void (*softvec)();	/* comments */
+  .endc
+  .if idn,<intern>,<VINT>
+void (* volatile softvec)();	/* comments */
+  .endc
+ .endc
+ .if dif,<default>,<0>
+  .if idn,<name>,<INT0>
+   .if true, ...INT0
+static void 'default'(void);	/* comments */
+   .endc
+   .mexit
+  .endc
+  .if idn,<name>,<INT1>
+   .if true, ...INT1
+static void 'default'(void);	/* comments */
+   .endc
+   .mexit
+  .endc
+  .if idn,<name>,<INT2>
+   .if true, ...INT2
+static void 'default'(void);	/* comments */
+   .endc
+   .mexit
+  .endc
+  .if idn,<name>,<INT3>
+   .if true, ...INT3
+static void 'default'(void);	/* comments */
+   .endc
+   .mexit
+  .endc
+  .if idn,<name>,<INT4>
+   .if true, ...INT4
+static void 'default'(void);	/* comments */
+   .endc
+   .mexit
+  .endc
+  .if idn,<name>,<IOA>
+   .if true, ...IOA
+static void 'default'(void);
+   .endc
+   .mexit
+  .endc
+extern void 'default'(void);
+ .endc
+.endm
+	.include cham_vecs.mac		;Declare the non-extern vectors
+;
+ .if true, ((PROCESSOR&-16) == MIPS3000) || ((PROCESSOR&-16) == MIPS4000)
+static void (*hwvinst(const struct irq_tab *, void (*)()))();
+ .endc
+;
+.if df, INTCTL_MASK
+static void (*pvinst(const struct irq_tab *, void (*)()))();
+.endc
+;
+.if true, ...IOA
+static void (*ioainst(const struct irq_tab *, void (*)()))();
+.endc
+;
+static const struct irq_tab irq_inits[] = {
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+ .if dif,<softvec>,<0>
+ { (void (**)())&softvec, installer, notes },	/* comments */
+ .iff
+ { 0, installer, notes },	/* comments */
+ .endc
+	.endm
+	.include cham_vecs.mac		;Build the irq_inits array
+ { 0, 0, 0} };
+;
+.if true, ((PROCESSOR&-16) == MIPS3000) || ((PROCESSOR&-16) == MIPS4000)
+
+extern void (*ramv_tbl[])();
+
+static void (*hwvinst(const struct irq_tab *it, void (*new)()))() {
+    int indx;
+    void (*old_rtn)();
+
+    indx = it->notes;
+    if (indx >= VN_MAX) return 0;
+    old_rtn = ramv_tbl[indx];
+    ramv_tbl[indx] = new;
+    return old_rtn;
+}
+
+ .if df, INTCTL_MASK
+static void (*pvinst(const struct irq_tab *it, void (*new)()))() {
+
+    if (it->notes) {
+	BLABF(("\ndispatch: Adding 0x%08lX to main INTCTL (0x%08lX)...", it->notes, INTCTL_IE_T));
+	INTCTL_IE_T |= it->notes;
+    }
+    return 0;
+}
+ .endc
+
+ .if true, ...IOA
+static void (*ioainst(const struct irq_tab *it, void (*new)()))() {
+extern void prc_wait_n_usecs( int );
+    if (it->notes)
+    {
+     BLABF(("\ndispatch: Adding 0x%04X to IOASIC INTCTL: (0x%04X)...", (int)it->notes, \
+		IO_MAIN_CTL_T));
+     while ( ( IO_MAIN_CTL_T & it->notes ) != it->notes )
+     {
+      do
+      {
+       IO_MAIN_CTL_T |= it->notes;
+       prc_wait_n_usecs( 1000 );
+      } while ( ( IO_MAIN_CTL_T & it->notes ) != it->notes );
+      prc_wait_n_usecs( 1000 );
+     }
+    }
+    return 0;
+}
+ .endc
+.endc
+
+void (*prc_set_vec (unsigned int vecnum, void (*routine)() ))()
+{
+    void (*old_rtn)();
+    void (**softvec)();
+    const struct irq_tab *tbp;
+    int old_ipl;
+
+    if ( vecnum >= N_INTVECS ) return 0;
+    tbp = irq_inits+vecnum;
+    softvec = tbp->softvec;
+    old_rtn = 0;
+    old_ipl = prc_set_ipl(INTS_OFF);
+    if ( tbp->installer ) old_rtn = tbp->installer(tbp, routine);
+    if ( softvec ) {
+	if (!old_rtn) old_rtn = *softvec;
+	*softvec = routine;
+    }
+    prc_set_ipl(old_ipl);
+    return old_rtn;
+}
+
+ .if true, ...INT0
+static void int0_irq(void) {
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+  .iif idn,<name>,<INT0>,.mexit
+  .iif idn,<softvec>,<0>,.mexit
+  .if true, physical == INT0_LVL
+    if (softvec) softvec();
+  .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 0
+    return;
+}
+
+ .endc		; ...INT0
+ .if true, ...INT1
+static void int1_irq(void) {
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+  .iif idn,<name>,<INT1>,.mexit
+  .iif idn,<softvec>,<0>,.mexit
+  .if true, physical == INT1_LVL
+    if (softvec) softvec();
+  .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 1
+    return;
+}
+
+ .endc		; ...INT1
+ .if true, ...INT2
+static void int2_irq(void) {
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+  .iif idn,<name>,<INT2>,.mexit
+  .iif idn,<softvec>,<0>,.mexit
+  .if true, physical == INT2_LVL
+    if (softvec) softvec();
+  .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 2
+    return;
+}
+
+ .endc		; ...INT2
+ .if true, ...INT3
+static void int3_irq(void) {
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+  .iif idn,<name>,<INT3>,.mexit
+  .iif idn,<softvec>,<0>,.mexit
+  .if true, physical == INT3_LVL
+    if (softvec) softvec();
+  .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 3
+    return;
+}
+
+ .endc		; ...INT3
+ .if true, ...INT4
+static void int4_irq(void) {
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+  .iif idn,<name>,<INT4>,.mexit
+  .iif idn,<softvec>,<0>,.mexit
+  .if true, physical == INT4_LVL
+    if (softvec) softvec();
+  .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 4
+    return;
+}
+
+ .endc		; ...INT4
+ .if defined, IOASIC_LVL
+  .if true, ...IOA 
+static void ioa_irq(void) {
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+   .iif idn,<name>,<IOA>,.mexit
+   .iif idn,<softvec>,<0>,.mexit
+   .if true, physical == IOASIC_LVL
+    if (softvec) softvec();
+   .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 5
+    return;
+}
+
+  .endc		; ...IOA
+ .endc		; defined, IOASIC_LVL
+void prc_init_vecs(void) {
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+.if dif,<default>,<0>
+ .if idn,<name>,<INT0>
+  .iif true, ...INT0 == 0, .mexit
+ .endc
+ .if idn,<name>,<INT1>
+  .iif true, ...INT1 == 0, .mexit
+ .endc
+ .if idn,<name>,<INT2>
+  .iif true, ...INT2 == 0, .mexit
+ .endc
+ .if idn,<name>,<INT3>
+  .iif true, ...INT3 == 0, .mexit
+ .endc
+ .if idn,<name>,<INT4>
+  .iif true, ...INT4 == 0, .mexit
+ .endc
+ .if idn,<name>,<INT5>
+  .iif true, ...INT5 == 0, .mexit
+ .endc
+ .if idn,<name>,<IOA>
+  .iif true, ...IOA == 0, .mexit
+ .endc
+    prc_set_vec('name'_INTVEC, default);
+.endc
+	.endm
+	.include cham_vecs.mac
+
+/* Map the Phoenix interrupts */
+
+.if df, INTCTL_MAP_INIT
+    BLABF(("\ndispatch: Mapping the interrupts: 0x%08lX...", INTCTL_MAP_INIT));
+    INTCTL_MAP_T = INTCTL_MAP_INIT;
+.endc
+
+.if defined, ANNOUNCE_BOOT_ACTIONS
+ .if true, ANNOUNCE_BOOT_ACTIONS
+    {
+	int jj;
+	extern U32 prc_get_cause(), prc_get_ipl();
+	jj = prc_get_cause();
+	if (jj&0xFF00) BLABF(("\ndispatch: cause register: %08lX, SR: %08lX", jj, prc_get_ipl()));
+	if (jj&0x0400) {
+  .if true, ...INT0
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+   .iif idn,<name>,<INT0>,.mexit
+   .iif idn,<softvec>,<0>,.mexit
+   .if true, physical == INT0_LVL
+	    if (!softvec) BLAB("\ndispatch: Warning, IRQ 0 pending \"'comments'\"");
+   .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 0
+  .iff
+	    BLAB("\ndispatch: Warning, IRQ 0 pending with no vector assigned");
+  .endc		; ...INT0
+	}
+	if (jj&0x0800) {
+  .if true, ...INT1
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+   .iif idn,<name>,<INT1>,.mexit
+   .iif idn,<softvec>,<0>,.mexit
+   .if true, physical == INT1_LVL
+	    if (!softvec) BLAB("\ndispatch: Warning, IRQ 1 pending \"'comments'\"");
+   .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 1
+  .iff
+	    BLAB("\ndispatch: Warning, IRQ 1 pending with no vector assigned");
+  .endc		; ...INT1
+	}
+	if (jj&0x1000) {
+  .if true, ...INT2
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+   .iif idn,<name>,<INT2>,.mexit
+   .iif idn,<softvec>,<0>,.mexit
+   .if true, physical == INT2_LVL
+	    if (!softvec) BLAB("\ndispatch: Warning, IRQ 2 pending \"'comments'\"");
+   .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 2
+  .iff
+	    BLAB("\ndispatch: Warning, IRQ 2 pending with no vector assigned");
+  .endc		; ...INT2
+	}
+	if (jj&0x2000) {
+  .if true, ...INT3
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+   .iif idn,<name>,<INT3>,.mexit
+   .iif idn,<softvec>,<0>,.mexit
+   .if true, physical == INT3_LVL
+	    if (!softvec) BLAB("\ndispatch: Warning, IRQ 3 pending \"'comments'\"");
+   .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 3
+  .iff
+	    BLAB("\ndispatch: Warning, IRQ 3 pending with no vector assigned");
+  .endc		; ...INT3
+	}
+	if (jj&0x4000) {
+  .if true, ...INT4
+	.macro VDF cond, name, softvec, intern, installer, notes, physical, default, comments
+	.condit cond	
+   .iif idn,<name>,<INT4>,.mexit
+   .iif idn,<softvec>,<0>,.mexit
+   .if true, physical == INT4_LVL
+	    if (!softvec) BLAB("\ndispatch: Warning, IRQ 4 pending \"'comments'\"");
+   .endc
+	.endm
+	.include cham_vecs.mac		; pickup all vectors assigned to IRQ 4
+  .iff
+	    BLAB("\ndispatch: Warning, IRQ 4 pending with no vector assigned");
+  .endc		; ...INT4
+	}
+    }
+ .endc		; true, ANNOUNCE_BOOT_ACTIONS
+.endc		; defined, ANNOUNCE_BOOT_ACTIONS
+    return;
+}
+.endc		; _DISPATCH_MAC_ == 0
+@
+
+
+1.3
+log
+@Added autodeposit of iceless interrupt.
+@
+text
+@d1 1
+a1 1
+;/* $Id$
+a588 5
+ .if defined, DBG_NOTES
+static void dbg_default(void) {
+    return;
+}
+ .endc
+a618 3
+ .if defined, DBG_NOTES
+    prc_set_vec(DBG_INTVEC, dbg_default);
+ .endc
+@
+
+
+1.2
+log
+@Added vectors for each of the PCI slots.
+@
+text
+@d1 1
+a1 1
+;/*		cham_vecs.mac
+d589 5
+d624 3
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d154 3
+a156 1
+VDF <D,PCI_LVL>	PCI,       pciintp, INT pvinst,	    PCI_NOTES,	PCI_LVL,0,	< Any PCI slot interrupt >
+@

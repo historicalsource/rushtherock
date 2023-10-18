@@ -1,0 +1,2173 @@
+head	1.32;
+access;
+symbols
+	RUSH_ROCK_1_0:1.27
+	RUSH_ROCK_1_0epst:1.21
+	RUSH_ROCK_1_0boot:1.28
+	MACE_1_0e:1.14
+	MACE_1_0d:1.14
+	AREA_52_00:1.14
+	MACE_1_0a:1.11;
+locks; strict;
+comment	@ * @;
+
+
+1.32
+date	97.12.06.00.03.19;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	97.10.30.21.58.28;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	97.10.30.21.44.57;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	97.10.21.21.27.46;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	97.10.06.22.01.19;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	97.10.06.18.34.04;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	97.10.06.17.22.10;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	97.10.05.06.44.13;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	97.10.04.20.36.26;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	97.10.03.22.16.06;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	97.10.03.21.58.44;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	97.09.27.00.37.00;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	97.09.23.20.07.07;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	97.09.23.18.38.21;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.09.23.18.12.55;	author forrest;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	97.09.23.00.35.32;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	97.09.23.00.07.31;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	97.09.12.21.11.02;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	97.07.01.20.40.44;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	97.06.30.23.30.02;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	97.05.28.01.35.12;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	97.04.29.18.05.46;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	97.04.10.22.29.22;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	97.04.08.04.07.14;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	97.04.06.01.03.13;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	97.04.01.19.10.17;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.03.26.01.53.30;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	97.03.26.01.17.10;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	97.01.07.23.07.17;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.12.13.19.04.32;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.12.13.03.50.01;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.12.10.23.55.26;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Custom malloc, et. al.
+@
+
+
+1.32
+log
+@Added MAX_FG_QUEUES and an fg_reent.
+@
+text
+@/*
+ *	$Id: mallocr.c,v 1.31 1997/10/30 21:58:28 shepperd Exp shepperd $
+ *
+ *		Copyright 1996 Atari Games, Corp.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <reent.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+
+/* #define MALLOC_DEBUG 	1 */
+
+/*
+ * The structure '_reent' has two members, _nextf and _nmalloc that the GNUC
+ * library used for its table of area sizes. Each is an array of 30 elements
+ * of which we use four. The 0'th element houses the head of the free list,
+ * the 1'st element houses the head of the busy list, the 2'nd element contains
+ * a pointer to the SbrkPool entry which identifies this reent struct, the 3'rd
+ * element contains a flag indicating we need not protect malloc functions with
+ * a prc_set_ipl() and the 4'th element contains the Xinu semaphore to use to
+ * protect these data structures. We keep both a busy and a free list so we can
+ * verify that the chain of either allocated or free'd memory has not been
+ * corrupted by an errant program.
+ */
+
+#define FREE 0		/* pointer to head of free list */
+#define BUSY 1		/* pointer to head of busy list */
+#define POOL 2		/* pointer to SbrkPool for this item */
+#define PROT 3		/* if .ne., don't protect malloc functions with prc_set_ipl */
+#define SEMA 4		/* if .ne., contains the Xinu semaphore to use to protect malloc calls */
+
+#define CHUNK	8	/* 8 bytes per chunk */
+
+#if INCLUDE_XINU
+extern int xi_getpid(void);
+extern int xi_signal(int sem);
+extern int xi_wait(int sem);
+extern int _xinu_malloc_reset(struct _reent *);
+#endif
+
+#if !MALLOC_DEBUG
+typedef struct pack {
+    unsigned int    size;	/* size of area in CHUNKs */
+    struct pack     *next;	/* ptr to next elem in list	*/
+# if INCLUDE_XINU
+    int		    pid;	/* Xinu's pid of task that owns this */
+    int		    pad;	/* need to pad the struct size to a double */
+# endif
+} MemPkt;
+#else
+typedef struct pack {
+    unsigned long   magic;	/* magic number			*/
+    int		    line;	/* line number of caller	*/
+    const char *    file;	/* filename of caller		*/
+    unsigned int    size;	/* size of area in CHUNKs	*/
+    int		    flags;	/* misc bits */
+    struct pack     *next;	/* ptr to next elem in list	*/
+# if INCLUDE_XINU
+    int		    pid;	/* Xinu's pid of task that owns this */
+    int		    pad;	/* Need to pad struct size to a double */
+# endif
+} MemPkt;
+#endif
+
+#define MEMPKT_CHUNKS ((sizeof(MemPkt)+CHUNK-1)/CHUNK)	/* sizeof MemPkt in chunks */
+
+static void die(const char *msg) {
+    while (1) {
+	__asm__("BREAK;");
+    }
+}
+
+#if MALLOC_DEBUG
+
+/************************************************************
+ * validate_malloc_list - walks the chain and checks that it
+ * is not corrupt.
+ *
+ * At entry:
+ *	rep - pointer to _reent struct
+ *	which - into which list to check (BUSY or FREE)
+ * At exit:
+ *	returns nothing. Dies if fails.
+ */
+void validate_malloc_list(struct _reent *rep, int which) {
+    MemPkt **prev, *cur;
+    unsigned long *end;
+    int oldps=0;
+
+    if (!rep) die("Called validate_malloc with null param");
+    if (which > 1) die ("Called validate_malloc with invalid which");
+    prev = (MemPkt **)(&rep->_nextf[which]);
+    if (!rep->_nextf[PROT]) oldps = prc_set_ipl(INTS_OFF);
+    while ( (cur = *prev) ) {
+	if ((cur->flags&1)) die( "Loop detected in malloc list" );
+	cur->flags |= 1;
+	if (cur->magic != 0x12345678) die("Header Magic corrupt");
+	end = (unsigned long *)((char *)(cur + 1) + cur->size*CHUNK) - 1;
+	if (*end != 0x87654321) die("Trailer Magic corrupt");
+	prev = &cur->next;
+    }
+    prev = (MemPkt **)(&rep->_nextf[which]);
+    while ( (cur = *prev) ) {
+	cur->flags &= ~1;
+	prev = &cur->next;
+    }
+    if (!rep->_nextf[PROT]) prc_set_ipl(oldps);
+}
+#endif
+
+/************************************************************
+ * minsert - inserts a MemPkt into a list. Places the packet
+ * 	in the list sorted by size (smaller areas first).
+ *
+ * At entry:
+ *	rep - pointer to _reent struct
+ *	which - into which list to insert (BUSY or FREE)
+ *	ptr - pointer to MemPkt
+ * At exit:
+ *	returns 0 on success, 1 if failed
+ */
+
+static int minsert(struct _reent *rep, int which, MemPkt *ptr) {
+    MemPkt *current, **prev;
+    int oldps=0;
+
+    if (!ptr || !rep) return 1;
+
+    if (!rep->_nextf[PROT]) oldps = prc_set_ipl(INTS_OFF);
+    prev = (MemPkt **)(&rep->_nextf[which]);
+
+    while ( (current = *prev) && (current->size < ptr->size) ) {
+	prev = &current->next;
+    }
+
+    if (prev == (MemPkt **)(&rep->_nextf[which])) { /* Ptr will be first in list */
+        ptr->next = *prev;
+    } else {			/* else it's in the middle or at the end */
+	ptr->next = current;
+    }
+    *prev = ptr;
+    if (!rep->_nextf[PROT]) prc_set_ipl(oldps);
+    return 0;
+}
+
+/************************************************************
+ * mremove - removes a MemPkt from a list. 
+ *
+ * At entry:
+ *	rep - pointer to _reent struct
+ *	which - from which list to remove (BUSY or FREE)
+ *	ptr - pointer to MemPkt
+ * At exit:
+ *	returns 0 on success, 1 on failure
+ */
+static int mremove(struct _reent *rep, int which, MemPkt *ptr) {
+    MemPkt  *current, **prev;
+    int oldps=0, sts;
+
+    if (!ptr || !rep) return 1;
+
+    if (!rep->_nextf[PROT]) oldps = prc_set_ipl(INTS_OFF);
+    prev = (MemPkt **)(&rep->_nextf[which]);
+
+    while ( (current = *prev) && (current != ptr) ) {
+	prev = &current->next;
+    }
+
+    if (!current) {
+	sts = 1;		/* didn't find it in the list */
+    } else {
+	*prev = ptr->next;	/* break the link */
+	ptr->next = 0;		/* forget where we were */
+	sts = 0;
+    }
+    if (!rep->_nextf[PROT]) prc_set_ipl(oldps);
+    return sts;
+}
+
+/************************************************************
+ * guts_free_r - free a previously allocated area of memory.
+ *
+ * At entry:
+ *	rep - pointer to _reent struct
+ *	pkt - pointer to old area
+ * At exit:
+ *	returns nothing.
+ */
+void guts_free_r(struct _reent *rep, void *pkt, const char *file, int lineno) {
+    MemPkt  *test, *current, **prev, *end;
+    int oldps=0;
+
+    if (!rep || !pkt) return;
+
+    current = (MemPkt *)pkt - 1;
+
+#if INCLUDE_XINU
+    if (rep->_nextf[SEMA]) xi_wait((int)rep->_nextf[SEMA]);	/* wait on semaphore */
+#endif
+#if MALLOC_DEBUG
+    validate_malloc_list(rep, FREE);
+    validate_malloc_list(rep, BUSY);
+    if (mremove(rep, BUSY, current)) die("Tried to free area not BUSY");
+    current->file = file;
+    current->line = lineno;
+#else
+    if (mremove(rep, BUSY, current)) {
+# if INCLUDE_XINU
+	xi_signal((int)rep->_nextf[SEMA]);
+# endif
+	return;					/* not on busy list */
+    }
+#endif
+    
+/* collapse new area into ajoining areas (if possible) */
+
+    if (!rep->_nextf[PROT]) oldps = prc_set_ipl(INTS_OFF);
+    prev = (MemPkt **)(&rep->_nextf[FREE]);	/* prepare to walk the free list */
+    end = (MemPkt *)((char *)(current+1) + current->size*CHUNK); /* point to one past end of pkt */
+
+    while ( (test = *prev) ) {
+	MemPkt *cend;
+	cend = (MemPkt *)((char *)(test+1) + test->size*CHUNK); /* point to one past end of MemPkt */
+	if ( cend == current ) {		/* area ajoins us at the head */
+	    mremove(rep, FREE, test);		/* pluck the one we're to chang from the list */
+	    test->size += current->size+MEMPKT_CHUNKS;	/* previous guy gets our size */
+#if MALLOC_DEBUG
+	    current->magic = 0xAAAA5555;	/* kill this area */
+#endif
+	    current = test;		/* the changed one becomes the current */
+	    prev = (MemPkt **)(&rep->_nextf[FREE]);	/* walk the list from the beginning */
+	    continue;			/* look again */	    
+	}
+	if ( test == end ) {		/* area ajoins us at the rear */
+	    mremove(rep, FREE, test);	/* pluck him from the free list */
+	    current->size += test->size+MEMPKT_CHUNKS;	/* we get his area + his MemPkt */
+#if MALLOC_DEBUG
+	    test->magic = 0x5555AAAA;	/* kill this area */
+#endif
+	    prev = (MemPkt **)(&rep->_nextf[FREE]);	/* walk the list from the beginning */
+	    end = (MemPkt *)((char *)(current+1) + current->size*CHUNK); /* point to one past end of pkt */
+	    continue;			/* look again */	    
+	}
+	prev = &test->next;
+    }
+    if (!rep->_nextf[PROT]) prc_set_ipl(oldps);
+    minsert(rep, FREE, current);	/* put it on the free list */
+#if MALLOC_DEBUG
+    validate_malloc_list(rep, FREE);
+    validate_malloc_list(rep, BUSY);
+#endif
+#if INCLUDE_XINU
+    if (rep->_nextf[SEMA]) xi_signal((int)rep->_nextf[SEMA]);
+#endif
+}
+
+#if MALLOC_DEBUG
+#define FLAGS_MALLOC	2
+#define FLAGS_REALLOC	4
+#define FLAGS_FREE	6
+
+static void fixup(struct _reent *rep, MemPkt *pkt, const char *file, int lineno, int what) {
+    unsigned long *end;
+    pkt->magic = 0x12345678;
+    pkt->file = file;
+    pkt->line = lineno;
+    pkt->flags = what;
+# if INCLUDE_XINU
+    pkt->pid = xi_getpid();
+# endif    
+    end = (unsigned long *)((char *)(pkt+1) + pkt->size*CHUNK)-1;
+    *end = 0x87654321;
+    validate_malloc_list(rep, FREE);
+    validate_malloc_list(rep, BUSY);
+}
+# define FIXUP(v,w,x,y,z) fixup(v,w,x,y,z)
+#else
+# if INCLUDE_XINU
+#  define FIXUP(rent,pkt,f,l,w) do { pkt->pid = xi_getpid(); } while (0)
+# else
+#  define FIXUP(rent,pkt,f,l,w) do { ; } while (0)
+# endif
+#endif
+
+/************************************************************
+ * guts_malloc_r - allocate some memory.
+ *
+ * At entry:
+ *	rep - pointer to _reent struct
+ *	size - amount to malloc.
+ * At exit:
+ *	returns ptr to area on success, 0 on failure
+ *	Returned ptr is aligned to a double.
+ */
+void *guts_malloc_r(struct _reent *rep, int size, const char *file, int lineno) {
+    MemPkt          *current, **prev, *next;
+    unsigned int    newsize, oldsize;
+    int oldps=0;
+
+#if INCLUDE_XINU
+    if (rep->_nextf[SEMA]) xi_wait((int)rep->_nextf[SEMA]);
+#endif
+#if MALLOC_DEBUG
+    validate_malloc_list(rep, FREE);
+    validate_malloc_list(rep, BUSY);
+#define DEBUG_EXTRA	sizeof(long)
+#else
+#define DEBUG_EXTRA	0
+#endif
+    if (size <= 0) {
+#if INCLUDE_XINU
+	if (rep->_nextf[SEMA]) xi_signal((int)rep->_nextf[SEMA]);
+#endif
+	return 0;			/* nothing to do */
+    }
+    newsize = (size + DEBUG_EXTRA + CHUNK-1)/CHUNK; /* Round size up to next multiple of CHUNK */
+
+    if (!rep->_nextf[PROT]) oldps = prc_set_ipl(INTS_OFF);
+    prev = (MemPkt **)(&rep->_nextf[FREE]); /* point to free list */
+    while ( (current = *prev) ) {
+	if (current->size >= newsize) break;	/* give 'em this one */
+        prev = &current->next;
+    }
+
+    if (!current) {			/* not on the list */
+	if (!rep->_nextf[PROT]) prc_set_ipl(oldps);
+#if INCLUDE_XINU
+	if (rep->_nextf[SEMA]) xi_signal((int)rep->_nextf[SEMA]);
+#endif
+	current = (MemPkt *)_sbrk_r(rep, (newsize + MEMPKT_CHUNKS)*CHUNK); /* get a new area */
+	if ((int)current == -1) {
+	    return 0; 			/* there ain't anymore memory to get */
+	}
+	current->size = newsize;	/* record size of padded area */
+#if INCLUDE_XINU
+	if (rep->_nextf[SEMA]) xi_wait((int)rep->_nextf[SEMA]); /* reclaim the struct */
+#endif
+    } else {
+	*prev = current->next;		/* remove packet from free list */
+	if (!rep->_nextf[PROT]) prc_set_ipl(oldps);
+	oldsize = current->size;	/* Remember old size */
+	if (oldsize - newsize > MEMPKT_CHUNKS) { /* if there is room to break it up */
+	    current->size = newsize;	/* make current the one the customer gets */
+	    next = (MemPkt *)((char *)(current + 1) + current->size*CHUNK);
+	    next->size = oldsize - newsize - MEMPKT_CHUNKS; /* next gets the partial data */
+	    FIXUP(rep, next, file, lineno, FLAGS_MALLOC);
+	    minsert(rep, FREE, next);	/* put the fractional space back on the free list */
+	}
+    }
+    FIXUP(rep, current, file, lineno, FLAGS_MALLOC);
+    minsert(rep, BUSY, current);	/* put new one on the busy list */
+#if MALLOC_DEBUG
+    if (current->size*CHUNK-DEBUG_EXTRA < size) die("malloc'd smaller area than user asked for");
+#endif
+#if INCLUDE_XINU
+    if (rep->_nextf[SEMA]) xi_signal((int)rep->_nextf[SEMA]);
+#endif
+    return (void *)(current + 1);
+}
+
+/************************************************************
+ * guts_realloc_r - re-allocate previously allocated memory.
+ *
+ * At entry:
+ *	rep - pointer to _reent struct
+ *	pkt - pointer to old area
+ *	size - amount to realloc
+ * At exit:
+ *	returns ptr to new area on success, 0 on failure
+ *	Returned ptr is aligned to a double.
+ */
+void *guts_realloc_r(struct _reent *rep, void *pkt, int size, const char *file, int lineno) {
+    int		newsize;			/* New size of packet      */
+    int		oldsize;
+    int		temp, oldps=0;
+    MemPkt	*current, **prev, *next;
+    char	*new;
+
+    if (size < 0) return 0;	/* this is illegal. */
+    if (pkt == 0) return guts_malloc_r(rep, size, file, lineno); /* no old ptr means simply to malloc */
+    if ((int)pkt&(CHUNK-1)) return 0;	/* illegal parameter */
+    if (size == 0) {		/* realloc with size of 0 means to free */
+        guts_free_r(rep, pkt, file, lineno);
+        return 0;
+    }
+
+    newsize = (size + DEBUG_EXTRA + CHUNK-1)/CHUNK; /* Round size up to next multiple of CHUNK */
+    current = (MemPkt*)pkt - 1;
+    oldsize = current->size;
+#if INCLUDE_XINU
+    if (rep->_nextf[SEMA]) xi_wait((int)rep->_nextf[SEMA]);
+#endif
+
+#if MALLOC_DEBUG
+    validate_malloc_list(rep, FREE);
+    validate_malloc_list(rep, BUSY);
+    {
+	prev = (MemPkt **)(&rep->_nextf[BUSY]);	/* make sure old area is on busy list */
+	if (!rep->_nextf[PROT]) oldps = prc_set_ipl(INTS_OFF);
+	while ((next = *prev) && next != current) {
+	    prev = &next->next;
+	}
+	if (!rep->_nextf[PROT]) prc_set_ipl(oldps);
+	if (!next) die("Area to realloc is not on BUSY list");
+    }
+#endif
+
+    if (newsize == oldsize) {
+#if INCLUDE_XINU
+	if (rep->_nextf[SEMA]) xi_signal((int)rep->_nextf[SEMA]);
+#endif
+        return pkt;			/* same size, don't do anything */
+    }
+
+    if (newsize < oldsize) {
+        if (oldsize - newsize > MEMPKT_CHUNKS) {
+	    if (!rep->_nextf[PROT]) oldps = prc_set_ipl(INTS_OFF);
+	    next = (MemPkt*)((char *)(current+1)+newsize*CHUNK);
+	    oldsize -= newsize + MEMPKT_CHUNKS;	/* Calc trailing size */
+	    next->size = oldsize;		/* Set trailing packet */
+	    next->next = 0;			/* it is not part of a list */
+	    FIXUP(rep, next, file, lineno, FLAGS_REALLOC); /* fixup both MemPkt's */
+	    current->size = newsize;		/* Set new packet size*/
+	    FIXUP(rep, current, file, lineno, FLAGS_REALLOC);
+	    minsert(rep, FREE, next);		/* put fraction on free list */
+	    if (!rep->_nextf[PROT]) prc_set_ipl(oldps);
+#if MALLOC_DEBUG
+	    validate_malloc_list(rep, FREE);
+	    validate_malloc_list(rep, BUSY);
+#endif
+	}
+#if INCLUDE_XINU
+	if (rep->_nextf[SEMA]) xi_signal((int)rep->_nextf[SEMA]);
+#endif
+        return pkt;			/* give back the old one */
+    } else {
+	MemPkt *tgt;
+
+	tgt = (MemPkt *)((char *)(current+1)+current->size*CHUNK);
+	if (!rep->_nextf[PROT]) oldps = prc_set_ipl(INTS_OFF);
+	prev = (MemPkt **)(&rep->_nextf[FREE]);	/* look on freelist for abuting area */
+	while ((next = *prev) && next != tgt) {
+	    prev = &next->next;
+	}
+	if (next && ((temp=current->size + next->size + MEMPKT_CHUNKS) >= newsize)) {
+	    *prev = next->next;			/* pluck off the free list */
+	    if (temp - newsize > MEMPKT_CHUNKS) {	/* if there is room for another header */
+		next = (MemPkt *)((char *)(current+1)+newsize*CHUNK);
+		next->size = temp-newsize-MEMPKT_CHUNKS; /* how big new area is */
+		FIXUP(rep, next, file, lineno, FLAGS_REALLOC);
+		minsert(rep, FREE, next);	/* put new section on free list */
+		current->size = newsize;	/* give 'em his requested new size */
+	    } else {
+		current->size = temp;		/* set the new size */
+	    }
+	    FIXUP(rep, current, file, lineno, FLAGS_REALLOC);	/* fixup new end marker, etc. */
+	    if (!rep->_nextf[PROT]) prc_set_ipl(oldps);			/* don't need interlock anymore */
+#if MALLOC_DEBUG
+	    if (current->size*CHUNK-DEBUG_EXTRA < size) die("malloc'd smaller area than user asked for");
+#endif
+#if INCLUDE_XINU
+	    if (rep->_nextf[SEMA]) xi_signal((int)rep->_nextf[SEMA]);
+#endif
+	    return pkt;				/* give 'em his old one back */
+        } else {
+#if INCLUDE_XINU
+	    if (rep->_nextf[SEMA]) xi_signal((int)rep->_nextf[SEMA]);
+#endif
+            new = (char *)guts_malloc_r(rep, size, file, lineno);
+            if (new) {
+		memcpy((void *)new, pkt, oldsize*CHUNK - DEBUG_EXTRA );
+		guts_free_r(rep, pkt, file, lineno);
+#if MALLOC_DEBUG
+#if INCLUDE_XINU
+		if (rep->_nextf[SEMA]) xi_wait((int)rep->_nextf[SEMA]);
+#endif
+		validate_malloc_list(rep, FREE);
+		validate_malloc_list(rep, BUSY);
+#if INCLUDE_XINU
+		if (rep->_nextf[SEMA]) xi_signal((int)rep->_nextf[SEMA]);
+#endif
+#endif
+	    }
+            return new;
+        }
+    }
+    return 0;
+}
+
+void *guts_calloc_r(struct _reent *rep, int qty, int size, const char *file, int line) {
+    void *ans;
+    int t = qty*size;
+    ans = guts_malloc_r(rep, t, file, line);
+    if (ans) {
+	memset(ans, 0, t);
+#if MALLOC_DEBUG
+#if INCLUDE_XINU
+	if (rep->_nextf[SEMA]) xi_wait((int)rep->_nextf[SEMA]);
+#endif
+	validate_malloc_list(rep, FREE);
+	validate_malloc_list(rep, BUSY);
+#if INCLUDE_XINU
+	if (rep->_nextf[SEMA]) xi_signal((int)rep->_nextf[SEMA]);
+#endif
+#endif
+    }
+    return ans;
+}
+
+void *_malloc_r(struct _reent *rep, int amt) {
+    return guts_malloc_r(rep, amt, 0, 0);
+}
+
+void *_realloc_r(struct _reent *rep, void *old, int amt) {
+    return guts_realloc_r(rep, old, amt, 0, 0);
+}
+
+void _free_r(struct _reent *rep, void *old) {
+    guts_free_r(rep, old, 0, 0);
+    return;
+}
+
+extern U8 bss_end[];
+extern U8 INIT_SP[];
+static U8 *adj_bss_end;
+#ifndef BSS_LIMIT
+# define BSS_LIMIT INIT_SP
+#endif
+#ifndef STACK_SIZE
+# define STACK_SIZE (64*1024)
+#endif
+
+static const void *mgetenv(const char *name, void *def) {
+    const struct st_envar *env;
+    const void *ans;
+    ans = def;
+    env = st_getenv(name, 0);
+    if (env) ans = env->value;
+    return ans;
+}
+
+U8 *prc_extend_bss(int amt) {
+    U8 *where, *limit;
+    int oldps, ssize;
+
+    if (amt < 0) return 0;
+    amt = (amt+7)&-8;			/* round up size to sizeof(double) */
+    ssize = (int)mgetenv("STACK_SIZE", (void *)STACK_SIZE);
+    limit = (U8*)mgetenv("BSS_LIMIT", (void *)BSS_LIMIT);
+    if (limit) limit -= ssize;
+    oldps = prc_set_ipl(INTS_OFF);
+    if (!adj_bss_end) adj_bss_end = bss_end;
+    if (!limit || (amt+adj_bss_end <= limit)) {
+	where = adj_bss_end;
+	adj_bss_end += amt;
+    } else {
+	where = 0;
+    }
+    prc_set_ipl(oldps);
+    return where;
+}
+
+struct _reent *mainline_reent;
+struct _reent *interrupt_reent;
+struct _reent *ast_reent;
+#if MAX_FG_QUEUES
+struct _reent *fg_reent;
+#endif
+struct _reent *action_reent;
+#if INCLUDE_QIO
+struct _reent *qio_reent;
+#endif
+
+#ifndef JUNK_POOL_SIZE
+# define JUNK_POOL_SIZE 0
+#endif
+#ifndef INTERRUPT_POOL_SIZE
+# define INTERRUPT_POOL_SIZE 0
+#endif
+#ifndef AST_POOL_SIZE
+# define AST_POOL_SIZE 0
+#endif
+#ifndef FG_POOL_SIZE
+# define FG_POOL_SIZE 0
+#endif
+#ifndef ACTION_POOL_SIZE
+# define ACTION_POOL_SIZE 0
+#endif
+#ifndef QIO_POOL_SIZE
+# define QIO_POOL_SIZE 0
+#endif
+#ifndef XINU_POOL_SIZE
+# define XINU_POOL_SIZE 0
+#endif
+#if INCLUDE_XINU
+extern void *_xinu_sbrk_r(struct _reent *ptr, int amt);
+extern int _xinu_free_pool_size(struct _reent *ptr);
+struct _reent *xinu_reent;
+#endif
+
+enum sbrk_name {	/* These are just for information purposes. */
+    MAINLINE,		/* There is one of these for each type of memory to be sbrk'd */
+    INTERRUPT,
+    ACTION,
+    AST,
+    FG,
+    QIO,
+    XINU
+};
+
+typedef struct sbrk_init {
+    enum sbrk_name name;
+    struct _reent **reent;
+    const char *env_name;
+    int def_size;
+} SbrkInit;
+
+static const SbrkInit brk_init_val[] = {
+    { MAINLINE, &mainline_reent, "JUNK_POOL_SIZE", JUNK_POOL_SIZE },
+    { INTERRUPT, &interrupt_reent, "INTERRUPT_POOL_SIZE", INTERRUPT_POOL_SIZE },
+    { ACTION, &action_reent, "ACTION_POOL_SIZE", ACTION_POOL_SIZE },
+    { AST, &ast_reent, "AST_POOL_SIZE", AST_POOL_SIZE },
+#if MAX_FG_QUEUES
+    { FG, &fg_reent, "FG_POOL_SIZE", FG_POOL_SIZE },
+#endif
+#if INCLUDE_QIO
+    { QIO, &qio_reent, "QIO_POOL_SIZE", QIO_POOL_SIZE },
+#endif
+#if INCLUDE_XINU
+    { XINU, &xinu_reent, "XINU_POOL_SIZE", XINU_POOL_SIZE },
+#endif
+    { 0, 0, 0 }
+};
+
+typedef struct sbrk_pool {
+    enum sbrk_name name;
+    struct _reent *reent;
+    U8 *memory;
+    int memory_size;
+    U8 *brk_value;
+    int free_size;
+    int inited;
+} SbrkPool;
+
+static SbrkPool sbrk_pools[n_elts(brk_init_val)-1];
+
+static void reset_sbrk(struct _reent *ptr) {
+    int oldps=0;
+    int sem, prot;
+    SbrkPool *spp;
+
+#if INCLUDE_XINU
+    if (ptr->_nextf[SEMA]) xi_wait((int)ptr->_nextf[SEMA]);
+#endif
+    if (!ptr->_nextf[PROT]) oldps = prc_set_ipl(INTS_OFF);
+    sem = (int)ptr->_nextf[SEMA];
+    prot = (int)ptr->_nextf[PROT];
+    spp = (SbrkPool *)ptr->_nextf[POOL];
+    memset(ptr, 0, sizeof(struct _reent));
+    ptr->_nextf[SEMA] = (void *)sem;
+    ptr->_nextf[PROT] = (void *)prot;
+    ptr->_nextf[POOL] = (void *)spp;
+    ptr->_stdin = &ptr->__sf[0];
+    ptr->_stdout = &ptr->__sf[1];
+    ptr->_stderr = &ptr->__sf[2];
+    ptr->_next = 1;
+    if (spp) {
+	if (spp->memory_size > 0) {
+	    spp->brk_value = spp->memory;
+	    spp->free_size = spp->memory_size;
+	    memset(spp->memory, 0, spp->memory_size); /* clear the area */
+	}	    
+	spp->inited = 1;
+    }
+    if (!ptr->_nextf[PROT]) prc_set_ipl(oldps);
+#if INCLUDE_XINU
+    if (ptr->_nextf[SEMA]) xi_signal((int)ptr->_nextf[SEMA]);
+#endif
+    return;
+}
+
+void malloc_init(void) {
+    int ii, last = -1;
+    SbrkPool *spp;
+    const SbrkInit *init;
+    int amt, oldps;
+
+    oldps = prc_set_ipl(INTS_OFF);
+    if (!adj_bss_end) {				/* if we haven't done this yet */
+	prc_extend_bss(0);				/* init the end pointer */
+	spp = sbrk_pools;
+	init = brk_init_val;
+	for (ii=0; ii < n_elts(sbrk_pools); ++ii, ++spp, ++init) {
+	    struct _reent *re;
+
+	    spp->name = init->name;		/* remember name */
+	    amt = (int)mgetenv(init->env_name, (void*)init->def_size);
+#if INCLUDE_XINU
+	    if (ii == XINU && amt == 0) {	/* if XINU_POOL is 0, use QIO_POOL instead */
+		continue;			/* by just skipping this one */
+	    }
+#endif
+	    re = (struct _reent *)prc_extend_bss(sizeof(struct _reent)); /* get a reent struct */
+	    re->_nextf[POOL] = (void *)spp;	/* point to us */
+	    re->_nextf[SEMA] = 0;		/* no semaphore set yet */
+	    re->_nextf[PROT] = 0;		/* assume no protection required */
+	    if (ii == ACTION || ii == AST) {
+		re->_nextf[PROT] = (void*)1;	/* no need to protect this with prc_set_ipl */
+	    }
+	    spp->reent = re;			/* remember this */
+	    *init->reent = re;			/* point to our allocated reent struct */
+	    if (amt < 0) {
+		if (last >= 0) {
+		    die("More than one POOL_SIZE of -1");
+		}
+		last = ii;			/* remember this and we'll do it last */
+		continue;
+	    }
+	    if (amt) {				/* if there's anything to allocate */
+		spp->memory = prc_extend_bss(amt);	/* give it to 'em */
+		spp->memory_size = amt;		/* and tell 'em how big it is */
+	    }
+	}
+	if (last >= 0) {			/* if there was a size of -1 */
+	    U8 *limit;
+	    int ssize;
+	    ssize = (int)mgetenv("STACK_SIZE", (void *)STACK_SIZE);
+	    limit = (U8 *)mgetenv("BSS_LIMIT", (void *)BSS_LIMIT);
+	    if (!limit) limit = (U8*)&last;
+	    limit -= ssize;			/* leave room for some stack */
+	    amt = limit - prc_extend_bss(0);	/* figure out how much we can have */
+	    amt &= -8;				/* round down to sizeof(double) */
+	    spp = sbrk_pools + last;
+	    spp->memory = prc_extend_bss(amt);
+	    spp->memory_size = amt;
+	    if (!spp->memory) die("No room for POOL");
+	}
+#if INCLUDE_XINU
+	if (!xinu_reent) xinu_reent = qio_reent; /* Xinu doubles up on QIO */
+#endif	    
+    }
+    prc_set_ipl(oldps);
+    spp = sbrk_pools;
+    for (ii=0; ii < n_elts(sbrk_pools); ++ii, ++spp) {
+	if (spp->reent) reset_sbrk(spp->reent);
+    }
+    _impure_ptr = mainline_reent;
+    return;
+}
+
+struct _reent *_impure_ptr;
+
+void *_sbrk_r(struct _reent *ptr, int amt) {
+    void *old;
+    SbrkPool *spp;
+#if INCLUDE_XINU
+    old = _xinu_sbrk_r(ptr, amt);	/* look for reent in the xinu space */
+    if (old) return old;		/* found one, give 'em the answer */
+#endif
+    spp = (SbrkPool *)ptr->_nextf[POOL];
+    if (spp) {
+	if ((amt >= 0 && amt <= spp->free_size) ||
+	    (amt < 0 && amt+spp->free_size >= 0)) {
+	    old = spp->brk_value;
+	    spp->brk_value += amt;
+	    spp->free_size -= amt;
+	    return old;
+	}
+    }
+    ptr->_errno = ENOMEM;
+    return (void *)-1;
+}
+
+int _get_free_pool_size_r(struct _reent *ptr) {
+    SbrkPool *spp;
+
+#if INCLUDE_XINU
+    {
+	int ii;
+	ii = _xinu_free_pool_size(ptr);
+	if (ii >= 0) return ii;
+    }
+#endif
+    spp = (SbrkPool *)ptr->_nextf[POOL];
+    if (spp) {
+	return spp->free_size;
+    }
+    return 0;
+}
+
+int _heap_size_r(struct _reent *rep) {
+    int amt=0, oldps;
+    MemPkt **prev, *cur;
+
+    prev = (MemPkt **)(&rep->_nextf[FREE]);
+    oldps = prc_set_ipl(INTS_OFF);
+    while ( (cur = *prev) ) {
+	amt += cur->size*CHUNK;
+	prev = &cur->next;
+    }
+    prc_set_ipl(oldps);
+    return amt;
+}    
+
+int _heap_remaining_r(struct _reent *rep) {
+    int amt;
+
+    if (!rep) return 0;
+    amt = _get_free_pool_size_r(rep);
+    return amt + _heap_size_r(rep);
+}
+
+void _reset_malloc_r(struct _reent *ptr) {
+    reset_sbrk(ptr);
+#if INCLUDE_XINU
+    if (_xinu_malloc_reset(ptr)) {
+	ptr->_nextf[FREE] = 0;
+	ptr->_nextf[BUSY] = 0;
+    }
+#endif
+    return;
+}
+
+int heap_remaining(void) {
+    return _heap_remaining_r(_impure_ptr);
+}
+
+void reset_malloc(void) {
+    _reset_malloc_r(_impure_ptr);
+}
+@
+
+
+1.31
+log
+@Removed #include <qio.h> since it is no longer needed.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.30 1997/10/30 21:44:57 shepperd Exp shepperd $
+d573 3
+d590 3
+d613 1
+d630 3
+@
+
+
+1.30
+log
+@Changed size_t to int.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.29 1997/10/21 21:27:46 shepperd Exp shepperd $
+a12 3
+#if QIO_POOL_SIZE
+#include <qio.h>
+#endif
+@
+
+
+1.29
+log
+@sbrk now takes an int instead of a size_t.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.28 1997/10/06 22:01:19 shepperd Exp shepperd $
+d600 1
+a600 1
+extern void *_xinu_sbrk_r(struct _reent *ptr, size_t amt);
+@
+
+
+1.28
+log
+@Off by one. Corrected calculation of max bss size to be a multiple
+of sizeof(double).
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.27 1997/10/06 18:34:04 shepperd Exp shepperd $
+d753 1
+a753 1
+void *_sbrk_r(struct _reent *ptr, size_t amt) {
+@
+
+
+1.27
+log
+@Added BSS_LIMIT and STACK_SIZE environment variables.
+Added a local mgetenv() function to get environment variables.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.26 1997/10/06 17:22:10 shepperd Exp shepperd $
+d540 1
+a540 1
+# define STACK_SIZE (128*1024)
+d551 1
+a551 1
+    
+d732 1
+@
+
+
+1.26
+log
+@Allowed the environment or config.h variable BSS_LIMIT to set
+the amount of bss that prc_extend_bss() would hand out.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.25 1997/10/05 06:44:13 shepperd Exp shepperd $
+d537 1
+a537 1
+# define BSS_LIMIT (INIT_SP-65536)
+d539 3
+d543 9
+d554 1
+a554 2
+    int oldps;
+    const struct st_envar *env;
+d557 4
+a560 3
+    limit = BSS_LIMIT;
+    env = st_getenv("BSS_LIMIT", 0);
+    if (env) limit = (U8*)env->value;
+d565 1
+a565 4
+	if (amt > 0) {
+	    amt = (amt+7)&-8;
+	    adj_bss_end += amt;
+	}
+a685 1
+    const struct st_envar *env;
+d697 1
+a697 5
+	    amt = init->def_size;		/* start with #defined default */
+	    env = st_getenv(init->env_name, 0);	/* look for environment variable */
+	    if (env) {				/* if there's an environment variable */
+		amt = (int)env->value;		/* use it instead */
+	    }
+d725 7
+a731 2
+	    amt = (U8 *)&last - prc_extend_bss(0) - 128*1024;
+	    if (amt <= 0) die("No room for POOL");
+d735 1
+@
+
+
+1.25
+log
+@Fixed sbrk setup case if POOL size is -1.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.24 1997/10/04 20:36:26 shepperd Exp shepperd $
+d534 1
+d536 3
+d540 2
+a541 2
+U8 *extend_bss(int amt) {
+    U8 *where;
+d543 1
+d546 3
+d551 8
+a558 4
+    where = adj_bss_end;
+    if (amt > 0) {
+	amt = (amt+7)&-8;
+	adj_bss_end += amt;
+d682 1
+a682 1
+	extend_bss(0);				/* init the end pointer */
+d699 1
+a699 1
+	    re = (struct _reent *)extend_bss(sizeof(struct _reent)); /* get a reent struct */
+d716 1
+a716 1
+		spp->memory = extend_bss(amt);	/* give it to 'em */
+d721 1
+a721 1
+	    amt = (U8 *)&last - extend_bss(0) - 128*1024;
+d724 1
+a724 1
+	    spp->memory = extend_bss(amt);
+@
+
+
+1.24
+log
+@Grabs reent structs from extend_bss() calls.
+All the xxx_reent's are pointers now instead of allocated
+structs. If INCLUDE_XINU is set and XINU_POOL_SIZE is 0,
+xinu_reent will point to the same one qio_reent points to.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.23 1997/10/03 22:16:06 shepperd Exp shepperd $
+a686 7
+	    if (amt < 0) {
+		if (last >= 0) {
+		    die("More than one POOL_SIZE of -1");
+		}
+		last = ii;			/* remember this and we'll do it last */
+		continue;
+	    }
+d696 7
+@
+
+
+1.23
+log
+@Fixed compiler warnings if INCLUDE_XINU not set.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.22 1997/10/03 21:58:44 shepperd Exp shepperd $
+d552 4
+a555 4
+struct _reent mainline_reent;
+struct _reent interrupt_reent;
+struct _reent ast_reent;
+struct _reent action_reent;
+d557 1
+a557 1
+struct _reent qio_reent;
+d581 1
+a581 1
+struct _reent xinu_reent;
+d595 1
+a595 1
+    struct _reent *reent;
+d675 2
+a676 6
+	    spp->name = init->name;
+	    re = spp->reent = init->reent;
+	    if (ii == ACTION || ii == AST) {
+		spp->reent->_nextf[PROT] = (void*)1;	/* no need to protect this with prc_set_ipl */
+	    }
+	    re->_nextf[POOL] = (void *)spp;
+d682 5
+d694 9
+d715 3
+d722 1
+a722 1
+	reset_sbrk(spp->reent);
+d724 1
+a724 1
+    _impure_ptr = &mainline_reent;
+@
+
+
+1.22
+log
+@Made all pools dynamically adjustable. Now any single pool
+can extend from end of mem to stack. Replaced search for
+SbrkPool pointer with indirect reference from _nextf[POOL].
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.21 1997/09/27 00:37:00 shepperd Exp shepperd $
+a738 1
+    int ii;
+d742 5
+a746 2
+    ii = _xinu_free_pool_size(ptr);
+    if (ii >= 0) return ii;
+@
+
+
+1.21
+log
+@Renamed reent_init to malloc_init so it won't be called
+more than once.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.20 1997/09/23 20:07:07 shepperd Exp shepperd $
+d28 6
+a33 5
+ * a flag indicating we need not protect malloc functions with a prc_set_ipl()
+ * and the 4'th element contains the Xinu semaphore to use to protect these
+ * data structures. We keep both a busy and a free list so we can verify that
+ * the chain of either allocated or free'd memory has not been corrupted by
+ * an errant program.
+d38 3
+a40 2
+#define PROT 2		/* if .ne., don't protect malloc functions with prc_set_ipl */
+#define SEMA 3		/* if .ne., contains the Xinu semaphore to use to protect malloc calls */
+a76 2
+#if MALLOC_DEBUG
+
+d83 2
+d533 19
+d553 7
+d561 1
+a561 1
+# define JUNK_POOL_SIZE	(2*1024)
+a562 11
+#if JUNK_POOL_SIZE
+# if JUNK_POOL_SIZE > 0
+static U8 mainline_memory[JUNK_POOL_SIZE];
+#  define MAINLINE_MEM mainline_memory
+# else
+#  define MAINLINE_MEM 0
+extern U8 bss_end[];
+# endif
+#endif
+
+struct _reent interrupt_reent;
+d566 2
+a567 5
+#if INTERRUPT_POOL_SIZE > 0
+static U8 interrupt_memory[INTERRUPT_POOL_SIZE];
+# define INTERRUPT_MEM interrupt_memory
+#else
+# define INTERRUPT_MEM 0
+d569 2
+a570 9
+
+#if defined(QIO_POOL_SIZE)
+struct _reent qio_reent;
+# if QIO_POOL_SIZE
+static unsigned char qio_memory[QIO_POOL_SIZE];
+#  define QIO_MEM qio_memory
+# else
+#  define QIO_MEM 0
+# endif
+d572 2
+a573 9
+
+#if defined(AST_REENT_SIZE)
+struct _reent ast_reent;
+# if AST_REENT_SIZE
+static U8 ast_memory[AST_REENT_SIZE];
+#  define AST_MEM ast_memory
+# else
+#  define AST_MEM 0
+# endif
+d575 2
+a576 9
+
+#if defined(ACTION_REENT_SIZE)
+struct _reent action_reent;
+# if ACTION_REENT_SIZE
+static U8 action_memory[ACTION_REENT_SIZE];
+#  define ACTION_MEM action_memory
+# else
+#  define ACTION_MEM 0
+# endif
+a577 1
+
+a581 6
+# if XINU_POOL_SIZE
+static U8 xinu_memory[XINU_POOL_SIZE];
+#  define XINU_MEM xinu_memory
+# else
+#  define XINU_MEM 0
+# endif
+d584 7
+a590 7
+enum sbrk_name {	/* These are just for information purposes. It helps... */
+    MAINLINE,		/* ...if the values listed here are in the same order... */
+    INTERRUPT,		/* ...as the entries in the sbrk_init struct below. */
+    QIO,		/***** Make sure MAINLINE is first. *****/
+    ACTION,		/* If the order is not the same, not only are the names... */
+    AST,		/* ...useless, they will be rather misleading to the game... */
+    XINU		/* ...programmers observing the contents of the pools array */
+d593 1
+a593 1
+static const struct sbrk_init {
+d596 11
+a606 7
+    U8 *memory;
+    int size;
+} brk_init_val[] = {
+    { MAINLINE, &mainline_reent, MAINLINE_MEM, JUNK_POOL_SIZE },	/**** THIS MUST BE FIRST ****/
+    { INTERRUPT, &interrupt_reent, INTERRUPT_MEM, INTERRUPT_POOL_SIZE },
+#if defined(QIO_POOL_SIZE)
+    { QIO, &qio_reent, QIO_MEM, QIO_POOL_SIZE },
+d608 2
+a609 5
+#if defined(ACTION_REENT_SIZE)
+    { ACTION, &action_reent, ACTION_MEM, ACTION_REENT_SIZE },
+#endif
+#if defined(AST_REENT_SIZE)
+    { AST, &ast_reent, AST_MEM, AST_REENT_SIZE },
+a610 3
+#if defined(XINU_POOL_SIZE)
+    { XINU, &xinu_reent, XINU_MEM, XINU_POOL_SIZE },
+#endif
+d618 1
+d624 1
+a624 1
+static SbrkPool pools[n_elts(brk_init_val)-1];
+d627 4
+a630 2
+    SbrkPool *spp = pools;
+    int ii, oldps=0;
+d635 18
+a652 21
+    for (ii=0; ii < n_elts(pools); ++ii, ++spp) {
+	if (ptr == spp->reent) {
+	    memset(ptr, 0, sizeof(struct _reent));
+	    ptr->_stdin = &ptr->__sf[0];
+	    ptr->_stdout = &ptr->__sf[1];
+	    ptr->_stderr = &ptr->__sf[2];
+	    ptr->_next = 1;
+#if JUNK_POOL_SIZE < 0
+	    if (ii == 0 && brk_init_val[ii].size < 0) {
+		void *old;
+		spp->brk_value = spp->memory = bss_end;
+		spp->free_size = ((U8 *)&old - spp->brk_value) - 128*1024;
+	    } else
+#endif
+	    if (brk_init_val[ii].size > 0) {
+		spp->brk_value = spp->memory = brk_init_val[ii].memory;
+		spp->free_size = brk_init_val[ii].size;
+	    }	    
+	    spp->inited = 1;
+	    break;
+	}
+d662 48
+a709 7
+    int ii;
+    SbrkPool *spp = pools;
+    struct _reent *re;
+    for (ii=0; ii < n_elts(pools); ++ii, ++spp) {
+	re = spp->reent = brk_init_val[ii].reent;
+	spp->name = brk_init_val[ii].name;
+	reset_sbrk(re);
+a710 6
+#if defined(ACTION_REENT_SIZE)
+    *(int *)&action_reent._nextf[PROT] = 1;	/* no need to protect this with prc_set_ipl */
+#endif
+#if defined(AST_REENT_SIZE)
+    *(int *)&ast_reent._nextf[PROT] = 1;	/* no need to protect this with prc_set_ipl */
+#endif
+d719 1
+a719 2
+    int ii;
+    SbrkPool *spp = pools;
+d724 4
+a727 5
+    for (ii=0; ii < n_elts(pools); ++ii, ++spp) {
+	if (ptr == spp->reent) {	/* found one of ours */
+	    if (amt > spp->free_size || amt+spp->free_size < spp->free_size) {
+		break;
+	    }
+d740 1
+a740 1
+    SbrkPool *spp = pools;
+d746 3
+a748 4
+    for (ii=0; ii < n_elts(pools); ++ii, ++spp) {
+	if (ptr == spp->reent) {	/* found one of ours */
+	    return spp->free_size;
+	}
+@
+
+
+1.20
+log
+@Added some additional comments.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.19 1997/09/23 18:38:21 shepperd Exp shepperd $
+d677 1
+a677 1
+void reent_init(void) {
+@
+
+
+1.19
+log
+@Removed reference to __sinit().
+Uses ENOMEM instead of QIO_NOMEM as error message so qio.h
+doesn't need to be included. Made sbrk_reset clear the entire
+reent struct and reset the pointers.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.18 1997/09/23 18:12:55 forrest Exp shepperd $
+d601 4
+a604 4
+    QIO,		/* Otherwise, they are useless */
+    ACTION,
+    AST,
+    XINU
+d613 1
+a613 1
+    { MAINLINE, &mainline_reent, MAINLINE_MEM, JUNK_POOL_SIZE },
+@
+
+
+1.18
+log
+@Removed a conditional per dms.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.17 1997/09/23 00:35:32 shepperd Exp forrest $
+d13 1
+d15 1
+a639 1
+extern void __sinit(struct _reent *);
+d650 5
+a666 2
+	    ptr->_nextf[FREE] = 0;
+	    ptr->_nextf[BUSY] = 0;
+a684 5
+	__sinit(re);    
+	re->_stdin = &re->__sf[0];
+	re->_stdout = &re->__sf[1];
+	re->_stderr = &re->__sf[2];
+	re->_next = 1;
+d717 1
+a717 1
+    ptr->_errno = QIO_NOMEM;
+@
+
+
+1.17
+log
+@Added INCLUDE_XINU protections around xinu functions which
+I had forgotten to do earlier. Protect reference to bss_end
+if JUNK_POOL_SIZE is not negative.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.16 1997/09/23 00:07:31 shepperd Exp shepperd $
+a12 1
+#if QIO_POOL_SIZE
+a13 1
+#endif
+@
+
+
+1.16
+log
+@Added reents for mainline, interrupt, action, ast, qio and Xinu.
+Replaced sbrk functions to use a lookup table for which reent
+to handle.
+Selectively calls prc_set_ipl() or xi_wait()/xi_signal() if the
+appropriate bit is set in the _nextf[] array.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.15 1997/09/12 21:11:02 shepperd Exp shepperd $
+d645 1
+d647 1
+d651 1
+d656 3
+a658 1
+	    } else if (brk_init_val[ii].size > 0) {
+d669 1
+d671 1
+d764 1
+d769 1
+@
+
+
+1.15
+log
+@Added some additional support for xinu.
+Added a _heap_size_r() function.
+@
+text
+@d2 1
+a2 1
+ *	$Id: mallocr.c,v 1.14 1997/07/01 20:40:44 shepperd Exp shepperd $
+d12 1
+d26 7
+a32 4
+ * of which we use two. The 0'th element houses the head of the free list
+ * and the 1'st element houses the head of the busy list. We keep two lists
+ * so we can verify that the chain of either allocated or free'd memory
+ * has not been corrupted by an errant program.
+d35 4
+a38 3
+#define FREE 0
+#define BUSY 1
+#define CHUNK	8		/* 8 bytes per chunk */
+d40 2
+d44 2
+d96 1
+a96 1
+    int oldps;
+d101 1
+a101 1
+    oldps = prc_set_ipl(INTS_OFF);
+d115 1
+a115 1
+    prc_set_ipl(oldps);
+d133 1
+a133 1
+    int oldps;
+d137 1
+a137 1
+    oldps = prc_set_ipl(INTS_OFF);
+d150 1
+a150 1
+    prc_set_ipl(oldps);
+d166 1
+a166 1
+    int oldps, sts;
+d170 1
+a170 1
+    oldps = prc_set_ipl(INTS_OFF);
+d184 1
+a184 1
+    prc_set_ipl(oldps);
+d199 1
+a199 1
+    int oldps;
+d205 3
+d215 6
+a220 1
+    if (mremove(rep, BUSY, current)) return;	/* not on busy list */
+d225 1
+a225 1
+    oldps = prc_set_ipl(INTS_OFF);
+d254 1
+a254 1
+    prc_set_ipl(oldps);
+d260 3
+d306 1
+a306 1
+    int oldps;
+d308 3
+d318 6
+a323 1
+    if (size <= 0) return 0;		/* nothing to do */
+d326 1
+a326 1
+    oldps = prc_set_ipl(INTS_OFF);
+d334 4
+a337 1
+	prc_set_ipl(oldps);
+d339 3
+a341 1
+	if ((int)current == -1) return 0; /* there ain't anymore memory to get */
+d343 3
+d348 1
+a348 1
+	prc_set_ipl(oldps);
+d363 3
+d383 1
+a383 1
+    int		temp, oldps;
+d398 3
+d407 1
+a407 1
+	oldps = prc_set_ipl(INTS_OFF);
+d411 1
+a411 1
+	prc_set_ipl(oldps);
+d417 3
+d424 11
+a434 11
+        if (oldsize - newsize <= MEMPKT_CHUNKS) return pkt;
+	oldps = prc_set_ipl(INTS_OFF);
+	next = (MemPkt*)((char *)(current+1)+newsize*CHUNK);
+        oldsize -= newsize + MEMPKT_CHUNKS;	/* Calc trailing size */
+        next->size = oldsize;		/* Set trailing packet */
+	next->next = 0;			/* it is not part of a list */
+	FIXUP(rep, next, file, lineno, FLAGS_REALLOC); /* fixup both MemPkt's */
+        current->size = newsize;	/* Set new packet size*/
+	FIXUP(rep, current, file, lineno, FLAGS_REALLOC);
+	minsert(rep, FREE, next);	/* put fraction on free list */
+	prc_set_ipl(oldps);
+d436 6
+a441 2
+	validate_malloc_list(rep, FREE);
+	validate_malloc_list(rep, BUSY);
+d443 1
+a443 1
+        return (void *)pkt;		/* give back the old one */
+d448 1
+a448 1
+	oldps = prc_set_ipl(INTS_OFF);
+d465 1
+a465 1
+	    prc_set_ipl(oldps);			/* don't need interlock anymore */
+d469 4
+a472 1
+	    return (void *)pkt;		/* give 'em his old one back */
+d474 3
+a476 1
+	    prc_set_ipl(oldps);
+d478 3
+a480 3
+            if (!new) return 0;
+            memcpy((void *)new, pkt, oldsize*CHUNK - DEBUG_EXTRA );
+            guts_free_r(rep, pkt, file, lineno);
+d482 8
+a489 2
+	    validate_malloc_list(rep, FREE);
+	    validate_malloc_list(rep, BUSY);
+d491 2
+a492 1
+            return (void *)new;
+d495 1
+d505 3
+d510 3
+d530 2
+d533 1
+a533 1
+# define JUNK_POOL_SIZE	(64*1024)
+a534 1
+
+d537 2
+a538 1
+static U8 junk_memory[JUNK_POOL_SIZE];
+d540 1
+d542 43
+a584 4
+# endif			/* JUNK_POOL_SIZE > 0 */
+static U8 *junk_brk_value;
+static int junk_free_size;
+static int junk_inited;
+d586 7
+a592 5
+static void init_junk(void) {
+    if (!junk_inited) {
+# if JUNK_POOL_SIZE > 0
+	junk_brk_value = junk_memory;
+	junk_free_size = sizeof(junk_memory);
+d594 1
+a594 3
+	void *old;
+	junk_brk_value = bss_end;
+	junk_free_size = ((U8 *)&old - junk_brk_value) - 128*1024;
+d596 66
+a661 1
+	junk_inited = 1;
+d663 3
+d667 20
+d688 3
+d692 1
+a692 3
+#if QIO_POOL_SIZE
+extern struct _reent qio_reent;
+#endif
+d694 1
+a694 2
+#if JUNK_POOL_SIZE
+void *_junk_sbrk_r(struct _reent *ptr, size_t amt) {
+d696 16
+a711 11
+    int oldps;
+
+    init_junk();	/* make sure we have space */
+    oldps = prc_set_ipl(INTS_OFF);
+    if (amt > junk_free_size || junk_free_size+amt < junk_free_size) {
+	ptr->_errno = ENOMEM;
+	old = (void *)-1;
+    } else {
+	old = (void *)junk_brk_value;
+	junk_brk_value += amt;
+	junk_free_size -= amt;
+d713 2
+a714 2
+    prc_set_ipl(oldps);
+    return old;
+a715 1
+#endif
+d718 6
+a723 2
+#if QIO_POOL_SIZE
+    if (ptr == &qio_reent) return qio_get_pool_size(ptr);
+d725 4
+a728 6
+#if INCLUDE_XINU
+    {
+	int val;
+	extern int _xinu_free_pool_size(struct _reent *ptr);
+	val = _xinu_free_pool_size(ptr);
+	if (val >= 0) return val;
+a729 5
+#endif
+#if JUNK_POOL_SIZE
+    init_junk();
+    return junk_free_size;
+#else
+a730 1
+#endif
+d756 4
+a759 16
+    int oldps;
+    oldps = prc_set_ipl(INTS_OFF);
+#if QIO_POOL_SIZE
+    if (ptr == &qio_reent) {
+	qio_reset_free_pool(ptr);
+#else
+    if (0) {
+#endif
+#if INCLUDE_XINU
+    } else if (_xinu_malloc_reset(ptr))  {
+	do { ; } while (0);
+#endif
+#if JUNK_POOL_SIZE
+    } else {
+	junk_inited = 0;
+#endif
+a760 3
+    ptr->_nextf[FREE] = 0;
+    ptr->_nextf[BUSY] = 0;
+    prc_set_ipl(oldps);
+@
+
+
+1.14
+log
+@Added an $Id$ to comment fields to get file version numbers.
+@
+text
+@d2 1
+a2 1
+ *	$Id$
+d35 5
+d44 1
+a44 1
+# if XINU_POOL_SIZE
+d57 1
+a57 1
+# if XINU_POOL_SIZE
+d256 3
+d264 1
+a264 1
+#define FIXUP(v,w,x,y,z) fixup(v,w,x,y,z)
+d266 5
+a270 1
+#define FIXUP(v,w,x,y,z) do { ; } while (0)
+a493 3
+#if XINU_POOL_SIZE
+struct _reent xinu_reent;
+#endif
+a514 30
+#if XINU_POOL_SIZE
+struct _reent xinu_reent;
+static U8 xinu_memory[XINU_POOL_SIZE];
+static U8 *xinu_brk_value;
+static int xinu_free_size;
+static int xinu_inited;
+
+static void init_xinu(void) {
+    if (!xinu_inited) {
+	xinu_brk_value = xinu_memory;
+	xinu_free_size = sizeof(xinu_memory);
+	xinu_inited = 1;
+    }
+}
+
+void *_xinu_sbrk_r(struct _reent *ptr, size_t amt) {
+    void *old;
+
+    init_xinu();	/* make sure we have space */
+    if (amt > xinu_free_size || xinu_free_size+amt < xinu_free_size) {
+	ptr->_errno = ENOMEM;
+	return (void *)-1;
+    }
+    old = (void *)xinu_brk_value;
+    xinu_brk_value += amt;
+    xinu_free_size -= amt;
+    return old;
+}
+#endif
+
+d519 6
+a524 4
+#if XINU_POOL_SIZE
+    if (ptr == &xinu_reent) {
+	init_xinu();
+	return xinu_free_size;
+d535 2
+a536 2
+int _heap_remaining_r(struct _reent *rep) {
+    int amt, oldps;
+a538 2
+    if (!rep) return 0;
+    amt = _get_free_pool_size_r(rep);
+d547 8
+d566 3
+a568 3
+#if XINU_POOL_SIZE
+    } else if (ptr == &xinu_reent) {
+	xinu_inited = 0;
+@
+
+
+1.13
+log
+@Expanded scope of interrupt protection in junk_sbrk_r. We
+may want to also protect Xinu or other sbrk() functions.
+@
+text
+@d2 1
+a2 1
+ *	qio_memory.c
+@
+
+
+1.12
+log
+@Protected call to sbrk.
+@
+text
+@d492 1
+d495 5
+a499 1
+	return (void *)-1;
+a500 4
+    oldps = prc_set_ipl(INTS_OFF);
+    old = (void *)junk_brk_value;
+    junk_brk_value += amt;
+    junk_free_size -= amt;
+@
+
+
+1.11
+log
+@Protected inclusion of qio.h
+@
+text
+@d489 1
+d496 1
+d500 1
+@
+
+
+1.10
+log
+@Protected against QIO_POOL_SIZE being 0.
+@
+text
+@d12 1
+d14 1
+d479 1
+d481 1
+@
+
+
+1.9
+log
+@Need padding on memblk struct if using Xinu.
+@
+text
+@d529 1
+d531 1
+d565 1
+d568 3
+@
+
+
+1.8
+log
+@Added support for Xinu sbrk.
+@
+text
+@d39 1
+d52 1
+@
+
+
+1.7
+log
+@Corrected compile time error if JUNK_POOL_SIZE is 0.
+@
+text
+@d37 3
+d49 3
+d476 2
+a477 8
+
+int _get_free_pool_size_r(struct _reent *ptr) {
+    if (ptr == &qio_reent) return qio_get_pool_size(ptr);
+#if JUNK_POOL_SIZE
+    init_junk();
+    return junk_free_size;
+#else
+    return 0;
+a478 1
+}
+d496 46
+d563 4
+@
+
+
+1.6
+log
+@Fixed _junk_sbrk_r().
+@
+text
+@a452 1
+extern struct _reent qio_reent;
+d468 2
+@
+
+
+1.5
+log
+@Added reset_malloc() and heap_remaining() functions.
+Moved some primitives from phx_stubs.c to mallocr.c.
+@
+text
+@d483 2
+a488 1
+    init_junk();
+@
+
+
+1.4
+log
+@Fixed bugs in realloc code.
+@
+text
+@d12 1
+d16 1
+d439 94
+@
+
+
+1.3
+log
+@Fixed numerous problems. Now it actually works.
+@
+text
+@d380 1
+a380 1
+	if (next && (current->size + next->size + MEMPKT_CHUNKS >= newsize)) {
+d382 3
+a384 7
+	    if (current->size + next->size + MEMPKT_CHUNKS == newsize) {
+		current->size += next->size + MEMPKT_CHUNKS;
+	    } else {
+		oldsize = next->size;		/* how big this area is */
+		temp = newsize - current->size;	/* how much we're to move */
+		next = (MemPkt *)((char *)next + temp*CHUNK);
+		next->size = oldsize - temp;	/* reduce area's size */
+d387 3
+d391 2
+a392 2
+	    FIXUP(rep, current, file, lineno, FLAGS_REALLOC);	/* fixup new end marker */
+	    prc_set_ipl(oldps);
+@
+
+
+1.2
+log
+@Fixed realloc bugs. Added flags to MemPkt struct.
+@
+text
+@d11 1
+d70 1
+d75 1
+d89 1
+d107 1
+d111 1
+d124 1
+d140 1
+d144 1
+d151 9
+a159 5
+    if (!current) return 1;		/* didn't find it in the list */
+
+    *prev = ptr->next;			/* break the link */
+    ptr->next = 0;			/* forget where we were */
+    return 0;
+d173 1
+d191 1
+d220 1
+d262 1
+d274 1
+d282 1
+d287 2
+d290 2
+a291 2
+	if (oldsize - newsize > MEMPKT_CHUNKS) { /* if there is room for another MemPkt */
+	    current->size -= newsize+MEMPKT_CHUNKS; /* take new area from old place */
+d293 3
+a295 5
+	    next->size = newsize;
+	    FIXUP(rep, current, file, lineno, FLAGS_MALLOC);
+	    current = next;		/* this becomes the new current */
+	} else {
+	    mremove(rep, FREE, current);		/* take packet from free list */
+a297 1
+    minsert(rep, BUSY, current);		/* put it on the busy list */
+d299 4
+d320 1
+a320 1
+    int		temp;
+d341 1
+d345 1
+d355 3
+a357 2
+        if (oldsize - newsize < MEMPKT_CHUNKS) return pkt;
+        current->size = newsize;		/* Set new packet size*/
+a358 1
+	next = (MemPkt*)((char *)(current+1)+newsize*CHUNK);
+d360 1
+d362 1
+d365 1
+d375 1
+d381 1
+a381 1
+	    mremove(rep, FREE, next);		/* first pluck him off free list */
+d393 4
+d399 1
+d402 1
+a402 5
+#if !MALLOC_DEBUG
+            memcpy((void *)new, pkt, oldsize*CHUNK);
+#else
+            memcpy((void *)new, pkt, oldsize*CHUNK - sizeof(long) );
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d213 5
+a217 1
+static void fixup(struct _reent *rep, MemPkt *pkt, const char *file, int lineno) {
+d222 1
+d228 1
+a228 1
+#define FIXUP(w,x,y,z) fixup(w,x,y,z)
+d230 1
+a230 1
+#define FIXUP(w,x,y,z) do { ; } while (0)
+d273 1
+a273 1
+	    FIXUP(rep, current, file, lineno);
+d280 1
+a280 1
+    FIXUP(rep, current, file, lineno);
+d318 5
+a322 3
+	unsigned long *end;
+	end = (unsigned long *)((char *)(current+1) + current->size*CHUNK)-1;
+	if (current->magic != 0x12345678 || *end != 0x87654321) die("realloc region corrupt");
+d336 2
+a337 2
+	FIXUP(rep, next, file, lineno); /* fixup both MemPkt's */
+	FIXUP(rep, current, file, lineno);
+d346 1
+d359 1
+a359 1
+		next += temp;
+d361 2
+a362 2
+		FIXUP(rep, next, file, lineno);
+		minsert(rep, FREE, next);	/* put back on free list */
+d364 1
+a364 1
+	    FIXUP(rep, current, file, lineno);
+@

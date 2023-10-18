@@ -1,0 +1,1095 @@
+head	1.22;
+access;
+symbols
+	RUSH_ROCK_1_0:1.21
+	RUSH_ROCK_1_0epst:1.19
+	MACE_1_0e:1.18
+	MACE_1_0d:1.18
+	RUSH_1_06A:1.17
+	AREA_52_00:1.19
+	MACE_1_0a:1.18
+	CJ_206:1.15
+	CJ2_05:1.15
+	CJ2_04:1.13
+	CJ2_03:1.5;
+locks; strict;
+comment	@ * @;
+
+
+1.22
+date	97.10.09.23.26.20;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	97.10.06.17.21.49;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	97.10.03.22.00.45;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	97.07.01.22.40.48;	author albaugh;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.03.19.03.34.52;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.12.12.00.19.02;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.12.12.00.04.17;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.11.07.20.47.49;	author albaugh;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.11.04.21.23.12;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.09.17.01.47.03;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.07.16.02.23.18;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.07.11.21.58.35;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.12.10.00.03.18;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.12.09.19.10.41;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.12.08.00.27.20;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.12.07.23.41.58;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.12.07.00.54.48;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.10.20.22.33.23;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.07.28.01.58.59;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.02.23.16.52.41;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	94.12.16.21.39.40;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.07.18;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@"driver" for various RAM diagnostics
+@
+
+
+1.22
+log
+@Changed the way instructions are displayed during norm_test and
+custom_test. Added default values for custom test on PHX boards.
+@
+text
+@/*
+ * 	ram_test.c
+ *
+ *		Copyright 1991 through 1997 Atari Games, Corp.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id: ram_test.c,v 1.21 1997/10/06 17:21:49 shepperd Exp shepperd $";
+#endif
+#include <config.h>
+#include <string.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+
+#if HOST_BOARD_CLASS && ((HOST_BOARD_CLASS&HOST_BOARD) == PHOENIX)
+# define PHX 1
+#else
+# define PHX 0
+#endif
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+#define	STATIC	static
+
+#define CUSHION (0x200)
+#define GOOD_PAUSE (120)	/* frames, two seconds */
+#define BAD_PAUSE (360)		/* frames, six seconds */
+#define LOOP_CK_PAUSE (60)	/* pause for one-shot/loop check */
+
+#define	MSG_COL	13
+#define	MSG_ROW	12
+
+struct ramt {
+    struct menu_d	menu_desc;	/* _NOT_ a pointer */
+    struct rdb		rdesc;		/* also _NOT_ a pointer */
+    int			notes;		/* for slight customization */
+};
+
+STATIC void show_results
+PARMS((
+const struct rdb *rdp,
+const struct rrb *result,
+const struct ramt *smp,
+int passes,
+int errors
+));
+
+extern	char	end_static;
+
+#define NOTE_NOINT (1)
+#define NOTE_VIDINIT (2)
+#define NOTE_VIDCLR (4)
+#define NOTE_LOOPING (8)
+#define NOTE_NOVID (0x10)
+#define NOTE_QUICK (0x20)
+
+STATIC int norm_test
+PARMS((
+const struct menu_d *tst_mp
+));
+
+STATIC int custom_test
+PARMS((
+const struct menu_d *tst_mp
+));
+
+#if !NO_AUTO_TEST_MENU
+STATIC int auto_test
+PARMS((
+const struct menu_d *tst_mp
+));
+#endif
+
+/* The descriptors for RAM tests consist of generic menu stuff (label
+ * and routine) plus info for the particular test. These are now gotten
+ * from ram_desc.h to make it easier to "dif" ram_test.c from different
+ * games and see only relevant differences. Actually, ram_desc.h is
+ * included twice. The first time is to allow a particularly perverse
+ * hardware to "inject" new ram-test routines for use in its menu.
+ */
+#define SPECIAL_TESTS
+#include <ram_desc.h>
+#undef SPECIAL_TESTS
+
+extern int ROMTest();
+
+STATIC const struct ramt RAM_LIST[] =
+{
+    {
+	{"MEMORY TESTS", 0},
+	{ 0, 0, 0 },
+	0
+    },
+#include <ram_desc.h>
+#if !NO_ROM_TEST_MENU
+    {
+	{"\nROM TEST", ROMTest},
+	{ 0, 0, 0 },
+	0
+    },
+#endif
+    {
+	{ 0, 0 },
+	{ 0, 0, 0 },
+	0
+    }
+};
+
+STATIC int
+norm_test( parm_mp )
+const struct menu_d *parm_mp;
+{
+    const struct ramt *tst_mp = (struct ramt *)parm_mp;
+    struct rrb result;
+    const struct rdb *rdp;
+    struct rdb t_rdb;
+    char	*kp;
+    int		old_ipl = INTS_OFF;
+    int		errors= 0;
+    int		passes = 0;
+    int		status;
+    int		pause;
+    int		should_loop;
+    int		old_fields = 0;
+
+    rdp = &tst_mp->rdesc;
+
+    if ( rdp->rd_len == 0 ) {
+	/* special kluge for working RAM */
+	t_rdb = *rdp;
+	rdp = &t_rdb;
+	kp = (char *)rdp - CUSHION;
+#if !PHX
+	t_rdb.rd_len = kp - (char *)(rdp->rd_base);
+#else
+	t_rdb.rd_len = kp - (char *)prc_extend_bss(0);
+#endif
+#if PHX
+	t_rdb.rd_base = (U32 *)K0_TO_K1(prc_extend_bss(0));	/* test mem uncached */
+#elif ((PROCESSOR&PROCESSOR_CLASS) == MIPS3000)
+	t_rdb.rd_base = (U32 *)K0_TO_K1(t_rdb.rd_base);		/* test mem uncached */
+#elif HOST_BOARD == HCR4K || HOST_BOARD == MB4600
+	t_rdb.rd_base = (U32 *)((U32)t_rdb.rd_base-DRAM_BASE+DRAM_BASEnc); /* make addresses use uncached mem */
+#endif
+    }
+
+    should_loop = tst_mp->notes & NOTE_LOOPING;
+    show_results(rdp, (struct rrb *)0, tst_mp, passes,errors);
+    for ( pause = LOOP_CK_PAUSE ; pause >= 0 ; --pause ) {
+	/* if user _holds_ SW_ACTION, make this a looping test */
+	if ( (ctl_read_sw(0) & SW_ACTION) == 0 ) break;
+	prc_delay0();
+    }
+    if ( pause < 0 ) should_loop = 1;
+    if ( should_loop ) {
+	txt_str(-1,2,"(LOOPING)",GRY_PAL);
+	prc_delay(0);			/* make sure message shows up on Phoenix class boards */
+    }
+    while ( passes == 0 || should_loop ) {
+	txt_clr_wid(1, AN_VIS_ROW-3, AN_VIS_COL-2);	/* erase the exit instructions */
+	txt_clr_wid(1, AN_VIS_ROW-2, AN_VIS_COL-2);	/* erase the exit instructions */
+	prc_delay(0);			/* make sure it shows up on Phoenix class systems */
+	if ( tst_mp->notes & NOTE_NOVID ) {
+	    /* shut off semi-autonomous video and wait to take effect */
+	    old_fields = vid_fields(-1);
+	    if ( old_fields >= 0 ) prc_delay(old_fields);
+	}
+	if ( tst_mp->notes & NOTE_NOINT ) old_ipl = prc_set_ipl(INTS_OFF);
+	if ( tst_mp->notes & NOTE_QUICK ) {
+	    status = q_ram_test(rdp,&result);
+	} else {
+	    /* New C ram test combines bram_test with f_ram_test */
+	    status = f_ram_test(rdp,&result);
+	}
+	if ( tst_mp->notes & NOTE_NOINT ) prc_set_ipl(old_ipl);
+	if ( tst_mp->notes & NOTE_VIDINIT ) vid_init();
+	if ( tst_mp->notes & NOTE_NOVID ) vid_fields(old_fields);
+	if ( tst_mp->notes & (NOTE_VIDINIT|NOTE_VIDCLR) ) {
+	    vid_clear();
+	    setancolors();
+	}
+	pause = GOOD_PAUSE;
+	++passes;
+	if ( status ) {
+	    pause = BAD_PAUSE;
+	    show_results(rdp, &result, tst_mp, passes, ++errors);
+	} else show_results(rdp, (struct rrb *)0, tst_mp, passes,errors);
+	st_insn(AN_VIS_ROW-3, "To hold display,", t_msg_actionh, INSTR_PAL);
+	if ( should_loop ) {
+	    txt_str(-1,2,"(LOOPING)",GRY_PAL);
+	    txt_clr_wid(1, AN_VIS_ROW-2, AN_VIS_COL-2);	/* erase the exit instructions */
+	    st_insn(AN_VIS_ROW-2, "To stop looping,", t_msg_next, INSTR_PAL);
+	} else {
+	    ExitInst(INSTR_PAL);
+	}
+	/* intent of the following is to hold screen indefinitely if SW_ACTION
+	 * is held, then pause for GOOD_PAUSE frames and exit, or exit
+	 * immediately if NEXT is pressed.
+	 */
+	while ( pause ) {
+	    if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) {
+		pause = 1;
+		should_loop = 0;
+	    }
+	    if ( ctl_read_sw(0) & SW_ACTION ) ++pause;
+	    if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) pause = GOOD_PAUSE;
+	    prc_delay0();
+	    --pause;
+	}
+    }
+    txt_clr_wid(1, AN_VIS_ROW-3, AN_VIS_COL-2);	/* erase the exit instructions */
+    txt_clr_wid(1, AN_VIS_ROW-2, AN_VIS_COL-2);	/* erase the exit instructions */
+    return !!errors;
+}
+
+/*		Custom RAM test uses generic parameter entry to build
+ *	RAM descriptor, then runs test.
+ */
+
+/*		plist[] (below) describes the parameters we wish to
+ *	enter.
+ */
+#if defined(COLRAM_ADDR)
+# define DEFAULT_ADDR (COLRAM_ADDR)
+#else
+# define DEFAULT_ADDR 0
+#endif
+#if MINH_WATCH
+U32 *kluge_watch;
+#endif
+
+static const struct parm plist [] = {
+    /* Label		value		col/row	sigdig		curdig	*/
+    { "Base Address: ",	(U32)DEFAULT_ADDR, 4,3,	(HEX_FIELD|8),	0 	},
+#define PIDX_ADDR (0)
+    { "Length (Bytes)",	0x100,		4,5,	(HEX_FIELD|8),	0 	},
+#define PIDX_LEN (1)
+    { "IGNORE (MASK) ",	0,		4,7,	(HEX_FIELD|8),	0 	},
+#define PIDX_IGNORE (2)
+#if MINH_WATCH
+    { "WATCH (MINH) ",	0,		4,9,	(HEX_FIELD|8),	0 	},
+#define PIDX_WATCH (3)
+#endif
+    { 0,		0,		0,0,	0,		0 	}};
+
+#define NPARMS (sizeof (plist)/sizeof(plist[0]))
+
+/*		cramt_cb() is the "callback". That is, it is called by the
+ *	parameter entry code to validate changes to the parameters and
+ *	possibly copy them to the RAM descriptor.
+ */
+STATIC int
+cramt_cb(struct parm *pp, int idx,struct opaque *op)
+{
+    struct ramt *rtp = (struct ramt *)op;
+    unsigned long val;
+
+    val = pp->val;
+    switch ( idx ) {
+	case PIDX_ADDR :
+	    /* Validate Base address of area to test. Since our
+	     * test code can only test on longword boundaries, we
+	     * detect an attempt to increment or decrement and make
+	     * it by four...
+	     */
+	    if ( (val & 3) == 1 ) val += 3;
+	    else if ( (val & 3) == 3) val -= 3;
+	    pp->val = val;
+	    rtp->rdesc.rd_base = (U32 *)val;
+	    break;
+
+	case PIDX_LEN :
+	    /* Validate length of area to test. Again, force inc/dec to
+	     * be by four.
+	     */
+	    if ( (val & 3) == 1 ) val += 3;
+	    else if ( (val & 3) == 3) val -= 3;
+	    pp->val = val;
+	    rtp->rdesc.rd_len = val;
+	    break;
+
+	case PIDX_IGNORE :
+	    /* No validation needed for "bits to ignore"
+	     */
+	    rtp->rdesc.rd_misc = val ? ~val : val;
+	    break;
+
+#if MINH_WATCH
+	case PIDX_WATCH :
+	    /* Validate address to watch during test. Again, force inc/dec to
+	     * be by four.
+	     */
+	    if ( (val & 3) == 1 ) val += 3;
+	    else if ( (val & 3) == 3) val -= 3;
+	    pp->val = val;
+	    kluge_watch = (U32 *)val;
+	    break;
+#endif /* MINH_WATCH */
+    } /* end switch */
+    return 1;
+}
+
+STATIC
+int custom_test( parm_mp )
+const struct menu_d *parm_mp;
+{
+    struct parm work[NPARMS],*wp;
+    const struct parm *cwp;
+    struct ramt descrip;
+    int idx,status;
+
+    wp = work;
+    cwp = plist;
+    descrip = *(struct ramt *)parm_mp;
+
+    do {
+	*wp++ = *cwp++;
+    } while (wp[-1].label != 0);
+#if PHX
+    work[0].val = (U32)K0_TO_K1(prc_extend_bss(0));	/* init the custom address to non-destructive */
+    work[1].val = ((U8 *)work - prc_extend_bss(0) - 16384)&-256;
+#endif
+    for ( idx = 0 ; idx < NPARMS ; ++idx ) {
+	cramt_cb(work+idx,idx,(struct opaque *)&descrip);
+    }
+    while (1) {
+	txt_clr_wid(2, AN_VIS_ROW-3, AN_VIS_COL-4);
+	txt_clr_wid(2, AN_VIS_ROW-2, AN_VIS_COL-4);
+	st_insn(AN_VIS_ROW-3, "To start test,", t_msg_action, INSTR_PAL);
+	ExitInst(INSTR_PAL);
+	status = utl_enter(work,cramt_cb,(struct opaque *)&descrip);
+	if ( status & SW_NEXT ) break;
+	if ( status & SW_ACTION ) {
+	    /* do this test */
+	    txt_clr_wid(2, AN_VIS_ROW-3, AN_VIS_COL-4);
+	    txt_clr_wid(2, AN_VIS_ROW-2, AN_VIS_COL-4);
+	    prc_delay(0);
+	    status = norm_test((struct menu_d *)&descrip);
+	}
+    }
+#if MINH_WATCH
+    kluge_watch = 0;
+#endif
+    return 0;
+}
+
+STATIC void
+show_results(rdp, result, smp, passes, errors)
+const struct rdb *rdp;
+const struct rrb *result;
+const struct ramt *smp;
+int passes;
+int errors;
+{
+    m_int	tmp;
+    static const char	* const directionC = "FFBBFBFBF";
+    char dirbuf[3];
+    int		palette;
+
+    /* First section is used whether or not we had an error on this pass
+     */
+    if (errors) palette = RED_PALB;
+    else palette = GRN_PALB;
+
+    st_frame((const struct menu_d *)smp, palette, INSTR_PAL, 0);
+    ExitInst(INSTR_PAL);
+#ifdef DEBUG
+    txt_hexnum((AN_VIS_COL-27)/2,MSG_ROW-6,(U32)(rdp->rd_base),
+      8, RJ_ZF, MNORMAL_PAL);
+    txt_cstr(" ", MNORMAL_PAL);
+    txt_chexnum((U32)(rdp->rd_base)+rdp->rd_len-4,
+      8, RJ_ZF, MNORMAL_PAL);
+    txt_cstr(" ",MNORMAL_PAL);
+    txt_chexnum(smp->rdesc.rd_misc,8,RJ_ZF,MNORMAL_PAL);
+#endif
+    if ( errors ) txt_str(MSG_COL,MSG_ROW-4," ERRORS",palette);
+
+    txt_str(10,MSG_ROW-3," TEST COUNT:",WHT_PALB);
+    txt_cdecnum(passes,4,RJ_BF,WHT_PALB);
+    if ( passes ) {
+	txt_str(10,MSG_ROW-2,"ERROR COUNT:",palette);
+	txt_cdecnum(errors,4,RJ_BF,palette);
+    }
+    /* Second section only used when we have an error to report.
+     */
+    if ( result == 0 ) return;
+    
+    tmp = result->rr_test_no;
+    strcpy(dirbuf," X");
+    txt_str(MSG_COL,MSG_ROW,"TEST #  : ",palette);
+    txt_cdecnum(tmp,2,RJ_BF,WHT_PALB);
+    if ( tmp > 0 && tmp <= strlen(directionC) ) {
+	dirbuf[1] = directionC[tmp-1];
+	txt_cstr(dirbuf,WHT_PALB);
+    }
+    txt_str(MSG_COL,MSG_ROW+1,"ADDRESS : ",palette);
+    txt_chexnum((U32)result->rr_addr,8,RJ_ZF,WHT_PALB);
+    
+    txt_str(MSG_COL,MSG_ROW+2,"EXPECTED: ",palette);
+    txt_chexnum(result->rr_expected,8,RJ_ZF,WHT_PALB);
+    
+    txt_str(MSG_COL,MSG_ROW+3,"GOT     : ",palette);
+    txt_chexnum(result->rr_got,8,RJ_ZF,WHT_PALB);
+}
+
+/* The odd ordering below is to accomodate a bug in MRI C */
+
+int RAM_group PARMS((
+const struct ramt *smp		/* Selected Menu Pointer */
+));
+
+int
+RAM_group( smp )
+const struct ramt *smp;		/* Selected Menu Pointer */
+{
+    return st_menu((struct menu_d *)&RAM_LIST[0],sizeof(RAM_LIST[0]),MNORMAL_PAL,0);
+}
+
+#if !NO_AUTO_TEST_MENU
+/*		auto_test()
+ *	Runs through whole menu, testing each specified piece of RAM.
+ *	Any RAM which fails will be re-tested.
+ */
+
+STATIC int auto_test ( smp )
+const struct menu_d *smp;
+{
+    int status, errors;
+    const struct ramt *rtp;
+    const struct ramt *my_p = (const struct ramt *)smp;
+
+    rtp = RAM_LIST+1;
+    status = 1;
+    errors = 0;
+    while ( rtp->menu_desc.mn_label ) {
+	/* Do not run our own line, or any below it,
+	 * typically rom checksums or custom test.
+	 */
+	if ( rtp->menu_desc.mn_call == my_p->menu_desc.mn_call ) break;
+	if ( rtp->menu_desc.mn_label[0] == '?'
+	  || rtp->menu_desc.mn_call == custom_test ) {
+	    /* we want to skip the custom line,
+	     * and any "hidden" lines
+	     */
+	    ++rtp;
+	} else {
+	/* due to vestiges of 68K-based thinking, some hardwares _still_
+	 * map more than one physical chunk of RAM onto the same address.
+	 * because of this, we need to compare length and "bits" in addition
+	 * to base address.
+	 */
+	    if ( (rtp->rdesc.rd_base == rtp[1].rdesc.rd_base)
+	      && (rtp->rdesc.rd_len == rtp[1].rdesc.rd_len)
+	      && (rtp->rdesc.rd_misc == rtp[1].rdesc.rd_misc)) {
+		/* Same area mentioned twice. One is presumably
+		 * the "Quick" version. Whether we use it or
+		 * the other is controlled by the presence
+		 * or absence of "NOTE_QUICK" on our _own_
+		 * menu line.
+		 */
+		if ( (rtp->notes & NOTE_QUICK)
+		  != (my_p->notes & NOTE_QUICK) ) {
+		    ++rtp;
+		}
+	    }
+	    vid_clear();
+	    status = rtp->menu_desc.mn_call((const struct menu_d *)rtp);
+	    if ( !status ) {
+		/* success, next test */
+		if ( (rtp->rdesc.rd_base == rtp[1].rdesc.rd_base)
+		  && (rtp->rdesc.rd_len == rtp[1].rdesc.rd_len)
+		  && (rtp->rdesc.rd_misc == rtp[1].rdesc.rd_misc)) {
+		    /* we want to skip both of the pair */
+		    ++rtp;
+		}
+		++rtp;
+	    } else ++errors;
+	}
+	if ( rtp->menu_desc.mn_label == 0 ) {
+	    /* we have stepped to the last line. Let the user
+	     * choose to repeat or leave. But time out after 10 seconds
+	     */
+	    unsigned long ctls = 0;
+	    char err_buf[AN_VIS_COL_MAX+2];
+	    vid_clear();
+	    setancolors();
+	    st_frame(smp,TITLE_PAL,INSTR_PAL,0);
+	    if ( errors ) {
+		utl_cdec(errors,err_buf,6,LJ_NF);
+		strcat(err_buf," ERROR");
+		if ( errors > 1 ) strcat(err_buf,"S");
+		txt_str(-1,AN_VIS_ROW/2,err_buf, RED_PAL+AN_BIG_SET);
+	    } else {
+		txt_str(-1,AN_VIS_ROW/2,"NO ERRORS", GRN_PAL+AN_BIG_SET);
+	    }
+	    txt_str(-1,AN_VIS_ROW-5,t_msg_action,INSTR_PAL);
+	    txt_str(-1,AN_VIS_ROW-4,"TO REPEAT TEST",INSTR_PAL);
+	    while ( 1 ) {
+		ctls = ctl_read_sw(SW_NEXT|SW_ACTION);
+		if ( ctls & SW_NEXT ) return errors;
+		if ( ctls & SW_ACTION ) {
+		    rtp = RAM_LIST+1;
+		    break;
+		}
+		prc_delay0();
+	    }
+	    if ( rtp->menu_desc.mn_label ) continue;
+	}
+	if ( ctl_read_sw(0) & SW_NEXT ) break;
+    }
+    return errors;
+}
+#endif
+@
+
+
+1.21
+log
+@Renamed extend_bss to prc_extend_bss.
+@
+text
+@d10 1
+a10 1
+const char FILE_ID_NAME[] = "$Id: ram_test.c,v 1.20 1997/10/03 22:00:45 shepperd Exp shepperd $";
+d168 1
+d196 8
+a203 1
+	if ( should_loop ) txt_str(-1,2,"(LOOPING)",GRY_PAL);
+d219 2
+a319 1
+    ExitInst(INSTR_PAL);
+d327 4
+d335 4
+d343 3
+@
+
+
+1.20
+log
+@Removed reference to bss_end.
+@
+text
+@d10 1
+a10 1
+const char FILE_ID_NAME[] = "$Id: ram_test.c,v 1.19 1997/07/01 22:40:48 albaugh Exp shepperd $";
+d144 1
+a144 1
+	t_rdb.rd_len = kp - (char *)extend_bss(0);
+d147 1
+a147 1
+	t_rdb.rd_base = (U32 *)K0_TO_K1(extend_bss(0));		/* test mem uncached */
+@
+
+
+1.19
+log
+@Added RCS ID string
+@
+text
+@d2 1
+a2 1
+ *	ram_test.c
+d4 1
+a4 1
+ *		Copyright 1991 Atari Games.
+d10 1
+a10 1
+const char FILE_ID_NAME[] = "$Id$";
+d18 6
+d141 1
+d143 2
+a144 2
+#if (HOST_BOARD == LCR3K) || (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE) || (HOST_BOARD == VEGAS)
+	t_rdb.rd_base = (U32 *)((U32)t_rdb.rd_base|0x20000000);	/* test mem uncached */
+d146 5
+a150 1
+#if HOST_BOARD == HCR4K || HOST_BOARD == MB4600
+@
+
+
+1.18
+log
+@Fixed one more declaration of local array of size AN_VIS_COL.
+@
+text
+@d9 3
+@
+
+
+1.17
+log
+@Caused the exit instructions to appear and disappear only
+when it is possible to exit the test.
+@
+text
+@d15 7
+d458 1
+a458 1
+	    char err_buf[AN_VIS_COL+2];
+@
+
+
+1.16
+log
+@Added a prc_delay(0) after putting up the message "(LOOPING)"
+so it appears on the screen on Phoenix class systems before
+going away for what might be several minutes.
+@
+text
+@d147 2
+d333 1
+@
+
+
+1.15
+log
+@INTERIM RELEASE, for AREA-51 build on single-board R3K Cojag.
+Extends GOOD_PAUSE. Adds (if -DMINH_WATCH) special-case
+to custom_test.
+@
+text
+@d142 4
+a145 2
+    if ( should_loop ) txt_str(-1,2,"(LOOPING)",GRY_PAL);
+
+@
+
+
+1.14
+log
+@Added support and detection for SEATTLE and VEGAS host boards.
+@
+text
+@d18 1
+a18 1
+#define GOOD_PAUSE (60)		/* frames, one second */
+d201 4
+d213 4
+d260 12
+d298 1
+a298 1
+	if ( status & SW_NEXT ) return 0;
+d304 3
+@
+
+
+1.13
+log
+@Added conditionals around auto_test and ROMTest references so
+they could be excluded without the compiler complaining.
+@
+text
+@d126 1
+a126 1
+#if (HOST_BOARD == LCR3K) || (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+@
+
+
+1.12
+log
+@Moved some #defines and function prototypes before the #include of ram_desc
+so the custom tests can use them too.
+@
+text
+@d59 1
+d64 1
+d87 1
+d93 1
+d358 1
+d452 1
+@
+
+
+1.11
+log
+@Added PHOENIX, PHOENIX_AD and FLAGSTAFF board support.
+@
+text
+@d17 23
+a48 6
+struct ramt {
+    struct menu_d	menu_desc;	/* _NOT_ a pointer */
+    struct rdb		rdesc;		/* also _NOT_ a pointer */
+    int			notes;		/* for slight customization */
+};
+
+a95 17
+
+#define	MSG_COL	13
+#define	MSG_ROW	12
+
+STATIC void show_results
+PARMS((
+const struct rdb *rdp,
+const struct rrb *result,
+const struct ramt *smp,
+int passes,
+int errors
+));
+
+#define CUSHION (0x200)
+#define GOOD_PAUSE (60)		/* frames, one second */
+#define BAD_PAUSE (360)		/* frames, six seconds */
+#define LOOP_CK_PAUSE (60)	/* pause for one-shot/loop check */
+@
+
+
+1.10
+log
+@Replaced the COLRAM_ADDR param with a conditional so, if it
+isn't defined, it won't cause an error.
+@
+text
+@d122 1
+a122 1
+#if HOST_BOARD == LCR3K
+@
+
+
+1.9
+log
+@Added fix for WORKING RAM test on 3K and 4K hosts.
+Added a param (rdp) to show_results so it could show the
+actual addresses being tested rather than those spec'd in
+the menu table.
+@
+text
+@d192 5
+d199 1
+a199 1
+    { "Base Address: ",	(U32)COLRAM_ADDR, 4,3,	(HEX_FIELD|8),	0 	},
+@
+
+
+1.8
+log
+@fixed stupid typo that was probable cause of ALL RAM (QUICK)
+bug, runnig both tests.
+@
+text
+@d85 1
+d122 6
+d131 1
+a131 1
+    show_results((struct rrb *)0,tst_mp,passes,errors);
+d164 2
+a165 2
+	    show_results(&result,tst_mp,passes,++errors);
+	} else show_results((struct rrb *)0,tst_mp,passes,errors);
+d279 2
+a280 1
+show_results(result, smp, passes, errors)
+d298 1
+a298 1
+    txt_hexnum((AN_VIS_COL-27)/2,MSG_ROW-6,(U32)(smp->rdesc.rd_base),
+d301 1
+a301 1
+    txt_chexnum((U32)(smp->rdesc.rd_base)+smp->rdesc.rd_len-4,
+@
+
+
+1.7
+log
+@control "USE QUICK" in auto_test by notes, not #define, allowing
+both flavors in one menu. Use more detailed test for "same
+area", to allow overlapping regions ala ZTV. This probably
+still needs work.
+@
+text
+@d382 1
+a382 1
+		if ( (rtp[1].notes & NOTE_QUICK)
+@
+
+
+1.6
+log
+@changed old PRIVATE #define to STATIC.
+@
+text
+@a345 4
+#ifndef USE_QUICK
+#define USE_QUICK (1)
+#endif
+
+d360 1
+a360 1
+	if ( rtp == my_p ) break;
+d368 8
+a375 1
+	    if ( rtp->rdesc.rd_base == rtp[1].rdesc.rd_base ) {
+d378 3
+a380 1
+		 * the other is controlled by the #define USE_QUICK
+d382 2
+a383 8
+#if USE_QUICK
+		/* choice of tests, use quick */
+		if ( rtp[1].notes & NOTE_QUICK ) {
+		    ++rtp;
+		}
+#else
+		/* choice of tests, use slow */
+		if ( (rtp[1].notes & NOTE_QUICK) == 0 ) {
+a385 1
+#endif
+d391 3
+a393 1
+		if ( rtp->rdesc.rd_base == rtp[1].rdesc.rd_base ) {
+@
+
+
+1.5
+log
+@moved ROM test into this file.
+@
+text
+@d15 1
+a15 1
+#define	PRIVATE	static
+d32 1
+a32 1
+PRIVATE int norm_test
+d37 1
+a37 1
+PRIVATE int custom_test
+d42 1
+a42 1
+PRIVATE int auto_test
+d60 1
+a60 1
+PRIVATE const struct ramt RAM_LIST[] =
+d83 1
+a83 1
+PRIVATE void show_results
+d96 1
+a96 1
+PRIVATE int
+d201 1
+a201 1
+PRIVATE int
+d240 1
+a240 1
+PRIVATE
+d271 1
+a271 1
+PRIVATE void
+d350 1
+a350 1
+PRIVATE int auto_test ( smp )
+@
+
+
+1.4
+log
+@misc clean-up, reconciliation with Zoid Guts.
+Much remains.
+@
+text
+@d58 2
+d69 5
+d361 5
+a365 2
+	if ( rtp == my_p
+	  || rtp->menu_desc.mn_label[0] == '?'
+d367 1
+a367 1
+	    /* we want to skip our own line, the custom line,
+@
+
+
+1.3
+log
+@use explicit COLRAM_ADDR, instead of extern'd COLRAM to avoid difficulty
+with brain-dead gas68k
+@
+text
+@d48 5
+a52 1
+ * and routine) plus info for the particular test.
+d54 4
+d129 2
+a130 2
+	    old_fields = vid_fields(0);
+	    prc_delay(old_fields);
+d133 1
+a133 3
+	if ( rdp->rd_misc ) {
+	    status = bram_test(rdp->rd_base,rdp->rd_len,rdp->rd_misc,&result);
+	} else if ( tst_mp->notes & NOTE_QUICK ) {
+d136 1
+d227 1
+a227 1
+	    rtp->rdesc.rd_misc = val;
+d282 9
+a326 5
+void RAMGroup()
+{
+    RAM_group(&RAM_LIST[0]);
+}
+
+d354 6
+a359 2
+	if ( rtp == my_p || rtp->menu_desc.mn_label[0] == '?' ) {
+	    /* we want to skip our own line and any "hidden" lines */
+@
+
+
+1.2
+log
+@moved customization to ram_desc.h
+@
+text
+@d173 1
+a173 1
+    { "Base Address: ",	(U32)COLRAM,	4,3,	(HEX_FIELD|8),	0 	},
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d57 1
+a57 20
+    {
+	{"COLOR RAM", norm_test},
+	{ (U32 *)COLRAM, sizeof(COLRAM), 0 },
+	NOTE_VIDINIT
+    },
+    {
+	{"\nWORKING RAM", norm_test},
+	{ (U32 *)&end_static, 0, 0 },
+	NOTE_NOINT
+    },
+    {
+	{"?\nCUSTOM TEST (loop)", custom_test},
+	{ (U32 *)COLRAM, sizeof(COLRAM), 0 },
+	(NOTE_NOINT|NOTE_VIDINIT|NOTE_NOVID|NOTE_LOOPING)
+    },
+    {
+	{"\nALL RAM", auto_test},
+	{ 0, 0, 0 },
+	0
+    },
+@

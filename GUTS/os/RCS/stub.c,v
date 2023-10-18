@@ -1,0 +1,1462 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	95.07.21.01.39.16;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@ICELESS Stub code for the 68k
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/****************************************************************************
+
+		THIS SOFTWARE IS NOT COPYRIGHTED  
+   
+   HP offers the following for use in the public domain.  HP makes no
+   warranty with regard to the software or it's performance and the 
+   user accepts the software "AS IS" with all faults.
+
+   HP DISCLAIMS ANY WARRANTIES, EXPRESS OR IMPLIED, WITH REGARD
+   TO THIS SOFTWARE INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+****************************************************************************/
+
+/****************************************************************************
+ *  Header: remcom.c,v 1.34 91/03/09 12:29:49 glenne Exp $                   
+ *
+ *  Module name: remcom.c $  
+ *  Revision: 1.34 $
+ *  Date: 91/03/09 12:29:49 $
+ *  Contributor:     Lake Stevens Instrument Division$
+ *  
+ *  Description:     low level support for gdb debugger. $
+ *
+ *  Considerations:  only works on target hardware $
+ *
+ *  Written by:      Glenn Engel $
+ *  ModuleState:     Experimental $ 
+ *
+ *  NOTES:           See Below $
+ * 
+ *  To enable debugger support, two things need to happen.  One, a
+ *  call to set_debug_traps() is necessary in order to allow any breakpoints
+ *  or error conditions to be properly intercepted and reported to gdb.
+ *  Two, a breakpoint needs to be generated to begin communication.  This
+ *  is most easily accomplished by a call to breakpoint().  Breakpoint()
+ *  simulates a breakpoint by executing a trap #1. The breakpoint instruction
+ *  is hardwired to trap #1 because not to do so is a compatibility problem--
+ *  there either should be a standard breakpoint instruction, or the protocol
+ *  should be extended to provide some means to communicate which breakpoint
+ *  instruction is in use (or have the stub insert the breakpoint).
+ *  
+ *  Some explanation is probably necessary to explain how exceptions are
+ *  handled.  When an exception is encountered the 68000 pushes the current
+ *  program counter and status register onto the supervisor stack and then
+ *  transfers execution to a location specified in it's vector table.
+ *  The handlers for the exception vectors are hardwired to jmp to an address
+ *  given by the relation:  (exception - 256) * 6.  These are decending 
+ *  addresses starting from -6, -12, -18, ...  By allowing 6 bytes for
+ *  each entry, a jsr, jmp, bsr, ... can be used to enter the exception 
+ *  handler.  Using a jsr to handle an exception has an added benefit of
+ *  allowing a single handler to service several exceptions and use the
+ *  return address as the key differentiation.  The vector number can be
+ *  computed from the return address by [ exception = (addr + 1530) / 6 ].
+ *  The sole purpose of the routine _catchException is to compute the
+ *  exception number and push it on the stack in place of the return address.
+ *  The external function exceptionHandler() is
+ *  used to attach a specific handler to a specific m68k exception.
+ *  For 68020 machines, the ability to have a return address around just
+ *  so the vector can be determined is not necessary because the '020 pushes an
+ *  extra word onto the stack containing the vector offset
+ * 
+ *  Because gdb will sometimes write to the stack area to execute function
+ *  calls, this program cannot rely on using the supervisor stack so it
+ *  uses it's own stack area reserved in the int array remcomStack.  
+ * 
+ *************
+ *
+ *    The following gdb commands are supported:
+ * 
+ * command          function                               Return value
+ * 
+ *    g             return the value of the CPU registers  hex data or ENN
+ *    G             set the value of the CPU registers     OK or ENN
+ * 
+ *    mAA..AA,LLLL  Read LLLL bytes at address AA..AA      hex data or ENN
+ *    MAA..AA,LLLL: Write LLLL bytes at address AA.AA      OK or ENN
+ * 
+ *    c             Resume at current address              SNN   ( signal NN)
+ *    cAA..AA       Continue at address AA..AA             SNN
+ * 
+ *    s             Step one instruction                   SNN
+ *    sAA..AA       Step one instruction from AA..AA       SNN
+ * 
+ *    k             kill
+ *
+ *    ?             What was the last sigval ?             SNN   (signal NN)
+ * 
+ * All commands and responses are sent with a packet which includes a 
+ * checksum.  A packet consists of 
+ * 
+ * $<packet info>#<checksum>.
+ * 
+ * where
+ * <packet info> :: <characters representing the command or response>
+ * <checksum>    :: < two hex digits computed as modulo 256 sum of <packetinfo>>
+ * 
+ * When a packet is received, it is first acknowledged with either '+' or '-'.
+ * '+' indicates a successful transfer.  '-' indicates a failed transfer.
+ * 
+ * Example:
+ * 
+ * Host:                  Reply:
+ * $m0,10#2a               +$00010203040506070809101112131415#42
+ * 
+ ****************************************************************************/
+
+#if defined(PRINTF)
+#include <stdio.h>
+#endif
+
+#include <string.h>
+#include <setjmp.h>
+
+#if VIDEO_BOARD == COJAG
+#  if 0
+#    include <gutstype.h>
+#    include <rmbdefs.h>
+#    include <rmbproto.h>
+#  endif
+#  define NEED_CORP_DEFS
+#  include <config.h>
+#  if 0
+#     define SWITCHES ((volatile unsigned long *)0x0FFF17C00)	/* SWITCH ADDR	*/
+#     define J1_START 0x001000000	/* bit one will find start switch on */
+#     define J1_FIRE  0x002000000	/* bit one will find fire switch on */
+#  endif
+#endif
+
+#if 0
+extern void got_here(int);
+#define GOT_HERE(n) got_here(n)
+#else
+#define GOT_HERE(n)
+#endif
+
+#include "icelesspkt.h"
+#if 0
+#include "packet.h"
+#endif
+
+/* We keep a whole frame cache here.  "Why?", I hear you cry, "doesn't
+   GDB handle that sort of thing?"  Well, yes, I believe the only
+   reason for this cache is to save and restore floating point state
+   (fsave/frestore).  A cleaner way to do this would be to make the
+ fsave data part of the registers which GDB deals with like any
+   other registers.  This should not be a performance problem if the
+   ability to read individual registers is added to the protocol.  */
+
+typedef struct FrameStruct
+{
+    struct FrameStruct  *previous;
+    int       exceptionPC;      /* pc value when this frame created */
+    int       exceptionVector;  /* cpu vector causing exception     */
+    short     frameSize;        /* size of cpu frame in words       */
+    short     sr;               /* for 68000, this not always sr    */
+    int       pc;
+    short     format;
+    int       fsaveHeader;
+    int       morejunk[1];      /* exception frame, fp save... */
+} Frame;
+
+#define FRAMESIZE (512)
+#define STACKSIZE 1024
+
+/* there are 180 bytes of registers on a 68020 w/68881      */
+/* many of the fpa registers are 12 byte (96 bit) registers */
+
+#define NUMREGBYTES 180
+enum regnames {D0,D1,D2,D3,D4,D5,D6,D7, 
+               A0,A1,A2,A3,A4,A5,A6,A7, 
+               PS,PC,
+               FP0,FP1,FP2,FP3,FP4,FP5,FP6,FP7,
+               FPCONTROL,FPSTATUS,FPIADDR
+              };
+
+
+/************************************************************************
+ * Putting our buffers and stuff first in case GUTS steps on them
+ */
+int   remcomStack[STACKSIZE/sizeof(int)];
+int   gdbFrameStack[FRAMESIZE];
+
+/************************************************************************/
+/* BUFMAX defines the maximum number of characters in inbound/outbound buffers*/
+/* at least NUMREGBYTES*2 are needed for register packets */
+#define BUFMAX (512)
+       char  remcomInBuffer1[BUFMAX];
+       char  remcomInBuffer2[BUFMAX];
+       char  remcomOutBuffer[BUFMAX];
+
+int registers[NUMREGBYTES/4];
+
+static Frame *lastFrame;
+
+/************************************************************************
+ *
+ * external low-level support routines 
+ */
+typedef void (*ExceptionHook)(int);   /* pointer to function with int parm */
+typedef void (*Function)();           /* pointer to a function */
+
+extern Function exceptionHandler();   /* assign an exception handler */
+       ExceptionHook exceptionHook;  /* hook variable for errors/exceptions */
+
+extern void isprintf(char *, char *,...);
+
+/************************/
+/* FORWARD DECLARATIONS */
+/************************/
+static void initializeRemcomErrorFrame ();
+
+static int   robindex;
+static short error;
+static PktIOStruct outRemcomPkt;
+static PktIOStruct inpRemcomPkt1;
+static PktIOStruct inpRemcomPkt2;
+static char initialized;  /* boolean flag. != 0 means we've been initialized */
+
+int     remote_debug;
+/*  debug >  0 prints ill-formed commands in valid packets & checksum errors */ 
+
+static const char hexchars[]="0123456789abcdef";
+
+
+int superStack;
+
+static int *stackPtr; /* = remcomStack+STACKSIZE/sizeof(int); */
+
+/*
+ * In many cases, the system will want to continue exception processing
+ * when a continue command is given.  
+ * oldExceptionHook is a function to invoke in this case.
+ */
+
+static ExceptionHook oldExceptionHook;
+
+#ifdef mc68020
+/* the size of the exception stack on the 68020 varies with the type of
+ * exception.  The following table is the number of WORDS used
+ * for each exception format.
+ */
+const short exceptionSize[] = { 4,4,6,4,4,4,4,4,29,10,16,46,12,4,4,4 };
+#endif
+#if defined(__HAVE_68881__)
+#undef __HAVE_68881__
+#endif
+
+#if defined(__HAVE_68881__)
+#undef __HAVE_68881__
+#endif
+
+#ifdef mc68332
+static const short exceptionSize[] = { 4,4,6,4,4,4,4,4,4,4,4,4,16,4,4,4 };
+#endif
+
+/************* jump buffer used for setjmp/longjmp **************************/
+jmp_buf remcomEnv;
+
+/***************************  ASSEMBLY CODE MACROS *************************/
+/* 									   */
+
+#ifdef __HAVE_68881__
+/* do an fsave, then remember the address to begin a restore from */
+#define SAVE_FP_REGS()    asm(" fsave   a0@@-");		\
+			  asm(" fmovemx fp0-fp7,_registers+72");        \
+			  asm(" fmoveml fpcr/fpsr/fpi,_registers+168"); 
+#define RESTORE_FP_REGS()                              \
+asm("                                                \n\
+    fmoveml  _registers+168,fpcr/fpsr/fpi            \n\
+    fmovemx  _registers+72,fp0-fp7                   \n\
+    cmpl     #-1,a0@@     |  skip frestore flag set ? \n\
+    beq      skip_frestore                           \n\
+    frestore a0@@+                                    \n\
+skip_frestore:                                       \n\
+");
+
+#else
+#define SAVE_FP_REGS()
+#define RESTORE_FP_REGS()
+#endif /* __HAVE_68881__ */
+
+void return_to_super();
+void return_to_user();
+
+asm("
+.text
+.globl _return_to_super
+_return_to_super:
+        movel   _registers+60,sp /* get new stack pointer */        
+        movel   _lastFrame,a0   /* get last frame info  */              
+        bra     return_to_any
+
+.globl _return_to_user
+_return_to_user:
+        movel   _registers+60,a0 /* get usp */                          
+        movel   a0,usp           /* set usp */				
+        movel   _superStack,sp  /* get original stack pointer */        
+
+return_to_any:
+	move.l	#9, d0		/* prepare to enable and reset the cache */
+	movec	d0, cacr	/* enable but reset the cache */
+        movel   _lastFrame,a0   /* get last frame info  */              
+        movel   a0@@+,_lastFrame /* link in previous frame     */        
+        addql   #8,a0           /* skip over pc, vector#*/              
+        movew   a0@@+,d0         /* get # of words in cpu frame */       
+        addw    d0,a0           /* point to end of data        */       
+        addw    d0,a0           /* point to end of data        */       
+        movel   a0,a1                                                   
+#                                                                       
+# copy the stack frame                                                  
+        subql   #1,d0                                                   
+copyUserLoop:                                                               
+        movew   a1@@-,sp@@-                                               
+        dbf     d0,copyUserLoop                                             
+");                                                                     
+        RESTORE_FP_REGS()                                              
+   asm("   moveml  _registers,d0-d7/a0-a6");			        
+   asm("   rte");  /* pop and go! */                                    
+
+#define DISABLE_INTERRUPTS()   asm("         oriw   #0x0700,sr");
+#define BREAKPOINT() asm("   trap #1");
+
+/* this function is called immediately when a level 7 interrupt occurs */
+/* if the previous interrupt level was 7 then we're already servicing  */
+/* this interrupt and an rte is in order to return to the debugger.    */
+/* For the 68000, the offset for sr is 6 due to the jsr return address */
+
+#if 0
+asm("
+.text
+.globl __debug_level7
+__debug_level7:");
+
+#if 0
+asm("	movew   d0,sp@@-");
+#    ifdef mc68020
+asm("	movew   sp@@(2),d0");
+#    else
+asm("	movew   sp@@(6),d0");
+#    endif
+asm("	andiw   #0x700,d0
+	cmpiw   #0x700,d0
+	beq     _already7
+        movew   sp@@+,d0	
+        bra     __catchException
+_already7:
+	movew   sp@@+,d0");
+#    ifndef mc68020
+asm("	lea     sp@@(4),sp");     /* pull off 68000 return address */
+#    endif
+asm("	rte");
+
+#  else
+
+asm("
+	.globl	_text_start, _text_end
+	moveml   d0/a0,-(sp)	/* save a couple registers */
+|        movel	_xb, a0
+|	beq	10f
+|	movel	#XBUS_BASE+0x10, a0
+|10:	moveb	11(a0), d0
+|	andb	#2, d0
+|	bne	not_atten
+	movel	2+4(sp), d0	/* get PC at time of exception */
+	cmpl	#_text_start, d0	/* was it code outside of us? */
+	blt	do_level7	/* yep, do exception processing */
+	cmpl	#_text_end, d0
+	bgt	do_level7	/* yep, do exception processing */
+not_atten:
+	moveml	(sp)+, d0/a0	/* restore d0 */
+	rte			/* and dismiss the interrupt */
+	
+do_level7:
+	moveml	(sp)+, d0/a0	/* restore regs */
+	bra	__catchException /* process the exception normally */
+");
+#  endif
+#endif
+
+extern void _catchException ();
+
+#if defined(mc68020) || defined(MC68332)
+/* This function is called when a 68020 exception occurs.  It saves
+ * all the cpu and fpcp regs in the _registers array, creates a frame on a
+ * linked list of frames which has the cpu and fpcp stack frames needed
+ * to properly restore the context of these processors, and invokes
+ * an exception handler (remcom_handler).
+ *
+ * stack on entry:                       stack on exit:
+ *   +8 N bytes of junk                     +2 exception # MSWord
+ *   +6 Exception Format Word               +0 exception # MSWord
+ *   +4 Program counter LSWord              
+ *   +2 Program counter MSWord             
+ *   +0 Status Register                    
+ *                                       
+ *                                       
+ */
+asm(" 
+.text
+.globl __catchException
+__catchException:");
+DISABLE_INTERRUPTS();
+asm("
+        moveml  d0-d7/a0-a6,_registers /* save registers        */
+	movel	_lastFrame,a0	/* last frame pointer */
+");
+SAVE_FP_REGS();        
+asm("
+	lea     _registers,a5   /* get address of registers     */
+        movew   (sp),d1         /* get status register          */
+        movew   d1,66(a5)       /* save sr		 	*/	
+	movel   2(sp),a4        /* save pc in a4 for later use  */
+        movel   a4,68(a5)       /* save pc in _regisers[PC]   	*/
+#
+# figure out how many bytes in the stack frame
+	movew   6(sp),d0	/* get '020 exception format	*/
+        movew   d0,d2           /* make a copy of format word   */
+        andiw   #0xf000,d0      /* mask off format type         */
+        rolw    #5,d0           /* rotate into the low byte *2  */
+        lea     _exceptionSize,a1   
+        addw    d0,a1           /* index into the table         */
+	movew   (a1),d0         /* get number of words in frame */
+        movew   d0,d3           /* save it                      */
+        subw    d0,a0		/* adjust save pointer          */
+        subw    d0,a0		/* adjust save pointer(bytes)   */
+	movel   a0,a1           /* copy save pointer            */
+	subql   #1,d0           /* predecrement loop counter    */
+#
+# copy the frame
+saveFrameLoop:
+	movew  	(sp)+,(a1)+
+	dbf     d0,saveFrameLoop
+#
+# now that the stack has been clenaed,
+# save the a7 in use at time of exception
+        movel   sp,_superStack  /* save supervisor sp           */
+        andiw   #0x2000,d1      /* were we in supervisor mode ? */
+        beq     userMode       
+        movel   a7,60(a5)       /* save a7 in _registers[SP]    */
+        bra     a7saveDone
+userMode:  
+	movel   usp,a1    	
+        movel   a1,60(a5)       /* save user stack pointer	*/
+a7saveDone:
+#
+# save size of frame
+        movew   d3,-(a0)
+#
+# compute exception number
+	andl    #0xfff,d2   	/* mask off vector offset	*/
+	lsrw    #2,d2   	/* divide by 4 to get vect num	*/
+        movel   d2,-(a0)        /* save it                      */
+#
+# save pc causing exception
+        movel   a4,-(a0)
+#
+# save old frame link and set the new value
+	movel	_lastFrame,a1	/* last frame pointer */
+	movel   a1,-(a0)	/* save pointer to prev frame	*/
+        movel   a0,_lastFrame
+
+        movel   d2,-(sp)	/* push exception num           */
+	movel   _exceptionHook,a0  /* get address of handler */
+        jbsr    (a0)            /* and call it */
+        clrl    (sp)            /* replace exception num parm with frame ptr */
+        jbsr     __returnFromException   /* jbsr, but never returns */
+");
+#else /* mc68000 */
+/* This function is called when an exception occurs.  It translates the
+ * return address found on the stack into an exception vector # which
+ * is then handled by either handle_exception or a system handler.
+ * _catchException provides a front end for both.  
+ *
+ * stack on entry:                       stack on exit:
+ *   Program counter MSWord              exception # MSWord 
+ *   Program counter LSWord              exception # MSWord
+ *   Status Register                     
+ *   Return Address  MSWord              
+ *   Return Address  LSWord             
+ */
+asm("
+.text
+.globl __catchException
+__catchException:");
+DISABLE_INTERRUPTS();
+asm("
+        moveml d0-d7/a0-a6,_registers  /* save registers               */
+	movel	_lastFrame,a0	/* last frame pointer */
+");
+SAVE_FP_REGS();        
+asm("
+        lea     _registers,a5   /* get address of registers     */
+        movel   sp@@+,d2         /* pop return address           */
+	addl 	#1530,d2        /* convert return addr to 	*/
+	divs 	#6,d2   	/*  exception number		*/
+	extl    d2   
+
+        moveql  #3,d3           /* assume a three word frame     */
+
+        cmpiw   #3,d2           /* bus error or address error ? */
+        bgt     normal          /* if >3 then normal error      */
+        movel   sp@@+,a0@@-       /* copy error info to frame buff*/
+        movel   sp@@+,a0@@-       /* these are never used         */
+        moveql  #7,d3           /* this is a 7 word frame       */
+     
+normal:   
+	movew   sp@@+,d1         /* pop status register          */
+        movel   sp@@+,a4         /* pop program counter          */
+        movew   d1,a5@@(66)      /* save sr		 	*/	
+        movel   a4,a5@@(68)      /* save pc in _regisers[]      	*/
+        movel   a4,a0@@-         /* copy pc to frame buffer      */
+	movew   d1,a0@@-         /* copy sr to frame buffer      */
+
+        movel   sp,_superStack  /* save supervisor sp          */
+
+        andiw   #0x2000,d1      /* were we in supervisor mode ? */
+        beq     userMode       
+        movel   a7,a5@@(60)      /* save a7                  */
+        bra     saveDone             
+userMode:
+        movel   usp,a1    	/* save user stack pointer 	*/
+        movel   a1,a5@@(60)      /* save user stack pointer	*/
+saveDone:
+
+        movew   d3,a0@@-         /* push frame size in words     */
+        movel   d2,a0@@-         /* push vector number           */
+        movel   a4,a0@@-         /* push exception pc            */
+
+#
+# save old frame link and set the new value
+	movel	_lastFrame,a1	/* last frame pointer */
+	movel   a1,a0@@-		/* save pointer to prev frame	*/
+        movel   a0,_lastFrame
+
+        movel   d2,sp@@-		/* push exception num           */
+	movel   _exceptionHook,a0  /* get address of handler */
+        jbsr    a0@@             /* and call it */
+        clrl    sp@@             /* replace exception num parm with frame ptr */
+        jbsr     __returnFromException   /* jbsr, but never returns */
+");
+#endif
+
+
+/*
+ * remcomHandler is a front end for handle_exception.  It moves the
+ * stack pointer into an area reserved for debugger use in case the
+ * breakpoint happened in supervisor mode.
+ */
+asm("_remcomHandler:");
+asm("           addl    #4,sp");        /* pop off return address     */
+asm("           movel   sp@@+,d0");      /* get the exception number   */
+asm("		movel   _stackPtr,sp"); /* move to remcom stack area  */
+asm("		movel   d0,sp@@-");	/* push exception onto stack  */
+asm("		jbsr    _handle_exception");    /* this never returns */
+asm("           rts");                  /* return */
+
+void _returnFromException( Frame *frame )
+{
+    /* if no passed in frame, use the last one */
+    if (! frame)
+    {
+        frame = lastFrame;
+	frame->frameSize = 4;
+        frame->format = 0;
+        frame->fsaveHeader = -1; /* restore regs, but we dont have fsave info*/
+    }
+
+#if !defined(mc68020) && !defined(mc68332)
+    /* a 68000 cannot use the internal info pushed onto a bus error
+     * or address error frame when doing an RTE so don't put this info
+     * onto the stack or the stack will creep every time this happens.
+     */
+    frame->frameSize=3;
+#endif
+
+    /* throw away any frames in the list after this frame */
+    lastFrame = frame;
+
+    frame->sr = registers[(int) PS];
+    frame->pc = registers[(int) PC];
+
+    if (registers[(int) PS] & 0x2000)
+    { 
+        /* return to supervisor mode... */
+        return_to_super();
+    }
+    else
+    { /* return to user mode */
+        return_to_user();
+    }
+}
+
+int hex(ch)
+char ch;
+{
+  if ((ch >= 'a') && (ch <= 'f')) return (ch-'a'+10);
+  if ((ch >= '0') && (ch <= '9')) return (ch-'0');
+  if ((ch >= 'A') && (ch <= 'F')) return (ch-'A'+10);
+  return (-1);
+}
+
+#if !defined(BOARD)
+#define BOARD 0		/* look for gdb packet from board 0 */
+#endif
+
+/* scan for the sequence $<data>#<checksum>     */
+char *getpacket() {
+  char *buffer;
+  unsigned char checksum;
+  unsigned char xmitcsum;
+  int  ii;
+  int  count;
+  char ch, *start;
+  PktIOStruct *pkt;
+    
+  while (1) {
+    
+    while ((pkt = pktPoll(BOARD, PKT_CHK_THREAD, GDB_THREAD, GDB_THREAD)) == 0);	/* wait for anything on GDB thread */
+    if (pkt == &inpRemcomPkt1) {
+       pktQueRecv(&inpRemcomPkt2);   /* tell input routine we are ready to read */
+    } else {
+       pktQueRecv(&inpRemcomPkt1);   /* tell input routine we are ready to read */
+    }
+    ii = pkt->len;
+    buffer = pkt->buf;
+    
+    /* look for the start character, ignore all other characters */
+    count = 0;
+    
+    while ((ch = buffer[count]) != '$' && count < ii) ++count; 
+    if (count >= ii) continue;
+    
+    ++count;			/* eat the leading dollar sign */
+    start = buffer+count;	/* remember where the record starts */
+    checksum = 0;
+    xmitcsum = -1;
+    
+    /* now, read until a # or end of buffer is found */
+    while (count < ii && (ch=buffer[count]) != '#') {
+      checksum = checksum + ch;
+      count = count + 1;
+    }
+
+    if (ch != '#') continue;
+    if (count+3 > ii) continue;	/* short record, ignore it */
+    buffer[count++] = 0;	/* null terminate the input string */
+    xmitcsum = hex(buffer[count++]) << 4;
+    xmitcsum += hex(buffer[count]);
+#if defined(PRINTF)
+    if ((remote_debug ) && (checksum != xmitcsum)) {
+        fprintf (stderr,"bad checksum.  My count = 0x%x, sent=0x%x. buf=%s\n",
+						     checksum,xmitcsum,buffer);
+    }
+#endif
+      
+    if (checksum != xmitcsum) {
+       remcomOutBuffer[0] = '-';
+       outRemcomPkt.len = 1;
+       pktQueSend(&outRemcomPkt, 1);	/* send and wait for the packet to be delivered */
+       continue;
+    }
+    remcomOutBuffer[0] = '+';	/* assume success */
+    robindex = 1;		/* 1 byte in output buffer */
+    if (start[2] == ':') {	/* if a sequence char is present, reply the sequence ID */
+       remcomOutBuffer[robindex++] = *start++;
+       remcomOutBuffer[robindex++] = *start++;
+       ++start;			/* skip the ':' */
+    } 
+    ch = *start;
+    if (ch == 'd' || ch == 'M' || ch == 'c' || ch == 's' || ch == 'k') {
+       outRemcomPkt.len = robindex;
+       pktQueSend(&outRemcomPkt, 1); /* send an ACK and wait for the packet to be delivered */
+       robindex = 0;
+    }
+    return start;
+  } 
+}
+
+/* send the packet in buffer.  The host get's one chance to read it.  
+   This routine does not wait for a positive acknowledge.  */
+
+void putpacket() {
+   unsigned char checksum;
+   char ch, *src, *lim;
+
+   /*  $<packet info>#<checksum>. */
+   checksum = 0;
+   src = remcomOutBuffer;
+   lim = remcomOutBuffer+BUFMAX-3-1;
+   if (*src == '+') {		/* this is the ACK from the previous read */
+      ++src;			/* so don't checsum it */
+   }
+   if (*src == '$') {		/* need to checksum the record */
+      ++src;			/* don't checksum the '$' char */
+      while (src < lim && (ch = *src++) != 0) checksum += ch;
+      if (src >= lim) {
+	 if (remcomOutBuffer[0] == '+') {
+	    src = remcomOutBuffer+1;	/* go ahead and send the ACK */
+	 } else {
+	    return;		/* packet is too big, ignore it */
+	 }
+      } else {
+	 --src;			/* backup to null char */
+	 *src++ = '#';
+	 *src++ = hexchars[checksum >> 4];
+	 *src++ = hexchars[checksum & 15];
+      }
+   } else {
+      src += strlen(src);
+   }
+   outRemcomPkt.len = src-remcomOutBuffer;
+   pktQueSend(&outRemcomPkt, 1); /* send and wait for the packet to be delivered */
+   return;
+}
+
+static short error;
+
+void debug_error(format, parm)
+char * format;
+char * parm;
+{
+#if defined(PRINTF)
+  if (remote_debug) fprintf(stderr,format,parm);
+#endif
+}
+
+#if VIDEO_BOARD == COJAG
+static char *jerry_read(unsigned char *mem, char *buf, int amt) {
+   unsigned short *jerry;
+   unsigned long tmp, mask;
+   unsigned char uc;
+   int indx;
+
+   indx = (long)mem & 3;		/* clip input to longword boundary */
+   jerry = (unsigned short *)((long)mem & ~3);
+   if (indx) {				/* if arrived on an odd byte boundary */
+      tmp = jerry[0] << 16;
+      tmp |= jerry[1];
+      indx = 8*(3-indx);
+      mask = 0xFF << indx;
+      for ( ;amt && indx >= 0; indx -= 8, mask >>= 8, --amt) { /* copy bytes up to longword boundary */
+	 uc = tmp >> indx;		/* get byte we're interested in */
+	 *buf++ = hexchars[uc >> 4];
+	 *buf++ = hexchars[uc&15];
+      }
+   }
+   for (;amt&~3; amt -= 4) {		/* next, copy out longwords */
+       tmp = *jerry++;			/* high word */
+       *buf++ = hexchars[(tmp>>12)&15];
+       *buf++ = hexchars[(tmp>>8)&15];
+       *buf++ = hexchars[(tmp>>4)&15];
+       *buf++ = hexchars[tmp&15];
+       tmp = *jerry++;			/* low word */
+       *buf++ = hexchars[(tmp>>12)&15];
+       *buf++ = hexchars[(tmp>>8)&15];
+       *buf++ = hexchars[(tmp>>4)&15];
+       *buf++ = hexchars[tmp&15];
+   }
+   if (amt) {				/* next copy any left over bytes */
+      tmp = jerry[0] << 16;
+      tmp |= jerry[1];
+      mask = 0xFF000000;		/* init a mask byte */
+      indx = 24;
+      for (; amt && indx >= 0; --amt, indx -= 8, mask >>= 8) {
+	 uc = tmp >> indx;		/* get byte we're interested in */
+	 *buf++ = hexchars[(uc>>4)&15];
+	 *buf++ = hexchars[uc&15];
+      }
+   }
+   return buf;
+}
+
+static void romulator_write(unsigned char *buf, unsigned char *mem, int amt) {
+   unsigned long *lp, tmp, mask;
+   int indx;
+
+   indx = (long)mem & 3;
+   lp = (unsigned long *)((long)mem & ~3);
+   if (indx) {				/* if arrived on an odd byte boundary */
+      tmp = *lp;
+      indx = 8*(3-indx);
+      mask = 0xFF << indx;
+      for ( ;amt && indx >= 0; indx -= 8, mask >>= 8, --amt) { /* copy bytes up to longword boundary */
+	  tmp &= ~mask;			/* out with the old */
+	  tmp |= *buf++ << indx;	/* in with the new */
+      }
+      *lp++ = tmp;
+   }
+   for (;amt&~3; amt -= 4) {		/* then copy longwords */
+       tmp  = *buf++ << 24;
+       tmp |= *buf++ << 16;
+       tmp |= *buf++ << 8;
+       tmp |= *buf++;
+       *lp++ = tmp;
+   }
+   if (amt) {				/* next copy any left over bytes */
+      tmp = *lp;
+      mask = 0xFF000000;		/* init a mask byte */
+      indx = 24;
+      for (; amt && indx >= 0; --amt, indx -= 8, mask >>= 8) {
+	  tmp &= ~mask;			/* out with old */
+	  tmp |= *buf++ << indx;	/* in with the new */
+      }
+      *lp = tmp;
+   }
+   return;
+}
+
+static void jerry_write(unsigned char *buf, unsigned char *mem, int amt) {
+   unsigned short *jerry;
+   unsigned long tmp, mask;
+   int indx;
+
+   indx = (long)mem & 3;
+   jerry = (unsigned short *)((long)mem & ~3);
+   if (indx) {				/* if arrived on an odd byte boundary */
+      tmp = jerry[0] << 16;
+      tmp |= jerry[1];
+      indx = 8*(3-indx);
+      mask = 0xFF << indx;
+      for ( ;amt && indx >= 0; indx -= 8, mask >>= 8, --amt) { /* copy bytes up to longword boundary */
+	  tmp &= ~mask;			/* out with the old */
+	  tmp |= *buf++ << indx;	/* in with the new */
+      }
+      *jerry++ = tmp >> 16;
+      *jerry++ = tmp;
+   }
+   for (;amt&~3; amt -= 4) {		/* then copy longwords */
+       tmp  = *buf++ << 8;
+       tmp |= *buf++;
+       *jerry++ = tmp;
+       tmp |= *buf++ << 8;
+       tmp |= *buf++;
+       *jerry++ = tmp;
+   }
+   if (amt) {				/* next copy any left over bytes */
+      tmp = jerry[0] << 16;
+      tmp |= jerry[1];
+      mask = 0xFF000000;		/* init a mask byte */
+      indx = 24;
+      for (; amt && indx >= 0; --amt, indx -= 8, mask >>= 8) {
+	  tmp &= ~mask;			/* out with old */
+	  tmp |= *buf++ << indx;	/* in with the new */
+      }
+       *jerry++ = tmp >> 16;
+       *jerry++ = tmp;
+   }
+   return;
+}
+
+#define W_SPEC(func, start, end) func, (U32)((U32)(start)&0x00FFFFFF), (U32)((U32)(end)-1)&0x00FFFFFF
+
+typedef struct {
+   void (*func)(unsigned char *buf, unsigned char *mem, int amt);
+   U32 start;
+   U32 end;
+} MSpecials;
+
+const MSpecials m_specials[] = {
+   {W_SPEC(romulator_write, ROMULATOR_START, ROMULATOR_END)},
+#if VIDEO_BOARD == COJAG
+   {W_SPEC(romulator_write, &G_FLAGS, &G_RAM)},
+   {W_SPEC(jerry_write, &JPIT1, &D_ENDRAM)},
+#endif
+   {0, 0, 0}
+};
+
+/* convert the hex array pointed to by buf into binary to be placed in mem */
+/* return a pointer to the character AFTER the last byte written */
+unsigned char *hex2mem(unsigned char *buf, unsigned char *mem, int count) {
+      int jj;
+      unsigned char ch, *src, *dst;
+      unsigned long lim;
+      MSpecials const *ms;
+#if 0
+      char fred[132];
+#endif
+      
+      mem = (unsigned char *)((U32)mem & 0x00FFFFFF);
+      dst = src = buf;
+      for (jj=0; jj<count; ++jj) {
+	 ch = *src++;
+	 if ((ch >= 'a') && (ch <= 'f')) ch = ch-'a'+10;
+	 else if ((ch >= '0') && (ch <= '9')) ch = ch-'0';
+	 else if ((ch >= 'A') && (ch <= 'F')) ch = ch-'A'+10;
+	 else return 0;
+	 lim = ch << 4;
+	 ch = *src++;
+	 if ((ch >= 'a') && (ch <= 'f')) ch = ch-'a'+10;
+	 else if ((ch >= '0') && (ch <= '9')) ch = ch-'0';
+	 else if ((ch >= 'A') && (ch <= 'F')) ch = ch-'A'+10;
+	 else return 0;
+	 *dst++ = lim|ch;
+      }
+      while (count) {
+	 jj = count;			/* assume we're to transfer the whole amount */
+	 lim = (unsigned long)(mem + count-1)&0x00FFFFFF; /* compute high limit */
+	 for (ms=m_specials; ms->func; ++ms) {
+	    if (lim < ms->start || (U32)mem > ms->end) continue;
+	    break;
+	 }
+#if 0
+isprintf(fred, "      Aiming for %08lX to %08lX:%08lX using func %08lX\n", buf, mem, mem+jj, ms->func);
+outRemcomPkt.buf = fred;
+outRemcomPkt.len = strlen(fred);
+pktQueSend(&outRemcomPkt, 1); /* send and wait for the packet to be delivered */
+outRemcomPkt.buf = remcomOutBuffer;
+#endif
+	 if (ms->func) {
+	    if ((U32)mem < ms->start) {
+	       jj = ms->start - (U32)mem;		/* chop off some from the end */
+	    } else {
+	       if (lim > ms->end) {
+		  jj = lim - ms->end;			/* chop off some from the end */
+	       }
+	       ms->func(buf, mem, jj);	/* copy the bytes using the special move */
+#if 0
+isprintf(fred, "            moved %08lX to %08lX:%08lX using func %08lX\n", buf, mem, mem+jj, ms->func);
+outRemcomPkt.buf = fred;
+outRemcomPkt.len = strlen(fred);
+pktQueSend(&outRemcomPkt, 1); /* send and wait for the packet to be delivered */
+outRemcomPkt.buf = remcomOutBuffer;
+#endif
+	       buf += jj;		/* advance the pointers */
+	       mem += jj;
+	       count -= jj;
+	       continue;
+	    }
+	 }
+         memcpy(mem, buf, jj);
+#if 0
+isprintf(fred, "            moved %08lX to %08lX:%08lX using func %08lX\n", buf, mem, mem+jj, ms->func);
+outRemcomPkt.buf = fred;
+outRemcomPkt.len = strlen(fred);
+pktQueSend(&outRemcomPkt, 1); /* send and wait for the packet to be delivered */
+outRemcomPkt.buf = remcomOutBuffer;
+#endif
+         mem += jj;
+         buf += jj;
+	 count -= jj;
+      }
+      return(mem);
+}
+
+#else		/* +- if COJAG */
+
+unsigned char *hex2mem(unsigned char *buf, unsigned char *mem, int count) {
+      int jj;
+      unsigned char ch, *src;
+      unsigned long lim;
+      
+      src = buf;
+      for (jj=0; jj<count; ++jj) {
+	 ch = *src++;
+	 if ((ch >= 'a') && (ch <= 'f')) ch = ch-'a'+10;
+	 else if ((ch >= '0') && (ch <= '9')) ch = ch-'0';
+	 else if ((ch >= 'A') && (ch <= 'F')) ch = ch-'A'+10;
+	 else return 0;
+	 lim = ch << 4;
+	 ch = *src++;
+	 if ((ch >= 'a') && (ch <= 'f')) ch = ch-'a'+10;
+	 else if ((ch >= '0') && (ch <= '9')) ch = ch-'0';
+	 else if ((ch >= 'A') && (ch <= 'F')) ch = ch-'A'+10;
+	 else return 0;
+	 *mem++ = lim|ch;
+      }
+      return buf;
+}
+
+#endif		/* -- if COJAG */
+
+/* convert the memory pointed to by mem into hex, placing result in buf */
+/* return a pointer to the last char put in buf (null) */
+char* mem2hex(unsigned char *mem, char *buf, int count) {
+      unsigned char ch;
+      int len;
+#if VIDEO_BOARD == COJAG
+      U32 tmp, jstart, jend;
+      
+      jstart = (U32)&JPIT1 & 0x00FFFFFF;
+      jend   = (U32)&D_ENDRAM & 0x00FFFFFF;
+#endif
+      mem = (unsigned char *)((U32)mem & 0x00FFFFFF);
+      while ((len=count) > 0) {
+#if VIDEO_BOARD == COJAG
+	 tmp = (U32)mem;
+	 if (tmp+count > jstart && tmp < jend) {
+	    if (tmp < jstart) {
+	       len = jstart - tmp;
+	    } else {
+	       if (tmp+count > jend) {
+		  len = jend - tmp;
+	       }
+	       count -= len;
+	       buf = jerry_read(mem, buf, len);
+	       continue;
+	    }
+	 }
+#endif
+	 count -= len;
+	 while (len > 0) {
+	     ch = *mem++;
+	     *buf++ = hexchars[ch >> 4];
+	     *buf++ = hexchars[ch % 16];
+	     --len;
+	 }
+      }
+
+      *buf = 0; 
+      return buf;
+}
+
+/* a bus error has occurred, perform a longjmp
+   to return execution and allow handling of the error */
+
+void handle_buserror()
+{
+  longjmp(remcomEnv,1);
+}
+
+/* this function takes the 68000 exception number and attempts to 
+   translate this number into a unix compatible signal value */
+int computeSignal( exceptionVector )
+int exceptionVector;
+{
+  int sigval;
+  switch (exceptionVector) {
+    case 2 : sigval = 10; break; /* bus error           */
+    case 3 : sigval = 10; break; /* address error       */
+    case 4 : sigval = 4;  break; /* illegal instruction */
+    case 5 : sigval = 8;  break; /* zero divide         */
+    case 6 : sigval = 16; break; /* chk instruction     */
+    case 7 : sigval = 16; break; /* trapv instruction   */
+    case 8 : sigval = 11; break; /* privilege violation */
+    case 9 : sigval = 5;  break; /* trace trap          */
+    case 10: sigval = 4;  break; /* line 1010 emulator  */
+    case 11: sigval = 4;  break; /* line 1111 emulator  */
+    case 13: sigval = 8;  break; /* floating point err  */
+    case 31: sigval = 2;  break; /* interrupt           */
+    case 33: sigval = 5;  break; /* breakpoint          */
+    case 40: sigval = 8;  break; /* floating point err  */
+    case 48: sigval = 8;  break; /* floating point err  */
+    case 49: sigval = 8;  break; /* floating point err  */
+    case 50: sigval = 8;  break; /* zero divide         */
+    case 51: sigval = 8;  break; /* underflow           */
+    case 52: sigval = 8;  break; /* operand error       */
+    case 53: sigval = 8;  break; /* overflow            */
+    case 54: sigval = 8;  break; /* NAN                 */
+    default: 
+      sigval = 7;         /* "software generated"*/
+  }
+  return (sigval);
+}
+
+/**********************************************/
+/* WHILE WE FIND NICE HEX CHARS, BUILD AN INT */
+/* RETURN NUMBER OF CHARS PROCESSED           */
+/**********************************************/
+int hexToInt(unsigned char **ptr, int *intValue)
+{
+    int numChars = 0;
+    int hexValue;
+    
+    *intValue = 0;
+
+    while (**ptr)
+    {
+        hexValue = hex(**ptr);
+        if (hexValue >=0)
+        {
+            *intValue = (*intValue <<4) | hexValue;
+            numChars ++;
+        }
+        else
+            break;
+        
+        (*ptr)++;
+    }
+
+    return (numChars);
+}
+
+/*
+ * This function does all command procesing for interfacing to gdb.
+ */
+void handle_exception(int exceptionVector)
+{
+   int    sigval;
+   int    addr, length;
+   unsigned char *ptr;
+   static unsigned char *buf;
+   int    newPC;
+   Frame  *frame;
+  
+#if defined(PRINTF)
+  if (remote_debug) printf("vector=%d, sr=0x%x, pc=0x%x\n", 
+			    exceptionVector,
+			    registers[ PS ], 
+			    registers[ PC ]);
+#endif
+
+   sigval = computeSignal( exceptionVector ); /* reply to host that an exception has occurred */
+
+   robindex = 0;
+   remcomOutBuffer[robindex++] = '$';	/* all packets start with a $ */
+   remcomOutBuffer[robindex++] = 'S';
+   remcomOutBuffer[robindex++] =  hexchars[sigval >> 4];
+   remcomOutBuffer[robindex++] =  hexchars[sigval % 16];
+   remcomOutBuffer[robindex] = 0;	/* null terminate the message */
+
+   putpacket();			/* send the exception report */
+
+   while (1) { 
+      extern long ipl_get();
+      extern void ipl_set(long);
+
+      error = 0;
+      ipl_set((ipl_get()&~0x700)|(registers[PS]&0x700));
+      buf = getpacket();
+      GOT_HERE(4);
+      DISABLE_INTERRUPTS();
+
+      remcomOutBuffer[robindex++] = '$';		/* all replies start with a '$' */
+
+      switch (*buf) {
+	 case '?':	/* return the value of the last exception */
+	    remcomOutBuffer[robindex++] = 'S';
+	    remcomOutBuffer[robindex++] =  hexchars[sigval >> 4];
+	    remcomOutBuffer[robindex++] =  hexchars[sigval % 16];
+	    remcomOutBuffer[robindex++] = 0;
+	    break; 
+	 case 'd':
+	    remote_debug = !(remote_debug);  /* toggle debug flag */
+	    break; 
+	 case 'g':	 /* return the value of the CPU registers */
+	    buf = mem2hex((unsigned char*) registers, remcomOutBuffer+robindex, NUMREGBYTES);
+	    robindex = (char *)buf-remcomOutBuffer;
+	    break;
+	 case 'G' : /* set the value of the CPU registers - return OK */
+	    hex2mem(buf+1, (char*) registers, NUMREGBYTES);
+	    remcomOutBuffer[robindex++] = 'O';
+	    remcomOutBuffer[robindex++] = 'K';
+	    remcomOutBuffer[robindex]   = 0;
+	    break;
+
+	 case 'm': /* mAA..AA,LLLL  Read LLLL bytes at address AA..AA */
+	    if (setjmp(remcomEnv) == 0) {
+	       exceptionHandler(2,handle_buserror); 
+
+	       ptr = buf+1; 	/* TRY TO READ %x,%x.  IF SUCCEED, SET PTR = 0 */
+	       if (hexToInt(&ptr,&addr)) {
+		  if (*(ptr++) == ',') {
+		     if (hexToInt(&ptr,&length)) {
+			ptr = 0;
+			buf = mem2hex((char*) addr, remcomOutBuffer+robindex, length);
+			robindex = (char *)buf-remcomOutBuffer;
+		     }
+		  }
+	       }
+	       if (ptr) {
+		  strcpy(remcomOutBuffer+robindex,"E01");
+		  robindex += 3;
+		  debug_error("malformed read memory command: %s",buf);
+	       }     
+	    } else {
+	       exceptionHandler(2,_catchException);   
+	       strcpy(remcomOutBuffer+robindex,"E03");
+	       robindex += 3;
+	       debug_error("bus error");
+	    }     
+
+	    exceptionHandler(2,_catchException);   /* restore handler for bus error */
+	    break;
+
+	 case 'M': /* MAA..AA,LLLL: Write LLLL bytes at address AA.AA return OK */
+	    if (setjmp(remcomEnv) == 0) {
+	       exceptionHandler(2,handle_buserror); 
+	       ptr = buf+1;	/* TRY TO READ '%x,%x:'.  IF SUCCEED, SET PTR = 0 */
+	       if (hexToInt(&ptr,&addr)) {
+		  if (*(ptr++) == ',') {
+		     if (hexToInt(&ptr,&length)) {
+			if (*(ptr++) == ':') {
+			   hex2mem(ptr, (unsigned char *)addr, length);
+			   ptr = 0;
+			   remcomOutBuffer[robindex++] = 'O';
+			   remcomOutBuffer[robindex++] = 'K';
+			   remcomOutBuffer[robindex]   = 0;
+			}
+		     }
+		  }
+	       }
+	       if (ptr) {
+		  strcpy(remcomOutBuffer,"E02");
+		  robindex += 3;
+		  debug_error("malformed write memory command: %s",buf);
+	       }     
+	    } else {
+	       exceptionHandler(2,_catchException);   
+	       strcpy(remcomOutBuffer,"E03");
+	       robindex += 3;
+	       debug_error("bus error");
+	    }     
+
+	    exceptionHandler(2,_catchException);   /* restore handler for bus error */
+	    break;
+
+	 /* cAA..AA    Continue at address AA..AA(optional) */
+	 /* sAA..AA   Step one instruction from AA..AA(optional) */
+	 case 'c' : 
+	 case 's' : 
+	    ptr = buf+1; /* try to read optional parameter, pc unchanged if no parm */
+	    if (hexToInt(&ptr,&addr)) registers[ PC ] = addr;
+
+	    newPC = registers[ PC];
+
+	    registers[ PS ] &= 0x7fff;    	/* clear the trace bit */
+
+	    if (*buf == 's') registers[ PS ] |= 0x8000;    /* set the trace bit if we're stepping */
+
+	    /*
+	     * look for newPC in the linked list of exception frames.
+	     * if it is found, use the old frame it.  otherwise,
+	     * fake up a dummy frame in returnFromException().
+	     */
+#if defined(PRINTF)
+	    if (remote_debug) printf("new pc = 0x%x\n",newPC);
+#endif
+	    frame = lastFrame;
+	    while (frame) {
+#if defined(PRINTF)
+	       if (remote_debug) printf("frame at 0x%x has pc=0x%x, except#=%d\n",
+				    frame,frame->exceptionPC,
+				    frame->exceptionVector);
+#endif
+	       if (frame->exceptionPC == newPC) break;  /* bingo! a match */
+	       /*
+		* for a breakpoint instruction, the saved pc may
+		* be off by two due to re-executing the instruction
+		* replaced by the trap instruction.  Check for this.
+		*/
+	       if ((frame->exceptionVector == 33) &&
+			   (frame->exceptionPC == (newPC+2))) break;
+	       if (frame == frame->previous) {
+		  frame = 0; /* no match found */ 
+		  break; 
+	       }
+	       frame = frame->previous;
+	    }
+
+	 /*
+	  * If we found a match for the PC AND we are not returning
+	  * as a result of a breakpoint (33),
+	  * trace exception (9), nmi (31), jmp to
+	  * the old exception handler as if this code never ran.
+	  */
+	    if (frame) {
+	       if ((frame->exceptionVector != 9)  && 
+		   (frame->exceptionVector != 31) &&
+		   (frame->exceptionVector != 33)) { 
+	 /*
+	  * invoke the previous handler.
+	  */
+		  if (oldExceptionHook) {
+		     (*oldExceptionHook) (frame->exceptionVector);
+		  }
+		  newPC = registers[ PC ];    /* pc may have changed  */
+		  if (newPC != frame->exceptionPC) {
+ #if defined(PRINTF)
+		     if (remote_debug) printf("frame at 0x%x has pc=0x%x, except#=%d\n",
+						frame,frame->exceptionPC,
+						frame->exceptionVector);
+ #endif
+	 /* re-use the last frame, we're skipping it (longjump?)*/
+		     frame = (Frame *) 0;
+		     _returnFromException( frame );  /* this is a jump */
+		  }
+	       }
+	    }
+
+	    if (frame == 0) {	/* if we couldn't find a frame, create one */
+	       frame = lastFrame -1 ;
+
+		 /* by using a bunch of print commands with breakpoints,
+		    it's possible for the frame stack to creep down.  If it creeps
+		    too far, give up and reset it to the top.  Normal use should
+		    not see this happen.
+		 */
+	       if ((unsigned int) (frame-2) < (unsigned int) &gdbFrameStack) {
+		  initializeRemcomErrorFrame();
+		  frame = lastFrame; 
+	       }
+	       frame->previous = lastFrame;
+	       lastFrame = frame;
+	       frame = 0;  /* null so _return... will properly initialize it */ 
+	    }    
+
+	    _returnFromException( frame ); 	/* this is a jump */
+	    break;
+
+	 case 'k':		/* kill the program */
+	    break;		/* do nothing */
+      } 			/* -- switch */ 
+    
+      if (robindex > 0) { 	/* ++ if anything to send */
+	 putpacket();
+      }				/* -- stuff to send */
+   }				/* -- while(1) */
+}				/* -- putpacket */
+
+void
+initializeRemcomErrorFrame()
+{
+    lastFrame = ((Frame *) &gdbFrameStack[FRAMESIZE-1]) - 1;
+    lastFrame->previous = lastFrame;
+}
+
+/* this function is used to set up exception handlers for tracing and 
+   breakpoints */
+void set_debug_traps()
+{
+#if 0
+extern void _debug_level7();
+#else
+extern void level7int();
+#endif
+extern void remcomHandler();
+
+int exception;
+
+  initializeRemcomErrorFrame();
+
+  pktInit();			/* init the packet switch */
+
+  outRemcomPkt.buf = remcomOutBuffer;
+  outRemcomPkt.to = GDB_CHANNEL;
+  outRemcomPkt.tothread = GDB_CHANNEL;
+  outRemcomPkt.from = GDB_CHANNEL;
+  outRemcomPkt.frmthread = GDB_CHANNEL;
+  outRemcomPkt.size = BUFMAX;
+  
+  inpRemcomPkt1.buf = remcomInBuffer1;
+  inpRemcomPkt1.size = sizeof(remcomInBuffer1);
+  inpRemcomPkt1.to = GDB_CHANNEL;
+  inpRemcomPkt1.tothread = GDB_CHANNEL;
+  inpRemcomPkt1.from = GDB_CHANNEL;
+  inpRemcomPkt1.frmthread = GDB_CHANNEL;
+  inpRemcomPkt1.size = BUFMAX;
+  inpRemcomPkt1.next = 0;
+
+  inpRemcomPkt2.buf = remcomInBuffer2;
+  inpRemcomPkt2.size = sizeof(remcomInBuffer2);
+  inpRemcomPkt2.to = GDB_CHANNEL;
+  inpRemcomPkt2.tothread = GDB_CHANNEL;
+  inpRemcomPkt2.from = GDB_CHANNEL;
+  inpRemcomPkt2.frmthread = GDB_CHANNEL;
+  inpRemcomPkt2.size = BUFMAX;
+  inpRemcomPkt2.next = 0;
+
+  pktQueRecv(&inpRemcomPkt1);		/* tell input routine we are ready to read */
+
+  stackPtr  = remcomStack+(sizeof(remcomStack)/4)-1;
+
+  WDOG = 0;
+
+#if 1
+  for (exception = 2; exception <= 23; exception++)
+      exceptionHandler(exception,_catchException);   
+
+  /* level 7 interrupt              */
+#if 0
+  exceptionHandler(31,_debug_level7);    
+#else
+  exceptionHandler(31,level7int);    
+#endif  
+
+  /* breakpoint exception (trap #1) */
+  exceptionHandler(33,_catchException);
+  
+  /* This is a trap #8 instruction.  Apparently it is someone's software
+     convention for some sort of SIGFPE condition.  Whose?  How many
+     people are being screwed by having this code the way it is?
+     Is there a clean solution?  */
+  exceptionHandler(40,_catchException);
+  
+  /* 48 to 54 are floating point coprocessor errors */
+  for (exception = 48; exception <= 54; exception++)
+      exceptionHandler(exception,_catchException);   
+
+  if (oldExceptionHook != remcomHandler)
+  {
+      oldExceptionHook = exceptionHook;
+      exceptionHook    = remcomHandler;
+  }
+#endif
+  
+  initialized = 1;
+
+}
+
+/* This function will generate a breakpoint exception.  It is used at the
+   beginning of a program to sync up with a debugger and can be used
+   otherwise as a quick means to stop program execution and "break" into
+   the debugger. */
+   
+void breakpoint()
+{
+  if (initialized) BREAKPOINT();
+}
+
+extern char text_start[], text_end[], date[], bss_start[], bss_end[];
+extern char vector_table[];
+#if VIDEO_BOARD == COJAG
+long init_switch;
+#endif
+
+void setup_only() {
+   set_debug_traps();
+   return;
+}
+
+#if VIDEO_BOARD == COJAG
+extern struct {
+   unsigned short jmp;
+   unsigned long addr;
+} GUTS_ENTRY[];
+#endif
+
+#if 0 && VIDEO_BOARD == ZOID10
+void main() {
+
+   set_debug_traps();
+
+   while (1) {
+      breakpoint();
+   }
+}
+#endif
+@

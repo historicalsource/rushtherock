@@ -1,0 +1,65 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	97.06.25.19.55.17;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@
+.if ndf, _NSS_WB_MAC_
+_NSS_WB_MAC_ == 0
+;
+.if ndf, WB_BASE
+  .error ;You need to define WB_BASE before using nss_wb.mac
+.endc
+;
+	HEX_CONST WB_ADR	WB_BASE+0x00	< Address Register >
+	HEX_CONST WB_INT	WB_BASE+0x04	< Interrupt Register >
+	HEX_CONST WB_LED	WB_BASE+0x08	< LED Register >
+	HEX_CONST WB_AUX	WB_BASE+0x0C	< Wheel Driver Register >
+	HEX_CONST WB_A2D	WB_BASE+0x10	< A to D Converter >
+	HEX_CONST WB_ETH	WB_BASE+0x14	< Ethernet Controller >
+	HEX_CONST WB_NSS	WB_BASE+0x18	< NSS Board >
+	HEX_CONST WB_RST	WB_BASE+0x1C	< Reset Register >
+;
+;	Interrupt register bit assignments
+;
+	HEX_CONST B_WBINT_A2D	0		< Bit 0 -- A/D Interrupt >
+	HEX_CONST B_WBINT_NSS	1		< Bit 1 -- NSS Interrupt >
+	HEX_CONST B_WBINT_ETH	2		< Bit 2 -- ETH Interrupt >
+;
+;	Interrupt register mask assignments
+;
+	HEX_CONST M_WBINT_A2D	1<<B_WBINT_A2D	< Bit 0 -- A/D Interrupt >
+	HEX_CONST M_WBINT_NSS	1<<B_WBINT_NSS	< Bit 1 -- NSS Interrupt >
+	HEX_CONST M_WBINT_ETH	1<<B_WBINT_ETH	< Bit 2 -- ETH Interrupt >
+;
+;	Reset register bit assignments
+;
+	HEX_CONST B_WBRST_AUX	0		< Bit 0 -- A/D Reset >
+	HEX_CONST B_WBRST_NSS	1		< Bit 1 -- NSS Reset >
+	HEX_CONST B_WBRST_ETH	2		< Bit 2 -- ETH Reset >
+;
+;	Reset register mask assignments
+;
+	HEX_CONST M_WBRST_AUX	1<<M_WBRST_AUX	< Bit 0 -- A/D Reset >
+	HEX_CONST M_WBRST_NSS	1<<M_WBRST_NSS	< Bit 1 -- NSS Reset >
+	HEX_CONST M_WBRST_ETH	1<<M_WBRST_ETH	< Bit 2 -- ETH Reset >
+;
+.endc 		;_NSS_WB_MAC_
+@

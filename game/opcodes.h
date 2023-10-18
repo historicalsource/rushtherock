@@ -1,0 +1,7 @@
+#define PTYPE	0x88000000
+#define BCOL	0x89000000
+#define ACOL	0x8A000000
+#define PY		0x80000000
+#define PLH		0x81000000
+#define PRH		0x82000000
+#define PLX		0x83000000

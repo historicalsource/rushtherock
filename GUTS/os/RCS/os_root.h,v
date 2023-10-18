@@ -1,0 +1,94 @@
+head	1.3;
+access;
+symbols
+	CJ_206:1.3
+	CJ2_05:1.3
+	CJ2_04:1.3;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	96.03.19.20.07.24;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.12.04.18.34.04;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.12.03.02.04.07;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Prototypes for the functions in os_rootr4k.mac
+@
+
+
+1.3
+log
+@Protected several MIPS4K declarations with #ifdef's,
+to allow use with R3K
+@
+text
+@#if !defined(_OS_ROOTR4K_H_)
+#define _OS_ROOTR4K_H_ 1
+
+#include <config.h>
+
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == MB4600)
+extern void begin(void);
+extern void lcl_set_latch(U32 new);
+extern void normal_exception(void);
+extern void returnToUser(U32 *regs);
+extern unsigned long prc_get_im(void);
+extern void wait_n_usecs(int);
+extern unsigned int prc_set_led(int);
+extern void diag_serial_out(int);
+extern void diag_serial_str(const char *);
+extern void diag_serial_hex(U32);
+extern int zag_test_mem32(struct diag_params *p, U32 start, U32 end, int raw);
+extern int zag_test_mem64(struct diag_params *p, U32 start, U32 end, int raw);
+extern int zag_test_bram(struct diag_params *p, U32 start, U32 end);
+extern void except(void);
+extern int prc_set_ipl(int);
+extern int prc_get_ipl(void);
+extern void prc_wait_forever(void);
+extern U32 prc_get_uptime(U32 *lsbs);
+extern int prc_adj_usclock(void);
+extern U32 prc_set_timer_rate(U32);
+extern U32 *prc_smack_wdog(void);
+extern void prc_wbflush(void);
+#endif
+
+extern int prc_get_cause(void);
+extern VU32 usclock;
+
+#endif		/* _OS_ROOTR4K_H_ */
+@
+
+
+1.2
+log
+@Removed reference to zag_test_fifo() which is not in os_rootr4k.mac
+@
+text
+@d6 1
+a22 1
+extern int prc_get_cause(void);
+d29 3
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a15 1
+extern int zag_test_fifo(void (*output)(int, int, const char *));
+@

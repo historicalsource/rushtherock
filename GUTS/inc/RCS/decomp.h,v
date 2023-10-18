@@ -1,0 +1,89 @@
+head	1.3;
+access;
+symbols
+	CJ_206:1.3
+	CJ2_05:1.3
+	CJ2_04:1.3;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	96.07.17.23.17.24;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.03.22.22.16.18;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.16.36.38;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@definitions and prototypes for Jaguar picture decompression utilities
+@
+
+
+1.3
+log
+@Added prototype for nd16_decomp() function in DECOMP.C.
+@
+text
+@/*********************************************************************
+* DECOMP.H | Author: Robert M. Birmingham | October 4, 1994          *
+* ================================================================== *
+* G.U.T.S video decompression interface: Copyright 1994, Atari Games *
+*********************************************************************/
+
+#define  DECOMP_RAW  0
+#define  DECOMP_NPK  1
+#define  DECOMP_RLE  2
+
+typedef struct{
+    void *imageptr;
+    U16 *palptr;
+    U16 id;
+    U16 width;
+    U16 height;
+    S16 xoffset;
+    S16 yoffset;
+    U16 flags;
+    U32 blength;
+    U8 bitdepth;
+    U8 paloffset;
+    } IMAGE_DESC;
+
+/* function prototypes */
+void decomp_init( void );
+int decomp_register( int id, void (*fncptr)() );
+void decomp_image( IMAGE_DESC *imgdes, void *dest_buffer );
+
+void nd16_decomp( U16 *dstptr, U16 *srcptr, int pixels );
+
+/*************************************************************************
+* End of file: DECOMP.H                                                  *
+*************************************************************************/
+@
+
+
+1.2
+log
+@added paloffset to IMAGE_DESC
+@
+text
+@d30 2
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d22 1
+@

@@ -1,0 +1,52 @@
+head	1.1;
+access;
+symbols
+	RUSH_ROCK_1_0:1.1
+	MACE_1_0d:1.1
+	MACE_1_0a:1.1;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	96.12.17.04.20.08;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Simple rule to copy selected files to another directory.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#!/bin/csh
+
+#set verbose
+set DST = $1
+shift
+
+foreach name ( $* )
+    set dst = ${DST}/${name:t}
+#    echo "dst = $dst, src = $name"
+    set doit = 0
+    if ( -f $dst ) then
+#	echo "diff'ing $name $dst ..."
+	diff $name $dst >& /dev/null
+	if ( $status ) then 
+	    set doit = 1
+	endif
+    else
+	set doit = 1
+    endif
+    if ( $doit ) then 
+	echo "cp'ing $name to $DST ... "
+	rm -f $dst
+	cp -p $name $DST
+    endif
+end
+@

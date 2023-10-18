@@ -1,0 +1,3351 @@
+head	1.15;
+access;
+symbols
+	CJ_206:1.15
+	CJ2_05:1.15
+	CJ2_04:1.15;
+locks; strict;
+comment	@# @;
+
+
+1.15
+date	96.09.17.21.55.12;	author albaugh;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.07.17.23.42.20;	author albaugh;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.07.11.21.04.43;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.06.17.20.47.12;	author birmingham;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.11.15.00.32.07;	author birmingham;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.10.19.20.32.07;	author birmingham;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.10.19.19.36.04;	author birmingham;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.08.01.21.43.59;	author birmingham;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.07.18.18.02.47;	author birmingham;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.06.29.22.35.59;	author birmingham;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.06.16.16.12.14;	author birmingham;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.06.12.22.07.24;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.06.06.01.27.21;	author birm;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.05.25.23.11.39;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.05.24.00.07.04;	author birmingham;	state Exp;
+branches;
+next	;
+
+
+desc
+@GPU Task dispatcher code.  Currently contains all GPU tasks
+for; interrupt driven reads from the hard drive, object
+processor interrupts, Area 51 movie decompression, etc.
+@
+
+
+1.15
+log
+@reconcile with Work In Progress by RMB. This file is obsolete
+for new projects, replaced by the collection of *.gas files
+linked together as specified in the Makefile.
+@
+text
+@;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; GPUINT.GAS | Copyright 1995, Timer Warner Interactive, Inc. ;
+; =========================================================== ;
+; Author: Robert M. Birmingham -- January 23, 1995            ;
+; =========================================================== ;
+; GPU interrupt handler code for reading from IDE hard drive. ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	include 'jag_defs.i'
+
+	.text
+	.even
+	.psect	hdr,seg=4,dat=4
+	.psect    GPU_CODE,seg=4,dat=4
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+TASK_USES_BLITTER	.equ	$0001	; task uses CoJag blitter
+GPU_ISTACK		.equ	$f03efc	; Location of interrupt stack
+
+;	Each loadable section of GPU code is described by 
+; a header, which includes:
+;   a name (4 ASCII characters packed in a U32),
+;   a packed (offset,length) to locate the ROM code,
+;   a count of "BSS" (including stack)
+;   "flags" for special handling
+; These descriptors are located at the beginning of the
+; GPU_ROM section of TEXT, in the host's ROM
+;
+
+	.macro HEADER name, ram, flags, vec
+code_start = .
+code_name = ''name''
+	.psect	hdr
+..flagval = 0
+	.if nb,flags
+	.if b,vec
+; Only one param, check first for vectors by name, then
+; assume it's some other flag.
+        .iif idn,flags,VEC_CPU,..flagval = (2)
+        .iif idn,flags,VEC_DSP,..flagval = (4)
+        .iif idn,flags,VEC_TIM,..flagval = (6)
+        .iif idn,flags,VEC_OBP,..flagval = (8)
+        .iif idn,flags,VEC_BLT,..flagval = (10.)
+	.iif eq,..flagval,..flagval = flags
+	.iff
+        .iif idn,vec,VEC_CPU,..flagval = flags|(2)
+        .iif idn,vec,VEC_DSP,..flagval = flags|(4)
+        .iif idn,vec,VEC_TIM,..flagval = flags|(6)
+        .iif idn,vec,VEC_OBP,..flagval = flags|(8)
+        .iif idn,vec,VEC_BLT,..flagval = flags|(10.)
+        .endc ; b,vec
+	.endc ; nb,flags
+code_flags = ..flagval
+code_ram = ram
+	dc.l	''name''		; Who we are
+	.psect  GPU_CODE
+	.endm
+
+	.macro TAILER name
+code_end = .
+	.psect hdr
+	.if	ne, code_name-''name''
+	.error  ; mismatched HEADER/TAILER
+	dc.l	0,0,0
+	.iff
+; code length and offset (in U32s)
+	dc.l	((code_end+3-code_start)/4)+(((code_start-.-12.)/4)*0x1000)
+	dc.l	code_ram			; stack/bss size (in LONGS)
+	dc.l	code_flags
+	.endc
+	.psect  GPU_CODE
+	.endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; GPU Interrupt Dispatcher for DSP Interrupts
+
+	.phrase
+
+ivecjmp		.equr	r0
+ivecbss		.equr	r1
+
+	HEADER	ROOT 0 0
+int1:
+	movei	#$12345678,ivecjmp	; CPU
+	movei	#$12345678,ivecbss
+	jump	T,(ivecjmp)
+	nop
+
+	movei	#$12345678,ivecjmp	; DSP Interrupt
+	movei	#$12345678,ivecbss
+	jump	T,(ivecjmp)
+	nop
+
+	movei	#$12345678,ivecjmp	; Timing Generator
+	movei	#$12345678,ivecbss
+	jump	T,(ivecjmp)
+	nop
+
+	movei	#$12345678,ivecjmp	; Object Processor
+	movei	#$12345678,ivecbss
+	jump	T,(ivecjmp)
+	nop
+
+	movei	#$12345678,ivecjmp	; Blitter
+	movei	#$12345678,ivecbss
+	jump	T,(ivecjmp)
+	nop
+
+	TAILER	ROOT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; GPU IDE Interrupt Handler
+;
+
+IDE_REG_DATA	=	($0)	; IDE controller data port
+IDE_REG_COUNT	=	($1)	; IDE controller count register
+IDE_REG_ERROR	=	($2)	; IDE controller error register
+IDE_REG_STATUS	=	($4)	; IDE controller status
+IDE_REG_ALTSTATUS =	($205)	; IDE controller status
+
+IDE_STB_BSY	=	($7)	; busy bit in status register
+IDE_STB_DRQ	=	($3)	; data request bit in status register
+
+;;;;;;;;;;;;;;;;;;;;;;
+
+
+JINTCTRL	=	$f10020	; Jerry interrupt control register
+;G_HIDATA	=	$f02118	; GPU reg. for high 32-bits of phrase
+
+IDE_BSS_BUFPTR	=	0
+IDE_BSS_CNTPTR	=	4
+IDE_BSS_RDPEND	=	8
+IDE_BSS_DEVPTR	=	12
+IDE_BSS_ERROR	=	16
+
+FAST_READ	=	1
+
+.if	TRUE,FAST_READ
+t0		.equr	r2
+t1		.equr	r3
+t2		.equr	r4
+t3		.equr	r5
+t4		.equr	r6
+t5		.equr	r7
+t6		.equr	r8
+t7		.equr	r9
+jumprd		.equr	r10
+.endc
+
+tbuf0		.equr	r12
+tbuf1		.equr	r13
+tbuf2		.equr	r14
+tbuf3		.equr	r15
+
+temp0		.equr	r16
+temp1		.equr	r17
+temp2		.equr	r18
+counter		.equr	r19
+hidata		.equr	r20
+hisave		.equr	r21
+ideptr  	.equr   r22
+bufptr		.equr	r23
+bufaddr		.equr	r24
+cntaddr		.equr	r25
+bssptr		.equr	r26
+exitaddr	.equr	r27
+gpu_pc		.equr	r28
+gflags_val	.equr	r29
+gflags_reg	.equr	r30
+istackptr	.equr	r31
+
+	.phrase
+	HEADER	INT1 6 VEC_DSP
+
+;******************************************************************************
+;
+; WARNING!	DO NOT CHANGE THE ORDER OF THE FOLLOWING INSTRUCTIONS
+;
+
+ide1:	movei	#G_HIDATA,hidata	; set address of high data
+	load	(hidata),hisave		; copy high data to safe place
+
+	move	ivecbss,bssptr		; copy ISR's BSS ptr to safe place
+
+	movei	#G_FLAGS,gflags_reg	; load address of GPU FLAGS register
+	load	(gflags_reg),gflags_val	; get current GPU Flags
+	bset    #10,gflags_val		; clear pending DSP interrupt
+	store   gflags_val,(gflags_reg)	; store flags to acknowledge interrupt
+	bclr	#10,gflags_val		; Make sure we don't clear it later
+	bclr    #3,gflags_val		; Clear IMASK so other interrupts occur
+
+	movei	#JINTCTRL,temp0		; set addr of Jerry Interrupt Control
+	loadw	(temp0),temp1		; get 16-bits at JINTCTRL
+	addq	#2,temp0		; calc. JINTCTRL+2
+	loadw	(temp0),temp2		; get 16-bits at JINTCTRL+2
+	bset	#8,temp1		; clear pending external interrupt
+	subq	#2,temp0		; calc. JINTCTRL
+	storew	temp1,(temp0)		; write back to acknowledge interrupt
+	addq	#2,temp0		; calc. JINTCTRL+2
+	storew	temp2,(temp0)		; write back due to Jerry strangeness
+
+;******************************************************************************
+
+errcalc:
+	move	PC,exitaddr		; get program counter
+	movei	#.exit-errcalc,temp0	; calculate distance to exit code
+	add	temp0,exitaddr		; add distance to get exit address
+
+	move	bssptr,bufaddr		; set addr of where buffer ptr is held
+	load	(bufaddr),bufptr	; set addr of where to store data
+
+	move	bssptr,cntaddr		; copy base address of BSS
+	addq	#IDE_BSS_CNTPTR,cntaddr	; set addr of where count is held...
+
+	move	bssptr,ideptr		; copy base address of BSS
+	addq	#IDE_BSS_DEVPTR,ideptr	; calc. where IDE device ptr is held
+	load	(ideptr),ideptr		; set address of IDE device registers
+
+	move	ideptr,temp0		; copy pointer to IDE device
+	addq	#IDE_REG_STATUS,temp0	; add offset to status to register
+	loadb	(temp0),temp0		; clear pending interrupt to do read
+
+	btst	#0,temp0		; does status reg. indicate an error?
+	jr	EQ,.noerr		; no, then skip error handling code
+	nop				; nop filler
+	move	ideptr,temp0		; get base address of IDE registers
+	addq	#IDE_REG_ERROR,temp0	; calc. address of error register
+	loadb	(temp0),temp0		; get contents of error register
+	move	bssptr,temp1		; get base address of BSS area
+	addq	#IDE_BSS_ERROR,temp1	; calc. address of where to store error
+	store	temp0,(temp1)		; store error value in BSS
+	jump	T,(exitaddr)
+	nop
+.noerr:
+
+;++++++++++++++++++++++++++++++++++++++
+;	Fast sector read loop
+
+.if TRUE,FAST_READ
+	moveq	#15,counter		; set loop iterations (16*8 = 128)
+
+	move	PC,jumprd		; load current program counter
+	addq	#4,jumprd		; set address of read loop
+
+readlp:	load	(ideptr),t0		; read in 8 32-bit values...
+	load	(ideptr),t1
+	load	(ideptr),t2
+	load	(ideptr),t3
+	load	(ideptr),t4
+	load	(ideptr),t5
+	load	(ideptr),t6
+	load	(ideptr),t7
+
+	store	t0,(hidata)		; store 4 64-bit values...
+	storep	t1,(bufptr)
+	addq	#8,bufptr
+
+	store	t2,(hidata)
+	storep	t3,(bufptr)
+	addq	#8,bufptr
+
+	store	t4,(hidata)
+	storep	t5,(bufptr)
+	addq	#8,bufptr
+
+	store	t6,(hidata)
+	storep	t7,(bufptr)
+
+	subq	#1,counter
+	jump	PL,(jumprd)
+	addq	#8,bufptr
+
+;++++++++++++++++++++++++++++++++++++++
+
+.iff
+
+;++++++++++++++++++++++++++++++++++++++
+;	General sector read loop
+
+	movei	#127,counter		; set # of longs to read (512 bytes)
+readlp:	load	(ideptr),temp0		; read 32-bits from the IDE controller
+	store	temp0,(bufptr)		; write 32-bits to destination buffer
+	subq	#1,counter		; decrement loop counter
+	jr	PL,readlp		; continue if counter >= zero
+	addq	#4,bufptr		; update ptr to destination buffer
+.endc
+
+;++++++++++++++++++++++++++++++++++++++
+
+	store	bufptr,(bufaddr)	; store the pointer to the next sector
+
+	load	(cntaddr),temp0		; get current sector count value
+	subq	#1,temp0		; decrement sector count each interrupt
+	store	temp0,(cntaddr)		; store new sector count back
+	jr	NE,.exit		; if count > 0, do normal exit
+	nop
+
+	move	bssptr,temp0		; copy base address of BSS area
+	addq	#IDE_BSS_RDPEND,temp0	; calc. addr read pending flag ptr
+	load	(temp0),temp1		; get pointer to read pending flag
+	moveq	#0,temp2		; set value for clearing flag
+	store	temp2,(temp1)		; clear flag so host knows we're done
+
+	movei	#G_CTRL,temp0		; get address of GPU control register
+	load	(temp0),temp1		; get current value in control register
+	bset	#1,temp1		; Set the CPU IRQ bit
+	store	temp1,(temp0)		; and stop the GPU
+
+.exit:	load    (istackptr),gpu_pc	; Address of last instruction
+	addq    #2,gpu_pc		; +2 to point to next
+	addq    #4,istackptr		; Correct stack
+
+	store	hisave,(hidata)		; restore the high data register
+	jump    T,(gpu_pc)		; Return to GPU
+	store   gflags_val,(gflags_reg)	; Update GPU_FLAGS
+	nop
+
+	TAILER	INT1
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Object Processor Interrupt Handler
+;
+
+OBF		.equ	$f00026	; Object Processor Flag register
+OBDATLO		.equ	$f00010	; low data for current object
+OBDATHI		.equ	$f00014	; high data for current object
+
+obptemp0	.equr	r2	; temp. reg. #0 used by OBP interrupt
+obptemp1	.equr	r3	; temp. reg. #1 used by OBP interrupt
+objectp		.equr	r4	; ptr to object data
+obdat		.equr	r5	; object data to manipulate
+parblockp	.equr	r6	; ptr to parallax block structure
+xposp		.equr	r7	; ptr to xpos in parallax block
+indexp		.equr	r8	; ptr to index in parallax block
+sizep		.equr	r9	; ptr to size in parallax block
+tablep		.equr	r10	; ptr to table in parallax block
+objmask		.equr	r11	; mask to remove xpos from object data
+xposmask	.equr	r12	; mask to remove illegal bits in xpos
+
+	.phrase
+	HEADER	INT3 0 VEC_OBP
+
+prlx1:
+	movei   #G_FLAGS,gflags_reg	; set address of GPU FLAGS register
+	load    (gflags_reg),gflags_val	; get current interrupt status
+	bset    #12,gflags_val		; acknowledge Object Processor Interrupt
+	bclr    #3,gflags_val		; clear IMASK bit
+	subq	#4,istackptr		; save current GPU Flags on stack
+	store	gflags_val,(istackptr)	; "                             "
+
+;---- debug ----
+
+.if	TRUE,0
+	moveq   #0,obptemp0		; pick any value, it doesn't matter...
+	movei   #OBF,obptemp1		; set Object Processor Flag address
+	storew  obptemp0,(obptemp1)	; writing any value restarts the OLP
+
+	movei	#G_FLAGS,gflags_reg	; load address of GPU FLAGS register
+	load	(istackptr),gflags_val	; get GPU Flags saved on stack
+	addq	#4,istackptr		; pop stack
+
+	load    (istackptr),gpu_pc	; pop address of last instruction
+	addq    #2,gpu_pc		; add #2 to get return address
+	addq    #4,istackptr		; adjust stack pointer
+
+	store   gflags_val,(gflags_reg)	; Update GPU_FLAGS
+	jump    T,(gpu_pc)		; Return to GPU
+	nop
+.endc
+
+;---- debug ----
+
+;	Get pointer to parallax block structure
+
+	movei	#OBDATLO,obptemp0	; set address of OBJECT register #0
+	load	(obptemp0),parblockp	; bits 3-31 are ptr to PARALLAX_BLOCK
+	rorq	#16,parblockp		; fix pointer due to word swap
+	sharq	#3,parblockp		; shift down to normalize ptr
+
+;	Get pointer to bitmap object to parallax
+
+	movei	#OBDATHI,obptemp0	; set address of OBJECT register #2
+	load	(obptemp0),objectp	; bits 32-63 are ptr to BITMAP object
+	rorq	#16,objectp		; fix pointer due to word swap
+
+;	Restart the Object List Processor
+
+	movei   #OBF,obptemp1		; set Object Processor Flag address
+	storew  obptemp0,(obptemp1)	; writing any value restarts the OLP
+
+;	Calculate pointers to the data in the PARALLAX_BLOCK structure
+
+	move	parblockp,xposp		; get base address of PARALLAX_BLOCK
+	addq	#4,xposp		; add offset to object's base x position
+
+	move	parblockp,indexp	; get base address of PARALLAX_BLOCK
+	addq	#8,indexp		; add offset to parallax table index
+
+	move	parblockp,sizep		; get base address of PARALLAX_BLOCK
+	addq	#12,sizep		; add offset to parallax table size
+
+	move	parblockp,tablep	; get base address of PARALLAX_BLOCK
+	addq	#16,tablep		; add offset to parallax table
+
+	movei	#$fffff000,objmask	; set mask for clearing object's X bits
+	movei	#$00000fff,xposmask	; set mask for clamping new x position
+
+	load	(indexp),obptemp0	; get current index from PARALLAX_BLOCK
+	addq	#1,obptemp0		; increment index to read next entry
+	load	(sizep),obptemp1	; get size of table from PARALLAX_BLOCK
+	subq	#1,obptemp1		; subtract '1' to get AND mask
+	and	obptemp1,obptemp0	; clamp index so it doesn't exceed size
+	store	obptemp0,(indexp)	; store index back into PARALLAX_BLOCK
+	shlq	#2,obptemp0		; convert index to access 32-bit table
+
+	load	(tablep),obptemp1	; get table address from PARALLAX_BLOCK
+	add	obptemp0,obptemp1	; add index to calculate entry address
+	load	(obptemp1),obptemp0	; load the table entry at that address
+
+	load	(objectp),obdat		; get object data containing ob->xpos
+	and	objmask,obdat		; clear all of the X position bits
+	load	(xposp),obptemp1	; get base xpos from PARALLAX_BLOCK
+	add	obptemp1,obptemp0	; add base xpos to table entry
+	and	xposmask,obptemp0	; make sure xpos doesn't exceed 12-bits
+
+	or	obptemp0,obdat		; combine new xpos with object data
+	store	obdat,(objectp)		; store data back into packed object!
+
+;---- debug ----
+
+.if	TRUE,0
+	movei	#$00ff00ff,r15
+	movei	#$7f407f40,r16
+
+	movei	#$f01880,obptemp0
+	movei	#32,obptemp1
+.xxx:	loadw	(obptemp0),r0
+
+	and	r15,r0
+	or	r16,r0
+
+	storew	r0,(obptemp0)
+	subq	#1,obptemp1
+	jr	PL,.xxx
+	addq	#2,obptemp0
+.endc
+
+;---- debug ----
+
+
+
+	movei	#G_FLAGS,gflags_reg	; load address of GPU FLAGS register
+	load	(istackptr),gflags_val	; get GPU Flags saved on stack
+	addq	#4,istackptr		; pop stack
+
+	load    (istackptr),gpu_pc	; pop address of last instruction
+	addq    #2,gpu_pc		; add #2 to get return address
+	addq    #4,istackptr		; adjust stack pointer
+
+	store   gflags_val,(gflags_reg)	; Update GPU_FLAGS
+	jump    T,(gpu_pc)		; Return to GPU
+	nop
+
+	TAILER	INT3
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Blitter Interrupt Handler
+;
+
+	.phrase
+	HEADER	INT4 0 VEC_BLT
+
+blit1:
+	movei	#G_FLAGS,gflags_reg	; load address of GPU FLAGS register
+	load	(gflags_reg),gflags_val	; get current GPU Flags
+	bset    #13,gflags_val		; clear pending DSP interrupt
+	store   gflags_val,(gflags_reg)	; store flags to acknowledge interrupt
+	bclr	#10,gflags_val		; Make sure we don't clear it later
+	bclr    #3,gflags_val		; Clear IMASK so other interrupts occur
+
+;	.
+;	.
+;	.
+
+	movei	#G_CTRL,temp0		; get address of GPU control register
+	load	(temp0),temp1		; get current value in control register
+	bset	#1,temp1		; Set the CPU IRQ bit
+	store	temp1,(temp0)		; and store back to cause GPU->CPU Int.
+
+.bexit:	load    (istackptr),gpu_pc	; Address of last instruction
+	addq    #2,gpu_pc		; +2 to point to next
+	addq    #4,istackptr		; Correct stack
+
+	jump    T,(gpu_pc)		; Return to GPU
+	store   gflags_val,(gflags_reg)	; Update GPU_FLAGS
+	nop
+
+	TAILER	INT4
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; gpu_task_dispatcher:
+; =============================================
+; Main dispatcher for running other GPU tasks.
+; The GPU memory location of a task to execute
+; is store in the dispatcher's data area.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;
+; The following registers are reserved!
+;
+
+work0		.equr	r21		; dispatcher/subtask scratch reg. #0
+work1		.equr	r22		; dispatcher/subtask scratch reg. #1
+work2		.equr	r23		; dispatcher/subtask scratch reg. #2
+tbssptr		.equr	r24		; task BSS register
+tstackptr	.equr	r25		; task stack register
+prgc		.equr	r26		; program counter for dispatcher
+retaddr		.equr	r27		; return address for task
+taskptr		.equr	r28		; address of where task is stored
+dispaddr	.equr	r29		; address of dispatcher loop
+dbssptr		.equr	r30		; dispatcher BSS register
+dstackptr	.equr	r31		; dispatcher stack register
+
+GPU_DISP_DONE	.equ	0
+GPU_DISP_EXEC	.equ	4
+
+	.phrase
+	HEADER	DISP 2 0
+
+disp1:
+	move	PC,work0		; get current program counter
+	movei	#$12345678,work1	; stack ptr relative to runaddr
+	movei	#$12345678,work2	; BSS ptr relative to runaddr
+	nop				; nop padding for fix-up in GPUTASK.C
+
+	moveta	work0,prgc		; move PC to correct register and bank
+	moveta	work1,dstackptr		; move stack to correct reg. and bank
+	moveta	work2,dbssptr		; move BSS to correct register and bank
+
+	movei   #GPU_ISTACK,istackptr	; set initial interrupt stack address
+
+	movei	#G_FLAGS,work0		; set address of GPU flags reg.
+	load	(work0),work1		; get contents of GPU flags reg.
+	bset	#14,work1		; change to register bank #1
+	store	work1,(work0)		; update GPU flags reg.
+	nop				; ensure GPU_FLAGS is valid
+	nop				; ensure GPU_FLAGS is valid
+
+	add	prgc,dstackptr		; relocate stack pointer
+	add	prgc,dbssptr		; relocate BSS pointer
+	movei	#.disp-disp1,dispaddr	; calc. relative address of main loop
+	movei	#.ret-disp1,retaddr	; calc. relative address of exit code
+	add	prgc,dispaddr		; relocate main loop address
+	add	prgc,retaddr		; relocate exit code address
+
+	move	dbssptr,taskptr		; load base of BSS area
+	addq	#GPU_DISP_EXEC,taskptr	; calc. address of exec. address slot
+
+	moveq	#0,work0		; set initial 'task complete' flag...
+	load	(dbssptr),work1         ; pointed to by the value in the
+	store	work0,(work1)		; dispatcher's BSS to '0' (NOT FINISHED)
+
+	store	dispaddr,(taskptr)	; set task ptr to top of dispatch loop
+.disp:	load	(taskptr),work0		; get current task pointer
+	jump	T,(work0)		; jump to task (or top of dispatch loop)
+	nop				; delay slot filler
+
+.ret:	moveq	#1,work0		; set 'task complete' flag pointed...
+	load	(dbssptr),work1         ; to by the value in the dispatcher's...
+	store	work0,(work1)		; BSS to '1' (FINISHED)
+
+	movei	#G_CTRL,work0		; get address of GP control register
+	load	(work0),work1		; get current value in control register
+	bset	#1,work1		; Set the CPU IRQ bit (see below)
+
+	store	dispaddr,(taskptr)	; reset task pointer to dispatch loop
+	jump	T,(dispaddr)		; back to top of dispatcher
+	store	work1,(work0)		; store control to cause interrupt
+
+	TAILER	DISP
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; GPU Null Packed Decompression
+;
+
+; Blitter constant equates...
+
+
+LFU_ZERO	= 0x00000000	; Zero destination
+LFU_REPLACE	= 0x01800000	; Source REPLACEs destination
+LFU_SORD	= 0x01C00000	; Source OR Destination
+PITCH1		= 0x00000000	; 0 phrase gap
+PIXEL8		= 0x00000018	; n = 3: 8 bits per pixel
+PIXEL16		= 0x00000020	; n = 4: 16 bits per pixel
+PIXEL32		= 0x00000028	; n = 5: 32 bits per pixel
+SRCEN		= 0x00000001	; d00: source data read (inner loop)
+SRCENX		= 0x00000004	; d02: source data read (realign)
+WID320		= 0x00004200	; 1.01 X 2^8  (33<<9)
+XADDPHR		= 0x00000000	; 00 - add phrase width and truncate
+XADDPIX		= 0x00010000	; 01 - add pixel size (add 1)
+
+BLITFLAGS	= (WID320|PIXEL8|PITCH1|XADDPHR)
+BCMD_REPLACE	= (SRCEN|LFU_REPLACE)
+BCMD_OR		= (SRCEN|LFU_SORD)
+
+; GPU register equates...
+
+mrun		.equr	r0	; count for runs of mask (nulls)
+irun		.equr	r1	; count for runs of image (pixels)
+imgptr		.equr	r2	; pointer to source buffer
+dstptr		.equr	r3	; pointer to destination buffer
+length		.equr	r4	; byte length of compressed data
+mskff		.equr	r5	; mask for isolating low byte
+exitfunc 	.equr	r6	; pointer to exit section
+mainloop 	.equr	r7	; pointer to top of main loop
+msk3		.equr	r8	; mask for isolating low two bits
+imgdat		.equr	r9	; data read from input stream
+byteposn 	.equr	r10	; keeps track of current byte within long
+paloffset	.equr	r11	; data to OR with source before writing to dest.
+blitcmd		.equr	r12	; blitter command to store (REPLACE / OR)
+spixel		.equr	r13	; source pixel alignment
+dpixel		.equr	r14	; destination pixel alignment
+a2_base		.equr	r15	; address of blitter source base register
+a2_pixel	.equr	r16	; address of blitter source pixel register
+a1_base		.equr	r17	; address of blitter dest. base register
+a1_pixel	.equr	r18	; address of blitter dest. pixel register
+b_cmd		.equr	r19	; address of blitter command register
+b_count		.equr	r20	; address of blitter loop count register
+
+
+	.phrase
+	.list  me
+	HEADER	DCMP 4 TASK_USES_BLITTER
+
+dcomp1:
+	move	PC,work0		; get current program counter
+	movei	#$12345678,work1	; stack ptr relative to runaddr
+	movei	#$12345678,work2	; BSS ptr relative to runaddr
+	nop
+
+	move	work1,tstackptr		; move stack to correct reg. and bank
+	move	work2,tbssptr		; move BSS to correct register and bank
+	add	work0,tstackptr		; relocate stack ptr
+	add	work0,tbssptr		; relocate BSS ptr
+
+	movei	#.main-dcomp1,mainloop	; relative address of main loop
+	movei	#exit-dcomp1,exitfunc	; relative address of exit code
+	add	work0,mainloop		; relocate main loop address
+	add	work0,exitfunc		; relocate exit code address
+
+; C Calling sequence:
+; =================
+; gpu_push_stack( GPU_NPACK_DECOMP, (U32)imgdes->paloffset );
+; gpu_push_stack( GPU_NPACK_DECOMP, (U32)imgdes->width * (U32)imgdes->height );
+; gpu_push_stack( GPU_NPACK_DECOMP, (U32)H2TADDR( destptr ) );
+; gpu_push_stack( GPU_NPACK_DECOMP, (U32)H2TADDR( imgdes->imageptr ) );
+
+	load	(tstackptr),imgptr	; pop pointer to compressed image data
+	addq	#4,tstackptr
+
+	load	(tstackptr),dstptr	; pop pointer to destination buffer
+	addq	#4,tstackptr
+
+	load	(tstackptr),length	; pop length of compressed data
+	addq	#4,tstackptr
+
+	load	(tstackptr),paloffset	; pop palette offset value
+	addq	#4,tstackptr		; (last pop, not really necessary!)
+
+	movei	#B_CMD,b_cmd		; preload address of blitter command
+	movei	#A2_BASE,a2_base	; preload address of source base
+	movei	#A2_PIXEL,a2_pixel	; preload address of source pixel
+	movei	#A1_BASE,a1_base	; preload address of dest. base
+	movei	#A1_PIXEL,a1_pixel	; preload address of dest. pixel
+	movei	#B_COUNT,b_count	; preload address of loop count
+
+;	clear the destination buffer using the blitter...
+
+	load	(b_cmd),work0		; load status of blitter
+..wb1:	btst	#0,work0		; is it idle?
+	jr	EQ,..wb1		; no, continue checking
+	load	(b_cmd),work0		; reload status for above loop
+
+	movei	#WID320|PIXEL32|PITCH1|XADDPHR,work0
+	movei	#A1_FLAGS,work1
+	store	work0,(work1)
+
+	movei	#A1_CLIP,work1		; set A1_CLIP to zero to avoid bug
+	moveq	#0,work0
+	store	work0,(work1)
+
+	store	dstptr,(a1_base)	; set destination base and pixel
+	moveq	#0,work0
+	store	work0,(a1_pixel)
+
+	move	length,work0		; set y/x loop iterations
+	shrq	#2,work0
+	movei	#$0000ffff,work1
+	and	work1,work0
+	bset	#16,work0
+	store	work0,(b_count)
+
+	movei	#LFU_ZERO,work0		; blit zeroes to destination
+	store	work0,(b_cmd)
+
+; Set up the pointers for fetching the input stream
+
+	movei	#$00ff,mskff		; set 0xff mask
+
+	movei	#$FFFFFFFC,msk3
+	move	msk3,work0
+	and	imgptr,work0
+	not	msk3
+	load	(work0),imgdat
+	xor	msk3,imgptr
+	move	imgptr,byteposn
+	and	msk3,byteposn
+	move	work0,imgptr
+	shlq	#3,byteposn
+
+; Make sure the blitter is not busy
+
+	load	(b_cmd),work0		; load status of blitter
+..wb2:	btst	#0,work0		; is it idle?
+	jr	EQ,..wb2		; no, continue checking
+	load	(b_cmd),work0		; reload status for above loop
+
+; Set the blitter registers that don't change during a copy
+
+	movei	#BLITFLAGS,work0	; load blitter flags for src & dest.
+	movei	#A2_FLAGS,work1
+	store	work0,(work1)
+	movei	#A1_FLAGS,work1
+	store	work0,(work1)
+
+	moveq	#0,work0		; clear blitter step for src & dest.
+	movei	#A1_STEP,work1
+	store	work0,(work1)
+	movei	#A2_STEP,work1
+	store	work0,(work1)
+
+	move	paloffset,work0		; replicate low byte of paloffset across
+	shlq	#8,work0		; all four bytes in the 32-bit reg...
+	or	work0,paloffset
+	move	paloffset,work0
+	shlq	#16,work0
+	or	work0,paloffset
+
+	movei	#B_DSTD,work0		; store the resulting paloffset into the
+	store	paloffset,(work0)	; low 32-bits and high 32-bits of the
+	addq	#4,work0		; blitter's destination data register...
+	store	paloffset,(work0)
+
+	movei	#BCMD_REPLACE,blitcmd	; assume blitter will do replace copy
+	cmpq	#0,paloffset		; is paloffset zero?
+	jr	EQ,.is0			; yes, then default blitcmd is OK
+	nop
+	movei	#BCMD_OR,blitcmd	; no, paloffset will be OR'ed with src.
+.is0:
+
+; This is the main decompression loop, it reads lengths of null
+; spans to skip blank areas and reads lengths of pixel spans and
+; copies the pixels using the blitter.  32-bits are read at a time
+; for better performance, instead of one byte at a time.
+
+	subq	#1,length		; stop loop when length < 0 (subtract 1)
+.main:	cmpq	#0,length		; is length < 0?
+	move	byteposn,work0		; make working copy of byte position
+	jump	MI,(exitfunc)		; if length < 0, we're done!
+	subq	#8,byteposn		; update position for next byte
+	jr	PL,.nord1		; no new reads if data is pending
+	move	imgdat,mrun		; copy data to mask run length register
+
+	addq	#4,imgptr		; bump image pointer to next 32-bits
+	load	(imgptr),imgdat		; get next 32-bits of compressed data
+	moveq	#24,byteposn		; reset shifter for getting current byte
+
+.nord1:	sh	work0,mrun		; shift current byte in long into place
+	and	mskff,mrun		; mask off all but the low byte
+	move	imgdat,irun		; copy data to image length register
+	sub	mrun,length		; subtract mask run from remaining length
+	move	byteposn,work0		; make working copy of byte position
+	subq	#8,byteposn		; update byte position for next byte
+	jr	PL,.nord2		; if data is pending, don't read new data
+	add	mrun,dstptr		; adjust buffer ptr to skip mask run
+
+	addq	#4,imgptr		; bump image pointer to next 32-bits
+	load	(imgptr),imgdat		; get next 32-bits of compressed data
+	moveq	#24,byteposn		; reset shifter for getting current byte
+
+.nord2:	sh	work0,irun		; shift current byte in long into position
+	and	mskff,irun		; mask off all but the low byte
+	jump	EQ,(mainloop)		; loop if length of image run is zero
+	sub	irun,length		; subtract image run from remaining length
+
+	load	(b_cmd),work0		; load status of blitter
+..wb:	btst	#0,work0		; is it idle?
+	jr	EQ,..wb			; no, continue checking
+	load	(b_cmd),work0		; reload status for above loop
+
+; Set Blitter count
+
+	move	irun,work1		; X count =  length of image block to copy
+	bset	#16,work1		; Y count = one iteration
+	store	work1,(b_count)		; set blitter count register
+
+; Derive current byte-stream address from imgptr and byteposn
+
+	move	byteposn,work0
+	shrq	#3,work0
+	moveq	#3,work1
+	sub	work0,work1		; Byte offset in current longword
+	add	imgptr,work1		; Current byte position
+	move	work1,imgptr		; Update imgptr for next group...
+	add	irun,imgptr
+	
+; Set A2_BASE and A2_PIXEL
+
+	moveq	#7,work0
+	and	work1,work0		; byte within phrase
+	sub	work0,work1		; Phrase address
+	store	work0,(a2_pixel)
+	move	work0,spixel
+	store	work1,(a2_base)
+
+; Set A1_BASE and A1_PIXEL
+
+	move	dstptr,work1
+	add	irun,dstptr
+	moveq	#7,work0
+	and	work1,work0		; byte within phrase
+	sub	work0,work1		; Phrase address
+	store	work0,(a1_pixel)
+	move	work0,dpixel
+	store	work1,(a1_base)
+
+; Calculate phrase alignment and add SRCENX to blitcmd if necessary
+
+	moveq	#7,work1
+	and	work1,spixel
+	and	work1,dpixel
+	move	blitcmd,work1
+	cmp	spixel,dpixel
+	jr	PL,.blit
+	nop
+	movei	#SRCENX,work1
+	or	blitcmd,work1
+
+.blit:	store	work1,(b_cmd)		; copy the image data w/blitter!
+
+; Update imgdat and byteposn for next group
+
+	moveq	#3,work0
+	and	imgptr,work0		; Byte within longword
+	sub	work0,imgptr		; longword address
+	moveq	#3,byteposn
+	sub	work0,byteposn
+	shlq	#3,byteposn
+	load	(imgptr),imgdat
+
+	jump	T,(mainloop)		; back to the top of the decompression loop
+	nop				; nop padding for jump
+
+exit:	jump	T,(retaddr)		; return to dispatcher
+	nop				; nop padding for delay slot
+
+	TAILER	DCMP
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Charlie Grisafi's Movie Decompressor
+;
+
+mdsrc	 .equr	r0
+mddest	 .equr	r1
+mdheight .equr	r2
+mdwidth	 .equr	r3
+
+color0   .equr  r4
+color1   .equr  r5
+color2   .equr  r6
+color3   .equr  r7
+
+mask0	.equr   r8
+mask1	.equr   r9
+mask2	.equr   r10
+mask3	.equr   r11     
+mask4	.equr   r12     
+
+mdindex  .equr  r13
+
+;     .equr  r14  index reg
+
+lowbit   .equr  r15
+
+tmpdest  .equr  r16
+
+lbl0000	.equr	r17
+lbl0010	.equr	r18
+lblexit	.equr	r19
+
+phidat   .equr  r20
+
+;     .equr  r21  work0
+;     .equr  r22  work1
+;     .equr  r23  work2
+
+off0     .equr  r24
+off1     .equr  r25
+
+mdloop0  .equr  r26
+mdloop1  .equr  r27
+
+src2	.equr  r28
+src3  	.equr  r29
+
+
+	.phrase
+
+;
+; GPU Program Header
+;
+	HEADER	MDCM 21 0
+;
+; GPU Program Code
+;
+
+mdcomp1:
+	move	PC,work0		; get current program counter
+	movei	#$12345678,work1	; stack ptr relative to runaddr
+	movei	#$12345678,work2	; BSS ptr relative to runaddr
+	nop
+
+	move	work1,tstackptr		; move stack to correct register and bank
+	move	work2,tbssptr		; move BSS to correct register and bank
+	add	work0,tstackptr		; relocate stack ptr
+	add	work0,tbssptr		; relocate BSS ptr
+
+	movei	#MD_0000-mdcomp1,lbl0000	; relative address of main loop
+	movei	#MD_0010-mdcomp1,lbl0010	; relative address of main loop
+	movei	#mexit-mdcomp1,lblexit	; relative address of exit code
+	add	work0,lbl0000		; relocate label address
+	add	work0,lbl0010		; relocate label address
+	add	work0,lblexit		; relocate exit code address
+
+; C Calling sequence:
+; =================
+; gpu_push_stack( GPU_MOVIE_DECOMP, (U32)H2TADDR( destptr ) );
+; gpu_push_stack( GPU_MOVIE_DECOMP, (U32)H2TADDR( compressed data ptr ) );
+
+	load	(tstackptr),mdsrc	; pop pointer to compressed image data
+	addq	#4,tstackptr
+
+	load	(tstackptr),mddest	; pop pointer to destination buffer
+	addq	#4,tstackptr
+
+	load	(tstackptr),mdheight	; pop image height (in tiles)
+	addq	#4,tstackptr
+
+	load	(tstackptr),mdwidth	; pop image width (in tiles)
+	addq	#4,tstackptr
+
+	load	(tstackptr),lowbit	; pop low bit
+	addq	#4,tstackptr
+
+
+;use r14 to point at bss area
+	move	tbssptr,r14	; set up pointer to scratch color area
+	
+;save regs
+	store	r24,(r14+4)
+	store	r25,(r14+5)
+	store	r26,(r14+6)
+	store	r27,(r14+7)
+	store	r28,(r14+8)
+	store	r29,(r14+9)
+	store	r30,(r14+10)
+	store	r31,(r14+11)
+
+        move    mdwidth,off0    ; compute offsets
+        shlq    #3,off0         ; compute offset to start of next tile line
+                                ; offset = (width * 8)
+        move    off0,off1     	;compute offset to bump tile pointer to next row down
+        add     off0,off1     	;= (width * 8) * 3
+        add     off0,off1
+ 
+	movei	#$f02118,phidat
+
+	movei	#$03,mask0
+	movei	#$0C,mask1
+	movei	#$30,mask2
+	movei	#$C0,mask3
+	movei	#$0000ffff,mask4
+
+	moveq	#4,src2
+	moveq	#8,src3
+	add	mdsrc,src2
+	add	mdsrc,src3
+	
+;loop for all rows
+	move    mdheight,mdloop0
+MD_0000:
+
+;loop for all cols
+	move	mdwidth,mdloop1
+MD_0010:	
+	load	(mdsrc),mdindex
+        addq	#4,mdsrc
+	load	(mdsrc),color0
+        addq	#4,mdsrc
+	and     lowbit,color0   ;set low bit of colors using parm passed
+	load    (mdsrc),color2
+        addq	#4,mdsrc
+	and     lowbit,color2   ;set low bit of colors using parm passed
+
+	move    mddest,tmpdest
+
+	move	color0,color1       ; fixup colors
+	move	color2,color3
+	shrq	#16,color0
+	shrq	#16,color2
+	and	mask4,color1
+	and	mask4,color3
+
+	store	color0,(r14)    ; store colors in the scratch area
+	store	color1,(r14+1)
+	store	color2,(r14+2)
+	store	color3,(r14+3)
+
+.rept	4
+	move	mdindex,color0   	;setup offset for 4 colors
+	move	mdindex,color1  	
+	move	mdindex,color2   	
+	move	mdindex,color3   	
+	and	mask0,color0  
+	and	mask1,color1
+	and	mask2,color2  
+	and	mask3,color3  
+	shlq	#2,color0         	
+	shrq	#2,color2        	
+	shrq	#4,color3         	
+
+	load	(r14+color0),color0   	;load color
+	load	(r14+color1),color1   	;load color
+	load	(r14+color2),color2   	;load color
+	load	(r14+color3),color3   	;load color
+
+ 	shrq	#8,mdindex         	;shift out used bits
+
+	shlq	#16,color0    		;shift color into high 16 bits
+	shlq	#16,color2    		;shift color into high 16 bits
+	or      color0,color1
+	or	color2,color3
+
+        store   color1,(phidat)
+        storep	color3,(tmpdest)     	;save the pix in dram
+
+	add	off0,tmpdest
+.endr
+
+
+	subq	#1,mdloop1	        ;loop for all cols
+	jump	NE,(lbl0010)
+	addq	#8,mddest               ; bump dest pointer
+
+	add	off1,mddest
+
+	subq	#1,mdloop0		;loop for all rows
+	jump	NE,(lbl0000)
+        nop
+
+mexit:
+	load	(r14+4),r24
+	load	(r14+5),r25
+	load	(r14+6),r26
+	load	(r14+7),r27
+	load	(r14+8),r28
+	load	(r14+9),r29
+	load	(r14+10),r30
+	load	(r14+11),r31
+
+	jump	T,(retaddr)		; return to dispatcher
+	nop				; nop padding for delay slot
+
+	TAILER	MDCM
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;******************************************************************
+; GPUMTEST.GAS | Copyright 1995, Timer Warner Interactive, Inc.   *
+;******************************************************************
+; Conversion of Mike Albaugh's mem_test.c for the GPU on COJAG    *
+;******************************************************************
+; By: Dave Akers, Robert Birmingham and Brian McKee | May 2, 1995 *
+;******************************************************************
+
+MTST_BSS_TEST	.equ	(0)
+MTST_BSS_ADDR	.equ	(4)
+MTST_BSS_VAL	.equ	(8)
+MTST_BSS_ERR	.equ	(12)
+MTST_BSS_DONE	.equ	(16)
+MTST_BSS_ABORT	.equ	(20)
+
+startaddr	.equr	r2	; starting address of block to test
+endaddr		.equr	r3	; ending address of block to test
+curaddr		.equr	r4	; ending address of block to test
+blklen		.equr	r5	; length in bytes of block to test
+control		.equr	r6	; flags to control which tests are done
+expect		.equr	r7	; expected value of memory location
+got		.equr	r8	; value read from memory location
+flipper		.equr	r9	; used to flip bits in value
+outloop		.equr	r10	; address of top of a test loop
+subloop		.equr	r11	; address of the an inner test loop
+testnum		.equr	r12	; which test is being performed
+errjump		.equr	r13	; address of error handler
+donejump	.equr	r14	; address of success handler
+bsstest		.equr	r15	; BSS addr of test number variable
+bssaddr		.equr	r16	; BSS addr of test address variable
+bssval		.equr	r17	; BSS addr of test value variable
+bsserr		.equr	r18	; BSS addr of test error variable
+bssdone		.equr	r19	; GPU memory test complete flag
+bssabort	.equr	r20	; Flag from host to abort memory test
+
+	.phrase
+	HEADER	MTST 9 0
+
+mtstart:
+	move	PC,work0		; get current program counter
+	movei	#$12345678,work1	; stack ptr relative to runaddr
+	movei	#$12345678,work2	; BSS ptr relative to runaddr
+	nop
+
+	move	work1,tstackptr		; move stack to correct register
+	move	work2,tbssptr		; move BSS to correct register
+	add	work0,tstackptr		; relocate stack ptr
+	add	work0,tbssptr		; relocate BSS ptr
+
+        movei	#done-mtstart,donejump	; set relative address of done handler
+        movei	#error-mtstart,errjump	; set relative address of error handler
+	add	work0,donejump		; relocate address of done handler
+	add	work0,errjump		; relocate address of error handler
+
+; C Calling syntax:
+; =================
+; gpu_push_stack( GPU_MEMORY_TEST, (U32)Control );
+; gpu_push_stack( GPU_MEMORY_TEST, (U32)BlkLen );
+; gpu_push_stack( GPU_MEMORY_TEST, (U32)H2TADDR( StartAddr ) );
+
+	load	(tstackptr),startaddr	; pop pointer to memory to test
+	addq	#4,tstackptr
+
+	load	(tstackptr),blklen	; pop length value
+	addq	#4,tstackptr
+
+	load	(tstackptr),control	; pop control value
+	addq	#4,tstackptr
+
+; Initialize the pointers to the BSS variables...
+
+	move	tbssptr,bsstest		; test number is at base of BSS
+
+	move	tbssptr,bssaddr		; copy base addr of BSS
+	addq	#MTST_BSS_ADDR,bssaddr	; calc. BSS location of test address
+
+	move	tbssptr,bssval		; copy base addr of BSS
+	addq	#MTST_BSS_VAL,bssval	; calc. BSS location of test value
+
+	move	tbssptr,bsserr		; copy base addr of BSS
+	addq	#MTST_BSS_ERR,bsserr	; calc. BSS location of error value
+
+	move	tbssptr,bssdone		; copy base addr of BSS
+	addq	#MTST_BSS_DONE,bssdone	; calc. BSS location of task done flag
+
+	move	tbssptr,bssabort	; copy base addr of BSS
+	addq	#MTST_BSS_ABORT,bssabort ; calc. BSS location of abort flag
+
+	moveq	#0,work0
+	store	work0,(bsserr)		; clear BSS error variable...
+	store	work0,(bssdone)		; clear local task done flag
+	store	work0,(bssabort)	; clear task abort flag
+
+; Init. registers with the test number and the address range to test...
+
+	moveq	#0,testnum		; Clear the test number
+	move	startaddr,endaddr	; put start address in end address
+	add	blklen,endaddr		; calculate last test location
+	subq	#4,endaddr		; correct it (assumes len is in bytes
+					; and addresses are multiples of 4)
+
+; Fill RAM with zeroes to provide "expectation" for test 1
+
+	moveq	#0,work0		; Set Clear Value
+	move	startaddr,curaddr	; Get start address
+fill1:	store	work0,(curaddr)		; Clear it
+	addq	#4,curaddr		; Inc pointer
+	cmp	curaddr,endaddr		; Check for end
+ 	jr	PL,fill1		; Branch if not done
+	nop
+
+; Test 1-2:
+; =========
+; Starting with presumed zeroes, check for word being zero,
+; then flip one bit at a time, starting from MSB, checking
+; between each write. Moves from start..end, then scans
+; back by words, looking for new expected value (~0)
+
+	moveq	#0,work0		; Start expected value at zero
+
+	move	PC,outloop		; put PC in main loop register
+	addq	#4,outloop		; adjust to point to 'Start12'
+
+Start12:
+	addq	#1,testnum		; Increment test number counter
+	store	testnum,(bsstest)	; store in BSS so host can display it
+
+	move	startaddr,curaddr	; Get start address
+
+	move	PC,subloop		; put PC in loop address
+	addq	#4,subloop		; adjust to point to 'LpWord12'
+
+LpWord12:
+	move	work0,expect		; set expected value
+	movei	#$80000000,flipper	; Set bit mask
+
+	store	curaddr,(bssaddr)	; put addr in BSS so host can show it
+	store	work0,(bssval)		; put value in BSS so host can show it
+
+	load	(bssabort),work2	; get state of abort flag
+	cmpq	#0,work2		; test for non-zero
+	jump	NE,(donejump)		; if not zero, abort task
+	nop				; else, continue normally
+
+LpBit12:
+	load	(curaddr),got		; Fetch memory
+	cmp	got,expect		; Check it
+	jump	NE,(errjump)		; If bad, go to error
+	xor	flipper,expect		; Flip a bit
+	store	expect,(curaddr)	; write new value
+	shrq	#1,flipper		; Shift the flipper
+	jr	NE,LpBit12		; All bits flipped?
+	nop
+	addq	#4,curaddr		; Point to next memory location
+	cmp	curaddr,endaddr		; Check for end
+	jump	CC,(subloop)		; Branch if not done
+	nop				; jump delay slot
+	cmpq	#0,work0		; did we just finish test 1?
+	jump	EQ,(outloop)		; go do test 2 if so
+	subqt	#1,work0		; change 0 to 0xffffffff
+
+; Test 3-4:
+; =========
+; Starting with presumed zeroes, check for word being zero,
+; then flip one bit at a time, starting from LSB, checking
+; between each write. Moves from end..start, then scans
+; back by words, looking for new expected value (~0)
+
+	or	work1,work1		; !!! Fix for work0 scoreboard bug !!!
+	moveq	#0,work0		; Get expected Value
+
+	move	PC,outloop		; put PC in inner loop reg.
+	addq	#4,outloop		; adjust to point to 'Start34'
+
+Start34:
+	addq	#1,testnum		; Increment test number counter
+	store	testnum,(bsstest)	; store in BSS so host can display it
+
+	move	endaddr,curaddr		; Get end address
+
+	move	PC,subloop		; put PC in inner loop reg.
+	addq	#4,subloop		; adjust to point to 'LpWord34'
+
+LpWord34:
+	move	work0,expect		; set expected value
+	moveq	#1,flipper		; Set bit mask
+
+	store	curaddr,(bssaddr)	; put addr in BSS so host can show it
+	store	work0,(bssval)		; put value in BSS so host can show it
+
+	load	(bssabort),work2	; get state of abort flag
+	cmpq	#0,work2		; test for non-zero
+	jump	NE,(donejump)		; if not zero, abort task
+	nop				; else, continue normally
+
+LpBit34:
+	load	(curaddr),got		; Fetch memory
+	cmp	got,expect		; Check it
+	jump	NE,(errjump)		; If bad, go to error
+	xor	flipper,expect		; Flip a bit
+	store	expect,(curaddr)	; write new value
+	shlq	#1,flipper		; Shift the flipper
+	jr	NE,LpBit34		; All bits flipped?
+;	nop
+	cmp	curaddr,startaddr
+	jump	CS,(subloop)		; Loop if we did _not_ just test start
+	subq	#4,curaddr
+
+	cmpq	#0,work0		; did we just finish test 3?
+	jump	EQ,(outloop)		; go do test 4 if so
+	subqt	#1,work0		; change 0 to 0xffffffff
+
+; Test 5,7:
+; =========
+; Starting with presumed zeroes, check for word being zero,
+; then flip one bit at a time on then off, starting from LSB,
+; checking between each write. Moves from start..end
+; Test 7 presumes all bits are set, and flips the bits off
+; then on
+
+
+	or	work1,work1		; !!! Fix for work0 scoreboard bug !!!
+	moveq	#0,work0		; Get expected Value
+
+	move	PC,outloop		; get current program counter
+	addq	#4,outloop		; calc. address of 'Start57'
+
+Start57:
+	addq	#1,testnum		; Increment test number counter
+	store	testnum,(bsstest)	; store in BSS so host can display it
+
+	move	startaddr,curaddr	; Get start address
+
+	move	PC,subloop		; put PC in inner loop reg.
+	addq	#4,subloop		; adjust to point to 'LpWord57'
+
+LpWord57:
+	moveq	#1,flipper		; Set bit mask
+
+	store	curaddr,(bssaddr)	; put addr in BSS so host can show it
+	store	work0,(bssval)		; put value in BSS so host can show it
+
+	load	(bssabort),work2	; get state of abort flag
+	cmpq	#0,work2		; test for non-zero
+	jump	NE,(donejump)		; if not zero, abort task
+	nop				; else, continue normally
+
+LpBit57:
+	move	work0,expect		; reload expected value
+	load	(curaddr),got		; Fetch memory
+	cmp	got,expect		; Check it
+	jump	NE,(errjump)		; If bad, go to error
+	xor	flipper,expect		; Flip a bit
+	store	expect,(curaddr)	; write new value with the bit flipped
+	store	work0,(curaddr)		; write the old value back
+	shlq	#1,flipper		; Shift the flipper
+	jr	NE,LpBit57		; All bits flipped?
+	nop
+
+	addq	#4,curaddr		; Point to next memory location
+	cmp	curaddr,endaddr		; Check for end
+	jump	CC,(subloop)		; Branch if not done
+	nop
+
+; Test 68:
+; Starting with presumed zeroes, check for word being zero,
+; then flip one bit at a time on then off, starting from MSB,
+; checking between each write. Moves from end..start
+; Test 8 presumes all bits are set, and flips the bits off
+; then on.  The expected value is still in work0 from the
+; previous test
+
+Start68:
+	addq	#1,testnum		; Increment test number counter
+	store	testnum,(bsstest)	; store in BSS so host can display it
+
+	move	endaddr,curaddr		; Get start address
+
+	move	PC,subloop		; put PC in inner loop reg.
+	addq	#4,subloop		; adjust to point to 'LpWord68'
+
+LpWord68:
+	movei	#$80000000,flipper	; Set bit mask
+
+	store	curaddr,(bssaddr)	; put addr in BSS so host can show it
+	store	work0,(bssval)		; put value in BSS so host can show it
+
+	load	(bssabort),work2	; get state of abort flag
+	cmpq	#0,work2		; test for non-zero
+	jump	NE,(donejump)		; if not zero, abort task
+	nop				; else, continue normally
+
+LpBit68:
+	move	work0,expect		; reload expected value
+	load	(curaddr),got		; Fetch memory
+	cmp	got,expect		; Check it
+	jump	NE,(errjump)		; If bad, go to error
+	xor	flipper,expect		; Flip a bit
+	store	expect,(curaddr)	; write new value with the bit flipped
+	store	work0,(curaddr)		; write the old value back
+	shrq	#1,flipper		; Shift the flipper
+	jr	NE,LpBit68		; All bits flipped?
+	cmp	startaddr,curaddr	; Check for end
+
+	jump	NE,(subloop)		; Branch if not done
+	subq	#4,curaddr
+
+	cmpq	#0,work0		; did we just finish test 6?
+	jump	NE,(donejump)		; done, how do we exit <<<<<<<< put
+	subq	#1,work0		; turn 0 into 0xffffffff
+
+; now, fill RAM with 0xffffffff, to provide "expectation" for test 7
+
+        move    startaddr,curaddr	; Get start address
+	store   work0,(curaddr)		; store it
+fill2:  addq    #4,curaddr		; Inc pointer
+        cmp     curaddr,endaddr		; Check for end
+        jr      NE,fill2		; Branch if not done
+	store   work0,(curaddr)		; store it
+
+        jump	T,(outloop)		; do test 7 (opposite of PL test, above)
+        nop
+
+; --------------------------
+; Error/Success Exit code...
+; --------------------------
+
+error:	xor	flipper,expect		; undo damage from above!
+	store	expect,(bssval)		; store expected value (correct)
+	store	got,(bsserr)		; store retrieved value (wrong)
+
+	moveq	#1,work0		; set task done flag...
+	store	work0,(bssdone)
+
+	jump	T,(retaddr)		; return to dispatcher
+	nop				; nop padding for delay slot
+
+done:	movei	#0,work0		; clear register
+	store	work0,(bssval)		; write zero to value slot
+	store	work0,(bsserr)		; write zero to error slot
+
+	moveq	#1,work0		; set task done flag...
+	store	work0,(bssdone)
+
+	jump	T,(retaddr)		; return to dispatcher
+	nop				; nop padding for delay slot
+mtend:
+	TAILER	MTST
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; GPU IDE Read (Main-line task)
+;
+
+GPURD_BSS_BUFP	.equ	(0)
+GPURD_BSS_CNT	.equ	(4)
+GPURD_BSS_DEVP	.equ	(8)
+GPURD_BSS_ERR	.equ	(12)
+GPURD_BSS_RPEND	.equ	(16)
+
+grt0		.equr	r2	; temp registers 0-7...
+grt1		.equr	r3
+grt2		.equr	r4
+grt3		.equr	r5
+grt4		.equr	r6
+grt5		.equr	r7
+grt6		.equr	r8
+grt7		.equr	r9
+grmain		.equr	r10	; main loop address
+grread		.equr	r11	; read loop address
+grhidata	.equr	r12	; GPU high data register address
+grbufp		.equr	r13	; pointer to destination buffer
+grcnt		.equr	r14	; sector count
+grdevp		.equr	r15	; pointer to IDE interface registers
+grdatap		.equr	r16	; pointer to IDE data register
+grstatp		.equr	r17	; pointer to IDE status register
+graltstatp	.equr	r18	; pointer to IDE alternate status register
+
+	.phrase
+	HEADER	GIDE 5 0
+
+grstart:
+	move	PC,work0		; get current program counter
+	movei	#$12345678,work1	; stack ptr relative to runaddr
+	movei	#$12345678,work2	; BSS ptr relative to runaddr
+	nop
+
+	move	work1,tstackptr		; move stack to correct register
+	move	work2,tbssptr		; move BSS to correct register
+	add	work0,tstackptr		; relocate stack ptr
+	add	work0,tbssptr		; relocate BSS ptr
+
+;	Get the buffer ptr, sector count, and device ptr stored in the BSS...
+
+	load	(tbssptr),grbufp	; set address of destination buffer
+
+	move	tbssptr,grcnt		; copy base address of BSS
+	addq	#GPURD_BSS_CNT,grcnt	; calc. address of count slot
+	load	(grcnt),grcnt		; get number of sectors to read
+
+	move	tbssptr,grdevp		; copy base address of BSS
+	addq	#GPURD_BSS_DEVP,grdevp	; calc. address of IDE device ptr slot
+	load	(grdevp),grdevp		; set address of IDE device registers
+
+;	Precalculate the addresses of the IDE controller registers I use...
+
+	move	grdevp,grdatap		; data reg. is at base of IDE registers
+
+	move	grdevp,grstatp		; copy base address of IDE registers
+	addq	#IDE_REG_STATUS,grstatp	; calc. address of alternate status reg.
+
+	move	grdevp,graltstatp	; copy base address of IDE registers
+	movei	#IDE_REG_ALTSTATUS,work0
+	add	work0,graltstatp	; calc. address of alternate status reg.
+
+;	Read one, or more, sectors from the hard drive...
+
+	movei	#G_HIDATA,grhidata	; set address of high data
+
+	move	PC,grmain		; get current program counter
+	addq	#4,grmain		; calc. start of main loop
+
+	loadb	(graltstatp),work0	; get Alternate Status
+.wdrq:	btst	#IDE_STB_DRQ,work0	; is Data Request set?
+	jr	EQ,.wdrq		; no, then wait until it is!
+	loadb	(graltstatp),work0	; get Alternate Status
+
+	moveq	#15,work1		; set loop iterations (16*8 = 128)
+
+	move	PC,grread		; load current program counter
+	addq	#4,grread		; set address of read loop
+
+.rd:	load	(grdatap),grt0		; read in 8 32-bit values...
+	load	(grdatap),grt1
+	load	(grdatap),grt2
+	load	(grdatap),grt3
+	load	(grdatap),grt4
+	load	(grdatap),grt5
+	load	(grdatap),grt6
+	load	(grdatap),grt7
+
+	store	grt0,(grhidata)		; store four 64-bit values...
+	storep	grt1,(grbufp)
+	addq	#8,grbufp
+
+	store	grt2,(grhidata)
+	storep	grt3,(grbufp)
+	addq	#8,grbufp
+
+	store	grt4,(grhidata)
+	storep	grt5,(grbufp)
+	addq	#8,grbufp
+
+	store	grt6,(grhidata)
+	storep	grt7,(grbufp)
+
+	subq	#1,work1		; decrement loop counter
+	jump	PL,(grread)		; if counter > 0, read more sector data
+	addq	#8,grbufp		; bump ptr to destination address
+
+	loadb	(grstatp),work0		; read Status register to ACK sector
+
+	subq	#1,grcnt		; decrement count of remaining sectors
+	jump	NE,(grmain)		; continue until sectors read is zero
+	nop				; delay slot
+
+.wbsy:	loadb	(graltstatp),work0	; get Alternate status
+	btst	#IDE_STB_BSY,work0	; is busy set?
+	jr	NE,.wbsy		; yes, then wait until it isn't!
+	nop
+
+	move	tbssptr,work1		; copy base address of BSS area
+	addq	#GPURD_BSS_RPEND,work1	; calc. addr read pending flag ptr
+	load	(work1),work1		; get pointer to read pending flag
+	moveq	#0,work0		; set value for clearing flag
+	store	work0,(work1)		; clear flag so host knows we're done
+
+	jump	T,(retaddr)		; return to dispatcher
+	nop				; nop padding for delay slot
+grend:
+	TAILER	GIDE
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; GPU Make Shadow Task
+;
+
+DCOMPEN	.equ	$08000000
+LFU_ONE	.equ	$01e00000
+UPDA1	.equ	$00000200
+UPDA2	.equ	$00000400
+NOGO	.equ	$00000080
+
+blitflags	.equr	r4
+srcbase		.equr	r5
+dstbase		.equr	r6
+srcstep		.equr	r7
+dststep		.equr	r8
+counters	.equr	r9
+
+	.phrase
+	HEADER	SHAD 6 TASK_USES_BLITTER
+
+msbegin:
+	move	PC,work0		; get current program counter
+	movei	#$12345678,work1	; stack ptr relative to runaddr
+	movei	#$12345678,work2	; BSS ptr relative to runaddr
+	nop
+
+	move	work1,tstackptr		; move stack to correct register
+	move	work2,tbssptr		; move BSS to correct register
+	add	work0,tstackptr		; relocate stack ptr
+	add	work0,tbssptr		; relocate BSS ptr
+
+;	Pull the arguments off the stack and store them in local registers...
+
+;	C Calling sequence:
+;	gpu_make_shadow( bflags, a2_base, a1_base, a2_step, a1_step, b_count );
+;
+;	gpu_push_stack( GPU_MAKE_SHADOW, ((U32)draster->pixelh<<16) | pixelw );
+;	gpu_push_stack( GPU_MAKE_SHADOW, ((stepsize<<16)&0xFFFF0000L)|xstep );
+;	gpu_push_stack( GPU_MAKE_SHADOW, 0x00010000L | xstep );
+;	gpu_push_stack( GPU_MAKE_SHADOW, H2TADDR( (srcbuf & ~7) );
+;	gpu_push_stack( GPU_MAKE_SHADOW, H2TADDR( (sraster->imageptr & ~7) );
+;	gpu_push_stack( GPU_MAKE_SHADOW, blitflags );
+
+	load	(tstackptr),blitflags	; pop blitter flags
+	addq	#4,tstackptr
+
+	load	(tstackptr),srcbase	; pop source buffer address
+	addq	#4,tstackptr
+
+	load	(tstackptr),dstbase	; pop destination buffer address
+	addq	#4,tstackptr
+
+	load	(tstackptr),srcstep	; pop source step value
+	addq	#4,tstackptr
+
+	load	(tstackptr),dststep	; pop destination step value
+	addq	#4,tstackptr
+
+	load	(tstackptr),counters	; pop loop counters value
+	addq	#4,tstackptr
+
+; Make sure the blitter is not busy
+
+	movei	#B_CMD,work1
+	load	(work1),work0		; load status of blitter
+..wb:	btst	#0,work0		; is it idle?
+	jr	EQ,..wb			; no, continue checking
+	load	(work1),work0		; reload status of blitter
+
+; Set the blitter registers
+
+	movei	#A2_FLAGS,work1		; set blitter flags for src & dest.
+	store	blitflags,(work1)
+	movei	#A1_FLAGS,work1
+	store	blitflags,(work1)
+
+	movei	#A2_BASE,work1		; set base address for src & dest.
+	store	srcbase,(work1)
+	movei	#A1_BASE,work1
+	store	dstbase,(work1)
+
+        moveq	#0,work0		; set starting pixel for src & dest.
+	movei	#A2_PIXEL,work1
+	store	work0,(work1)
+	movei	#A1_PIXEL,work1
+	store	work0,(work1)
+
+	movei	#A2_STEP,work1		; set blitter step for src & dest.
+	store	srcstep,(work1)
+	movei	#A1_STEP,work1
+	store	dststep,(work1)
+
+	moveq	#0,work0		; set both pattern registers to zero
+	movei	#B_PATD1,work1
+	store	work0,(work1)
+	movei	#B_PATD2,work1
+	store	work0,(work1)
+
+	movei	#A1_CLIP,work1		; set A1_CLIP to zero to avoid bug
+	moveq	#0,work0
+	store	work0,(work1)
+
+	moveq	#0,work0		; set both destination registers to zero
+	movei	#B_DSTD,work1
+	store	work0,(work1)
+	addq	#4,work1
+	store	work0,(work1)
+
+	movei	#B_COUNT,work1		; set blitter count register
+	store	counters,(work1)
+
+	movei	#SRCEN|LFU_ONE|UPDA1|UPDA2|DCOMPEN,work0
+	movei	#B_CMD,work1
+	store	work0,(work1)
+
+	jump	T,(retaddr)		; return to dispatcher
+	nop				; nop padding for delay slot
+msend:
+	TAILER	SHAD
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; GPU Shutdown Task
+;
+
+	.phrase
+
+tcval	.equr	r3			; value to store in task completion flag
+tcptr	.equr	r4			; ptr to dispatcher's task complete flag
+g_ctrl	.equr	r5			; ptr to GPU control register
+	HEADER	HALT 0 0
+
+sdbegin:
+	move	PC,work0		; get current program counter
+	movei	#$12345678,work1	; stack ptr relative to runaddr
+	movei	#$12345678,work2	; BSS ptr relative to runaddr
+	nop
+
+	move	work1,tstackptr		; move stack to correct register
+	move	work2,tbssptr		; move BSS to correct register
+	add	work0,tstackptr		; relocate stack ptr
+	add	work0,tbssptr		; relocate BSS ptr
+
+;	shutdown section...
+
+	moveq	#1,tcval		; load 'DONE' value for task flag
+	load	(dbssptr),tcptr		; set ptr to dispatcher's complete flag
+
+	movei	#G_CTRL,g_ctrl		; set address of GPU control register
+	load	(g_ctrl),work0		; get current control value
+	bclr	#0,work0		; clear GO bit in control value
+	store	tcval,(tcptr)		; set task completion flag to 'DONE'
+	store	work0,(g_ctrl)		; Stop the GPU!!!
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+sdend:
+	TAILER	HALT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; GPU 16-bit Null Packed Decompression
+;
+
+; Blitter constant equates...
+
+
+LFU_ZERO	= 0x00000000	; Zero destination
+LFU_REPLACE	= 0x01800000	; Source REPLACEs destination
+LFU_SORD	= 0x01C00000	; Source OR Destination
+PITCH1		= 0x00000000	; 0 phrase gap
+PIXEL8		= 0x00000018	; n = 3: 8 bits per pixel
+PIXEL16		= 0x00000020	; n = 4: 16 bits per pixel
+PIXEL32		= 0x00000028	; n = 5: 32 bits per pixel
+SRCEN		= 0x00000001	; d00: source data read (inner loop)
+SRCENX		= 0x00000004	; d02: source data read (realign)
+WID320		= 0x00004200	; 1.01 X 2^8  (33<<9)
+XADDPHR		= 0x00000000	; 00 - add phrase width and truncate
+XADDPIX		= 0x00010000	; 01 - add pixel size (add 1)
+
+BLITFLAGS	= (WID320|PIXEL8|PITCH1|XADDPHR)
+BCMD_REPLACE	= (SRCEN|LFU_REPLACE)
+BCMD_OR		= (SRCEN|LFU_SORD)
+
+; GPU register equates...
+
+ndsrcptr	.equr	r3	; pointer to source buffer
+nddstptr	.equr	r4	; pointer to destination buffer
+ndsize		.equr	r5	; byte length of compressed data
+ndexit 		.equr	r6	; pointer to exit section
+ndmain	 	.equr	r7	; pointer to top of main loop
+
+; The blitter registers have already been defined in the 8-bit decompressor
+
+	.phrase
+	.list  me
+
+	HEADER	ND16 3 TASK_USES_BLITTER
+nd16:
+	move	PC,work0		; get current program counter
+	movei	#$12345678,work1	; stack ptr relative to runaddr
+	movei	#$12345678,work2	; BSS ptr relative to runaddr
+	nop
+
+	move	work1,tstackptr		; move stack to correct reg. and bank
+	move	work2,tbssptr		; move BSS to correct register and bank
+	add	work0,tstackptr		; relocate stack ptr
+	add	work0,tbssptr		; relocate BSS ptr
+
+	movei	#.ndcomp-nd16,ndmain	; relative address of main loop
+	movei	#.ndexit-nd16,ndexit	; relative address of exit code
+	add	work0,ndmain		; relocate main loop address
+	add	work0,ndexit		; relocate exit code address
+
+; C Calling sequence:
+; =================
+; gpu_push_stack( GPU_ND16, (U32)size );
+; gpu_push_stack( GPU_ND16, (U32)srcptr );
+; gpu_push_stack( GPU_ND16, (U32)dstptr );
+
+	load	(tstackptr),nddstptr	; pop pointer to decompression buffer
+	addq	#4,tstackptr
+
+	load	(tstackptr),ndsrcptr	; pop pointer to compressed image
+	addq	#4,tstackptr
+
+	load	(tstackptr),ndsize	; pop number of pixels in dest. image
+	addq	#4,tstackptr
+
+.if	TRUE,1
+	movei	#B_CMD,b_cmd		; preload address of blitter command
+	movei	#A2_BASE,a2_base	; preload address of source base
+	movei	#A2_PIXEL,a2_pixel	; preload address of source pixel
+	movei	#A1_BASE,a1_base	; preload address of dest. base
+	movei	#A1_PIXEL,a1_pixel	; preload address of dest. pixel
+	movei	#B_COUNT,b_count	; preload address of loop count
+
+;	clear the destination buffer using the blitter...
+
+	load	(b_cmd),work0		; load status of blitter
+..wb1:	btst	#0,work0		; is it idle?
+	jr	EQ,..wb1		; no, continue checking
+	load	(b_cmd),work0		; reload status for above loop
+
+	movei	#WID320|PIXEL32|PITCH1|XADDPHR,work0
+	movei	#A1_FLAGS,work1
+	store	work0,(work1)
+
+	movei	#A1_CLIP,work1		; set A1_CLIP to zero to avoid bug
+	moveq	#0,work0
+	store	work0,(work1)
+
+	store	nddstptr,(a1_base)	; set destination base and pixel
+	moveq	#0,work0
+	store	work0,(a1_pixel)
+
+	move	ndsize,work0		; set y/x loop iterations
+	shrq	#1,work0		; convert to number of 32-bit pixels
+	movei	#$0000ffff,work1	; load mask to get rid of high word
+	and	work1,work0		; force Y count to zero
+	bset	#16,work0		; set Y count to 1
+	store	work0,(b_count)		; store x/y iterations to blitter count
+
+	movei	#LFU_ZERO,work0		; blit zeroes to destination
+	store	work0,(b_cmd)
+
+	load	(b_cmd),work0		; load status of blitter
+..wb2:	btst	#0,work0		; is it idle?
+	jr	EQ,..wb2		; no, continue checking
+	load	(b_cmd),work0		; reload status for above loop
+.endc
+
+;	decompress the image...
+
+	subq	#1,ndsize		; adjust remaining pixels to exit on < 0.
+.ndcomp:
+	cmpq	#0,ndsize		; is remaining pixels less than zero?
+	jump	MI,(ndexit)		; yes, then we're done!
+	nop
+
+	loadw	(ndsrcptr),work0	; load a skip value
+	addq	#2,ndsrcptr		; update source pointer
+	add	work0,nddstptr		; skip dest. pointer appropriate amount
+	add	work0,nddstptr		; skip dest. pointer appropriate amount
+	sub	work0,ndsize		; adjust remaining pixels
+
+;---
+;	put back in if paranoid about the remaining pixels value
+;	cmpq	#0,ndsize		; is remaining pixels less than zero?
+;	jump	MI,(ndexit)		; yes, then we're done!
+;	nop
+;---
+
+	loadw	(ndsrcptr),work0	; load a copy value
+	addq	#2,ndsrcptr		; update source pointer
+	sub	work0,ndsize		; adjust remaining pixels
+
+;---
+;	put back in if paranoid about the remaining pixels value
+;	cmpq	#0,ndsize		; is remaining pixels less than zero?
+;	jump	MI,(ndexit)		; yes, then we're done!
+;	nop
+;---
+
+.ndcopy:
+	subq	#1,work0		; has remaining pixels gone negative?
+	jump	MI,(ndmain)		; yes, then this span is done!
+	nop				; NOP must be here or Toshiba crashes
+
+	loadw	(ndsrcptr),work1	; no, get another pixel
+	addq	#2,ndsrcptr
+
+	storew	work1,(nddstptr)
+	jr	T,.ndcopy
+	addq	#2,nddstptr
+;	nop
+
+.ndexit:
+	jump	T,(retaddr)		; return to dispatcher
+	nop				; nop padding for delay slot
+
+	TAILER	ND16
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	.phrase
+	.end
+
+**************************************************************************
+* End of file: GPUDISP.GAS                                               *
+**************************************************************************
+@
+
+
+1.14
+log
+@Completed conversion to new-style HEADER..TAILER.
+Added ND16, null-packed decompression.
+@
+text
+@d129 1
+a129 1
+G_HIDATA	=	$f02118	; GPU reg. for high 32-bits of phrase
+d1757 5
+a1761 5
+ndsrcptr	.equr	r0	; pointer to source buffer
+nddstptr	.equr	r1	; pointer to destination buffer
+ndsize		.equr	r2	; byte length of compressed data
+ndexit 		.equr	r3	; pointer to exit section
+ndmain	 	.equr	r4	; pointer to top of main loop
+d1763 1
+a1763 1
+; already defined in 8-bit decomp...
+a1764 9
+.if	TRUE,0
+a2_base		.equr	r5	; address of blitter source base register
+a2_pixel	.equr	r6	; address of blitter source pixel register
+a1_base		.equr	r7	; address of blitter dest. base register
+a1_pixel	.equr	r8	; address of blitter dest. pixel register
+b_cmd		.equr	r9	; address of blitter command register
+b_count		.equr	r0	; address of blitter loop count register
+.endc
+
+d1800 1
+d1841 1
+d1849 1
+d1857 7
+d1868 7
+d1878 1
+d1886 1
+@
+
+
+1.13
+log
+@Converted to interim style headers. This code works
+with gputask.c -r1.10 or earlier, and should continue
+to work with later versions, albeit without the newer
+bells and whistles. This is an interim relase.
+@
+text
+@d30 4
+a33 1
+	.macro HDR label name,start,end,ram,flags,vec
+d54 2
+a55 1
+	.iif nb,label,label == .
+d57 10
+d68 4
+a71 3
+	dc.l	(('end+3-'start)/4)+((('start-.-12.)/4)*0x1000)
+	dc.l	ram			; stack/bss size (in LONGS)
+	dc.l	..flagval
+d83 1
+a83 1
+	HDR	O_gpu_int1 ROOT, int1, int2, 0, 0
+d109 2
+a110 1
+int2:
+d174 1
+a174 1
+	HDR	O_gpu_ide_isr INT1 ide1 ide2 6 VEC_DSP
+d318 2
+a319 1
+ide2:
+d342 1
+a342 1
+	HDR	O_gpu_obp_isr INT3 prlx1 prlx2 0 VEC_OBP
+a463 1
+prlx2:
+d465 2
+d472 1
+a472 1
+	HDR	O_gpu_blit_isr INT4 blit1 blit2 0 VEC_BLT
+d498 2
+a499 1
+blit2:
+d529 1
+a529 1
+	HDR	O_gpu_task_dispatcher DISP disp1 disp2 2 0
+a579 1
+disp2:
+d581 2
+d634 1
+a634 1
+	HDR	O_gpu_decompress DCMP dcomp1 dcomp2 4 TASK_USES_BLITTER
+d867 2
+a868 1
+dcomp2:
+d923 1
+a923 1
+	HDR	O_gpu_movie MDCM mdcomp1 mdcomp2 21 0
+a1083 1
+mdcomp2:
+d1085 2
+d1125 1
+a1125 1
+	HDR	O_gpu_memory_test MTST mtstart mtend 9 0
+d1436 1
+d1467 1
+a1467 1
+	HDR	O_gpu_ide_read GIDE grstart grend 5 0
+d1568 1
+d1588 1
+a1588 1
+	HDR	O_gpu_make_shadow SHAD msbegin msend 6 TASK_USES_BLITTER
+d1688 1
+d1699 1
+a1699 1
+	HDR	O_gpu_shut_down HALT sdbegin sdend 0 0
+d1729 154
+@
+
+
+1.12
+log
+@Added skeleton code for handling interrupts from the Blitter to the GPU.
+This code is not currently used by anyone, but may be needed in the future.
+@
+text
+@d13 1
+d21 39
+d68 1
+a68 6
+O_gpu_int1::
+	dc.l	'TASK'
+	dc.l	(int2+3-int1)/4		; code length (in LONGS)
+	dc.l	0			; stack/bss size (in LONGS)
+	dc.l	0			; no flags defined
+
+d158 1
+a158 6
+
+O_gpu_ide_isr::
+	dc.l	'INT1'			; IDE interrupt goes in slot #1
+	dc.l	(ide2+3-ide1)/4		; code length (in LONGS)
+	dc.l	6			; stack/bss size (in LONGS)
+	dc.l	0			; no flags defined
+d325 1
+a326 6
+O_gpu_obp_isr::
+	dc.l	'INT3'
+	dc.l	(prlx2+3-prlx1)/4	; code length (in LONGS)
+	dc.l	0			; stack/bss size (in LONGS)
+	dc.l	0			; no flags defined
+
+d454 1
+a454 6
+
+O_gpu_blit_isr::
+	dc.l	'INT4'
+	dc.l	(blit2+3-blit1)/4	; code length (in LONGS)
+	dc.l	0			; stack/bss size (in LONGS)
+	dc.l	0			; no flags defined
+d510 1
+a510 6
+
+O_gpu_task_dispatcher::
+	dc.l	'TASK'
+	dc.l	(disp2+3-disp1)/4	; code length (in LONGS)
+	dc.l	2			; stack/bss size (in LONGS)
+	dc.l	0			; no flags defined
+d613 2
+a615 6
+O_gpu_decompress::
+	dc.l	'TASK'
+	dc.l	(dcomp2+3-dcomp1)/4	; code length (in LONGS)
+	dc.l	4			; stack/bss size (in LONGS)
+	dc.l	TASK_USES_BLITTER	; lock out blitter while task is running
+
+d902 1
+a902 7
+
+O_gpu_movie::
+	dc.l	'TASK'
+	dc.l	(mdcomp2+3-mdcomp1)/4	; code length (in LONGS)
+	dc.l	21			; stack/bss size (in LONGS)
+	dc.l	0  	                ; no flags
+
+d1103 1
+a1103 6
+
+O_gpu_memory_test::
+	dc.l	'TASK'			; GPU Task identifier
+	dc.l	(mtend+3-mtstart)/4	; code length (in LONGS)
+	dc.l	9			; stack/bss size (in LONGS)
+	dc.l	0			; no flags defined
+d1444 1
+a1445 6
+O_gpu_ide_read::
+	dc.l	'TASK'			; GPU Task identifier
+	dc.l	(grend+3-grstart)/4	; code length (in LONGS)
+	dc.l	5			; stack/bss size (in LONGS)
+	dc.l	0			; no flags defined
+
+d1564 1
+a1564 6
+
+O_gpu_make_shadow::
+	dc.l	'TASK'			; GPU Task identifier
+	dc.l	(msend+3-msbegin)/4	; code length (in LONGS)
+	dc.l	6			; stack/bss size (in LONGS)
+	dc.l	TASK_USES_BLITTER	; no flags defined
+d1674 1
+a1674 6
+
+O_gpu_shut_down::
+	dc.l	'TASK'			; GPU Task identifier
+	dc.l	(sdend+3-sdbegin)/4	; code length (in LONGS)
+	dc.l	0			; stack/bss size (in LONGS)
+	dc.l	0			; no flags defined
+@
+
+
+1.11
+log
+@Rearranged code which sets the GPU -> HOST interrupt bit in
+the GPU Task Dispatcher to make sure the host can't get
+interrupt until the GPU is back waiting in its dispatcher
+loop.
+@
+text
+@d424 37
+a460 1
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+@
+
+
+1.10
+log
+@Added code in Charlie's movie decompressor to support output in
+RGB or CRY mode based on a parameter passed to the movie task.
+@
+text
+@d505 1
+a505 2
+	bset	#1,work1		; Set the CPU IRQ bit
+	store	work1,(work0)		; and store it back to cause interrupt
+d509 1
+a509 1
+	nop
+@
+
+
+1.9
+log
+@Fixed clear buffer code in null packed decompression task
+(the last few pixels in the buffer weren't being erased).
+Added A1_CLIP = 0 code to any task that uses the blitter to
+avoid the documented blitter clipping bug.
+@
+text
+@a825 1
+;     .equr  r15  index reg
+d827 2
+d860 2
+a861 2
+	dc.l	20			; stack/bss size (in LONGS)
+	dc.l	TASK_USES_BLITTER	; lock out blitter while task is running
+d902 3
+d950 1
+d953 1
+a967 1
+
+@
+
+
+1.8
+log
+@Added GPU task to make a shadow (requested by Hero team)
+Added GPU shut down task to stop GPU (can be restarted if necessary)
+Added clear buffer code to gpu null packed decompressor, so you
+no longer need to call blit_clear() before calling decomp_image().
+@
+text
+@a600 1
+	subq	#1,length
+d612 1
+a612 1
+; Make sure the blitter is not busy
+d623 5
+a627 1
+	store	dstptr,(a1_base)
+d631 1
+a631 1
+	move	length,work0
+d638 1
+a638 1
+	movei	#LFU_ZERO,work0
+d701 1
+d1583 1
+a1583 1
+	load	(work1),work0		; reload status for above loop
+d1614 4
+a1630 2
+;;;;
+
+d1634 1
+@
+
+
+1.7
+log
+@Finished off the GPU memory test and the GPU Task for reading
+from the hard drive.
+@
+text
+@d506 1
+a506 1
+	store	work1,(work0)		; and stop the GPU
+d519 2
+d613 25
+d656 2
+a657 2
+..wb:	btst	#0,work0		; is it idle?
+	jr	EQ,..wb			; no, continue checking
+d1506 166
+@
+
+
+1.6
+log
+@Added Charlie Grisafi's latest movie code so Hero can use it.
+@
+text
+@d69 1
+d71 6
+d450 3
+d487 2
+a488 2
+	load	(dstackptr),taskptr	; pop addr of where to get task pointer
+	addq	#4,dstackptr		; adjust stack pointer
+d1003 2
+d1023 2
+d1031 1
+a1031 1
+	dc.l	7			; stack/bss size (in LONGS)
+d1065 1
+a1065 1
+;	Initialize the pointers to the BSS variables...
+d1068 1
+d1070 2
+a1071 1
+	addq	#MTST_BSS_ADDR,bssaddr	; calc. BSS addr of test address
+d1073 2
+a1074 1
+	addq	#MTST_BSS_VAL,bssval	; calc. BSS addr of test value
+d1076 7
+a1082 1
+	addq	#MTST_BSS_ERR,bsserr	; calc. BSS addr of error value
+d1084 4
+a1087 2
+	moveq	#0,work0		; clear BSS error variable...
+	store	work0,(bsserr)
+d1089 1
+a1089 1
+;	Init. registers with the test number and the address range to test...
+d1097 1
+a1097 1
+;	Fill RAM with zeroes to provide "expectation" for test 1
+d1135 5
+a1152 1
+
+d1164 1
+a1164 1
+	or	work1,work1		; FIX for work0 scoreboard bug!!!
+d1186 5
+d1217 1
+a1217 1
+	or	work1,work1		; FIX for work0 scoreboard bug!!!
+d1238 5
+d1283 5
+d1319 3
+a1321 1
+;---------------------
+d1324 6
+a1329 1
+	store	expect,(bsserr)		; store expected value in error slot
+d1333 7
+a1339 2
+done:	movei	#$0,work0		; clear register
+	store	work0,(bsserr)		; wrtie zero to error slot
+d1345 136
+d1486 1
+a1486 1
+* End of file: GPUINT.GAS                                                *
+@
+
+
+1.5
+log
+@Added code to save and restore the G_HIDATA register in the
+IDE interrupt handler so main-line GPU tasks can use the
+load/store phrase commands.  Incorporated Grisafi's latest
+movie player which makes use of the blitter.
+@
+text
+@d776 5
+a780 1
+mdindex  .equr  r8
+d782 1
+a782 2
+tmpsrc   .equr  r9
+tmpdest  .equr  r10
+d784 2
+a785 2
+off0     .equr  r11
+off1     .equr  r12
+d787 1
+a787 2
+hidat    .equr  r13
+phidat   .equr  r15
+d789 3
+a791 2
+mdloop0  .equr  r16
+mdloop1  .equr  r17
+d793 1
+a793 2
+lbl0000	.equr	r18
+lbl0010	.equr	r19
+d795 3
+a797 1
+lblexit	.equr	r20
+d799 2
+a800 2
+WID3584 = $00005E00 ;1.11 X 2^11 (47<<9)
+MDBLITFLAGS	= (WID3584|PIXEL32|PITCH1|XADDPHR)
+d802 2
+a803 2
+CMPBUF  = $f03800
+LINEBUF = $f03C00
+d805 4
+d818 1
+a818 1
+	dc.l	18			; stack/bss size (in LONGS)
+d861 13
+d883 11
+a893 26
+;----- RMB -----
+
+; Make sure the blitter is not busy
+
+	movei	#B_CMD,work0		; address of blitter command
+	load	(work0),work1		; load status of blitter
+mdwb0:	btst	#0,work1		; is it idle?
+	jr	EQ,mdwb0		; no, continue checking
+	load	(work0),work1		; reload status for above loop
+
+;set src/dest flags
+
+        movei   #MDBLITFLAGS,work0
+	movei	#A2_FLAGS,work1  	;  address of source flags
+	movei	#A1_FLAGS,work2	        ;  address of dest flags
+        store   work0,(work1)
+        store   work0,(work2)
+
+;set src and dest pointers
+
+	movei	#A1_BASE,work2	;  address of dest base
+        movei   #CMPBUF+$8000,work0
+        store   work0,(work2)
+
+;----- RMB -----
+
+a897 41
+;zero out pixel offsets and steps
+        moveq   #0,work0
+	movei	#A2_PIXEL,work1		;  address of source pixel
+	movei	#A2_STEP,work2		;  address of source step
+        store   work0,(work1)
+        store   work0,(work2)
+	movei	#A1_PIXEL,work1		;  address of dest pixel
+	movei	#A1_STEP,work2		;  address of dest step
+        store   work0,(work1)
+        store   work0,(work2)
+
+;set src and dest pointers
+
+	movei	#A2_BASE,work1	;  address of source base
+        store   mdsrc,(work1)
+
+;set count and adjust src pointer
+	moveq   #12,work0	;bump source ptr to next row
+	mult	mdwidth,work0
+	add	work0,mdsrc
+        movei   #$00010000,work2
+        shrq    #2,work0
+	movei	#B_COUNT,work1	;  address of loop count
+        or      work2,work0
+	movei	#B_CMD,work2	;  address of blitter command
+        store   work0,(work1)
+
+;set command
+        movei   #SRCEN|LFU_REPLACE,work0
+        store   work0,(work2)
+
+; Make sure the blitter is not busy
+	movei	#B_CMD,work0		;  address of blitter command
+	load	(work0),work1		; load status of blitter
+mdwb1:	btst	#0,work1		; is it idle?
+	jr	EQ,mdwb1		; no, continue checking
+	load	(work0),work1		; reload status for above loop
+;end blit
+
+        movei   #CMPBUF,tmpsrc
+
+d900 7
+a906 2
+MD_0010:
+        move    mddest,tmpdest
+d908 1
+a908 5
+	move	tmpsrc,r14
+	load	(tmpsrc),mdindex	; load index from compressed data
+	load    (r14+1),color0     
+	load    (r14+2),color2
+        addq    #12,tmpsrc
+a909 1
+	movei	#$0000ffff,work0 ; setup and mask
+d911 1
+a912 2
+	and	work0,color1
+	move	color2,color3
+d914 2
+a915 1
+	and	work0,color3
+a916 1
+	move	tbssptr,r14	; set up pointer to scratch color area
+a921 2
+	moveq	#$03,work0
+	moveq	#$0C,work1
+d923 14
+a936 6
+.rept 4
+	move	mdindex,color0   	;get 2 bit index for colors
+	move	mdindex,color1   	
+	and	work0,color0  
+	and	work1,color1     	;setup index to 2nd color
+	shlq	#2,color0         	;setup index to 1st color
+d938 5
+a942 2
+	load	(r14+color0),color0   	;load color
+ 	shrq	#4,mdindex         	;shift out used bits
+a943 10
+	move	mdindex,color2   	;get 2 bit index for colors
+	or	color1,color0       	;put both colors in the same reg
+	move	mdindex,color3   	
+	move	color0,hidat     	;save the pix in dram
+	and	work0,color2  
+	and	work1,color3     	;setup index to 2nd color
+	shlq	#2,color2         	;setup index to 1st color
+	load	(r14+color3),color3   	;load color
+	load	(r14+color2),color2   	;load color
+	shrq	#4,mdindex         	;shift out used bits
+d945 4
+a948 2
+        store   hidat,(phidat)
+	or	color2,color3       	;put both colors in the same reg
+d950 2
+a951 1
+ 	add	off0,tmpdest		;adjust pointer to start of next tile line
+d954 1
+d959 1
+a959 2
+	nop
+	add	off1,mddest             ; bump dest pointer
+d965 11
+a975 1
+mexit:	jump	T,(retaddr)		; return to dispatcher
+@
+
+
+1.4
+log
+@Fixed problem with GPU memory test (5 & 7), it turned out to
+be a scoreboard bug in the processor.
+@
+text
+@d71 1
+d82 9
+a90 10
+t0		.equr	r5
+t1		.equr	r6
+t2		.equr	r7
+t3		.equr	r8
+t4		.equr	r9
+t5		.equr	r10
+t6		.equr	r11
+t7		.equr	r12
+jumprd		.equr	r13
+hidata		.equr	r14
+d93 11
+a103 4
+temp0		.equr	r18
+temp1		.equr	r19
+temp2		.equr	r20
+counter		.equr	r21
+d128 2
+a129 1
+ide1:	move	ivecbss,bssptr		; copy ISR's BSS ptr to safe place
+d131 2
+d188 1
+a188 2
+	movei	#$f02118,hidata		; set address of high 32-bits of phrase
+	movei	#15,counter		; set loop iterations (16*8 = 128)
+d252 1
+a252 1
+	movei	#G_CTRL,temp0		; get address of GP control register
+d261 1
+d766 24
+a789 14
+tmp0	.equr	r4
+tmp1	.equr	r5
+tmp2	.equr	r6
+tmp3	.equr	r7
+tmp4	.equr	r8
+tmp5	.equr	r9
+tmp6	.equr	r10
+tmp7	.equr	r11
+tmp8	.equr	r12
+tmp9	.equr	r13
+tmp10	.equr	r14
+tmp11	.equr	r15
+tmp12	.equr	r16
+tmp13	.equr	r17
+d792 1
+d795 6
+d803 4
+d810 6
+a815 2
+	dc.l	16			; stack/bss size (in LONGS)
+	dc.l	0			; no flags defined
+d840 1
+a840 1
+	load	(tstackptr),tmp0	; pop pointer to compressed image data
+d843 1
+a843 1
+	load	(tstackptr),tmp1	; pop pointer to destination buffer
+d846 39
+d886 4
+a889 1
+	movei	#40,tmp2
+d891 39
+a929 4
+	movei	#64,tmp3
+MD_0010:
+	load	(tmp0),tmp5	  ;load index word
+	addq	#4,tmp0
+d931 1
+a931 186
+	movei	#$0000ffff,tmp4   ;load colors
+	load    (tmp0),tmp6
+	addq	#4,tmp0
+	load    (tmp0),tmp8
+	addq	#4,tmp0
+	move	tmp6,tmp7
+	shrq	#16,tmp6
+	and	tmp4,tmp7
+	move	tmp8,tmp9
+	shrq	#16,tmp8
+	and	tmp4,tmp9
+
+
+        movei   #$FFFE,tmp11
+        and     tmp11,tmp6
+        and     tmp11,tmp7
+        and     tmp11,tmp8
+        and     tmp11,tmp9
+
+
+	move	tbssptr,tmp10	; set up pointer to scratch color area
+	store	tmp6,(tmp10)
+	addq	#4,tmp10
+	store	tmp7,(tmp10)
+	addq	#4,tmp10
+	store	tmp8,(tmp10)
+	addq	#4,tmp10
+	store	tmp9,(tmp10)
+
+;----
+	move	tmp1,tmp9	;set temp pointer to tile
+	move	tbssptr,tmp10	; set up pointer to scratch color area
+	moveq	#$03,tmp11
+	movei	#(512-4),tmp12	;set offset to start of next tile line
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp4	;load color
+	shlq	#16,tmp4
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp13	;load color
+	add	tmp13,tmp4
+
+	store	tmp4,(tmp9)
+	addqt	#4,tmp9
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp4	;load color
+	shlq	#16,tmp4
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp13	;load color
+	add	tmp13,tmp4
+
+	store	tmp4,(tmp9)
+	add	tmp12,tmp9      ;adjust pointer to start of next tile line
+
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp4	;load color
+	shlq	#16,tmp4
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp13	;load color
+	add	tmp13,tmp4
+
+	store	tmp4,(tmp9)
+	addqt	#4,tmp9
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp4	;load color
+	shlq	#16,tmp4
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp13	;load color
+	add	tmp13,tmp4
+
+	store	tmp4,(tmp9)
+	add	tmp12,tmp9      ;adjust pointer to start of next tile line
+
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp4	;load color
+	shlq	#16,tmp4
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp13	;load color
+	add	tmp13,tmp4
+
+	store	tmp4,(tmp9)
+	addqt	#4,tmp9
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp4	;load color
+	shlq	#16,tmp4
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp13	;load color
+	add	tmp13,tmp4
+
+	store	tmp4,(tmp9)
+	add	tmp12,tmp9      ;adjust pointer to start of next tile line
+
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp4	;load color
+	shlq	#16,tmp4
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp13	;load color
+	add	tmp13,tmp4
+
+	store	tmp4,(tmp9)
+	addqt	#4,tmp9
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp4	;load color
+	shlq	#16,tmp4
+
+	move	tmp5,tmp8   	;setup index to color
+	shrq	#2,tmp5
+	and	tmp11,tmp8  
+	shlq	#2,tmp8     
+	add	tmp10,tmp8	;setup pointer to color
+	load	(tmp8),tmp13	;load color
+	add	tmp13,tmp4
+d933 4
+a936 2
+	store	tmp4,(tmp9)
+;----
+d938 49
+a986 1
+	addq	#8,tmp1		;setup pointer to next tile
+d988 1
+a988 1
+	subq	#1,tmp3		;loop for all cols
+d990 2
+d993 1
+d995 1
+a995 4
+	movei	#1536,tmp4	;bump tile pointer
+	add	tmp4,tmp1
+
+	subq	#1,tmp2		;loop for all rows
+d997 1
+a997 1
+	nop
+@
+
+
+1.3
+log
+@Removed word swapping from read sector code.  Fixed interrupt
+problem, works on all drives types now.
+@
+text
+@d1047 2
+a1048 2
+flipper		.equr	r8	; used to flip bits in value
+got		.equr	r9	; value read from memory location
+d1083 2
+a1084 2
+; C Calling sequence:
+; ===================
+d1100 1
+a1100 1
+	move	tbssptr,bsstest		; test variable is at base of BSS
+d1136 1
+a1136 2
+	movei	#$12121212,work1
+	store	work1,(bsserr)
+a1137 2
+	moveq	#0,work0		; Get expected Value
+
+d1169 1
+a1169 1
+	nop
+a1170 1
+mtest2:
+d1182 1
+a1182 3
+	movei	#$34343434,work1
+	store	work1,(bsserr)
+
+d1193 1
+d1198 1
+a1198 2
+
+	move	work0,expect
+a1216 2
+
+mtest4:
+d1229 2
+d1233 2
+a1234 2
+	move	PC,outloop
+	addq	#4,outloop
+a1236 3
+	movei	#$57575757,work1
+	store	work1,(bsserr)
+
+a1257 4
+	nop
+	nop
+	nop
+	nop
+a1267 4
+	store	curaddr,(bsserr)
+.qqq:	jr	T,.qqq
+	nop
+
+a1275 3
+	movei	#$68686868,work1
+	store	work1,(bsserr)
+
+d1325 1
+a1325 8
+
+	movei	#$deadbeef,work0
+	store	work0,(bsserr)
+	store	expect,(bsserr)
+
+;.xyz:	jr	T,.xyz
+;	nop
+
+d1329 2
+a1330 3
+done:	movei	#$0,work0
+	store	work0,(bsserr)
+
+a1332 1
+
+@
+
+
+1.2
+log
+@Added a task for GPU memory test, and cleaned up some of the
+code and comments.
+@
+text
+@d65 4
+a68 4
+IDE_REG_DATA		.equ	($0)	; IDE controller data port
+IDE_REG_COUNT		.equ	($1)	; IDE controller count register
+IDE_REG_ERROR		.equ	($2)	; IDE controller error register
+IDE_REG_STATUS		.equ	($4)	; IDE controller status
+d78 3
+a80 1
+.if	TRUE,1
+d93 10
+a102 9
+temp0		.equr	r19
+temp1		.equr	r20
+temp2		.equr	r21
+counter		.equr	r22
+ideptr  	.equr   r23
+bufptr		.equr	r24
+bufaddr		.equr	r25
+cntaddr		.equr	r26
+bssptr		.equr	r27
+d113 1
+a113 1
+	dc.l	5			; stack/bss size (in LONGS)
+d116 6
+a121 1
+ide1:	move	ivecbss,bssptr		; copy int's BSS ptr to safe place
+d127 2
+a128 2
+	subq	#4,istackptr		; save current GPU Flags on stack
+	store	gflags_val,(istackptr)	; "                             "
+d140 7
+d148 1
+a148 2
+	move	bssptr,cntaddr		; set addr of where count is held...
+	addq	#IDE_BSS_CNTPTR,cntaddr
+d150 4
+a153 1
+	move	bssptr,ideptr		; copy ptr to BSS area
+d157 16
+a172 1
+	load	(bufaddr),bufptr	; set addr of where to store data
+d177 1
+a177 1
+.if TRUE,1
+d211 4
+a214 1
+.endc
+a218 2
+.if	TRUE,0
+
+d234 1
+a234 1
+	jr	NE,.leave		; if count > 0, do normal exit
+d248 1
+a248 22
+.leave:
+	move	ideptr,temp0		; copy pointer to IDE device
+	addq	#IDE_REG_STATUS,temp0	; add offset to status to register
+	loadb	(temp0),temp0		; clear pending interupt to do read
+
+	btst	#0,temp0		; does status reg. indicate an error?
+	jr	EQ,.noerr		; no, then skip error handling code
+	nop				; nop filler
+	move	ideptr,temp0		; get base address of IDE registers
+	addq	#IDE_REG_ERROR,temp0	; calc. address of error register
+	loadb	(temp0),temp0		; get contents of error register
+	move	bssptr,temp1		; get base address of BSS area
+	addq	#IDE_BSS_ERROR,temp1	; calc. address of where to store error
+	store	temp0,(temp1)		; store error value in BSS
+
+.noerr:
+	movei	#G_FLAGS,gflags_reg	; load address of GPU FLAGS register
+	load	(istackptr),gflags_val	; get GPU Flags saved on stack
+	addq	#4,istackptr		; pop stack
+	bclr    #3,gflags_val		; Clear IMASK so other interrupts occur
+
+	load    (istackptr),gpu_pc	; Address of last instruction
+d252 1
+a253 1
+	jump    T,(gpu_pc)		; Return to GPU
+d1036 4
+a1039 4
+MEMTST_BSS_TESTNUM	.equ	(0)
+MEMTST_BSS_ADDR		.equ	(4)
+MEMTST_BSS_VALUE	.equ	(8)
+MEMTST_BSS_ERROR	.equ	(12)
+d1054 1
+a1054 1
+bsstestnum	.equr	r15	; BSS addr of test number variable
+d1056 2
+a1057 2
+bssvalue	.equr	r17	; BSS addr of test value variable
+bsserror	.equr	r18	; BSS addr of test error variable
+d1084 1
+a1084 1
+; =================
+d1100 7
+a1106 7
+	move	tbssptr,bsstestnum
+	move	tbssptr,bssaddr
+	addq	#MEMTST_BSS_ADDR,bssaddr
+	move	tbssptr,bssvalue
+	addq	#MEMTST_BSS_VALUE,bssvalue
+	move	tbssptr,bsserror
+	addq	#MEMTST_BSS_ERROR,bsserror
+d1108 4
+a1111 1
+;-----
+d1116 2
+a1117 8
+	subq	#3,endaddr		; correct it (assumes len is in bytes
+					; and addresses are multipules of 4)
+;-----
+
+	moveq	#0,work0		; clear BSS error variable...
+	store	work0,(bsserror)
+
+;-----
+d1119 1
+a1119 1
+; first, fill RAM with 0, to provide "expectation" for test 1
+d1136 3
+d1146 1
+a1146 1
+	store	testnum,(bsstestnum)
+d1157 2
+a1158 2
+	store	curaddr,(bssaddr)
+	store	work0,(bssvalue)
+d1186 3
+d1196 1
+a1196 1
+	store	testnum,(bsstestnum)
+a1198 1
+
+d1203 1
+d1207 2
+a1208 2
+	store	curaddr,(bssaddr)
+	store	expect,(bssvalue)
+d1218 4
+a1222 6
+	cmp	startaddr,curaddr	; Check for end
+	jump	NE,(subloop)		; Branch if not done
+	subq	#4,curaddr		; Point to next memory location
+
+	addq	#1,testnum		; Increment test number counter
+	store	testnum,(bsstestnum)
+d1243 3
+d1247 1
+a1247 1
+	store	testnum,(bsstestnum)
+d1257 2
+a1258 2
+	store	curaddr,(bssaddr)
+	store	work0,(bssvalue)
+d1267 4
+d1281 5
+a1285 1
+; Test 6:
+d1293 3
+d1298 1
+a1298 1
+	store	testnum,(bsstestnum)
+d1308 2
+a1309 2
+	store	curaddr,(bssaddr)
+	store	work0,(bssvalue)
+a1341 1
+
+d1347 5
+a1351 2
+	store	work0,(bsserror)
+;	store	got,(bsserror)
+d1356 2
+a1357 3
+done:
+	movei	#$77777777,work0
+	store	work0,(bsserror)
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 1
+a13 2
+;	.psect	prog,seg=4,dat=4
+   .psect    GPU_CODE,seg=4,dat=4
+a17 1
+
+d28 1
+a28 1
+gpu_int1::
+d66 2
+a67 1
+IDE_REG_ERROR		.equ	($1)	; IDE controller error register
+d70 1
+a70 1
+JINTCTRL		.equ	$f10020	; Jerry interrupt control register
+d72 5
+a76 5
+IDE_BSS_BUFPTR	.equ	0
+IDE_BSS_CNTPTR	.equ	4
+IDE_BSS_RDPEND	.equ	8
+IDE_BSS_DEVPTR	.equ	12
+IDE_BSS_ERROR	.equ	16
+a77 1
+
+d107 2
+a108 2
+gpu_ide_isr::
+	dc.l	'INT1'
+d113 1
+a113 1
+ide1:	move	ivecbss,bssptr		; copy interrupt's BSS ptr to safe place
+d122 1
+a122 1
+	movei	#JINTCTRL,temp0		; set address of Jerry Interrupt Control
+d130 1
+a130 1
+	storew	temp2,(temp0)		; write back because of Jerry strangeness
+d132 2
+a133 2
+	move	bssptr,bufaddr		; set address of where buffer ptr is stored
+	move	bssptr,cntaddr		; set address of where count is stored...
+d136 2
+a137 2
+	move	bssptr,ideptr
+	addq	#IDE_BSS_DEVPTR,ideptr
+d140 1
+a140 1
+	load	(bufaddr),bufptr	; get address of where to store sector data
+d142 2
+a143 1
+;--------------------------------------
+d146 2
+a147 2
+	move	PC,jumprd
+	addq	#16,jumprd
+d149 2
+a150 2
+	movei	#$f02118,hidata
+	movei	#15,counter
+d152 1
+a152 1
+readlp:	load	(ideptr),t0
+d161 1
+a161 10
+;	rorq	#16,t0
+;	rorq	#16,t1
+;	rorq	#16,t2
+;	rorq	#16,t3
+;	rorq	#16,t4
+;	rorq	#16,t5
+;	rorq	#16,t6
+;	rorq	#16,t7
+
+	store	t0,(hidata)
+a180 2
+;--------------------------------------
+
+d182 1
+d186 2
+a187 4
+	movei	#127,counter		; set number of longs to read (512 bytes)
+
+readlp:	load	(ideptr),temp0		; read 32-bites from the IDA data register
+;	rorq	#16,temp0		; swap words so data is correct
+d201 1
+a201 1
+	jr	NE,leave
+d204 5
+a208 5
+	move	bssptr,temp0
+	addq	#IDE_BSS_RDPEND,temp0
+	load	(temp0),temp1
+	moveq	#0,temp2
+	store	temp2,(temp1)
+d215 2
+a216 1
+leave:	move	ideptr,temp0		; copy pointer to IDE device
+d220 1
+a220 1
+	btst	#0,temp0		; does status register indicate an error?
+d229 1
+a230 1
+
+d267 1
+a267 1
+gpu_obp_isr::
+d306 1
+a306 1
+	load	(obptemp0),parblockp	; bits 3-31 contain ptr to PARALLAX_BLOCK
+d313 1
+a313 1
+	load	(obptemp0),objectp	; bits 32-63 contain ptr to BITMAP object
+d423 1
+a423 1
+gpu_task_dispatcher::
+d436 1
+a436 1
+	moveta	work1,dstackptr		; move stack to correct register and bank
+d455 1
+a455 1
+	load	(dstackptr),taskptr	; pop address of where to get task pointer
+d467 1
+a467 2
+.ret:
+	moveq	#1,work0		; set 'task complete' flag pointed...
+d482 2
+d485 18
+a526 1
+; Blitter constant equates...
+a527 20
+LFU_REPLACE	= 0x01800000	; Source REPLACEs destination
+LFU_SORD	= 0x01C00000	; Source OR Destination
+PITCH1		= 0x00000000	; 0 phrase gap
+PIXEL8		= 0x00000018	; n = 3: 8 bits per pixel
+PIXEL16		= 0x00000020	; n = 4: 16 bits per pixel
+PIXEL32		= 0x00000028	; n = 5: 32 bits per pixel
+SRCEN		= 0x00000001	; d00: source data read (inner loop)
+SRCENX		= 0x00000004	; d02: source data read (realign)
+WID320		= 0x00004200	; 1.01 X 2^8  (33<<9)
+XADDPHR		= 0x00000000	; 00 - add phrase width and truncate
+XADDPIX		= 0x00010000	; 01 - add pixel size (add 1)
+
+BLITFLAGS	= (WID320|PIXEL8|PITCH1|XADDPHR)
+BCMD_REPLACE	= (SRCEN|LFU_REPLACE)
+BCMD_OR		= (SRCEN|LFU_SORD)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;	Start of program
+;
+
+d530 1
+a530 5
+;
+; GPU Program Header
+;
+
+gpu_decompress::
+a535 4
+;
+; GPU Program Code
+;
+
+d542 1
+a542 1
+	move	work1,tstackptr		; move stack to correct register and bank
+d570 1
+a570 1
+	addq	#4,tstackptr		; (last pop, this isn't really necessary)
+d603 1
+a603 1
+	movei	#BLITFLAGS,work0	; load blitter flags for both src & dest.
+d609 1
+a609 1
+	moveq	#0,work0		; clear blitter step for both src & dest.
+d616 1
+a616 1
+	shlq	#8,work0		; all four bytes in the 32-bit register...
+d627 1
+a627 1
+	movei	#BCMD_REPLACE,blitcmd	; assume blitter will perform replace copy
+d631 1
+a631 1
+	movei	#BCMD_OR,blitcmd	; else, paloffset will be OR'ed with source
+d643 1
+a643 1
+	jr	PL,.nord1		; no new reads if current data is pending
+d650 1
+a650 1
+.nord1:	sh	work0,mrun		; shift current byte in long into position
+d764 1
+a764 5
+;
+; GPU Program Header
+;
+
+gpu_movie::
+a769 4
+;
+; GPU Program Code
+;
+
+d1013 322
+@

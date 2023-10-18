@@ -1,0 +1,616 @@
+head	1.4;
+access;
+symbols
+	CJ_206:1.4
+	CJ2_05:1.4
+	CJ2_04:1.4;
+locks; strict;
+comment	@;; @;
+
+
+1.4
+date	95.11.14.19.51.17;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.10.26.01.07.45;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.07.19.22.12.06;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.06.23.22.27.44;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@host-board definitions for Low Cost MIPS R3000 board.
+This file is included by config.mac.
+@
+
+
+1.4
+log
+@Added some protection around INTS_ON so the definition can
+be overriden in config.mac
+@
+text
+@.if ndf, _CONSTANTS_MAC_
+  .warn ;You should .include constants.mac before including lcr3k.mac
+  .include constants.mac
+.endc
+.if ndf, _PPTYPES_MAC_
+  .warn ;You should .include types.mac before including lcr3k.mac
+  .include pptypes.mac
+.endc
+;
+.if ndf,HOST_BOARD
+	HEX_CONST HOST_BOARD	LCR3K
+.endc
+.if ndf,NUCLEUS_OS
+	HEX_CONST NUCLEUS_OS	0
+.endc
+REM <	LC R3k host board specific definitions>
+;
+; Big-Endian Byte offset is 32 (or 64) - (bit offset)>>3
+	HEX_CONST SHORT0_OFFS 2
+	HEX_CONST SHORT16_OFFS 0
+	HEX_CONST BYTE0_OFFS 3
+	HEX_CONST BYTE8_OFFS 2
+	HEX_CONST BYTE16_OFFS 1
+	HEX_CONST BYTE24_OFFS 0
+REMB
+REMM <The R3k-R4k memory virtual memory map appears as the		>
+REMM <following:							>
+REME
+;  
+	HEX_CONST MEM_KUSEG	0x00000000 < -0x7FFFFFFF phys 0x40000000-0xBFFFFFFF (2GB, cache, tlb)	>
+	HEX_CONST MEM_KSEG0	0x80000000 < -0x9FFFFFFF phys 0x00000000-0x1FFFFFFF (512MB, cache)	>
+	HEX_CONST MEM_KSEG1	0xA0000000 < -0xBFFFFFFF phys 0x00000000-0x1FFFFFFF (512MB, nocache)	>
+	HEX_CONST MEM_KSEG2	0xC0000000 < -0xFFFFFFFF phys 0xC0000000-0xFFFFFFFF (1GB, cache)	>
+;
+	HEX_CONST SRAM_BASE	0x90000000 < SRAM phys 0x10000000-0x11FFFFFF (cached)			>
+	HEX_CONST SRAM_SIZE	0x00008000 < SRAM size (512k) >
+	HEX_CONST DRAM_BASE	0x92000000 < DRAM phys 0x12000000-0x13FFFFFF (cached)			>
+	HEX_CONST DRAM_SIZE	0x00010000 < SRAM size (1Mb) >
+	HEX_CONST RBUS_BASE	0x9C000000 < ROM BUS phys 0x1C000000-0x1DFFFFFF (cached)		>
+	HEX_CONST RBUS_SIZE	0x02000000 < ROM BUS size (huge)					>
+	HEX_CONST PROM_BASE	0x9E000000 < PROM phys 0x1E000000-0x1FFFFFFF (cache)			>
+	HEX_CONST PROM_SIZE	0x02000000 < PROM size (huge)						>
+	HEX_CONST XBUS_BASE	0xA0000000 < Xbus phys 0x00000000-0x0FFFFFFF (nocache)			>
+	HEX_CONST XBUS_SLOT0	XBUS_BASE+0x00000000
+	HEX_CONST XBUS_SLOT1	XBUS_BASE+0x02000000
+	HEX_CONST XBUS_SLOT2	XBUS_BASE+0x04000000
+	HEX_CONST XBUS_SLOT3	XBUS_BASE+0x06000000
+	HEX_CONST XBUS_SLOT4	XBUS_BASE+0x08000000
+	HEX_CONST XBUS_SLOT5	XBUS_BASE+0x0A000000
+	HEX_CONST XBUS_SLOT6	XBUS_BASE+0x0C000000
+	HEX_CONST XBUS_SLOT7	XBUS_BASE+0x0E000000
+	HEX_CONST XBUS_SLOT70	XBUS_BASE+0x0E000000
+	HEX_CONST XBUS_SLOT71	XBUS_BASE+0x0E400000
+	HEX_CONST XBUS_SLOT72	XBUS_BASE+0x0E800000
+	HEX_CONST XBUS_SLOT73	XBUS_BASE+0x0EC00000
+	HEX_CONST XBUS_SLOT74	XBUS_BASE+0x0F000000
+	HEX_CONST XBUS_SLOT75	XBUS_BASE+0x0F400000
+	HEX_CONST XBUS_SLOT76	XBUS_BASE+0x0F800000
+	HEX_CONST XBUS_SLOT77	XBUS_BASE+0x0FC00000
+	DEC_CONST SWINT0_LVL	0			< Software interrupt 0 >
+	DEC_CONST SWINT1_LVL	1			< Software interrupt 1 >
+	DEC_CONST ICELESS_LVL	2			< ICELESS debugger interrupt >
+	DEC_CONST XBUS0_LVL	3			< XBUS 0 interrupt >
+	DEC_CONST XBUS1_LVL	4			< XBUS 1 interrupt >
+	DEC_CONST XBUS2_LVL	5			< XBUS 2 interrupt >
+	DEC_CONST XBUS3_LVL	6			< XBUS 3 interrupt >
+	DEC_CONST TIMER_LVL	7			< CPU timer interrupt >
+.if not_defined, INTS_ON
+ .if true, NUCLEUS_OS == 0
+ 	HEX_CONST INTS_ON	0xFF01			< Enable all interrupts >
+ .iff
+	HEX_CONST INTS_ON	0x7F01			< Enable all interrupts >
+ .endc
+.endc
+	HEX_CONST INTS_OFF	(INTS_ON&~1)		< Disable all interrupts >
+	HEX_CONST SRAM_BASEnc	0xB0000000 < SRAM phys 0x10000000-0x11FFFFFF (nocache)			>
+	HEX_CONST DRAM_BASEnc	0xB2000000 < DRAM phys 0x12000000-0x13FFFFFF (nocache)			>
+	HEX_CONST TIMER_BASE	0xB4000000 < TIMR phys 0x14000000-0x14000003 wo (nocache)		>
+	HEX_CONST WDOG_BASE	0xB4000004 < WDOG phys 0x14000004-0x14000007 wo (nocache)		>
+	HEX_CONST XB_RESET	0xB4000008 < XBUS reset 0x14000008-0x1400000B wo (nocache)		>
+	HEX_CONST HEALTH_LED	0xB400000C < Green "OK" LED. bit0=1 to turn on				>
+	HEX_CONST BRAM_UNLK	0xB6000000 < BRAM unlock >
+	HEX_CONST BRAM_BASEnc	0xB8000000 < BRAM phys 0x18000000-0x1BFFFFFF (nocache)			>
+	HEX_CONST BRAM_BASE	0xB8000000 < BRAM phys 0x18000000-0x1BFFFFFF (nocached)			>
+	HEX_CONST BRAM_SIZE	(2040*4)   < BRAM size (almost 2k longwords)					>
+	HEX_CONST BBRAM_BASE	BRAM_BASE
+	HEX_CONST BBRAM_SIZE	BRAM_SIZE	
+	HEX_CONST RBUS_BASEnc	0xBC000000 < ROM BUS phys 0x1C000000-0x1DFFFFFF (nocache)		>
+	HEX_CONST PROM_BASEnc	0xBE000000 < PROM phys 0x1E000000-0x1FFFFFFF (nocache)			>
+	VAR	WDOG	VU32	WDOG_BASE	< Watchdog kick >
+	VAR	HEALTH	VU32	HEALTH_LED	< Health LED (bit 0=1 to turn on >	
+	VAR	XBRST	VU32	XB_RESET	< XBUS reset (bit 0=0 to turn off >
+REM <	Work RAM>
+	ARRAY	WRAM,	U32, 	SRAM_BASE, SRAM_SIZE < Working RAM	>
+REM <	EEPROM>
+  .ifndf EEPROM_SIZE
+	EEPROM_SIZE == 512 ; Guaranteed minimum
+ .endc
+	ARRAY	EEPROM	U8	BRAM_BASEnc+BYTE0_OFFS	EEPROM_SIZE < EEPROM 		>
+;	HEX_CONST STRIDE	2		< EEPROM address is by 4 	>
+REM <	BRAM>
+	ADDR	BRAM 	U8	BRAM_BASEnc+BYTE0_OFFS	< BRAM	(non-cached)	>
+;
+.if true, 1
+	.include idt.mac
+.iff
+REMB
+REMM ** memory configuration and mapping
+REME
+;
+	HEX_CONST K0BASE	0x80000000
+	HEX_CONST K0SIZE	0x20000000
+	HEX_CONST K1BASE	0xa0000000
+	HEX_CONST K1SIZE	0x20000000
+	HEX_CONST K2BASE	0xc0000000
+	HEX_CONST K2SIZE	0x20000000
+;
+	HEX_CONST KUBASE	0
+	HEX_CONST KUSIZE	0x80000000
+;
+REMB
+REMM ** Exception Vectors
+REME
+;
+	HEX_CONST UT_VEC	K0BASE			< utlbmiss vector >
+	HEX_CONST E_VEC		(K0BASE+0x80)		< exception vevtor >
+	HEX_CONST R_VEC		(K1BASE+0x1fc00000)	< reset vector >
+;
+REMB
+REMM ** Address conversion macros
+REME
+;
+.if	true, OUTPUT_LANG == LANG_C
+#define	K0_TO_K1(x)	((unsigned)(x)|0xA0000000)	/* kseg0 to kseg1 */
+#define	K1_TO_K0(x)	((unsigned)(x)&0x9FFFFFFF)	/* kseg1 to kseg0 */
+#define	K0_TO_PHYS(x)	((unsigned)(x)&0x1FFFFFFF)	/* kseg0 to physical */
+#define	K1_TO_PHYS(x)	((unsigned)(x)&0x1FFFFFFF)	/* kseg1 to physical */
+#define	PHYS_TO_K0(x)	((unsigned)(x)|0x80000000)	/* physical to kseg0 */
+#define	PHYS_TO_K1(x)	((unsigned)(x)|0xA0000000)	/* physical to kseg1 */
+.endc
+;
+REMB
+REMM **	Cache size constants
+REME
+;
+	HEX_CONST MIN_CACHE_SIZE	0x00200		< 2*256      512  >
+	HEX_CONST MAX_CACHE_SIZE	0x40000		< 256*1024   256k >	
+;
+REMB
+REMM ** TLB resourse defines
+REME
+;
+	HEX_CONST N_TLB_ENTRIES		64
+	HEX_CONST TLB_PGSIZE		0x1000
+	HEX_CONST RANDBASE		8
+	HEX_CONST TLBLO_PFNMASK		0xfffff000
+	HEX_CONST TLBLO_PFNSHIFT	12
+	HEX_CONST TLBLO_N		0x800	< non-cacheable >
+	HEX_CONST TLBLO_D		0x400	< writeable >
+	HEX_CONST TLBLO_V		0x200	< valid bit >
+	HEX_CONST TLBLO_G		0x100	< global access bit >
+;
+	HEX_CONST TLBHI_VPNMASK		0xfffff000
+	HEX_CONST TLBHI_VPNSHIFT	12
+	HEX_CONST TLBHI_PIDMASK		0xfc0
+	HEX_CONST TLBHI_PIDSHIFT	6
+	HEX_CONST TLBHI_NPID		64
+;
+	HEX_CONST TLBINX_PROBE		0x80000000
+	HEX_CONST TLBINX_INXMASK	0x00003f00
+	HEX_CONST TLBINX_INXSHIFT	8
+;
+	HEX_CONST TLBRAND_RANDMASK	0x00003f00
+	HEX_CONST TLBRAND_RANDSHIFT	8
+;
+	HEX_CONST TLBCTXT_BASEMASK	0xffe00000
+	HEX_CONST TLBCTXT_BASESHIFT	21
+;
+	HEX_CONST TLBCTXT_VPNMASK	0x001ffffc
+	HEX_CONST TLBCTXT_VPNSHIFT	2
+;
+	HEX_CONST SR_CUMASK		0xf0000000	< coproc usable bits >
+	HEX_CONST SR_CU3		0x80000000	< Coprocessor 3 usable >
+	HEX_CONST SR_CU2		0x40000000	< Coprocessor 2 usable >
+	HEX_CONST SR_CU1		0x20000000	< Coprocessor 1 usable >
+	HEX_CONST SR_CU0		0x10000000	< Coprocessor 0 usable >
+;
+	HEX_CONST SR_BEV		0x00400000	< use boot exception vectors >
+;
+REMB
+REMM < Cache control bits >
+REME
+	HEX_CONST SR_TS			0x00200000	< TLB shutdown >
+	HEX_CONST SR_PE			0x00100000	< cache parity error >
+	HEX_CONST SR_CM			0x00080000	< cache miss >
+	HEX_CONST SR_PZ			0x00040000	< cache parity zero >
+	HEX_CONST SR_SWC		0x00020000	< swap cache >
+	HEX_CONST SR_ISC		0x00010000	< Isolate data cache >
+;
+REMB 
+REMM <	status register interrupt masks and bits >
+REME 
+;
+	HEX_CONST SR_IMASK		0x0000ff00	< Interrupt mask >
+	HEX_CONST SR_IMASK8		0x00000000	< mask level 8 >
+	HEX_CONST SR_IMASK7		0x00008000	< mask level 7 >
+	HEX_CONST SR_IMASK6		0x0000c000	< mask level 6 >
+	HEX_CONST SR_IMASK5		0x0000e000	< mask level 5 >
+	HEX_CONST SR_IMASK4		0x0000f000	< mask level 4 >
+	HEX_CONST SR_IMASK3		0x0000f800	< mask level 3 >
+	HEX_CONST SR_IMASK2		0x0000fc00	< mask level 2 >
+	HEX_CONST SR_IMASK1		0x0000fe00	< mask level 1 >
+	HEX_CONST SR_IMASK0		0x0000ff00	< mask level 0 >
+;
+	HEX_CONST SR_IBIT8		0x00008000	< bit level 8 >
+	HEX_CONST SR_IBIT7		0x00004000	< bit level 7 >
+	HEX_CONST SR_IBIT6		0x00002000	< bit level 6 >
+	HEX_CONST SR_IBIT5		0x00001000	< bit level 5 >
+	HEX_CONST SR_IBIT4		0x00000800	< bit level 4 >
+	HEX_CONST SR_IBIT3		0x00000400	< bit level 3 >
+	HEX_CONST SR_IBIT2		0x00000200	< bit level 2 >
+	HEX_CONST SR_IBIT1		0x00000100	< bit level 1 >
+;
+	HEX_CONST SR_KUO		0x00000020	< old kernel/user, 0 => k, 1 => u >
+	HEX_CONST SR_IEO		0x00000010	< old interrupt enable, 1 => enable >
+	HEX_CONST SR_KUP		0x00000008	< prev kernel/user, 0 => k, 1 => u >
+	HEX_CONST SR_IEP		0x00000004	< prev interrupt enable, 1 => enable >
+	HEX_CONST SR_KUC		0x00000002	< cur kernel/user, 0 => k, 1 => u >
+	HEX_CONST SR_IEC		0x00000001	< cur interrupt enable, 1 => enable >
+;
+	HEX_CONST SR_IMASKSHIFT		8
+;
+REMB
+REMM < Cause Register >
+REME
+;
+	HEX_CONST CAUSE_BD		0x80000000	< Branch delay slot >
+	HEX_CONST CAUSE_CEMASK		0x30000000	< coprocessor error >
+	HEX_CONST CAUSE_CESHIFT		28
+;
+;
+	HEX_CONST CAUSE_IPMASK		0x0000FF00	< Pending interrupt mask >
+	HEX_CONST CAUSE_IPSHIFT		8
+;
+	HEX_CONST CAUSE_EXCMASK		0x0000003C	< Cause code bits >
+	HEX_CONST CAUSE_EXCSHIFT	2
+;
+REMB
+REMM <**  Coprocessor 0 registers >
+REME
+;
+	REG_CONST C0_INX		$0		< tlb index >
+	REG_CONST C0_RAND		$1		< tlb random >
+	REG_CONST C0_TLBLO		$2		< tlb entry low >
+;
+	REG_CONST C0_CTXT		$4		< tlb context >
+;
+	REG_CONST C0_BADVADDR		$8		< bad virtual address >
+;
+	REG_CONST C0_TLBHI		$10		< tlb entry hi >
+;
+	REG_CONST C0_SR			$12		< status register >
+	REG_CONST C0_CAUSE		$13		< exception cause >
+	REG_CONST C0_EPC		$14		< exception pc >
+	REG_CONST C0_PRID		$15		< revision identifier >
+REMB
+REMM < see the IDT/c 4.1.1 User's Manual Table 6.9 Coprocessor 0 Regs >
+REME
+	REG_CONST C0_BUSCTRL		$2		< bus control >
+	DEC_CONST    C0_BUSC_LOCK_v	(31)	< lock the register      (1) >
+	DEC_CONST    C0_BUSC_MEM_v	(26)	< Memstrobe control bits (2) >
+	DEC_CONST    C0_BUSC_ED_v	(24)	< ExtDataEn control bits (2) >
+	DEC_CONST    C0_BUSC_IO_v	(22)	< IOstrobe control bits  (2) >
+	DEC_CONST    C0_BUSC_BE16_v	(21)	< BE16(1:0) control bit  (1) >
+	DEC_CONST    C0_BUSC_BE_v	(19)	< BE(3:0) control bit    (1) >
+	DEC_CONST    C0_BUSC_BTA_v	(14)	< BTA Bus turn around time (2) >
+	DEC_CONST    C0_BUSC_DMA_v	(13)	< DMA protocol control   (1) >
+	DEC_CONST    C0_BUSC_TC_v	(12)	< TC negation control    (1) >
+	DEC_CONST    C0_BUSC_BR_v	(11)	< SBrCond(3:2) control   (1) >
+.TEMP == ((1<<29)|(1<<20)|(1<<16)|(1<<8))
+	HEX_CONST    C0_BUSC_DEFAULT	.TEMP
+	REG_CONST C0_CONFIG		$3	< cache config >
+	DEC_CONST    C0_CONF_LOCK_v	(31)	< lock the register 	(1) >
+	DEC_CONST    C0_CONF_SLOWB_v	(30)	< slow bus (3081) 	(1) >
+	DEC_CONST    C0_CONF_DBLOCK_v	(29)	< DBLOCK refill size (1 or 4 words/miss) >
+	DEC_CONST    C0_CONF_FPINT_v	(26)	< FPInt pin (3081)	(3) >
+	DEC_CONST    C0_CONF_HALT_v	(25)	< HALT the CPU (3081)	(1) >
+	DEC_CONST    C0_CONF_RF_v	(24)	< Reduced freq (3081)	(1) >
+	DEC_CONST    C0_CONF_ALTC_c	(23)	< Make I and D caches 8k each (3081) (1) >
+	DEC_CONST    C0_CONF_FDM_v	(19)	< Force D-cache miss >
+.TEMP == (1<<30)
+	HEX_CONST    C0_CONF_DEFAULT_3041 .TEMP	< bits that must be set in config register >
+.TEMP == (1<<C0_CONF_SLOWB_v) | (7<<C0_CONF_FPINT_v)
+	HEX_CONST    C0_CONF_DEFAULT_3081 .TEMP < bits that must be set in config register >
+.TEMP == (1<<C0_CONF_SLOWB_v) 
+	HEX_CONST    C0_CONF_DEFAULT_3071 .TEMP < bits that must be set in config register >
+	REG_CONST C0_COUNT		$9	< count >
+	REG_CONST C0_PORTSIZE		$10	< port size >
+	REG_CONST C0_COMPARE		$11	< compare >
+	REG_CONST C1_FIR		$0	< FPU implementation register >
+	REG_CONST C1_FCSR		$31	< FPU control and status register >
+;
+;
+;
+	DEC_CONST CPU_ID_TYPE	0	< Index into cpu_ident[] for TYPE >
+	DEC_CONST CPU_ID_PRID	1	< Index into cpu_ident[] for PRID >
+	DEC_CONST CPU_ID_ICACHE	2	< Index into cpu_ident[] for ICACHE size >
+	DEC_CONST CPU_ID_DCACHE	3	< Index into cpu_ident[] for DCACHE size >
+;
+	STR_START cpu_params
+	STR_ELT	  cpu_type	U32 1	<cpu type (3041, 3051, etc)>
+	STR_ELT	  cpu_prid	U32 1	<copy of C0_PRID register>
+	STR_ELT	  cpu_icache	U32 1	<size of I cache in bytes>
+	STR_ELT	  cpu_dcache	U32 1	<size of D cache in bytes>
+	STR_END	  cpu_params
+;
+	STR_START ROM_VECTOR_STR
+	STR_ELT	  ROMV_RAMVBR	U32 1	<pointer to RAM vector table>
+	STR_ELT	  ROMV_ROMVBR	U32 1	<pointer to ROM vector table>
+	STR_ELT   ROMV_STACK	U32 1	<Last usable address in SRAM>
+	STR_ELT	  ROMV_ENTRY	U32 1	<reset entry point>
+	STR_ELT	  ROMV_PKTINIT	U32 1	<Packet init>
+	STR_ELT	  ROMV_PKTPOLL	U32 1	<Packet poll>
+	STR_ELT	  ROMV_PKTRECV	U32 1	<Packet recv>
+	STR_ELT	  ROMV_PKTSEND	U32 1	<Packet send>
+	STR_ELT	  ROMV_TLB	U32 1	<TLB exception entry address>
+	STR_ELT	  ROMV_SW0	U32 1	<S/W 0 interrupt entry address>
+	STR_ELT	  ROMV_SW1	U32 1	<S/W 1 interrupt entry address>
+	STR_ELT	  ROMV_ICELESS	U32 1	<ICELESS interrupt entry address>
+	STR_ELT	  ROMV_XBUS0	U32 1	<XBUS 0 interrupt entry address>
+	STR_ELT	  ROMV_XBUS1	U32 1	<XBUS 1 interrupt entry address>
+	STR_ELT	  ROMV_XBUS2	U32 1	<XBUS 2 interrupt entry address>
+	STR_ELT	  ROMV_XBUS3	U32 1	<XBUS 3 interrupt entry address>
+	STR_ELT	  ROMV_CPUTIME	U32 1	<CPU timer interrupt entry address>
+	STR_ELT	  ROMV_TEMP	U32 1	<Place holder for interrupt temp use>
+	STR_ELT	  ROMV_GENRAL	U32 1	<General exception handler address>
+	STR_ELT	  ROMV_IRQ	U32 1	<IRQ interrupt entry address>
+	STR_ELT	  ROMV_TLBM	U32 1	<TLB modification exception address>
+	STR_ELT	  ROMV_TLBL	U32 1	<TLB Load exception address>
+	STR_ELT	  ROMV_TLBS	U32 1	<TLB store exception address>
+	STR_ELT	  ROMV_ADDRR	U32 1	<Address exception on load or I-fetch>
+	STR_ELT	  ROMV_ADDRS	U32 1	<Address exception on store>
+	STR_ELT	  ROMV_BUSERRI	U32 1	<Bus error on I-fetch>
+	STR_ELT	  ROMV_BUSERRD	U32 1	<Bus error on data load>
+	STR_ELT	  ROMV_SYSCALL	U32 1	<SYSCALL exception>
+	STR_ELT	  ROMV_BREAK	U32 1	<Breakpoint exception>
+	STR_ELT	  ROMV_RESERV	U32 1	<Reserved instruction exception>
+	STR_ELT	  ROMV_COPROC	U32 1	<Coprocessor unusable exception>
+	STR_ELT	  ROMV_OVERFL	U32 1	<Integer overflow exception>
+	STR_END	  ROM_VECTOR_STR
+;
+	STR_START IRQ_TABLE_STR
+	STR_ELT	  RAMV_SW0	U32 1	<S/W 0 interrupt entry address>
+	STR_ELT	  RAMV_SW1	U32 1	<S/W 1 interrupt entry address>
+	STR_ELT	  RAMV_ICELESS	U32 1	<ICELESS interrupt entry address>
+	STR_ELT	  RAMV_XBUS0	U32 1	<XBUS 0 interrupt entry address>
+	STR_ELT	  RAMV_XBUS1	U32 1	<XBUS 1 interrupt entry address>
+	STR_ELT	  RAMV_XBUS2	U32 1	<XBUS 2 interrupt entry address>
+	STR_ELT	  RAMV_XBUS3	U32 1	<XBUS 3 interrupt entry address>
+	STR_ELT	  RAMV_CPUTIME	U32 1	<CPU timer interrupt entry address>
+	STR_ELT	  RAMV_TEMP	U32 1	<Place holder for interrupt temp use>
+	STR_ELT	  RAMV_GENRAL	U32 1	<General exception handler address>
+	STR_ELT	  RAMV_IRQ	U32 1	<IRQ interrupt entry address>
+	STR_ELT	  RAMV_TLBM	U32 1	<TLB modification exception address>
+	STR_ELT	  RAMV_TLBL	U32 1	<TLB Load exception address>
+	STR_ELT	  RAMV_TLBS	U32 1	<TLB store exception address>
+	STR_ELT	  RAMV_ADDRR	U32 1	<Address exception on load or I-fetch>
+	STR_ELT	  RAMV_ADDRS	U32 1	<Address exception on store>
+	STR_ELT	  RAMV_BUSERRI	U32 1	<Bus error on I-fetch>
+	STR_ELT	  RAMV_BUSERRD	U32 1	<Bus error on data load>
+	STR_ELT	  RAMV_SYSCALL	U32 1	<SYSCALL exception>
+	STR_ELT	  RAMV_BREAK	U32 1	<Breakpoint exception>
+	STR_ELT	  RAMV_RESERV	U32 1	<Reserved instruction exception>
+	STR_ELT	  RAMV_COPROC	U32 1	<Coprocessor unusable exception>
+	STR_ELT	  RAMV_OVERFL	U32 1	<Integer overflow exception>
+	STR_ELT	  RAMV_MAX	U32 1	<Place holder indicating maximum exceptions >
+	STR_END	  IRQ_TABLE_STR
+;
+; MIPS gdb register placement (stub uses this)
+;
+	DEC_CONST REGISTER_SIZE		 4	< Size of the registers in bytes >
+	DEC_CONST MIPS_REGSIZE		 4	< Size of the registers in bytes >
+	DEC_CONST NUM_REGS		80	< Number of machine registers >
+	DEC_CONST ZERO_REGNUM		 0	< read-only register, always 0 >
+	DEC_CONST AT_REGNUM		 1	< reg used by assembler >
+	DEC_CONST V0_REGNUM		 2	< Function integer return value >
+	DEC_CONST A0_REGNUM		 4	< Loc of first arg during a subr call >
+	DEC_CONST SP_REGNUM		29	< Contains address of top of stack >
+	DEC_CONST RA_REGNUM		31	< Contains return address value >
+	DEC_CONST PS_REGNUM		32	< Contains processor status >
+	DEC_CONST HI_REGNUM		34      < Multiply/divide high byte >
+	DEC_CONST LO_REGNUM		33      < Multiply/divide low byte >
+	DEC_CONST BADVADDR_REGNUM	35	< bad vaddr for addressing exception >
+	DEC_CONST CAUSE_REGNUM		36	< describes last exception >
+	DEC_CONST PC_REGNUM		37	< Contains program counter >
+	DEC_CONST FP0_REGNUM		38      < Floating point register 0 (single float) >
+	DEC_CONST FCRCS_REGNUM		70      < FP control/status >
+	DEC_CONST FCRIR_REGNUM		71      < FP implementation/revision >
+	DEC_CONST FP_REGNUM		72	< Pseudo register that contains true address of executing stack frame >
+	DEC_CONST FIRST_EMBED_REGNUM	73	< First supervisor register for embedded use >
+	DEC_CONST LAST_EMBED_REGNUM	79	< Last one >
+	DEC_CONST REGISTER_BYTES (NUM_REGS*MIPS_REGSIZE) < Total number of register bytes >
+;
+.if true, OUTPUT_LANG != LANG_C
+	DEC_CONST CPU_FRAME_SIZE S_SIZ_cpu_params
+.endc
+;
+	DEC_CONST MAX_IRQS		8	< R3K has only 8 possible interrupts >
+	DEC_CONST MAX_EXCEPTIONS 	13	< R3k has only 13 possible exceptions >
+;
+.if true, OUTPUT_LANG != LANG_C
+.DEFINE r0	$0
+.DEFINE r1	$1
+.DEFINE r2	$2
+.DEFINE r3	$3
+.DEFINE r4	$4
+.DEFINE r5	$5
+.DEFINE r6	$6
+.DEFINE r7	$7
+.DEFINE r8	$8
+.DEFINE r9	$9
+.DEFINE r10	$10
+.DEFINE r11	$11
+.DEFINE r12	$12
+.DEFINE r13	$13
+.DEFINE r14	$14
+.DEFINE r15	$15
+.DEFINE r16	$16
+.DEFINE r17	$17
+.DEFINE r18	$18
+.DEFINE r19	$19
+.DEFINE r20	$20
+.DEFINE r21	$21
+.DEFINE r22	$22
+.DEFINE r23	$23
+.DEFINE r24	$24
+.DEFINE r25	$25
+.DEFINE r26	$26
+.DEFINE r27	$27
+.DEFINE r28	$28
+.DEFINE r29	$29
+.DEFINE r30	$30
+.DEFINE r31	$31
+;
+.DEFINE f0	$0
+.DEFINE f1	$1
+.DEFINE f2	$2
+.DEFINE f3	$3
+.DEFINE f4	$4
+.DEFINE f5	$5
+.DEFINE f6	$6
+.DEFINE f7	$7
+.DEFINE f8	$8
+.DEFINE f9	$9
+.DEFINE f10	$10
+.DEFINE f11	$11
+.DEFINE f12	$12
+.DEFINE f13	$13
+.DEFINE f14	$14
+.DEFINE f15	$15
+.DEFINE f16	$16
+.DEFINE f17	$17
+.DEFINE f18	$18
+.DEFINE f19	$19
+.DEFINE f20	$20
+.DEFINE f21	$21
+.DEFINE f22	$22
+.DEFINE f23	$23
+.DEFINE f24	$24
+.DEFINE f25	$25
+.DEFINE f26	$26
+.DEFINE f27	$27
+.DEFINE f28	$28
+.DEFINE f29	$29
+.DEFINE f30	$30
+.DEFINE f31	$31
+;
+.DEFINE v0	$2
+.DEFINE v1	$3
+.DEFINE a0	$4
+.DEFINE a1	$5
+.DEFINE a2	$6
+.DEFINE a3	$7
+.DEFINE t0	$8
+.DEFINE t1	$9
+.DEFINE t2	$10
+.DEFINE t3	$11
+.DEFINE t4	$12
+.DEFINE t5	$13
+.DEFINE t6	$14
+.DEFINE t7	$15
+.DEFINE t8	$24
+.DEFINE t9	$25
+.DEFINE s0	$16
+.DEFINE s1	$17
+.DEFINE s2	$18
+.DEFINE s3	$19
+.DEFINE s4	$20
+.DEFINE s5	$21
+.DEFINE s6	$22
+.DEFINE s7	$23
+.DEFINE k0	$26
+.DEFINE k1	$27
+.DEFINE gp	$28
+.DEFINE sp	$29
+.DEFINE fp	$30
+.DEFINE s8	$30
+.DEFINE ra	$31
+;
+.macro SYSERR message, arg
+	.set noreorder
+	mfc0 t0, C0_SR
+	li a1, arg
+	andi t0, SR_IEC
+	la t1, TrapIt
+	mtc0 t0, C0_SR
+	jalr t1, a0
+	nop
+	DC.B	"'message'"
+	DC.B	0
+	.align	2
+	.set reorder
+.endm SYSERR
+;			
+.macro frame entry, frame=sp, size=0, return=ra, global=1
+	.iif true,global,.globl entry
+	.ent entry
+entry:
+	.frame	frame, size, return
+	.endm
+;
+.macro endframe entry
+.end entry
+.endm
+.endc
+.endc
+@
+
+
+1.3
+log
+@Added a BRAM_UNLK address
+@
+text
+@d68 4
+a71 3
+.if true, NUCLEUS_OS == 0
+	HEX_CONST INTS_ON	0xFF01			< Enable all interrupts >
+.iff
+d73 1
+@
+
+
+1.2
+log
+@symbolic name for INTS_OFF, added .include of idt.mac
+@
+text
+@d80 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d73 1
+a73 1
+	HEX_CONST INTS_OFF	0x0701			< Disable all XBUS interrupts >
+d101 3
+d532 1
+@

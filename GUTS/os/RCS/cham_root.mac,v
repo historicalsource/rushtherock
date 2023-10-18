@@ -1,0 +1,4767 @@
+head	1.22;
+access;
+symbols
+	AREA_52_00:1.14;
+locks; strict;
+comment	@;; @;
+
+
+1.22
+date	97.10.31.02.39.24;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	97.09.13.02.41.38;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	97.09.11.22.14.54;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	97.08.01.03.46.14;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.08.01.03.28.37;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	97.08.01.00.10.15;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	97.07.31.23.21.17;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	97.07.31.22.58.56;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	97.07.17.02.55.54;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	97.07.11.20.40.43;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	97.07.11.00.33.47;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	97.07.10.18.07.16;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	97.07.08.01.14.35;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	97.05.31.03.38.14;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	97.05.30.23.49.03;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	97.05.30.04.16.11;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.05.17.23.24.33;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	97.05.17.22.26.58;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	97.05.17.21.28.34;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.05.17.21.22.32;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.05.17.19.13.34;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.05.17.01.49.58;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Chameleon files
+@
+
+
+1.22
+log
+@Added prc_putc and company.
+@
+text
+@;# $Id: cham_root.mac,v 1.21 1997/09/13 02:41:38 shepperd Exp shepperd $
+;#
+;#		Copyright 1991,1992,1993,1994,1995,1996,1997 Atari Games.
+;#	Unauthorized reproduction, adaptation, distribution, performance or 
+;#	display of this computer program or the associated audiovisual work
+;#	is strictly prohibited.
+;#
+;#	This file contains some of the following:
+;#
+;#	Exception code.
+;#	Start-up code in roughly the order it gets executed.
+;#	Subroutines for startup code.
+;#	Subroutines needed by C code, that need to be in assembly
+;#
+;#	Similarly, .globls are "close to" the code that uses them
+;#
+;#	May 2, 1997	Dave Shepperd, stolen mostly from phx_root.mac
+;#
+OUTPUT_LANG 	  == 4		; LANG_ASR3k
+
+	.include config.mac
+
+.macro MKOPT name value
+.if not_defined,name
+name == value
+name = value
+.endc
+.endm
+
+MKOPT LOOP_ON_ERROR	 1		; 1=normal, 0=don't loop on error
+MKOPT STOP_ON_EXCEPTION  0		; 0=normal, 1=stop on any exception
+MKOPT STOP_ON_NONINTR	 0		; 0=normal, 1=stop on any non-interrupt exception
+MKOPT JUMP_TO_CACHE	 0		; 1=normal, 0=don't jump to cache on exception
+MKOPT DO_STACK_CHECKING  0		; 0=normal, 1=add extra stack underflow checks
+MKOPT DO_STACK_ALIGNCHK  0		; 1=normal, 0=don't check for stack alignment at exception
+MKOPT SQUAWK_ON_EXCEPT	 0		; 0=normal, 1=blast reason for exception in normal_except
+MKOPT BOOT_ROM_CODE	 0		; 0=normal, 1=BOOT RAMROM code
+MKOPT BOOT_COPY_SELF	 0		; 0=normal, 1=Copy this program to DRAM
+MKOPT BOOT_FROM_DISK	 0		; 0=normal, 1=BOOT from DISK
+MKOPT BOOT_COMPRESSED	 0		; 0=normal, 1=BOOT from compressed EPROM
+MKOPT TIME_EXCEPTIONS	 0		; 0=normal, 1=time exceptions
+MKOPT TEST_EXCEPTIONS	 0		; 0=normal, 1=touch external memory at exception entry/exit
+MKOPT FLUSH_CACHE_EXCEPT 0		; 1=normal, 0=don't flush cache at exception entry/exit
+MKOPT DELAY_LED_DISPLAY  1		; 1=normal, 0=skip LED display delay (for timing purposes)
+MKOPT DELAY_LED_TIME	 65535*3	; number of usecs to linger on LED display
+MKOPT TEST_MEM32	 0		; 0=none, 1=once, >1 = forever
+MKOPT SA_DIAGS		 0		; 0=none, 1=include standalone diag functions
+MKOPT TESTMEM32_PART1	0x00080000	; First part memory test is 512k
+MKOPT TEST_BRAM		 1		; 1=normal, 0=don't include BRAM test code
+MKOPT TEST_WALKING1	 0		; 0=normal, 1=perform walking 1's test in RAM test
+MKOPT TEST_REFRESH	 0		; 0=normal, 1=perform refresh delay test
+MKOPT ANN_TEST_SERIAL	 0		; 0=none, 1=not supported at this time
+MKOPT STOP_ON_ERROR	 0		; 0=none, 1=stop on any memory error
+MKOPT IRQ_CHEAP_EXCEPTION 0		; 0=normal, 1=allow IRQ's to be cheap exceptions
+MKOPT FPCSR_INIT	 (C1_FCSR_FS|C1_FCSR_EN_V|C1_FCSR_EN_Z|C1_FCSR_EN_O) ; initial FP CSR
+MKOPT DRAM_BANKS	 4		; default to 4 banks unless told otherwise
+MKOPT DRAM_BANK_SIZE	 0x08000000	; default to 8MB banks unless told otherwise
+MKOPT PM_DATA_BEGIN	DRAM_BASEnc+0x400 ; location of PM area
+MKOPT PM_DATA_END	DRAM_BASEnc+0x7FF ; last location of PM area
+MKOPT NO_WDOG		0		; 0=normal, 1=don't kick WODG, ever
+MKOPT EPROM_ST		0		; 0=normal, 1=Eprom flavor of SelfTest
+MKOPT INCLUDE_XINU	0		; 0=normal, 1=include Xinu support
+MKOPT INCLUDE_SYSCALL	0		; 0=normal, 1=include SYSCALL support code
+MKOPT NON_PIPELINED_MODE 0		; 0=normal, 1=enable non-pipelined (R4k) mode
+MKOPT OTHER_OS_SUPPORT	0		; 0=normal, 1=enable soft vectors for Nucelus and Xinu
+MKOPT ALTERNATE_PCI_W2_ADDRESS 0	; 0=normal, 1=use alternate PCI W2 address space
+
+.if true, BOOT_COMPRESSED
+NO_ROOM_FOR_STUB == 1
+.iff
+MKOPT NO_ROOM_FOR_STUB	0		; 0=normal, 1=don't include the 64k hole for stub
+.endc
+
+MKOPT USE_MIPS3		1		; Assume to use MIPS3 instructions
+MKOPT PCI_ID_REG	0x00		; PCI ID register offset
+MKOPT PCI_MAP_REG_START 0x10
+MKOPT PCI_MAP_REG_END	0x28
+MKOPT PCI_MAP_MEMORY_TYPE_32BIT		0x00000000
+MKOPT PCI_MAP_MEMORY_TYPE_32BIT_1M	0x00000002
+MKOPT PCI_MAP_MEMORY_TYPE_64BIT		0x00000004
+MKOPT PCI_MAP_MEMORY_TYPE_MASK		0x00000006
+MKOPT PCI_MAP_MEMORY_CACHABLE		0x00000008
+MKOPT PCI_MAP_MEMORY_PREFETCHABLE	0x00000008
+MKOPT PCI_MAP_MEMORY_ADDRESS_MASK	0xfffffff0
+MKOPT PCI_MAP_IO			0x00000001
+MKOPT PCI_MAP_IO_ADDRESS_MASK		0xfffffffc
+
+.if true, USE_MIPS3
+	.set mips3
+.endc
+
+.if true, PM_DATA_END-PM_DATA_BEGIN < PM_RxK_SIZE
+ .error ; PM_DATA_BEGIN and PM_DATA_END need adjusting
+.endc
+
+LCL_INIT_SR == SR_CU0|SR_CU1|SR_FR|SR_KSKERNEL|SR_ERL
+LCL_INIT_SR = SR_CU0|SR_CU1|SR_FR|SR_KSKERNEL|SR_ERL
+.if true, BOOT_ROM_CODE != 0
+LCL_INIT_SR == LCL_INIT_SR | SR_BEV
+LCL_INIT_SR =  LCL_INIT_SR | SR_BEV
+.endc
+
+MKOPT INIT_SR	LCL_INIT_SR		;initial value to which to set SR
+MKOPT INIT_CFG	CFG_LE|CFG_ECBY2|CFG_C_NONCOHERENT	;initial value to set processor config
+
+.macro WALKER_LED which
+	la	t0, SSEG_BASE
+100:	li	t1, 0x1
+110:	nor	v0, t1, 0
+	sb	v0, (t0)
+	li	a0, 300000
+	bal	prc_wait_n_usecs
+	nop
+	addu	t1, t1,t1
+	and	v0, t1, 0x100
+	beq	v0, r0, 110b
+	nop
+	b	100b
+	nop
+.endm
+
+MKOPT CPU_SPEED_VARIABLE 0		; CPU clock speed is not set dynamically
+.if false, CPU_SPEED_VARIABLE
+MKOPT CPU_SPEED		133333333	; CPU clock speed in HZ
+.endc
+MKOPT REG_SIZE		REGISTER_SIZE
+
+MKOPT INCLUDE_FEXCP	0
+.if true, BOOT_COMPRESSED		; Compressed EPROM code always dies on exceptions
+STOP_ON_EXCEPTION == 1
+STOP_ON_EXCEPTION = 1
+.endc
+
+.if defined, IO_UART_CTL_INTERNAL_ENA
+MKOPT BR9600		IO_UART_CTL_9600_BAUD
+ .if true, CPU_SPEED_VARIABLE
+MKOPT PUTC_BLINK_TIME 	(133000000/8)	;Pick a speed, anything will do
+ .iff
+MKOPT PUTC_BLINK_TIME 	(CPU_SPEED/8)
+ .endc
+MKOPT PUTC_UART_ENAB (IO_UART_CTL_INTERNAL_ENA|IO_UART_CTL_IGNORE_CTS_IN|BR9600)
+.endc
+
+SCRATCH_RAM =	BRAM_UNLK_BASE
+
+	.globl	UNLK_EP
+UNLK_EP = BRAM_UNLK_BASE
+
+	.globl	cpu_params
+
+.if true, BOOT_ROM_CODE == 0
+	.bss
+cpu_params:
+	.space	CPU_FRAME_SIZE
+	.globl	beg_static
+beg_static:
+set_ipl_vec:
+	.space 4
+ramv_tbl:
+	DEC_CONST RAMV_TBL_SIZ	S_SIZ_RAM_VECTOR_STR
+	.space RAMV_TBL_SIZ
+ramv_tbl_end:
+	.globl	savintp
+	.globl	restintp
+savintp:
+	.space	4
+restintp:
+	.space	4
+
+.if true, TIME_EXCEPTIONS
+	.globl _guts_inest
+	.globl exception_time
+exception_time:
+	.space	8
+.endc
+	.align 3
+
+	.globl	interrupt_stack_limit
+	.globl	interrupt_stack
+	.globl	ISR_SIZE
+
+ISR_SIZE = 1024*3
+interrupt_stack_limit:
+
+	.space	ISR_SIZE	;# give ourselves n of interrupt stack
+interrupt_stack:
+
+.endc				;BOOT_ROM_CODE == 0
+
+	.text
+
+;#***************************************************************
+;#  This is the start of the code.				*
+;#***************************************************************
+
+	.globl	boot_entry
+	.globl	except
+	.globl	text_size
+
+	.set	noat
+	.set	noreorder
+
+.if true, (BOOT_ROM_CODE == 0) && (NO_ROOM_FOR_STUB == 0)
+	.rdata
+.endc
+	
+FRAME startup
+	.set at
+romv_tbl:
+.if true, BOOT_ROM_CODE || BOOT_COPY_SELF || (HOST_BOARD == CHAMELEON) || NO_ROOM_FOR_STUB
+ .if true, BOOT_ROM_CODE || NO_ROOM_FOR_STUB
+	b	boot_entry	;# reset vector (0xBFC00000, 0xB4000000 or 0x80000000 ) *
+ .iff
+	.word	0x10003FFF	;# Damn assembler won't do this automatically
+ .endc
+.iff
+	j	boot_entry	;# reset vector (0xBFC00000 or 0x80000000) *
+.endc
+	nop
+	.word	0xFEEDFACE
+	.word	ramrom_size
+	.align	4		;# skip up to 0xBFC00010
+
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;  WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+;
+; The following table is constructed according the the definition of the structure
+; ROM_VECTOR_STR in idt.mac. If you change anything here be sure to update the struct
+; definition in idt.mac. Also, if you change anything here without rebuilding
+; _all_ flavors of GUTS _and_ STUB, you will certainly break them such that they will
+; not likely work together if at all.
+;
+
+stub_setup:
+	.space 4*4		;# stub will init these when or if it is loaded
+.if true, BOOT_ROM_CODE > 0
+	.space 4*4
+.iff
+	.globl	romv_tbl
+	.globl	ramv_tbl
+	.globl	ramv_tbl_end
+	.word	ramv_tbl	;# Pointer to RAM based array of pointers to functions
+	.word	INIT_SP		;# last address in SRAM to use, value to init stack
+				;# to external init routines (ICELESS stub for example)
+	.word	begin		;# pointer to the OS entry address
+	.word	except		;# pointer to game's exception handler
+.endc
+	.word	0		;# stub exception reason goes here
+;
+; End of ROM_VECTOR_STR structure
+;------------------------------------------------------------------------------
+;
+; The following is goofy in order to account for the crumby assembler not
+; being able to do PC arithmetic (all I want is the difference between the
+; current PC and the symbol "stub_setup" *SIGH*). If you add anything between
+; here and the "stub exception reason goes here", bump this value
+;
+stub_setup_size = (4+4+4+1)*4
+;
+; The following macros allow me to butt the copyright message up against the
+; first vector at offset 0x80.
+;
+	.macro space_it val	;Do an assembler instruction
+	.space 0x80-stub_setup_size-(val)
+	.endm
+	.macro str_len str	;Compute the length of a string
+	...len == 1		;Account for a trailing null
+	.irpc xx, <str>
+	   ...len == ...len + 1
+	.endr
+	.endm
+	.macro butt_it str	;Drop in copyright message
+	str_len <str>		;Figure length
+	space_it \...len	;Compute a .space directive
+	.ascii "str"		;#Drop in the text
+	.endm
+
+	butt_it <Copyright (c) 1996,1997 Atari Games Inc., All Rights Reserved>
+
+	.align	7		;# advance pc to 80000080 *
+	.globl	vec1; .globl vec2; .globl vec3
+	.globl	vec4; .globl vec5; .globl vec6; .globl vec7
+
+vec1:	j	Eexcept
+	or	k0, r0, 1	;# (x) tlb refill
+j_except:
+	j	except
+	or	k0, r0, 1	;# (x) tlb refill
+
+e_msg_what:	.asciz "Unhandled\r\nexception"
+e_msg_cause:	.asciz "CAUSE:"
+e_msg_SR:	.asciz "Status Reg:"
+e_msg_EPC:	.asciz "EPC:"
+e_msg_ERRPC:	.asciz "ErrPC:"
+e_msg_bvadr:	.asciz "BaddVaddr:"
+e_msg_ra:	.asciz "Return addr:"
+unlock_fail:	.asciz "Unlock failed"
+	.align	7		;# advance pc to 0x80000100 *
+
+vec2:	j	Eexcept
+	or	k0, r0, 2	;# Cache error
+e_msg_wait_forever:
+	.asciz "Waiting\r\nForever"
+e_msg_stack:
+	.asciz "Stack ptr"
+
+	.align	7		;# advance pc 0x80000180 *
+vec3:	j	Eexcept
+	or	k0, r0, 3	;# All other exceptions
+
+.if true, (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+oc_address_to_location:
+	.asciz "Write 1's compliment of address to each location"
+refresh_verify:
+	.asciz "Verify refresh"
+walk_1_bit:
+	.asciz "Walk a 1 throughout memory"
+.endc
+	.align	7		;# advance pc 0x80000200 *
+vec4:	j	Eexcept
+	or	k0, r0, 4	;# tlb refill
+
+.if true, (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+verify_address:
+	.asciz "Verify location's address is in each location"
+fill_with_0:
+	.asciz "Fill all of memory with 0's"
+	.align 2
+	.globl mem_test_msgs
+mem_test_msgs:
+	.word walk_a_bit, fill_with_ones, oc_address_to_location, address_to_location
+	.word refresh_verify, walk_1_bit, verify_address, fill_with_0
+.endc			; if (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+
+	.align	7		;# advance pc 0x80000280 *
+vec5:	j	Eexcept
+	or	k0, r0, 5	;# xtlb refill
+
+.if true, (BOOT_ROM_CODE == 0) && (STOP_ON_EXCEPTION == 0) 
+erl_msg:
+	.asciz "Exception with\r\nERL bit set"
+e_msg_stkuf:
+	.asciz	"Stack\r\nUnderflow"
+e_msg_stkaln:
+	.asciz	"Stack\r\nUnaligned"
+.endc
+.if true, BOOT_COPY_SELF == 0
+waiting_msg:
+	.asciz "Waiting for\r\nFEEDFACE"
+.endc
+	.align	7		;# advance pc 0x80000300 *
+vec6:	j	Eexcept
+	or	k0, r0, 6	;# Cache error
+
+.if true, (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+walk_a_bit:
+	.asciz "Walking one bit through address 0"
+fill_with_ones:
+	.asciz "Fill all of memory with 1's"
+address_to_location:
+	.asciz "Write each location's address"
+.endc
+	.align	7		;# advance pc 0x80000380 *
+	.globl	stub_running
+stub_running = . - 4		;# grab a "vector" so the game can use it
+vec7:	j	Eexcept
+	or	k0, r0, 7	;# All other exceptions
+	.set	at
+	.set	reorder
+ENDFRAME startup
+
+.if true, (BOOT_ROM_CODE == 0) && (BOOT_COMPRESSED == 0)
+
+ .if true, (BOOT_FROM_DISK == 0) && (EPROM_ST == 0)
+	.align	10		;# advance PC to 0xX0000400
+	.globl	pm_start
+	.globl	powerUp
+	.globl	pm_end
+	.globl	pm_data
+pm_start:
+POWERUP =	0xC0EDBABE
+powerUp:
+	.space	4
+pm_data:
+	DEC_CONST	PM_SIZE PM_RxK_SIZE
+	.space	PM_SIZE
+pm_end:
+	.space 4
+ .endc			; (BOOT_FROM_DISK == 0) && (EPROM_ST == 0)
+ .if true, (NO_ROOM_FOR_STUB == 0)
+	.align 15		;# advance pc to 0xX0010000 *
+	.space 1
+	.align 15
+ .iff
+	.align 11		;# advance pc to 0xX0000800 *
+ .endc
+	.globl	bss_start
+	.globl	bss_end
+	.globl	INIT_SP
+	.globl	BootUp
+	.globl	ROMCTS_INIT
+	.globl	begin
+.endc			; (BOOT_ROM_CODE == 0) && (BOOT_COMPRESSED == 0)
+
+	.macro lra dest, source, working, offset=fp
+	la dest, source
+	la working, startup
+	subu dest, working
+	addu dest, offset
+	.endm
+
+	.text
+
+	.align 3		;# make sure it is aligned on an 8 byte boundary
+FRAME boot_entry
+	.set	noreorder
+	.set	at
+begin:
+;#***************************************************************
+;#  Initialize the processor					*
+;#***************************************************************
+
+	li	v1, INIT_CFG	;# initialise the processor stats.
+	mtc0	v1, C0_CONFIG
+	nop
+	nop
+	nop
+
+;#***************************************************************
+;#  Smack the SR to a known state				*
+;#***************************************************************
+
+	li	v1, INIT_SR
+	mtc0	v1, C0_SR	;# set SR to known state *
+	nop
+	nop
+	nop
+	nop
+
+;#***************************************************************
+;#  Save some regs so pm_dump can report useful data		*
+;#***************************************************************
+
+	mtc1	ra, $f0		;# save return address in f0
+	mtc1	sp, $f2		;# save SP in f2
+
+;#***************************************************************
+;#  Jump to noncached memory in case we were started		*
+;*  by the stub. Then figure out where we are executing.	*
+;#***************************************************************
+
+;# WARNING DANGER WARNING DANGER WARNING DANGER WARNING
+;# DO NOT ADD, DELETE OR CHANGE THE ORDER OF THE INSTRUCTIONS IN
+;# THE FOLLOWING SEQUENCE. THE ASSEMBLER IS TOO STUPID TO HANDLE
+;# THIS AUTOMATICALLY.
+	bal	15f
+	nop
+15:	lui	v0, 0x2000
+	or	ra, v0		;# get addr of '15:' non-cached
+	addu	ra, 6*4		;# compute address of 20f
+	j	ra
+	nop
+	nop
+
+20:
+;# END OF SEQUENCE
+	and	fp, ra, 0xfff00000 ;# isolate upper bits of address
+
+;#***************************************************************
+;#  Init the rest of the important CPU registers		*
+;#***************************************************************
+
+	mtc0	r0, C0_COUNT	;# zero the system clock counter
+	mtc0	r0, C0_CAUSE	;# clear software interrupts *
+	li	v1, FPCSR_INIT	;# set the initial FP CSR
+	ctc1	v1, C1_FCSR	;# init the FCSR
+
+/* the memory system may need up to 256us to start up... */
+	bal	prc_wait_n_usecs
+	or	a0, r0, 128	;# wait about 128 microseconds
+	
+	srl	v0, fp, 24	;# isolate the upper 8 bits of our PC
+	li	v1, 0xA0
+	beq	v1, v0, skip_copy	;# running from DRAM, already copied and init'd
+	nop	
+
+;#***************************************************************
+;#  Init the NILE III chip					*
+;#***************************************************************
+
+	bal	nile3Init
+	nop
+
+;#***************************************************************
+;#  Init the PLX chip					*
+;#***************************************************************
+
+	bal	PLXinit
+	nop
+
+/*
+ * all of the I/O is running now, so clear the LCD and turn off
+ * all the LED's except the dot.
+ */
+	
+	bal	prc_lcd_init		/* clear the lcd display */
+	nop
+
+	la	k1, SSEG_BASE
+	li	k0, SSEG_DOT
+	sb	k0, 0(k1)
+
+skip_nile3:
+
+/* Reset all the localbus hardware */
+
+	la	t0, RESET_CTL_BASE	;# Address of the reset port
+	sh	r0, 0(t0)		;# reset everything
+	bal	prc_wait_n_usecs
+	or	a0, r0, 1000		;# wait about 1 millisecond
+
+.if true, (BOOT_FROM_DISK == 0) && (NO_WDOG == 0)
+	sw	r0, WATCHDOG
+.endc
+
+.if true, TEST_MEM32
+;#***************************************************************
+;#  Test memory
+;#***************************************************************
+
+	lhu	v0, GP_STS_BASE
+	and	v0, 1<<B_GPSTS_DBG
+	beq	v0, r0, no_memtest
+	nop
+
+20:	la	a0, DRAM_BASEnc		;# point to destination
+;	li	a1, PM_DATA_BEGIN-1	;# Up to but not including PM area
+;	move	a2, r0			;# Not used
+;	bal	test_mem32		;# check memory in 32 bit mode
+;	nop
+;	bne	v0, r0, test_error	;# report errors
+;	nop
+;	la	a0, PM_DATA_END+1	;# point to destination
+	li	a1, DRAM_BASEnc+TESTMEM32_PART1-1 ;# first half test size
+	move	a2, r0			;# Not used
+	bal	test_mem32		;# check memory in 32 bit mode
+	nop
+	bne	v0, r0, test_error	;# report errors
+	nop
+no_memtest:
+.endc
+
+	li v1, 0xFF
+	sb v1, SSEG_BASE		;# Start with all LED's off
+
+;#***************************************************************
+;#  Init the CACHE's						*
+;#***************************************************************
+
+	lra	v0, init_cache, v1
+	jal	v0			;# init the caches
+	nop
+
+.if true, BOOT_COPY_SELF == 0
+;#***************************************************************
+;#  Put a copy loop into DRAM					*
+;#***************************************************************
+
+	la	a0, waiting_msg
+	bal	prc_lcd_puts		;# Display "Waiting for FEEDFACE" message
+	nop
+
+	lra	v0, copy_loop_start, a0	;# point to our loop addr
+	lra	v1, copy_loop_end, a0
+	la	a0, DRAM_BASEnc		;# destination
+
+6:	lw	a1, (v0)		;# src
+	addu	v0, 4
+	sw	a1, (a0)		;# dst
+	bgtu	v1, v0, 6b
+	addu	a0, 4
+
+	bal	prc_wait_n_usecs
+	or	a0, r0, 20		;# wait about 20 microseconds for WB to flush
+
+	la	a3, copy_loop_end
+	la	v0, copy_loop_start
+	subu	a3, v0			;# compute size of copy loop
+
+	la	v0, DRAM_BASE		;# point to cached mem
+	jal	v0			;# goto it
+	nop
+
+	la	a3, copy_loop_end
+	la	v0, copy_loop_start
+	subu	a3, v0			;# compute size of copy loop
+	la	v0, RAMROM_BASE		;# src address
+	addu	v1, v0, a3		;# end address
+	la	a0, DRAM_BASEnc		;# dst address
+
+7:	lw	a1, (v0)
+	addu	v0, 4
+	sw	a1, (a0)
+	bgtu	v1, v0, 7b
+	addu	a0, 4
+
+	bal	prc_lcd_init		;# clear the LCD display
+	nop
+	
+	la	v0, DRAM_BASE
+	cache	Hit_Invalidate_I,   0(v0) ;# clobber the first cache line
+	cache	Hit_Invalidate_I,  32(v0) ;# clobber the second cache line
+	cache	Hit_Invalidate_I,  64(v0) ;# clobber the third cache line
+	cache	Hit_Invalidate_I,  96(v0) ;# clobber the fourth cache line
+	cache	Hit_Invalidate_I, 128(v0) ;# clobber the fifth cache line
+	cache	Hit_Invalidate_I, 160(v0) ;# clobber the sixth cache line
+	bal	prc_wait_n_usecs
+	or	a0, r0, 20		;# wait about 20 microseconds
+
+	la	v0, DRAM_BASEnc		;# now jump to user's program non-cached
+	j	v0
+	nop
+
+copy_loop_start:
+
+	la	v0, RAMROM_BASE		;# point to ramrom
+	li	v1, 0xFEEDFACE
+
+	lw	a0, ROMV_SENTINEL(v0)
+10:	bne	a0, v1, 10b		;# wait for a feedface to show up
+	lw	a0, ROMV_SENTINEL(v0)
+
+	lw	v1, ROMV_TSIZE(v0)	;# get size
+	li	a0, 8192*1024		;# more than 8MB?
+	bleu	v1, a0, 20f		;# yep,
+	nop
+	move	v1, a0			;# max it out to 8MB
+20:	la	a0, DRAM_BASEnc		;# point to destination
+	li	t0, PM_DATA_BEGIN	;# don't copy anything into PM area
+	li	t1, PM_DATA_END
+	addu	v1, a0			;# compute end address (destination addr + size)
+	addu	a0, a3			;# skip over the copy loop
+	addu	v0, a3			;# compute new source address
+	bltu	v1, a0, 40f		;# already done
+;	nop				;# Don't need this nop actually
+30:
+	bgtu	a0, t1, 38f		;# ok to continue
+	lw	a1, (v0)
+	bltu	a0, t0, 38f		;# ok to continue
+	nop
+	b	39f
+	nop
+38:	sw	a1, (a0)
+39:	addu	a0, 4
+	bgtu	v1, a0, 30b
+	addu	v0, 4
+40:	j	ra
+	nop
+copy_loop_end:
+.iff
+	la	v0, DRAM_BASEnc		;# destination
+	la	v1, 0xBFC00000		;# source is EPROM
+.if true, BOOT_COMPRESSED == 0
+	la	a0, PM_DATA_BEGIN-DRAM_BASEnc	;# stop copying at PM BEGIN
+	addu	a0, v1
+10:	lw	a1, (v1)		;# get source
+	sw	a1, (v0)		;# write it
+	addu	v1, 4
+	bgtu	a0, v1, 10b	
+	addu	v0, 4
+
+	addu	v0, (PM_DATA_END-PM_DATA_BEGIN+3)&-4
+	addu	v1, (PM_DATA_END-PM_DATA_BEGIN+3)&-4
+.endc
+	la	a1, text_start
+	la	a0, text_end		;# end of source
+	subu	a0, a1			;# compute size in bytes
+	addu	a0, 0xBFC00000		;# compute limit in EPROM space
+20:	lw	a1, (v1)		;# get source
+	sw	a1, (v0)		;# write it
+	addu	v1, 4
+	bgtu	a0, v1, 20b	
+	addu	v0, 4
+
+	bal	prc_wait_n_usecs
+	or	a0, r0, 20		;#3 wait about 20 microseconds
+
+	la	v0, DRAM_BASEnc
+	j	v0			;# goto ourself in DRAM
+	nop
+.endc
+	
+skip_copy:
+
+.if defined, SSEG_BASE
+	li v0, 0xFF
+	sb v0, SSEG_BASE		;# Turn off all the LED's
+.endc
+
+;#***************************************************************
+;#  Handy loop to see if we get this far 			*
+;#***************************************************************
+
+;	WALKER_LED
+
+.if true, BOOT_ROM_CODE
+	la	v0, RAMROM_BASE+0x00E00000
+10:	b	10b
+	lw	r0, (v0)
+.endc
+
+.if true, BOOT_ROM_CODE == 0
+;#***************************************************************
+;#  Init the TLB 						*
+;#***************************************************************
+
+	bal	init_tlb	;# init the tlb
+	nop
+
+;	WALKER_LED
+
+;#***************************************************************
+;#  Set all the exception vectors				*
+;#***************************************************************
+
+.if true, BOOT_COMPRESSED == 0
+	la	v0, j_except
+	la	k0, DRAM_BASEnc
+	or	v0, 0x20000000	;# make address non-cached
+	lw	v1, 0x004(v0)	;# get instruction in delay slot
+	sw	v1, 0x004(k0)	;# fill delay slot
+	lw	v1, 0x000(v0)	;# get jump instruction
+	sw	v1, 0x000(k0)	;# location 0
+	sw	v1, 0x080(k0)	;# all other vectors get the same
+	sw	v1, 0x100(k0)
+	sw	v1, 0x180(k0)
+	sw	v1, 0x200(k0)
+	sw	v1, 0x280(k0)
+	sw	v1, 0x300(k0)
+	sw	v1, 0x380(k0)
+.endc
+
+;#***************************************************************
+;#  Now do relative jump to cached execution area 		*
+;#***************************************************************
+	bal	10f		;# get current PC
+	nop
+10:	srl	v0, ra, 24	;# isolate upper byte
+	and	v0, 0xFF
+	li	v1, 0xA0
+	bne	v0, v1, 25f	;# if not running in DRAM, skip it
+	nop
+	la	v0, 20f		;# assume this is a cached address
+	jr	v0		;# jump to cached memory
+	nop
+20:
+.if true, BOOT_COMPRESSED == 0
+	li	v0, INIT_SR&~SR_BEV	;# clear the BEV bit
+	mtc0	v0, C0_SR
+	nop
+	nop
+	nop
+	nop
+.endc
+25:
+
+.if true, TEST_MEM32 
+;#***************************************************************
+;#  Finish testing memory
+;#***************************************************************
+
+	lhu	v0, GP_STS_BASE
+	and	v0, 1<<B_GPSTS_DBG
+	beq	v0, r0, no_memtest_part2
+	nop
+
+	li	a0, DRAM_BASEnc+TESTMEM32_PART1 ;# start where first 1/2 left off
+	li	a1, DRAM_BASEnc+0x00800000-1 ;# DRAM end (7.5 megabyte)
+	move	a2, r0			;#Not used
+	bal	test_mem32		;# check memory in 32 bit mode
+	nop
+	bne	v0, r0, test_error	;# report errors
+	nop
+no_memtest_part2:
+.endc
+
+.if defined, SSEG_BASE
+	li v1, SSEG_DOT
+	sb v1, SSEG_BASE		;# Start with all LED's off
+.endc
+
+.if true, ALTERNATE_PCI_W2_ADDRESS != 0
+;#****************************
+;#  Set the nile3 W2 address *
+;#****************************
+
+	bal	nile3_setw2		;# do this again in case we booted from RAMROM
+	nop
+.endc
+
+;#***************************
+;#  First clear our BSS     *
+;#***************************
+
+clear_bss:
+	la	sp, DRAM_BASEnc
+	lw	sp, ROMV_STACK(sp)	;# get the value to which to init the stack
+	addu	sp, -4*REG_SIZE		;# leave 4 doubles on the stack
+	and	sp, -8			;# align it on a double word boundary
+40:	la	v0, bss_start		;# prepare to clear all bss
+	la	v1, bss_end
+
+	sw	r0, (v0)
+41:	addu	v0, 4
+	bgt	v1, v0, 41b
+	sw	r0, (v0)
+
+.if true, (BOOT_FROM_DISK == 0) && (BOOT_COMPRESSED == 0) && (EPROM_ST == 0)
+	la	s0, pm_data
+	lw	a0, pm_msg(s0)		;# get pointer to message
+	beq	a0, r0, 5f		/* 0 is a legit value for this */
+	nop
+	li	v0, 8
+	srl	v1, a0, 28		;# get upper nibble of address
+	beq	v1, v0, 5f		;# anywhere in region 8 is ok
+	nop
+	jal	tlbprobe		;# check it
+	or	a1, r0, 4		;# 4 bytes
+	bge	v0, r0, 5f		;# ok
+	nop
+	sw	r0, pm_msg(s0)		;# else make it 0
+5:	lw	a0, pm_stack(s0)	;# get pointer to stack
+	beq	v0, r0, 10f		/* 0 is a legit value for this */
+	nop
+	li	v0, 8
+	srl	v1, a0, 28		;# get upper nibble of address
+	beq	v1, v0, 10f		;# anywhere in region 8 is ok
+	nop
+	jal	tlbprobe		;# check it
+	or	a1, r0, 4		;# 4 bytes
+	bge	v0, r0, 10f		;# it is a legit value
+	nop
+	sw	r0, pm_stack(s0)	/* 0 the stack params */
+	sw	r0, pm_stklower(s0)
+	b	15f
+	sw	r0, pm_stkupper(s0)
+
+10:	lw	a0, pm_stklower(s0)	;# get stack lower limit
+	lw	a1, pm_stkupper(s0)	;# get stack upper limit
+	li	v0, 8
+	srl	v1, a0, 28		;# get upper nibble of address
+	beq	v1, v0, 15f		;# anywhere in region 8 is ok
+	nop
+	jal	tlbprobe		;# check it
+	subu	a1, a0			;# compute stack size in bytes
+	bge	v0, r0, 15f		;# ok
+	nop
+	sw	r0, pm_stklower(s0)
+	sw	r0, pm_stkupper(s0)
+15:	lw	a0, pm_sr(s0)		;# check the SR register
+	and	a0, (1<<27)|(3<<23)|(1<<21)|(1<<19)|0x78
+	bne	a0, r0, pm_nfg		;# bad, reset all of it
+	lw	a0, pm_cause(s0)	;# check cause too
+	and	a0, 0x4FFF0083
+	bne	a0, r0, pm_nfg		;# bad, reset all of it
+	nop
+	lw	a0, pm_cntr(s0)		;# get the current counter
+	li	a1, -42			;# is it special?
+	blt	a0, a1, pm_nfg		;# not legal, whack it
+	nop
+	beq	a0, a1, pm_ok		;# this is a prc_reboot
+	nop
+	bne	a0, r0, pm_ok		;# not zero means something to somebody
+	nop
+	beq	v0, r0, pm_ok
+	nop
+.if true, 0				;The WDOG bit doesn't work yet
+.if defined, GP_STS_BASE
+	lhu	a0, GP_STS_BASE		;# get status
+	and	a0, 1<<B_GPSTS_WDOG	;# isolate the WDOG bit
+	beq	a0, r0, pm_nfg		;# not a WDOG timeout
+.endc
+.endc
+	mfc0	a0, C0_ERRPC		;# assume a watchdog reset
+	mfc1	a2, $f0			;# get saved ra
+	mfc1	a3, $f2			;# get saved sp
+	li	a1, -41			;# get a -41
+	sw	a1, pm_cntr(s0)		;# so the "WATCHDOG RESET" message will appear 
+	sw	a2, pm_regs+31*4(s0)	;# stuff old ra into regs
+	sw	a3, pm_regs+29*4(s0)	;# stuff old sp into regs
+	b	pm_ok
+	sw	a0, pm_pc(s0)		;# record the PC at WD reset
+	
+pm_nfg:
+	move	s1, s0
+	li	a0, PM_SIZE
+20:	sw	r0, (s1)
+	addu	a0, -4
+	bgt	a0, r0, 20b
+	addu	s1, 4
+pm_ok:
+.endc
+50:
+;#****************************************************************
+;#  Leave some stuff in a handy spot for the program if it cares *
+;#****************************************************************
+
+	jal	config_cache		;# get cache sizes for the program to use
+	nop				;# returns with icache size in t2, dcache size in t3
+					;# icache linesize in t4, dcache linesize in t5
+					;# t6 and t7 are 0
+.if true, BOOT_COMPRESSED == 0
+	la	v0, cpu_params
+	mfc0	t1, C0_PRID
+	li	t6, 4600
+	sw	t6, cpu_type(v0)
+	sw	t2, cpu_icache(v0)
+	sw	t3, cpu_dcache(v0)
+	sw	t1, cpu_prid(v0)
+	sw	t4, cpu_icache_ls(v0)
+	sw	t5, cpu_dcache_ls(v0)
+.endc
+
+	jal	flush_cache
+	nop
+
+;#***************************************************************
+;#  Unlock the IOASIC						*
+;#***************************************************************
+
+.if true, BOOT_COMPRESSED == 0
+	bal	unlock_ioasic
+	nop				/* branch delay */
+
+	beq	r0, v0, ioasic_ok	/* test return in v0 for error */
+	nop
+	
+	/* ioasic unlock failed, put up 'E' */
+	la	k1, SSEG_BASE
+	li	k0, SSEG_E
+	sb	k0, 0(k1)
+	la	a0, unlock_fail
+	la	v0, startup
+	subu	a0, v0
+	addu	a0, fp
+	bal	prc_lcd_puts
+	nop
+	li	a0, 0x10
+	lra	a1, PIC1, v0
+	bal	hex_to_lcd
+	nop
+
+failloop:
+	b	failloop
+	nop
+	
+ioasic_ok:
+	sh	r0, IO_MAIN_CTL		;# be sure to disable all IOASIC interrupts
+.endc
+
+.if true, BOOT_COMPRESSED == 0
+;#***************************************************************
+;#  Clear all FP and most GP registers 				*
+;#***************************************************************
+
+.macro .zeror	reg
+	dmtc1	r0, $f'reg'
+.endm .zeror
+
+...2 == 0
+.rept	32
+    .zeror	\...2
+    ...2 == ...2 + 1
+.endr
+.macro .zeror	reg
+	move	$'reg', r0
+.endm .zeror
+...2 == 4
+.rept	29-4				;stop at sp
+    .zeror	\...2
+    ...2 == ...2 + 1
+.endr
+
+	dmtc0	r0, C0_CTXT
+	mtc0	r0, C0_PAGEMASK		;# see that all registers start out 0
+	mtc0	r0, C0_LLADDR
+	dmtc0	r0, C0_XCTXT
+.endc
+
+.if true, 0
+;#***************************************************************
+;#  Handy loop to see if we get this far 			*
+;#***************************************************************
+
+	WALKER_LED
+
+.iff
+
+	la	v0, BootUp
+	j	v0
+	move	ra, r0		;# No return address so gdb doesn't get confused
+.endc
+.endc				; BOOT_ROM_CODE == 0	
+	.set at
+	.set reorder
+ENDFRAME boot_entry
+
+	.macro MKARG sym
+	...arg = ...arg|sym
+	.endm
+	.macro STARG addr
+	li v0, ...arg
+	sw v0, (addr)-NILE3_BASE(a2)
+	...arg = 0
+	.endm
+...arg = 0
+	
+FRAME nile3_setw2,global=0
+	li	a2, NILE3_BASE
+	move	v0, r0		/* init the argument */
+.if true, ALTERNATE_PCI_W2_ADDRESS != 0
+PCI_PHYS = (CHAM_PCI_W2_BASE>>24)&0xFF
+	MKARG	(PCI_PHYS<<24)|(PCI_PHYS)
+	MKARG	NILE3_PCI_MASTER_MASK_256M
+.iff
+PCI_PHYS = (CHAM_PCI_W2_BASE&0x1FFFFFFF)>>24
+	MKARG	(PCI_PHYS<<24)|(PCI_PHYS)
+	MKARG	NILE3_PCI_MASTER_MASK_64M
+.endc
+	MKARG	NILE3_PCI_MASTER_ENAB
+	STARG	NILE3_PCI_MASTER_WINDOW_2_BASE
+	j	ra
+ENDFRAME nile3_setw2
+
+/***********************************************************************
+* nile3Init	- Initialize Nile 3
+*/
+
+FRAME nile3Init,global=0
+	move	a3, ra		/* save return address */
+	li	a2, NILE3_BASE
+	move	v0, r0		/* init the argument */
+
+  /* We need  to set up the default address registers */
+  
+  /* Enable Base Memory Control - Base Adr = zero */
+  /* Base memory size = 8Mb */
+  /* Base memory is SDRAM */
+  /* Base memory enabled */
+  /* SDRAM uses x12 mux mode */
+
+	MKARG	(NILE3_BASE_BASEADD&0x00)
+	MKARG	(NILE3_BASE_SIZE_8MB)
+	MKARG	(NILE3_MEM_SDRAM)
+	MKARG	(NILE3_MEM_ENABLE)
+	MKARG	(NILE3_MEM_MUX_BY12)
+	STARG	NILE3_BASE_MEM_CTRL_BASE
+
+  /* set up SIMMs one and two for 16Mbyte of simm each */
+
+	MKARG	(NILE3_SIMM_FPM)
+	MKARG	(NILE3_SIMM_ADD&0x01000000)
+	MKARG	(NILE3_SIMM_MASK_16M)
+	MKARG	(NILE3_MEM_ENABLE)
+	MKARG	(NILE3_MEM_MUX_BY11)
+	STARG	NILE3_SIMM_CTRL_1_BASE
+
+    	MKARG	(NILE3_SIMM_FPM)
+	MKARG	(NILE3_SIMM_ADD&0x02000000)
+	MKARG	(NILE3_SIMM_MASK_16M)
+	MKARG	(NILE3_MEM_ENABLE)
+	MKARG	(NILE3_MEM_MUX_BY11)
+	STARG	NILE3_SIMM_CTRL_2_BASE
+  
+  /* setup SIMM banks 2 & 3 to something valid but disabled */
+	MKARG	(NILE3_SIMM_FPM)
+	MKARG	(NILE3_SIMM_ADD&0x00800000)
+	MKARG	(NILE3_SIMM_MASK_2M)
+	MKARG	(NILE3_MEM_MUX_BY11)
+	STARG	NILE3_SIMM_CTRL_3_BASE
+  
+	MKARG	(NILE3_SIMM_FPM)
+	MKARG	(NILE3_SIMM_ADD&0x00a00000)
+	MKARG	(NILE3_SIMM_MASK_2M)
+	MKARG	(NILE3_MEM_MUX_BY11)
+	STARG	NILE3_SIMM_CTRL_4_BASE
+
+	sync		/* Force writest to occur */
+
+  /* Set the SDINIT bit in BLACK_HOLE_REG to issue SDRAM
+     precharge command */
+	MKARG	NILE3_BLACK_HOLE_SDINIT
+	STARG	NILE3_BLACK_HOLE_REG_BASE
+
+  	sync		/* Force writes to occur */
+	li	a0, 10
+	bal	prc_wait_n_usecs
+
+  /* DRAM Refresh Rate */
+  /* 0x300 ticks/refresh @@ 50MHz = 15.36usec
+     0x300 ticks/refresh @@ 66MHz = 11.6 usec
+     0x400 ticks/refresh @@ 66MHz = 15.51usec
+   */
+	MKARG	0x00000300
+	STARG	NILE3_REFRESH_BASE
+
+	MKARG	NILE3_BLACK_HOLE_REFENAB
+	STARG	NILE3_BLACK_HOLE_REG_BASE
+
+	sync		/* Force writes to occur */
+	li	a0, 10
+	bal	prc_wait_n_usecs
+
+  /* set syncmrs bit in simm_1 to enable normal sdram operation */
+	MKARG	NILE3_BLACK_HOLE_SYNCMRS
+	STARG	NILE3_BLACK_HOLE_REG_BASE
+
+	sync		/* Force writes to occur */
+	li	a0, 10
+	bal	prc_wait_n_usecs
+
+  /* write protect everthing in boot rom space for now */
+	MKARG	0xffffff3e
+	STARG	NILE3_BOOT_PROT_BASE
+
+  /* set up PCI master memory address windows */
+  /* master window 1 maps to PCI memory address 0x04000000 */
+  /* window 1 is 64Mb deep */
+  /* master window 2 maps to PCI memory address 0x08000000 */
+  /* window 1 is 128Mb deep */
+
+PCI_PHYS = (CHAM_PCI_W1_BASE&0x1FFFFFFF)>>24
+	MKARG	(PCI_PHYS<<24)|(PCI_PHYS)
+	MKARG	NILE3_PCI_MASTER_MASK_64M
+	MKARG	NILE3_PCI_MASTER_ENAB
+	STARG	NILE3_PCI_MASTER_WINDOW_1_BASE
+
+  /* setup PCI master window 2 */
+
+	bal	nile3_setw2
+  
+  /* setup PCI master IO window */
+  /* window is 16Mb deep */
+  /* IO maps to PCI IO address 0x0c000000 */
+PCI_PHYS = (PCI_IO_BASE&0x1FFFFFFF)>>24
+	MKARG	(PCI_PHYS<<24)|0
+	MKARG	NILE3_PCI_MASTER_MASK_16M
+	MKARG	NILE3_PCI_MASTER_ENAB
+	STARG	NILE3_PCI_MASTER_IO_WINDOW_BASE
+                       
+  /* set up PCI slave address windows */
+  /* window 1 maps the base SDRAM to PCI addr 0x00000000 */
+  /* window 1 is 8M deep to match SDRAM on-board */
+  /* window 2 maps the SIMMS to PCI addr 0x01000000 */
+  /* window 2 is 32Mb deep for the SIMMs */
+	MKARG	NILE3_PCI_SLAVE_MASK_8M
+	MKARG	(0x00000000&NILE3_PCI_SLAVE_PCIADD)
+	MKARG	(0x000&NILE3_PCI_SLAVE_LADD)
+	MKARG	NILE3_PCI_SLAVE_ENAB
+	STARG	NILE3_PCI_SLAVE_WINDOW_1_BASE
+
+	MKARG	NILE3_PCI_SLAVE_MASK_32M
+	MKARG	(0x01000000&NILE3_PCI_SLAVE_PCIADD)
+	MKARG	(0x008&NILE3_PCI_SLAVE_LADD)
+	MKARG	NILE3_PCI_SLAVE_ENAB
+	STARG	NILE3_PCI_SLAVE_WINDOW_2_BASE
+
+  /* enable PCI arbiter and slave access */
+	MKARG	NILE3_PCIARB_ENAB|NILE3_PCIARB_CFG_DONE
+	STARG	NILE3_PCI_ARB_BASE
+
+  /* Nile 3 Bridge Config Space */
+  /* enable nile to generate and receive mem cycles */
+  /* and to enable parity and system errors         */
+	MKARG	NILE3_PCICMD_MEMEN
+	MKARG	NILE3_PCICMD_BMAS
+	MKARG	NILE3_PCICMD_PER
+	MKARG	NILE3_PCICMD_SERR_EN
+	STARG	NILE3_PCICMD_BASE
+
+  /* set up mailbox register base address */
+	MKARG	0x03000000
+	STARG	NILE3_MBADD_BASE
+
+  /* set up retry timer and arbiter */
+	MKARG	0
+	STARG	NILE3_RTYTIM_BASE
+
+	sync		  /* force writes to occur */
+	j	a3
+ENDFRAME nile3Init
+
+	.macro MKARG sym0 
+	...arg = ...arg|sym0
+	.endm
+	.macro STDATA 
+	li v0, ...arg
+	sw v0, (a1)
+	...arg = 0
+	.endm
+	.macro STADDR
+	li v0, ...arg
+	sw v0, (a2)
+	...arg = 0
+	.endm
+	.macro STARG addr
+	li v0, ...arg
+	sw v0, (addr)
+	...arg = 0
+	.endm
+...arg = 0
+
+/* do the initial setup of the PLX chip */
+/* no ram available yet, so we do this  */
+/* the hardcoded way                    */
+
+FRAME PLXinit,global=0
+	move	a3, ra		/* save return address */
+	la	a2, NILE3_PCI_CONFIG_ADDRESS_BASE
+	la	a1, NILE3_PCI_CONFIG_DATA_BASE
+
+  /* check to see if it's there */
+  /* The Nile 3 does not decode the device number ala the
+     pci spec config mechanism #1, but passes the address written to 
+     NILE3_PCI_CONFIG_ADD_ENAB straight through. */
+
+	MKARG	NILE3_PCI_CONFIG_ADD_ENAB
+	MKARG	CHAM_PCICFG_PLX
+	MKARG	PCI_ID_REG
+	STADDR	
+
+10:	lw	v0, (a1)		/* Get PCI config data */
+	li	v1, (PLX_PCI_DEV_ID<<16) | PLX_PCI_MFG_ID
+	bne	v1, v0, 10b		/* loop if not what is expected */
+
+  /* set up PLX local registers as memory-mapped */
+  /* set base at the bottom of the possible nile3 range */
+	MKARG	NILE3_PCI_CONFIG_ADD_ENAB
+	MKARG	CHAM_PCICFG_PLX
+	MKARG	PCI_MAP_REG_START
+	STADDR
+
+	MKARG	(CHAM_PCI_W1_BASE&0x1FFFFFFF)&PCI_MAP_MEMORY_ADDRESS_MASK
+	STDATA
+  
+  /* enable the PLX to respond to memory accesses */
+	MKARG	NILE3_PCI_CONFIG_ADD_ENAB
+	MKARG	CHAM_PCICFG_PLX
+	MKARG	PCI_COMMAND_STATUS_REG
+	STADDR
+
+	MKARG	PCI_COMMAND_MEM_ENABLE
+	MKARG	PCI_COMMAND_PARITY_ENABLE
+	MKARG	PCI_COMMAND_SERR_ENABLE
+	STDATA
+
+  /* setup PLX CNTRL register */
+  /*
+     user i/o 0 (GUN_STATUS-) is input
+     user i/o 1 (GUN_CONF_DONE) is input
+     data on user i/o 0 & 1 is 0
+     user i/o 2 & 3 are chip select 2 & 3
+     BAR0 (memory) is only enabled
+     allow lock accesses as slave
+   */
+
+	MKARG	PLX_CNTRL_IO2_FUNC
+	MKARG	PLX_CNTRL_IO3_FUNC
+	MKARG	PLX_CNTRL_BAR0_ONLY
+	MKARG	PLX_CNTRL_PCI_SLAVE_LOCK
+	MKARG	(4<<PLX_CNTRL_PCI_TGT_RTRY_SHIFT)
+	STARG	PLX_CNTRL_BASE
+
+  /* ==================================================================*/
+  /* ======================define Bus Regions =========================*/
+  /* ==================================================================*/
+  /* ------------ */
+  /* bus region 0 */
+  /* ------------ */
+
+	MKARG	NILE3_PCI_CONFIG_ADD_ENAB
+	MKARG	CHAM_PCICFG_PLX
+	MKARG	(PCI_MAP_REG_START+0x08)
+	STADDR
+
+	MKARG	(CHAM_PCI_W1_BASE+0x00100000)&0x1FFFFFFF
+	STDATA
+
+  /* 
+     no burst, use ready, disable bterm, prefetch count none,
+     prefetch count enable, nrad = 5, nrdd = 0, nxda = 2, nwad = 3,
+     nwdd = 0, 8 bit bus, little endian, beblm = 0, rd strobe delay = 1,
+     wr strobe delay = 1, wr hold = 2
+   */
+	MKARG	PLX_LASBRD_USE_READY
+	MKARG	PLX_LASBRD_NO_PREFETCH
+	MKARG	PLX_LASBRD_USE_PREFETCH
+	MKARG	(0x2<<PLX_LASBRD_NRAD_SHIFT)
+	MKARG	(0x0<<PLX_LASBRD_NRDD_SHIFT)
+	MKARG	(0x2<<PLX_LASBRD_NXDA_SHIFT)
+	MKARG	(0x2<<PLX_LASBRD_NWAD_SHIFT)
+	MKARG	(0x0<<PLX_LASBRD_NWDD_SHIFT)
+	MKARG	PLX_LASBRD_BUS_WIDTH_16
+	MKARG	PLX_LASBRD_LIT_ENDIAN
+	MKARG	(0x1<<PLX_LASBRD_RD_STB_SHIFT)
+	MKARG	(0x1<<PLX_LASBRD_WR_STB_SHIFT)
+	MKARG	(0x2<<PLX_LASBRD_WR_CYC_SHIFT)
+	STARG	PLX_LAS0BRD_BASE
+
+  /* local address space 0 is 1 Mbyte */
+	MKARG	0x0FF00000
+	STARG	PLX_LAS0RR_BASE
+
+  /* chip select 0 is from local 0x04100000 to local 0x041FFFFF (1Mb) */
+	MKARG	PLX_CSBASE_ENABLE
+	MKARG	0x000080000
+	MKARG	(CHAM_PCI_W1_BASE+0x00100000)&0x1FFFFFFF
+	STARG	PLX_CS0BASE_BASE
+
+  /* local address space 0 starts at PCI address 0x04100000 */
+	MKARG	PLX_LASBA_ENABLE
+	MKARG	(CHAM_PCI_W1_BASE+0x00100000)&0x1FFFFFFF
+	STARG	PLX_LAS0BA_BASE
+
+  /* ------------ */
+  /* bus region 1 */
+  /* ------------ */
+
+	MKARG	NILE3_PCI_CONFIG_ADD_ENAB
+	MKARG	CHAM_PCICFG_PLX
+	MKARG	(PCI_MAP_REG_START+0x0C)
+	STADDR
+
+	MKARG	(CHAM_PCI_W1_BASE+0x00000100)&0x1FFFFFFF
+	STDATA
+
+  /* 
+     no burst, no ready, disable bterm, prefetch count none,
+     prefetch count enable, nrad = 3, nrdd = 0, nxda = 2, nwad = 3,
+     nwdd = 0, 8 bit bus, little endian, beblm = 0, rd strobe delay = 2,
+     wr strobe delay = 2, wr hold = 2
+   */
+	MKARG	PLX_LASBRD_NO_PREFETCH
+	MKARG	PLX_LASBRD_USE_PREFETCH
+	MKARG	(0x5<<PLX_LASBRD_NRAD_SHIFT)
+	MKARG	(0x0<<PLX_LASBRD_NRDD_SHIFT)
+	MKARG	(0x2<<PLX_LASBRD_NXDA_SHIFT)
+	MKARG	(0x3<<PLX_LASBRD_NWAD_SHIFT)
+	MKARG	(0x0<<PLX_LASBRD_NWDD_SHIFT)
+	MKARG	PLX_LASBRD_BUS_WIDTH_8
+	MKARG	PLX_LASBRD_LIT_ENDIAN
+	MKARG	(0x1<<PLX_LASBRD_RD_STB_SHIFT)
+	MKARG	(0x1<<PLX_LASBRD_WR_STB_SHIFT)
+	MKARG	(0x2<<PLX_LASBRD_WR_CYC_SHIFT)
+	STARG	PLX_LAS1BRD_BASE
+
+  /* local address space 1 is 256 bytes */
+	MKARG	0x0FFFFF00
+	STARG	PLX_LAS1RR_BASE
+
+  /* chip select 1 is from local 0x04000100 to local 0x040001FF (256 bytes) */
+	MKARG	PLX_CSBASE_ENABLE
+	MKARG	0x000000080
+	MKARG	(CHAM_PCI_W1_BASE+0x00000100)&0x1FFFFFFF
+	STARG	PLX_CS1BASE_BASE
+
+  /* local address space 1 starts at PCI address 0x04000100 */
+	MKARG	PLX_LASBA_ENABLE
+	MKARG	(CHAM_PCI_W1_BASE+0x00000100)&0x1FFFFFFF
+	STARG	PLX_LAS1BA_BASE
+
+  /* ------------ */
+  /* bus region 2 */
+  /* ------------ */
+
+	MKARG	NILE3_PCI_CONFIG_ADD_ENAB
+	MKARG	CHAM_PCICFG_PLX
+	MKARG	(PCI_MAP_REG_START+0x10)
+	STADDR
+
+	MKARG	(CHAM_PCI_W1_BASE+0x00200000)&0x1FFFFFFF
+	STDATA
+
+  /* 
+     no burst, use ready, disable bterm, prefetch count none,
+     prefetch count enable, nrad = 2, nrdd = 0, nxda = 2, nwad = 2,
+     nwdd = 0, 16 bit bus, little endian, beblm = 0, rd strobe delay = 1,
+     wr strobe delay = 1, wr hold = 2
+   */
+	MKARG	PLX_LASBRD_USE_READY
+	MKARG	PLX_LASBRD_NO_PREFETCH
+	MKARG	PLX_LASBRD_USE_PREFETCH
+	MKARG	(0x2<<PLX_LASBRD_NRAD_SHIFT)
+	MKARG	(0x0<<PLX_LASBRD_NRDD_SHIFT)
+	MKARG	(0x2<<PLX_LASBRD_NXDA_SHIFT)
+	MKARG	(0x2<<PLX_LASBRD_NWAD_SHIFT)
+	MKARG	(0x0<<PLX_LASBRD_NWDD_SHIFT)
+	MKARG	PLX_LASBRD_BUS_WIDTH_16
+	MKARG	PLX_LASBRD_LIT_ENDIAN
+	MKARG	(0x1<<PLX_LASBRD_RD_STB_SHIFT)
+	MKARG	(0x1<<PLX_LASBRD_WR_STB_SHIFT)
+	MKARG	(0x2<<PLX_LASBRD_WR_CYC_SHIFT)
+	STARG	PLX_LAS2BRD_BASE
+
+  /* local address space 2 is 1Mbyte */
+	MKARG	0x0FF00000
+	STARG	PLX_LAS2RR_BASE
+
+  /* chip select 2 is from local 0x04200000 to local 0x042FFFFF (1 Mbyte) */
+	MKARG	PLX_CSBASE_ENABLE
+	MKARG	0x000080000
+	MKARG	(CHAM_PCI_W1_BASE+0x00200000)&0x1FFFFFFF
+	STARG	PLX_CS2BASE_BASE
+
+  /* local address space 2 starts at PCI address 0x04200000 */
+	MKARG	PLX_LASBA_ENABLE
+	MKARG	((CHAM_PCI_W1_BASE&0x1FFFFFFF)+0x00200000)
+	STARG	PLX_LAS2BA_BASE
+
+  /* ------------ */
+  /* bus region 3 */
+  /* ------------ */
+
+	MKARG	NILE3_PCI_CONFIG_ADD_ENAB
+	MKARG	CHAM_PCICFG_PLX
+	MKARG	(PCI_MAP_REG_START+0x14)
+	STADDR
+
+	MKARG	((CHAM_PCI_W1_BASE&0x1FFFFFFF)+0x02000000)
+	STDATA
+
+  /* 
+     no burst, no ready, disable bterm, prefetch count none,
+     prefetch count enable, nrad = 5, nrdd = 0, nxda = 3, nwad = 5,
+     nwdd = 0, 32 bit bus, little endian, beblm = 0, rd strobe delay = 1,
+     wr strobe delay = 1, wr hold = 2
+   */
+
+	MKARG	PLX_LASBRD_NO_PREFETCH
+	MKARG	PLX_LASBRD_USE_PREFETCH
+	MKARG	(0x5<<PLX_LASBRD_NRAD_SHIFT)
+	MKARG	(0x0<<PLX_LASBRD_NRDD_SHIFT)
+	MKARG	(0x3<<PLX_LASBRD_NXDA_SHIFT)
+	MKARG	(0x5<<PLX_LASBRD_NWAD_SHIFT)
+	MKARG	(0x0<<PLX_LASBRD_NWDD_SHIFT)
+	MKARG	PLX_LASBRD_BUS_WIDTH_32
+	MKARG	PLX_LASBRD_LIT_ENDIAN
+	MKARG	(0x1<<PLX_LASBRD_RD_STB_SHIFT)
+	MKARG	(0x1<<PLX_LASBRD_WR_STB_SHIFT)
+	MKARG	(0x2<<PLX_LASBRD_WR_CYC_SHIFT)
+	STARG	PLX_LAS3BRD_BASE
+
+  /* local address space 3 is 32Mbyte */
+	MKARG	0x0E000000
+	STARG	PLX_LAS3RR_BASE
+
+  /* chip select 3 is from local 0x06000000 to local 0x07ffffff (32Mbyte) */
+	MKARG	PLX_CSBASE_ENABLE
+	MKARG	0x01000000
+	MKARG	((CHAM_PCI_W1_BASE&0x1FFFFFFF)+0x02000000)
+	STARG	PLX_CS3BASE_BASE
+
+  /* local address space 3 starts at PCI address 0x06000000 */
+	MKARG	PLX_LASBA_ENABLE
+	MKARG	((CHAM_PCI_W1_BASE&0x1FFFFFFF)+0x02000000)
+	STARG	PLX_LAS3BA_BASE
+
+	sync
+	j a3
+ENDFRAME PLXinit
+
+.if true, 0
+/************************************************
+ * fix_addr - make address in v0 relative and
+ * jump to it.
+ * At entry:
+ *	v0 = address to which to jump
+ * At exit:
+ *	returns value of called function
+ *	registers trashed depending on which
+ *	function called
+ */
+FRAME fix_addr,global=0
+	la k0, startup		/* compute relative address */
+	subu k0, v0, k0		/* of destination */
+	and v1, ra, 0xF0000000	/* get msb of return address */
+	xor v1, 0xB0000000	/* are we running from boot? */
+	beq v1, r0, 10f		/* yep, add BFC to addr */
+	j	v0		/* nope, just go to address */
+
+10:	addu k0, 0xBFC00000	/* compute address in boot rom */
+	j	k0		/* goto adjusted address */
+ENDFRAME fix_addr
+.endc
+
+/************************************************
+ * prc_lcd_init - initialize the LCD display
+ * At entry:
+ *	no requirements
+ * At exit:
+ *	returns nothing
+ *	a0, a1, v0, v1, hi and lo trashed
+ */
+FRAME prc_lcd_init,global=0
+	move	a1, ra
+	la	a2, LCD_CMD_BASE
+	li	v0, LCD_CLEAR
+	sw	v0, (a2)
+	li	a0, 1700
+	bal	prc_wait_n_usecs
+	li	v0, LCD_CLEAR
+	sw	v0, (a2)
+	li	a0, 1700
+	bal	prc_wait_n_usecs
+	li	v0, LCD_HOME
+	sw	v0, (a2)
+	li	a0, 1700
+	bal	prc_wait_n_usecs
+	li	v0, LCD_FUNC | LCD_FUNC_8BIT | LCD_FUNC_2LINE
+	sw	v0, LCD_CMD_BASE
+	li	a0, 50
+	bal	prc_wait_n_usecs
+	li	v0, LCD_CTRL | LCD_CTRL_DISPLAY /* | LCD_CTRL_CURSOR | LCD_CTRL_BLINK */
+	sw	v0, LCD_CMD_BASE
+	li	a0, 50
+	bal	prc_wait_n_usecs
+	li	v0, LCD_MODE | LCD_MODE_INCR
+	sw	v0, LCD_CMD_BASE
+	li	a0, 50
+	bal	prc_wait_n_usecs
+	j	a1
+ENDFRAME prc_lcd_init
+
+/************************************************
+ * prc_lcd_putc - write a character at specified row/column
+ * At entry:
+ *	a0 - bit 4 is row, bits 3:0 is column
+ *	a1 - character to write
+ * At exit:
+ *	returns nothing
+ *	a0, a2, a3, v0, v1, hi and lo trashed
+ */
+FRAME prc_lcd_putc, global=0
+	move	a3, ra			;# Save return addr
+	sll	a2, a0, 2
+	and	a2, 0x40
+	and	a0, 0x0F
+	add	a2, a0
+	add	a2, LCD_SET_DDADDR
+	sb	a2, LCD_CMD_BASE
+	li	a0, 50
+	bal	prc_wait_n_usecs
+	sb	a1, LCD_DATA_BASE	;# write the character
+	li	a0, 50
+	bal	prc_wait_n_usecs	;# let it settle
+	j	a3
+ENDFRAME prc_lcd_putc
+
+bin2asc: .ascii "0123456789ABCDEF"
+
+/************************************************
+ * hex_to_lcd - convert the number in a1 to ASCII
+ *	and write it to LCD starting at row/col
+ *	specified in a0
+ * At entry:
+ *	a0 - bit 4 is row, bits 3:0 are column
+ *	a1 - number to convert
+ * Registers up for grabs: a0-a3, t0-t7, s3-s8
+ * Registers offlimits: s0-s2
+ * At exit:
+ */
+FRAME hex_to_lcd,global=0
+	move t0, ra		;# Save return address
+	move t1, a0		;# Save the row/column addr
+	move t2, a1		;# Save the value to write
+	li t3, 32-4		;# shift count to get first nibble
+	la t4, bin2asc		;# get ptr to string
+	la v0, startup
+	subu t4, v0		;# compute relative offset
+	and v0, ra, 0xFFF00000	;# get upper address of PC
+	addu t4, v0		;# compute PC relative address of string
+10:	srlv a1, t2, t3		;# get nibble
+	and a1, 0x0F		;# mask it
+	addu a1, t4		;# compute addr of conversion
+	lbu a1, (a1)		;# get character
+	move a0, t1		;# set row/column
+	bal prc_lcd_putc	;# write the character
+	addu t1, 1		;# increment the column
+	addu t3, -4		;# compute next nibble number
+	bge t3, r0, 10b		;# keep writing
+	j t0			;# done
+ENDFRAME hex_to_lcd
+
+/************************************************
+ * prc_lcd_erase - erase n chars of the display
+ * At entry:
+ *	a0 - bit 4 is starting row, bits 3:0 is starting column
+ *	a1 - number of characters to erase
+ * At exit:
+ *	returns number of characters erased
+ *	a0, a1, a2, a3, t0, t1, t2, v0, v1, hi and lo trashed
+ */
+FRAME prc_lcd_erase, global=0
+	move	t2, ra			;# Save return addr
+	la	t0, LCD_CMD_BASE	;# point to LCD device
+	move	a3, r0			;# clear byte counter
+	move	a2, a0			;# line/column indicator
+	li	a0, LCD_SET_DDADDR
+	sb	a0, (t0)
+	li	a0, 50
+	bal	prc_wait_n_usecs
+	b	20f			;# start on other than 16 byte check
+
+10:	and	v0, a2, 0x0f		;# wrap the line?
+	bne	v0, r0, 20f		;# nope
+	and	v0, a2, 0x10
+	sll	v0, 2			;# line number is bit 4 in byte counter
+	or	v0, LCD_SET_DDADDR	;# compute new line/col addr
+	sb	v0, (t0)		;# stuff it
+	li	a0, 50
+	bal	prc_wait_n_usecs
+
+20:	li	v0, 0x20
+	sb	v0, LCD_DATA_BASE-LCD_CMD_BASE(t0) ;# write the space
+	addu	a2, 1			;# advance the column/line counter
+	li	a0, 50
+	bal	prc_wait_n_usecs	;# let it settle
+	addu	a3, 1			;# count it 
+	b	10b
+
+100:	move	v0, a3			;# return number of bytes written
+	j	t2
+ENDFRAME prc_lcd_erase
+
+/************************************************
+ * prc_puts_lcd - write a null terminated string to LCD
+ * At entry:
+ *	a0 pointer to string buffer
+ * At exit:
+ *	returns length of string
+ *	a0, a1, a2, a3, t0, t1, t2, v0, v1, hi and lo trashed
+ */
+FRAME prc_lcd_puts, global=0
+	move	t2, ra			;# Save return addr
+	move	t1, a0			;# Save buffer pointer
+	la	t0, LCD_CMD_BASE	;# point to LCD device
+	move	a3, r0			;# clear byte counter
+	move	a2, r0			;# line/column indicator
+	li	v0, LCD_CLEAR
+	sb	v0, (t0)
+	li	a0, 1700
+	bal	prc_wait_n_usecs
+	li	v0, LCD_SET_DDADDR
+	sb	v0, (t0)
+	li	a0, 50
+	bal	prc_wait_n_usecs
+	b	20f			;# start on other than 16 byte check
+
+10:	and	v0, a2, 0x0f		;# wrap the line?
+	bne	v0, r0, 20f		;# nope
+	and	v0, a2, 0x10
+	sll	v0, 2			;# line number is bit 4 in byte counter
+	or	v0, LCD_SET_DDADDR	;# compute new line/col addr
+	sb	v0, (t0)		;# stuff it
+	li	a0, 50
+	bal	prc_wait_n_usecs
+
+20:	lbu	v0, (t1)		;# get byte
+	beq	v0, r0, 100f		;# Done
+	li	v1, 0x0d		;# CR?
+	bne	v1, v0, 30f		;# nope
+	and	a2, 0x10
+	sll	v0, a2, 2
+	or	v0, LCD_SET_DDADDR
+	sb	v0, (t0)
+	b	50f
+
+30:	li	v1, 0x0a		;# LF?
+	bne	v1, v0, 40f		;# nope
+	xor	a2, 0x10
+	and	v0, a2, 0x10
+	sll	v0, 2
+	and	v1, a2, 0x0f
+	or	v0, v1
+	or	v0, LCD_SET_DDADDR
+	sb	v0, (t0)
+	b	50f
+
+40:	sb	v0, LCD_DATA_BASE-LCD_CMD_BASE(t0) ;# write the byte
+	addu	a2, 1			;# advance the column/line counter
+50:	li	a0, 50
+	bal	prc_wait_n_usecs	;# let it settle
+	addu	a3, 1			;# count it 
+	addu	t1, 1			;# advance buffer pointer
+	b	10b
+
+100:	move	v0, a3			;# return number of bytes written
+	j	t2
+ENDFRAME prc_lcd_puts
+
+/************************************************
+ * prc_blink_led - blink the specified LED's once
+ * At entry:
+ *	a0 = bitmap of LED's to blink
+ *	a1 = blink time (0=default)
+ * At exit:
+ *	returns nothing
+ *	a0, a1, a2, a3, v0, v1, hi and lo trashed
+ */
+FRAME prc_blink_led
+	bne	a1, r0, 10f
+	li	a1, 100000		;# default to 0.1 seconds
+10:	move	a3, ra			;# save return address
+	move	a2, a0			;# remember input bits
+	sb	a2, SSEG_BASE
+	move	a0, a1			;# set wait time
+	bal	prc_wait_n_usecs
+	li	v0, 0xFF		;# turn off all LEDs
+	sb	v0, SSEG_BASE
+	move	a0, a1			;# set wait time
+	bal	prc_wait_n_usecs
+	j	a3
+ENDFRAME prc_blink_led
+
+.if true, BOOT_COMPRESSED == 0
+;/* -*-asm-*- */
+;
+;/* code to unlock the IO ASIC
+; *	
+; *  this code is from Chris Krubel's ioasic.c c-code compiled
+; *  down to assembly code and modified to run with no RAM required.
+; */
+
+/*
+ * These arrays contain values and addresses to write the
+ * values to in order to unlock the I/O ASIC.
+ */
+
+PIC1:	
+.int	0x002b, 0x0093, 0x00a7, 0x004e, 0x0000, 0x000e, -1
+
+PIC2:	
+.int 0x6f43, 0x7970, 0x6972, 0x6867, 0x2074, 0x4328, 0x2029, 0x3931
+.int 0x3539, 0x4d20, 0x6469, 0x6177, 0x2079, 0x614d, 0x756e, 0x6166
+.int 0x7463, 0x7275, 0x6e69, 0x2067, 0x6f43, 0x706d, 0x6e61, 0x2079
+.int 0x2d2d, 0x5020, 0x6f72, 0x7270, 0x6569, 0x6174, 0x7972, 0x2d20
+.int 0x202d, 0x7375, 0x2065, 0x7570, 0x7372, 0x6175, 0x746e, 0x7420
+.int 0x206f, 0x694d, 0x7764, 0x7961, 0x4d20, 0x6e61, 0x6675, 0x6361
+.int 0x7574, 0x6972, 0x676e, 0x4320, 0x6d6f, 0x6170, 0x796e, 0x6920
+.int 0x736e, 0x7274, 0x6375, 0x6974, 0x6e6f, 0x2073, 0x2d2d, 0x6620
+.int 0x726f, 0x6920, 0x746e, 0x7265, 0x616e, 0x206c, 0x7375, 0x2e65
+.int 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020
+.int 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020
+.int 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020
+.int 0
+
+PIC3:	
+.int 0x4343, 0x6f6f, 0x7070, 0x7979, 0x7272, 0x6969, 0x6767, 0x6868
+.int 0x7474, 0x2020, 0x2828, 0x4343, 0x2929, 0x2020, 0x3131, 0x3939
+.int 0x3939, 0x3535, 0x2020, 0x4d4d, 0x6969, 0x6464, 0x7777, 0x6161
+.int 0x7979, 0x2020, 0x4d4d, 0x6161, 0x6e6e, 0x7575, 0x6666, 0x6161
+.int 0x6363, 0x7474, 0x7575, 0x7272, 0x6969, 0x6e6e, 0x6767, 0x2020
+.int 0x4343, 0x6f6f, 0x6d6d, 0x7070, 0x6161, 0x6e6e, 0x7979, 0x2020
+.int 0x2d2d, 0x2d2d, 0x2020, 0x5050, 0x7272, 0x6f6f, 0x7070, 0x7272
+.int 0x6969, 0x6565, 0x7474, 0x6161, 0x7272, 0x7979, 0x2020, 0x2d2d
+.int 0x2d2d, 0x2020, 0x7575, 0x7373, 0x6565, 0x2020, 0x7070, 0x7575
+.int 0x7272, 0x7373, 0x7575, 0x6161, 0x6e6e, 0x7474, 0x2020, 0x7474
+.int 0x6f6f, 0x2020, 0x4d4d, 0x6969, 0x6464, 0x7777, 0x6161, 0x7979
+.int 0x2020, 0x4d4d, 0x6161, 0x6e6e, 0x7575, 0x6666, 0x6161, 0x6363
+.int 0x7474, 0x7575, 0x7272, 0x6969, 0x6e6e, 0x6767, 0x2020, 0x4343
+.int 0x6f6f, 0x6d6d, 0x7070, 0x6161, 0x6e6e, 0x7979, 0x2020, 0x6969
+.int 0x6e6e, 0x7373, 0x7474, 0x7272, 0x7575, 0x6363, 0x7474, 0x6969
+.int 0x6f6f, 0x6e6e, 0x7373, 0x2020, 0x2d2d, 0x2d2d, 0x2020, 0x6666
+.int 0x6f6f, 0x7272, 0x2020, 0x6969, 0x6e6e, 0x7474, 0x6565, 0x7272
+.int 0x6e6e, 0x6161, 0x6c6c, 0x2020, 0x7575, 0x7373, 0x6565, 0x2e2e
+.int 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020
+.int 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020
+.int 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020
+.int 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020
+.int 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020
+.int 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020, 0x2020
+.int 0
+
+PIC4:	
+.int 0x0054, 0x0029, 0x00e2, -1
+
+/* ---------------------------------------------------------------------*/
+/* PICWrite
+	write a value to the PIC - a0 = data, a1 = address
+	return value in v0
+	uses a0, a1, t0, t1, t2, v0, v1 
+*/
+
+FRAME PICWrite,global=0
+	la	t0, IOASIC_BASE	# t0 = ioasic base addr
+	li	t1, 0		# t1 = loop count
+L2:	
+	sltiu 	v1, t1, 100	# test loop counter
+	bnez 	v1, L5		# if loop counter not 0 do the loop
+	b	L3		# return failure loop timed out
+L5:	
+ 	lhu 	v1, 0(t0)	# read data
+      	/*  if((wData & 0xe000) != 0x2000) */
+	li	t2, 0x0000e000
+	and 	t2, v1, t2	# mask top 3 bits
+	li 	v1, 0x00002000	
+	beq 	t2, v1, LM8	# are top three bits 001?
+				# yes - do the write
+				# no  - try again
+	b L4
+LM8:	
+	sh 	a0, 0(a1)	# write the data
+	li 	v0, 1		# return code = 1 
+	j	ra
+
+L4:	
+	addiu 	t1, t1, 1	# increment loop counter
+	b 	L2		# jump back to loop head
+
+L3:	
+	li 	v0, 0		# return code = 0
+	j	ra
+ENDFRAME PICWrite
+
+/* --------------------------------------------------------------------- */
+/* PICReady - return a 1 if the pic reads ready */
+/* uses t0, t1, and v0 */
+
+FRAME PICReady,global=0
+	la 	t0, IOASIC_BASE
+	lhu	t1, 0(t0)
+	andi 	v0, t1, 0x0001
+	j	ra
+ENDFRAME PICReady
+
+/* --------------------------------------------------------------------- */
+/* unlock_ioasic - return a one if sucessful */
+
+FRAME unlock_ioasic,global=0
+	move	a3, ra			# save the return address
+
+	la	t0, RESET_CTL_BASE	# read the reset register
+	lhu	v0, 0(t0)
+	li 	v1, ~RESET_IOASIC	# make a mask
+	and 	v0, v0, v1
+	sh	v0, 0(t0)		# store it
+
+	li	a0, 1000
+	bal	prc_wait_n_usecs	# wait about 1 millisecond
+
+L10:	
+	ori	t1, v0, RESET_IOASIC	# set the bit in the reset register
+	sh 	t1, 0(t0)		# save it
+
+					# delay to allow PIC to initialize
+piccheck:				# try 2000 times to see if pic is ok
+	li	t3, 2000		# t3 = limit
+L13:	
+	li	a0, 1000
+	bal	prc_wait_n_usecs	# wait about 1 millisecond
+	bal	PICReady		# see if he's awake
+	bgtz	v0, L18			# true - exit loop
+					# false - try again
+	addiu	t3, t3, -1		# decrement loop counter
+	bgtz	t3, L13			# as long as there's a loop count, continue
+
+	li	v0, 1			# bail out, PIC must be dead
+	j	a3
+
+	/* pic loop number one */
+L18:	
+	la	a1, IOASIC_BASE + (3 << IOASIC_OFFSET_SHIFT)
+	li	t3, 0		# t3 is index
+
+L19:	
+	addiu	v0, t3, 0	# copy index to v0
+	addiu	t3, t3, 1	# increment index
+	sll	v1, v0, 0x2	# multiply v0 by 4 (word addresses)
+	lra	v0, PIC1, a0
+	addu	v1, v1, v0	# add in offset
+	lw	a0, 0(v1)	# fetch the data
+	li	v1, -1
+	beq	a0, v1, L20	# is data minus one?
+				# true	- go to next sequence
+				# false - write the data to pic
+
+L22:	
+	bal	PICWrite	# write data to pic
+	bgtz	v0, L19		# return == 1? 
+				# true	- go on to next data item
+				# false - bail out
+
+	li	v0, 1		# exit with return code of 1
+	b	LM69
+
+	/* pic loop number two */
+L20:	
+	la	a1, IOASIC_BASE + (2 << IOASIC_OFFSET_SHIFT)
+	lra	t4, PIC2, t3
+	/*  for(i = 0; i < 16384; i++) */
+	li	t3, 0		# t3 is loop counter
+L24:	
+	move 	v0, t3
+	slti	v1, v0, 16384
+	beqz	v1, L25
+	/* if(!(iValue = *iData++)) */
+LM45:	
+	move	v0, t4		# grab t4 data pointer into v0
+	addiu	t4, v0, 4	# increment t4
+	lw	a0, 0(v0)	# use old t4 value in v0 to grab data
+	bnez	a0, L28		# if data != 0 write it
+
+	lra	t4, PIC3, v0	;# otherwise load new pointer
+	move	v0, t4		# copy new pointer to v0
+	addiu	t4, v0, 4	# increment t4
+	lw 	a0, 0(v0)	# grab first data in new array
+
+L28:	
+	bal	PICWrite	# write to pic
+	bnez	v0, L26		# check return value
+				# pos. continue, if neg. bail
+	li	v0, 2		# load up a failure return code
+	b	LM69		# bail out
+L26:	
+	addiu	t3, t3, 1	# increment loop counter
+	b	L24
+
+	/* third ioasic loop */
+L25:	
+	la	a1, IOASIC_BASE + (0 << IOASIC_OFFSET_SHIFT)
+	li	t3, 0		# t3 is index into PIC4 array
+
+L30:	
+	move	v0, t3		# grab t3
+	addiu	t3, t3, 1	# increment and store back
+	sll	v1, v0, 0x2	# v1 = old t3 times four
+	lra	v0, PIC4, a0	;# load v0 with base of array
+	addu 	v1, v1, v0	# compute offset
+	lw	a0, 0(v1)	# fetch it
+	li	v1, -1		# load constant
+	beq	a0, v1, L31	# is data -1 true: done with loop 3
+				# false: keep going
+
+L33:	
+	bal	PICWrite	# write the data to the PIC
+	bgtz	v0, L32		# check return 1: keep going
+				# zero: error
+LM58:	
+	li	v0, 3		# load up error code
+	b	LM69		# bail out
+L32:	
+	b	L30		# loop around the loop
+
+	/* delay to wait for PIC ready */
+L31:	
+	li	t0, 0		# t0 is loop counter
+	li	t1, 400000	# t1 is loop end value
+	la	t2, IOASIC_BASE	# t2 is ioasic base address
+
+L35:	
+	beq	t1, t0, L36	# is t1 less than t0
+				# true - timed out exit wait loop
+				# false - try again
+
+L38:	
+	lhu	v0, 0x1e(t2)	# read MAIN_CONTROL
+	beqz	v0, L40		# is it zero true - exit wait loop
+
+L39:	
+	addiu	t0, t0, 1	# update loop counter
+	b	L35		# keep going
+
+L36:	
+	li	v0, 1		# wait loop timed out
+	b	LM69
+
+L40:
+	lui	v0, 0x0000
+	ori	v0, 0x4000
+	sh	v0, 0x1e(t2)	# write a zero to MAIN_CONTROL
+				# this should turn off the LED
+	move	v0, zero
+
+LM69:				# exit this routine good or bad
+	j	a3
+
+ENDFRAME unlock_ioasic
+.endc
+
+/********************************************************************
+ * prc_wait_n_usecs - wait at least specified number of microseconds
+ * At entry:
+ *	a0 = minimum number of microseconds to wait
+ * At exit:
+ *	nothing.
+ *	a0, v0, v1, hi and lo trashed
+ */
+FRAME prc_wait_n_usecs
+	mfc0	v0, C0_COUNT		;# starting count
+.if true, CPU_SPEED_VARIABLE
+ .if true, HOST_BOARD == FLAGSTAFF
+	li	v1, 100			;# always assume 200MHZ on Flagstaff
+ .iff
+  .if true, HOST_BOARD == SEATTLE
+	li	v1, 75			;# always assume 150MHZ on Seattle
+  .iff
+	li	v1, 50			;# else assume a 100MHZ
+  .endc
+ .endc
+.iff
+	li	v1, CPU_SPEED/2000000	;# get multiplier
+.endc
+5:	multu	v1, a0			;# convert microseconds to CPU ticks
+	mflo	a0			;# get ticks
+10:	mfc0	v1, C0_COUNT
+	nop
+	nop
+	nop
+	nop
+	subu	v1, v0			;# get difference between old and new
+	bltu	v1, a0, 10b		;# if haven't timed out yet, keep looking
+	j	ra
+ENDFRAME prc_wait_n_usecs
+
+.if true, BOOT_ROM_CODE == 0 && (BOOT_COMPRESSED == 0)
+/************************************************
+ * prc_enable_cp1 - enable co-processor 1
+ * At entry:
+ *	no requirements
+ * At exit:
+ *	v0 = contents of current SR
+ */
+FRAME prc_enable_cp1
+	.set reorder
+	.set at
+	mfc0	v0, C0_SR
+	nop
+	nop
+	nop
+	li	v1, SR_CU1
+	or	v1, v0
+	mtc0	v1, C0_SR
+	j	ra
+ENDFRAME prc_enable_cp1
+
+/************************************************
+ * prc_set_fpcsr - set the FPU's CSR
+ * At entry:
+ *	a0 = value to insert in the CSR
+ * At exit:
+ *	v0 = old contents of CSR
+ */
+FRAME prc_set_fpcsr
+	.set reorder
+	.set at
+	cfc1	v0, $31
+	ctc1	a0, $31
+	j	ra
+ENDFRAME prc_set_fpcsr
+
+/************************************************
+ * prc_get_fpcsr - get the FPU's csr
+ * At entry:
+ *	no requirements
+ * At exit:
+ *	v0 = current contents of CSR
+ */
+FRAME prc_get_fpcsr
+	.set reorder
+	.set at
+	cfc1	v0, $31
+	j	ra
+ENDFRAME prc_get_fpcsr
+
+/************************************************
+ * prc_get_cause - get the current processor CAUSE
+ * At entry:
+ *	no requirements
+ * At exit:
+ *	v0 = contents of current CAUSE
+ */
+FRAME prc_get_cause
+	.set reorder
+	.set at
+	mfc0	v0, C0_CAUSE
+	nop
+	nop
+	j	ra
+ENDFRAME prc_get_cause
+
+/************************************************
+ * prc_set_cause - set the current processor CAUSE
+ * At entry:
+ *	a0 new value 
+ * At exit:
+ *	v0 = old contents of CAUSE
+ */
+FRAME prc_set_cause
+	.set reorder
+	.set at
+	mfc0	v0, C0_CAUSE
+	mtc0	a0, C0_CAUSE
+	nop
+	j	ra
+ENDFRAME prc_set_cause
+
+/************************************************
+ * prc_get_ipl - get the current processor IPL
+ * At entry:
+ *	no requirements
+ * At exit:
+ *	v0 = contents of current SR
+ */
+FRAME prc_get_ipl
+	.set reorder
+	.set at
+	mfc0	v0, C0_SR
+	nop
+	nop
+	nop
+	j	ra
+ENDFRAME prc_get_ipl
+
+/************************************************
+ * prc_isie - IS Interrupt Enabled?
+ * At entry:
+ *	no requirements
+ * At exit:
+ *	v0 = 1 if interrupts enabled, else 0
+ *	v1, t0 and t1 trashed.
+ */
+FRAME prc_isie
+	mfc0	v1, C0_SR	;# get the SR register
+	nop
+	nop
+	nop
+	move	v0, r0		;# Assume no interrupts
+	and	t0, v1, 7	;# isolate lower three bits
+	li	t1, SR_IE	;# get SR_IE pattern
+	bne	t0, t1, 10f	;# interrupts are off
+	and	t0, v1, 0xFF00	;# maybe they are on
+	beq	t0, r0, 10f	;# interrupts are off
+	addu	v0, 1		;# interrupts are on
+10:	j	ra
+ENDFRAME prc_isie
+
+/************************************************
+ * prc_set_sr - set the processor status register
+ * At entry:
+ *	a0 = new value
+ * At exit:
+ *	v0 = old contents of SR
+ *	t0-t4 trashed
+ * stores only the low order 16 SR bits 
+ */
+FRAME prc_set_sr
+	mfc0	v0, C0_SR
+	nop
+	nop
+	nop
+	nop
+	mtc0	a0, C0_SR
+	nop; nop; nop; nop; nop; nop; nop
+	j	ra
+ENDFRAME prc_set_sr
+
+; prc_get_count - get CPU counter register
+; At entry:
+;	no requirements
+; At exit:
+;	v0 = CPU count register
+;
+FRAME prc_get_count
+	mfc0	v0, C0_COUNT
+	nop
+	nop
+	j	ra
+ENDFRAME prc_get_count
+
+; prc_get_compare - get CPU compare register
+; At entry:
+;	no requirements
+; At exit:
+;	v0 = CPU compare register
+;
+FRAME prc_get_compare
+	mfc0	v0, C0_COMPARE
+	nop
+	nop
+	j	ra
+ENDFRAME prc_get_compare
+
+; prc_set_count - set CPU counter register
+; At entry:
+;	a0 = value to install in count register
+; At exit:
+;	v0 = previous CPU count register
+;
+FRAME prc_set_count
+	mfc0	v0, C0_COUNT
+	mtc0	a0, C0_COUNT
+	nop
+	nop
+	j	ra
+ENDFRAME prc_set_count
+
+; prc_set_compare - set CPU compare register
+; At entry:
+;	a0 = value to install into compare register
+; At exit:
+;	v0 = previous CPU compare register
+;
+FRAME prc_set_compare
+	mfc0	v0, C0_COMPARE
+	mtc0	a0, C0_COMPARE
+	nop
+	nop
+	j	ra
+ENDFRAME prc_set_compare
+.endc					; BOOT_ROM_CODE == 0 && (BOOT_COMPRESSED == 0)
+
+.if true, BOOT_ROM_CODE == 0
+/************************************************
+ * prc_set_ipl - set the processor IPL
+ * At entry:
+ *	a0 = new ipl
+ *	(only low order 16 bits are significant)
+ * At exit:
+ *	v0 = old contents of SR
+ *	t0-t4 trashed
+ * stores only the low order 16 SR bits 
+ */
+FRAME prc_set_ipl
+	.set noreorder
+
+.if true, OTHER_OS_SUPPORT
+	la	v0, set_ipl_vec		;# Address of bendable vector...
+	lw	v0, (v0)		;# ... for upper layers (Nucleus)
+	beq	v0, r0, 10f		;# Branch if not loaded
+	nop
+	jr	v0			;# Jump to upper layer routine
+	nop
+10:
+.endc
+	mfc0	v0, C0_SR		;# get current SR (hazard = 4)
+	nop
+	li	t0, 0xFFFF&~(SR_KX|SR_SX|SR_UX|SR_KSMASK) ;# get a mask of allowable bits to change
+	nor	t1, r0, t0		;# get the 1's compliment of the mask
+	and	t2, a0, t0		;# the user can only change these bits
+	and	t1, v0			;# clear out the old bits
+	or	t2, t1			;# drop in the new bits
+
+	mtc0	t2, C0_SR		;# set the new mask
+	nop; nop; nop; nop; nop;
+
+	j	ra			;# return with old im in v0
+	nop
+	.set reorder
+ENDFRAME prc_set_ipl
+.endc
+
+FRAME dump_exception, global=0
+	move	s6, ra			;# save return address
+	lra	a0, e_msg_cause, v0
+	bal	prc_lcd_puts
+	li	a0, 0x10
+	mfc0	a1, C0_CAUSE
+	nop
+	nop
+	bal	hex_to_lcd
+	li	a0, 2000000
+	bal	prc_wait_n_usecs
+
+	lra	a0, e_msg_SR, v0
+	bal	prc_lcd_puts
+	li	a0, 0x10
+	mfc0	a1, C0_SR
+	nop
+	nop
+	bal	hex_to_lcd
+	li	a0, 2000000
+	bal	prc_wait_n_usecs
+
+	lra	a0, e_msg_EPC, v0
+	bal	prc_lcd_puts
+	li	a0, 0x10
+	mfc0	a1, C0_EPC
+	nop
+	nop
+	bal	hex_to_lcd
+	li	a0, 2000000
+	bal	prc_wait_n_usecs
+
+	lra	a0, e_msg_ERRPC, v0
+	bal	prc_lcd_puts
+	li	a0, 0x10
+	mfc0	a1, C0_ERRPC
+	nop
+	nop
+	bal	hex_to_lcd
+	li	a0, 2000000
+	bal	prc_wait_n_usecs
+
+	lra	a0, e_msg_bvadr, v0
+	bal	prc_lcd_puts
+	li	a0, 0x10
+	mfc0	a1, C0_BADVADDR
+	nop
+	nop
+	bal	hex_to_lcd
+	li	a0, 2000000
+	bal	prc_wait_n_usecs
+
+	lra	a0, e_msg_ra, v0
+	bal	prc_lcd_puts
+	li	a0, 0x10
+	move	a1, s7
+	bal	hex_to_lcd
+	li	a0, 2000000
+	bal	prc_wait_n_usecs
+
+	lra	a0, e_msg_stack, v0
+	bal	prc_lcd_puts
+	li	a0, 0x10
+	move	a1, sp
+	bal	hex_to_lcd
+	li	a0, 2000000
+	bal	prc_wait_n_usecs
+
+	j	s6
+ENDFRAME dump_exception
+
+FRAME AnyException,global=0
+	la	v0, 10f
+	la	v1, startup
+	subu	v0, v1
+	la	fp, 0xBFC00000
+	addu	v0, fp
+	subu	v0, a0, v1
+	addu	s5, v0, fp
+	move	s7, ra
+
+10:	move	a0, s5
+	bal	prc_lcd_puts
+	li	a0, 2000000
+	bal	prc_wait_n_usecs
+	bal	dump_exception
+	b	10b
+ENDFRAME AnyException
+
+;# Eexcept - all exceptions while excecuting from EPROM enter at this point
+;# At entry:
+;#	an exception has occured. No state has been saved
+;# At exit:
+;#	does not exit. Any exception while executing in EPROM is fatal.
+;#
+FRAME Eexcept,global=0
+	la	a0, e_msg_what
+	b	AnyException
+ENDFRAME Eexcept
+
+;# except - all exceptions enter at this point
+;# At entry:
+;#	an exception has occured. No state has been saved
+;# At exit:
+;#	exception is dispatched and handled (or not)
+;#
+FRAME except, global=1
+	.set	noreorder
+	.set 	noat
+
+.if true, (BOOT_ROM_CODE == 0) && (BOOT_COMPRESSED == 0)
+ .if true, JUMP_TO_CACHE
+	la	k0, 10f
+	j	k0
+	nop
+10:
+ .endc
+ .if true, DO_STACK_CHECKING
+   .if true, DO_STACK_ALIGNCHK
+	and	k0, sp, 7
+	beq	k0, r0, 11f
+	nop
+	la	a0, e_msg_stkaln
+	b	AnyException
+	nop
+11:
+   .endc			;DO_STACK_ALIGNCHK
+	la	k0, bss_end
+	lui	k1, 0x2
+	addu	k0, k1
+;	bgtu	k0, sp, 12f
+	sltu	k0, sp, k0
+	beq	k0, r0, 12f
+	nop
+	la	a0, e_msg_stkuf
+	b	AnyException
+	nop
+12:
+ .endc				;DO_STACK_CHECKING
+ .if true, TIME_EXCEPTIONS
+	la	k0, _guts_inest
+	lw	k0, (k0)
+	bne	k0, r0, 1f
+	mfc0	k1, C0_COUNT
+	nop
+	nop
+	nop
+	la	k0, exception_time
+	sw	k1, 4(k0)
+1:
+ .endc
+ .if true, IRQ_CHEAP_EXCEPTION
+	la	k0, DRAM_BASEnc
+	lw	k1, ROMV_STUB_EH(k0)	;# is there a stub loaded?
+	mfc0	k0, C0_CAUSE
+	nop
+	nop
+	nop
+	beq	k1, r0, 10f		;# No stub, we do all exception processing
+	and	k0, 0x7C		;# mask off cause
+
+	bne	k0, r0, 5f		;# have stub, not an IRQ, maybe goto stub
+	nop
+
+	la	k0, INTCTL_CAUSE_BASE	;# get IRQ cause address
+	lhu	k0, (k0)		;# get IRQ cause bits
+	and	k0, 1<<B_PIC_DBG	;# isolate the DBG bit
+	beq	k0, r0, cheap_exception	;# Not ICELESS, goto our cheap exception handler
+	nop
+	b	normal_exception	;# assume iceless interrupt
+	nop
+	
+5:
+  .if true, INCLUDE_FEXCP
+	xor	k0, 0x3C		;# check for FPE
+	beq	k0, r0, normal_exception ;# we do our own FPE exception processing
+	xor	k0, 0x3C
+  .endc
+
+   .if true, INCLUDE_SYSCALL
+	xor	k0, 0x20		;# check for SYSCALL
+	beq	k0, r0, normal_exception
+	xor	k0, 0x20
+   .endc
+
+	xor	k0, 0x1C		;# check for Data Bus Error
+	beq	k0, r0, normal_exception ;# we do our own DBE exception processing
+	xor	k0, 0x1C
+
+	j	k1			;# goto stub's exception handler
+	nop
+
+10:	beq	k0, r0, cheap_exception	;# it's an IRQ, do cheap exception
+	nop
+
+	b	normal_exception	;# else do normal exception
+	nop
+
+ .iff
+	la	k0, DRAM_BASEnc
+	lw	k1, ROMV_STUB_EH(k0)	;# is there a stub loaded?
+	mfc0	k0, C0_CAUSE
+	nop
+	nop
+	nop
+	beq	k1, r0, normal_exception ;# No stub, we do all exception processing
+	and	k0, 0x3C
+	beq	k0, r0, normal_exception ;# Interrupts goto normal exceptions
+
+	xor	k0, 0x1C		;# check for Data Bus Error
+	beq	k0, r0, normal_exception ;# we do our own DBE exception processing
+	xor	k0, 0x1C
+
+   .if true, INCLUDE_SYSCALL
+	xor	k0, 0x20
+	beq	k0, r0, normal_exception ;# we do our own SYSCALL processing
+	xor	k0, 0x20
+   .endc
+
+	j	k1			;# else goto stub
+	nop
+ .endc
+.iff					;(BOOT_ROM_CODE == 0) && (BOOT_COMPRESSED == 0)
+	la	a0, e_msg_what
+	b	AnyException
+	nop
+.endc
+	.set at
+	.set reorder
+ENDFRAME except
+
+.if true, (BOOT_ROM_CODE == 0) && (STOP_ON_EXCEPTION == 0) && (BOOT_COMPRESSED == 0)
+.macro .save_reg op, prefix, reg, base, offset, index
+ .if true, 1 && FLUSH_CACHE_EXCEPT && (offset&1)
+	cache	Create_Dirty_Exc_D, (base+'offset')*REG_SIZE(index)	;# mark cache line dirty
+ .endc
+	op 	$'prefix''reg', (base+'offset')*REG_SIZE(index)
+.endm .save_reg
+
+.macro .lreg op, prefix, reg, base, offset, index
+	op 	$'prefix''reg', (base+'offset')*REG_SIZE(index)
+.endm .lreg
+
+;# normal_exception - used for all exceptions other than some IRQ's
+;#
+;# At entry:
+;#	no state has been saved.
+;# At exit:
+;#	depends on what the exception_handler does, but normally an exception
+;#	is fatal and results in a 'software reset'. All state is preserved
+;#	and control is passed to the C function exception_handler with the
+;#	pointer to the saved state in a0. The function exception_handler
+;#	can either return with a pointer to the saved state in v0 or call or
+;#	jmp to return_to_user which will restore the state and return to
+;# 	the exception instruction.
+;#
+FRAME normal_exception
+	.set 	noat
+	.set	noreorder
+
+.if true, 0 && FLUSH_CACHE_EXCEPT
+	li	k1, NUM_REGS*REG_SIZE
+	subu	k0, sp, k1
+	li	k1, -16
+	and	k0, k1				;# align stack to cache boundary
+	li	k1, NUM_REGS*REG_SIZE-16
+	cache	Create_Dirty_Exc_D, (k0)	;# mark cache line dirty
+3:	addu	k0, 16				;# up to next cache line
+	addu	k1, -16				;# count it
+	bgtz	k1, 3b				;# do all cache lines
+	cache	Create_Dirty_Exc_D, (k0)
+.endc
+	li	k1, NUM_REGS*REG_SIZE
+	subu	k0, sp, k1
+	li	k1, -16
+	and	k0, k1				;# align stack to cache boundary
+	mfc0	k1, C0_CAUSE
+	nop
+	nop
+	sw	sp, SP_REGNUM*REG_SIZE(k0)	;# save unmodified sp
+	move	sp, k0				;# move stack
+	sw	k1, CAUSE_REGNUM*REG_SIZE(sp)
+	mfc0	k0, C0_SR
+	nop; nop; nop;
+	mfc0	k1, C0_EPC
+	sw	k0, PS_REGNUM*REG_SIZE(sp)
+	nop; nop; nop;
+	sw	k1, EPC_REGNUM*REG_SIZE(sp)
+	sw	k1, PC_REGNUM*REG_SIZE(sp)
+;	sw	r0, (ZERO_REGNUM+0)*REG_SIZE(sp)
+	sd	r1, (ZERO_REGNUM+1)*REG_SIZE(sp)
+	.set at
+	nor	k1, r0, 0x07
+	and	k1, k0			;# clear the lower 3 bits in the SR
+	mtc0	k1, C0_SR		;# allow nested exceptions but not interrupts
+
+	sd	gp, (ZERO_REGNUM+28)*REG_SIZE(sp)
+	sw	s8, (ZERO_REGNUM+30)*REG_SIZE(sp)
+	sw	ra, (ZERO_REGNUM+31)*REG_SIZE(sp)
+
+	mfhi	k0
+	mflo	k1
+	sw	k0, HI_REGNUM*REG_SIZE(sp)
+	sw	k1, LO_REGNUM*REG_SIZE(sp)
+
+	mfc0	k0, C0_BADVADDR		;# get the error address
+	mfc0	k1, C0_ERRPC
+	nop
+	nop
+	nop
+	sw	k0, BADVADDR_REGNUM*REG_SIZE(sp)
+	sw	k1, ERRPC_REGNUM*REG_SIZE(sp)
+...1 == 2
+.rept	26-2				;# 2 through 25
+.save_reg sd, <>, \...1, ZERO_REGNUM, \...1, sp
+...1 == ...1 + 1
+.endr
+ .if true, ...1 != 26
+  .error ;Not enough registers saved
+ .endc
+
+	mfc0	k0, C0_SR	
+	nop; nop; nop;
+	cfc1	t1, C1_FCSR
+	and	k0, SR_FR
+	beq	k0, r0, 12f		;# save only 16 regs
+	nop
+...1 == 0
+.rept	31
+.save_reg sdc1, f, \...1, FP0_REGNUM, \...1, sp
+...1 == ...1 + 1
+.endr
+	b	13f			;# next
+	.lreg	sdc1, f, \...1, FP0_REGNUM, \...1, sp
+
+12:
+...1 == 0
+.rept	16
+.save_reg sdc1, f, \...1, FP0_REGNUM, \...1, sp
+...1 == ...1 + 2
+.endr
+
+13:
+	sw	t1, FCRCS_REGNUM*REG_SIZE(sp)
+
+15:
+ .if true, OTHER_OS_SUPPORT
+  .if true, INCLUDE_XINU
+	move	a0, sp			;# point to register frame
+	li	t0, -4*REG_SIZE
+	addu	sp, t0			;# leave 4 empty slots on the stack
+	and	sp, t0
+	la	k0, savintp		;# Xinu support 4/5/97 -- dms
+	lw	k0, (k0)		;# bendable vector for Xinu
+	beq	k0, r0, 20f		;# branch if no Xinu
+	nop
+	jalr	k0
+	nop
+20:
+  .iff
+	la	k0, savintp		;# Nucleus support 11/27/95 -- fom
+	lw	k0, (k0)		;# bendable vector for Nucleus
+	beq	k0, r0, 20f		;# branch if no Nucleus
+	nop
+	jalr	k0			;# this better be TCT_Interrupt_Context_Save
+20:
+	move	a0, sp			;# point to register frame
+	li	t0, -4*REG_SIZE
+	addu	sp, t0			;# leave 4 empty slots on the stack
+	and	sp, t0
+  .endc
+ .iff
+	move	a0, sp			;# point to register frame
+ .endc
+	la	v0, exception_handler	;# point to exception handler in (perhaps) cache memory
+	jal	v0			;# goto C exception handler
+	nop
+
+ .if true, OTHER_OS_SUPPORT
+	la	v1, restintp		;# Nucleus support 11/27/95 -- fom
+	lw	v1, (v1)		;# bendable vector for Nucleus
+	beq	v1, r0, 30f		;# branch if no Nucleus
+	nop
+	jalr	v1			;# this better be TCT_Interrupt_Context_Restore
+	nop
+30:
+ .endc
+	b	returnToUser
+	move	a0, v0			;# returns with pointer to register frame
+	
+	.set	reorder
+ENDFRAME normal_exception
+
+ .if true, IRQ_CHEAP_EXCEPTION
+cheap_r1_save =  0*4
+cheap_v0_save =  1*4
+cheap_v1_save =  2*4
+cheap_a0_save =  3*4
+cheap_a1_save =  4*4
+cheap_a2_save =  5*4
+cheap_a3_save =  6*4
+cheap_t0_save =  7*4
+cheap_t1_save =  8*4
+cheap_t2_save =  9*4
+cheap_t3_save = 10*4
+cheap_t4_save = 11*4
+cheap_t5_save = 12*4
+cheap_t6_save = 13*4
+cheap_t7_save = 14*4
+cheap_t8_save = 15*4
+cheap_t9_save = 16*4
+cheap_cause_save = 17*4
+cheap_epc_save = cheap_cause_save+4
+cheap_ps_save = cheap_epc_save+4
+cheap_sp_save = cheap_ps_save+4
+cheap_ra_save = cheap_sp_save+4
+cheap_hi_save = cheap_ra_save+4
+cheap_lo_save = cheap_hi_save+4
+cheap_reg_bytes = ((cheap_lo_save+4)+7)&-8
+
+FRAME cheap_exception, global=0
+	.set noat
+	.set noreorder
+	li	k1, cheap_reg_bytes
+	subu	k0, sp, k1
+	sw	r1, cheap_r1_save(k0)
+	.set at
+	sw	v0, cheap_v0_save(k0)
+	sw	sp, cheap_sp_save(k0)	;# save unmodified sp
+	move	sp, k0				;# move stack
+	mfc0	k0, C0_SR
+	sw	v1, cheap_v1_save(sp)
+	sw	a0, cheap_a0_save(sp)
+	sw	a1, cheap_a1_save(sp)
+	mfc0	k1, C0_EPC
+	sw	k0, cheap_ps_save(sp)
+	sw	a2, cheap_a2_save(sp)
+	sw	a3, cheap_a3_save(sp)
+	sw	t0, cheap_t0_save(sp)
+	sw	k1, cheap_epc_save(sp)
+	lui	k1, 0xE000
+	nor	k1, k1, 0x07
+	and	k1, k0			;# clear upper 3 and lower 3 bits in the SR
+	mtc0	k1, C0_SR		;# allow nested exceptions but not interrupts
+	mflo	k0
+	mfhi	k1
+	sw	t1, cheap_t1_save(sp)
+	sw	t2, cheap_t2_save(sp)
+	sw	t3, cheap_t3_save(sp)
+	sw	t4, cheap_t4_save(sp)
+	sw	t5, cheap_t5_save(sp)
+	sw	t6, cheap_t6_save(sp)
+	sw	t7, cheap_t7_save(sp)
+	sw	t8, cheap_t8_save(sp)
+	sw	t9, cheap_t9_save(sp)
+	sw	ra, cheap_ra_save(sp)
+	sw	k0, cheap_lo_save(sp)
+	sw	k1, cheap_hi_save(sp)
+	
+ .if true, OTHER_OS_SUPPORT
+	la	k0, savintp		;# Nucleus support 11/27/95 -- fom
+	lw	k0, (k0)		;# bendable vector for Nucleus
+	beq	k0, r0, 20f		;# branch if no Nucleus
+	nop
+	jalr	k0			;# this better be TCT_Interrupt_Context_Save
+20:
+ .endc
+	move	a0, r0			;# no input argument
+	li	t0, -4*REG_SIZE
+	addu	sp, t0			;# leave 4 empty slots on the stack
+	la	v0, interrupt_handler	;# go directly to interrupt handler
+	jal	v0			;# goto C exception handler
+	nop
+
+ .if true, OTHER_OS_SUPPORT
+	la	v1, restintp		;# Nucleus support 11/27/95 -- fom
+	lw	v1, (v1)		;# bendable vector for Nucleus
+	beq	v1, r0, 30f		;# branch if no Nucleus
+	nop
+	jalr	v1			;# this better be TCT_Interrupt_Context_Restore
+	nop
+30:
+ .endc
+	b	return_cheap
+	move	a0, v0			;# returns with pointer to register frame
+	.set at
+	.set reorder
+ENDFRAME cheap_exception
+
+FRAME return_cheap, global=0
+	.set noreorder
+	.set noat
+	addu	sp, 4*REG_SIZE		;# purge stack
+	lw	k0, cheap_lo_save(sp)
+	lw	k1, cheap_hi_save(sp)
+	mtlo	k0
+	mtlo	k1
+	lw	k0, cheap_epc_save(sp)
+	lw	k1, cheap_ps_save(sp)
+	mtc0	k0, C0_EPC
+	move	k0, sp
+	mtc0	k1, C0_SR
+	lw	sp, cheap_sp_save(k0)
+	lw	ra, cheap_ra_save(k0)
+	lw	r1, cheap_r1_save(k0)
+	lw	v0, cheap_v0_save(k0)
+	lw	v1, cheap_v1_save(k0)
+	lw	a0, cheap_a0_save(k0)
+	lw	a1, cheap_a1_save(k0)
+	lw	a2, cheap_a2_save(k0)
+	lw	a3, cheap_a3_save(k0)
+	lw	t0, cheap_t0_save(k0)
+	lw	t1, cheap_t1_save(k0)
+	lw	t2, cheap_t2_save(k0)
+	lw	t3, cheap_t3_save(k0)
+	lw	t4, cheap_t4_save(k0)
+	lw	t5, cheap_t5_save(k0)
+	lw	t6, cheap_t6_save(k0)
+	lw	t7, cheap_t7_save(k0)
+	lw	t8, cheap_t8_save(k0)
+	lw	t9, cheap_t9_save(k0)
+	eret
+	nop
+.set reorder
+.set at
+ENDFRAME return_cheap
+
+FRAME save_fp_regs
+.set noreorder
+	mfc0	v0, C0_SR
+	nop; nop; nop; nop;
+	or 	v1, v0, 0xF0000000 		;# enable the FPU
+	mtc0	v1, C0_SR
+	nop; nop; nop; nop; nop; 
+	and	v1, SR_FR
+	beq	v1, r0, 10f
+...1 == 0
+.lreg	sdc1, f, \...1, FP0_REGNUM, \...1, a0
+
+.rept	30
+.lreg	sdc1, f, \...1, FP0_REGNUM, \...1, a0
+...1 == ...1 + 1
+.endr
+	b	20f
+.lreg	sdc1, f, \...1, FP0_REGNUM, \...1, a0
+
+10:
+...1 == 2
+.rept	15
+.lreg	sdc1, f, \...1, FP0_REGNUM, \...1, a0
+...1 == ...1 + 2
+.endr
+20:
+	cfc1	v0, C1_FCSR
+	j	ra
+	sd	v0, FCRCS_REGNUM*REG_SIZE(a0)
+.set reorder
+ENDFRAME save_fp_regs
+.endc			; IRQ_CHEAP_EXCEPTION
+
+;# Return to user:
+;# At entry:
+;#	a0 = pointer to register frame to restore
+;#
+FRAME returnToUser,global=0
+;.if true, IRQ_CHEAP_EXCEPTION
+;	lw	v0, ZERO_REGNUM*REG_SIZE(a0)
+;	bne	v0, r0, return_cheap
+;.endc
+.set noreorder
+.set at
+	lw	t0, PS_REGNUM*REG_SIZE(a0)	;# get the saved SR 
+        lw	t1, FCRCS_REGNUM*REG_SIZE(a0)
+	or	t0, SR_EXL			;# make sure there's an EXL bit set
+        mtc0	t0, C0_SR			;# SR = t1 
+	nop; nop; nop; nop; nop; nop; nop;
+	ctc1	t1, C1_FCSR			;# set the FCSR
+	and	t0, SR_FR
+	beq	t0, r0, 5f
+
+...1 == 0
+.lreg	ldc1, f, \...1, FP0_REGNUM, \...1, a0
+
+.rept	30
+...1 == ...1 + 1
+.lreg	ldc1, f, \...1, FP0_REGNUM, \...1, a0
+.endr
+	b	10f
+...1 == ...1 + 1
+.lreg	ldc1, f, \...1, FP0_REGNUM, \...1, a0
+
+...1 == 2
+5:
+.rept	15
+.lreg	ldc1, f, \...1, FP0_REGNUM, \...1, a0
+...1 == ...1 + 2
+.endr
+
+10:
+	lw	v0, HI_REGNUM*REG_SIZE(a0)
+	lw	v1, LO_REGNUM*REG_SIZE(a0)
+	mthi	v0
+;	lw	v0, CAUSE_REGNUM*REG_SIZE(a0)
+	mtlo	v1
+	lw	v1, EPC_REGNUM*REG_SIZE(a0)
+;	mtc0	v0, C0_CAUSE
+;	lw	v0, ERRPC_REGNUM*REG_SIZE(a0)
+	mtc0 	v1, C0_EPC
+;	mtc0 	v0, C0_ERRPC
+
+.set	noat
+
+	move	k0, a0
+...1 == 1
+.rept 25		;registers 1-25
+.lreg	ld, <>, \...1, ZERO_REGNUM, \...1, k0
+...1 == ...1 + 1
+.endr
+ .if true, TIME_EXCEPTIONS
+	la	ra, _guts_inest
+	lw	ra, (ra)
+	bne	ra, r0, 1f
+	mfc0	sp, C0_COUNT
+	nop
+	la	ra, exception_time
+	lw	s8, (ra)
+	addu	sp, s8
+	lw	s8, 4(ra)
+	subu	sp, s8
+	sw	sp, (ra)
+1:
+ .endc
+.lreg	ld, <>, 28, ZERO_REGNUM, 28, k0	;gp
+.lreg	lw, <>, 29, ZERO_REGNUM, 29, k0	;sp
+.lreg	lw, <>, 30, ZERO_REGNUM, 30, k0	;fp
+.lreg	lw, <>, 31, ZERO_REGNUM, 31, k0	;ra
+.if true, 0 && FLUSH_CACHE_EXCEPT
+	li	k1, NUM_REGS*REG_SIZE-16
+	cache	Hit_Invalidate_D, (k0)		;# toss cache line
+3:	addu	k0, 16				;# up to next cache line
+	addu	k1, -16				;# count it
+	bgtz	k1, 3b				;# do all cache lines
+	cache	Hit_Invalidate_D, (k0)
+.endc
+	eret
+	nop
+.set reorder
+.set at
+ENDFRAME returnToUser
+
+.if true, INCLUDE_SYSCALL
+FRAME prc_syscall
+	syscall
+	nop
+	j	ra
+ENDFRAME prc_syscall
+.endc
+
+FRAME wait_forever
+	jal	flush_cache		;# make sure all data is written
+	lw	v0, stub_setup		;# is the stub loaded?
+	bne	v0, r0, 20f		;# stub is loaded, so simply pretend to reset
+	la	a0, e_msg_wait_forever
+	b	AnyException		;# Pretend it's an unhandled exception
+
+20:	bal	prc_reset_hardware
+	b	begin
+ENDFRAME wait_forever
+
+FRAME prc_panic
+	mfc0	a3, C0_SR
+	nop; nop; nop;
+	nor	a2, r0, SR_IE		;# get an interrupt disable mask 
+	and	a2, a3			;# disable interrupts
+	mtc0	a2, C0_SR
+	nop; nop; nop; nop;
+
+.if true, 0
+	li	s0, 0xFF
+10:	sb	s0, SSEG_BASE
+	li	a0, 200000
+	bal	prc_wait_n_usecs
+	li	a0, 0xB6
+	sb	a0, SSEG_BASE
+	li	a0, 200000
+	bal	prc_wait_n_usecs
+	b	10b
+.endc
+
+.if true, (BOOT_FROM_DISK == 0) && (EPROM_ST == 0)
+	.set noat
+	la	k1, pm_data
+	sw	a3, pm_sr(k1)		;# failing SR
+	sw	ra, pm_pc(k1)		;# failing address
+	mfc0	k0, C0_CAUSE
+	nop; nop; nop; nop;
+	sw	k0, pm_cause(k1)	;# cause reg
+	sw	sp, pm_stack(k1)	;# failing stack pointer
+        sw      sp, pm_stkrelative(k1)  ;# relative sp is the same
+        la      k0, INIT_SP             ;# stack limits
+        sw      k0, pm_stkupper(k1)
+        la      k0, bss_end
+        sw      k0, pm_stklower(k1)
+	sw	a0, pm_msg(k1)		;# user's message
+	lw	k0, pm_cntr(k1)
+	addu	k0, 1
+	sw	k0, pm_cntr(k1)
+	addu	k0, k1, pm_regs
+
+...1 == 0				;# Save all the registers
+.rept	32
+.lreg	sw, <>, \...1, ZERO_REGNUM, \...1, k0
+...1 == ...1 + 1
+.endr
+	.set at
+lcl_pm_tsiz = PM_TEXT_SIZE-1
+ .if defined,AN_VIS_COL
+  .if true, AN_VIS_COL < PM_TEXT_SIZE
+lcl_pm_tsiz = AN_VIS_COL-1
+  .endc
+ .endc
+	addu	a2, k1, pm_text
+	sw	a2, pm_msg(k1)
+	move	a3, a0			;# save address
+	srl	v1, a0, 28		;# get upper nibble of address
+	and	v1, 0xF
+	li	v0, 8
+	beq	v0, v1, 5f		;# anywhere in region 8 is ok
+	jal	tlbprobe		;# check user's address (blows a0, a1, t0, t1, v0, v1)
+	bltz	v0, 15f			;# address nfg	
+5:	li	a1, lcl_pm_tsiz-1	;# copy up to n bytes to test area
+
+10:	lbu	k0, (a3)
+	sb	k0, (a2)
+	addu	a1, -1
+	addu	a3, 1
+	addu	a2, 1
+	beq	k0, r0, 20f		;# found end of message
+	bgt	a1, r0, 10b		;# room for more
+
+15:	sb	r0, (a2)		;# terminate message with a null
+.endc	
+20:	b	wait_forever
+ENDFRAME  prc_panic
+.endc				;# BOOT_ROM_CODE == 0 || STOP_ON_EXCEPTION == 0 || BOOT_COMPRESSED == 0
+
+.if true, (BOOT_ROM_CODE == 0)
+	.text
+
+	HEX_CONST TLB_PG_4K	(0x0001000)	;/*   4k */
+	HEX_CONST TLB_PG_16K	(0x0004000)	;/*  16K */
+	HEX_CONST TLB_PG_64K	(0x0010000)	;/*  64k */
+	HEX_CONST TLB_PG_256K	(0x0040000)	;/* 256k */
+	HEX_CONST TLB_PG_1M	(0x0100000)	;/*  1MB */
+	HEX_CONST TLB_PG_4M	(0x0400000)	;/*  4MB */
+	HEX_CONST TLB_PG_16M	(0x1000000)	;/* 16MB */
+
+TLB_COUNT == 0
+;
+; TLB initializer table macro. It has 10 arguments which are described as:
+;	pagesize	one of the TLB_PG_xx values listed above
+;	virtual_addr	starting virtual address to assign to region pair
+;	even_phys_addr	starting physical address for even TLB entry
+;	even_cache_alg	even TLB entry cache algorithm (only a 0-3 on 4600)
+;	even_dirty	even TLB entry dirty bit (1=region writeable)
+;	even_valid	even TLB entry valid bit
+;	odd_phys_addr	starting physical address for odd TLB entry
+;			   (if this field is left blank, it will be automatically computed
+;			    by adding the pagesize to the even_phys_addr
+;			    parameter)
+;	odd_cache_alg	odd TLB entry cache algorithm
+;	odd_dirty	odd TLB dirty bit
+;	odd_valid	odd TLB valid bit
+;
+.macro I_TLB pagesize, vaddr, paddr_0, c_0, d_0, v_0, paddr_1, c_1, d_1, v_1
+   .word (((pagesize)-1)<<1)&TLBPGMASK_MASK
+.if true, ((vaddr) & ((((pagesize)<<1)-1)) & -8192) != 0
+   .error ;virtual addr vaddr not a multiple of 2*'pagesize'
+.endc
+   .word (vaddr)&TLBHI_VPN2MASK
+   .word (((paddr_0) >> (12-TLBLO_PFNSHIFT)) & TLBLO_PFNMASK) | ((c_0)<<3) | ((d_0)<<2) | ((v_0)<<1) | 1
+.if blank,paddr_1
+tmp = (paddr_0)+(pagesize)
+.iff
+tmp = paddr_1
+.endc
+   .word ((tmp >> (12-TLBLO_PFNSHIFT)) & TLBLO_PFNMASK) | ((c_1)<<3) | ((d_1)<<2) | ((v_1)<<1) | 1
+   TLB_COUNT == TLB_COUNT + 1
+.endm
+
+  .align 2
+
+tlb_table:
+; Cache algorithm's on the 4600 can be one of:
+;	0 (cached, noncoherent, write through, no write allocate (store miss skips cache))
+;	1 (cached, noncoherent, write through, write allocate (store miss loads cache))
+;	2 (uncached)
+;	3 (cached, noncoherent, write back)
+;DCALG = 2		;# for now, make DRAM (main memory) Uncached
+DCALG = 3		;# for now, make DRAM (main memory) cached
+;CALG = 2		;# for now, make everything else Uncached too
+CALG = 0		;# for now, make everything else cached too
+; Note that the virtual address must be an even multiple of pagesize*2
+.if true, ALTERNATE_PCI_W2_ADDRESS
+   I_TLB  TLB_PG_16M, CHAM_PCI_W2_BASE+0x00000000, CHAM_PCI_W2_BASE+0x00000000, 2, 1, 1,, 2, 1, 1 ;PCI memory space
+   I_TLB  TLB_PG_16M, CHAM_PCI_W2_BASE+0x02000000, CHAM_PCI_W2_BASE+0x02000000, 2, 1, 1,, 2, 1, 1
+   I_TLB  TLB_PG_16M, CHAM_PCI_W2_BASE+0x04000000, CHAM_PCI_W2_BASE+0x04000000, 2, 1, 1,, 2, 1, 1
+   I_TLB  TLB_PG_16M, CHAM_PCI_W2_BASE+0x06000000, CHAM_PCI_W2_BASE+0x06000000, 2, 1, 1,, 2, 1, 1
+   I_TLB  TLB_PG_16M, CHAM_PCI_W2_BASE+0x08000000, CHAM_PCI_W2_BASE+0x08000000, 2, 1, 1,, 2, 1, 1
+   I_TLB  TLB_PG_16M, CHAM_PCI_W2_BASE+0x0A000000, CHAM_PCI_W2_BASE+0x0A000000, 2, 1, 1,, 2, 1, 1
+   I_TLB  TLB_PG_16M, CHAM_PCI_W2_BASE+0x0C000000, CHAM_PCI_W2_BASE+0x0C000000, 2, 1, 1,, 2, 1, 1
+   I_TLB  TLB_PG_16M, CHAM_PCI_W2_BASE+0x0E000000, CHAM_PCI_W2_BASE+0x0E000000, 2, 1, 1,, 2, 1, 1
+.endc
+   HEX_CONST I_TLB_COUNT TLB_COUNT
+
+.if true, TLB_COUNT >= 32
+      .error ;pppphhhhhhppppt: TLB table too big
+.endc
+
+FRAME init_tlb global=0
+	move	s0, ra			;# save return address
+
+	li	v0, 0x20000000
+	la	s1, map_tlb4000
+	or	s1, v0			;# make address non-cached
+	li	s2, I_TLB_COUNT
+	la	s3, tlb_table
+	or	s3, v0			;# make address non-cached
+	move	s4, zero
+	la	s5, resettlb
+	or	s5, v0			;# make address non-cached
+	beq	s2, r0, 15f		;# if table empty, just clear all of it
+
+10:	lw	a0,  0(s3)		;# get pagemask
+	lw	a1,  4(s3)		;# get HI
+	lw	a2,  8(s3)		;# get even pte
+	lw	a3, 12(s3)		;# get odd pte
+	or	a0, s4			;# or in the index
+	jal	s1			;# set the tlb
+	addiu	s3, 4*4			;# advance pointer
+	addiu	s4, 1			;# bump index
+	blt	s4, s2, 10b		;# continue until all entries loaded
+
+15:	li	s6, N_TLB_ENTRIES
+20:	move	a0, s4	
+	jal	s5			;# reset the rest of the entries
+	addiu	s4, 1		
+	blt	s4, s6, 20b
+
+	j	s0			;# return
+ENDFRAME init_tlb
+
+.endc					; BOOT_ROM_CODE == 0
+
+FRAME init_dram, global=0
+20:	jr ra
+ENDFRAME init_dram
+
+.if true, (TEST_MEM32 || TEST_BRAM)
+.define TMP1		$8	;t0
+.define TMP2		$9	;t1
+.define TSTNUM		$10	;t2
+.define RASAVE		$11	;t3
+
+.define STARTA		$12	;t4
+.define ENDA		$13	;t5
+
+.define TBBASE		$12	;t4
+.define TBSIZE		$13	;t5
+
+.define SSEG_SHAD	$14	;t6
+.define TMP0		$15	;t7
+.define EXPECTED	$16	;s0
+.define ADDRESS		$17	;s1
+.define	ACTUAL		$18	;s2
+.define WALKBIT		$19	;s3
+.define BUNLK		$20	;s4
+.define TICKS_USEC	$21	;s5
+
+sseg_2_patt:
+	.byte SSEG_0, SSEG_1, SSEG_2, SSEG_3, SSEG_4, SSEG_5, SSEG_6, SSEG_7
+	.byte SSEG_8, SSEG_9, SSEG_A, SSEG_B, SSEG_C, SSEG_D, SSEG_E, SSEG_F
+.endc
+
+.macro SET_SSEG 
+	lra	EXPECTED, sseg_2_patt, TMP1
+	addu	EXPECTED, TSTNUM
+	lb	SSEG_SHAD, (EXPECTED)
+	sb	SSEG_SHAD, SSEG_BASE
+.endm
+
+.if true, TEST_MEM32
+err_msga: .asciz "Tst   Failed @@:"
+err_msge: .asciz "Expect:\r\nActual:"
+	.align	2
+
+MSG_DELAY_TIME = 2000000
+FRAME test_error, global=0
+	move	s3, TSTNUM
+10:
+	lra	a0, err_msga, v0
+	bal	prc_lcd_puts
+	li	a0, 0x04
+	move	a1, s3
+	addu	a1, 0x30
+	bal	prc_lcd_putc
+	li	a0, 0x10
+	move	a1, ADDRESS
+	bal	hex_to_lcd
+	li	a0, MSG_DELAY_TIME
+	bal	prc_wait_n_usecs
+	lra	a0, err_msge, v0
+	bal	prc_lcd_puts
+	li	a0, 0x08
+	move	a1, EXPECTED
+	bal	hex_to_lcd
+	li	a0, 0x18	
+	move	a1, ACTUAL
+	bal	hex_to_lcd
+	li	a0, MSG_DELAY_TIME
+	bal	prc_wait_n_usecs
+	b	10b
+ENDFRAME test_error
+.endc
+
+.if true, (TEST_MEM32 > 0)
+
+.macro FLUSH_WB addr=(ADDRESS)
+.endm
+
+;# Quick and dirty RAM test.
+;# At entry:
+;#	a0 = starting address
+;#	a1 = ending address
+;#	a2 = .ne. if required to do read after write
+;#	fp = control register shadow
+;# At exit:
+;#	v0 = 0 if no errors
+;#	v0 = 1 if errors and ...
+;#	ACTUAL = "is" data
+;#	EXPECTED = "s/b" data
+;#	ADDRESS = failing address
+;#	TSTNUM = subtest number 
+;#	trashes a0-a3, v0-v1, t0-t5, s0-s4
+
+FRAME	test_mem32, global=0
+.set noreorder
+
+	move	RASAVE, ra	;# remember where we came from
+	move	STARTA, a0	;# save the starting address
+	move	ENDA, a1	;# save the ending address
+	nor	TMP0, r0, 3	;# get a -4
+	and	STARTA, TMP0	;# make both addresses word aligned
+	and	ENDA, TMP0
+;	la	WDOG_REG, WATCHDOG
+
+	li	TSTNUM, 0		;# TEST 0 - walk a single bit through location 0
+ .if defined, SSEG_BASE
+ .endc
+	li	EXPECTED, 1		;# first walk a single bit
+	move	ADDRESS, STARTA
+10:	sw	EXPECTED, (ADDRESS)	;# write the word
+	lw	ACTUAL, (ADDRESS)	;# read it back
+	bne	ACTUAL, EXPECTED, 200f	;# branch if there's an error
+	nop
+	sll	EXPECTED, 1		;# shift test bit
+	bne	EXPECTED, r0, 10b	;# keep testing
+	nop
+
+	li	EXPECTED, 1		;# then through location 4 (64 bit bus)
+	move	ADDRESS, STARTA
+	addu	ADDRESS, 4
+15:	sw	EXPECTED, (ADDRESS)	;# write the word
+	lw	ACTUAL, (ADDRESS)	;# read it back
+	bne	ACTUAL, EXPECTED, 200f	;# branch if there's an error
+	nop
+	sll	EXPECTED, 1		;# shift test bit
+	bne	EXPECTED, r0, 15b	;# keep testing
+	nop
+
+	li	TSTNUM, 1		;# TEST 1 - fill memory with all one's
+	SET_SSEG
+	nor	EXPECTED, r0, r0	;# get a -1
+	move	ADDRESS, STARTA
+	sw	EXPECTED, (ADDRESS)	;# fill all of RAM with 1's
+20:
+	FLUSH_WB
+	add	ADDRESS, 4
+	blt	ADDRESS, ENDA, 20b
+	sw	EXPECTED, (ADDRESS)	;# fill all of RAM with 1's
+
+	FLUSH_WB
+
+	move	ADDRESS, STARTA		;# then read it all back to see if it worked
+	lw	ACTUAL, (ADDRESS)
+30:	bne	ACTUAL, EXPECTED, 200f	;# fail
+	nop
+	add	ADDRESS, 4
+	blt	ADDRESS, ENDA, 30b
+	lw	ACTUAL, (ADDRESS)
+	bne	ACTUAL, EXPECTED, 200f
+	nop
+		
+	li	TSTNUM, 2		;# TEST 2 - write 1's compliment of address into location
+	SET_SSEG
+	move	ADDRESS, STARTA
+	nor	v0, r0, ADDRESS
+40:	sw	v0, (ADDRESS)		;# put 1's compliment of address into location
+	FLUSH_WB
+	add	ADDRESS, 4
+	bleu	ADDRESS, ENDA, 40b
+	nor	v0, r0, ADDRESS
+	
+	move	ADDRESS, STARTA
+50:	lw	ACTUAL, (ADDRESS)	;# then read it all back to see if it worked
+	nor	EXPECTED, r0, ADDRESS
+	bne	ACTUAL, EXPECTED, 200f	;# fail
+	nop
+	add	ADDRESS, 4
+	bleu	ADDRESS, ENDA, 50b
+	nop
+
+	li	TSTNUM, 3		;# TEST 3 - write address into location
+	SET_SSEG
+	move	ADDRESS, STARTA
+	sw	ADDRESS, (ADDRESS)	;# put address into location
+40:
+	FLUSH_WB
+	add	ADDRESS, 4
+	blt	ADDRESS, ENDA, 40b
+	sw	ADDRESS, (ADDRESS)
+	FLUSH_WB
+	
+	move	ADDRESS, STARTA
+	lw	ACTUAL, (ADDRESS)	;# then read it all back to see if it worked
+50:	move	EXPECTED, ADDRESS
+	bne	ACTUAL, EXPECTED, 200f	;# fail
+	nop
+	add	ADDRESS, 4
+	blt	ADDRESS, ENDA, 50b
+	lw	ACTUAL, (ADDRESS)
+	move	EXPECTED, ADDRESS
+	bne	ACTUAL, EXPECTED, 200f
+	nop
+
+  .if true, TEST_REFRESH > 0
+	li	TSTNUM, 4		;# TEST 4 - verify refresh is occuring
+	SET_SSEG
+	li	a0, 1000000		;# wait 1 second
+	bal	prc_wait_n_usecs	;# sleep for awhile to see if refresh works
+	nop
+	move	ADDRESS, STARTA
+	lw	ACTUAL, (ADDRESS)	;# then read it all back to see if it worked
+50:	move	EXPECTED, ADDRESS
+	bne	ACTUAL, EXPECTED, 200f	;# fail
+	nop
+	add	ADDRESS, 4
+	blt	ADDRESS, ENDA, 50b
+	lw	ACTUAL, (ADDRESS)
+	move	EXPECTED, ADDRESS
+	bne	ACTUAL, EXPECTED, 200f
+	nop
+
+  .endc
+
+  .if true, TEST_WALKING1 > 0
+	li	TSTNUM, 5		;# TEST 5 - walk a single bit through memory
+	SET_SSEG
+	move	ADDRESS, STARTA
+	li	WALKBIT, 1		;# walk a single bit through each location of memory
+55:	lw	EXPECTED, (ADDRESS)	;# Get existing data
+	xor	EXPECTED, WALKBIT	;# flip a bit
+	sw	EXPECTED, (ADDRESS)	;# write it back
+	FLUSH_WB
+	nor	TMP0, EXPECTED		;# get the 1's compliment of what was written
+	lw	TMP1, 4(ADDRESS)	;# get next location
+	xor	TMP1, TMP0		;# flip a bunch of bits
+	sw	TMP1, 4(ADDRESS)	;# write them back
+	FLUSH_WB 4(ADDRESS)
+	lw	ACTUAL, (ADDRESS)		;# get the data
+	bne	EXPECTED, ACTUAL, 200f	;# doesn't match what was written, it fails
+	nop
+	xor	EXPECTED, WALKBIT	;# put bit back
+	sw	EXPECTED, (ADDRESS)	;# restore location to normal
+	FLUSH_WB
+	xor	TMP1, TMP0
+	sll	WALKBIT, 1		;# shift bit left
+	sw	TMP1, 4(ADDRESS)	;# restore the next location
+	FLUSH_WB 4(ADDRESS)
+	bne	WALKBIT, r0, 55b		;# keep testing
+	nop
+
+	add	ADDRESS, 4		;# increment the address
+	blt	ADDRESS, ENDA, 55b	;# keep testing
+	li	WALKBIT, 1		;# get a new bit
+
+	li	TSTNUM, 6		;# TEST 6 - verify addresses still in memory
+	SET_SSEG
+	move	ADDRESS, STARTA
+	lw	ACTUAL, (ADDRESS)	;# then read it all back to make sure the addresses are still there
+58:	move	EXPECTED, ADDRESS
+	bne	ACTUAL, EXPECTED, 200f ;# fail
+	nop
+	add	ADDRESS, 4
+	blt	ADDRESS, ENDA, 58b
+	lw	ACTUAL, (ADDRESS)
+	move	EXPECTED, ADDRESS
+	bne	ACTUAL, EXPECTED, 200f
+	nop
+  .endc
+
+	li	TSTNUM, 7		;# TEST 7 - fill all of memory with 0's
+	SET_SSEG
+	move	ADDRESS, STARTA
+	move	EXPECTED, r0
+	sw	EXPECTED, (ADDRESS)	;# fill ram with 0's
+60:
+	FLUSH_WB
+	add	ADDRESS, 4
+	blt	ADDRESS, ENDA, 60b
+	sw	EXPECTED, (ADDRESS)
+
+	move	ADDRESS, STARTA		;# then read it all back to see if it worked
+	move	EXPECTED, r0
+	lw	ACTUAL, (ADDRESS)
+70:	nop
+	bne	EXPECTED, ACTUAL, 200f	;# fail
+	nop
+	add	ADDRESS, 4
+	blt	ADDRESS, ENDA, 70b
+	lw	ACTUAL, (ADDRESS)
+	nop
+	bne	EXPECTED, ACTUAL, 200f	;# fail
+	nop
+		
+	jr	RASAVE
+	move	v0, r0
+
+200:
+  .if true, 0 && ANN_TEST_SERIAL
+	la	v0, mem_test_msgs
+	sll	TSTNUM, 2
+	addu	v0, TSTNUM
+	lw	TSTNUM, (v0)
+  .endc
+	jr	RASAVE
+	addu	v0, r0, 1
+
+.set reorder
+ENDFRAME test_mem32
+.endc		; TEST_MEM32 
+
+.if true, TEST_BRAM
+.macro FLUSH_WB addr=(ADDRESS)
+.endm
+.macro UNLOCK
+	sw	r0, (BUNLK)
+.endm
+
+;# Quick and dirty BRAM test.
+;# At entry:
+;#	no requirements
+;#	fp = control register shadow
+;# At exit:
+;#	v0 = 0 if no errors
+;#	v0 = 1 if errors and ...
+;#	ACTUAL = "is" data
+;#	EXPECTED = "s/b" data
+;#	ADDRESS = failing address
+;#	TSTNUM = subtest number 
+;#	trashes a0-a3, v0-v1, t0-t7, s0-s4
+
+FRAME	test_bram, global=0
+	.set noreorder
+	move	RASAVE, ra
+	la	STARTA, BRAM_BASE
+	la	ENDA, BRAM_BASE+BRAM_SIZE-4
+	la	BUNLK, BRAM_UNLK_BASE
+;	la	WDOG_REG, WATCHDOG
+
+	li	TSTNUM, 0		;# TEST 0 - walk a single bit through location 0
+	li	EXPECTED, 1		;# first walk a single bit
+	move	ADDRESS, STARTA
+10:
+	UNLOCK
+	sw	EXPECTED, (ADDRESS)	;# write the byte
+	lbu	ACTUAL, (ADDRESS)	;# read it back
+	bne	ACTUAL, EXPECTED, 200f	;# branch if there's an error
+	nop
+	sll	EXPECTED, 1		;# shift test bit
+	and	EXPECTED, 0xFF		;# there's only 8 bits
+	bne	EXPECTED, r0, 10b	;# keep testing
+	nop
+
+	li	TSTNUM, 1		;# TEST 1 - fill memory with all 1's
+	li	EXPECTED, 0xFF		;# get a byte of all one's
+	move	ADDRESS, STARTA
+	UNLOCK
+20:	sw	EXPECTED, (ADDRESS)	;# fill all of RAM with 1's
+	FLUSH_WB
+	add	ADDRESS, 4
+	blt	ADDRESS, ENDA, 20b
+	UNLOCK
+	sw	EXPECTED, (ADDRESS)	;# store the last one
+	FLUSH_WB
+	
+	move	ADDRESS, STARTA		;# then read it all back to see if it worked
+	lbu	ACTUAL, (ADDRESS)
+30:	bne	ACTUAL, EXPECTED, 200f	;# fail
+	add	ADDRESS, 4
+	blt	ADDRESS, ENDA, 30b
+	lbu	ACTUAL, (ADDRESS)
+	bne	ACTUAL, EXPECTED, 200f
+	nop
+		
+	li	TSTNUM, 2		;# TEST 2 - put address into location
+	move	ADDRESS, STARTA
+	li	EXPECTED, 0
+	UNLOCK
+40:	sw	EXPECTED, (ADDRESS)	;# put (sort of) address into location
+	FLUSH_WB
+	addu	EXPECTED, 1
+	addu	ADDRESS, 4
+	blt	ADDRESS, ENDA, 40b
+	UNLOCK
+	sw	EXPECTED, (ADDRESS)	;# store last addr
+	FLUSH_WB
+	
+	lbu	ACTUAL, (ADDRESS)	;# then read it all back to see if it worked
+50:	and	EXPECTED, 0xFF
+	bne	ACTUAL, EXPECTED, 200f	;# fail
+	nop
+	addu	ADDRESS, -4
+	addu	EXPECTED, -1
+	bgt	ADDRESS, STARTA, 50b
+	lbu	ACTUAL, (ADDRESS)
+	bne	ACTUAL, EXPECTED, 200f
+	nop
+		
+	li	TSTNUM, 4		;# TEST 4 - walk a 1 through all of memory
+	move	ADDRESS, STARTA
+	li	WALKBIT, 1		;# walk a single bit through each location of memory
+55:	lbu	EXPECTED, (ADDRESS)	;# Get existing data
+	xor	EXPECTED, WALKBIT		;# flip a bit
+	UNLOCK
+	sw	EXPECTED, (ADDRESS)	;# write it back
+	FLUSH_WB
+	xor	TMP0, EXPECTED, 0xFF	;# get the 1's compliment of what was written
+	lbu	TMP1, 4(ADDRESS)	;# get next location
+	xor	TMP1, TMP0		;# flip a bunch of bits
+	UNLOCK
+	sw	TMP1, 4(ADDRESS)	;# write them back
+	FLUSH_WB 4(ADDRESS)
+	lbu	ACTUAL, (ADDRESS)		;# get the data
+	bne	EXPECTED, ACTUAL, 200f	;# doesn't match what was written, it fails
+	nop
+	xor	EXPECTED, WALKBIT	;# put bit back
+	UNLOCK
+	sw	EXPECTED, (ADDRESS)	;# restore location to normal
+	FLUSH_WB
+	xor	TMP1, TMP0
+	dsll	WALKBIT, 1		;# shift bit left
+	UNLOCK
+	sw	TMP1, 4(ADDRESS)	;# restore the next location
+	and	WALKBIT, 0xFF
+	bne	WALKBIT, r0, 55b		;# keep testing
+	FLUSH_WB 4(ADDRESS)
+	nop
+
+	addu	ADDRESS, 4		;# increment the address
+	blt	ADDRESS, ENDA, 55b	;# keep testing
+	li	WALKBIT, 1		;# get a new bit
+
+	li	TSTNUM, 5		;# TEST 5 - verify addresses still in memory
+	li	EXPECTED, 0
+	move	ADDRESS, STARTA
+	lbu	ACTUAL, (ADDRESS)	;# then read it all back to make sure the addresses are still there
+58:	and	EXPECTED, 0xFF
+	bne	ACTUAL, EXPECTED, 200f ;# fail
+	nop
+	addu	EXPECTED, 1
+	addu	ADDRESS, 4
+	blt	ADDRESS, ENDA, 58b
+	lbu	ACTUAL, (ADDRESS)
+	and	EXPECTED, 0xFF
+	bne	ACTUAL, EXPECTED, 200f
+	nop
+
+	li	TSTNUM, 6		;# TEST 6 - fill all of RAM with 0's
+	move	ADDRESS, STARTA
+	move	EXPECTED, r0
+	UNLOCK
+60:
+	sw	EXPECTED, (ADDRESS)	;# fill ram with 0's
+	FLUSH_WB
+	addu	ADDRESS, 4
+	blt	ADDRESS, ENDA, 60b
+	UNLOCK
+	sw	EXPECTED, (ADDRESS)
+	FLUSH_WB
+
+	move	ADDRESS, STARTA		;# then read it all back to see if it worked
+	move	EXPECTED, r0
+	lbu	ACTUAL, (ADDRESS)
+70:	nop
+	bne	EXPECTED, ACTUAL, 200f	;# fail
+	nop
+	addu	ADDRESS, 4
+	blt	ADDRESS, ENDA, 70b
+	lbu	ACTUAL, (ADDRESS)
+	nop
+	bne	EXPECTED, ACTUAL, 200f	;# fail
+	nop
+		
+	jr	RASAVE
+	move	v0, r0
+
+200:
+  .if true, 0 && ANN_TEST_SERIAL
+	la	v0, mem_test_msgs
+	sll	TSTNUM, 2
+	addu	v0, TSTNUM
+	lw	TSTNUM, (v0)
+  .endc
+	jr	RASAVE
+	addu	v0, r0, 1
+
+	.set reorder
+ENDFRAME test_bram
+.endc
+
+.if true, (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+	DEC_CONST	SAVE_s0		(0*REG_SIZE)
+	DEC_CONST	SAVE_s1		(1*REG_SIZE)
+	DEC_CONST	SAVE_s2		(2*REG_SIZE)
+	DEC_CONST	SAVE_s3		(3*REG_SIZE)
+	DEC_CONST	SAVE_s4		(4*REG_SIZE)
+	DEC_CONST	SAVE_s5		(5*REG_SIZE)
+	DEC_CONST	SAVE_a0		(6*REG_SIZE)
+	DEC_CONST	SAVE_ra		(7*REG_SIZE)
+	DEC_CONST	SAVE_size	(8*REG_SIZE)
+
+.macro ASM_PROLOG
+	addu	sp, -SAVE_size
+	sw	s0, SAVE_s0(sp)
+	sw	s1, SAVE_s1(sp)
+	sw	s2, SAVE_s2(sp)
+	sw	s3, SAVE_s3(sp)
+	sw	s4, SAVE_s4(sp)
+	sw	s5, SAVE_s5(sp)
+	sw	ra, SAVE_ra(sp)
+	sw	a0, SAVE_a0(sp)
+.endm
+.macro ASM_EPILOG size=6
+	lw	s0, SAVE_s0(sp)
+	lw	s1, SAVE_s1(sp)
+	lw	s2, SAVE_s2(sp)
+	lw	s3, SAVE_s3(sp)
+	lw	s4, SAVE_s4(sp)
+	lw	s5, SAVE_s5(sp)
+	lw	ra, SAVE_ra(sp)
+	lw	a0, SAVE_a0(sp)
+	addu	sp, SAVE_size
+	j	ra
+.endm
+.macro ASM_RET_VAL arg
+	beq	v0, r0, 10f		;# No errors, nothing to send back
+	lw	v1, SAVE_a0(sp)
+	beq	v1, r0, 10f
+ .if nb, arg
+	dsrl32	TMP0, ACTUAL, 0
+	sw	TMP0, actual_msb(v1)
+ .iff
+	sw	r0, actual_msb(v1)
+ .endc
+	sw	ACTUAL, actual_lsb(v1)
+ .if nb, arg
+	dsrl32	TMP0, EXPECTED, 0
+	sw	TMP0, expected_msb(v1)
+ .iff
+	sw	r0, expected_msb(v1)
+ .endc
+	sw	EXPECTED, expected_lsb(v1)
+	sw	ADDRESS, bad_address(v1)
+	sw	TSTNUM, subtest(v1)
+10:
+.endm
+
+ .if true, TEST_MEM32
+FRAME zag_test_mem32
+	ASM_PROLOG
+	move	a0, a1
+	move	a1, a2
+	move	a2, a3
+	bal	test_mem32
+	ASM_RET_VAL
+	ASM_EPILOG
+ENDFRAME zag_test_mem32
+ .endc
+ .if true, TEST_BRAM
+FRAME zag_test_bram
+	ASM_PROLOG
+	bal	test_bram
+	ASM_RET_VAL
+	ASM_EPILOG
+ENDFRAME zag_test_bram
+ .endc
+ .undefine TMP1
+ .undefine TMP2
+ .undefine TSTNUM
+ .undefine RASAVE
+
+ .undefine STARTA
+ .undefine ENDA
+ 
+ .undefine TBBASE
+ .undefine TBSIZE
+
+;.undefine WDOG_REG
+ .undefine TMP0
+ .undefine EXPECTED
+ .undefine ADDRESS
+ .undefine ACTUAL
+ .undefine WALKBIT
+ .undefine BUNLK
+ .undefine TICKS_USEC
+ 
+	.align 3
+;*********************************************************************
+;# Flush 'n' bytes of data cache 
+;# At entry:
+;#	a0 = buff
+;#	a1 = count in bytes
+;# At exit:
+;#	trashes a0-a3, v0-v1
+FRAME prc_flush_pdcache
+	.set noreorder
+	mfc0	a3, C0_CONFIG
+	nop; nop; nop;
+	li	a2, 16				;# assume cache line size is 16
+	and	a3, CFG_DB
+	beq	a3, r0, 10f
+	nop
+
+	li	a2, 32				;# cache line is 32 bytes
+10:	cache	Hit_Writeback_Inv_D, (a0)	;# invalidate cache line
+	subu	a1, a2				;# decrement count
+	bgt	a1, r0, 10b
+	addu	a0, a2				;# increment address
+
+	j	ra
+	nop
+	.set reorder
+ENDFRAME prc_flush_pdcache
+
+;*********************************************************************
+;# Invalidate 'n' bytes of data cache 
+;# At entry:
+;#	a0 = buff
+;#	a1 = count in bytes
+;# At exit:
+;#	trashes a0-a3, v0-v1
+FRAME prc_inv_pdcache
+	.set noreorder
+	mfc0	a3, C0_CONFIG
+	nop; nop; nop
+	li	a2, 16				;# assume cache line size is 16
+	and	a3, CFG_DB
+	beq	a3, r0, 10f
+	nop
+
+	li	a2, 32				;# cache line is 32 bytes
+10:	cache	Hit_Invalidate_D, (a0)		;# mark cache line invalid w/o writing it
+	subu	a1, a2				;# decrement count
+	bgt	a1, r0, 10b
+	addu	a0, a2				;# increment address
+
+	j	ra
+	nop
+	.set reorder
+ENDFRAME prc_inv_pdcache
+.endc			; if (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+
+.if true, BOOT_COMPRESSED == 0
+;*********************************************************************
+;* ++++++++++ WARNING DANGER WARNING DANGER WARNING DANGER +++++++++++
+;*
+;* This needs to be moved if and when we use a read only text section.
+;*
+.if true, (BOOT_FROM_DISK == 0) && (EPROM_ST == 0)
+	.align 2
+	.globl go_to_self_test
+go_to_self_test:
+	.word 0
+.endc
+;*
+;* +++++ END OF "THIS NEEDS TO BE MOVED" AREA ++++++++++++++++++++++++
+;*********************************************************************
+.endc
+
+	.align 3
+.if true, BOOT_ROM_CODE == 0
+ .if true, BOOT_FROM_DISK || BOOT_COMPRESSED
+FRAME copy_and_go_size
+	la	v0, candg_end
+	la	v1, copy_and_go
+	subu	v0, v1
+	j	ra
+ENDFRAME copy_and_go_size
+
+;*********************************************************************
+;* ++++++++++ WARNING DANGER WARNING DANGER WARNING DANGER +++++++++++
+;*
+;* Do not add any additional functions (FRAME/ENDFRAME) nor add any
+;* calls (b, bal or jal) to functions between here and the label
+;* "candg_end". This special code is used by GUTS and the HD boot code
+;* and must remain position independent.
+;*
+;# Copy data from src to dst, then jump to addr at dst
+;# At entry:
+;#	a0 = dst
+;#	a1 = src
+;#	a2 = count in bytes
+;# At exit:
+;#	Does not exit. jumps to non-cached dst address
+;#	All hardware has been reset.
+;#	trashes a0-a3, v0-v1
+
+FRAME copy_and_go
+	la	v0, 0x20000000
+	or	a0, v0
+	move	ra, a0
+	li	v1, PM_DATA_BEGIN ;# Don't copy anything into PM area
+	li	a3, PM_DATA_END
+10:	bgtu	a0, a3, 20f
+	bltu	a0, v1, 20f
+	b	30f
+
+20:	lw	v0, (a1)
+	sw	v0, (a0)
+30:	addu	a0, 4
+	addu	a1, 4
+	addu	a2, -4
+	bgtu	a2, r0, 10b
+;#	b	prc_reset_hardware	;# !!! Fall through to prc_reset_hardware !!!
+ENDFRAME copy_and_go
+ .endc
+
+;****
+;**** Don't even think about putting anything here!!!!!
+;****
+
+FRAME prc_reset_hardware
+	sh	r0, RESET_CTL_BASE
+	sh	r0, INTCTL_IE_BASE
+	sh	r0, INTCTL_MAP_BASE
+	sh	r0, INTCTL_STS_BASE
+	sh	r0, VSYNC_CLEAR_BASE
+	j	ra
+ENDFRAME prc_reset_hardware
+candg_end:
+;*
+;* +++++ END OF "DO NOT CHANGE" AREA +++++++++++++++++++++++++++++++++
+;*********************************************************************
+.endc				; BOOT_ROM_CODE == 0
+
+.if defined, IO_UART_CTL_INTERNAL_ENA
+;# Local support function to blink yellow LED while waiting for
+;# UART xmit ready.
+;# At entry:
+;#	no requirements
+;# At exit:
+;#	returns when XMT_EMPTY flag is set in IO_MAIN_STS register.
+;#	Blinks 'S' on SSEG while waiting.
+;#	trashes t0-t2
+FRAME putc_blink_yel,global=0
+	mfc0	t2, C0_COUNT
+10:	lw	t0, IO_MAIN_STS
+	and	t0, IO_MAIN_UART_XMT_EMPTY
+	bne	t0, r0, 20f
+	mfc0	t1, C0_COUNT
+	subu	t1, t2
+	subu	t1, PUTC_BLINK_TIME
+	blt	t1, r0, 10b			;# not time to blink
+	lw	t1, SSEG_BASE
+	xor	t1, SSEG_5			;# flip LED
+	sw	t1, SSEG_BASE
+	mfc0	t2, C0_COUNT			;# reset timer
+	b	10b
+20:
+	lw	t1, SSEG_BASE
+	and	t1, ~SSEG_5
+	sw	t1, SSEG_BASE
+	j	ra
+ENDFRAME putc_blink_yel
+
+;# prc_putc - writes a character out IOASIC UART port.
+;# At entry:
+;#	a0 - character to output
+;# At exit:
+;#	Waits for entire character to be sent. Blinks Yellow
+;#	LED until character has been sent
+;#	trashes a0, v0, v1, t0-t5
+FRAME prc_putc
+	move	t5, ra			;# save return address
+	move	t3, a0			;# save character to send
+	la	t0, SSEG_BASE
+	lw	t1, (t0)
+	or	t1, SSEG_5		;# Turn on 'S' led 
+	sw	t1, (t0)
+	la	t0, IO_MAIN_CTL
+	lw	t4, (t0)			;# Get current contents of IO_CONTROL
+	sw	r0, (t0)			;# disable all IOASIC interrupts
+	li	t2, PUTC_UART_ENAB		;# get UART init constant
+.if defined, IO_DIPSW
+	lw	t0, IO_DIPSW
+	and	t0, IO_DIPSW2			;# If there's a DIPSW, check for CTS enable
+	bne	t0, r0, 10f
+	and	t2, ~IO_UART_CTL_IGNORE_CTS_IN ;# Ignore CTS
+10:
+.endc
+	la	t0, IO_UART_CTL
+	lhu	t1, (t0)			;# get UART status
+	beq	t2, t1, 20f			;# If already init'd, skip it
+	sw	t2, (t0)			;# else set UART
+	li	a0, 100000
+	bal	prc_wait_n_usecs		;# Give it time to settle
+	lhu	t1, (t0)			;# Check to see that it set
+	beq	t2, t1, 20f
+15:	li	a0, SSEG_F			;# It didn't, so blink LED's and get stuck
+	bal	prc_blink_led
+	b	15b
+
+20:	bal	putc_blink_yel			;# Wait for XMIT ready, blink YEL led
+	sh	t3, IO_UART_TX			;# send character
+	bal	putc_blink_yel			;# Wait for XMIT ready, blink YEL led
+
+	lw	t0, SSEG_BASE			;# Turn off the yellow led
+	and	t0, ~SSEG_5
+	sw	t0, SSEG_BASE
+	sw	t4, IO_MAIN_CTL			;# restore the IO_CONTROL reg
+	j	t5				;# return
+ENDFRAME prc_putc
+
+ .if true, SA_DIAGS && TEST_MEM32
+;# prc_puts - writes a null terminated string out IOASIC UART port.
+;# At entry:
+;#	a0 - pointer to string to output
+;# At exit:
+;#	Returns number of characters sent
+;#	Waits for entire string to be sent. Blinks Yellow
+;#	LED while each character is sent.
+;#	trashes a0-a3, t0-t6
+FRAME prc_puts
+	move	t6, a0				;# save string pointer
+	move	a3, a0				;# save string pointer
+	move	a2, ra				;# save return address
+10:	lbu	a0, (a3)			;# get character
+	beq	a0, r0, 20f			;# done
+	bal	prc_putc			;# send character
+	addu	a3, 1				;# next
+	b	10b
+
+20:	subu	v0, a3, t6			;# compute character sent count
+	j	a2				;# done
+ENDFRAME prc_puts
+
+;# prc_putv - ASCII'fies the value in A0 and emits it as HEX out the serial port
+;# At entry:
+;#	a0 - word to output
+;#	a1 - number of nibbles to emit
+;# At exit:
+;#	Waits for entire string to be sent. Blinks Yellow
+;#	LED while each character is sent.
+;#	trashes a0-a3, t0-t6
+FRAME prc_putv
+	move	a3, a0				;# save value
+	move	a2, ra				;# save return address
+	sll	t6, a1, 2			;# multiply nibble count by 4
+10:	addu	t6, -4				;# decrement one nibble
+	blt	t6, r0, 30f			;# nothing to do
+	dsrlv	a0, a3, t6			;# get nibble from 64 bit word
+	and	a0, 0xF				;# isolate the nibble
+	addu	a0, 0x30			;# ASCII'fy it
+	li	t0, 0x3A
+	blt	a0, t0, 20f			;# it's 0-9
+	addu	a0, 7				;# adjust it to a 'A-F'
+20:	bal	prc_putc			;# send character
+	b	10b
+
+30:	j	a2				;# done
+ENDFRAME prc_putv
+ .endc			;SA_DIAGS && TEST_MEM32
+.endc
+@
+
+
+1.21
+log
+@Put SYSCALL check in the right place and it just might work.
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.20 1997/09/11 22:14:54 shepperd Exp shepperd $
+d47 1
+d134 10
+d3827 129
+@
+
+
+1.20
+log
+@Added SYSCALL support.
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.19 1997/08/01 03:46:14 shepperd Exp shepperd $
+d2463 6
+@
+
+
+1.19
+log
+@Allow W2 address to be set by code booted from RAMROM.
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.18 1997/08/01 03:28:37 shepperd Exp shepperd $
+d62 1
+d2430 6
+d2894 8
+@
+
+
+1.18
+log
+@tsk tsk. Forgot to include parens around user args within the
+TLB creation macro. It bit me....
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.17 1997/08/01 00:10:15 shepperd Exp shepperd $
+d780 9
+d1006 17
+d1126 3
+a1128 11
+.if true, ALTERNATE_PCI_W2_ADDRESS != 0
+PCI_PHYS = (CHAM_PCI_W2_BASE>>24)&0xFF
+	MKARG	(PCI_PHYS<<24)|(PCI_PHYS)
+	MKARG	NILE3_PCI_MASTER_MASK_256M
+.iff
+PCI_PHYS = (CHAM_PCI_W2_BASE&0x1FFFFFFF)>>24
+	MKARG	(PCI_PHYS<<24)|(PCI_PHYS)
+	MKARG	NILE3_PCI_MASTER_MASK_64M
+.endc
+	MKARG	NILE3_PCI_MASTER_ENAB
+	STARG	NILE3_PCI_MASTER_WINDOW_2_BASE
+@
+
+
+1.17
+log
+@Well, looks like the bits in the register don't match what
+the book says. Still might not work.
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.16 1997/07/31 23:21:17 shepperd Exp shepperd $
+d2987 2
+a2988 2
+   .word ((pagesize-1)<<1)&TLBPGMASK_MASK
+.if true, ((vaddr) & (((pagesize<<1)-1)) & -8192) != 0
+d2992 1
+a2992 1
+   .word ((paddr_0 >> (12-TLBLO_PFNSHIFT)) & TLBLO_PFNMASK) | (c_0<<3) | (d_0<<2) | (v_0<<1) | 1
+d2998 1
+a2998 1
+   .word ((tmp >> (12-TLBLO_PFNSHIFT)) & TLBLO_PFNMASK) | (c_1<<3) | (d_1<<2) | (v_1<<1) | 1
+@
+
+
+1.16
+log
+@Fixed assignment of alternate W2 address.
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.15 1997/07/31 22:58:56 shepperd Exp shepperd $
+d1101 2
+a1102 2
+PCI_PHYS = (CHAM_PCI_W2_BASE&0xFFE00000)>>21
+	MKARG	(PCI_PHYS<<21)|(PCI_PHYS)
+@
+
+
+1.15
+log
+@Added support for alternate W2 address space.
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.14 1997/07/17 02:55:54 shepperd Exp shepperd $
+a1099 2
+PCI_PHYS = (CHAM_PCI_W2_BASE&0x1FFFFFFF)>>24
+	MKARG	(PCI_PHYS<<24)|(PCI_PHYS)
+d1101 2
+d1105 2
+@
+
+
+1.14
+log
+@Fixed the stub interface that I broke when I removed
+cheap exceptions.
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.13 1997/07/11 20:40:43 shepperd Exp shepperd $
+d64 1
+d1102 3
+d1106 1
+d3013 10
+@
+
+
+1.13
+log
+@Defaults to not having cheap exceptions since they crash
+when the debugger is used sometimes.
+Don't restore the cause register in return to user.
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.12 1997/07/11 00:33:47 shepperd Exp shepperd $
+d2418 15
+a2432 1
+	b	normal_exception
+@
+
+
+1.12
+log
+@Enabled prc_panic.
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.11 1997/07/10 18:07:16 shepperd Exp shepperd $
+d53 1
+a53 1
+MKOPT IRQ_CHEAP_EXCEPTION 1		; 0=normal, 1=allow IRQ's to be cheap exceptions
+d2376 1
+d2394 1
+a2394 1
+	j	k1			;# goto stub exception handler
+d2398 1
+a2398 1
+ .if true, INCLUDE_FEXCP
+d2402 1
+a2402 1
+ .endc
+d2417 4
+d2757 1
+a2757 1
+ .endc			; CHEAP_EXCEPTION
+d2801 1
+a2801 1
+	lw	v0, CAUSE_REGNUM*REG_SIZE(a0)
+d2804 1
+a2804 1
+	mtc0	v0, C0_CAUSE
+@
+
+
+1.11
+log
+@Added support for iceless interrupts.
+@
+text
+@d1 1
+a1 1
+;# $Id: cham_root.mac,v 1.10 1997/07/08 01:14:35 shepperd Exp $
+d2863 1
+a2863 3
+	b	AnyException
+
+.if true, 1
+@
+
+
+1.10
+log
+@Added a "waiting for FEEDFACE" in the copy loop.
+Clear the LCD after finding FEEDFACE.
+Added RCS variables.
+@
+text
+@d1 1
+a1 1
+;# $Id$
+a124 2
+MKOPT ICELESS_LVL	0
+MKOPT ICELESS_MANY	0
+d240 28
+a267 2
+	.space  3*4+2		;# shove this copyright message right up against vec1
+	.ascii	"Copyright (c) 1996,1997 Atari Games Inc., All Rights Reserved"
+a269 1
+	.align	7		;# advance pc to 80000080 *
+a2375 1
+ .if true, (ICELESS_LVL || ICELESS_MANY)
+d2382 1
+a2382 1
+	beq	k1, r0, normal_exception	;# no, we do all exception processing
+d2385 13
+a2397 1
+  .if true, INCLUDE_FEXCP
+d2401 1
+a2401 1
+  .endc
+d2407 1
+a2407 2
+	beq	k0, r0, 10f		;# it's an IRQ
+	mfc0	k0, C0_CAUSE		;# get the cause again
+d2409 2
+d2413 1
+a2413 1
+	j	k1			;# goto stub's exception handler
+a2415 44
+10:
+  .if true, 0 || (!ICELESS_AST)		; moved ICELESS interrupt detection to phx_shims.c
+	mfc0	k1, C0_SR
+	nop; nop; nop
+	and	k0, 0x8000		;# ICELESS always comes in on interrupt 7
+	and	k0, k1			;# ICELESS interrupt enabled?
+	beq	k0, r0, normal_exception ;# not iceless, we do the processing
+	nop
+	la	k0, INTCTL_IE		;# maybe iceless, check the interrupt control PLD
+	lw	k0, (k0)		;# get interrupt enable bits
+	la	k1, INTCTL_CAUSE
+	lw	k1, (k1)		;# get interrupt cause bits
+	and	k0, k1
+   .if true, ICELESS_MANY
+ 	and	k0, ICELESS_MANY	;# for now, _any_ expansion slot give ICELESS interrupt
+   .iff
+ 	and	k0, 1<<(ICELESS_LVL-1)	;# check for iceless interrupt among them
+   .endc
+	beq	k0, r0, normal_exception ;# not ICELESS
+	lui	k0, (DRAM_BASEnc>>16)&0xFFFF
+	lw	k1, ROMV_STUB_EH(k0)
+	j	k1			;# let the stub deal with it
+	nop
+
+  .iff					; 0 || (!ICELESS_AST)	
+	b	normal_exception
+	nop
+  .endc					; 0 || (!ICELESS_AST)	
+ .iff					; (ICELESS_LVL || ICELESS_MANY)
+  .if true, IRQ_CHEAP_EXCEPTION
+	mfc0	k0, C0_CAUSE
+	nop
+	nop
+	nop
+	li	k1, 0x7C
+	and	k0, k1
+	bne	k0, r0, normal_exception
+	nop
+	b	cheap_exception
+  .iff
+	b	normal_exception
+  .endc
+	nop
+ .endc
+@
+
+
+1.9
+log
+@Fixed bug in PLX segment 3 setup.
+@
+text
+@d1 1
+a1 1
+;#		cham_root.mac
+d311 4
+d533 4
+d571 3
+@
+
+
+1.8
+log
+@Removed references to BOOT_XBUS.
+@
+text
+@d1122 2
+a1123 2
+	.macro MKARG sym0 sym1 sym2 sym3 sym4 sym5 sym6 sym7
+	...arg = ...arg|(sym0 sym1 sym2 sym3 sym4 sym5 sym6 sym7)
+d1346 1
+a1346 1
+	MKARG	((CHAM_PCI_W1_BASE&0x1FFFFFFF) + 0x00200000)
+d1355 1
+a1355 1
+	MKARG	(PCI_MAP_REG_START + 0x14)
+d1358 1
+a1358 1
+	MKARG	((CHAM_PCI_W1_BASE&0x1FFFFFFF) + 0x02000000)
+d1370 5
+a1374 5
+	MKARG	(0x5 << PLX_LASBRD_NRAD_SHIFT)
+	MKARG	(0x0 << PLX_LASBRD_NRDD_SHIFT)
+	MKARG	(0x3 << PLX_LASBRD_NXDA_SHIFT)
+	MKARG	(0x5 << PLX_LASBRD_NWAD_SHIFT)
+	MKARG	(0x0 << PLX_LASBRD_NWDD_SHIFT)
+d1377 3
+a1379 3
+	MKARG	(0x1 << PLX_LASBRD_RD_STB_SHIFT)
+	MKARG	(0x1 << PLX_LASBRD_WR_STB_SHIFT)
+	MKARG	(0x2 << PLX_LASBRD_WR_CYC_SHIFT)
+d1389 1
+a1389 1
+	MKARG	((CHAM_PCI_W1_BASE&0x1FFFFFFF) + 0x02000000)
+d1394 1
+a1394 1
+	MKARG	((CHAM_PCI_W1_BASE&0x1FFFFFFF) + 0x02000000)
+@
+
+
+1.7
+log
+@Corrected some comments.
+@
+text
+@a538 4
+.if true, BOOT_FROM_XBUS
+	sw	r0, XBUS_BASE		;# select XBUS bank 0 
+.endc
+
+a555 3
+.if true, BOOT_FROM_XBUS
+	sw	r0, XBUS_BASE		;# select bank 0 again
+.endc
+a598 4
+.if true, BOOT_FROM_XBUS
+	li	a2, 4*1024*1024-4	;# 4 MB boundary
+	sw	r0, XBUS_BASE		;# always start on bank 0
+.endc
+a599 9
+.if true, BOOT_FROM_XBUS
+	and	a3, a0, a2		;# are we on a bank boundary
+	bne	a3, r0, 35f		;# nope, continue
+	srl	a3, a0, 22		;# get the upper 3 bits of address
+	and	a3, 7
+	sw	a3, XBUS_BASE		;# select a new bank
+	la	v0, RAMROM_BASE		;# reset the source pointer
+35:
+.endc
+d1383 1
+a1383 1
+	MKARG	0x0c000000
+@
+
+
+1.6
+log
+@Used lra macro in memory test.
+@
+text
+@d1263 1
+a1263 1
+  /* chip select 0 is from local 0x08100000 to local 0x081FFFFF (1Mb) */
+d1269 1
+a1269 1
+  /* local address space 0 starts at PCI address 0x8100000 */
+d1310 1
+a1310 1
+  /* chip select 1 is from local 0x08000100 to local 0x080001FF (256 bytes) */
+d1316 1
+a1316 1
+  /* local address space 1 starts at PCI address 0x80000100 */
+d1358 1
+a1358 1
+  /* chip select 2 is from local 0x08200000 to local 0x082FFFFF (1 Mbyte) */
+d1364 1
+a1364 1
+  /* local address space 2 starts at PCI address 0x08200000 */
+d1406 1
+a1406 1
+  /* chip select 3 is from local 0x0a000000 to local 0x0bffffff (32Mbyte) */
+d1412 1
+a1412 1
+  /* local address space 3 starts at PCI address 0x0a000000 */
+@
+
+
+1.5
+log
+@Moved messages around.
+@
+text
+@a749 4
+ .if defined, SSEG_BASE
+	li	a0, SSEG_2
+	sb	a0, SSEG_BASE
+ .endc
+d3080 7
+d3095 2
+a3096 1
+10:	la	a0, err_msga
+d3107 1
+a3107 1
+	la	a0, err_msge
+a3153 4
+	la	EXPECTED, sseg_2_patt
+	addu	EXPECTED, TSTNUM
+	lb	SSEG_SHAD, (EXPECTED)
+	sb	SSEG_SHAD, SSEG_BASE
+d3177 1
+a3177 6
+ .if defined, SSEG_BASE
+	la	EXPECTED, sseg_2_patt
+	addu	EXPECTED, TSTNUM
+	lb	SSEG_SHAD, (EXPECTED)
+	sb	SSEG_SHAD, SSEG_BASE
+ .endc
+d3200 1
+a3200 6
+ .if defined, SSEG_BASE
+	la	EXPECTED, sseg_2_patt
+	addu	EXPECTED, TSTNUM
+	lb	SSEG_SHAD, (EXPECTED)
+	sb	SSEG_SHAD, SSEG_BASE
+ .endc
+d3219 1
+a3219 6
+ .if defined, SSEG_BASE
+	la	EXPECTED, sseg_2_patt
+	addu	EXPECTED, TSTNUM
+	lb	SSEG_SHAD, (EXPECTED)
+	sb	SSEG_SHAD, SSEG_BASE
+ .endc
+d3243 1
+a3243 6
+   .if defined, SSEG_BASE
+	la	EXPECTED, sseg_2_patt
+	addu	EXPECTED, TSTNUM
+	lb	SSEG_SHAD, (EXPECTED)
+	sb	SSEG_SHAD, SSEG_BASE
+   .endc
+d3263 1
+a3263 6
+   .if defined, SSEG_BASE
+	la	EXPECTED, sseg_2_patt
+	addu	EXPECTED, TSTNUM
+	lb	SSEG_SHAD, (EXPECTED)
+	sb	SSEG_SHAD, SSEG_BASE
+   .endc
+d3293 1
+a3293 6
+   .if defined, SSEG_BASE
+	la	EXPECTED, sseg_2_patt
+	addu	EXPECTED, TSTNUM
+	lb	SSEG_SHAD, (EXPECTED)
+	sb	SSEG_SHAD, SSEG_BASE
+   .endc
+d3308 1
+a3308 6
+  .if defined, SSEG_BASE
+	la	EXPECTED, sseg_2_patt
+	addu	EXPECTED, TSTNUM
+	lb	SSEG_SHAD, (EXPECTED)
+	sb	SSEG_SHAD, SSEG_BASE
+  .endc
+@
+
+
+1.4
+log
+@Enabled cheap exceptions.
+@
+text
+@a245 1
+.if true, BOOT_COMPRESSED == 0
+a252 1
+.endc
+a260 1
+.if true, BOOT_COMPRESSED == 0
+d266 2
+a267 9
+ .if true, (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+walk_a_bit:
+	.asciz "Walking one bit through address 0"
+fill_with_ones:
+	.asciz "Fill all of memory with 1's"
+address_to_location:
+	.asciz "Write each location's address"
+ .endc
+.endc
+a270 1
+.if true, BOOT_COMPRESSED == 0
+d275 1
+a275 1
+ .if true, (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+d282 1
+a282 1
+ .endc
+d287 1
+a287 1
+ .if true, (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+d297 1
+a297 1
+ .endc			; if (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+d303 1
+a303 1
+ .if true, (BOOT_ROM_CODE == 0) && (STOP_ON_EXCEPTION == 0) 
+d310 1
+a310 3
+ .endc
+e_msg_wait_forever:
+	.asciz "Waiting\r\nForever"
+d315 8
+a327 1
+.endc				;BOOT_COMPRESSED == 0
+d332 1
+a332 1
+.if true, BOOT_ROM_CODE == 0 && BOOT_COMPRESSED == 0
+d349 1
+a349 1
+ .endc
+d363 1
+a363 1
+.endc
+@
+
+
+1.3
+log
+@Tightened up the code if BOOT_COMPRESSED set.
+@
+text
+@d53 1
+a53 1
+MKOPT IRQ_CHEAP_EXCEPTION 0		; 0=normal, 1=allow IRQ's to be cheap exceptions
+@
+
+
+1.2
+log
+@Corrected compile errors when making compressed boot code.
+@
+text
+@d246 1
+d254 1
+a255 1
+nonsense:	.asciz "Goodbye, Cruel\r\nWorld"
+d263 1
+d269 1
+a269 1
+.if true, (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+d276 1
+d281 1
+d286 1
+a286 1
+.if true, (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+d293 1
+a293 1
+.endc
+d298 1
+a298 1
+.if true, (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+d308 1
+a308 1
+.endc			; if (TEST_MEM32 || TEST_BRAM) && (BOOT_COMPRESSED == 0)
+d314 1
+a314 1
+.if true, (BOOT_ROM_CODE == 0) && (STOP_ON_EXCEPTION == 0) 
+d321 1
+a321 1
+.endc
+d333 1
+a333 1
+
+d338 1
+a338 1
+.if true, BOOT_ROM_CODE == 0
+d503 7
+a509 7
+	li	a1, PM_DATA_BEGIN-1	;# Up to but not including PM area
+	move	a2, r0			;# Not used
+	bal	test_mem32		;# check memory in 32 bit mode
+	nop
+	bne	v0, r0, test_error	;# report errors
+	nop
+	la	a0, PM_DATA_END+1	;# point to destination
+d642 1
+d653 1
+d705 1
+d720 1
+d735 3
+a737 1
+20:	li	v0, INIT_SR&~SR_BEV	;# clear the BEV bit
+d743 1
+a760 3
+ .if true, (HOST_BOARD == PHOENIX_AD)
+	li	a1, DRAM_BASEnc+0x00400000-1 ;# DRAM end (3.5 megabyte)
+ .iff
+a761 1
+ .endc
+d886 1
+d896 1
+d905 1
+d933 1
+d935 1
+d962 1
+d1684 1
+d1947 1
+d2453 1
+a2453 1
+.if true, (BOOT_ROM_CODE == 0) && (STOP_ON_EXCEPTION == 0) 
+d2960 1
+a2960 1
+.endc					;# BOOT_ROM_CODE == 0 || STOP_ON_EXCEPTION == 0
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d53 1
+a53 1
+MKOPT IRQ_CHEAP_EXCEPTION 1		; 0=normal, 1=allow IRQ's to be cheap exceptions
+d274 1
+a276 1
+.endc
+d2316 1
+a2316 1
+.if true, BOOT_ROM_CODE == 0
+d2332 1
+a2332 1
+   .endc
+d2344 1
+a2344 1
+ .endc
+d2409 1
+a2409 1
+  .iff
+d2412 2
+a2413 2
+  .endc
+ .iff
+d2429 3
+a2431 12
+.iff
+	mfc0	t0, C0_SR
+	mfc0	t1, C0_CAUSE
+	mfc0	t2, C0_EPC
+	mfc0	t3, C0_BADVADDR
+	la	k0, BRAM_UNLK_BASE
+	sw	t0, (k0)
+	sw	t1, 8(k0)
+	sw	t2, 16(k0)
+	sw	t3, 24(k0)
+
+10:	b	10b
+@

@@ -1,0 +1,65 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	95.11.01.21.01.57;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@This is only a test of RCS
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/* This is a test of the RCS variables:
+ *
+ *
+     $Author$
+          The login name of the user who checked in the revision.
+
+     $Date$
+          The date and time (UTC) the revision was checked in.
+
+     $Header$
+          A standard header containing the full pathname of the RCS file, the
+          revision number, the date (UTC), the author, the state, and the
+          locker (if locked).
+
+     $Id$
+	  Same as \$Header\$, except that the RCS filename is without a path.
+
+     $Locker$
+          The login name of the user who locked the revision (empty if not
+          locked).
+
+     $Log$
+          The log message supplied during checkin, preceded by a header
+          containing the RCS filename, the revision number, the author, and
+          the date (UTC).  Existing log messages are not replaced.  Instead,
+          the new log message is inserted after $Log:...$.  This is useful for
+          accumulating a complete change log in a source file.
+
+     $RCSfile$
+          The name of the RCS file without a path.
+
+     $Revision$
+          The revision number assigned to the revision.
+
+     $Source$
+          The full pathname of the RCS file.
+
+     $State$
+          The state assigned to the revision with the -s option of rcs(1) or
+          ci(1).
+*/
+@

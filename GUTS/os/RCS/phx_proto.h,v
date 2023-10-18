@@ -1,0 +1,999 @@
+head	1.41;
+access;
+symbols
+	RUSH_ROCK_1_0:1.39
+	RUSH_ROCK_1_0epst:1.36
+	RUSH_ROCK_1_0boot:1.39
+	MACE_1_0e:1.32
+	MACE_1_0d:1.32
+	RUSH_1_06A:1.32
+	AREA_52_00:1.32
+	MACE_1_0a:1.29;
+locks; strict;
+comment	@ * @;
+
+
+1.41
+date	97.12.06.00.03.43;	author shepperd;	state Exp;
+branches;
+next	1.40;
+
+1.40
+date	97.10.15.05.53.23;	author shepperd;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	97.10.06.17.21.49;	author shepperd;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	97.10.04.20.35.56;	author shepperd;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	97.10.03.21.57.07;	author shepperd;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	97.09.19.00.09.40;	author shepperd;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	97.09.12.20.46.02;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	97.08.02.21.19.52;	author shepperd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	97.07.25.03.00.04;	author shepperd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	97.07.01.20.40.44;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	97.05.13.17.02.44;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	97.05.09.02.19.52;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	97.04.18.02.34.03;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	97.04.06.01.03.42;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	97.03.26.01.17.10;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	97.03.11.00.17.36;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	97.02.25.19.57.14;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.11.05.23.20.07;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.10.07.16.42.34;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.10.01.20.12.34;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.09.23.19.59.16;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.09.01.21.12.41;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.08.31.20.05.04;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.08.30.04.21.34;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.08.26.22.50.24;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.08.24.20.53.33;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.07.25.02.06.05;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.07.24.00.33.42;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.07.12.19.19.10;	author forrest;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.06.25.19.59.48;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.06.08.00.00.23;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.05.30.01.05.37;	author forrest;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.05.07.20.19.39;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.05.04.00.43.48;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.04.24.01.14.28;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.04.22.22.08.38;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.04.20.02.35.59;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.04.17.23.11.46;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.04.17.20.49.32;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.04.16.02.59.47;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.04.14.19.04.12;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Prototypes for functions found in phx_root.mac
+@
+
+
+1.41
+log
+@Added prototypes for prc_q_fg().
+/
+@
+text
+@#if !defined(_PHX_PROTO_H_)
+# define _PHX_PROTO_H_ 1
+
+/* $Id: phx_proto.h,v 1.40 1997/10/15 05:53:23 shepperd Exp shepperd $ */
+
+/* The following functions can be found in phx_root.mac */
+
+extern void startup(void);		/* reset vector */
+extern void boot_entry(void);		/* entry to reset code */
+extern void except(int);		/* exception handler entry */
+extern U32 prc_enable_cp1(void);	/* turns on the FPU. Returns old SR */
+extern U32 prc_set_fpcsr(U32);		/* set the FPU CSR to value. Returns old value */
+extern U32 prc_get_fpcsr(void);		/* get the current FPU CSR */
+extern U32 prc_get_cause(void);		/* get the current cause register */
+extern U32 prc_set_cause(U32);		/* set the cause register (returns old value) */
+extern U32 prc_get_ipl(void);		/* get the current SR register */
+extern int prc_set_ipl(int);		/* set the IMASK and IE bits in the SR register */
+extern int prc_set_sr(int);		/* set the processor status register */
+extern U32 prc_timer_rate(U32);		/* set the processor COMPARE register. Returns old value */
+extern U32 prc_get_count(void);		/* get the counter register */
+extern U32 prc_set_count(U32);		/* get the counter register */
+extern U32 prc_get_compare(void);	/* get the compare register */
+extern U32 prc_set_compare(U32);	/* get the compare register */
+extern void prc_reset_hardware(void);	/* reset all the h/w on the board */
+extern void prc_wait_n_usecs(int);	/* wait at least specified microseconds */
+extern void prc_blink_led(int led, int time); /* Blink leds */
+extern void prc_flush_pdcache(const char *buff, int cnt); /* flush partial data cache */
+extern void prc_inv_pdcache(const char *buff, int cnt); /* writeback and invalidate partial data cache */
+extern int prc_isie(void);		/* returns 1 if interrupts are enabled, else returns 0 */
+#if INCLUDE_SYSCALL
+extern int prc_syscall(int which, ...);	/* executes a syscall instruction */
+#endif
+extern void prc_putc(int);		/* write a character to IOASIC UART */
+
+/* The following function can be found in phx_audio.c */
+
+extern int aud_dyn_adjvol(int which_volume);
+
+/* The following functions can be found in phx_shims.c (among those already prototyped in os_proto) */
+
+extern U32 *prc_timer_ptr(U32 *);	/* set pointer to counter variable */
+extern void stub_start(void);		/* restarts GUTS */
+extern U32 prc_timer_ints(void);	/* returns number of timer interrupts that have occured */
+extern const char *get_pm_msg(int cause);	/* returns string ID'ing the cause for exception */
+extern U32 prc_get_exception_time( int );	/* returns accumulated interrupt counts and... */
+						/* ...clears counts if parameter is non-zero */
+extern void prc_timer_jobs(int);	/* called by Vsync IRQ to fake a timer interrupt */
+extern struct act_q *prc_add_q(struct act_q *head, struct act_q *new);
+extern void prc_swint0(void);		/* issue software interrupt 0 */
+extern void prc_swint1(void);		/* issue software interrupt 1 */
+extern int prc_get_actlvl(void);	/* get the current 'action' level (0=not at action level) */
+extern VU32 pc_at_interrupt;		/* saved PC at first level interrupt */
+#if INCLUDE_SYSCALL
+# ifndef MAX_SYSCALLS
+#  define MAX_SYSCALLS	16
+# endif
+extern int (*prc_set_syscall(int which, int (*func)(void *a, ...)))(void *a, ...);
+#endif
+
+#ifndef MAX_AST_QUEUES
+# define MAX_AST_QUEUES 1
+#endif
+
+#if MAX_AST_QUEUES
+extern int prc_get_astlvl(void);	/* get the current AST level (-1 = not at ast level) */
+
+/*		prc_q_ast(level, new)
+ *	Adds an element to the "AST queue" and launches an AST immediately if
+ *	not already executing at AST level. 'level' is the AST level at which
+ *	to run (from 0 to MAX_AST_QUEUES). The higher the level, the lower
+ *	the priority. Level 0 is the highest priority just below 'actions'.
+ *	AST functions will never interrupt one another and, as with actions,
+ *	are executed in the order they appear in the queue. The queues
+ *	are serviced according to the level. Higher level AST's will not be
+ *	executed until all the lower level queues are empty. An AST may
+ *	queue another AST, but the new one won't begin executing until the
+ *	current AST exits (priority permitting).
+ *
+ *	IRQ action functions (those queued by prc_q_action()) will interrupt
+ *	and execute ahead of an AST at any level.
+ *
+ *	The parameter 'new' is a pointer to a struct act_q which must be
+ *	allocated by the user and "live" from the time of its creation to
+ *	the time the specified action is called. If the element is already on
+ *	some other queue, it will not be added to the AST queue. Returns 0
+ *	if action successfully queued, 1 if level is out of range (too small),
+ *	2 if level is out of range (too large) or 3 if 'new' is already
+ *	present on some other queue.
+ *	
+ */
+extern int prc_q_ast(int level, struct act_q *new);
+#endif
+
+#if defined(MAX_FG_QUEUES) && MAX_FG_QUEUES
+extern int prc_get_fglvl(void);	 /* get the current FG level (-1 = not at FG level) */
+
+/*		prc_q_fg(level, new)
+ *	Adds an element to the "FG (foreground) queue" and launches the task
+ *	immediately if not already executing at FG. 'level' is the FG level at
+ *	which to run (from 0 to MAX_FG_QUEUES). The higher the level, the lower
+ *	the priority. Level 0 is the highest priority just below 'AST'.
+ *	FG functions will never interrupt one another and, as with actions,
+ *	are executed in the order they appear in the queue. The queues
+ *	are serviced according to the level. Higher level FG's will not be
+ *	executed until all the lower level queues are empty. An FG may
+ *	queue another FG, but the new one won't begin executing until the
+ *	current FG exits (priority permitting).
+ *
+ *	IRQ action functions (those queued by prc_q_action()) and AST functions
+ *	(those queued by prc_q_ast()) will interrupt and execute ahead of an
+ *	FG at any level.
+ *
+ *	The parameter 'new' is a pointer to a struct act_q which must be
+ *	allocated by the user and "live" from the time of its creation to
+ *	the time the specified action is called. If the element is already on
+ *	some other queue, it will not be added to the FG queue. Returns 0
+ *	if action successfully queued, 1 if level is out of range (too small),
+ *	2 if level is out of range (too large) or 3 if 'new' is already
+ *	present on some other queue.
+ *	
+ */
+extern int prc_q_fg(int level, struct act_q *new);
+#endif
+
+/* The following six variables are reserved for use by Xinu.
+ */
+extern struct act_q *(*prc_q_action_vec)(struct act_q *new);
+extern void (*process_action_q_vec)(int, int);
+extern int (*prc_q_ast_vec)(int level, struct act_q *new);
+extern void (*process_ast_q_vec)(int, int);
+extern volatile int _guts_inest, _guts_astlvl;
+
+/* The following functions can be found in phx_stubs */
+
+extern int phx_puts(const char *);
+extern int phx_putc(int);
+
+/* The following function can be found in phx_ide.c */
+
+extern int ide_init(void);
+
+/* The following functions can be found in idtc4000 */
+
+extern void flush_dcache(void);
+extern void flush_cache(void);
+
+/* The following functions can be found in mallocr */
+
+#include <reent.h>
+
+int _heap_remaining_r(struct _reent *rep); /* figure out how much free memory is available */
+int _heap_size_r(struct _reent *rep);	   /* return size of sbrk'able area */
+int heap_remaining(void);		   /* return size of free memory from _impure_ptr */
+void _reset_malloc_r(struct _reent *rep);  /* reset malloc area to initial conditions */
+void reset_malloc(void);		   /* reset malloc area (use _impure_ptr) */
+unsigned char *prc_extend_bss(int amt);	   /* extend bss by 'amt'. Returns pointer to extended area */
+extern struct _reent *mainline_reent;	   /* Pointers to various reent structs */
+extern struct _reent *interrupt_reent;
+extern struct _reent *ast_reent;
+extern struct _reent *fg_reent;
+extern struct _reent *action_reent;
+extern struct _reent *qio_reent;
+extern struct _reent *xinu_reent;
+
+/* The following functions can be found in sst_vid and/or sst_text */
+
+typedef volatile struct timer_pll {
+    int prev_scan;		/* scan line at last timer interrupt */
+    int ticks;			/* ticks since last VB */
+    U32 frame;			/* current frame */
+    U32 field;			/* current field */
+    U32 field_last;		/* field # of the last frame interrupt */
+    int fields_frame;		/* number of fields/frame */
+    int frame_overrun;		/* number of times buffer swaps came too late */
+    int swap_in;		/* swap requested */
+    int swap_out;		/* swap performed */
+    int nxt_upd;		/* ints to next call to ctl_upd_sw */
+    int ints_upd;		/* interrupts per call to ctl_upd_sw */
+    int no_vsync;		/* != 0 if no functioning vsync interrupts */
+    int ticks_line;		/* timer ticks per line */
+    int lines;			/* lines per field */
+    int ticks_field;		/* timer ticks per field */
+    int fields_sec;		/* fields per second */
+    int vlines;			/* visible lines */
+} TimerPll;
+
+extern TimerPll *get_timer_pll(void);
+
+extern void sst_bufswap(void);		/* does a grBufferSwap() and also lets interrupt routine know */
+
+extern int vid_field_rate(void);	/* returns number of fields per second */
+
+/*		txt_select(which_method)
+ *	Use txt_select() to select the method of getting text
+ *	to the screen. Returns previous setting.
+ */
+extern int txt_select( int );
+#define TXT_NONE (0)	/* Ignore text output */
+#define TXT_HOST (1)	/* Draw directly to screen */
+#define TXT_VSCREEN (2)	/* Draw only to the virtual screen */
+
+typedef struct txt_alpha_ptr {
+    U16 *screen;	/* pointer to array of U16's containing the chars to display */
+    U32 *dirty;		/* pointer to array of dirty bits */
+    U32 texture_offset;	/* offset into texture memory for alpha's */
+    U32 color_offset;	/* offset into the color RAM for start of alpha palette */
+} TxtAlphaPtr;
+
+/*		txt_vsptr(TxtAlphaPtr *new)
+ *	3DFX GUTS has a Virtual Screen into which the txt functions
+ *	write their data. The contents of the virtual screen are converted
+ *	to bitmaps which are written directly to the frame buffer either
+ *	a pixel at a time or blocks of pixels at a time depending on the
+ *	color palette.
+ *
+ *	The parameter to this function is a pointer to an AlphaPtr
+ *	structure that contains a pointer to the screen (an array of U32's
+ *	AN_VIS_ROW*AN_VIS_COL/2, 2 characters per entry due to a hardware
+ *	restriction in the mathbox where this entry is very likely to point),
+ *	a pointer to the array of dirty bits (an array of U32's each bit
+ *	representing a character on the virtual screen and each U32 containing
+ *	one half of a row of characters), an offset into the texture memory
+ *	to the start of the alpha textures and an offset into the coloram to
+ *	the start of the alpha palette.
+ *
+ *	txt_vsptr returns a pointer to the previously set value or 0 if
+ *	nothing previously set. If the new parameter is 0, it only returns
+ *	the previous value.
+ */
+extern TxtAlphaPtr *txt_vsptr(TxtAlphaPtr *new);
+
+/*		sst_text2fb(flag)
+ *	Unpacks the converts the contents of the virtual screen (VS, as
+ *	pointed to by the value set in a previously called txt_vsptr())
+ *	to bitmap data and writes it into the frame buffer. The 
+ *	flag, contains an 'or' of one or more of the T2FB_FLAG_xxx bits.
+ *
+ */
+#define T2FB_FLAG_SWAP	(1<<0)	/* swap buffers after rendering (not used) */
+#define T2FB_FLAG_CLEAR (1<<1)	/* erase character from VS after rendering */
+#define T2FB_FLAG_FIFO  (1<<2)	/* check for room in FIFO before writing */
+extern void sst_text2fb(int flag);
+
+/*		vid_clr_alphas()
+ *	This function simply erases the contents of the virtual
+ *	screen if there is one.
+ */
+extern void vid_clr_alphas(void);
+
+/*		sst_reset()
+ *	This function resets the 3dfx hardware and restarts it.
+ *	It will take as much as 0.5 seconds to complete and the
+ *	sync signals to the monitor will be turned off for a
+ *	short period of time. The effect is to completely reset
+ *	the 3dfx chip set. The monitor picture may blink and roll
+ *	due to the interruption of sync.
+ */
+extern void sst_reset(void);
+
+/*		sst_text_init()
+ *	Establishes a virtual text screen for the 3dfx. The
+ *	parameters texture_off and color_off are unused at this
+ *	time and should be set to 0. Eventually they may be the
+ *	offsets into the texture memory for the alphanumeric textures
+ *	should someday they be written using triangles instead of
+ *	direct writes into the bitmap. This function is automatically
+ *	called at boot.
+ */
+extern int sst_text_init(unsigned int texture_off, unsigned int color_off);
+
+#endif		/* _PHX_PROTO_H_ */
+@
+
+
+1.40
+log
+@Added prototype for prc_putc().
+@
+text
+@d4 1
+a4 1
+/* $Id: phx_proto.h,v 1.39 1997/10/06 17:21:49 shepperd Exp shepperd $ */
+d94 31
+d160 1
+@
+
+
+1.39
+log
+@Renamed extend_bss to prc_extend_bss.
+@
+text
+@d4 1
+a4 1
+/* $Id: phx_proto.h,v 1.38 1997/10/04 20:35:56 shepperd Exp shepperd $ */
+d33 1
+@
+
+
+1.38
+log
+@Added prototypes for all the reent structs.
+@
+text
+@d4 1
+a4 1
+/* $Id: phx_proto.h,v 1.37 1997/10/03 21:57:07 shepperd Exp shepperd $ */
+d124 1
+a124 1
+unsigned char *extend_bss(int amt);	   /* extend bss by 'amt'. Returns pointer to extended area */
+@
+
+
+1.37
+log
+@Added comments and prototype for phx_proto.h
+@
+text
+@d4 1
+a4 1
+/* $Id: phx_proto.h,v 1.36 1997/09/19 00:09:40 shepperd Exp shepperd $ */
+d125 6
+@
+
+
+1.36
+log
+@Changed contents of pll_data struct.
+@
+text
+@d4 1
+a4 1
+/* $Id: phx_proto.h,v 1.35 1997/09/12 20:46:02 shepperd Exp shepperd $ */
+d119 6
+a124 5
+int _heap_remaining_r(struct _reent *rep);
+int _heap_size_r(struct _reent *rep);
+int heap_remaining(void);
+void _reset_malloc_r(struct _reent *rep);
+void reset_malloc(void);
+@
+
+
+1.35
+log
+@Added prototype for _heap_size_r
+@
+text
+@d4 1
+a4 1
+/* $Id: phx_proto.h,v 1.34 1997/08/02 21:19:52 shepperd Exp shepperd $ */
+d130 1
+d132 5
+a138 2
+    int fields_frame;		/* number of fields/frame */
+    int fields_since;		/* number of fields since last frame */
+a139 1
+    int swap;			/* buffer swap requested */
+@
+
+
+1.34
+log
+@Added some Xinu interface functions and vectors. Namely,
+prc_q_action_vec, prc_q_ast_vec, process_action_q_vec,
+process_ast_q_vec and prototyped _guts_inest and _guts_astlvl.
+@
+text
+@d4 1
+a4 1
+/* $Id: phx_proto.h,v 1.33 1997/07/25 03:00:04 shepperd Exp shepperd $ */
+d120 1
+@
+
+
+1.33
+log
+@Added prototypes for syscall function.
+@
+text
+@d4 1
+a4 1
+/* $Id: phx_proto.h,v 1.32 1997/07/01 20:40:44 shepperd Exp shepperd $ */
+d92 8
+@
+
+
+1.32
+log
+@Added an $Id$ to comment fields to get file version numbers.
+@
+text
+@d4 1
+a4 1
+/* $Id$ */
+d30 3
+d52 6
+@
+
+
+1.31
+log
+@Added prototypes for prc_set_count() and prc_set_compare().
+@
+text
+@d4 2
+@
+
+
+1.30
+log
+@Added prototype for global variable pc_at_interrupt.
+@
+text
+@d19 1
+d21 1
+@
+
+
+1.29
+log
+@Added prototype for ide_init.
+@
+text
+@d44 1
+@
+
+
+1.28
+log
+@Added prc_isie() function which returns 1 if interrupts
+are enabled and 0 if interrupts are disabled.
+@
+text
+@d84 4
+@
+
+
+1.27
+log
+@Added reset_malloc() and heap_remaining() functions.
+Moved some primitives from phx_stubs.c to mallocr.c.
+@
+text
+@d25 1
+@
+
+
+1.26
+log
+@Added T2FB_FLAGS_xx to parameter to sst_text2fb().
+@
+text
+@d88 9
+@
+
+
+1.25
+log
+@Added more comments. Added prototypes for sst_reset() and
+vid_clr_alphas().
+@
+text
+@d153 1
+a153 1
+ *	Unpacks the converts the contents of the virtual screen (as
+d155 3
+a157 3
+ *	to bitmap data and writes it into the frame buffer. The swap
+ *	flag, if .ne., causes a bufferswap to be issued after all the
+ *	text has been written.
+d159 4
+a162 1
+extern void sst_text2fb(int swap);
+@
+
+
+1.24
+log
+@Added prototype for prc_set_cause().
+@
+text
+@d61 1
+a61 1
+ *	current AST exits.
+d114 2
+a115 4
+ *	Zoid20 has several different methods for getting
+ *	text on the screen, none of them completely satisfactory.
+ *	Use txt_select() to select the least objectionable
+ *	at any given time. Returns previous setting.
+d130 1
+a130 1
+ *	Zoid20 GUTS has a Virtual Screen into which the txt functions
+d132 3
+a134 3
+ *	to traps (if TXT_ZMB or TXT_ZRE option is in effect) or simply
+ *	updated to reflect the current state of the screen (if TXT_NONE,
+ *	TXT_HOST or TXT_ZOVER option is in effect).
+d161 26
+a186 1
+extern int sst_text_init(unsigned int, unsigned int);
+@
+
+
+1.23
+log
+@Added prototypes for prc_flush_pdcache() and prc_inv_pdcache().
+@
+text
+@d13 1
+@
+
+
+1.22
+log
+@Added prototypes for flush_cache and flush_dcache.
+@
+text
+@d22 2
+@
+
+
+1.21
+log
+@Added a prototype for aud_dyn_adjvol().
+@
+text
+@d80 5
+@
+
+
+1.20
+log
+@Corrected some comments.
+@
+text
+@d23 4
+@
+
+
+1.19
+log
+@Added prototypes for prc_get_astlvl, prc_q_ast and added default
+definition of MAX_AST_QUEUES.
+@
+text
+@d47 4
+a50 4
+ *	to run (from 0 to MAX_AST_QUEUES). The higher the level, the higher
+ *	the priority. Level MAX_AST_QUEUES-1 is the highest priority just
+ *	below 'actions'. AST functions will never interrupt one another
+ *	and are executed in the order they appear in the queue. The queues
+@
+
+
+1.18
+log
+@Added prototypes for functions prc_add_q(), prc_swint0(), prc_swint1()
+and prc_get_actlvl().
+@
+text
+@d35 35
+a69 1
+extern int prc_get_actlvl(void);	/* get the current 'action' level */
+@
+
+
+1.17
+log
+@Added prototype for prc_blink_led
+@
+text
+@d32 4
+@
+
+
+1.16
+log
+@Added entry for prc_wait_n_usecs().
+@
+text
+@d21 1
+@
+
+
+1.15
+log
+@Removed an item from pll_data.
+Added prototype for prc_timer_jobs().
+@
+text
+@d20 1
+@
+
+
+1.14
+log
+@Added prototype for prc_reset_hardware().
+@
+text
+@d29 1
+a52 1
+    int dir;			/* adjustment amount */
+@
+
+
+1.13
+log
+@Added prototype for "prc_get_exception_time" and added some missing "externs".
+@
+text
+@d19 1
+@
+
+
+1.12
+log
+@Renamed fields_nxt_int to fields_since in the pll struct.
+@
+text
+@d25 3
+a27 1
+const char *get_pm_msg(int cause);	/* returns string ID'ing the cause for exception */
+d54 1
+a54 1
+TimerPll *get_timer_pll(void);
+d56 1
+a56 1
+void sst_bufswap(void);		/* does a grBufferSwap() and also lets interrupt routine know */
+d58 1
+a58 1
+int vid_field_rate(void);	/* returns number of fields per second */
+@
+
+
+1.11
+log
+@Added some fields to the pll struct for the VSYNC interrupt to use.
+@
+text
+@d41 1
+a41 1
+    int fields_nxt_int;		/* number of fields until the next frameint is to be called */
+@
+
+
+1.10
+log
+@Added prototype for prc_set_sr.
+@
+text
+@d41 2
+@
+
+
+1.9
+log
+@Added prototypes for two new functions: phx_puts() and phx_putc().
+@
+text
+@d15 1
+@
+
+
+1.8
+log
+@Added prototypes for prc_get_count() and prc_get_compare().
+@
+text
+@d26 5
+@
+
+
+1.7
+log
+@Added fields to the timer struct
+@
+text
+@d16 2
+@
+
+
+1.6
+log
+@Added timer_pll struct.
+@
+text
+@d30 6
+d37 3
+a39 2
+    int lines;			/* lines per field */
+    int ticks_line;		/* timer ticks per line */
+d43 4
+@
+
+
+1.5
+log
+@Misc fixes for Phoenix.
+@
+text
+@d26 11
+@
+
+
+1.4
+log
+@Added txt_ prototypes
+@
+text
+@d38 2
+a39 2
+    VU16 *screen;	/* pointer to array of U16's containing the chars to display */
+    VU8 *dirty;		/* pointer to array of dirty bits */
+d70 3
+a72 6
+ *	to bitmap data and writes it into the frame buffer.
+ *	ships them to the TBUS. This function is only available on the
+ *	ZAG host when also being used as a mathbox. The flag parameter
+ *	indicates which buffer to write to (0=BACKBUFFER, a BufferSwap
+ *	is required to display the results; 1=FRONTBUFFER: results should
+ *	be seen imediately).
+d74 3
+a76 1
+extern void sst_text2fb(int flag);
+@
+
+
+1.3
+log
+@Removed ztv, zre and zag references.
+@
+text
+@d24 1
+a24 1
+/* The following functions can be found in phx_stubs.c for the time being */
+d36 42
+@
+
+
+1.2
+log
+@Added txt_select
+@
+text
+@d35 1
+a35 3
+#define TXT_ZRE (2)	/* Poke trap commands via XTOT */
+#define TXT_ZMB (3)	/* Let Mathbox send trap commands */
+#define TXT_ZOVER (4)	/* Draw text on Zoid Overlay (neutered CoJag) */
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d4 2
+d14 1
+a14 1
+extern U32 prc_set_ipl(U32);		/* set the IMASK and IE bits in the SR register */
+d16 24
+a39 1
+#endif
+@

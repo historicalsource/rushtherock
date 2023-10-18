@@ -1,0 +1,304 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	97.04.24.17.14.40;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Pre-processor macros for building menu strings and related
+#defines. Original Author: Norman Avellar. Revised for
+multiple menus in one file: Michael Albaugh
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@; First, some initialization to decide what language the definitions will be
+; output in.
+;
+ .if	df,MAKE_MENU
+C_OUTPUT == 0
+MACXX_OUTPUT == 0
+ASM_OUTPUT == 0
+ .iff
+MAKE_MENU == 0			; Not Menu definer
+C_OUTPUT == 0			; probably not C
+ .if	ndf,ASM_OUTPUT
+ASM_OUTPUT == 0
+ .if	ndf,MACXX_OUTPUT
+MACXX_OUTPUT == 0
+C_OUTPUT == 1			; owell it was C after all
+ .endc
+ .iff
+MACXX_OUTPUT == 0		; if it's ASM_ can't be MACXX
+ .endc
+ .endc
+;
+;
+; One more try at stand-alone comments
+.macro .REM. code body
+'code'body
+	.endm
+;
+	.if	ne,ASM_OUTPUT
+.MACRO	REMB comments
+	.REM. *
+ .endm
+.MACRO	REMM comments
+	.REM. * <'comments'>
+ .endm
+.MACRO	REME comments
+	.REM. *
+ .endm
+;
+; Now some macros for outputting common constructs in the various languages:
+; DEC_CONST and HEX_CONST emit constant definitions in decimal and hexadecimal
+; respectively. Each takes a name and value, and an optional comment.
+.MACRO	DEC_CONST name val comment
+	.if	b,comment
+name	EQU	val
+	.iff
+name	EQU	val	* comment
+	.endc
+ .ENDM
+;
+.MACRO	HEX_OCONST name val comment
+	.if	b,comment
+name	EQU	$'val
+	.iff
+name	EQU	$'val	* comment
+	.endc
+ .ENDM
+;
+.MACRO	MENU_OCHOICE name val
+name	EQU	val
+ .ENDM
+;
+	.endc			; was MOTOROLA
+;
+;
+	.if	ne,MACXX_OUTPUT
+.MACRO	REMB comments
+	.REM. ;
+ .endm
+.MACRO	REMM comments
+	.REM. ; <'comments'>
+ .endm
+.MACRO	REME comments
+	.REM. ;
+ .endm
+;
+; Now some macros for outputting common constructs in the various languages:
+; DEC_CONST and HEX_CONST emit constant definitions in decimal and hexadecimal
+; respectively. Each takes a name and value, and an optional comment.
+.MACRO	DEC_CONST name val comment
+	.if	b,comment
+name	=	val
+	.iff
+name	= 	val	; comment
+	.endc
+ .ENDM
+;
+.MACRO	HEX_OCONST name val comment
+	.if	b,comment
+name	=	$'val
+	.iff
+name	=	$'val	; comment
+	.endc
+ .ENDM
+;
+.MACRO	MENU_OCHOICE name val
+name	=	val
+ .ENDM
+;
+	.endc			; was MACXX_OUTPUT
+;
+;
+	.if	ne,C_OUTPUT
+.MACRO	REMB comments
+	.REM. </*>
+ .endm
+.MACRO	REMM comments
+	.REM. < *> <'comments'>
+ .endm
+.MACRO	REME comments
+	.REM. < */>
+ .endm
+;
+; Now some macros for outputting common constructs in the various languages:
+; DEC_CONST and HEX_CONST emit constant definitions in decimal and hexadecimal
+; respectively. Each takes a name and value, and an optional comment.
+.MACRO	HEX_OCONST name val comment
+	.if	b,comment
+#define name (0x'val)
+	.iff
+#define name (0x'val)	/* comment */
+	.endc
+ .ENDM
+;
+.MACRO	DEC_CONST name val comment
+	.if	b,comment
+#define name (val)
+	.iff
+#define name (val)	/* comment */
+	.endc
+ .ENDM
+;
+.MACRO	MENU_OCHOICE name val
+#define	name	(val)
+ .ENDM
+;
+	.endc			; was C_OUTPUT
+;
+;
+	.if	ne,MAKE_MENU
+.MACRO	MENU_OTITLE val1 val2 val3 name
+"\val1'val2'val3'name:\000"
+ .ENDM
+;
+.MACRO	MENU_TITLE val1 val2 val3 name
+	MENU_OTITLE \(val1) \(val2) \(val3) <'name'>
+ .ENDM
+;
+.MACRO	MENU_CHOICE choice name
+	"'choice'\000"
+...CCH == ...CCH+1
+ .ENDM
+;
+.MACRO	MENU_END
+"";
+.ENDM
+;	these REMARK macros _could_ be the same as the C_OUTPUT macros
+.MACRO	REMB comments
+ .endm
+.MACRO	REMM comments
+ .endm
+.MACRO	REME comments
+ .endm
+;
+.MACRO	HEX_OCONST name val comment
+ .ENDM
+;
+.MACRO	DEC_CONST name val comment
+ .ENDM
+	.endc			; was MAKE_MENU
+;
+	.if	eq,MAKE_MENU	; Not MAKE_MENU
+.MACRO	MENU_CHOICE choice name
+	.if	nb,name
+	MENU_OCHOICE name \(...CCH)
+	.endc
+...CCH == ...CCH+1
+ .ENDM
+;
+.MACRO	MENU_OEND used_bits avail_bits
+REMB
+REMM	<  Number of option bits used is used_bits out of a total of avail_bits bits available.>
+REME
+ .ENDM
+.MACRO	MENU_END
+...pad	== ...TCH-...CCH
+	.if	gt,...pad
+	.rept	...pad
+	MENU_CHOICE <>
+	.endr
+	.endc
+	.iif	lt,...pad,.ERROR ;too many choices for previous option
+...used == 0
+...posn == 0
+	.rept ...TBITS
+	.iif ne,(...PTRN&(1<<...posn)),...used == ...used+1
+...posn == ...posn+1
+	.endr
+;
+	MENU_OEND \(...used) \(...TBITS)
+ .ENDM
+	.endc		; Not MAKE_MENU, regardless of OUTPUT_LANG
+;
+;
+;	this is for all output modes
+;
+.MACRO	HEX_CONST name val comment
+	HEX_OCONST name \\X(val) <'comment'>
+ .ENDM
+ .macro ...MSK_DEF pfx name msk shf comment
+
+ HEX_CONST pfx'_'name msk <'comment>
+ HEX_CONST pfx'S_'name shf <Number of bits to shift>
+ .endm
+.MACRO	MENU_START menu_name pfx
+ .if nb pfx
+ .define ...PFX pfx
+ .iff
+; For compatibility, use GO_ if there is no prefix specified
+ .define ...PFX GO
+ .endc
+ .if ne,MAKE_MENU
+static const unsigned char	'menu_name[] =
+ .endc
+;
+; (Re)define SPEC_OPTION, to use new pfx
+;
+	.macro SPEC_OPTION name,position,field_size,comment
+...pad	== ...TCH-...CCH
+	.if	gt,...pad
+	.rept	...pad
+	MENU_CHOICE <>
+	.endr
+	.endc
+	.iif	lt,...pad,.ERROR ;too many choices for previous option
+	.iif	gt,(position+field_size)-...TBITS,.ERROR ; <'name'> overflows word
+...MSK == (((1<<field_size)-1)<<position)	; Mask for current option, 1,3,7...
+;
+	.if	ne,MAKE_MENU
+	MENU_TITLE (position>>3) (position&7) (field_size) <'comment'>
+	.iff
+	...MSK_DEF ...PFX name ...MSK position <'comment'>
+	.endc
+	.iif	ne,...PTRN&(...MSK),.ERROR ;Bit(s) already in use
+...PTRN == ...PTRN|(...MSK)
+...TCH == (1<<field_size)	; Total CHoices
+...CCH == 0			; Current CHoice
+	.endm
+...PTRN == 0		; Bit mask for all options
+...TCH == 0		; Total CHoices
+...CCH == 0		; Current CHoice
+ .ENDM
+;
+;
+;
+; create #defines or EQUs for defining options
+;
+	.radix 10.
+...TBITS == 32		; Total Bits available
+;
+	.macro DEF_OPTION name,field_size,comment
+...OP == -1
+...MSK == ((1<<field_size)-1)
+...Try == 0
+	.rept ...TBITS-field_size
+	.if eq,...PTRN&(...MSK<<...Try)
+	.if lt,...OP
+...OP	== ...Try
+	.endc
+	.endc
+...Try	== ...Try+1
+	.endr
+	.if	lt,...OP
+	.error ; No room for field_size bit <'name'> option
+	.iff
+	SPEC_OPTION name ...OP field_size <'comment'>
+	.endc
+	.endm
+;
+@

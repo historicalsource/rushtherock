@@ -1,0 +1,332 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.2
+date	96.01.10.23.52.08;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.01.03.21.49.06;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Standalone diagnostics makefile.
+@
+
+
+1.2
+log
+@Changed pointer to zmbdiags.h
+@
+text
+@SRC_HOME = .
+GNU_HOME = . #/usr/local/gnu/include
+INC_HOME = ../inc/
+
+VPATH = .:$(SRC_HOME)	# point this to the source tree(s)
+HPATH = .:${INC_HOME}:$(GNU_HOME):$(R4K_INCLUDE_PATH)
+MPATH = .:$(GNU_HOME)
+
+vpath %.h $(HPATH)
+vpath %.mac $(MPATH)
+# We need the definition below to defeat the brain-dead csh built-in
+ECHO = /bin/echo		# than all the others
+
+BELL	= $(ECHO) "\007" > /dev/tty
+.SILENT:
+
+#
+# Build a list of include paths from those defined in HPATH for CPP
+# and for MACPP
+#
+CINCS	= -I$(subst :, -I,$(HPATH))
+PPINCS	= -include=$(subst :, -include=,$(MPATH))
+
+DATE 	= /usr/local/gnu/include/date.c
+DEF_PP	= /usr/local/gnu/include/def_pp.mac
+
+DEL	= rm -f
+#PP	= $(HOME)/macxx/i386/macpp
+PP	= macpp
+
+PPFLAGS		= $(PPINCS) -sym=32 	  -lis	# set to -lis if you also want listings with MACPP'd sources
+ASM_PPFLAGS	= $(PPINCS) -sym=32 -line -lis  # ditto, but leave the -line if you want asxx to report the correct
+#			# line numbers of your asm files that have been CPP'd or MACPP'd.
+POUT	= -out=
+
+COPT		= -O2
+AOPT		= 
+CDEBUG		= #-g3
+ADEBUG		= #-g3
+DEFS		= -DTRUNC_IT -DUSE_SQRTF -DASM_VERSIONS #-DNO_TRAPIFY -DTEST_MODE_ONLY #-DTIME_IT #-DNO_STORES 
+CC		= cc
+CFLAGS		= $(CINCS) $(COPT) $(CDEBUG) -mips2 -float $(DEFS)
+CO		= co
+COFLAGS		= -q
+AS		= /usr/bin/as
+ASFLAGS		= -mips3 -ahls $(AOPT) $(ADEBUG) $(DEFS)
+MIXIT		= $(HOME)/mixit/sgi/mixit
+#MIXIT		= mixit
+
+CONFIG_FILES =  config.mac constants.mac pptypes.mac idt.mac idt_vectors.mac mbhost.mac
+CONFIG_FILES += hcr4k.mac xbusmon.mac #mb4600.mac 
+OS_ROOT = except_vectors$O os_rootr4k$O idtc4000$O 
+OBJS = $(OS_ROOT) sad_main$O dispatch$O zag_fifo$O sad_cledi$O sad_parse$O reent$O # sad_ice$O lcd$O 
+
+LINKFILES	= ${ZOIDOBJ}
+TSTFILES	= tst.o distance_r.o matrix.o matrix_r.o trig_c.o trig_a.o qobjs.o qobjs_r.o
+
+% :
+	@@echo "Hmmmm....No rule to make $@@"
+	exit 1
+
+%.h : %.h,v
+	if [ -w $@@ ];\
+	 then \
+		echo "Error: $@@ is writeable but older than version in RCS"; \
+		exit 1; \
+	 fi; \
+	cd ..; $(CO) $(COFLAGS) RCS/$(notdir $<) 
+
+%.c : %.c,v
+	if [ -w $@@ ];\
+	 then \
+		echo "Error: $@@ is writeable but older than version in RCS"; \
+		exit 1; \
+	 fi; \
+	cd ..; $(CO) $(COFLAGS) RCS/$(notdir $<) 
+ 
+define MAC_2_H_RULE
+	@@$(ECHO) "\tMaking $(notdir $@@)"
+	@@rm -f $(basename $(@@F)).err
+	@@$(PP) $(POUT)$(notdir $@@) $(PPFLAGS) SPECIAL_ASM_FLAGS $(filter %def_pp.mac,$^) $<  > $(basename $(@@F)).err 2>&1; \
+		if [ -s $(basename $(@@F)).err ];\
+		then \
+			$(ECHO) "Errors in $(basename $(@@F)).err";\
+		else\
+			rm -f $(basename $(@@F)).err; \
+		fi
+endef
+
+%.h : %.mac $(DEF_PP)
+	$(patsubst SPECIAL_ASM_FLAGS,,$(MAC_2_H_RULE))
+
+%.i : %.mac $(DEF_PP)
+	@@$(ECHO) "\tMaking $(notdir $@@)"
+	@@rm -f $(basename $(@@F)).err
+	@@$(PP) $(POUT)$(notdir $@@) $(PPFLAGS) \
+		-assem="OUTPUT_LANG == $(OUTPUT_LANG)" \
+		-assem="MAX_ALIGN == 2" \
+		$(filter %def_pp.mac,$^) $< \
+		> $(basename $(@@F)).err 2>&1; \
+		if [ -s $(basename $(@@F)).err ];\
+		then \
+			$(ECHO) "Errors in $(basename $(@@F)).err";\
+		else\
+			rm -f $(basename $(@@F)).err; \
+		fi
+
+%.txt : %.mac $(DEF_PP)
+	@@$(ECHO) "\tMaking $(notdir $@@)"
+	@@rm -f $(basename $(@@F)).err
+	@@$(PP) $(POUT)$(notdir $@@) $(PPFLAGS) \
+		-assem="OUTPUT_LANG == LANG_TXT" \
+		$(filter %def_pp.mac,$^) $< \
+		> $(basename $(@@F)).err 2>&1; \
+		if [ -s $(basename $(@@F)).err ];\
+		then \
+			$(ECHO) "Errors in $(basename $(@@F)).err";\
+		else\
+			rm -f $(basename $(@@F)).err; \
+		fi
+
+# Some definitions for the tool chains we can use
+TOOL_LLF 	= 0
+TOOL_MRI 	= 1
+TOOL_HAC 	= 2
+TOOL_CYGR3Knfp 	= 3
+TOOL_CYGR3Kfp 	= 4
+TOOL_CYGR4K	= 5
+
+TOOLS		= $(TOOL_CYGR4K)
+
+ifeq ($(strip $(TOOLS)),$(strip $(TOOL_LLF)))
+ include Makefile.llf
+endif
+
+ifeq ($(strip $(TOOLS)),$(strip $(TOOL_MRI)))
+ include Makefile.mri
+endif
+
+ifeq ($(strip $(TOOLS)),$(strip $(TOOL_HAC)))   # GCC 2.* with HAC toolchain (68k)
+ PROCESSOR = 68k
+ CONFIG_FILE = ec020.mac
+ CFLAGS = $(CINCS) $(DEFS) -Wall -ansi -pedantic 
+ LIBDIRS = -L${M68K_LIBRARY_PATH}
+ LIBS    = -lgcc 
+ OUTPUT_LANG = LANG_ASRxk
+ include Makefile.cygnus                        #HAC and Cygnus are the same
+endif
+
+ifeq ($(strip $(TOOLS)),$(strip $(TOOL_CYGR3Knfp)))     # GCC 2.* with Cygnus toolchain (r3k, soft floating)
+ PROCESSOR = r3k
+ CONFIG_FILE = lcr3k.mac
+ CFLAGS = $(CINCS) $(DEFS) -Wall -ansi -pedantic -G 0 -msoft-float
+ LIBDIRS = -L${R3K_LIBRARY_PATH}/soft-float
+ LIBS    = -lisprintf -lm -lc  -lgcc 
+ OUTPUT_LANG = LANG_ASRxk
+ include Makefile.cygnus
+endif
+
+ifeq ($(strip $(TOOLS)),$(strip $(TOOL_CYGR3Kfp)))      # GCC 2.* with Cygnus toolchain (R3081, FPU)
+ PROCESSOR = r3k
+ CONFIG_FILE = lcr3k.mac
+ CFLAGS = $(CINCS) $(DEFS) -Wall -ansi -pedantic -G 0 -mips3
+ ASFLAGS = -mips3
+ LIBDIRS = -L${R3K_LIBRARY_PATH}
+ LIBS    = -lisprintf -lgcc -lc -lm
+ OUTPUT_LANG = LANG_ASRxk
+ include Makefile.cygnus
+endif
+
+ifeq ($(strip $(TOOLS)),$(strip $(TOOL_CYGR4K)))                # GCC 2.* with Cygnus/HAC toolchain (r4k)
+ PROCESSOR = r4k
+ CONFIG_FILE = hcr4k.mac
+ CFLAGS = $(CINCS) $(DEFS) $(COPT) $(CDEBUG) -Wall -ansi -pedantic -G 0 -mips2 -Wno-trigraphs #-Wa,-adlhs 
+ ASFLAGS = -mips3 $(AOPT) $(ADEBUG) #-adhls #$(DEFS) 
+# LIBDIRS = -L${R4K_LIBRARY_PATH}
+ LIBDIRS = -L${R3_5K_LIBRARY_PATH}
+ LIBS    = -lnisprintf -lcled -lgcc -lc -lm 
+ LNFLAGS = -mips3
+ OUTPUT_LANG = LANG_ASRxk
+ include Makefile.cygnus
+endif
+
+%.img : %.mix
+	@@$(MIXIT) $<
+
+%.mot : %.elf
+	@@$(ECHO) "	Converting $< to $@@ ..."
+	@@objcopy$(PROCESSOR) --output-target=srec $< $@@
+
+# here it is
+#		$(filter-out %.c, $(filter-out %.lnk, $^)) date.o $(LIBDIRS) $(LIBS)
+
+diag.elf : diag.lnk $(OBJS)
+
+diag.img : diag.mix diag.mot 
+
+diag.mot : diag.elf
+
+testem:
+	@@echo "VPATH	 = $(VPATH)"
+	@@echo "HPATH	 = $(HPATH)"
+	@@echo "TOOLS     = \"$(strip $(TOOLS))\""
+	@@echo "TOOLCYG   = \"$(strip $(TOOL_CYGR3Knfp))\""
+	@@echo "Processor = $(PROCESSOR)"
+	@@echo "CFLAGS    = $(CFLAGS)"
+	@@echo "LIBDIRS   = $(LIBDIRS)"
+	@@echo "LIBS      = $(LIBS)"
+	@@echo "OUTPUT_LANG = $(OUTPUT_LANG)"
+	@@echo "PPINCS	= \"$(PPINCS)\""
+
+#
+#	CONFIG dependencies
+#
+config		: config.h 
+
+config.h	: $(CONFIG_FILES)
+
+MAKE_ZRE = -assem=PROCESSOR==MIPS4600
+
+zre_defs.h	: zre_defs.mac def_pp.mac constants.mac pptypes.mac
+	$(patsubst SPECIAL_ASM_FLAGS,$(MAKE_ZRE),$(MAC_2_H_RULE))
+
+diag.lnk : makelnk makefile 
+	@@echo "Making $@@..."
+	@@sh $< $@@ 0x9FC00000 0x00010000 0x00000000 0x00200000 0x00004000 
+#	@@sh $< $@@ 0xBFC00000 0x00010000 0x00000000 0x00A00000 0x00004000 
+
+# the sources
+#%.o : %.c
+#	$(CC) $(CFLAGS) -o $(basename $(@@F)).o -c $<
+#	$(CC) $(CFLAGS) -c $<
+
+#%.s : %.c
+#	$(CC) $(CFLAGS) -o $(basename $(@@F)).o -c $<
+#	$(CC) $(CFLAGS) -S $<
+
+# the sources
+#%.o : %.asm
+#	$(AS) $(ASFLAGS) -o $(basename $(@@F)).o $<
+
+mb.lnk : makelnk makefile 
+	@@echo "Making $@@..."
+	@@sh $< $@@ 0xBFD79000 0x00007000 0x00000000 0xB007E000 0x00002000 0x90000000
+#	@@sh $< $@@ 0x9FC00000 0x00007000 0x00000000 0x9007DC00 0x00002400 0x90000000
+
+intvecs.h : vecs.mac config.mac
+	@@rm -f $(basename $<).lis $(basename $<).pasm dispatch.c $@@
+	@@$(ECHO) "\tMACPP'ing $< to dispatch.c and $@@ ..."
+	$(PP) $(PPINCS) -lis=$(basename $<).lis -out=dispatch.c -out=$@@ -out=/dev/null \
+		-assem="OUTPUT_LANG == 5 " \
+		$(DEF_PP) $< > $(basename $<).err 2>&1; \
+	if [ -s $(basename $<).err ];\
+	then\
+	  $(ECHO) 'MACPP errors listed in $(basename $<).err';\
+	else \
+	  $(RM) -f $(basename $<).err; \
+	  chmod 444 dispatch.c $@@; \
+	fi
+		
+dispatch.c	: vecs.mac config.mac
+	@@rm -f $(basename $<).lis $(basename $<).pasm $@@ $(INC)intvecs.h
+	@@$(ECHO) "\tMACPP'ing $< to $@@ and $(INC)intvecs.h ..."
+	$(PP) $(PPINCS) -lis=$(basename $<).lis -out=$@@ -out=$(INC)intvecs.h -out=/dev/null \
+		-assem="OUTPUT_LANG == 5 " \
+		$(DEF_PP) $< > $(basename $<).err 2>&1; \
+	if [ -s $(basename $<).err ];\
+	then\
+	  $(ECHO) 'MACPP errors listed in $(basename $<).err';\
+	else \
+	  $(RM) -f $(basename $<).err; \
+	  chmod 444 $@@ $(INC)intvecs.h; \
+	fi
+		
+idtc4000.o : idtc4000.mac $(CONFIG_FILES)
+os_rootr4k.o : os_rootr4k.mac $(CONFIG_FILES)
+sad_main.o: sad_main.c config.h proto.h os_root.h
+sad_cledi.o: sad_cledi.c config.h cled_io.h proto.h os_root.h
+sad_parse.o: sad_parse.c config.h proto.h os_root.h ${INC_HOME}zmbdiags.h
+sad_ice.o: sad_ice.c config.h proto.h os_root.h
+zag_fifo.o: zag_fifo.c config.h proto.h os_root.h ${INC_HOME}zmbdiags.h
+reent.o: reent.c
+
+clean:
+	rm -f *.o *.b zoid config.h
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d3 1
+d6 1
+a6 1
+HPATH = .:$(SRC_HOME):$(GNU_HOME):$(R4K_INCLUDE_PATH)
+d279 1
+a279 1
+sad_parse.o: sad_parse.c config.h proto.h os_root.h
+d281 1
+a281 1
+zag_fifo.o: zag_fifo.c config.h proto.h os_root.h
+@

@@ -1,0 +1,143 @@
+head	1.2;
+access;
+symbols
+	RUSH_1_06A:1.2
+	CJ2_05:1.2
+	CJ2_04:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	96.10.01.00.01.58;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.02.28.16.00.27;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Functions for configuration screen.
+@
+
+
+1.2
+log
+@Added support for WMS (PHOENIX Class) hosts.
+@
+text
+@
+/*
+ *	cfg.c -- Forrest Miller -- January 1996
+ *
+ *	Functions for configuration screen.
+ *
+ *
+ *		Copyright 1996 Time Warner Interactive
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <eer_defs.h>
+
+#define	STATIC	static
+
+extern void ser_display( int col, int row, int pal);
+extern void rtc_display( int col, int row, int pal);
+
+extern int _ftext, text_end, bss_start, bss_end;
+
+STATIC int cfg_display( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+{
+ int row = 6;
+
+#ifdef HST_SERIAL_NUM
+#ifndef SERIAL_INPUT
+ if ( smp == (const struct menu_d *)0 )
+  ser_display(-1, row++, WHT_PAL);
+ else row++;
+#endif /* not def'd SERIAL_INPUT */
+#endif /* def'd HST_SERIAL_NUM */
+
+#if ( EEPROM_SIZE & (EEPROM_SIZE-1) ) || (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+ if ( ( eer_rtc % 60 ) == 0 ) rtc_display(-1, ++row, WHT_PAL);
+#endif
+
+ if ( smp == (const struct menu_d *)0 )
+ {
+  row += 4;
+
+  txt_str(4, row, "Processor:   0x", WHT_PAL);
+  txt_chexnum( PROCESSOR, 2, RJ_ZF, WHT_PAL);
+  row += 2;
+  txt_str(4, row++, "text_start:  0x", WHT_PAL);
+  txt_chexnum( (int)&_ftext, 8, RJ_ZF, WHT_PAL);
+
+  txt_str(4, row, "text_end:    0x", WHT_PAL);
+  txt_chexnum( (int)&text_end, 8, RJ_ZF, WHT_PAL);
+  row += 2;
+  txt_str(4, row++, "bss_start:   0x", WHT_PAL);
+  txt_chexnum( (int)&bss_start, 8, RJ_ZF, WHT_PAL);
+
+  txt_str(4, row++, "bss_end:     0x", WHT_PAL);
+  txt_chexnum( (int)&bss_end, 8, RJ_ZF, WHT_PAL);
+ }
+
+ return 0;
+}
+
+extern int ser_set_serial( const struct menu_d *);
+extern int rtc_set_clock( const struct menu_d *);
+
+STATIC const struct menu_d CFG_LIST[] =
+{
+    {"CONFIGURATION", cfg_display},
+
+#ifdef HST_SERIAL_NUM
+#ifndef SERIAL_INPUT
+    {"SET S/N", ser_set_serial},
+#endif /* not def'd SERIAL_INPUT */
+#endif /* def'd HST_SERIAL_NUM */
+
+#if ( EEPROM_SIZE & (EEPROM_SIZE-1) )
+    {"START CLOCK", rtc_set_clock},
+    {"SET CLOCK",   rtc_set_clock},
+    {"STOP CLOCK",  rtc_set_clock},
+#elif (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+    {"SET CLOCK",   rtc_set_clock},
+#endif
+
+    { 0, 0 }
+};
+
+int cfg_main( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+{
+ return st_menu(&CFG_LIST[0], sizeof(CFG_LIST[0]), RED_PALB, 0);
+}
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d30 1
+a30 1
+ int row = 3;
+d40 2
+a41 2
+#if ( EEPROM_SIZE & (EEPROM_SIZE-1) )
+ rtc_display(-1, ++row, WHT_PAL);
+d84 2
+@

@@ -1,0 +1,183 @@
+head	1.2;
+access;
+symbols
+	RUSH_ROCK_1_0:1.2
+	RUSH_ROCK_1_0epst:1.2
+	MACE_1_0e:1.2
+	MACE_1_0d:1.2
+	RUSH_1_06A:1.2
+	AREA_52_00:1.2
+	MACE_1_0a:1.2
+	CJ_206:1.2
+	CJ2_05:1.2
+	CJ2_04:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	95.07.18.00.46.34;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.47.56;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@defines how to build BIG alpahnumeric characters from 8x8 stamps,
+used only by jag_text.c. This is only seperate to allow a "dif"
+to be used to compare jag_text.c in diffferent directories.
+@
+
+
+1.2
+log
+@added entries for several pre-existing punctuation marks
+for BIG character set. These are the fairly ugly Rampart
+additions, but if they are going to take up ROM space we
+might as well make them accessible.
+@
+text
+@/*		txt_tab.h
+ * This file has the character translation tables that were in originally
+ * in mt_mess.asm, then in txt_tab.asm. This particular incarnation was
+ * hand-massaged by MEA 9JUN94. In the future, either we will cease using
+ * "compressed" big-character sets or we will find a way to do this semi-
+ * automatically from .rad files or the like.
+ */
+
+/* BIG character table
+ * TRANSLATION TABLE FOR SYS$USERDISK:[MOORE.PACKRAT]BIGA.INT;1           
+ * >>>>>>>>>>> ALSO for SALPHAS <<<<<<<<<<
+ * This version modified to change the order of the wide chars from TL,TR,BL,BR
+ * to TL,BL,TR,BR and have the narrow characters just follow the wide
+ * ones, with zero-padding to make everbody a long-word. The message routine
+ * will detect a pair of zeroes, and stop.
+ * These bytes are word aligned, not that it should matter 
+ * in the middle of code.
+ */
+#define BT_ENT(tl,bl,tr,br) {(tl)+CLUMP_OFFS,(bl)+CLUMP_OFFS,(tr)+CLUMP_OFFS,(br)+CLUMP_OFFS}
+
+#define CLUMP_OFFS (0)
+const struct bigchar BTABLE[] = {
+	BT_ENT(	0x00,0x02,0x01,0x03),	/* 0 */
+	BT_ENT(	0x04,0x06,0x05,0x07),	/* 1 */
+	BT_ENT(	0x08,0x0a,0x09,0x0b),	/* 2 */
+	BT_ENT(	0x0c,0x0e,0x0d,0x0f),	/* 3 */
+	BT_ENT(	0x10,0x12,0x11,0x13),	/* 4 */
+	BT_ENT(	0x14,0x16,0x15,0x17),	/* 5 */
+	BT_ENT(	0x18,0x1a,0x19,0x1b),	/* 6 */
+	BT_ENT(	0x1c,0x1e,0x1d,0x1f),	/* 7 */
+	BT_ENT(	0x20,0x22,0x21,0x23),	/* 8 */
+	BT_ENT(	0x24,0x26,0x25,0x27),	/* 9 */
+	BT_ENT(	0x28,0x2A,0x29,0x2B),	/* PICTURE 'A' BUFFER 10 */
+	BT_ENT(	0x2C,0x2D,0x21,0x2E),	/* PICTURE 'B' BUFFER 11 */
+	BT_ENT(	0x00,0x02,0x2F,0x30),	/* PICTURE 'C' BUFFER 12 */
+	BT_ENT(	0x31,0x32,0x01,0x03),	/* PICTURE 'D' BUFFER 13 */
+	BT_ENT(	0x2C,0x2D,0x33,0x34),	/* PICTURE 'E' BUFFER 14 */
+	BT_ENT(	0x2C,0x2D,0x33,0x35),	/* PICTURE 'F' BUFFER 15 */
+	BT_ENT(	0x00,0x02,0x2F,0x36),	/* PICTURE 'G' BUFFER 16 */
+	BT_ENT(	0x2C,0x2D,0x37,0x38),	/* PICTURE 'H' BUFFER 17 */
+	BT_ENT(	0x39,0x06,0x3A,0x3B),	/* PICTURE 'I' BUFFER 18 */
+	BT_ENT(	0x3C,0x3E,0x3D,0x3F),	/* PICTURE 'J' BUFFER 19 */
+	BT_ENT(	0x2C,0x2D,0x40,0x41),	/* PICTURE 'K' BUFFER 20 */
+	BT_ENT(	0x31,0x32,0x42,0x43),	/* PICTURE 'L' BUFFER 21 */
+	BT_ENT(	0x44,0x46,0x45,0x47),	/* PICTURE 'M' BUFFER 22 */
+	BT_ENT(	0x48,0x4A,0x49,0x4B),	/* PICTURE 'N' BUFFER 23 */
+	BT_ENT(	0x00,0x02,0x01,0x03),	/* PICTURE 'O' BUFFER 24 */
+	BT_ENT(	0x2C,0x2D,0x21,0x4C),	/* PICTURE 'P' BUFFER 25 */
+	BT_ENT(	0x00,0x02,0x01,0x4D),	/* PICTURE 'Q' BUFFER 26 */
+	BT_ENT(	0x2C,0x2D,0x21,0x41),	/* PICTURE 'R' BUFFER 27 */
+	BT_ENT(	0x4E,0x50,0x4F,0x51),	/* PICTURE 'S' BUFFER 28 */
+	BT_ENT(	0x52,0x06,0x53,0x07),	/* PICTURE 'T' BUFFER 29 */
+	BT_ENT(	0x31,0x55,0x54,0x56),	/* PICTURE 'U' BUFFER 30 */
+	BT_ENT(	0x57,0x59,0x58,0x5A),	/* PICTURE 'V' BUFFER 31 */
+	BT_ENT(	0x5B,0x5D,0x5C,0x5E),	/* PICTURE 'W' BUFFER 32 */
+	BT_ENT(	0x5F,0x61,0x60,0x62),	/* PICTURE 'X' BUFFER 33 */
+	BT_ENT(	0x5F,0x64,0x63,0x65),	/* PICTURE 'Y' BUFFER 34 */
+	BT_ENT(	0x1C,0x67,0x66,0x68),	/* PICTURE 'Z' BUFFER 35 */
+	BT_ENT(	0x69,0x6B,0x6A,0x6C),	/* PICTURE '?' BUFFER 36 */
+	BT_ENT(	0x3C,0x3C,0x3C,0x3C),	/* PICTURE ' ' BUFFER 37 */
+	BT_ENT(	0x6E,0x3C,0x6E,0x3C),	/* PICTURE '"' BUFFER 38 */
+	BT_ENT(	0x6D,0x6E,0x00,0x00),	/* PICTURE ';' BUFFER 39 */
+	BT_ENT( 0x6F,0x70,0x00,0x00),	/* PICTURE '!' BUFFER 40 */
+	BT_ENT(	0x71,0x72,0x00,0x00),	/* PICTURE '#' BUFFER 41 */
+	BT_ENT(	0x6D,0x6D,0x00,0x00),	/* PICTURE ':' BUFFER 42 */
+	BT_ENT(	0x3C,0x6D,0x00,0x00),	/* PICTURE '.' BUFFER 43 */
+	BT_ENT(	0x3C,0x6E,0x00,0x00),	/* PICTURE ',' BUFFER 44 */
+	BT_ENT(	0x3C,0x3C,0x00,0x00),	/* PICTURE ' ' BUFFER 45 (thin space) */
+	BT_ENT(	0x6E,0x3C,0x00,0x00),	/* PICTURE ' ' ' BUFFER 46 */
+	BT_ENT(	0x1C,0x1E,0xF8,0xFA),	/* Picture '<-' (horiz) BUFFER 47 */
+	BT_ENT(	0x73,0x75,0x74,0x76),	/* Picture 'end' (horiz) BUFFER 48 */
+#if (COJAG_GAME != COJAG_FISH)
+	BT_ENT(	0x8D,0x8E,0x00,0x00),	/* Picture '*' BUFFER 49 */
+#else
+#if (0)
+	BT_ENT(	0xA5,0xA6,0x00,0x00),	/* Picture '*' (small x) BUFFER 49 */
+#else
+	BT_ENT(	0xA7,0xA9,0xA8,0xAA),	/* Picture '*' (Sans Serif Big X) BUFFER 49 */
+#endif
+#endif
+	BT_ENT(	0x8F,0x90,0x00,0x00),	/* Picture '+' BUFFER 50 */
+	BT_ENT(	0x91,0x92,0x00,0x00),	/* Picture '-' BUFFER 51 */
+	BT_ENT(	0x95,0x97,0x96,0x98),	/* Picture '/' BUFFER 52 */
+	BT_ENT(	0x89,0x8A,0x00,0x00),	/* Picture '(' BUFFER 53 */
+	BT_ENT(	0x8B,0x8C,0x00,0x00),	/* Picture ')' BUFFER 54 */
+	BT_ENT(	0x7D,0x7E,0x00,0x00),	/* Picture '$' BUFFER 55 */
+	BT_ENT(	0x7F,0x81,0x80,0x82),	/* Picture '%' BUFFER 56 */
+	BT_ENT(	0x83,0x85,0x84,0x86)	/* Picture '&' BUFFER 57 */
+
+};
+
+/*
+ *	Translation table for BIG character output
+ *	-- converts ASCII to an index into BTABLE
+ */
+const signed char trantab[] = {
+    -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+    0x2F,0x30,-1,  -1,  -1,  -1,  -1,  -1,	/* <-,done,		*/
+
+    -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+    -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+
+    0x25,0x28,0x26,0x29, 55, 56,  57,  0x2E,	/* sp ! " # $ % & '	*/
+    0x35,0x36,0x31,0x32,0x2C,0x33,0x2B,0x34,	/*  ( ) * + , - . /	*/
+    0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,	/*  0 1 2 3 4 5 6 7	*/
+    0x08,0x09,0x2A,0x27,-1,  -1,  -1,  0x24,	/*  8 9 : ;       ?	*/
+
+    -1,  0x0A,0x0B,0x0C,0x0D,0x0E,0x0F,0x10,	/*    A B C D E F G	*/
+    0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,	/*  H I J K L M N O	*/
+    0x19,0x1A,0x1B,0x1C,0x1D,0x1E,0x1F,0x20,	/*  P Q R S T U V W	*/
+    0x21,0x22,0x23,-1,  -1,  -1,  -1,  0x2D,	/*  X Y Z        <thin sp> */
+#ifdef BIG_LC
+    -1,  0x33,0x34,0x35,0x36,0x37,0x38,0x39,	/*    a b c d e f g	*/
+    0x3A,0x3B,0x3C,0x3D,0x3E,0x3F,0x40,0x41,	/*  h i j k l m n o	*/
+    0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,	/*  p q r s t u v w	*/
+    0x4A,0x4B,0x4C,-1,  -1,  -1,  -1,  -1	/*  x y z	*/
+#else
+    -1,  0x0A,0x0B,0x0C,0x0D,0x0E,0x0F,0x10,	/*    a b c d e f g	*/
+    0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,	/*  h i j k l m n o	*/
+    0x19,0x1A,0x1B,0x1C,0x1D,0x1E,0x1F,0x20,	/*  p q r s t u v w	*/
+    0x21,0x22,0x23,-1,  -1,  -1,  -1,  -1	/*  x y z        <thin sp> */
+#endif
+};
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d71 19
+a89 1
+	BT_ENT(	0x73,0x75,0x74,0x76)	/* Picture 'end' (horiz) BUFFER 48 */
+d103 2
+a104 2
+    0x25,0x28,0x26,0x29,-1,  -1,  -1,  0x2E,	/* sp ! " #       '	*/
+    -1,  -1,  -1,  -1,  0x2C,-1,  0x2B,-1,	/*          ,   .	*/
+@

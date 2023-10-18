@@ -1,0 +1,131 @@
+head	1.2;
+access;
+symbols
+	AREA_52_00:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	97.04.06.01.05.07;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.01.10.00.45.46;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Simple stub to force stdin,stdout and stderr to tty0.
+@
+
+
+1.2
+log
+@Change AN_VIS_COL to AN_VIS_COL_MAX so it works with
+dynamic screen resolutions.
+@
+text
+@#include <config.h>
+#include <os_proto.h>
+#include <qio.h>
+#include <fcntl.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <errno.h>
+
+extern qio_uart_init(void);
+
+static void report_error(const char *prefix, int sts) {
+    char emsg[AN_VIS_COL_MAX];
+    qio_errmsg(sts, emsg, sizeof(emsg));
+    txt_str(-1, AN_VIS_ROW/2, prefix, WHT_PAL);
+    txt_str(-1, AN_VIS_ROW/2+2, emsg, RED_PAL);
+    while (1) prc_delay(0);
+}
+
+void stdio_uart(void) {
+    QioIOQ *rioq, *wioq, *tioq;
+    int sts;
+    FILE *in, *out, *err;
+
+    qio_uart_init();
+    rioq = qio_getioq();
+    wioq = qio_getioq();
+    tioq = qio_getioq();
+
+    sts = qio_open(rioq, "/tty0", O_RDONLY);
+    while (!sts) { sts = rioq->iostatus; }
+    if (QIO_ERR_CODE(sts)) {
+	report_error("Error opening /tty0 for read", sts);
+    }	
+    sts = qio_open(wioq, "/tty0", O_WRONLY);
+    while (!sts) { sts = rioq->iostatus; }
+    if (QIO_ERR_CODE(sts)) {
+	report_error("Error opening /tty0 for write", sts);
+    }	
+
+    tioq->file = 0;
+    sts = qio_close(tioq);
+    while (!sts) { sts = tioq->iostatus; }
+    if (QIO_ERR_CODE(sts)) {
+	report_error("Error closing fd 0", sts);
+    }	
+    in = freopen("/tty0", "r", stdin);
+    if (!in) {
+	report_error("Error reopening stdin", errno);
+    }    
+    tioq->file = 1;
+    sts = qio_close(tioq);
+    while (!sts) { sts = tioq->iostatus; }
+    if (QIO_ERR_CODE(sts)) {
+	report_error("Error closing fd 1", sts);
+    }	
+    out = freopen("/tty0", "w", stdout);
+    if (!out) {
+	report_error("Error reopening stdout", errno);
+    }    
+    tioq->file = 2;
+    sts = qio_close(tioq);
+    while (!sts) { sts = tioq->iostatus; }
+    if (QIO_ERR_CODE(sts)) {
+	report_error("Error closing fd 2", sts);
+    }	
+    qio_freeioq(tioq);
+    err = freopen("/tty0", "w", stderr);
+    if (!err) {
+	report_error("Error reopening stderr", errno);
+    }    
+    err->_flags |= __SNBF;		/* stderr is unbuffered */
+
+#if 0
+#define MSG1 "This is a test of a write to stdout\r\n"
+    sts = fwrite(MSG1, 1, sizeof(MSG1)-1, stdout);
+    if (sts != sizeof(MSG1)-1) {
+	report_error("Error fwriting", errno);
+    }
+#define MSG2 "This is a test of a write to stderr\r\n"
+    fwrite(MSG2, 1, sizeof(MSG2)-1, stderr);
+    if (sts != sizeof(MSG2)-1) {
+	report_error("Error fwriting", errno);
+    }
+    printf("This is a test printf to stdout: %s\r\n", "def");
+    fprintf(stderr,"This is a test fprintf to stderr: %s\r\n", "abc");
+    printf("Stdin uses fd %d, stdout uses %d and stderr uses %d\r\n",
+    	stdin->_file, stdout->_file, stderr->_file);
+#endif
+}	
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 1
+a12 1
+    char emsg[AN_VIS_COL];
+@

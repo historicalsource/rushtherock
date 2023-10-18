@@ -1,0 +1,430 @@
+head	1.11;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.11
+date	96.02.28.21.09.08;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.02.28.19.26.33;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.02.28.01.20.12;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.02.07.18.11.55;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.02.05.22.59.42;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.01.31.22.51.43;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.01.17.01.42.40;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.01.10.23.32.31;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.01.02.18.30.41;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.12.12.21.37.42;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.11.06.18.07.37;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Some defines for mathbox diagnostics.
+@
+
+
+1.11
+log
+@Messed with volatiles
+@
+text
+@#if !defined(_ZMBDIAGS_H_)
+#define _ZMB_DIAGS_H_
+
+/* NOTICE: IF YOU CHANGE ANYTHING IN THIS FILE, ROLL THE VERSION NUMBER!!! */
+
+# define ZMBSA_VERSION		0x107	/* Roll this each time this header file is changed */
+
+#include <config.h>
+
+typedef struct {
+    VU32 msg;		/* relative address of text message (if any) */
+    VU32 stack;		/* stack pointer */
+    VU32 pc;		/* program counter */
+    VU32 sr;		/* status register */
+    VU32 regs;		/* relative address to saved register stack */
+    VU32 cause;		/* cause register */
+    VU32 badvaddr;	/* bad virtual address */
+} ZmbDiagMsgs;
+
+# if HOST_BOARD == MB4600
+#  define ZMBSA_BASE_ADDR	(DRAM_BASEnc)
+# else
+#  define ZMBSA_BASE_ADDR	(XBUS_SLOT3)
+# endif
+# define ZMBSA_COMM_OFFSET	0x7800
+# define ZMBSA_TEXTBUF		(ZMBSA_BASE_ADDR+ZMBSA_COMM_OFFSET)
+# define ZMBSA_DIRTYBUF		(ZMBSA_TEXTBUF+\
+    				((AN_VIS_ROW*AN_VIS_COL*sizeof(U16)+sizeof(U32)-1)&-sizeof(U32)))
+# define ZMBSA_TEXTOFFS		(ZMBSA_DIRTYBUF+\
+    				(((AN_VIS_ROW*AN_VIS_COL+7)/8+sizeof(U32)-1)&-sizeof(U32)))
+# define ZMBSA_COLOROFFS	(ZMBSA_TEXTOFFS+sizeof(U32))
+# define ZMBSA_COMM		(ZMBSA_COLOROFFS+sizeof(U32))
+
+enum zmbsa {
+    ZMBSA_TEST_FIFO=1,		/* test the FIFO circuits */
+    ZMBSA_TEST_MEM,		/* test the memory circuits */
+    ZMBSA_TEST_VERSION,		/* return version number */
+    ZMBSA_TEST_INT,		/* signal an interrupt */
+    ZMBSA_TEST_MOVIE,		/* Show a movie */
+    ZMBSA_TEST_TIMEIT		/* Figure out CPU speed */
+};
+
+#define ZMBSA_CMD_MASK		0x0000FFFF
+#define ZMBSA_FLAG_DOTEXT	0x00010000
+#define ZMBSA_FLAG_USEDIRTY	0x00020000
+#define ZMBSA_FLAG_CLRDIRTY	0x00040000
+#define ZMBSA_SENTINEL_IDLE	0x55555555
+#define ZMBSA_SENTINEL_GO	0xAAAAAAAA
+
+typedef struct {
+    volatile int sentinel;	/* starting sentinel */
+    volatile int command;	/* function to perform */
+    volatile int status;	/* return status */
+} ZagSAcmd;
+
+typedef struct {
+    ZagSAcmd hdr;		/* command frame header */
+    VU32 start;			/* start address */
+    VU32 end;			/* end address */
+    volatile int subtest;	/* subtest number */
+    volatile int actions;	/* action mask */
+    volatile int sequence;	/* sequence number */
+    volatile int flags;		/* flags used for testing the diagnostics */
+    VU32 failed;		/* failing address */
+    VU32 expected;		/* expected data */
+    VU32 actual;		/* actual data */
+    VU32 size;			/* size of FIFO found */
+    VU32 highwater;		/* high water mark */
+    VU32 lowater;		/* low water mark */
+    volatile int row;
+} ZagSAfifo;
+
+enum zagfifo_tests {
+    ZagFIFOok,			/* announce OK for result of test */
+    ZagFIFOinit,		/* test initial conditions */
+    ZagFIFOicounter,		/* test the initial FIFO counter bits */
+    ZagFIFOcounter,		/* test the counter */
+    ZagFIFOfull,		/* test the full bit */
+    ZagFIFOannounce,		/* display size, high and low water marks */
+    ZagFIFO132,			/* walk a one through first 32 locations */
+    ZagFIFOaddress,		/* write address into location */
+    ZagFIFOnotaddress,		/* write 1's compliment of address into location */
+    ZagFIFOones,		/* fill with all 1's */
+    ZagFIFOzeros,		/* fill with all 0's */
+    ZagFIFOmax			/* Max test number */
+};
+
+typedef struct {
+    ZagSAcmd hdr;		/* command frame header */
+    VU32 start;			/* start address */
+    VU32 end;			/* end address */
+    volatile int flags;		/* memory test flags */
+    VU32 actual_msb;		/* actual data */
+    VU32 actual_lsb;		/* actual data */
+    VU32 expected_msb;		/* expected data */
+    VU32 expected_lsb;		/* expected data */
+    VU32 failed;		/* failing address */
+    volatile int subtest;	/* subtest number */
+} ZagSAmemory;
+
+typedef struct {
+    ZagSAcmd hdr;		/* command frame header */
+    VU32 start;			/* relative address of start of movie */
+    VU32 length;		/* length of movie in U32's */
+} ZagSAmovie;
+
+#if 0
+extern int zag_test_fifo(void (*output)(int col, int row, const char *str, int color), int colinc, int rowinc);
+#else
+extern int zag_test_fifo(ZagSAfifo *zfifo, void (*callback)(ZagSAfifo *zf));
+#endif
+extern int zag_test_mem32(struct diag_params *, U32, U32, int);
+extern int zag_test_mem64(struct diag_params *, U32, U32, int);
+
+# if !HOST_IS_MATHBOX && MB_TEST_CODE
+extern U32 mb_test_code[];
+extern U32 mb_test_code_end[];
+# endif
+#endif
+
+@
+
+
+1.10
+log
+@Changed all stucts to be volaltile.
+@
+text
+@d10 8
+a17 8
+typedef volatile struct {
+    U32 msg;		/* relative address of text message (if any) */
+    U32 stack;		/* stack pointer */
+    U32 pc;		/* program counter */
+    U32 sr;		/* status register */
+    U32 regs;		/* relative address to saved register stack */
+    U32 cause;		/* cause register */
+    U32 badvaddr;	/* bad virtual address */
+d50 4
+a53 4
+typedef volatile struct {
+    int sentinel;	/* starting sentinel */
+    int command;	/* function to perform */
+    int status;		/* return status */
+d56 15
+a70 15
+typedef volatile struct {
+    ZagSAcmd hdr;	/* command frame header */
+    U32 start;		/* start address */
+    U32 end;		/* end address */
+    int subtest;	/* subtest number */
+    int actions;	/* action mask */
+    int sequence;	/* sequence number */
+    int flags;		/* flags used for testing the diagnostics */
+    U32 failed;		/* failing address */
+    U32 expected;	/* expected data */
+    U32 actual;		/* actual data */
+    U32 size;		/* size of FIFO found */
+    U32 highwater;	/* high water mark */
+    U32 lowater;	/* low water mark */
+    int row;
+d74 12
+a85 12
+    ZagFIFOok,		/* announce OK for result of test */
+    ZagFIFOinit,	/* test initial conditions */
+    ZagFIFOicounter,	/* test the initial FIFO counter bits */
+    ZagFIFOcounter,	/* test the counter */
+    ZagFIFOfull,	/* test the full bit */
+    ZagFIFOannounce,	/* display size, high and low water marks */
+    ZagFIFO132,		/* walk a one through first 32 locations */
+    ZagFIFOaddress,	/* write address into location */
+    ZagFIFOnotaddress,	/* write 1's compliment of address into location */
+    ZagFIFOones,	/* fill with all 1's */
+    ZagFIFOzeros,	/* fill with all 0's */
+    ZagFIFOmax		/* Max test number */
+d88 11
+a98 11
+typedef volatile struct {
+    ZagSAcmd hdr;	/* command frame header */
+    U32 start;		/* start address */
+    U32 end;		/* end address */
+    int flags;		/* memory test flags */
+    U32 actual_msb;	/* actual data */
+    U32 actual_lsb;	/* actual data */
+    U32 expected_msb;	/* expected data */
+    U32 expected_lsb;	/* expected data */
+    U32 failed;		/* failing address */
+    int subtest;	/* subtest number */
+d101 4
+a104 4
+typedef volatile struct {
+    ZagSAcmd hdr;	/* command frame header */
+    U32 start;		/* relative address of start of movie */
+    U32 length;		/* length of movie in U32's */
+@
+
+
+1.9
+log
+@Added a TIMEIT test.
+@
+text
+@d10 1
+a10 1
+typedef struct {
+d88 1
+a88 1
+typedef struct {
+d101 1
+a101 1
+typedef struct {
+@
+
+
+1.8
+log
+@New version number.
+New test code.
+@
+text
+@d6 1
+a6 1
+# define ZMBSA_VERSION		0x106	/* Roll this each time this header file is changed */
+d39 2
+a40 1
+    ZMBSA_TEST_MOVIE
+@
+
+
+1.7
+log
+@Numerous additions for proxy tests
+@
+text
+@d6 1
+a6 1
+# define ZMBSA_VERSION		0x105	/* Roll this each time this header file is changed */
+d38 1
+d41 1
+d92 2
+a93 3
+    int subtest;	/* subtest number */
+    int subtestmsg;	/* address relative to ZMBSA_BASE_ADDR for text of message (if any) */
+    U32 failed;		/* failing address */
+d96 2
+a97 2
+    U32 actual_lsb;	/* actual data */
+    U32 actual_msb;	/* actual data */
+@
+
+
+1.6
+log
+@Added more structs for other tests
+@
+text
+@d4 4
+d25 8
+a32 3
+# define ZMBSA_COMM_OFFSET	0x3400
+# define ZMBSA_TEXTBUF		((VU32*)(ZMBSA_BASE_ADDR+ZMBSA_COMM_OFFSET))
+# define ZMBSA_COMM		((VU32*)(ZMBSA_BASE_ADDR+ZMBSA_COMM_OFFSET+AN_VIS_ROW*AN_VIS_COL*sizeof(U16)/sizeof(U32)))
+d35 4
+a38 3
+    ZMBSA_TEST_FIFO=1,
+    ZMBSA_TEST_MEM,
+    ZMBSA_TEST_TEXT
+d40 6
+d47 1
+a47 1
+typedef struct {
+d53 1
+a53 1
+typedef struct {
+d58 3
+a60 1
+    int subtestmsg;	/* address relative to ZagSA_BASE_ADDR for text of message (if any) */
+d64 4
+d70 15
+d91 1
+a91 1
+    int subtestmsg;	/* address relative to ZagSA_BASE_ADDR for text of message (if any) */
+d99 7
+d107 3
+d113 4
+d118 1
+@
+
+
+1.5
+log
+@Added a color parameter to the output routine definition
+@
+text
+@d21 1
+a21 1
+# define ZMBSA_COMM_OFFSET	0x3000
+d23 1
+a23 1
+# define ZMBSA_COMM		((VU32*)((ZMBSA_BASE_ADDR+ZMBSA_COMM_OFFSET)+AN_VIS_ROW*AN_VIS_COL*sizeof(U16)/sizeof(U32))
+d33 1
+a34 1
+    int command;	/* function to perform */
+d39 2
+d43 1
+a43 1
+    U32 address;	/* failing address */
+d50 3
+d55 5
+a59 3
+    U32 address;	/* failing address */
+    U32 expected;	/* expected data */
+    U32 actual;		/* actual data */
+d63 2
+@
+
+
+1.4
+log
+@Added some zag test interface structs.
+@
+text
+@d55 1
+a55 1
+extern int zag_test_fifo(void (*output)(int col, int row, const char *str), int colinc, int rowinc);
+@
+
+
+1.3
+log
+@Added a rowinc to the zag_test_fifo() function.
+@
+text
+@d22 32
+a53 1
+# define ZMBSA_COMM		((VU32*)(ZMBSA_BASE_ADDR+ZMBSA_COMM_OFFSET))
+@
+
+
+1.2
+log
+@Added prototype for zag_test_fifo().
+@
+text
+@d24 1
+a24 1
+extern int zag_test_fifo(void (*output)(int col, int row, const char *str), int colinc);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d16 10
+@

@@ -1,0 +1,4093 @@
+head	1.30;
+access
+	peplinski
+	albaugh
+	birmingham
+	forrest
+	shepperd
+	todd;
+symbols
+	RUSH_ROCK_1_0:1.30
+	RUSH_ROCK_1_0epst:1.30
+	RUSH_1_06A:1.29
+	CJ_206:1.18
+	CJ2_05:1.17
+	CJ2_04:1.16;
+locks; strict;
+comment	@ * @;
+
+
+1.30
+date	97.09.05.02.03.32;	author forrest;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	97.07.01.22.48.44;	author albaugh;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	97.05.29.17.24.48;	author albaugh;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	97.02.04.18.44.07;	author albaugh;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	97.02.03.20.50.48;	author forrest;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	97.02.03.20.08.54;	author albaugh;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	97.01.30.22.37.12;	author albaugh;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	97.01.29.23.00.37;	author albaugh;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	97.01.10.21.14.33;	author albaugh;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.11.27.02.44.09;	author forrest;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.11.25.12.19.02;	author forrest;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.11.22.16.42.16;	author forrest;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.11.10.02.53.03;	author forrest;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.10.30.18.39.20;	author albaugh;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.07.02.15.50.05;	author forrest;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.07.01.18.27.48;	author todd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.04.18.23.46.25;	author forrest;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.01.18.17.42.05;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.12.22.23.41.06;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.11.29.01.23.25;	author peplinski;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.11.17.02.58.51;	author peplinski;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.10.31.22.23.48;	author peplinski;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.06.21.16.07.05;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.06.19.19.58.22;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.05.17.00.48.40;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.04.25.21.12.59;	author mckee;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.04.18.21.50.03;	author mckee;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.02.23.17.03.30;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.02.08.21.12.10;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.03.54;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@more-or-less standard test of as-yet-nonexistent Jaguar audio
+@
+
+
+1.30
+log
+@May define S_THUMP by defining RUMP_THUMP in config.mac
+@
+text
+@/*                     
+ *     snd_test.c
+ *    Primary Author:   Mike Albaugh
+ *    Some comments by: Chuck Peplinski
+ *
+ *  This file controlls the self test routines for audio.  
+ *  Mainly, this is the volume adjust screen, ( adj_vol() )
+ *  and the "sounds by numbers" screen.  ( snd_by_num() )
+ *
+ *            Copyright 1991-1995 Atari Games.
+ *     Unauthorized reproduction, adaptation, distribution, performance or 
+ *     display of this computer program or the associated audiovisual work
+ *     is strictly prohibited.
+ */
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id: snd_test.c,v 1.29 1997/07/01 22:48:44 albaugh Exp forrest $";
+#endif
+#define BRAVE_NEW_WORLD (1)      /* part of a system wide changeover to new names */
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <eer_defs.h>
+#include <string.h>
+
+#if !(HAS_CAGE)
+#define aud_cmd(arg) ((arg)|0x8000)
+#endif
+
+#if HAS_CAGE
+#define  HAS_MOS (1)
+/* Following may be bogus (CAGE may not always have QUAD), but
+ * it's less bogus than the former assumption that _everything_
+ * supported QUAD. (4FEB97, MEA)
+ */
+#ifndef HAS_QUAD
+#define  HAS_QUAD  (1)
+#endif
+#else
+#ifdef   COJAG_GAME
+#define  HAS_MOS (1)
+#define VOLUME_UP ( (cojag_rev >= 2) && !(TEST &(1<<5)) )
+#define VOLUME_DOWN ( (cojag_rev >= 2) && !(TEST &(1<<4)) )
+extern int cojag_rev;
+#else
+#define  HAS_MOS (0)
+#endif
+#endif
+
+#ifndef VOLUME_UP
+#if HAS_VOLUME_BUTTONS
+/* Compatibility hack for older games which always put
+ * volume buttons in VBLANK "switch" location.
+ */
+#define VOLUME_UP ( !(VBLANK &(1<<B_VOLUP) )
+#define VOLUME_DOWN ( !(VBLANK &(1<<B_VOLDN) )
+#endif	/* HAS_VOLUME_BUTTONS */
+#endif /* ndef'd VOLUME_UP */
+
+#define  STATIC static      /* If we are debugging, we define STATIC as blank space */
+
+/* 
+ *    Set up some defines for audio command values:
+ */
+ 
+#ifndef  ST_S_AUDTST
+#define  ST_S_AUDTST  (0x8003)
+#endif
+
+#ifndef  ST_S_STOP
+#define  ST_S_STOP    (0x8000)
+#endif
+
+
+#if      HAS_MOS
+#define  DATA           unsigned short
+#define  MAX_AUD_TRIES  (30)          /* 1/2 second */
+#define  S_PJCT_VER     (0x8009)
+#define  S_ERRORS       (0x800A)
+#define  S_LOAD_BANK    (0x8014)
+#define  S_UNLOAD_BANK  (0x8015)
+#define  S_REPORT_BANK  (0x8016)
+#define  START_SOUND    ST_S_AUDTST
+#define  START_INDEX    0x8000
+#define  START_TIME     (100)
+#ifndef  VERS_COL
+#if (AN_VIS_COL > 40 )
+#define  VERS_COL       (3)
+#else
+#define  VERS_COL       (1)
+#endif /* Wide/Narrow */
+#endif /* VERS_COL defined */
+
+#else    /* SA series */
+#define  DATA           unsigned char
+#define  MAX_AUD_TRIES  (3 * 60)      /* 3 seconds */
+#define  START_SOUND    ST_S_YTST
+#define  START_INDEX    0
+#define  START_TIME     (9*60)
+#endif
+
+
+/*     Try to set a reasonable default for the location and size of the
+ *     Attract-mode volume ratio. This will only be used if EER_AUD_ATRVOL
+ *     is not defined.
+ */
+#ifndef AUD_AV_MSK
+#ifdef EER_GUTS_OPT
+#define AUD_AV_MSK (3)
+#else
+#define AUD_AV_MSK (0)
+#endif /* EER_GUTS_OPT defined */
+#endif /* AUD_AV_MSK defined */
+#ifndef AUD_AV_SHF
+#define AUD_AV_SHF (0)
+#endif
+
+STATIC void VolumeSetError();
+/*
+ *     error strings
+ */
+static const char * const snderr[] =
+{
+#if HAS_MOS
+       "SOUND ROM ERROR",
+       "INTERNAL ERRORS",
+       "UNDEFINED ERRORS"
+#else
+       "MAIN LINE ERROR",
+       "MUSIC CHIP TIME OUT",
+       "SOUND CPU INTERRUPT ERROR",
+       "SOUND CPU RAM ERROR",
+       "SOUND CPU RAM ERROR",
+       "SOUND CPU ROM ERROR",
+       "SOUND CPU ROM ERROR",
+       "SOUND CPU ROM ERROR"
+#endif
+};
+#define MAX_ERR_BITS (sizeof(snderr)/sizeof(snderr[0]))
+/*
+ *     sound strings
+ */
+
+#define       SNDCOL        2
+#define       SNDROW        17
+#define       SOUNDCOL      (SNDCOL + 5)
+#define       SOUNDROW      SNDROW
+#define       DECCOL        (SNDCOL + 5 + 6)
+#define       DECROW        SNDROW
+#define       HEXCOL        (SNDCOL + 5 + 6 + 5)
+#define       HEXROW        SNDROW
+#define       LABCOL        (SNDCOL + 5 + 6 + 5 + 4)
+#define       LABROW        SNDROW
+
+#define       INSROW        (SNDROW + 1)
+
+/* SNDLST has strings for auto-tests (can't be called!)        */
+
+#define       ENDSNDLST     (sizeof(sndlst)/sizeof(sndlst[0]))
+
+static const char sndcnt[] = "NUMBER OF SOUNDS:     ";
+
+#define       BORDERROW     (AN_VIS_ROW - 6)     /* Up six from the bot      */
+#define       VCOL          ((AN_VIS_COL+1 - sizeof(sndcnt))>>1)
+#define       VROW          (BORDERROW - 2)
+#define       SCOL          (VCOL + 18)
+
+/**************************************************************
+ *  cage_get() might be better called "mos_get."  
+ *  It sends a "query" type of a command to the MOS system
+ *  and waits around for a response (or time out).
+ */
+#if HAS_MOS
+STATIC int cage_get( int cmd )
+{
+    int status;
+    int timer;
+    timer = 42;
+    while ( (status = aud_q_get()) >= 0 ) prc_delay0();
+    do {
+       prc_delay0();
+       status = aud_put(cmd);
+    } while ( status == 0 && --timer >= 0 );
+    if ( status == 0 ) return -1;
+    timer = 42;
+    do {
+       status = aud_q_get();
+       if ( status >= 0 ) break;
+       prc_delay0();
+    } while ( status < 0 && --timer >= 0);
+    return status;
+}
+#endif
+
+STATIC int show_sound_status PARMS(( int  status, int count ));
+
+/********************************************************************
+ * ResetSoundProc() is effectively aud_init() with pretty wrappers.
+ * The level parameter is passed directly to audi_init().
+ */
+STATIC int
+ResetSoundProc(level)
+int    level;
+{
+    long      status;
+    char      *msg = "Resetting sounds, Please wait";
+
+    /* Attempt to reset the sound process[or]. aud_init() should
+     *  take care of the details and return a long with "number of
+     *  sounds" in the top 16 bits and "status" (encoded as per old
+     * 6502 status) in bottom 16 bits. A return of < 0 means a failure
+     * while a return of 0 means the user got impatient and hit "NEXT".
+     */
+    while (1) {
+       txt_str(2,4,msg,WHT_PAL);
+       status = aud_init(level);
+
+       if ( status > 0 ) 
+         break;
+       else if ( status == 0 ) {
+           /* bailed at user request */
+           aud_init(-1);    /* finished with sounds */
+           return 0;
+       } else {
+           /* timeout or other wedge-up
+            */
+           txt_clr_str(2,4,msg,WHT_PAL);
+           msg = "RE-TRYING SOUND RESET";
+           txt_str(2,6,"SOUND PROCESSOR NOT RESPONDING",RED_PAL);
+           continue;
+       }
+    } /* end while (1) */
+    txt_clr_str(2,6,"SOUND PROCESSOR NOT RESPONDING",RED_PAL);
+    txt_clr_str(2,4,msg,WHT_PAL);
+    return (status);
+}
+
+/********************************************************************/
+STATIC int
+show_sound_status(status, count)
+int    status,count;
+{
+    m_int     timer;
+    m_int     i;
+
+    /* we want to report in gory detail...
+     */
+    txt_str(VCOL,VROW+1,"SOUND CPU STATUS: ",VERSION_PAL);
+    if ( status == 0 ) txt_cstr("GOOD",VERSION_PAL);
+    else {  /* detailed debug report: Not used recently */
+       m_int row = 7;
+       txt_chexnum(status,2,RJ_ZF,VERSION_PAL);
+       for ( i = 0 ; i < MAX_ERR_BITS ; ++i ) {
+           if ( status & (1 << i) ) {
+              /* each bit has a meaning...
+               */
+              txt_str(2,row++,snderr[i],RED_PAL);
+           }
+       } /* end for */
+       txt_str(2,row,t_msg_next,WHT_PAL);
+       txt_cstr(" To proceed",WHT_PAL);
+       for ( timer = 42*60 ; timer > 0 ; --timer ) {
+           if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+           prc_delay0();
+       }
+       if ( timer <= 0 ) return -1;
+       while ( row >= 7 ) txt_clr_wid(2,row--,AN_VIS_COL-4);
+    } /* end else (bad status) */
+
+#if HAS_MOS
+    if ( (i = aud_cmd(ST_C_MOS_VER)) != 0 ) {
+       txt_str(VERS_COL,VROW+2,"MOS VERSION ",MNORMAL_PAL);
+       i = cage_get(i);
+       txt_chexnum((i >> 8),2,LJ_NF,MNORMAL_PAL);
+       txt_cstr(".",MNORMAL_PAL);
+       txt_chexnum((i & 0xFF),2,RJ_ZF,MNORMAL_PAL);
+       if ( ( i = aud_cmd(ST_C_PJCT_VER) ) != 0 ) {
+           i = cage_get(i);
+           if ( i & 0x8000 ) {
+              /* Kluge to deal with "-1" returned as unsigned short,
+                * which shows up as 65535.
+               */
+              txt_cstr(" (NO GAME)",ERROR_PAL);
+           } else {
+              txt_cstr(" PROJECT VERSION ",MNORMAL_PAL);
+              txt_cdecnum(i,3,LJ_NF,MNORMAL_PAL); 
+           }
+       }  
+    }
+#if 0    /* print error count, if desired (not for CoJag) */
+    if ( (i = aud_cmd(ST_C_ERR_CNT)) != 0
+       && (status = cage_get(i)) > 0 ) {
+       txt_str(VERS_COL,VROW+3,"MOS ERRORS ",RED_PAL);
+       txt_cdecnum(status,4,LJ_NF,RED_PAL);
+    }
+#endif
+
+#endif
+    return (count);                /* > zero                   */
+}
+
+
+/********************************************************************
+ *     Here are a bunch of defines used for volume control:
+ */
+#ifndef INC_VOLUME
+#define INC_VOLUME   (8)
+#endif
+#ifndef MIN_VOLUME
+#define MIN_VOLUME   (0)
+#endif
+#ifndef MAX_VOLUME
+#define MAX_VOLUME   (32)
+#endif
+#ifndef DEF_VOLUME
+#define DEF_VOLUME   ((MAX_VOLUME+MIN_VOLUME)/2)
+#endif
+       /* Display GREEN up to low volume */
+#ifndef LOW_VOLUME
+#define       LOW_VOLUME    (DEF_VOLUME-(MAX_VOLUME/8)) 
+#endif
+#ifndef HIGH_VOLUME
+       /* Display RED after HIGH volume */
+#define       HIGH_VOLUME   (DEF_VOLUME+(MAX_VOLUME/8))
+#endif
+
+#define VBAR_ROW      (10)
+#define VBAR_AROW     (14)
+#define VBAR_COL      ((AN_VIS_COL-32)>>1)
+#define VBAR_NUMROW   (8)
+#define VBAR_ANUMROW  (19)
+
+/*     ShowVolume() Show volume and draw the current volume 'bar'
+ */
+STATIC void
+ShowVolume(volume,row,nerd_row)
+int volume;
+int row,nerd_row;
+{
+    m_int i,j,color;
+
+    if ( volume < MIN_VOLUME ) volume = MIN_VOLUME;
+    if ( volume > MAX_VOLUME ) volume = MAX_VOLUME;
+    if ( nerd_row >= 0 ) {
+       /* display volume as a number      */
+       txt_decnum(25,nerd_row,volume,3,LJ_BF,WHT_PALB + AN_BIG_SET);
+    }
+    color = GRN_PAL;
+
+    for(i = 0, j=0; j <= MAX_VOLUME ; i++, j += INC_VOLUME) 
+    {
+       if ( j > volume ) color = GRY_PAL;
+       else if ( j > HIGH_VOLUME) color = RED_PAL;
+       else if ( j > LOW_VOLUME) color = YEL_PAL;
+       txt_stamp(VBAR_COL+i,row,AN_VOL_BAR,color);
+       txt_stamp(VBAR_COL+i,row+1,AN_VOL_BAR,color);
+       txt_stamp(VBAR_COL+i,row+2,AN_VOL_BAR,color);
+    }
+}
+
+static const char bar_row[2] = { VBAR_ROW, VBAR_AROW };
+static const char label_row[2] = { VBAR_ROW-1, VBAR_AROW+3 };
+static const char * const which_name[2] = { "GAME", "ATTRACT" };
+
+struct vol_state {
+    U32 prev_rtc;
+    U16 volume;		/* Game (or only) volume */
+    U16 old_volume;	/* Used in selftest screen for "get me back" */
+    U16 atr_volume;	/* Attract volume, either derived or set */
+    U16 old_atr_volume;
+/* Following (which_volume) is more complex than it may seem
+ * necessary. We have games with only a single volume, games
+ * whose attract volume is a ratio of the game volume, and
+ * games with a separate attract volume. In an attempt to
+ * accomodate use of volume-buttons during game-play, and
+ * reduce the amount of compile-time (versus run-time)
+ * configuration, we keep track of the possibilities on the
+ * fly. The bottom two bits of which_volume indicate
+ * one of Game, Attract_ratio, Attract is being diddled,
+ * while the next two indicate which of (Attract_ratio/value)
+ * (if either) are allowed.
+ */
+    U8 which_volume;
+#define WV_GAME (0)	/* setting game volume */
+#define WV_RATIO (1)	/* setting attract ratio */
+#define WV_ATTR (2)	/* setting attract volume */
+#define WV_CURR(x) ((x)&3) /* What we are currently setting */
+#define WV_CANSET(x) (((x)>>2)&3) /* What we are allowed to set */
+#define WV_ALLOW(w) ((w)<<2)	/* For symbolic setting */
+#define WV_SET(x,w) (((x)&0xC)|((w)&3))
+    U8 atrv;		/* Attract volume ratio */
+    U8 old_atrv;	/* old ratio */
+    U8 idle;
+#ifdef VOLUME_UP
+    U8 vup_tim,vdn_tim,old_btns;
+#endif
+};
+
+#define B_VUP (1)
+#define B_VDN (2)
+#define VOL_IDLE (240)	/* Initialize count for idle-timer, 4 seconds */
+#define AR_FIRST (30)	/* First auto_repeat at 30 frames */
+#define AR_SUBS (15)	/* Subsequent auto_repeat every 15 frames */
+
+static int vol_fiddle( struct vol_state *vsp, U32 ctls )
+{
+    int update = 0;
+    int elapsed;
+
+    elapsed = eer_rtc - vsp->prev_rtc;
+    vsp->prev_rtc = eer_rtc;
+
+    if (ctls & SW_ACTION) {
+	int which = vsp->which_volume;
+	vsp->volume = vsp->old_volume;
+	if ( WV_CANSET(which) == WV_RATIO ) {
+	    /* restore the ratio, then update the
+	     * full attract value.
+	     */
+	    vsp->atrv = vsp->old_atrv;
+#if AUD_AV_MSK
+	    vsp->atr_volume = ((vsp->volume)*(vsp->atrv))/AUD_AV_MSK;
+#endif
+	} else {
+	    vsp->atr_volume = vsp->old_atr_volume;
+	}
+	vsp->which_volume = WV_SET(which,WV_GAME);
+	update = 1;
+    }
+
+#ifdef VOLUME_UP
+    /* We have some way of reading the Volume-control
+     * Buttons. Debounce and auto-repeat them,
+     * then fake LEFT/RIGHT joystick motion for
+     * following code.
+     */
+    if ( VOLUME_UP ) {
+	if ( !(vsp->old_btns & B_VUP) ) {
+	    /* Leading edge, note and set autorepeat to
+	     * "first repeat"
+	     */
+	    ctls |= J_RIGHT;
+	    vsp->vup_tim = AR_FIRST;
+	} else if ( vsp->vup_tim <= elapsed ) {
+	    /* Timed out auto-repeat. Fake edge and
+	     * re-load "subsequent repeat" time.
+	     */
+	    ctls |= J_RIGHT;
+	    vsp->vup_tim = AR_SUBS;
+	} else vsp->vup_tim -= elapsed;
+	vsp->old_btns |= B_VUP;
+	vsp->idle = VOL_IDLE;
+    } else {
+	vsp->vup_tim = 0;
+	vsp->old_btns &= ~B_VUP;
+    }
+    if ( VOLUME_DOWN ) {
+	if ( !(vsp->old_btns & B_VDN) ) {
+	    /* Leading edge, note and set autorepeat to
+	     * "first repeat"
+	     */
+	    ctls |= J_LEFT;
+	    vsp->vdn_tim = AR_FIRST;
+	} else if ( vsp->vdn_tim <= elapsed ) {
+	    /* Timed out auto-repeat. Fake edge and
+	     * re-load "subsequent repeat" time.
+	     */
+	    ctls |= J_LEFT;
+	    vsp->vdn_tim = AR_SUBS;
+	} else vsp->vdn_tim -= elapsed;
+ 	vsp->old_btns |= B_VDN;
+	vsp->idle = VOL_IDLE;
+    } else {
+	vsp->vdn_tim = 0;
+	vsp->old_btns &= ~B_VDN;
+    }
+#endif
+    if ( ctls & (J_DOWN|J_UP) ) {
+	/* selecting game/attract volume */
+	int which = WV_GAME;
+	if ( ctls & J_DOWN ) which = WV_CANSET(vsp->which_volume);
+	vsp->which_volume = WV_SET(vsp->which_volume,which);
+	update = 1;
+    }
+    else if ( ctls & (J_LEFT) ) {
+	/* decreasing whichever volume */
+	int which;
+	which = WV_CURR(vsp->which_volume);
+	switch (which) {
+	    case WV_RATIO:
+		/* attract ratio */
+#if AUD_AV_MSK
+		if ( vsp->atrv > 0 ) --vsp->atrv;
+		break;
+#endif
+	    case WV_ATTR:
+		/* Attract volume */
+		if (vsp->atr_volume >= MIN_VOLUME+INC_VOLUME) {
+		    vsp->atr_volume -= INC_VOLUME;
+		} else {
+		  vsp->atr_volume = MIN_VOLUME;
+		}
+		break;
+	    case WV_GAME:
+		/* game volume */
+		if (vsp->volume >= MIN_VOLUME+INC_VOLUME) {
+		    vsp->volume -= INC_VOLUME;
+		} else {
+		  vsp->volume = MIN_VOLUME;
+		}
+		if ( vsp->volume < vsp->atr_volume ) {
+		    /* Limit attract volume to no higher than
+		     * game volume, in case it is separately set.
+		     */
+		    vsp->atr_volume = vsp->volume;
+		}
+	}
+	update = 1;
+    }
+    else if ( ctls & (J_RIGHT) ) {
+	/* increasing whichever volume */
+	int which;
+	which = WV_CURR(vsp->which_volume);
+	switch (which) {
+	    case WV_RATIO:
+		/* attract ratio */
+#if AUD_AV_MSK
+		if ( vsp->atrv < AUD_AV_MSK ) ++vsp->atrv;
+		break;
+#endif
+	    case WV_ATTR:
+		/* Attract volume */
+		if (vsp->atr_volume <= MAX_VOLUME-INC_VOLUME) {
+		    vsp->atr_volume += INC_VOLUME;
+		} else {
+		  vsp->atr_volume = MAX_VOLUME;
+		}
+		if ( vsp->volume < vsp->atr_volume ) {
+		    /* Bump game volume to keep it no
+		     * lower than attract volume.
+		     */
+		    vsp->volume = vsp->atr_volume;
+		}
+		break;
+	    case WV_GAME:
+		/* game volume */
+		if (vsp->volume <= MAX_VOLUME-INC_VOLUME) {
+		    vsp->volume += INC_VOLUME;
+		} else {
+		  vsp->volume = MAX_VOLUME;
+		}
+	}
+	update = 1;
+    }
+    if ( update ) {
+
+       /*  This is a little more complicated now. On CAGE boards
+        *  which support separate game and attract volume, we need
+        *  to make sure we are changing the right one, and that
+        *  we are using the right one.
+        */
+	vsp->idle = VOL_IDLE;
+
+#if AUD_AV_MSK
+	if ( WV_CANSET(vsp->which_volume) == WV_RATIO ) {
+	    /* If the attract volume is a ratio, update
+	     * the "fully decoded" version to track
+	     * changes in ratio or game volume.
+	     */
+	    vsp->atr_volume = ((vsp->volume)*(vsp->atrv))/AUD_AV_MSK;
+	}
+#endif
+	if ( aud_cmd(ST_C_ATR_VOL) != 0
+	  && WV_CURR(vsp->which_volume) != WV_GAME ) {
+           /* we want to change attract volume, and CAGE
+            * keeps track of it.
+            */
+           U16 volbuf[2];
+           volbuf[0] = aud_cmd(ST_C_ATR_VOL);
+           volbuf[1] = vsp->atr_volume;
+           if ( aud_mput(volbuf,2) < 0 ) {
+              return -1;
+           }
+           if ( aud_cmd(ST_C_ATR_MODE) ) aud_put(aud_cmd(ST_C_ATR_MODE));
+	} else {
+           /* either we _want_ to set game volume, or it's the
+            * only volume we have
+            */
+	    int status;
+	    int which;
+	    int volume;
+
+	    which = WV_CURR(vsp->which_volume);
+	    volume = vsp->atr_volume;
+	    if ( which == WV_GAME ) volume = vsp->volume;
+
+           status = aud_setvol( volume );
+
+           if ( status < 0) /* error */
+           {
+              return status;
+           }
+           if ( which != WV_GAME && aud_cmd(ST_C_ATR_MODE) ) {
+              aud_put(aud_cmd(ST_C_ATR_MODE));
+           }
+           if ( which == WV_GAME && aud_cmd(ST_C_GAME_MODE) ) {
+              aud_put(aud_cmd(ST_C_GAME_MODE));
+           }
+	}
+    } else {
+	/* Keep track of idle time */
+	int tmp;
+	tmp = vsp->idle - elapsed;
+	if ( tmp < 0 ) tmp = 0;
+	vsp->idle = tmp;
+    }
+    return update;
+}
+
+/********************************************************************
+ * This is the main volume adjust routine!
+ */
+int
+adj_vol(smp)
+const struct menu_d *smp;
+{
+    U32		ctrls;
+    int		i;
+    m_int	volume;
+    int		update;
+    char	num_row[2];
+    int		bottom;
+    int 	which;
+    struct vol_state vs;
+
+    /* Below allows for game to over-ride the default "Self Test Music"
+     * command. This allows games with disk-based music to use
+     * it in volume-adjust, and allows audio composers who can't
+     * be bothered to put a useful sound at the "guaranteed"
+     * ST_S_VMUSIC to get away with it, with sufficient collusion
+     * from their game-programmer. The start_stop function will
+     * be called with its "what_for_on" parameter here, and
+     * with its "what_for_off" parameter at exit. The coroutine
+     * function will be called with an integer "best guess
+     * microseconds since last call" during the polling loop.
+     */
+    const struct st_envar *mus_hack;
+    const struct mus_hack_struct {
+	void (*start_stop)(int);
+	void (*coroutine)(int);
+	int what_for_on;
+	int what_for_off;
+    } *mhp;
+
+    /* Reset the audio processor:  Full reset, load first bank for volume test
+     */
+    i = ResetSoundProc(1);
+    if ( i == 0 ) 
+      return -1;       /* user gave up    */
+    if (i < 0) 
+      return(i);       /* Died young...   */
+
+    vs.atrv = 0;
+    update = 1;
+
+    /* Start out assuming that we can only set game volume.
+     */
+    which = WV_ALLOW(WV_GAME);
+    volume = aud_setvol(-1);  /* Set the default volume */
+    if ( volume < 0 ) {
+       VolumeSetError();
+       return -1;
+    }
+
+    vs.volume = volume;
+    vs.old_volume = volume;
+
+    /* If AUD_AV_MSK is defined, we may be using a ratio
+     * for attract volume.
+     */
+#if AUD_AV_MSK
+    vs.atrv = (eer_gets(EER_GUTS_OPT) >> AUD_AV_SHF) & AUD_AV_MSK;
+    vs.atr_volume =  ((vs.volume)*(vs.atrv))/AUD_AV_MSK;
+    which = WV_ALLOW(WV_RATIO);
+#endif
+
+    /* If EER_AUD_ATRVOL is defined, it may exist, and if
+     * so, we should use it.
+     */
+#ifdef EER_AUD_ATRVOL
+    volume = eer_gets(EER_AUD_ATRVOL);
+    if ( volume >= 0 ) {
+	/* It is possible in the future that EER_AUD_ATRVOL
+	 * could be a "virtual stat" that may not exist,
+	 * even if it is #defined. If it _really_ exists,
+	 * use "full scale" attract volume adjust.
+	 */
+	which = WV_ALLOW(WV_ATTR);
+	vs.atr_volume = volume;
+    }
+#endif
+
+    vs.old_atrv = vs.atrv;
+    vs.old_atr_volume = vs.atr_volume;
+    vs.which_volume = which;
+
+    /* Write out "boilerplate", which varies between normal user
+     * and "Nerd Mode".
+     */
+    num_row[0] = num_row[1] = -1;
+    if ( debug_mode & GUTS_OPT_DEVEL ) {
+       num_row[0] = VBAR_NUMROW;
+       num_row[1] = VBAR_ANUMROW;
+       txt_str(11,VBAR_NUMROW,"VOLUME:_",GRN_PALB|AN_BIG_SET);
+    } else {
+       txt_str(VBAR_COL-1,VBAR_ROW+3,
+         "0  1  2  3  4  5  6  7  8  9 10 11",GRY_PAL);
+    }
+
+    bottom = st_bottom();
+
+#if !NO_EER_WRITE
+    bottom = st_insn(bottom,t_msg_save_ret,t_msg_next,INSTR_PAL);
+#else
+    bottom = st_insn(bottom,t_msg_ret_menu,t_msg_next,INSTR_PAL);
+#endif
+
+    bottom = st_insn(bottom,t_msg_restore,t_msg_action,INSTR_PAL);
+    bottom = st_insn(bottom,"To ADJUST volume,",t_msg_control,INSTR_PAL);
+    prc_delay0();
+
+    mhp = 0;
+    mus_hack = st_getenv("SELFTEST MUSIC", 0);
+    if ( mus_hack ) {
+	mhp = mus_hack->value;
+	if ( mhp && mhp->start_stop ) mhp->start_stop(mhp->what_for_on);
+    } else {
+#ifndef ST_S_VMUSIC
+	txt_str(-1,AN_VIS_ROW-11,"NO SOUND? define ST_S_VMUSIC",ERROR_PAL);
+#else
+    	aud_put(ST_S_VMUSIC);          /* Start Happy Music!              */
+#endif
+    }
+
+    ctl_autorepeat(JOY_BITS,AR_FIRST,AR_SUBS);
+
+    update = 1;
+
+    while (1)
+    {
+	prc_delay0();
+	if ( mhp && mhp->coroutine ) mhp->coroutine(16666);
+	ctrls = ctl_read_sw(JOY_BITS | SW_NEXT | SW_ACTION);
+
+	if (ctrls & SW_NEXT) break;
+
+	update |= vol_fiddle( &vs, ctrls );
+
+	if ( update < 0 ) {
+	    VolumeSetError();
+	    break;
+	}
+
+	which = vs.which_volume;
+
+	if ( (eer_rtc & 0xF) == 0 && WV_CANSET(which) != WV_GAME ) {
+	    int pal;
+	    pal = (eer_rtc & 0x10) ? GRY_PAL : WHT_PAL;
+	    which = ( WV_CURR(which) != WV_GAME);
+	    txt_str(-1,label_row[1-which],which_name[1-which],GRY_PAL);
+	    txt_str(-1,label_row[which],which_name[which],pal);
+	}
+#if (0)
+	if ( vs.idle == 0 ) txt_str(2,2,"I",GRY_PAL);
+	else txt_str(2,2,"A",GRY_PAL);
+#endif
+	if ( update == 0 ) continue;
+
+
+	ShowVolume(vs.volume,bar_row[0],num_row[0]);
+	which = WV_CANSET(vs.which_volume);
+	switch (which) {
+	    case WV_RATIO:
+#if AUD_AV_MSK
+		txt_clr_wid(VBAR_COL,label_row[1],6);
+		if ( vs.atrv == 0 || vs.atrv == AUD_AV_MSK ) {
+		    txt_str(VBAR_COL,label_row[1],
+			vs.atrv ? "FULL" : "MUTE", GRY_PAL);
+		} else {
+		    txt_decnum(VBAR_COL,label_row[1],vs.atrv,2,LJ_NF,GRY_PAL);
+		    txt_cstr("/",GRY_PAL);
+		    txt_cdecnum(AUD_AV_MSK,2,LJ_NF,GRY_PAL);
+		}
+		ShowVolume(vs.atr_volume,bar_row[1],num_row[1]);
+		break;
+#endif
+	    case WV_ATTR:
+		txt_clr_wid(VBAR_COL,label_row[1],6);
+		if ( vs.atr_volume == 0 || vs.atr_volume == vs.volume ) {
+		    txt_str(VBAR_COL,label_row[1],
+			vs.atr_volume ? "FULL" : "MUTE", GRY_PAL);
+		}
+#if (0)
+		/* If you really _must_ see the attract volume expressed
+		 * as a percentage of the game volume, re-enable this.
+		 * But first consider that you are here because you
+		 * chose _not_ to use a ratio, so the percentage will
+		 * not "stay put" as you alter game volume. Better
+		 * mute than misleading, I always say :-) MEA 27JAN97
+		 */
+		else {
+		    int percent;
+		    percent = (vs.atr_volume*100)/vs.volume;
+		    txt_decnum(VBAR_COL,label_row[1],percent,2,LJ_NF,GRY_PAL);
+		    txt_cstr("%",GRY_PAL);
+		}
+#endif
+		ShowVolume(vs.atr_volume,bar_row[1],num_row[1]);
+		break;
+	}
+	update = 0;
+    }
+
+
+    /* we can save to EEPROM regardless of changes, since non-changes are
+     * innocuous.
+     */
+    eer_puts(EER_AUD_VOL,vs.volume);  /* save volume level to EEROM      */
+#if AUD_AV_MSK
+    if ( WV_CANSET(vs.which_volume) == WV_RATIO ) {
+	U32 atrv = vs.atrv;
+	atrv <<= AUD_AV_SHF;
+	atrv |= (eer_gets(EER_GUTS_OPT) & ~(AUD_AV_MSK<<AUD_AV_SHF));
+	eer_puts(EER_GUTS_OPT,atrv);
+    }
+#endif
+#ifdef EER_AUD_ATRVOL
+    eer_puts(EER_AUD_ATRVOL,vs.atr_volume);
+#endif
+    /* 30JAN97, MEA moves the shutdown code _after_ the save to EEPROM
+     * after figuring out why the CoJag sometimes gets a _very_ loud
+     * "boot-bing" on exit from the volume-adjust screen. In short,
+     * Chuck does a full reset, including the "boot bing", and
+     * over-writes his "current" volume values. If the volume from
+     * the EEPROM was really loud before we entered, it will be
+     * used. CJP didn't seem to know what "-1" meant...
+     */
+    if ( mhp && mhp->start_stop ) mhp->start_stop(mhp->what_for_off);
+    else {
+	aud_put(ST_S_STOP);                   /* kill all sounds          */
+	prc_delay0();
+	aud_init(-1);                  /* finished with engines    */
+    }
+    return 0;
+}
+
+/********************************************************************
+ * This is the hook to adjust volume during game play.
+ */
+void
+aud_adj_volume(display, attract)
+void (*display)(int value, int show);
+int attract;
+{
+    U32		ctls;
+    m_int	volume;
+    int		update;
+    int 	which;
+    static struct vol_state vs;
+    int old_idle = vs.idle;
+
+    if ( vs.prev_rtc == 0 ) {
+	/* first call ever, set up. */
+	vs.atrv = 0;
+	update = 1;
+
+	/* Start out assuming that we can only set game volume.
+	 */
+	which = WV_ALLOW(WV_GAME);
+	volume = eer_gets(EER_AUD_VOL);  /* Get the default game volume */
+	if ( volume < 0 ) volume = DEF_VOLUME;
+
+	vs.volume = volume;
+	vs.old_volume = volume;
+
+	/* If AUD_AV_MSK is defined, we may be using a ratio
+	 * for attract volume.
+	 */
+#if AUD_AV_MSK
+	vs.atrv = (eer_gets(EER_GUTS_OPT) >> AUD_AV_SHF) & AUD_AV_MSK;
+	vs.atr_volume =  ((vs.volume)*(vs.atrv))/AUD_AV_MSK;
+	which = WV_ALLOW(WV_RATIO);
+#endif
+
+	/* If EER_AUD_ATRVOL is defined, it may exist, and if
+	 * so, we should use it.
+	 */
+#ifdef EER_AUD_ATRVOL
+	volume = eer_gets(EER_AUD_ATRVOL);
+	if ( volume >= 0 ) {
+	    /* It is possible in the future that EER_AUD_ATRVOL
+	     * could be a "virtual stat" that may not exist,
+	     * even if it is #defined. If it _really_ exists,
+	     * use "full scale" attract volume adjust.
+	     */
+	    which = WV_ALLOW(WV_ATTR);
+	    vs.atr_volume = volume;
+	}
+#endif
+
+	vs.old_atrv = vs.atrv;
+	vs.old_atr_volume = vs.atr_volume;
+	vs.which_volume = which;
+    }
+
+    ctls = 0;
+    if ( WV_CURR(vs.which_volume) == WV_GAME ) {
+	if ( attract ) ctls = J_DOWN;
+    } else {
+	if ( !attract ) ctls = J_UP;
+    }
+
+    update = vol_fiddle( &vs, ctls );
+    which = vs.which_volume;
+    if ( WV_CURR(which) == WV_GAME) volume = vs.volume;
+    else volume = vs.atr_volume;
+
+    if ( vs.idle != 0 ) {
+	/* Just show current volume, if display exists.
+	 */
+	if ( display ) display(volume,old_idle ? AAV_UPDATE : AAV_SHOW);
+    } else if ( old_idle ) {
+	/* Timed out, hide display and update EEPROM.
+	 */
+	if ( display ) display(volume,AAV_HIDE);	/* Hide display */
+	eer_puts(EER_AUD_VOL,vs.volume);  /* save volume level to EEROM      */
+#if AUD_AV_MSK
+	if ( WV_CANSET(vs.which_volume) == WV_RATIO ) {
+	    U32 atrv = vs.atrv;
+	    atrv <<= AUD_AV_SHF;
+	    atrv |= (eer_gets(EER_GUTS_OPT) & ~(AUD_AV_MSK<<AUD_AV_SHF));
+	    eer_puts(EER_GUTS_OPT,atrv);
+	}
+#endif
+#ifdef EER_AUD_ATRVOL
+	eer_puts(EER_AUD_ATRVOL,vs.atr_volume);
+#endif
+    }
+    return;
+}
+
+STATIC void
+VolumeSetError()
+{
+    /* volume set error message    */
+    txt_str(-1,6,"ERROR SETTING VOLUME LEVEL",RED_PALB);
+
+    ExitInst(INSTR_PAL);
+
+    while (1)
+    {
+       prc_delay0();
+
+       if (ctl_read_sw(0) & SW_NEXT)
+           break;
+    }
+
+    /* erase volume set error message     */
+    txt_clr_str(-1,6,"ERROR SETTING VOLUME LEVEL",RED_PALB);
+}
+
+#if (1)
+STATIC int snd_cksum PARMS(( const struct menu_d *));
+STATIC int snd_by_num PARMS(( const struct menu_d *));
+#if HAS_CAGE
+STATIC int cage_error_log PARMS(( const struct menu_d *));
+#endif
+#if HAS_QUAD
+int quad_tst PARMS(( const struct menu_d *));
+#endif
+STATIC int sound_cb PARMS(( const struct menu_d *));
+
+static const struct menu_d snd_menu[] = {
+    {"SOUND TESTS",  sound_cb},
+#if HAS_QUAD
+    {"SPEAKER TEST", quad_tst},
+#endif
+    {"AUDIO CHECKSUMS", snd_cksum},
+    {"?SOUNDS BY NUMBER", snd_by_num},
+#if (HAS_CAGE)
+    {"?CAGE ERROR LOG", cage_error_log},
+#endif
+    {0, 0}
+};
+
+int snd_test ( smp )
+const struct menu_d *smp;
+{
+    int status;
+    ctl_autorepeat(JOY_VERT,30,15);       /* Autorepeat after 1/2secs @@ 1/4 */
+    status = st_menu(snd_menu,sizeof(snd_menu[0]),MNORMAL_PAL,0);
+    return status;
+}
+
+static int snd_status;
+
+/*            sound_cb()
+ *     This is the "call-back" or coroutine for the sound menu.
+ *     It is called with a parameter of 0 when the menu specifying it
+ *     is first entered, and with a pointer to the current menu line
+ *     every time through st_menu()'s main polling loop. If it returns
+ *     non-zero, that value will be passed up to the caller of st_menu().
+ */
+int sound_cb ( smp )
+const struct menu_d *smp;
+{
+    if ( smp ) {
+       /* after first call, just watch for SW_NEXT, and clean up if seen */
+       if ( ctl_read_sw(0) & SW_NEXT ) {
+           prc_delay0();
+           aud_init(-1);
+           if ( snd_status == 0 ) return -1;
+       }
+    } else if ( snd_status == 0 ) {
+       /* first time in this menu, and first time we talk to MOS. */
+       /* Reset the audio processor:  
+        * Full reset, load second bank for volume test */
+       snd_status = ResetSoundProc(2);
+       if ( snd_status < 0 ) 
+         return snd_status;
+       if ( snd_status == 0 ) 
+         return -1;
+    } else show_sound_status( 0, snd_status>>16 );
+    return 0;
+}
+
+struct snd_rom_desc {
+    char *name;
+    U16 cksum;
+    U16 pad;
+};
+
+/* this should be accessed though pConfig */
+#if (SST_GAME == SST_RUSH)
+static const struct snd_rom_desc srd[] = {
+    {"U62", 0, 0},
+    {"U61", 0, 0},
+    {"U53", 0, 0},
+    {"U49", 0, 0},
+    {"U69", 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0},
+    {0, 0, 0}
+};
+#else
+static const struct snd_rom_desc srd[] = {
+    {"\?\?\?", 0x9E81, 0},
+    {"\?\?\?", 0xE0A5, 0},
+    {"\?\?\?", 0xC89A, 0},
+    {"\?\?\?", 0x1A62, 0},
+    {"\?\?\?", 0x5656, 0},
+    {"\?\?\?", 0x9720, 0},
+    {"\?\?\?", 0x36C9, 0},
+    {"\?\?\?", 0xDEA9, 0},
+    {"\?\?\?", 0x8B6B, 0},
+    {"\?\?\?", 0xEC1F, 0},
+    {"\?\?\?", 0x304A, 0},
+    {"\?\?\?", 0x4640, 0},
+    {"\?\?\?", 0xCA1C, 0},
+    {"\?\?\?", 0x0712, 0},
+    {"\?\?\?", 0xDC58, 0},
+    {"\?\?\?", 0xC297, 0}
+};
+#endif
+
+const int aud_cksum_dly = 600;
+
+STATIC int snd_cksum(smp)
+const struct menu_d *smp;
+{
+    int status,timer;
+    int cmd;
+    int row,col,idx;
+    int errors;
+
+    row = 3;
+    col = 1;
+    errors = 0;
+    cmd = aud_cmd(ST_C_DIAG);
+    if ( cmd == 0 ) {
+       txt_str(-1,AN_VIS_ROW/2,"SOUND CHECKSUMS NYI",RED_PALB);
+       while ( (ctl_read_sw(0) & SW_NEXT) == 0 ) prc_delay0();
+       return 1;
+    }
+    while ( aud_q_get() >= 0 ) prc_delay0();     /* flush */
+    for ( timer = 42 ; --timer >= 0 ; ) {
+       status = aud_put(cmd);
+       if ( status ) break;
+       prc_delay0();
+    }
+    if ( timer < 0 ) return -1;
+    txt_str(-1,row++,"CKSUM CMD SENT, WAITING",WHT_PAL);
+    for ( timer = aud_cksum_dly ; --timer >= 0 ; ) {
+       int secs;
+       status = aud_q_get();
+       if ( status >= 0 ) break;
+       secs = timer / 60;
+       if ( timer == (secs * 60) ) {
+           txt_clr_wid(-1,row,2);
+           txt_decnum(-1,row,secs,2,RJ_BF,GRY_PAL);
+       }
+       prc_delay0();
+    }
+    txt_clr_wid(-1,row,2);
+    if ( timer < 0 ) {
+       /* OOPS, timed out */
+       txt_str(-1,row,"NO RESPONSE",RED_PAL);
+       prc_delay(120);
+       return -1;
+    }
+    txt_str(-1,row++,"CKSUM CMD DONE",WHT_PAL);
+    cmd = aud_cmd(ST_C_CKSUMS);
+    if ( cmd == 0 ) return -1;
+    for ( timer = 42 ; --timer >= 0 ; ) {
+       status = aud_put(cmd);
+       if ( status ) break;
+       prc_delay0();
+    }
+    if ( timer < 0 ) return -1;
+    txt_str(-1,row++,"GETTING CKSUMS",WHT_PAL);
+    idx = 0;
+    for ( timer = 42 ; --timer >= 0 ; ) {
+       status = aud_q_get();
+       if ( status >= 0 ) {
+           /* Got a reply, print it */
+	if ( srd[idx].name )
+	{
+           txt_str(3,++row,srd[idx].name,WHT_PAL);
+           if ( status != srd[idx].cksum ) {
+	      txt_cstr(" FAILED ", RED_PAL);
+              txt_chexnum(status,4,RJ_ZF,RED_PAL);
+              ++errors;
+           } else {
+	      txt_cstr(" PASSED", GRN_PAL);
+	   }
+	}
+	++idx;
+        timer = 10;
+       }
+       else prc_delay0();
+    }
+    if ( idx != (sizeof(srd)/sizeof(srd[0])) ) {
+       /* More or fewer checksums than proper */
+       char errbuf[AN_VIS_COL+1];
+       strcpy(errbuf,"GOT ");
+       utl_cdec(idx,errbuf+4,3,LJ_NF);
+       strncat(errbuf,"CHECKSUMS, NEEDED ",AN_VIS_COL-8);
+       utl_cdec((sizeof(srd)/sizeof(srd[0])),
+         errbuf+strlen(errbuf),3,LJ_NF);
+       txt_str(-1,++row,errbuf,RED_PAL);
+       errors |= 0x100;
+    }
+    if ( errors == 0 ) {
+       txt_str(-1,++row,"ALL CHECKSUMS OK",INSTR_PAL);
+    } else txt_str(-1,++row,"NOTE ERRORS",RED_PAL); 
+    while ( (ctl_read_sw(SW_NEXT) & SW_NEXT) == 0 ) prc_delay0();
+    return errors;
+}
+
+#if HAS_CAGE
+#define C_E_LOG_ROW (5)
+#define C_E_LOG_COL (1)
+#ifdef DEBUG
+extern void aud_q_dump PARMS((
+int row,      /* row to start display */
+int npal,     /* "normal" palette */
+int ipal,     /* palette to display item at "in" idx */
+int opal      /* palette to display item at "out" idx */
+));
+#endif
+
+STATIC int cage_error_log(smp)
+const struct menu_d *smp;
+{
+    int status,timer;
+    int cmd;
+    int row,col,pal;
+    int errors;
+
+    errors = 0;
+    cmd = aud_cmd(ST_C_ERR_LOG);
+    if ( cmd == 0 ) {
+       txt_str(-1,AN_VIS_ROW/2,"ERROR LOG NOT AVAILABLE",RED_PALB);
+       timer = 42;
+       while ( (ctl_read_sw(0) & SW_NEXT) == 0 ) {
+           prc_delay0();
+           if ( --timer < 0 ) break;
+       }
+       ctl_read_sw(SW_NEXT);
+       return 1;
+    }
+#ifdef EER_SNDSLST
+    if ( (status = eer_gets(EER_SNDSLST)) >= 0 ) {
+       txt_str(2,C_E_LOG_ROW-1,"LOST SNDS:",status ? RED_PAL : WHT_PAL);
+       txt_cdecnum(status,3,RJ_BF,WHT_PAL);
+    }
+#endif
+#ifdef EER_DATALST
+    if ( (status = eer_gets(EER_DATALST)) >= 0 ) {
+       txt_str(27,C_E_LOG_ROW-1,"LOST DATA:",status ? RED_PAL : WHT_PAL);
+       txt_cdecnum(status,3,RJ_BF,WHT_PAL);
+    }
+#endif
+#ifdef EER_AUDRESET
+    if ( (status = eer_gets(EER_AUDRESET)) >= 0 ) {
+       txt_str(16,C_E_LOG_ROW-1,"RESETS:",status ? RED_PAL : WHT_PAL);
+       txt_cdecnum(status,3,RJ_BF,WHT_PAL);
+    }
+#endif
+
+    while ( (status = aud_q_get()) >= 0 ) prc_delay0(); /* flush */
+    while (1) {
+#ifdef USER_REC_AUD_ERRS
+       unsigned char *saved_log;
+       int reclen;
+#endif
+       cmd = aud_cmd(ST_C_ERR_LOG);
+       for ( timer = 42 ; --timer >= 0 ; ) {
+           status = aud_put(cmd);
+           if ( status ) break;
+           prc_delay0();
+       }
+       if ( timer < 0 ) {
+           txt_str(-1,3,"ERROR LOG CMD NOT SENT",RED_PAL);
+           return -1;
+       }
+       errors = 0;
+       for ( row = 4 ; row >= 0 ; --row ) {
+           txt_clr_wid(1,row+C_E_LOG_ROW,AN_VIS_COL-2);
+       }
+#ifdef DEBUG
+#if HAS_CAGE
+       aud_q_dump(C_E_LOG_ROW+8,GRY_PAL, WHT_PALB, GRN_PAL);
+#endif
+#endif
+       row = C_E_LOG_ROW;
+       col = C_E_LOG_COL;
+
+#ifdef USER_REC_AUD_ERRS
+       /* we may have some old errors in EEPROM */
+       saved_log = eer_user_rd(USER_REC_AUD_ERRS,&reclen);
+       if ( saved_log ) {
+           m_int idx;
+           unsigned short errwd;
+           for ( idx = 0 ; idx < reclen ; idx += 2 ) {
+              errwd = saved_log[idx] | (saved_log[idx+1]<<8);
+              if (errwd == 0xCA6E) break;
+              if ( col > (AN_VIS_COL-5) ) {
+                  col = C_E_LOG_COL;
+                  ++row;
+              }
+              col += 1+txt_hexnum(col,row,errwd,4,RJ_ZF,YEL_PAL);
+           }
+           eer_user_free(USER_REC_AUD_ERRS);
+       }
+#endif
+       for ( timer = 42 ; --timer >= 0 ; ) {
+           status = aud_q_get();
+           if ( status >= 0 ) {
+              if ( status == 0xCA6E ) break;
+              /* Got a reply, print it */
+              if ( col > (AN_VIS_COL-5) ) {
+                  col = C_E_LOG_COL;
+                  ++row;
+              }
+              pal = WHT_PAL;
+              col += 1+txt_hexnum(col,row,status,4,RJ_ZF,pal);
+              ++errors;
+              timer = 10;
+           }
+           else prc_delay0();
+       }
+       if ( errors & 1 ) {
+           txt_str(C_E_LOG_COL,++row,"ODD # of ERRORS?",RED_PAL);
+       }
+       /* Check here for match with error count? */
+       if ( errors == 0 ) {
+           txt_str(-1,row,"NO NEW ERRORS LOGGED",GRY_PAL);
+       }
+       errors >>= 1;
+       cmd = 0;
+       if ( !smp ) return 0;       /* hack for call from elsewhere */
+       /* called from menu, give the option of clearing */
+       for ( timer = 20 ; timer >= 0 ; --timer ) {
+           if ( (ctl_read_sw(0) & SW_ACTION) == 0 ) break; 
+           prc_delay0();
+       }
+       if ( timer >= 0 ) {
+           /* let go of SW_ACTION, see if they hold it again
+            * before hitting NEXT
+            */
+           timer = 10;
+           do {
+              prc_delay0();
+              status = ctl_read_sw(SW_NEXT);
+              if ( (status & SW_ACTION) && --timer < 0 ) {
+#ifdef USER_REC_AUD_ERRS
+                  /* Clear old errors in EEPROM too */
+                  saved_log = eer_user_rd(USER_REC_AUD_ERRS,&reclen);
+                  if ( saved_log ) {
+                     saved_log[0] = 0x6E;
+                     saved_log[1] = 0xCA;
+                     eer_user_wrt(USER_REC_AUD_ERRS);
+                  }
+#endif
+                  cmd = aud_cmd(ST_C_CLR_ERR_LOG);
+                  ctl_read_sw(SW_ACTION); /* kill edge */
+                  break;
+              } else if ( (status & SW_ACTION) == 0 && timer < 8 ) {
+                  /* let go pretty soon, just re-paint */
+                  break;
+              }
+           } while ( (status & SW_NEXT) == 0 );
+       }
+       if ( cmd ) aud_put(cmd);
+       if ( status & SW_NEXT ) return errors;
+       prc_delay0();
+    } /* end while (1) */
+    return errors;
+}
+#endif
+/*            Use generic parameter entry to build up a MOS command,
+ *     then send it.
+ */
+
+/*            plist[] (below) describes the parameters we wish to
+ *     enter.
+ */
+static const struct parm plist [] = {
+    /* Label         value         col/row       sigdig        curdig */
+    { "Command: ",   0x8003,              4,3,   (HEX_FIELD|4),       0      },
+#define PIDX_CMD (0)
+    { "P0: ", 0xC0,         4,5,   (HEX_FIELD|4),       0      },
+    { "P1: ", 0,            13,5,  (HEX_FIELD|4),       0      },
+    { "P2: ", 0x400,        22,5,  (HEX_FIELD|4),       0      },  /* default for custom SFX */
+    { "P3: ", 0,            31,5,  (HEX_FIELD|4),       0      },
+    { "P4: ", 0,            4,7,   (HEX_FIELD|4),       0      },
+    { "P5: ", 0,            13,7,  (HEX_FIELD|4),       0      },
+    { "P6: ", 0,            22,7,  (HEX_FIELD|4),       0      },
+    { "P7: ", 0,            31,7,  (HEX_FIELD|4),       0      },
+    { 0,             0,            0,0,   0,            0      }};
+
+#define NPARMS (sizeof (plist)/sizeof(plist[0]))
+
+/*            
+sbn_cb() is the "callback". That is, it is called by the
+ *     parameter entry code to validate changes to the parameters and
+ *     copy them to the buffer.
+ */
+STATIC int
+sbn_cb(struct parm *pp, int idx,struct opaque *op)
+{
+    unsigned short *sdp = (unsigned short *)op;
+    unsigned long val;
+
+    val = pp->val;
+    if ( idx > 0 ) {
+       sdp[idx+1] = val &= 0x7FFF;
+    } else {
+       sdp[idx+1] = val |= 0x8000;
+    }
+    pp->val = val;
+    if ( idx > *sdp ) {
+       struct parm *opp;
+       opp = pp  - idx;
+       opp += *sdp;
+       txt_clr_wid(opp->col,opp->row+1,1);
+       txt_str(pp->col,pp->row+1,"*",GRY_PAL);
+       *sdp = idx;
+    }
+    return 1;
+}
+
+/* This function is a jag specific debugging function */
+extern void synPrintJVcb();
+
+/* these defines make us more screen size- independant */
+#define REPLY_TOP ((AN_VIS_ROW/2)+1)
+#define REPLY_BOTTOM (REPLY_TOP+4)
+
+STATIC
+int snd_by_num( parm_mp )
+const struct menu_d *parm_mp;
+{
+    struct parm work[NPARMS],*wp;
+    const struct parm *cwp;
+    unsigned short buff[NPARMS+1];
+    int idx,status,row;
+
+    /* ensure that bank 1 is loaded */
+    unsigned short cmd[2];
+    cmd[0] = S_LOAD_BANK;
+    cmd[1] = 1;
+    aud_mput(cmd, 2);
+    
+    
+    wp = work;
+    cwp = plist;
+   
+    do {
+       *wp++ = *cwp++;
+    } while (wp[-1].label != 0);
+
+    for ( idx = 0 ; idx < NPARMS ; ++idx ) {
+       if ( work[idx].label == 0 ) break;
+       sbn_cb(work+idx,idx,(struct opaque *)buff);
+    }
+
+    show_sound_status(0,0);
+    buff[0] = 0;
+    while (1) {
+
+#if (JERRY_BASE)
+       synPrintJVcb(8);		/* print debug info on CoJag */
+#endif
+       status = utl_enter(work,sbn_cb,(struct opaque *)buff);
+       if ( status & SW_NEXT ) return 0;
+       if ( status & SW_ACTION ) {
+           /* Send command */
+           int count = buff[0]+1;
+           status = aud_mput(buff+1, count);
+           if ( status < count ) {
+              /* no luck sending */
+              txt_str(-1,AN_VIS_ROW/2,"FAILED TO SEND",RED_PAL);
+              prc_delay(42);
+              return -1;
+           }
+           idx = 0;
+           for ( row = REPLY_BOTTOM ; --row >= REPLY_TOP ; ) {
+              txt_clr_wid(2,row,AN_VIS_COL-4);
+           }
+           ++row;
+           count = 5;
+           while ( count || (status = ctl_read_sw(0)) & SW_ACTION ) {
+              status = aud_q_get();
+              if ( status >= 0 ) {
+                  idx += 5;
+                  if ( idx > (AN_VIS_COL-6) ) {
+                     idx = 5;
+                     if ( ++row > REPLY_BOTTOM) break;
+                  }
+                  txt_hexnum(idx,row,status,4,RJ_ZF,WHT_PAL);
+              } else {
+                  /* no reply, run count and try again */
+                  prc_delay0();
+                  if ( count ) --count;
+              }
+           }
+       }
+    }
+    aud_put(ST_S_STOP);  /* stop all sounds */
+    return 0;
+}
+
+#if HAS_QUAD
+#ifndef FWD_LEFT
+#define FWD_LEFT   0
+#endif
+#ifndef FWD_RIGHT
+#define FWD_RIGHT  0
+#endif
+#ifndef BACK_LEFT
+#define BACK_LEFT  0
+#endif
+#ifndef BACK_RIGHT
+#define BACK_RIGHT 0
+#endif
+static const unsigned dirphrase[] = {
+       FWD_LEFT,     0,     FWD_RIGHT,
+       0,            0,     0,
+       BACK_LEFT,    0,     BACK_RIGHT
+};
+
+#ifdef RUMP_THUMP
+#define S_THUMP (RUMP_THUMP)
+#else
+#define S_THUMP (0x80B7)
+#endif
+
+int quad_tst ( smp )
+const struct menu_d *smp;
+{
+    unsigned long ctls;
+    int dir,old_dir;
+    int volume,dec_vol,vpal;
+
+#if FWD_LEFT && FWD_RIGHT && BACK_LEFT && BACK_RIGHT
+    txt_str(-1,AN_VIS_ROW/2,"To select speaker",INSTR_PAL);
+    txt_str(-1,(AN_VIS_ROW/2)-1,t_msg_control,INSTR_PAL);
+#endif
+#ifdef S_THUMP
+#if (0)
+    txt_str(-1,(AN_VIS_ROW-6),"FOR A GOOD TIME",INSTR_PAL);
+#else
+    txt_str(-1,(AN_VIS_ROW-6),"To test seat speaker",INSTR_PAL);
+#endif
+    txt_str(-1,(AN_VIS_ROW-5),t_msg_action,INSTR_PAL);
+#endif
+    old_dir = -1;
+    vpal = GRY_PAL;
+    volume = aud_setvol(-1);
+    if ( volume <= 0 ) {
+       vpal = RED_PAL;
+       volume = 0;
+    }
+    txt_str(-1,(AN_VIS_ROW/2)+2,"VOLUME: ",vpal);
+    /* compute "decimal" volume in manner consistent with volume adjust screen
+     */
+    dec_vol = (volume*1000)/2338;
+    txt_cdecnum((dec_vol+5)/10,2,LJ_BF,vpal);
+    /* optionally also show "NERD MODE" volume */
+#ifdef GUTS_OPT_DEVEL
+    if ( debug_mode & GUTS_OPT_DEVEL )
+#endif
+    {
+       txt_cstr(" (",vpal);
+        txt_cdecnum(volume,3,LJ_BF,vpal);
+       txt_cstr(")",vpal);
+    }
+    /* start with the rotating announcement */
+    if ( (dir = aud_cmd(ST_C_SPKR)) != 0 ) aud_put(dir);
+
+    while ( ((ctls = ctl_read_sw(SW_NEXT)) & SW_NEXT) == 0 ) {
+       prc_delay0();
+#ifdef S_THUMP
+       if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) aud_put(S_THUMP);
+#endif
+#if FWD_LEFT && FWD_RIGHT && BACK_LEFT && BACK_RIGHT
+       st_joy_disp(AN_VIS_COL/2,(AN_VIS_ROW/2)-4,ctls);
+       if ( (ctls & (J_UP|J_DOWN|J_LEFT|J_RIGHT)) == 0 ) continue;
+       dir = 4;
+       if ( ctls & J_UP ) dir -= 3;
+       if ( ctls & J_DOWN ) dir += 3;
+       if ( ctls & J_LEFT ) dir -= 1;
+       if ( ctls & J_RIGHT ) dir += 1;
+       if ( old_dir < 0 ) {
+           /* First move off center, kill rotating announcement */
+           aud_put(ST_S_STOP);
+       }
+       if ( (old_dir != dir) && dirphrase[dir] ) aud_put(dirphrase[dir]);
+       old_dir = dir;
+#endif
+    }
+    aud_put(ST_S_STOP);
+    return 0;
+}
+#endif
+#endif
+@
+
+
+1.29
+log
+@Added RCS ID string
+@
+text
+@d16 1
+a16 1
+const char FILE_ID_NAME[] = "$Id$";
+d1491 2
+a1492 2
+#if (SST_GAME == SST_RUSH)
+#define S_THUMP (0x8043)
+@
+
+
+1.28
+log
+@Stop hammering EEPROM while volume-adjust is idle.
+@
+text
+@d15 3
+a17 1
+ 
+@
+
+
+1.27
+log
+@"Protected" speaker-direction #defines. Removed bogus
+HAS_QUAD assumption.
+@
+text
+@d929 1
+a929 1
+    } else {
+@
+
+
+1.26
+log
+@Made the selection of individual speakers in quad_test dependent upon
+the non-zero definitions of FWD_LEFT, FWD_RIGHT, BACK_LEFT and BACK_RIGHT.
+@
+text
+@d29 7
+a58 2
+#define  HAS_QUAD      1
+
+d1471 1
+d1473 2
+d1476 2
+d1479 2
+d1482 1
+@
+
+
+1.25
+log
+@make sure ratio-style attract volume correctly tracks
+changes in game volume, and is correctly stored.
+@
+text
+@d1466 4
+a1469 1
+/* I think this is wrong- not up to date with current MOS */
+d1471 3
+a1473 3
+       0x8023,       0,     0x8020,
+       0,     0,     0,
+       0x8022,       0,     0x8021
+d1489 1
+d1492 1
+a1525 1
+       st_joy_disp(AN_VIS_COL/2,(AN_VIS_ROW/2)-4,ctls);
+d1530 2
+d1544 1
+@
+
+
+1.24
+log
+@defend against sound subsystems that don't properly implement
+aud_init(-1).
+@
+text
+@a485 1
+		vsp->atr_volume = ((vsp->volume)*(vsp->atrv))/AUD_AV_MSK;
+d505 1
+a505 1
+		     * game volume.
+a520 1
+		vsp->atr_volume = ((vsp->volume)*(vsp->atrv))/AUD_AV_MSK;
+d556 11
+a566 2
+       if ( aud_cmd(ST_C_ATR_VOL) != 0
+	 && WV_CURR(vsp->which_volume) != WV_GAME ) {
+d577 1
+a577 1
+       } else {
+d601 1
+a601 1
+       }
+d822 1
+a822 1
+    if ( WV_ALLOW(vs.which_volume) == WV_RATIO ) {
+d930 1
+a930 1
+	if ( WV_ALLOW(vs.which_volume) == WV_RATIO ) {
+@
+
+
+1.23
+log
+@re-vamped volume setting to accomodate:
+Use of volume buttons (even during game)
+Either attract ratio or attract volume
+Customizable display during game
+Over-ride volume-adjust music.
+(Also nudged VERS_COL over a tad, for gun-games)
+@
+text
+@a808 6
+    if ( mhp && mhp->start_stop ) mhp->start_stop(mhp->what_for_off);
+    else {
+	aud_put(ST_S_STOP);                   /* kill all sounds          */
+	prc_delay0();
+	aud_init(-1);                  /* finished with engines    */
+    }
+d825 14
+@
+
+
+1.22
+log
+@interim code for use of volume buttons. tested on CoJag. may
+work elsewhere too, if existing code did. This area needs
+a re-write.
+@
+text
+@d32 2
+a33 2
+#define VOLUME_UP ( (cojag_rev >= 2) && ((eer_rtc & 0xF) == 0) && !(TEST &(1<<5)) )
+#define VOLUME_DOWN ( (cojag_rev >= 2) && ((eer_rtc & 0xF) == 0) && !(TEST &(1<<4)) )
+d79 1
+d81 4
+a84 1
+#endif
+d357 17
+a373 2
+/********************************************************************
+ * This is the main volume adjust routine!
+d375 15
+a389 12
+int
+adj_vol(smp)
+const struct menu_d *smp;
+{
+    U32       ctrls;
+    int i;
+    m_int newVolume,oldVolume,volume,atr_volume;
+    int       old_atrv,atrv;             /* attract volume or ratio */
+    int       which_volume, old_which;
+    int       update;
+    char num_row[2];
+    int	bottom;
+d391 5
+a395 5
+    num_row[0] = num_row[1] = -1;
+    if ( debug_mode & GUTS_OPT_DEVEL ) {
+       num_row[0] = VBAR_NUMROW;
+       num_row[1] = VBAR_ANUMROW;
+    }
+d397 4
+a400 6
+    /* Reset the audio processor:  Full reset, load first bank for volume test */
+    i = ResetSoundProc(1);
+    if ( i == 0 ) 
+      return -1;       /* user gave up    */
+    if (i < 0) 
+      return(i);       /* Died young...   */
+d402 2
+a403 4
+    if ( num_row[0] < 0 ) {
+       txt_str(VBAR_COL-1,VBAR_ROW+3,
+         "0  1  2  3  4  5  6  7  8  9 10 11",GRY_PAL);
+    }
+d405 8
+a412 5
+    atrv = 0;
+    update = 1;
+#ifdef EER_AUD_ATRVOL
+    atrv = aud_setvol(-2);
+#else
+d414 1
+a414 1
+    atrv = (eer_gets(EER_GUTS_OPT) >> AUD_AV_SHF) & AUD_AV_MSK;
+d416 5
+a420 6
+#endif
+    old_atrv = atrv;
+    oldVolume = volume = aud_setvol(-1);  /* Set the default volume */
+    if ( volume < 0 ) {
+       VolumeSetError();
+       return -1;
+d423 45
+a467 5
+    which_volume = 0;                     /* set game volume first */
+    old_which = 1;
+
+    if ( num_row[0] >= 0 ) {
+       txt_str(11,VBAR_NUMROW,"VOLUME:_",GRN_PALB|AN_BIG_SET);
+a468 4
+    bottom = AN_VIS_ROW-3;
+#if !NO_EER_WRITE
+    bottom = st_insn(bottom,t_msg_save_ret,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,t_msg_restore,t_msg_action,INSTR_PAL);
+d470 14
+a483 40
+    bottom = st_insn(bottom,"To ADJUST volume,",t_msg_control,INSTR_PAL);
+    prc_delay0();
+#ifndef ST_S_VMUSIC
+    txt_str(-1,AN_VIS_ROW-11,"NO SOUND? define ST_S_VMUSIC",ERROR_PAL);
+#else
+    aud_put(ST_S_VMUSIC);          /* Start Happy Music!              */
+#endif
+    ctl_autorepeat(JOY_BITS,30,15);
+
+    newVolume = volume;
+    while (1)
+    {
+       prc_delay0();
+       ctrls = ctl_read_sw(JOY_BITS | SW_NEXT | SW_ACTION);
+       if (ctrls & SW_NEXT)
+           break;
+
+       volume = newVolume;
+
+       if (ctrls & SW_ACTION) {
+           newVolume = oldVolume;
+           atrv = old_atrv;
+           update = 1;
+       }
+
+       if ( ctrls & (J_DOWN|J_UP) ) {
+           /* selecting game/attract volume */
+           which_volume = !(ctrls & J_UP);
+           update = 1;
+       }
+
+#ifdef VOLUME_DOWN
+       if ( VOLUME_DOWN || (ctrls & J_LEFT) )
+#else
+       if ( ctrls & J_LEFT )
+#endif    
+       {
+           /* decreasing whichever volume */
+           if ( which_volume ) {
+              /* attract volume (or ratio) */
+d485 35
+a519 21
+              if ( --atrv < 0 ) atrv = 0;
+#endif
+           } else {
+              /* game volume */
+              if (newVolume >= MIN_VOLUME+INC_VOLUME)
+                  newVolume -= INC_VOLUME;
+              else
+                  newVolume = MIN_VOLUME;
+           }
+           update = 1;
+       }
+
+#ifdef VOLUME_UP
+       if ( VOLUME_UP || (ctrls & J_RIGHT) )
+#else
+       if ( ctrls & J_RIGHT )
+#endif
+       {
+           /* increasing whichever volume */
+           if ( which_volume ) {
+              /* attract volume (or ratio) */
+d521 29
+a549 31
+              if ( ++atrv > AUD_AV_MSK ) atrv = AUD_AV_MSK;
+#endif
+           } else {
+              /* game volume */
+              if (newVolume <= MAX_VOLUME-INC_VOLUME)
+                  newVolume += INC_VOLUME;
+              else
+                  newVolume = MAX_VOLUME;
+           }
+           update = 1;
+       }
+
+       atr_volume = atrv;
+#if AUD_AV_MSK
+#ifndef EER_AUD_ATRVOL
+       atr_volume = (newVolume * atrv)/AUD_AV_MSK;
+#endif
+#endif
+
+       if ( (which_volume != old_which) || (eer_rtc & 0xF) == 0 ) {
+           int pal;
+           pal = (eer_rtc & 0x10) ? GRY_PAL : WHT_PAL;
+           txt_str(-1,label_row[old_which],which_name[old_which],GRY_PAL);
+           txt_str(-1,label_row[which_volume],which_name[which_volume],pal);
+           if ( which_volume != old_which ) {
+              update = 1;   /* force reset of appropriate volume */
+           }
+           old_which = which_volume;
+       }
+
+       if ( !update ) continue;
+d556 4
+a559 1
+       if ( aud_cmd(ST_C_ATR_VOL) != 0 && which_volume ) {
+d565 1
+a565 1
+           volbuf[1] = atr_volume;
+a566 1
+              VolumeSetError();
+d574 9
+a582 1
+           volume = aud_setvol( which_volume ? atr_volume : newVolume);
+d584 1
+a584 1
+           if ( volume < 0) /* Change the volume */
+d586 1
+a586 3
+              VolumeSetError();
+              aud_init(-1);
+              return -1;
+d588 1
+a588 1
+           if ( which_volume != 0 && aud_cmd(ST_C_ATR_MODE) ) {
+d591 1
+a591 1
+           if ( which_volume == 0 && aud_cmd(ST_C_GAME_MODE) ) {
+d595 71
+a665 2
+       volume = newVolume;
+       ShowVolume(atr_volume,bar_row[1],num_row[1]);
+d667 19
+a685 8
+       txt_clr_wid(VBAR_COL,label_row[1],6);
+       if ( atrv == 0 || atrv == AUD_AV_MSK ) {
+           txt_str(VBAR_COL,label_row[1],atrv ? "FULL" : "MUTE", GRY_PAL);
+       } else {
+           txt_decnum(VBAR_COL,label_row[1],atrv,2,LJ_NF,GRY_PAL);
+           txt_cstr("/",GRY_PAL);
+           txt_cdecnum(AUD_AV_MSK,2,LJ_NF,GRY_PAL);
+       }
+d687 16
+a702 2
+       ShowVolume(volume,bar_row[0],num_row[0]);
+       update = 0;
+d704 11
+a714 1
+    aud_put(ST_S_STOP);                   /* kill all sounds          */
+d716 100
+a815 1
+    aud_init(-1);                  /* finished with engines    */
+d819 1
+a819 1
+    eer_puts(EER_AUD_VOL,volume);  /* save volume level to EEROM      */
+d821 6
+a826 6
+    atrv <<= AUD_AV_SHF;
+    atrv |= (eer_gets(EER_GUTS_OPT) & ~(AUD_AV_MSK<<AUD_AV_SHF));
+    eer_puts(EER_GUTS_OPT,atrv);
+#else
+#ifdef EER_AUD_ATRV
+    eer_puts(EER_AUD_ATRV,atrv);
+d828 2
+d832 95
+@
+
+
+1.21
+log
+@Changed the way sound checksums are displayed.
+@
+text
+@d32 3
+d40 10
+a438 10
+#if HAS_VOLUME_BUTTONS
+       if ( (VBLANK&(1<<B_VOLDN)) == 0 )                /*  Going down */
+       {
+           if (newVolume >= MIN_VOLUME+1) {
+              newVolume -= 1;
+              update = 1;
+           }
+       }
+       else
+#endif    
+d445 3
+d449 1
+d467 3
+a469 8
+#if HAS_VOLUME_BUTTONS
+       if ( (VBLANK&(1<<B_VOLUP)) == 0 )                /*  Going up...      */
+       {
+           if (newVolume <= MAX_VOLUME-1)
+              newVolume += 1;
+       }
+       else
+#endif    
+d471 1
+@
+
+
+1.20
+log
+@New audio checksum record.
+@
+text
+@d661 6
+d668 19
+a686 4
+static const U16 snd_cksums[] = {
+#if 0
+    0x9E81, 0xE0A5, 0xC89A, 0x1A62, 0x5656, 0x9720, 0x36C9, 0xDEA9,
+    0x8B6B, 0xEC1F, 0x304A, 0x4640, 0xCA1C, 0x0712, 0xDC58, 0xC297
+d688 18
+a705 1
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+a706 1
+};
+d715 1
+a715 1
+    int row,col,idx,pal;
+d768 6
+a773 7
+           if ( col > (AN_VIS_COL-5) ) {
+              col = 1;
+              ++row;
+           }
+           pal = WHT_PAL;
+           if ( status != snd_cksums[idx++] ) {
+              pal = RED_PAL;
+d775 6
+a780 3
+           }
+           col += 1+txt_hexnum(col,row,status,4,RJ_ZF,pal);
+           timer = 10;
+d784 1
+a784 1
+    if ( idx != (sizeof(snd_cksums)/sizeof(snd_cksums[0])) ) {
+d790 1
+a790 1
+       utl_cdec((sizeof(snd_cksums)/sizeof(snd_cksums[0])),
+@
+
+
+1.19
+log
+@Made quad_tst global for access from main menu.  Set S_THUMP for RUSH.
+@
+text
+@d663 1
+d666 3
+@
+
+
+1.18
+log
+@Do not print save message if NO_EER_WRITE.
+@
+text
+@d603 1
+a603 1
+STATIC int quad_tst PARMS(( const struct menu_d *));
+d609 3
+d613 1
+a613 1
+    {"SOUNDS BY NUMBER", snd_by_num},
+a616 3
+#if HAS_QUAD
+    {"SPEAKER TEST", quad_tst},
+#endif
+d1062 3
+d1066 1
+d1068 1
+a1068 1
+STATIC int quad_tst ( smp )
+d1078 1
+a1078 1
+#if (1)
+@
+
+
+1.17
+log
+@Move "Nerd Mode" volume numbers to account for new
+position reference on AN_BIG_SET. Delete special-case
+AREA51 code, no longer needed. Delete stuff which has been
+#if (0)'d for a few years.
+@
+text
+@d396 3
+a398 1
+    bottom = st_insn(AN_VIS_ROW-3,t_msg_save_ret,t_msg_next,INSTR_PAL);
+d400 1
+@
+
+
+1.16
+log
+@Backed out previous revision (1.15) because CAGE and COJAG use this.
+@
+text
+@d305 2
+a306 2
+#define VBAR_NUMROW   (7)
+#define VBAR_ANUMROW  (18)
+a339 4
+#if (COJAG_GAME&COJAG_AREA51)
+extern void gun_joy();
+#endif
+
+d392 1
+a392 3
+#if (0)
+    txt_str(-1,AN_VIS_ROW-2,t_msg_save_ret,INSTR_PAL);
+#endif
+a395 6
+#if (0)
+    txt_str(-1,AN_VIS_ROW-9,t_msg_control,INSTR_PAL);
+    txt_str(-1,AN_VIS_ROW-8,"to ADJUST volume",INSTR_PAL);
+    txt_str(-1,AN_VIS_ROW-6,t_msg_action,INSTR_PAL);
+    txt_str(-1,AN_VIS_ROW-5,t_msg_restore,INSTR_PAL);
+#else
+a398 1
+#endif
+a409 3
+#if (COJAG_GAME&COJAG_AREA51)
+       gun_joy();
+#endif
+d578 1
+a578 4
+#if (0)
+    /* find some less-hacky way to set off message */
+    EraseFrameLines(AN_VIS_ROW-3,AN_VIS_ROW-2);
+#endif
+@
+
+
+1.15
+log
+@Adds support for V+ audio (also look in file phx_audio.c)
+@
+text
+@a14 7
+
+#define GUTS_USING_VPLUS 1
+
+#if GUTS_USING_VPLUS
+	int foo;
+#else /* entire file */
+
+a1144 3
+
+
+#endif /* entire file */
+@
+
+
+1.14
+log
+@Added config.mac override capability for LOW_VOLUME and HIGH_VOLUME.
+@
+text
+@d15 7
+d1152 3
+@
+
+
+1.13
+log
+@Deleted old-style void AdjustVolume(). This has not been
+used in over a year.
+@
+text
+@d294 1
+d296 2
+d300 1
+@
+
+
+1.12
+log
+@Updated instructions in Volume Adjust screen.
+@
+text
+@a335 9
+int adj_vol PARMS (( const struct menu_d * smp ));
+
+void
+AdjustVolume(smp)
+const struct menu_d *smp;
+{
+    adj_vol(smp);
+    return;
+}
+@
+
+
+1.11
+log
+@prevent call to synPrintJVcb on non-CoJag systems.
+@
+text
+@d363 1
+d401 1
+d403 1
+d407 1
+d412 5
+a416 1
+
+@
+
+
+1.10
+log
+@Changes to support multiple banks on CoJag.
+@
+text
+@d1024 4
+a1027 1
+       synPrintJVcb(8);
+@
+
+
+1.9
+log
+@parameterized some more screen positions to account for
+possibly narrower screen, as on Area51. deleted obsolete
+void AdjustVolume().
+@
+text
+@d1 8
+a8 2
+/*
+ *	snd_test.c
+d10 4
+a13 4
+ *		Copyright 1991 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+d15 2
+a16 1
+#define BRAVE_NEW_WORLD (1)
+d28 1
+a28 1
+#define HAS_MOS (1)
+d30 2
+a31 2
+#ifdef COJAG_GAME
+#define HAS_MOS (1)
+d33 1
+a33 1
+#define HAS_MOS (0)
+d37 1
+a37 1
+#define	STATIC	static
+d39 1
+a39 1
+#define	HAS_QUAD	1
+d41 6
+a46 3
+/* hacked in because we couldn't decide where it should go */
+#ifndef INC_VOLUME
+#define INC_VOLUME	(8)
+d48 3
+a50 8
+#ifndef MIN_VOLUME
+#define MIN_VOLUME	(0)
+#endif
+#ifndef MAX_VOLUME
+#define MAX_VOLUME	(32)
+#endif
+#ifndef DEF_VOLUME
+#define DEF_VOLUME	((MAX_VOLUME+MIN_VOLUME)/2)
+a52 3
+#ifndef	ST_S_AUDTST
+#define ST_S_AUDTST	(0x8003)
+#endif
+d54 13
+a66 2
+#ifndef	ST_S_STOP
+#define ST_S_STOP	(0x8000)
+d69 6
+a74 12
+
+#if HAS_MOS
+#define DATA		unsigned short
+#define MAX_AUD_TRIES	(30)		/* 1/2 second */
+#define S_PJCT_VER	(0x8009)
+#define S_ERRORS	(0x800A)
+#ifndef VERS_COL
+#define VERS_COL ((AN_VIS_COL-36)/2)
+#endif
+#else
+#define DATA		unsigned char
+#define MAX_AUD_TRIES	(3 * 60) 	/* 3 seconds */
+a76 9
+#if HAS_MOS
+#define	START_SOUND	ST_S_AUDTST
+#define	START_INDEX	0x8000
+#define START_TIME	(100)
+#else
+#define	START_SOUND	ST_S_YTST
+#define	START_INDEX	0
+#define START_TIME	(9*60)
+#endif
+d78 3
+a80 3
+/*	Try to set a reasonable default for the location and size of the
+ *	Attract-mode volume ratio. This will only be used if EER_AUD_ATRVOL
+ *	is not defined.
+a93 6
+#ifdef ROOM_FOR_OLD_STUFF
+STATIC S16	STSetVolume();
+STATIC S16	STAdjustVolume();
+STATIC	int	legal_ind();
+STATIC	int	TimeTest();
+#endif
+d95 1
+a95 1
+ *	error strings
+d100 3
+a102 3
+	"SOUND ROM ERROR",
+	"INTERNAL ERRORS",
+	"UNDEFINED ERRORS"
+d104 8
+a111 8
+	"MAIN LINE ERROR",
+	"MUSIC CHIP TIME OUT",
+	"SOUND CPU INTERRUPT ERROR",
+	"SOUND CPU RAM ERROR",
+	"SOUND CPU RAM ERROR",
+	"SOUND CPU ROM ERROR",
+	"SOUND CPU ROM ERROR",
+	"SOUND CPU ROM ERROR"
+d116 1
+a116 1
+ *	sound strings
+d119 10
+a128 80
+#define	SNDCOL		2
+#define	SNDROW		17
+#define	SOUNDCOL	(SNDCOL + 5)
+#define	SOUNDROW	SNDROW
+#define	DECCOL		(SNDCOL + 5 + 6)
+#define	DECROW		SNDROW
+#define	HEXCOL		(SNDCOL + 5 + 6 + 5)
+#define	HEXROW		SNDROW
+#define	LABCOL		(SNDCOL + 5 + 6 + 5 + 4)
+#define	LABROW		SNDROW
+
+#define	INSROW		(SNDROW + 1)
+
+/* SNDLST has strings for auto-tests (can't be called!)		*/
+
+#ifdef ROOM_FOR_OLD_STUFF
+static const char * const sndlst[] =	/* Names for the sounds		*/
+	{	/* - ZERO entries aren't available to test! (ie play) */
+#if HAS_MOS
+    		"STOP SOUNDS      ",
+		"SILENT           ",
+		"NOISY		  ",
+		"MUSIC CHIP TEST  ",
+		0,			/* -E- get number of sounds */
+		0,			/* -E- get status */
+		0,0,			/* -E- Set/Get volume */
+		0,			/* -E- Get MOS version */
+		0,			/* -E- Get Project version */
+		0,			/* -E- Get error count */
+#else /* not cage, presume 6502 */
+    		"STOP SOUNDS      ",
+		"SILENT           ",
+		"NOISY		  ",
+		0,			/* 6502-boards have coin-request here */
+		"MUSIC CHIP TEST  ",
+#ifdef ST_S_ADTEST
+		"ADPCM CHIP TEST",
+#else
+		0,			/* reserved for ADPCM test */
+#endif
+		0,			/* -E- get number of sounds */
+		0,			/* -E- get status */
+		0,			/* -E- Raw Coin switches */
+		0,			/* -E- Set volume */
+		0,			/* -S- set default volume */
+		0,			/* -S- increase volume */
+		0,			/* -S- decrease volume */
+#endif
+	};
+#endif
+#define	ENDSNDLST	(sizeof(sndlst)/sizeof(sndlst[0]))
+
+static const char sndcnt[] = "NUMBER OF SOUNDS:     ";
+
+#define	BORDERROW	(AN_VIS_ROW - 6)	/* Up six from the bot	*/
+#define	VCOL		((AN_VIS_COL+1 - sizeof(sndcnt))>>1)
+#define	VROW		(BORDERROW - 2)
+
+#ifdef ROOM_FOR_OLD_STUFF
+static	U16	volume;
+#if (HAS_QUAD)
+/* following routine lifted from sounds.c, which is pretty intimately
+ * tied to the game, the game's "sounds.h" file, and the src directory.
+ */
+STATIC int sndStartStaticUnpitched(objID, handle, x, y)
+int objID;	/* really command, takes params */
+int handle;	/* Not sure about this */
+int x,y;	/* audio coordinates */
+{
+	U16	cmdBuf[4];
+		
+	cmdBuf[0] = objID;
+	cmdBuf[1] = handle;
+	cmdBuf[2] = x;
+	cmdBuf[3] = y;
+	
+	return (aud_mput(cmdBuf, 4));
+}
+#endif
+#endif
+d130 1
+a130 8
+
+#ifdef ROOM_FOR_OLD_STUFF
+static	U16	comErrors,resetCount;
+STATIC void
+BumpComErrors()
+{
+    if (comErrors < 0xffff)
+	++comErrors;
+d132 1
+a132 2
+    if (comErrors == 1)		/* first error, put up message */
+	txt_str(3,VROW-1,"COMMUNICATIONS ERROR #1 :",RED_PAL);
+d134 1
+a134 2
+    txt_decnum(29,VROW-1,comErrors,5,RJ_BF,WHT_PAL);
+}
+d136 1
+d138 10
+a147 12
+STATIC void
+BumpResets()
+{
+    if (resetCount < 0xffff)
+	++resetCount;
+
+    if (resetCount == 1)		/* first error, put up message */
+	txt_str(15,VROW-1,"RESET COUNT :",WHT_PAL);
+
+    txt_decnum(29,VROW-1,resetCount,5,RJ_BF,WHT_PAL);
+}
+#endif
+d156 2
+a157 2
+	prc_delay0();
+	status = aud_put(cmd);
+d162 3
+a164 3
+	status = aud_q_get();
+	if ( status >= 0 ) break;
+	prc_delay0();
+d170 1
+a170 1
+STATIC int show_sound_status PARMS(( int	status, int count ));
+d172 4
+d177 2
+a178 2
+ResetSoundProc(complete)
+int	complete;
+d180 2
+a181 3
+    int		count;
+    long	status;
+    char	*msg = "Resetting sounds, Please wait";
+d183 1
+a183 1
+    /*	Attempt to reset the sound process[or]. aud_init() should
+d186 2
+a187 2
+     *	6502 status) in bottom 16 bits. A return of < 0 means a failure
+     *	while a return of 0 means the user got impatient and hit "NEXT".
+d190 2
+a191 2
+	txt_str(2,4,msg,WHT_PAL);
+	status = aud_init(1);		/* reset and wait for results */
+d193 14
+a206 14
+	if ( status > 0 ) break;
+	else if ( status == 0 ) {
+	    /* bailed at user request
+	     */
+	    aud_init(-1);	/* finished with sounds */
+	    return 0;
+	} else {
+	    /* timeout or other wedge-up
+	     */
+	    txt_clr_str(2,4,msg,WHT_PAL);
+	    msg = "RE-TRYING SOUND RESET";
+	    txt_str(2,6,"SOUND PROCESSOR NOT RESPONDING",RED_PAL);
+	    continue;
+	}
+d210 1
+a210 10
+    count = status >> 16;		/* count of sounds */
+    status &= 0xFFFF;			/* sound process[or] status */
+
+    if ( !complete ) return (status ? -1 : 1);
+
+    /* we want to report in gory detail...
+     */
+    status = show_sound_status(status,count);
+    if ( status < 0 ) return status;
+    return (count);			/* > zero			*/
+d213 1
+d216 1
+a216 1
+int	status,count;
+d218 2
+a219 2
+    m_int	timer;
+    m_int	i;
+d225 18
+a242 18
+    else {
+	m_int row = 7;
+	txt_chexnum(status,2,RJ_ZF,VERSION_PAL);
+	for ( i = 0 ; i < MAX_ERR_BITS ; ++i ) {
+	    if ( status & (1 << i) ) {
+		/* each bit has a meaning...
+		 */
+		txt_str(2,row++,snderr[i],RED_PAL);
+	    }
+	} /* end for */
+	txt_str(2,row,t_msg_next,WHT_PAL);
+	txt_cstr(" To proceed",WHT_PAL);
+	for ( timer = 42*60 ; timer > 0 ; --timer ) {
+	    if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	    prc_delay0();
+	}
+	if ( timer <= 0 ) return -1;
+	while ( row >= 7 ) txt_clr_wid(2,row--,AN_VIS_COL-4);
+d247 17
+a263 17
+	txt_str(VERS_COL,VROW+2,"MOS VERSION ",MNORMAL_PAL);
+	i = cage_get(i);
+	txt_chexnum((i >> 8),2,LJ_NF,MNORMAL_PAL);
+	txt_cstr(".",MNORMAL_PAL);
+	txt_chexnum((i & 0xFF),2,RJ_ZF,MNORMAL_PAL);
+	if ( ( i = aud_cmd(ST_C_PJCT_VER) ) != 0 ) {
+	    i = cage_get(i);
+	    if ( i & 0x8000 ) {
+		/* Kluge to deal with "-1" returned as unsigned short,
+	         * which shows up as 65535.
+		 */
+		txt_cstr(" (NO GAME)",ERROR_PAL);
+	    } else {
+		txt_cstr(" PROJECT VERSION ",MNORMAL_PAL);
+		txt_cdecnum(i,3,LJ_NF,MNORMAL_PAL); 
+	    }
+	}
+d265 1
+a265 5
+#endif
+#if HAS_MOS
+#ifdef GUTS_OPT_DEVEL
+    if ( debug_mode & GUTS_OPT_DEVEL )
+#endif
+d267 3
+a269 3
+	&& (status = cage_get(i)) > 0 ) {
+	txt_str(VERS_COL,VROW+3,"MOS ERRORS ",RED_PAL);
+	txt_cdecnum(status,4,LJ_NF,RED_PAL);
+d272 3
+a274 1
+    return (count);			/* > zero			*/
+d278 2
+a279 11
+/*
+ *
+ * TimeTest()
+ * purpose:
+ *	This routine is used to make a sound call and then wait for 'time'
+ *	frames before stopping sounds and returning.
+ *
+ * returns:
+ *	1	to indicate normal completion of test
+ *	-1	to escape SoundTest() completely
+ *	0	to skip all future TimeTest calls
+d281 2
+a282 99
+#ifdef ROOM_FOR_OLD_STUFF
+STATIC int
+TimeTest(scode,time,msg)		/* Return TRUE to exit SNDTST	*/
+int	scode,time;
+const char *msg;
+{
+    int	excode;
+
+    excode = 1;
+
+    txt_str(LABCOL,LABROW,msg,WHT_PAL);
+
+    while (excode == 1 /* user doesn't want to escape SoundTest()	*/
+    && aud_put(scode) == 0)		/* couldn't send sound		*/
+    {
+	prc_delay0();
+
+	BumpComErrors();		/* another error...		*/
+	if (ctl_read_sw(SW_NEXT) & SW_NEXT)	/* user wants to escape?	*/
+	    excode = -1;		/* yep...			*/
+    }
+
+    while (excode == 1 /* user doesn't want to escape SoundTest()	*/
+    && --time > 0)			/* haven't timed out...		*/
+    {
+	prc_delay0();
+
+#if HAS_VOLUME_BUTTONS
+	if ( (VBLANK&(1<<B_VOLDN)) == 0 ) 	/*  Going down */
+	{
+	    if (volume >= MIN_VOLUME+1)
+		volume -= 1;
+	    volume = STSetVolume(volume);
+	}
+	if ( (VBLANK&(1<<B_VOLUP)) == 0 ) 	/*  Going up...	*/
+	{
+	    if (volume <= MAX_VOLUME-1)
+		volume += 1;
+	    volume = STSetVolume(volume);
+	}
+#endif    
+
+	if (ctl_read_sw(0) & SW_ACTION)		/* adjust volume	*/
+	{
+	    aud_poll(16000);			/* empty queue if necessary */
+	    if ((volume = STAdjustVolume(volume,ctl_read_sw(JOY_ALL))) < 0)
+		excode = -1;
+	}
+	else
+	if ((ctl_read_sw(0) & JOY_BITS))	/* Moved the stick	*/
+	    excode = 0;			/* skip this test...	*/
+
+	if (ctl_read_sw(SW_NEXT) & SW_NEXT)	/* user wants to escape?	*/
+	    excode = -1;
+    }
+
+    txt_clr_str(LABCOL,LABROW,msg,WHT_PAL);
+
+    aud_put(ST_S_STOP);
+
+    return (excode);
+}
+
+/* Any sound that's got a ZERO in "sndlst" can't be called - it may	*/
+/*   be an exception or something I guess...				*/
+
+STATIC int
+legal_ind( index)	/* All sounds are LEGAL except some near ZERO	*/
+short	index;
+{
+    if ((index < ENDSNDLST) 			/* within sound list */
+    && (sndlst[index] == 0))			/* do not play this */
+	return (0);
+
+    return (1);
+}
+
+void
+SoundTest()
+{
+    m_int	i;
+    U16		sindex;
+    m_int	msgState = 0;
+    m_int	old_msgState = 1;
+    char	stop_msg[AN_VIS_COL-2+1];
+    char	start_msg[AN_VIS_COL-2+1];
+    char	erase_msg[AN_VIS_COL-2+1];
+    m_int	update = 1;
+    U32		switchEdges,sw;
+    m_int	base;
+    U16		sndCount;
+#ifdef ST_E_CNTS
+    U8		coinSwitches;
+#endif
+    m_int	old_rpt,new_rpt;
+    m_int	contFlag;
+    int		keepResponse;
+#if HAS_QUAD
+    S8          x,y;
+d284 2
+a285 38
+    int		msgTimer;
+
+    comErrors = 0;				/* no comm errors yet	*/
+    resetCount = 0;				/* no resets yet	*/
+
+    /* compose start and stop messages */
+    strncpy(start_msg,t_msg_action,AN_VIS_COL-2);
+    strncat(start_msg," To start sound",AN_VIS_COL-strlen(start_msg)-2);
+    start_msg[AN_VIS_COL-2+1] = '\0';
+    strncpy(stop_msg,t_msg_extra,AN_VIS_COL-2);
+    strncat(stop_msg," To stop sound",AN_VIS_COL-strlen(stop_msg)-2);
+    stop_msg[AN_VIS_COL-2+1] = '\0';
+    if (strlen(start_msg) > strlen(stop_msg))
+	strcpy(erase_msg,start_msg);
+    else
+	strcpy(erase_msg,stop_msg);
+
+    sndCount = ResetSoundProc(1);		/* reset 6502, get stats */
+    if (sndCount == 0)			/* user aborted		*/
+	goto EXIT_SND_TEST;
+
+    sndCount += START_INDEX;
+
+    volume = STSetVolume(-1);			/* set volume from EEPROM */
+    if (volume < 0)				/* volume set failed	*/
+	goto EXIT_SND_TEST;
+
+    old_rpt = -1;
+    contFlag = 1;			/* assume everything is hunkydory */
+
+    if (contFlag == 1		/* last test completed normally	*/
+    && (contFlag = TimeTest(ST_S_AUDTST,START_TIME,"MUSIC CHIP TEST")) < 0)
+	goto EXIT_SND_TEST; /* do music test, escape if user wants to	*/
+
+#ifdef ST_S_ADTEST
+    if (contFlag == 1		/* last test completed normally	*/
+    && (contFlag = TimeTest(ST_S_ADTEST,7*30,"ADPCM CHIP TEST")) < 0)
+	goto EXIT_SND_TEST; /* do ADPCM test, escape if user wants to	*/
+d287 2
+a288 5
+
+#if (HAS_LETA)
+    txt_str(-1,INSROW+1,"Use Trackball to SELECT Sound",INSTR_PAL);
+#else
+    txt_str(-1,INSROW+1,"Use Joystick to SELECT Sound",INSTR_PAL);
+d290 2
+a291 304
+    txt_str(SOUNDCOL,SOUNDROW,"SOUND",WHT_PAL);
+    txt_str(DECCOL,DECROW,"#",WHT_PAL);
+    txt_str(HEXCOL,HEXROW,"$",WHT_PAL);
+
+    sindex = START_SOUND;		/* Setup on the chosen sound	*/
+    base = 0;				/* .. start at sound zero??	*/
+    ctl_autorepeat(JOY_BITS,20,10);	/* Autorepeat...		*/
+    msgTimer = 0;
+    while (1)
+    {
+	prc_delay0();
+
+	keepResponse = aud_poll(16000);	/* keep track of sound processor*/
+	if ( keepResponse < -1 )	/* keep track of sound processor*/
+	{
+	    /* Just reset the sound proc,
+	     * note it and set the volume please
+	     */
+		BumpResets();
+	    if ((volume = STSetVolume(volume)) < 0)
+		goto EXIT_SND_TEST;
+	}
+	if ( msgState != old_msgState ) {
+	    txt_clr_str(-1,INSROW,erase_msg,INSTR_PAL);
+	    if (msgState == 0)	{
+		/* waiting to start a sound	*/
+		txt_str(-1,INSROW,start_msg,INSTR_PAL);
+	    } else {
+		/* waiting to stop a sound	*/
+		txt_str(-1,INSROW,stop_msg,INSTR_PAL);
+	    }
+	    old_msgState = msgState;
+	}
+	new_rpt = aud_q_get();
+	if ( new_rpt >= 0 && new_rpt != old_rpt ) {
+	    /* got unsolicited input from 6502 */
+	    old_rpt = new_rpt;
+	    txt_str(1,VROW+1,"RPT:",WHT_PALB);
+	    txt_chexnum(new_rpt,4,RJ_ZF,WHT_PALB);
+	}
+	switchEdges = ctl_read_sw(JOY_ALL|J1_TRIG);	/* Get all edges */
+	sw = ctl_read_sw(0);				/* and levels */
+	if (switchEdges & SW_NEXT) break;		/* exit?	*/
+
+#if HAS_VOLUME_BUTTONS
+	/* this should be in aud_poll() or the like for use in game,
+	 * Although that would require coordination with the volume setting
+	 * here.
+	 */
+	if ( (VBLANK&(1<<B_VOLDN)) == 0 ) 	/*  Going down */
+	{
+	    if (volume >= MIN_VOLUME+1)
+		volume -= 1;
+	    volume = STSetVolume(volume);
+	}
+	if ( (VBLANK&(1<<B_VOLUP)) == 0 ) 	/*  Going up...	*/
+	{
+	    if (volume <= MAX_VOLUME-1)
+		volume += 1;
+	    volume = STSetVolume(volume);
+	}
+#endif    
+
+	if (switchEdges & SW_ACTION)			/* start sound	*/
+	{
+	    txt_str(SNDCOL,SNDROW,"PLAY", WHT_PAL);
+	    aud_put(sindex);			/* ignore failure	*/
+	    msgState = 1;
+	    msgTimer = 42;
+	    continue;
+	}
+	if (switchEdges & SW_EXTRA)			/* stop sounds	*/
+	{
+	    txt_str(SNDCOL,SNDROW,"STOP", WHT_PAL);
+	    aud_put(ST_S_STOP);			/* ignore failure	*/
+	    msgState = 0;
+	    msgTimer = 42;
+	    continue;
+	}
+
+	if ( msgTimer && --msgTimer == 0 ) txt_clr_wid(SNDCOL,SNDROW,4);
+
+	if ( sw & SW_ACTION )		/* adjust volume	*/
+	{
+	    aud_poll(0);			/* empty queue if necessary */
+	    if ((volume = STAdjustVolume(volume,switchEdges)) < 0)
+		break;
+	} else {
+	    /* not adjusting volume, maybe selecting sounds to play */
+#if HAS_QUAD
+#ifdef J2_BITS
+	    switchEdges &= (J2_BITS | J1_TRIG);
+#endif
+#endif /* HAS_QUAD */
+	    if (switchEdges & J_UP)	
+	    {
+		if (sindex >= (U16)(START_INDEX+10))
+		{
+		   int sbase,sdir;
+
+		    sdir = -1;			/* try LEFT if not legal */
+		    sbase = sindex -= 10;		/* .. moving UP??	*/
+		    while (!legal_ind(sindex-START_INDEX))
+		    {
+			if (sindex == START_INDEX)	/* try other direction 	*/
+			{
+			    sdir = 1;			/* .. try RIGHT	*/
+			    sindex = sbase + 1;
+			}
+			sindex += sdir;
+		    }
+		    update = 1;
+		}
+	    }
+		if (switchEdges & J_DOWN)
+		{
+		    if ((U16)(sindex+10) <= sndCount)	/* ... DN??	*/
+		    {
+			sindex += 10;
+			update = 1;
+			while (sindex < sndCount 	/* Assumes SNDCOUNT is LEGAL!	*/
+			&& !legal_ind(sindex-START_INDEX))
+			    ++sindex;
+		    }
+		    else
+		    if (sindex < sndCount)		/* Go to end!	*/
+		    {
+			sindex = sndCount;
+			update = 1;
+		    }
+		}
+	/*	else*/
+		if (switchEdges & J_LEFT)
+		{
+		    if (sindex > START_INDEX)		/* Allow first sound!	*/
+		    {
+			while (!legal_ind((--sindex)-START_INDEX))
+				;
+			update = 1;
+		    }
+		}
+	/*	else*/
+		if (switchEdges & J_RIGHT)
+		{
+		    while (sindex < sndCount 	/* Assumes SNDCOUNT is LEGAL!	*/
+		    && !legal_ind((++sindex)-START_INDEX))
+			;
+		    update = 1;	
+		}
+	} /* end else (not adjusting volume) */
+
+#if (HAS_QUAD)
+	/* display joystick grid	*/
+	sw = ctl_read_sw(0);
+	st_joy_disp(4,20,sw & J1_BITS);
+	x = 0;
+	if( sw & J1_LEFT )
+		x = -1;
+	else if( sw & J1_RIGHT )
+		x = 1;
+	y = 0;
+	if( sw & J1_UP )
+		y = -1;
+	else if( sw & J1_DOWN )
+		y = 1;
+	if ( switchEdges & J1_TRIG )
+	    sndStartStaticUnpitched( sindex, 0, x*3, y*(-3) );	
+#endif
+
+	if (update)  	/* display sound index & name	*/
+	{
+	    short	row,col,index;
+
+	    msgState = 0;
+	    update = 0;
+
+	    index = sindex - START_INDEX;
+	    txt_decnum(DECCOL+1,DECROW,index,3,LJ_BF,YEL_PAL);
+	    txt_hexnum(HEXCOL+1,HEXROW,index,2,RJ_ZF,YEL_PAL);
+	    if ( index >= ENDSNDLST || !sndlst[index] )
+		txt_clr_str(LABCOL,LABROW,sndlst[0],WHT_PAL);
+	    else txt_str(LABCOL,LABROW,sndlst[index], WHT_PAL);
+
+	    if (index > (base+129))	/* past 13th row??	*/
+		base += 10;			/* .. redraw table	*/
+	    else
+	    if (index < base)
+		base -= 10;
+
+	    i = base;
+	    for (row=0; row<13; ++row)	/* Print table		*/
+	    {
+		for (col=0; col<10; ++col)
+		{
+		    int pal;
+
+		    if (i <= (sndCount-START_INDEX))
+		    {
+			if (index == i)	/* Highlighted?		*/
+			    pal = MHILITE_PAL;
+			else
+			    pal = (legal_ind(i) ? MNORMAL_PAL : -1);
+		    }
+		    else
+			pal = -1;
+
+		    if ( pal == -1)
+			txt_str(1+col*4,3+row,"   ",0);
+		    else
+			txt_decnum(1+col*4,3+row,i,3,RJ_BF,pal);
+		    ++i;
+		}
+
+		if (i > (sndCount-START_INDEX))
+		    break;
+	    }
+	}
+#if (0)
+	if (switchEdges & SW_ACTION)			/* start sound	*/
+	    txt_str(SNDCOL,SNDROW,"PLAY", WHT_PAL);
+	else
+	if (switchEdges & SW_EXTRA)			/* stop sounds	*/
+	    txt_str(SNDCOL,SNDROW,"STOP", WHT_PAL);
+	else
+	    txt_str(SNDCOL,SNDROW,"    ", WHT_PAL);
+#endif
+#if (HAS_EXT_SND)
+#ifdef ST_E_CNTS
+	if (coinSwitches != 0x00FF)
+	{
+	    for ( i = 3 ; i > 0 ; --i ) {
+		if ( coinSwitches & ( 1 << i ) ) 
+		    txt_str(26+(i<<2),AN_VIS_ROW-1-3,"1",YEL_PAL);
+		else txt_str(26+(i<<2),AN_VIS_ROW-1-3,"0",WHT_PAL);
+	    }
+	}
+	else
+	    txt_str(26,AN_VIS_ROW-1-3,"X   X   X   X",RED_PAL);
+	coinSwitches = 0xFF;			/* set all switches off	*/
+	aud_excw(ST_E_CNTS,&coinSwitches,1);	/* request switches	*/
+#endif	/* ST_E_CNTS (coin switches on EXT_SND) */
+#endif  /* HAS_EXT_SND */
+/*
+ *	We have sent the request. A well 6502 cannot take even
+ *	one frame to respond. Therefore there is no timer per se.
+ */
+    }
+
+EXIT_SND_TEST:
+    aud_init(-1);
+}
+
+#else
+void SoundTest() {
+    txt_str(-1,AN_VIS_ROW/2,"NO ROOM FOR OLD TEST",RED_PALB);
+    while ( (ctl_read_sw(0) & SW_NEXT) == 0 ) prc_delay0();
+}
+#endif
+
+#ifdef ROOM_FOR_OLD_STUFF
+STATIC S16
+STAdjustVolume(level,edges)
+S16	level;
+U32	edges;
+{
+    register S16 newLevel = level;
+
+    if ((edges & J_DOWN))
+    {
+	if (newLevel >= MIN_VOLUME+INC_VOLUME)
+	    newLevel -= INC_VOLUME;
+    	else
+	    newLevel = MIN_VOLUME;
+    }
+    	
+    if ((edges & J_UP))
+    {
+        if (newLevel <= MAX_VOLUME-INC_VOLUME)
+	    newLevel += INC_VOLUME;
+	else
+	    newLevel = MAX_VOLUME;
+    }
+
+    if (newLevel != level)
+	newLevel = STSetVolume(newLevel);
+
+    return (newLevel);
+}
+
+STATIC S16
+STSetVolume(level)
+S16	level;
+{
+    if ((level = aud_setvol(level)) < 0 ) /* Change the volume	*/
+	VolumeSetError();
+
+    if (level >= 0)
+    {
+	txt_str(AN_VIS_COL-9,VROW+1,"VOL: ",WHT_PALB);
+	txt_cdecnum(level,3,1,WHT_PALB);
+    }
+
+    return (level);
+}
+d293 10
+d304 1
+a304 12
+	/* Display GREEN up to low volume */
+#define	LOW_VOLUME	(DEF_VOLUME-(MAX_VOLUME/8)) 
+	/* Display RED after HIGH volume */
+#define	HIGH_VOLUME	(DEF_VOLUME+(MAX_VOLUME/8))
+
+#define	VBAR_ROW	(10)
+#define VBAR_AROW	(14)
+#define	VBAR_COL	((AN_VIS_COL-32)>>1)
+#define VBAR_NUMROW (7)
+#define VBAR_ANUMROW (18)
+
+/* 	ShowVolume() Show volume and draw the current volume 'bar'
+d316 2
+a317 2
+	/* display volume as a number	*/
+	txt_decnum(25,nerd_row,volume,3,LJ_BF,WHT_PALB + AN_BIG_SET);
+d323 6
+a328 6
+	if ( j > volume ) color = GRY_PAL;
+	else if ( j > HIGH_VOLUME) color = RED_PAL;
+	else if ( j > LOW_VOLUME) color = YEL_PAL;
+	txt_stamp(VBAR_COL+i,row,AN_VOL_BAR,color);
+	txt_stamp(VBAR_COL+i,row+1,AN_VOL_BAR,color);
+	txt_stamp(VBAR_COL+i,row+2,AN_VOL_BAR,color);
+d336 16
+d356 1
+a356 1
+    U32	ctrls;
+d359 3
+a361 3
+    int	old_atrv,atrv;			/* attract volume or ratio */
+    int	which_volume, old_which;
+    int	update;
+a362 1
+    int bottom;
+d366 2
+a367 2
+	num_row[0] = VBAR_NUMROW;
+	num_row[1] = VBAR_ANUMROW;
+d370 6
+a375 8
+    /* Try to reset the audio processor					*/
+#if (0)
+    i = aud_init(1);			/* spin up the sound process[or] */
+#else
+    i = ResetSoundProc(0);
+    if ( i == 0 ) return -1;		/* user gave up */
+#endif
+    if (i < 0) return(i);		/* Died young...		*/
+d378 2
+a379 2
+	txt_str(VBAR_COL-1,VBAR_ROW+3,
+	  "0  1  2  3  4  5  6  7  8  9 10 11",GRY_PAL);
+d392 1
+a392 1
+    oldVolume = volume = aud_setvol(-1);	/* Set the default volume */
+d394 2
+a395 2
+	VolumeSetError();
+	return -1;
+d398 1
+a398 1
+    which_volume = 0;			/* set game volume first */
+d400 1
+d402 1
+a402 1
+	txt_str(11,VBAR_NUMROW,"VOLUME:_",GRN_PALB|AN_BIG_SET);
+a403 2
+#if (0)
+    txt_str(-1,AN_VIS_ROW-2,t_msg_save_ret,INSTR_PAL);
+d408 1
+a408 5
+#else
+    bottom = st_insn(AN_VIS_ROW-3,t_msg_save_ret,t_msg_next,INSTR_PAL);    
+    bottom = st_insn(bottom,"To ADJUST volume,",t_msg_control,INSTR_PAL);    
+    bottom = st_insn(bottom,t_msg_restore,t_msg_action,INSTR_PAL);    
+#endif
+d413 1
+a413 1
+    aud_put(ST_S_VMUSIC);		/* Start Happy Music!		*/
+d420 15
+a434 12
+	prc_delay0();
+	ctrls = ctl_read_sw(JOY_BITS | SW_NEXT | SW_ACTION);
+	if (ctrls & SW_NEXT)
+	    break;
+
+	volume = newVolume;
+
+	if (ctrls & SW_ACTION) {
+	    newVolume = oldVolume;
+	    atrv = old_atrv;
+	    update = 1;
+	}
+d437 8
+a444 8
+	if ( (VBLANK&(1<<B_VOLDN)) == 0 )  		/*  Going down */
+	{
+	    if (newVolume >= MIN_VOLUME+1) {
+		newVolume -= 1;
+		update = 1;
+	    }
+	}
+	else
+d446 11
+a456 11
+	if ( ctrls & (J_DOWN|J_UP) ) {
+	    /* selecting game/attract volume */
+	    which_volume = !(ctrls & J_UP);
+	    update = 1;
+	}
+
+	if ( ctrls & J_LEFT )
+	{
+	    /* decreasing whichever volume */
+	    if ( which_volume ) {
+		/* attract volume (or ratio) */
+d458 1
+a458 1
+		if ( --atrv < 0 ) atrv = 0;
+d460 9
+a468 9
+	    } else {
+		/* game volume */
+		if (newVolume >= MIN_VOLUME+INC_VOLUME)
+		    newVolume -= INC_VOLUME;
+		else
+		    newVolume = MIN_VOLUME;
+	    }
+	    update = 1;
+	}
+d471 6
+a476 6
+	if ( (VBLANK&(1<<B_VOLUP)) == 0 )  		/*  Going up...	*/
+	{
+	    if (newVolume <= MAX_VOLUME-1)
+		newVolume += 1;
+	}
+	else
+d478 5
+a482 5
+	if ( ctrls & J_RIGHT )
+	{
+	    /* increasing whichever volume */
+	    if ( which_volume ) {
+		/* attract volume (or ratio) */
+d484 1
+a484 1
+		if ( ++atrv > AUD_AV_MSK ) atrv = AUD_AV_MSK;
+d486 9
+a494 9
+	    } else {
+		/* game volume */
+		if (newVolume <= MAX_VOLUME-INC_VOLUME)
+		    newVolume += INC_VOLUME;
+		else
+		    newVolume = MAX_VOLUME;
+	    }
+	    update = 1;
+	}
+d496 1
+a496 1
+	atr_volume = atrv;
+d499 1
+a499 1
+	atr_volume = (newVolume * atrv)/AUD_AV_MSK;
+d503 51
+a553 51
+	if ( (which_volume != old_which) || (eer_rtc & 0xF) == 0 ) {
+	    int pal;
+	    pal = (eer_rtc & 0x10) ? GRY_PAL : WHT_PAL;
+	    txt_str(-1,label_row[old_which],which_name[old_which],GRY_PAL);
+	    txt_str(-1,label_row[which_volume],which_name[which_volume],pal);
+	    if ( which_volume != old_which ) {
+		update = 1;	/* force reset of appropriate volume */
+	    }
+	    old_which = which_volume;
+	}
+
+	if ( !update ) continue;
+
+	/*  This is a little more complicated now. On CAGE boards
+	 *  which support separate game and attract volume, we need
+	 *  to make sure we are changing the right one, and that
+	 *  we are using the right one.
+	 */
+	if ( aud_cmd(ST_C_ATR_VOL) != 0 && which_volume ) {
+	    /* we want to change attract volume, and CAGE
+	     * keeps track of it.
+	     */
+	    U16 volbuf[2];
+	    volbuf[0] = aud_cmd(ST_C_ATR_VOL);
+	    volbuf[1] = atr_volume;
+	    if ( aud_mput(volbuf,2) < 0 ) {
+		VolumeSetError();
+		return -1;
+	    }
+	    if ( aud_cmd(ST_C_ATR_MODE) ) aud_put(aud_cmd(ST_C_ATR_MODE));
+	} else {
+	    /* either we _want_ to set game volume, or it's the
+	     * only volume we have
+	     */
+	    volume = aud_setvol( which_volume ? atr_volume : newVolume);
+
+	    if ( volume < 0) /* Change the volume */
+	    {
+		VolumeSetError();
+		aud_init(-1);
+		return -1;
+	    }
+	    if ( which_volume != 0 && aud_cmd(ST_C_ATR_MODE) ) {
+		aud_put(aud_cmd(ST_C_ATR_MODE));
+	    }
+	    if ( which_volume == 0 && aud_cmd(ST_C_GAME_MODE) ) {
+		aud_put(aud_cmd(ST_C_GAME_MODE));
+	    }
+	}
+	volume = newVolume;
+	ShowVolume(atr_volume,bar_row[1],num_row[1]);
+d555 8
+a562 8
+	txt_clr_wid(VBAR_COL,label_row[1],6);
+	if ( atrv == 0 || atrv == AUD_AV_MSK ) {
+	    txt_str(VBAR_COL,label_row[1],atrv ? "FULL" : "MUTE", GRY_PAL);
+	} else {
+	    txt_decnum(VBAR_COL,label_row[1],atrv,2,LJ_NF,GRY_PAL);
+	    txt_cstr("/",GRY_PAL);
+	    txt_cdecnum(AUD_AV_MSK,2,LJ_NF,GRY_PAL);
+	}
+d564 2
+a565 2
+	ShowVolume(volume,bar_row[0],num_row[0]);
+	update = 0;
+d567 1
+a567 1
+    aud_put(ST_S_STOP);			/* kill all sounds		*/
+d569 1
+a569 1
+    aud_init(-1);			/* finished with engines	*/
+d573 1
+a573 1
+    eer_puts(EER_AUD_VOL,volume);	/* save volume level to EEROM	*/
+d589 1
+a589 1
+    /* volume set error message	*/
+d599 1
+a599 1
+	prc_delay0();
+d601 2
+a602 2
+	if (ctl_read_sw(0) & SW_NEXT)
+	    break;
+d605 1
+a605 1
+    /* erase volume set error message	*/
+d621 1
+a621 1
+    {"SOUND TESTS",	sound_cb},
+d637 1
+a637 1
+    ctl_autorepeat(JOY_VERT,30,15);	/* Autorepeat after 1/2secs @@ 1/4 */
+d644 6
+a649 6
+/*		sound_cb()
+ *	This is the "call-back" or coroutine for the sound menu.
+ *	It is called with a parameter of 0 when the menu specifying it
+ *	is first entered, and with a pointer to the current menu line
+ *	every time through st_menu()'s main polling loop. If it returns
+ *	non-zero, that value will be passed up to the caller of st_menu().
+d655 6
+a660 8
+	/* after first call, just watch for SW_NEXT, and clean up if seen */
+	if ( ctl_read_sw(0) & SW_NEXT ) {
+	    prc_delay0();
+	    aud_init(-1);
+#if (1)
+	    if ( snd_status == 0 ) return -1;
+#endif
+	}
+d662 9
+a670 8
+	/* first time in this menu, and first time we talk to
+	 * cage.
+	 */
+	snd_status = ResetSoundProc(1);
+	if ( snd_status < 0 ) return snd_status;
+	if ( snd_status == 0 ) return -1;
+	aud_setvol(-1);
+    } else show_sound_status( 0, snd_status );
+d674 1
+d695 3
+a697 3
+	txt_str(-1,AN_VIS_ROW/2,"SOUND CHECKSUMS NYI",RED_PALB);
+	while ( (ctl_read_sw(0) & SW_NEXT) == 0 ) prc_delay0();
+	return 1;
+d699 1
+a699 1
+    while ( aud_q_get() >= 0 ) prc_delay0();	/* flush */
+d701 3
+a703 3
+	status = aud_put(cmd);
+	if ( status ) break;
+	prc_delay0();
+d708 9
+a716 9
+	int secs;
+	status = aud_q_get();
+	if ( status >= 0 ) break;
+	secs = timer / 60;
+	if ( timer == (secs * 60) ) {
+	    txt_clr_wid(-1,row,2);
+	    txt_decnum(-1,row,secs,2,RJ_BF,GRY_PAL);
+	}
+	prc_delay0();
+d720 4
+a723 4
+	/* OOPS, timed out */
+	txt_str(-1,row,"NO RESPONSE",RED_PAL);
+	prc_delay(120);
+	return -1;
+d729 3
+a731 3
+	status = aud_put(cmd);
+	if ( status ) break;
+	prc_delay0();
+d737 16
+a752 16
+	status = aud_q_get();
+	if ( status >= 0 ) {
+	    /* Got a reply, print it */
+	    if ( col > (AN_VIS_COL-5) ) {
+		col = 1;
+		++row;
+	    }
+	    pal = WHT_PAL;
+	    if ( status != snd_cksums[idx++] ) {
+		pal = RED_PAL;
+		++errors;
+	    }
+	    col += 1+txt_hexnum(col,row,status,4,RJ_ZF,pal);
+	    timer = 10;
+	}
+	else prc_delay0();
+d755 9
+a763 9
+	/* More or fewer checksums than proper */
+	char errbuf[AN_VIS_COL+1];
+	strcpy(errbuf,"GOT ");
+	utl_cdec(idx,errbuf+4,3,LJ_NF);
+	strncat(errbuf,"CHECKSUMS, NEEDED ",AN_VIS_COL-8);
+	utl_cdec((sizeof(snd_cksums)/sizeof(snd_cksums[0])),
+	  errbuf+strlen(errbuf),3,LJ_NF);
+	txt_str(-1,++row,errbuf,RED_PAL);
+	errors |= 0x100;
+d766 1
+a766 1
+	txt_str(-1,++row,"ALL CHECKSUMS OK",INSTR_PAL);
+d777 4
+a780 4
+int row,	/* row to start display */
+int npal,	/* "normal" palette */
+int ipal,	/* palette to display item at "in" idx */
+int opal	/* palette to display item at "out" idx */
+d795 8
+a802 8
+	txt_str(-1,AN_VIS_ROW/2,"ERROR LOG NOT AVAILABLE",RED_PALB);
+	timer = 42;
+	while ( (ctl_read_sw(0) & SW_NEXT) == 0 ) {
+	    prc_delay0();
+	    if ( --timer < 0 ) break;
+	}
+	ctl_read_sw(SW_NEXT);
+	return 1;
+d806 2
+a807 2
+	txt_str(2,C_E_LOG_ROW-1,"LOST SNDS:",status ? RED_PAL : WHT_PAL);
+	txt_cdecnum(status,3,RJ_BF,WHT_PAL);
+d812 2
+a813 2
+	txt_str(27,C_E_LOG_ROW-1,"LOST DATA:",status ? RED_PAL : WHT_PAL);
+	txt_cdecnum(status,3,RJ_BF,WHT_PAL);
+d818 2
+a819 2
+	txt_str(16,C_E_LOG_ROW-1,"RESETS:",status ? RED_PAL : WHT_PAL);
+	txt_cdecnum(status,3,RJ_BF,WHT_PAL);
+d823 1
+a823 1
+    while ( (status = aud_q_get()) >= 0 ) prc_delay0();	/* flush */
+d826 2
+a827 2
+	unsigned char *saved_log;
+	int reclen;
+d829 14
+a842 14
+	cmd = aud_cmd(ST_C_ERR_LOG);
+	for ( timer = 42 ; --timer >= 0 ; ) {
+	    status = aud_put(cmd);
+	    if ( status ) break;
+	    prc_delay0();
+	}
+	if ( timer < 0 ) {
+	    txt_str(-1,3,"ERROR LOG CMD NOT SENT",RED_PAL);
+	    return -1;
+	}
+	errors = 0;
+	for ( row = 4 ; row >= 0 ; --row ) {
+	    txt_clr_wid(1,row+C_E_LOG_ROW,AN_VIS_COL-2);
+	}
+d845 1
+a845 1
+	aud_q_dump(C_E_LOG_ROW+8,GRY_PAL, WHT_PALB, GRN_PAL);
+d848 2
+a849 2
+	row = C_E_LOG_ROW;
+	col = C_E_LOG_COL;
+d852 57
+a908 57
+	/* we may have some old errors in EEPROM */
+	saved_log = eer_user_rd(USER_REC_AUD_ERRS,&reclen);
+	if ( saved_log ) {
+	    m_int idx;
+	    unsigned short errwd;
+	    for ( idx = 0 ; idx < reclen ; idx += 2 ) {
+		errwd = saved_log[idx] | (saved_log[idx+1]<<8);
+		if (errwd == 0xCA6E) break;
+		if ( col > (AN_VIS_COL-5) ) {
+		    col = C_E_LOG_COL;
+		    ++row;
+		}
+		col += 1+txt_hexnum(col,row,errwd,4,RJ_ZF,YEL_PAL);
+	    }
+	    eer_user_free(USER_REC_AUD_ERRS);
+	}
+#endif
+	for ( timer = 42 ; --timer >= 0 ; ) {
+	    status = aud_q_get();
+	    if ( status >= 0 ) {
+		if ( status == 0xCA6E ) break;
+		/* Got a reply, print it */
+		if ( col > (AN_VIS_COL-5) ) {
+		    col = C_E_LOG_COL;
+		    ++row;
+		}
+		pal = WHT_PAL;
+		col += 1+txt_hexnum(col,row,status,4,RJ_ZF,pal);
+		++errors;
+		timer = 10;
+	    }
+	    else prc_delay0();
+	}
+	if ( errors & 1 ) {
+	    txt_str(C_E_LOG_COL,++row,"ODD # of ERRORS?",RED_PAL);
+	}
+	/* Check here for match with error count? */
+	if ( errors == 0 ) {
+	    txt_str(-1,row,"NO NEW ERRORS LOGGED",GRY_PAL);
+	}
+	errors >>= 1;
+	cmd = 0;
+	if ( !smp ) return 0;	/* hack for call from elsewhere */
+	/* called from menu, give the option of clearing */
+	for ( timer = 20 ; timer >= 0 ; --timer ) {
+	    if ( (ctl_read_sw(0) & SW_ACTION) == 0 ) break; 
+	    prc_delay0();
+	}
+	if ( timer >= 0 ) {
+	    /* let go of SW_ACTION, see if they hold it again
+	     * before hitting NEXT
+	     */
+	    timer = 10;
+	    do {
+		prc_delay0();
+		status = ctl_read_sw(SW_NEXT);
+		if ( (status & SW_ACTION) && --timer < 0 ) {
+d910 20
+a929 20
+		    /* Clear old errors in EEPROM too */
+		    saved_log = eer_user_rd(USER_REC_AUD_ERRS,&reclen);
+		    if ( saved_log ) {
+			saved_log[0] = 0x6E;
+			saved_log[1] = 0xCA;
+			eer_user_wrt(USER_REC_AUD_ERRS);
+		    }
+#endif
+		    cmd = aud_cmd(ST_C_CLR_ERR_LOG);
+		    ctl_read_sw(SW_ACTION);	/* kill edge */
+		    break;
+		} else if ( (status & SW_ACTION) == 0 && timer < 8 ) {
+		    /* let go pretty soon, just re-paint */
+		    break;
+		}
+	    } while ( (status & SW_NEXT) == 0 );
+	}
+	if ( cmd ) aud_put(cmd);
+	if ( status & SW_NEXT ) return errors;
+	prc_delay0();
+d934 2
+a935 2
+/*		Use generic parameter entry to build up a MOS command,
+ *	then send it.
+d938 2
+a939 2
+/*		plist[] (below) describes the parameters we wish to
+ *	enter.
+d942 2
+a943 2
+    /* Label		value		col/row	sigdig		curdig	*/
+    { "Command: ",	0x8003,		4,3,	(HEX_FIELD|4),	0 	},
+d945 9
+a953 9
+    { "P0: ",	0,		4,5,	(HEX_FIELD|4),	0 	},
+    { "P1: ",	0,		13,5,	(HEX_FIELD|4),	0 	},
+    { "P2: ",	0,		22,5,	(HEX_FIELD|4),	0 	},
+    { "P3: ",	0,		31,5,	(HEX_FIELD|4),	0 	},
+    { "P4: ",	0,		4,7,	(HEX_FIELD|4),	0 	},
+    { "P5: ",	0,		13,7,	(HEX_FIELD|4),	0 	},
+    { "P6: ",	0,		22,7,	(HEX_FIELD|4),	0 	},
+    { "P7: ",	0,		31,7,	(HEX_FIELD|4),	0 	},
+    { 0,		0,		0,0,	0,		0 	}};
+d957 1
+a957 1
+/*		
+d959 2
+a960 2
+ *	parameter entry code to validate changes to the parameters and
+ *	copy them to the buffer.
+d970 1
+a970 1
+	sdp[idx+1] = val &= 0x7FFF;
+d972 1
+a972 1
+	sdp[idx+1] = val |= 0x8000;
+d976 6
+a981 6
+	struct parm *opp;
+	opp = pp  - idx;
+	opp += *sdp;
+	txt_clr_wid(opp->col,opp->row+1,1);
+	txt_str(pp->col,pp->row+1,"*",GRY_PAL);
+	*sdp = idx;
+d985 2
+d988 2
+d1002 7
+d1011 1
+a1011 1
+
+d1013 1
+a1013 1
+	*wp++ = *cwp++;
+d1017 2
+a1018 2
+	if ( work[idx].label == 0 ) break;
+	sbn_cb(work+idx,idx,(struct opaque *)buff);
+d1024 35
+a1058 35
+	synPrintJVcb(8);
+	status = utl_enter(work,sbn_cb,(struct opaque *)buff);
+	if ( status & SW_NEXT ) return 0;
+	if ( status & SW_ACTION ) {
+	    /* Send command */
+	    int count = buff[0]+1;
+	    status = aud_mput(buff+1, count);
+	    if ( status < count ) {
+		/* no luck sending */
+		txt_str(-1,AN_VIS_ROW/2,"FAILED TO SEND",RED_PAL);
+		prc_delay(42);
+		return -1;
+	    }
+	    idx = 0;
+	    for ( row = REPLY_BOTTOM ; --row >= REPLY_TOP ; ) {
+		txt_clr_wid(2,row,AN_VIS_COL-4);
+	    }
+	    ++row;
+	    count = 5;
+	    while ( count || (status = ctl_read_sw(0)) & SW_ACTION ) {
+		status = aud_q_get();
+		if ( status >= 0 ) {
+		    idx += 5;
+		    if ( idx > (AN_VIS_COL-6) ) {
+			idx = 5;
+			if ( ++row > REPLY_BOTTOM ) break;
+		    }
+		    txt_hexnum(idx,row,status,4,RJ_ZF,WHT_PAL);
+		} else {
+		    /* no reply, run count and try again */
+		    prc_delay0();
+		    if ( count ) --count;
+		}
+	    }
+	}
+d1060 1
+d1063 1
+d1065 1
+d1067 3
+a1069 3
+	0x8023,	0,	0x8020,
+	0,	0,	0,
+	0x8022,	0,	0x8021
+d1084 1
+a1084 1
+#if (0)
+d1095 2
+a1096 2
+	vpal = RED_PAL;
+	volume = 0;
+d1108 1
+a1108 1
+	txt_cstr(" (",vpal);
+d1110 1
+a1110 1
+	txt_cstr(")",vpal);
+d1116 2
+a1117 2
+	st_joy_disp(AN_VIS_COL/2,(AN_VIS_ROW/2)-4,ctls);
+	prc_delay0();
+d1119 1
+a1119 1
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) aud_put(S_THUMP);
+d1121 12
+a1132 12
+	if ( (ctls & (J_UP|J_DOWN|J_LEFT|J_RIGHT)) == 0 ) continue;
+	dir = 4;
+	if ( ctls & J_UP ) dir -= 3;
+	if ( ctls & J_DOWN ) dir += 3;
+	if ( ctls & J_LEFT ) dir -= 1;
+	if ( ctls & J_RIGHT ) dir += 1;
+	if ( old_dir < 0 ) {
+	    /* First move off center, kill rotating announcement */
+	    aud_put(ST_S_STOP);
+	}
+	if ( (old_dir != dir) && dirphrase[dir] ) aud_put(dirphrase[dir]);
+	old_dir = dir;
+@
+
+
+1.8
+log
+@added COJAG_ to game name AREA51 to prevent symbol collision
+@
+text
+@d63 1
+a63 1
+#define VERS_COL (3)
+a183 1
+#define	SCOL		(VCOL + 18)
+a878 13
+int adj_vol PARMS (( const struct menu_d * smp ));
+
+void
+AdjustVolume(smp)
+const struct menu_d *smp;
+{
+    adj_vol(smp);
+    return;
+}
+#if (COJAG_GAME&COJAG_AREA51)
+extern void gun_joy();
+#endif
+
+d890 1
+a929 1
+    txt_str(-1,AN_VIS_ROW-2,t_msg_save_ret,INSTR_PAL);
+d933 2
+d939 5
+a943 1
+
+a954 3
+#if (COJAG_GAME&COJAG_AREA51)
+	gun_joy();
+#endif
+d1518 2
+d1559 1
+a1559 1
+	    for ( row = (AN_VIS_ROW/2)+4 ; --row >= AN_VIS_ROW/2 ; ) {
+d1570 1
+a1570 1
+			if ( ++row > (AN_VIS_ROW/2)+4 ) break;
+@
+
+
+1.7
+log
+@account for possibility of audio code returning -1 as an
+unsigned short. Instead of printing a project version of 535,
+we indicate "No game".
+@
+text
+@d889 1
+a889 1
+#if (COJAG_GAME&AREA51)
+d963 1
+a963 1
+#if (COJAG_GAME&AREA51)
+@
+
+
+1.6
+log
+@ keyed mos version, project version, etc on HAS_MOS,
+rather than HAS_CAGE. Added call to gun_joy as temp patch
+for Area51. This is not used on any other game.
+@
+text
+@a346 1
+	    txt_cstr(" PROJECT VERSION ",MNORMAL_PAL);
+d348 9
+a356 1
+	    txt_cdecnum(i,3,LJ_NF,MNORMAL_PAL);
+@
+
+
+1.5
+log
+@added stop-gap aud_cmd to fake cage-like commands to Jerry Synth.
+added synPrintJVcb for Debug
+removed '?' from "SOUNDS BY NUMBER", _TEMPORARY_
+@
+text
+@d20 10
+d57 1
+a57 1
+#if HAS_CAGE
+d70 1
+a70 1
+#if HAS_CAGE
+d107 1
+a107 1
+#if HAS_CAGE
+d145 1
+a145 1
+#if HAS_CAGE
+d237 1
+a237 1
+#if HAS_CAGE
+d339 1
+a339 1
+#if HAS_CAGE
+d353 1
+a353 1
+#if HAS_CAGE
+d882 3
+d956 3
+a958 1
+
+d1380 1
+d1382 1
+@
+
+
+1.4
+log
+@fixed erroneous ignore of zero-byte from checksum rpc
+@
+text
+@d16 3
+a19 1
+
+d1144 1
+a1144 1
+    {"?SOUNDS BY NUMBER", snd_by_num},
+d1504 1
+d1530 1
+@
+
+
+1.3
+log
+@added defaults for *_VOLUME and a few commands, to allow snd_test.c
+to be compiled "innocuously" even without a defined method of making sounds
+@
+text
+@d1229 1
+a1229 1
+	if ( status > 0 ) break;
+@
+
+
+1.2
+log
+@changed pseudo-keyword PRIVATE to STATIC to appease Borland users
+@
+text
+@d26 9
+d40 3
+d44 1
+d861 1
+a861 1
+STATIC int adj_vol PARMS (( const struct menu_d * smp ));
+d931 3
+a933 1
+
+d935 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d9 1
+a9 1
+
+d18 1
+a18 1
+#define	PRIVATE	static
+d70 1
+a70 1
+PRIVATE void VolumeSetError();
+d72 4
+a75 4
+PRIVATE S16	STSetVolume();
+PRIVATE S16	STAdjustVolume();
+PRIVATE	int	legal_ind();
+PRIVATE	int	TimeTest();
+d167 1
+a167 1
+PRIVATE int sndStartStaticUnpitched(objID, handle, x, y)
+d187 1
+a187 1
+PRIVATE void
+d200 1
+a200 1
+PRIVATE void
+d213 1
+a213 1
+PRIVATE int cage_get( int cmd )
+d234 1
+a234 1
+PRIVATE int show_sound_status PARMS(( int	status, int count ));
+d236 1
+a236 1
+PRIVATE int
+d283 1
+a283 1
+PRIVATE int
+d355 1
+a355 1
+PRIVATE int
+d420 1
+a420 1
+PRIVATE int
+d759 1
+a759 1
+PRIVATE S16
+d788 1
+a788 1
+PRIVATE S16
+d818 1
+a818 1
+PRIVATE void
+d848 1
+a848 1
+PRIVATE int adj_vol PARMS (( const struct menu_d * smp ));
+d1089 1
+a1089 1
+PRIVATE void
+d1113 2
+a1114 2
+PRIVATE int snd_cksum PARMS(( const struct menu_d *));
+PRIVATE int snd_by_num PARMS(( const struct menu_d *));
+d1116 1
+a1116 1
+PRIVATE int cage_error_log PARMS(( const struct menu_d *));
+d1119 1
+a1119 1
+PRIVATE int quad_tst PARMS(( const struct menu_d *));
+d1121 1
+a1121 1
+PRIVATE int sound_cb PARMS(( const struct menu_d *));
+d1185 1
+a1185 1
+PRIVATE int snd_cksum(smp)
+d1287 1
+a1287 1
+PRIVATE int cage_error_log(smp)
+d1463 1
+a1463 1
+PRIVATE int
+d1487 1
+a1487 1
+PRIVATE
+d1557 1
+a1557 1
+PRIVATE int quad_tst ( smp )
+@

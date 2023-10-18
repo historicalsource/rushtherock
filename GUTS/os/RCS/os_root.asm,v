@@ -1,0 +1,1962 @@
+head	1.3;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.3
+date	95.02.14.01.57.04;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	94.12.16.18.28.57;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.06.21.17.31.04;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Generic 68k root. Not Jag-ified yet
+@
+
+
+1.3
+log
+@moved TOM interrupt processing to C code in jag_vid.c
+@
+text
+@	TTL	'ROOT'
+*
+*		os_root.asm
+*
+*		Copyright 1991,1992,1993,1994 Atari Games.
+*	Unauthorized reproduction, adaptation, distribution, performance or 
+*	display of this computer program or the associated audiovisual work
+*	is strictly prohibited.
+*
+*	This file contains most of what was in the original ptch_root.asm
+*	and also most of gen_root.asm. No pretense of being able to use
+*	this code "generically" is being maintained, but the "flow" is
+*	considerably more straightforward, so the inevitable customization
+*	should be much easier. This code in this file is organized as:
+*
+*	Vectors and other "need to be ORG'd" values.
+*	Exception code.
+*	Start-up code in roughly the order it gets executed.
+*	Subroutines for startup code.
+*
+*	Data tables tend to "live" just before the first routine to use them,
+*	so they can be found and possibly deleted if the particular feature is
+*	not needed on a particular hardware.
+*
+*	Similarly, xrefs and xdefs are "close to" the code that uses them
+*
+*	The ram test formerly in gen_root.asm is now in ramtest.asm (not to
+*	be confused with ram_test.c, the high-level driver). The control and
+*	switch reading routines are now in controls.asm
+*
+*	This is hopefully the last semi-major re-write of this code. By the
+*	Time we need to do this again (about 4 years per re-write), 68000s
+*	will only be used in toasters :-)
+*
+*	Anything marked GAME SPECIFIC is. You should at least browse this file
+*	for that marker when moving to a new hardware.
+*
+*	September 13, 1991	Mike Albaugh
+*	(Do you really trust code that was written on Friday the 13th?)
+*
+* NOTE: look for the >>-> symbol to find likely places to customize...
+*
+	PAGE
+*
+* >>->	enable the DSP if you've got it...
+*
+DSP_DEBUG EQU 1		; 0-use DSP   1- no DSP
+*
+	INCLUDE	'config.i'
+	INCLUDE	'os_macros.i'
+	INCLUDE	'eer_defs.i'
+*
+* "extern" Definitions for C code.
+* GAME SPECIFIC in that any given game may not have all of these, but they
+* _should_ be named the same thing if they exist
+*
+	xdef	AN_COL,MO_COL,PF_COL	; Color RAM
+	xdef	MO_RAM
+ IFNE POT_CNT
+	xdef	AD_PORTS
+ ENDC
+	xdef	TRAM,MRAML,MRAMH
+
+ IFNE	HAS_VAD+HAS_MOB
+	xdef	MO_SLIP		; Motion Object params and starting link ptrs
+ ENDC
+	xdef	PF_RAM
+ IFNE	HAS_PF_ERAM
+	xdef	PF_ERAM
+ ENDC
+ IFNE	HAS_VAD
+ IFNE	PF_SEP_PAL
+	xdef	PF_PAL		; Playfield (and separate palette)
+ ENDC
+ ENDC
+* Next is Video RAM, that is, the BITMAP or the Physical RAM area containing
+* PF_RAM, MO_RAM, etc.
+	xdef	VRAM
+****	xdef	COMRAM
+	xdef	WRAM
+	xdef	COLRAM
+ IFNE	HAS_AN_RAM
+	xdef	AN_RAM
+ ENDC
+ IFNE	HAS_BITMAP
+	xdef	BIT_RAM
+ IFEQ	HAS_AN_RAM
+	xdef	AN_RAM			; Define it if BITMAP only anyway...
+ ENDC
+ ENDC
+
+ IFNE PF_CNT-1
+	xdef	PF1_COL,PF2_COL,PF1_RAM,PF2_RAM
+ ENDC
+ IFNE HAS_GROWTH
+	xdef	PF_SCROLL,DIVTBL
+ ENDC
+****	xdef	AD_PORTS
+	xdef	EEPROM,UNLK_EP		; For E.E.PROM (non-volatile memory)
+
+*	MACRO Definitions, MOTO style, used in ROOT
+ IFEQ MACRO_STYLE-MACROS_MOTO
+* Motorola style macros
+
+SYSERR	MACRO
+	MOVE.W	#INTS_OFF,SR
+	PEA.L	\2		; push STAT number (may be 0 -> none)
+	JSR	TrapIt		; Return address is pointer to string
+	DC.B	'\1'
+	DC.B	0
+	DS.W	0
+	ENDM
+
+RESMO	MACRO
+ IFNE HAS_GROWTH
+	MOVE.W	#1,MO_TIMER
+ IFEQ (WHICH_GROWTH-GX1)
+	MOVE.W	#0,MO_ACTION
+ ENDC
+ IFEQ (WHICH_GROWTH-GX2)
+	MOVE.W	#1,MO_ACTION
+ ENDC
+ ENDC
+	ENDM
+
+
+ ENDC
+	PAGE
+ IFEQ MACRO_STYLE-MACROS_MAC68K
+* MAC68K Style
+
+	.MACRO	SYSERR string stat
+	MOVE.W	#INTS_OFF,SR
+ .if	nb,stat
+	PEA.L	stat			; put stat_num for eer_incs
+ .iff
+	CLR.L	-(SP)
+ .endc
+	JSR	TrapIt
+	DC.B	"string"
+	DC.B	0
+	DS.W	0
+	.ENDM
+
+	.MACRO	RESMO
+ IFNE HAS_GROWTH
+	MOVE.W	#1,MO_TIMER
+ IFEQ (WHICH_GROWTH-GX1)
+	MOVE.W	#0,MO_ACTION
+ ENDC
+ IFEQ (WHICH_GROWTH-GX2)
+	MOVE.W	#1,MO_ACTION
+ ENDC
+ ENDC
+	.ENDM
+
+ ENDC
+	PAGE
+*
+*	When everybody has moved to MAC68K, we could use .sbttl here :-)
+*
+*	Vectors
+*
+	xref	COMINT
+	XREF	INIT_SP
+ IFNE 0
+	ORG	0
+	DC.L	INIT_SP		;STACK POINTER
+	DC.L	RESET		;RESET
+	DC.L	BUSERR
+	DC.L	ADRERR
+	DC.L	ILLINS
+	DC.L	ZERDIV
+	DC.L	CHKINS
+	DC.L	TRAPV
+	DC.L	PRIVIO
+	DC.L	TRACEI
+	DC.L	L1010E
+	DC.L	L1111E
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	FORERR
+	DC.L	UNINTV
+	DC.L	RESERV		;VECTOR 16.
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	SPUINT		;must start at $60
+ ENDC
+ IFEQ 0
+AUTO_VEC EQU $64
+ ENDC
+ IFNE 0
+* AutoVector interrupts
+AUTO_VEC:
+	DC.L	INT1_ERR	; 1: No Connect
+	DC.L	INT2_ERR	; 2: No Connect
+	DC.L	INT3_ERR	; 3: No Connect
+*	DC.L	AUDINT		; 3: XBUS 0 (CAGE audio)
+*	DC.L	INT4_ERR	; 4: No Connect
+	DC.L	IR4MS		; 4: 4-millisecond interrupts
+*	DC.L	VBINT		; 4: vertical blank interrupt
+ IFNE HAS_SMC_COM
+	DC.L	SMCINT		; 5: COM board - level 5, XBUS 1
+ ENDC
+ IFEQ HAS_SMC_COM
+	DC.L	INT5_ERR	; 5: No connect
+ ENDC
+*	DC.L	INT6_ERR	; 6: No Connect
+	DC.L	TOMINT		; 6: Jaguar TOM chip interrupt(s)
+	DC.L	INT7_ERR	; Not actually used if STUB present
+	DC.L	TRAP		;VECTOR 32., TRAP 0
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP		;VECTOR 44., TRAP 0C
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	TRAP
+	DC.L	RESERV		;VECTOR 48.
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+	DC.L	RESERV
+* By placing RESERV here at what should be $100, it also gets executed if
+* a runaway program branches into the vectors, which mainly happens due to
+* stack screwups. The STOP instruction should stop the APPLIED MICROSYSTEMS
+* emulator before all trace of why we were executing vectors falls off the end
+* of the trace buffer.
+	SYSERR	<RUNNING INTO VECS>,0
+ ENDC
+*
+*	Align to longword boundary
+*
+ IFEQ MACRO_STYLE-MACROS_MOTO
+	SECTION	8
+ ENDC
+ IFEQ MACRO_STYLE-MACROS_MAC68K
+	.psect $$seg8,SEGMENT=2,DATA=2
+ ENDC
+*
+* CHECK SUM	( filled in by Pete Lipson's program)
+*
+	xdef	OS_CHKSUM
+	xref	LINK_TIME
+ IFEQ (PROCESSOR-M68EC020)
+	DS.L	0
+OS_CHKSUM:
+	DC.L	0
+ ENDC
+ IFNE (PROCESSOR-M68EC020)
+	DS.W	0
+OS_CHKSUM:
+	DC.W	0
+ ENDC
+
+*
+	SECTION	9
+*
+*
+*
+INT1_ERR:	SYSERR	<INT1>,0
+INT2_ERR:	SYSERR	<INT2>,0
+INT3_ERR:	SYSERR	<INT3>,0
+INT4_ERR:	SYSERR	<INT4>,0
+INT5_ERR:	SYSERR	<INT5>,0
+INT6_ERR:	SYSERR	<INT6>,0
+INT7_ERR:	SYSERR	<INT7>,0
+BUSERR:	SYSERR	<BUS ERR>,0
+ADRERR:	SYSERR	<ADDRESS ERR>,EER_ADRERR
+ILLINS:	SYSERR	<ILLEGAL INS>,EER_ILGINS
+ZERDIV:	SYSERR	<ZERO DIV>,EER_DVDBY0
+CHKINS:	SYSERR	<CHECK FAIL>,EER_CHKINS
+TRAPV:	SYSERR	<TRAPV>,EER_TRPVINS
+PRIVIO:	SYSERR	<PRIVILEGE VIOL>,EER_PRVVIOL
+TRACEI:	SYSERR	<TRACE VEC>,0
+L1010E:	SYSERR	<1010 EXCEPT>,0
+L1111E:	SYSERR	<1111 EXCEPT>,0
+RESERV:	SYSERR	<RESERVED VEC>,0
+FORERR:	SYSERR	<FORMAT ERR>,0
+UNINTV:	SYSERR	<UNINITIALIZED INT>,0
+SPUINT:	SYSERR	<SPURIOUS INT>,0
+TRAP:	SYSERR	<TRAP>,0
+*
+*
+*
+	xdef	panic,prc_panic
+	xdef	pm_msg,pm_stack,pm_cntr,pm_pc,pm_regs,pm_sr
+*
+*	Traps (or other exceptions) may set pm_cntr to increment a counter
+*	in EEPROM. They may also save a message, as does prc_panic(). This
+*	is essentially the "death note" entry for hardware-detected errors
+*
+TrapIt:
+	MOVE.L	(SP)+,pm_msg
+	MOVE.L	(SP)+,pm_cntr
+	MOVE.W	(SP)+,pm_sr+2
+	MOVE.L	(SP)+,pm_pc
+	BRA.S	DREGS
+*
+*	prc_panic() is called when the program notices that something that
+*	"can't happen" has. This is essentially the "death note" entry for
+*	hardware-detected errors
+*
+prc_panic:
+panic:	MOVE.W	SR,pm_sr+2
+	MOVE	#INTS_OFF,SR
+	CLR.L	pm_cntr
+	MOVE.L	(SP)+,pm_pc
+	MOVE.L	(SP)+,pm_msg
+DREGS:	MOVEM.L	A0-A6/D0-D7,pm_regs	; save registers
+	MOVE.L	SP,pm_stack
+DEAD:	STOP	#$2700
+	BRA	DEAD			; don't use prc_reboot, so we get notes
+
+ IFNE HAS_POTS
+*
+*	ReadPot
+* This code was dictated by Pat McCarthy.
+* He indicates that to start an AtoD conversion you must
+* read select the AtoD channel by reading the address of the
+* AtoD chip plus the channel number times 2.  This read MUST
+* occur twice, once to select the channel by locking the addres,
+* and the second time to actually start the conversion.
+* The first read may be used to retrieve the value of the last
+* conversion.  The value is duplicated in all addresses of the
+* chip, so one does not need to read the "proper" channel address
+* to get the conversion for that channel.
+*
+	xdef	ReadPot
+POTADDR:
+	DC.L	POTL_H,POTL_V,POTR_H,POTR_V
+	DC.L	POTL_H			; for overindexing...
+ReadPot:
+	MOVEQ	#0,D0
+	MOVE.W	6(SP),D0		; get AtoD pot index
+	ADD.W	D0,D0			; multiply index by 2
+	ADD.W	D0,D0			; multiply index by 2
+	MOVE.L	POTADDR(PC,D0.W),A0	; get pot address
+	MOVE.W	SR,D1			; save current SR
+	MOVE.W	#INTS_OFF,SR		; disable interrupts
+	MOVE.W	(A0),D0			; get last conversion, start next
+
+* Spin until EOC definitely goes away (up to 12 uSec.) On newer boards,
+* there is an external flip-flop to make this quick, but the code below
+* is safe for both old and new.
+	SWAP	D0
+rp00:	MOVE.B	AD_STATUS,D0
+	AND.B	MA_AD_DONE,D0
+	BNE.S	rp00
+	SWAP	D0
+
+	MOVE.W	D1,SR			; restore SR
+	LSR.W	#8,D0
+	RTS				; return last conversion
+*
+ ENDC
+
+
+
+*
+*	SECTION 140 (DOS:50) is used to mark the beginning of ram to be zero'd
+*	SECTION 149 (DOS:51) is used to mark the end of ram to be zero'd so make
+*		sure that your link organizes the ram sections appropriately
+*
+	xdef	beg_static,end_static,bitshd,INSELF,pbase,sys_cntl,sync
+	xdef	packetsTransmitted,packetsReceived,myRxAddr,RealFrame,thisBar
+	xdef	FrameField,lampShad,MS4Field
+
+	SECTION	50
+* DANGER! DANGER! There are apparently game programmers that _depend_ on the following
+* variables (up to pm_pc) being in the exact same place at all times. For this reason we cannot
+* delete or re-order them (yet :-)
+beg_static:
+INSELF:	DS.W	1
+bitshd:	DS.W	1		;* control bits
+pbase:	DS.L	1		;* pointer to parameter block
+ IFNE 0
+* We are no longer using the "guaranteed address" vector for game VBlank IRQ
+	xdef	gameint
+gameint:
+ ENDC
+	DS.L	1		;* pointer to interrupt handler
+* Following was powerUp. We leave the longword in to not disturb
+* the "overlay" scheme. mentioned above. We do not use it.
+	DS.L	1
+sys_cntl:
+	DS.W	1
+sync:	DS.W	1
+packetsReceived:
+	DS.W	1
+packetsTransmitted:
+	DS.W	1
+myRxAddr:
+	DS.L	1
+ IFNE HAS_SMC_COM
+	xdef SMCVEC
+SMCVEC:	DS.L	1
+ ENDC
+RealFrame:
+	DS.W	1
+FrameField:
+	DS.W	1
+MS4Field:
+	DS.W	1
+thisBar:
+	DS.B	1
+lampShad:
+	DS.B	1		; shadow for lamp port
+	DS.W	0
+
+ IFNE HAS_4MSINT
+next4ms:
+	DS.W	1		;* Phasing variable for 4ms VAD interrupt
+ ENDC
+* Following variables save "death notes" for post_mortem dump by pm.c
+pm_start:
+POWERUP	EQU	$C0EDBABE
+powerUp:
+	DS.L	1
+pm_msg:	DS.L	1		; Possible text string for "cause of death"
+pm_stack:
+	DS.L	1
+pm_cntr:
+	DS.L	1
+pm_pc:	DS.L	1		; Saved Program counter
+pm_sr:	DS.L	1
+pm_regs:
+	DS.L	20
+pm_end:
+	DS.W	0
+__cur_tcb:
+	DS.L	1
+	SECTION	51
+
+end_static:
+	DS.W	0
+*
+*
+*
+* >>->	Reset!
+*
+* RESET is used only by the 680xx when a processor RESET is generated.
+* RESET should NEVER be called by software!
+* RESET Entry point. The stuff formerly done by the SYSINIT macro is inline now
+* In general, only the minimum needed to get sync and RAM working, and perhaps
+* turning on a "Test in progress" LED, should be done here.
+*
+	SECTION	1
+* stub_start is for compatability with the CORP debug stub. Through various
+* machinations to wonderous to behold (Yeah :-) the debug stub is started
+* and clones a copy of its first 0x100 bytes into the vectors. We will leave
+* it alone to do so, but re-overlay our autovector interrupt vectors and
+* pretend we got control via a reset.
+	xdef	stub_start
+stub_start:
+	MOVE.W	#INTS_OFF,SR	; 'cuz the stub calls us with them on
+	MOVEC	VBR,A0
+	LEA	AUTO_VEC(A0),A0
+	LEA	AUTO_SHAD(PC),A1
+	MOVEQ.L	#((AUTO_SHAD_END-AUTO_SHAD)/4)-1,D0
+.ss00:	MOVE.L	(A1)+,(A0)+
+	DBF	D0,.ss00
+	BRA.S	RESET
+AUTO_SHAD:
+	DC.L	INT1_ERR
+	DC.L	INT2_ERR
+	DC.L	INT3_ERR
+	DC.L	IR4MS		; 4: 4-millisecond interrupts
+ IFNE HAS_SMC_COM
+	DC.L	SMCINT		; 5: COM board - level 5, XBUS 1
+ ENDC
+ IFEQ HAS_SMC_COM
+	DC.L	INT5_ERR	; 5: No connect
+ ENDC
+	DC.L	TOMINT		; 6: Jaguar TOM chip interrupt
+AUTO_SHAD_END:
+RESET:
+*	We sometimes need to do some sort of rain-dance just to have
+*	working RAM. If so, here's where we do it
+* COJAG will require at least the setting of MEMCON, with the remainder
+* of this slop added in the possibly vain hope that it will start working
+
+	MOVE.W	#$1f00,TOM_INT1		; disable Interrupts
+	MOVE.W	#$0000,TOM_INT2
+
+* MEA: I have no idea what these are, but possibly GPU control and DSP control
+G_CTRL	EQU	$FFF02114
+D_CTRL	EQU	$FFF1A114
+	MOVE.W	#0,G_CTRL
+	MOVE.W	#0,D_CTRL
+
+* Brian has BASE(FFF00000) <- $5861, BASE+2 <- $35CC
+	MOVE.L	#MEMCON_VAL,MEMCON1	; Also hits MEMCON2
+
+	MOVEQ.L	#-1,D0
+dly:	DBRA	D0,dly
+
+* Endian-ness registers?
+G_END	EQU	TOM_BASE+$210C
+D_END	EQU	JERRY_BASE+$0A10C
+	MOVE.L	#$70007,D0
+	MOVE.L	D0,D_END
+	MOVE.L	D0,G_END
+
+ IFEQ (PROCESSOR-M68EC020)
+	MOVEQ.L	#1,D0
+	MOVEC.L	D0,CACR		; CACHE_ON
+ ENDC
+	CLR.W	bitshd
+* Clearing the LATCH should be redundant, but harmless. It is cleared by
+* any RESET (Watchdog or POR)
+	CLR.W	LATCH			; reset 6502 and ucode & xcr
+	WATCHDOG
+
+ IFNE HAS_SMC_COM
+* We are going to try "going by the book" here. We should not need to
+* smack the whole XBUS every time we want the SMC's attention, but we do
+* need to "properly program" the SMC bus interface on "power up". The manual
+* is ambiguous, but the first cut will assume that "...performing a WRITE
+* followed by a READ operation to an odd location within the COM20020 address
+* space" means that the address and R/~W line have to wiggle, but that we need
+* not actually CS the COM20020, since another paragraph states that the first
+* requirement is a WRITE to external memory _before_ attempting to access the
+* COM20020.
+*
+*	For SMC COM200x0B+ you need a minimum RESET LOW time of 3.2 us.
+*	before yanking RESET HIGH. An EC020 will almost certainly need
+*	more than that to get from the clear of LATCH above to the write
+*	below, but in case you need padding, here is where it goes :-)
+*
+	LEA	-8(SP),A1
+	EXG	A1,D0
+	OR.W	#2,D0			; Should be symbolic
+	EXG	A1,D0
+	LEA	bitshd,A0
+	MOVE.W	#LM_XBUS_RST,D0
+	OR.W	(A0),D0
+	MOVE.W	D0,LATCH		; Let go of SMC reset
+	MOVE.W	D0,(A1)			; Write to "odd" address
+	MOVE.W	(A1),A1			; Read of "odd" address
+	MOVE.W	D0,(A0)			; Save bitshd for later
+ ENDC
+
+************* END SYSINIT ********
+
+
+***** Old gen_root used to try to flash LED here
+*	Used to clear all playfield, motion object, and alpha RAM before testing
+*	We no longer do this because it has a tendency to make marginal RAM
+*	pass the test.
+*
+*
+*
+*	Should we test the RAM?
+*
+* This depends on p_debug_options, in PBASE, which is
+* always 0 (no debug disabled) as assembled, but can be patched.
+*
+*	Now test the various pieces of RAM. We run down a list of "structs" that
+*	contain:
+*		DC.L	name		pointer to string for error message
+*		DC.L	start_addr	e.g. $A0000
+*		DC.L	len		in bytes
+*		DC.L	ignore		'1' means bit does not actually exist in long
+*	So 0 means vanilla RAM, while 0x00FF00FF means only the MSByte
+*	exists
+*
+*	A longword 0 (no name) signals the end of the list.
+*
+*	The actual "name" string contains a pair of colors (16-bit words) and _then_
+*	The text.
+*
+* The RAM tests in mem_test.asm expect a return address in A4 and a pointer to the
+* "start_addr" above in A0. They return with A0 pointing to the offending location
+* and D0 containing the "error syndrome", or XOR between what was read and what was
+* expected at that location. A5 is left alone, but most other regs should be assumed
+* trashed. The tests (and the clearing below) can be skipped for any given RAM by
+* leaving (or patching) it out of this table, which is _not_ the same as the one
+* used by ram_test.c for exactly this reason.
+*
+
+*
+*	With post-mortem after reset, we need to avoid clobbering possibly
+*	useful information.
+	MOVE.L	powerUp,D0
+	LEA	pm_end,A1
+	CMP.L	#POWERUP,D0
+	BNE.S	.RS10		; COLD start, clear pm_* too
+* It is highly unlikely that we will come up from cold with the power-up
+* signature intact, so this was probably a watchdog reset. If there is no
+* _other_ message, insert one about the WATCHDOG. If there is a note, leave it
+* alone.
+	LEA	pm_msg,A0
+	MOVE.L	(A0)+,D0	; Message?
+	OR.L	(A0)+,D0	; Stack pointer?
+	OR.L	(A0)+,D0	; Stat counter number?
+	OR.L	(A0)+,D0	; PC?
+	BNE.S	.RS00		; Avoid clearing pm_* area
+* All notes clear, but "WARM" start. It's a WATCHDOG or a bench-reset.
+* Flag it with an impossible "stat number" and let pm_dump() sort it out.
+*
+* Well... except for Jaguar, where the stub interjects itself on every reset,
+* so we really want to avoid the double trip. We know we are running under
+* the stub if the reset vector does not point to us.
+*
+	LEA	4,A0
+	CMP.L	#RESET,(A0)
+	BNE.S	.RS10		; Stub in the way, blow past it
+*
+* Either a stub-less Jag or a normal game...
+*
+	MOVEQ.L	#-1,D0
+	MOVE.L	D0,pm_cntr
+* Clear the _rest_ of "bss", avoiding the note area and any residual stack
+* This is more complicated than it really needs to be because of the (current)
+* need to have the first bit of BSS exactly match Dennis Harper's expectations
+.RS00:
+	LEA	pm_start-2,A1
+.RS10:	LEA	beg_static,A0
+	MOVEQ.L	#0,D0
+.RS15:	MOVE.L	A1,D1		; Last (word) address to write
+	SUB.L	A0,D1		; Length in bytes, - size of word
+	LSR.L	#1,D1		; length in words (-1)
+	AND.W	#WDI_MASK,D1	; Limit count
+
+.RS20:	MOVE.W	D0,(A0)+
+	DBF	D1,.RS20
+	WATCHDOG
+	SUBQ.L	#2,A0		; Last address actually written
+	CMP.L	A0,A1
+	ADDQ.L	#2,A0		; Prepare to repeat (no change to CCs)
+	BNE	.RS15
+
+	LEA	pm_end,A0
+* Assume we want to clear _all_ of RAM, but stop short
+* of the post-mortem stack if present
+	LEA	INIT_SP,A1
+	MOVE.L	pm_stack,D0
+	CMP.L	#WRAM,D0
+	BCS.S	.RS30		; pm_stack below start of WRAM
+	CMP.L	#INIT_SP-4,D0
+	BCC.S	.RS30		; pm_stack above end of normal stack
+	MOVE.L	D0,A1
+
+.RS30:
+	SUBQ.L	#2,A1		; Want to stop _just short_ of stack
+	MOVEQ.L	#0,D0
+.RS35:	MOVE.L	A1,D1		; Last (word) address to write
+	SUB.L	A0,D1		; Length in bytes, - size of word
+	LSR.L	#1,D1		; length in words (-1)
+	AND.W	#WDI_MASK,D1	; Limit count
+
+.RS40:	MOVE.W	D0,(A0)+
+	DBF	D1,.RS40
+	WATCHDOG
+	SUBQ.L	#2,A0		; Last address actually written
+	CMP.L	A0,A1
+	ADDQ.L	#2,A0		; Prepare to repeat (no change to CCs)
+	BNE	.RS35
+
+	MOVE.L	A1,SP		; Start stack at INIT_SP or pm_stack
+
+	xref	PBASE
+	LEA	PBASE,A1
+	MOVE.L	#PB_VALID,D0		; The "signature" pattern
+	CMP.L	(A1),D0		; Check Game's first longword
+	BEQ.S	.RS50
+* Following hack is Jaguar Specific, as the debugger insists on setting
+* the starting PC to the first address loaded by a program. We defeat
+* this idiocy by placing a jump to stub_start as the first thing, then
+* our PB_VALID, then a pointer to the struct pconfig_b
+* 8NOV94, MEA adds an optional NOP before the JMP, so we can
+* align the JMP address to be the RESET entry point
+NOP_OPCODE EQU	$4E71
+	CMP.W	#NOP_OPCODE,(A1)
+	BNE.S	.RS41
+	ADDQ.L	#2,A1
+.RS41:	CMP.W	#JMP_OPCODE,(A1)
+	BNE.S	use_dummy
+	ADDQ.L	#6,A1
+	CMP.L	(A1),D0
+	BNE.S	use_dummy
+.RS50:	MOVE.L	p_configb(A1),D0	; is it legit?
+	BNE.S	got_pbase
+use_dummy:
+	xref	def_pbase
+
+	MOVE.L	#def_pbase,D0		; just use a dummy value
+got_pbase:
+	MOVE.L	D0,pbase		; Setup the PBASE pointer
+* GAME SPECIFIC Last touches before going into Game or Selftest
+*
+*
+* In the absence of wierd hardware, there should be none. That is,
+* the calls in selftest.c to eer_init(), aud_init(), vid_init(), cn_init()
+* and (maybe) pot_init() should be runnable by now.
+*
+* Call selftest with EOR of the power-up signature and the original
+* contents of powerUp, so it call tell if this is a warm-boot.
+
+	xref 	SelfTest
+
+	LEA	powerUp,A0
+	MOVE.L	(A0),D0
+	MOVE.L	#POWERUP,D1
+	MOVE.L	D1,(A0)
+	EOR.L	D1,D0
+	MOVE.L	D0,-(SP)
+	MOVE.W	#1,irq_sem
+	JSR	SelfTest
+	BRA	prc_reboot
+*
+* >>->   make sure all of your RAM is described here !
+*
+* GAME SPECIFIC List of _PHYSICAL_ RAM Chips (or pairs thereof)
+*
+RAM_LIST:
+ IFNE 0
+	DC.L	COL_descrip,COLRAM,COLRAM_size,0
+	DC.L	WRK_descrip,WRAM,WRAM_size,0
+ ENDC
+LONG_ZERO:			; needed for FLOOD call
+	DC.L	0		; stop here if not MASTER
+
+RAM_BLOCK_size	EQU 	16
+
+ IFNE 0
+WRK_descrip:
+	DC.L	BLK_YEL			; Black on Yellow
+	DC.B	'Work RAM bad'
+	DC.B	0
+	DS.W	0
+COL_descrip:
+	DC.L	BLK_WHT			; Black on White
+	DC.B	'Color RAM bad'
+	DC.B	0
+	DS.W	0
+ ENDC
+ IFEQ	HAS_TWO
+RAMT_END:
+ ENDC
+
+*
+*
+	xref	initmess
+	xref	eer_user_purge
+*
+* Routines used by root, Most, if not all, are GAME SPECIFIC
+*
+*	U32 SetIntVec(void (*interrupt_vector)(void))
+*	U32 InitOS(U16 interrupt_level,void (*interrupt_vector)(void))
+*
+  IFNE	0
+INT_VEC	SET 4		; change the vector
+
+	xdef	SetIntVec
+SetIntVec:
+	MOVE.W	SR,D1
+	MOVE.W	#INTS_OFF,SR
+	MOVE.L	gameint,D0
+	MOVE.L	INT_VEC(SP),gameint
+	MOVE.W	D1,SR
+	RTS
+
+*	prc_set_vec(vecnum,routine) sets the "soft" vector for a given
+*	interrupt. Since the correspondence between the interrupting
+*	device and the interrupt vector is at the whim of the hardware
+*	designer, we use a set of #defines to identify the vectors,
+*	and a table of pointers-to-pointers-to-functions-returning-void
+*	to map vector number to "location to bend"
+	xdef	prc_set_vec
+irq_ptrs:
+	DC.L	gameint,ms4vec,gpuvec,dspvec,objvec,pitvec
+irq_ptend:
+N_VECS	EQU	(irq_ptend-irq_ptrs)/4
+prc_set_vec:
+	MOVE.L	4(SP),D1
+	MOVEQ.L	#N_VECS-1,D0
+	CMP.L	D0,D1
+	BCC.S	psv90
+	MOVEQ.L	#0,D0			; Default for "no prev"
+	ASL.W	#2,D1
+	MOVE.L	irq_ptrs(PC,D1.W),D1
+	BEQ.S	psv90
+	MOVE.L	D1,A0
+	MOVE.L	(A0),D0
+	MOVE.L	8(SP),(A0)
+psv90:	RTS
+
+INT_LVL	SET 6		; WORD interrupt mask to slam
+INT_VEC	SET 8		; LONG interrupt vector
+  ENDC
+*
+* SetIPL, sets interrupt priority level and returns old value
+*
+	xdef	SetIPL,prc_set_ipl
+prc_set_ipl:
+	MOVEQ.L	#0,D0
+	MOVE.W	SR,D0
+	MOVE.W	6(SP),SR
+	RTS
+
+ IFNE HAS_VAD
+
+*
+*	SETHV installs H and V offsets into the VAD parameters (temporarily)
+*
+ARG0	SET	6		;* first word argument is H
+ARG1	SET	10		;* second word argument is V
+
+sethv:	MOVE.W	ARG0(SP),D0
+	CMP.W	#HSY_RNG,D0
+	BGT.S	hv10
+	CMP.W	#-HSY_RNG,D0
+	BGE.S	hv20
+
+hv10:	MOVEQ	#0,D0
+
+hv20:
+ IFNE HSY_SHF
+	ASL.W	#HSY_SHF,D0
+ ENDC
+	ADD.W	#HDW_HSY_LD,D0
+	AND.W	#HSY_MSK,D0
+	OR.W	#HSY_VAL,D0
+	MOVE.W	D0,HDW_HSY_POSN		;* store at magic address
+
+	MOVE.W	ARG1(SP),D0
+	CMP.W	#VSY_RNG,D0
+	BGT.S	hv30
+	CMP.W	#-VSY_RNG,D0
+	BGE.S	hv40
+
+hv30:	MOVEQ	#0,D0
+
+hv40:
+ IFNE VSY_SHF
+	ASL.W	#VSY_SHF,D0
+ ENDC
+	ADD.W	#HDW_VSY_LD,D0		;* adjust from expected parameters
+	AND.W	#VSY_MSK,D0
+	OR.W	#VSY_VAL,D0
+	MOVE.W	D0,HDW_VSY_POSN		;* store at magic address
+	RTS
+
+ ENDC
+
+* delay, waits for vblank, then counts frames. delay(0) will merely sync up
+* to vblank, delay(n) waits for at least n frames.
+
+ IFNE	HAS_LETA
+	xref	read_leta
+ ENDC
+	xref	eer_rtc
+
+	xdef	prc_delay0
+	xdef	prc_delay
+
+prc_delay0:
+	MOVEQ	#0,D0
+	BRA.S	delayer
+prc_delay:
+	MOVE.L	4(SP),D0
+ IFNDEF VBI_LVL
+VBI_LVL	EQU 0
+ ENDC
+delayer:
+	MOVE.W	SR,D1
+	AND.W	#$700,D1
+	LSR.W	#8,D1
+	CMP.W	#VBI_LVL,D1
+	BCS.S	.DL020
+*
+* No borrow means VBlank IRQ masked, need to poll
+* No VBL interrupt running, so WATCH the DOG
+*
+	MOVE.L	D2,-(SP)
+	MOVE.L	D0,D2
+.DL010:	LEA	TOM_INT1,A0
+.DL012:	MOVE.W	(A0),D0
+	AND.W	#1,D0
+	BEQ	.DL012
+	MOVE.W	#$101,(A0)
+	MOVE.W	#0,2(A0)
+	WATCHDOG
+ IFNE HAS_VAD+HAS_MOB
+	MOVE.W	#0,VBACK
+ ENDC
+* Do the two most important "VBLANK" things, so frame count
+* and switch-debounce still work.
+	JSR	eer_hwt
+	JSR	ctl_upd_sw
+	SUBQ.L	#1,D2
+	BCC.S	.DL010
+	MOVE.L	(SP)+,D2
+	RTS
+
+*
+* If ints running, use change in eer_rtc to detect frame
+* VBL interrupt running, so let interrupt routine WATCH the DOG
+*
+.DL020:	LEA	eer_rtc,A0
+	MOVE.L	(A0),D1
+.DL030:	CMP.L	(A0),D1
+	BEQ	.DL030
+	SUBQ.L	#1,D0
+	BCC.S	.DL020
+ IFNE	HAS_LETA
+	JSR	read_leta
+ ENDC
+	RTS
+
+	xdef	prc_mod_latch
+*	Writes to the LATCH may no longer unlock EEPROM, but shadowing is still
+*	a good idea. Coming soon: two-processor locking
+prc_mod_latch:
+	MOVE.W	SR,-(SP)
+	OR	#$700,SR	;* Lock interrupts
+	MOVEQ.L	#0,D0
+	MOVE.B	lampShad,D0
+	SWAP	D0
+	MOVE.W	bitshd,D0
+	MOVE.L	6(SP),D1	;* Read parameter LONG
+	BEQ.S	ML30
+	BMI.S	ML10		;* D31 signals 0: OR in bits  1:AND out bits
+	OR.L	D1,D0
+	BRA.S	ML20
+ML10:	AND.L	D1,D0
+ML20:	MOVE.W	D0,LATCH	;* Set LATCH
+	MOVE.W	D0,bitshd	;* update shadow
+	SWAP	D0
+	MOVE.B	D0,lampShad
+	SWAP	D0
+ML30:	MOVE.W	(SP)+,SR
+	RTS
+
+*
+*
+*	MOB/VAD stuff...
+*
+ IFNE HAS_VAD
+*
+* GAME SPECIFIC VAD initialization. The "primitive" routine stuffs all but
+* the first register with values from a ROM table, as well as setting the
+* RAM shadows. This is moot, but harmless, in the case of POWER_ON. VAD_POR
+* is called with a CALL4 macro (return address in A4) during power-on, and
+* vad_init is a C wrapper. In either case, a parameter (in DO for VAD_POR)
+* controls whether DMA is enabled. 0 Means no, != 0 means yes.
+* The result is stuffed last.
+*
+	xdef	vad_init
+vad_init:
+	MOVE.L	4(SP),D0
+	MOVEM.L	A4/A2,-(SP)
+	CALL4	VAD_POR
+	PEA.L	EER_VPOS
+	JSR	eer_gets
+	MOVE.L	D0,(SP)
+	PEA.L	EER_HPOS
+	JSR	eer_gets
+	MOVE.L	D0,(SP)
+	JSR	sethv
+	ADD.L	#8,SP
+	MOVEM.L	(SP)+,A2/A4
+	RTS
+VAD_POR:
+ IFNE LM_VAD_R
+	MOVE.W	#LM_VAD_R,D1	; UN-Reset the VAD 
+	MOVE.W	D1,LATCH	; store value into the LATCH
+ ENDC
+	LEA	VAD_RAM,A0		; RAM copy of VAD params (DMAd by VAD & MOB)
+	LEA	VADINIT,A1		; straight to VAD chip
+	LEA	VADITAB(PC),A2		; "from" data
+	MOVE.W	#HDW_NORAM,(A1)+	; disable ALPHA RAM update during RAM testing
+	MOVE.W	(A2)+,(A0)+		; 1st word through to shadow
+	TST.L	D0
+	BEQ.S	.VP000
+	MOVE.W	#HDW_ENABLE,D0
+	BRA.S	.VP010
+.VP000:	MOVE.W	#HDW_NORAM,D0
+.VP010:	SWAP	D0			; Save final value for DMA enable
+
+	MOVEQ.L	#VADITAB_CNT-2,D1	; (-1 for 1st word, -1 for DBF)
+.RVAD0:
+	MOVE.W	(A2)+,D0
+	MOVE.W	D0,(A1)+
+	MOVE.W	D0,(A0)+		; Moves 11 + 5 + 3 parameters
+	DBF	D1,.RVAD0
+
+	LEA	MOB_PRM,A1		; straight to MOB chip
+	LEA	MOBITAB(PC),A2		; "from" data
+	MOVEQ.L	#MOBITAB_CNT-1,D1	; (-1 for DBF)
+.RVAD1:
+	MOVE.W	(A2)+,D0
+	MOVE.W	D0,(A1)+		; Moves 6 parameters
+	DBF	D1,.RVAD1
+
+	SWAP	D0
+	MOVE.W	D0,VADINIT
+	RET4
+* The original comments on this tables were:
+*
+*	The folowing table must be copied to $3f8f00 and $3effc0 at system reset.
+*	Do not hit $3efffe as this will reset the VAD chip to the wrong configuration.
+*	HDW_ENABLE, HDW_VSY_LD, HDW_VBL_LD, HDW_VINT, HDW_HSY_LD, HDW_HBL_LD,
+*	HDW_SLIP_LD, HDW_APDMA_LD, HDW_PMBASE_LD, HDW_ALBASE_LD, HDW_OPT_LD,
+*	0,0,0,0,0, HDW_MOCON, HDW_PCON , HDW_GRCON
+*
+VADITAB:
+	DC.W	HDW_ENABLE	;* 0
+	DC.W	HDW_VSY_LD	; << offset 2
+	DC.W	HDW_VBL_LD
+	DC.W	HDW_VINT
+	DC.W	HDW_HSY_LD	; << offset 8 
+	DC.W	HDW_HBL_LD
+	DC.W	HDW_SLIP_LD
+	DC.W	HDW_APDMA_LD
+
+	DC.W	HDW_PMBASE_LD	;* $10
+	DC.W	HDW_ALBASE_LD
+	DC.W	HDW_OPT_LD
+	DC.W	0,0,0,0,0
+
+	DC.W	HDW_MOCON	;* $20
+	DC.W	HDW_PCON
+	DC.W	HDW_GRCON
+VADI_END:
+VADITAB_CNT	EQU	(VADI_END-VADITAB)/2
+
+MOBITAB:
+	DC.W	SET_MHOFF
+	DC.W	SET_MVOFF
+	DC.W	SET_PHOFF
+	DC.W	SET_PVOFF
+	DC.W	SET_PHOFF2
+	DC.W	SET_PVOFF2
+MOBI_END:
+MOBITAB_CNT	EQU	(MOBI_END-MOBITAB)/2
+*
+ ENDC
+	PAGE
+* Restart, which works more or less regardless of watchdog
+*   We think we are in selftest, but user has turned off the switch. Or vice-versa
+*   Wait for any EEPROM writes to complete, then reset.
+	xdef	prc_reboot
+prc_reboot:
+	MOVE.W	#INTS_OFF,SR
+	BSR.S	FinishEE
+FAKE_RESET:
+* We don't want to make this look like power-on, because we want to avoid
+* the power-on RAM test. ON the other hand, we don't want to look like a
+* real Watchdog reset, so leave a special note in the form of an impossible
+* pm_cntr and blank message.
+	MOVEQ.L	#-42,D0
+	MOVE.L	D0,pm_cntr	; BURMA!
+	CLR.L	pm_msg
+*	CLR.L	powerUp		; make this look like a hard-reset
+* We want to give watchdog a chance to hit us because of the vanishingly
+* small proportion of Atari Games Hardwares which support the bi-directional
+* RESET line. Some boards just don't come up well with a soft reset.
+	MOVE.W	#INTS_OFF,SR
+	MOVEQ.L	#20,D2
+* The code below is Jaguar specific, as that particular system could not
+* be "wedged into" the concept of WFVBL/WFNVBL (Wait For Vblank / Wait
+* For Not Vblank) with a simple VBACK.
+.FR00:
+.FR010:	LEA	TOM_INT1,A0
+.FR012:	MOVE.W	(A0),D0
+	AND.W	#1,D0
+	BEQ	.FR012
+	MOVE.W	#$101,(A0)
+	MOVE.W	#0,2(A0)
+	SUBQ.L	#1,D2
+	BCC	.FR00
+* Oh, well, the watchdog must be snoozing. Fake it and hope for the best
+
+	RESET		; GAME SPECIFIC (If your hardware was done right)
+ IFEQ	PROCESSOR-M68000
+	SUBA.L	A0,A0		;Point to hardware RESET vector
+ ENDC
+ IFNE	PROCESSOR-M68000
+	MOVEC	VBR,A0		;VBR points to stub vectors
+ ENDC
+	MOVE.L	(A0)+,SP
+	MOVE.L	(A0),A0
+	CLR.W	LATCH
+	JMP	(A0)
+
+FinishEE:
+*
+* >>-> if you're using any USER_RECS you probably want to purge them
+*
+	xref	eer_hwt,UpdateGrowth
+	JSR	eer_user_purge	; clear out any open user recs w/o writing them
+.FE000:	BSR	prc_delay0
+*	BSR	eer_hwt		; try a write
+ IFNE HAS_GROWTH
+	JSR	UpdateGrowth
+ ENDC
+	BSR	eer_busy	;Wait for EEROM writes to finish	
+	TST.L	D0
+	BNE.S	.FE000
+	RTS
+*
+	PAGE
+*
+* >>->
+*
+* GAME SPECIFIC VBlank Interrupt Routine. p_int4 is automagically generated from
+* the struct pconfigb in config.mac
+*
+*
+*
+*
+* >>-> HEAVILY customized interrupt routine!  include the file here...
+* 
+*	INCLUDE	root_int.asm
+* 4ms interrupt handler... vectors to VBINT on vblank...
+* else,  just executes coins/sounds durring the game. 
+
+	xdef	IR4MS
+* TICK INCR is chosen such that if added to a 32-bit value four times per
+* 60Hz frame, integral seconds will be in D20-D31 of that value. For
+* rough approximation, it is in "micro-seconds", except that there
+* are 2^20 (1048576) of them in a second :-). Actually, even that is
+* not strictly true without correction. Due to truncation error,
+* there will be only 1048560 of them after 240 interrupts, so it will
+* sometimes take an extra interrrupt to "roll over" an integral second
+* This is inherent in the fact that 240 is not an integral power of two.
+* I may wish to fix this with a sub-fractional accumulator if it becomes
+* a problem
+ IFNDEF	TICK_INCR
+ TICK_INCR EQU 4369
+ ENDC
+	SECTION	14
+	xdef	__time_q
+__time_q:
+	DS.L	1		; Points to head of timer Queue, elements have:
+TQ_NEXT	SET	0		; next Q element
+TQ_QUE	SET	4		; Points to que head
+TQ_FUNC	SET	8		; Function to call when timer expires
+TQ_VARS	SET	12		; Parameter to give function
+TQ_DELTA SET	16		; Remaining "ticks" before acting
+	xdef	ms4vec
+ms4vec:	DS.L	1		; Vector for User's 4MS irq routine
+	SECTION 9
+	xref cn_irq
+IR4MS:
+	MOVEM.L	A0/A1/D0/D1,-(SP)
+	MOVE.W	CPU_INTACK,D0		; ACK 4mSec timer
+	ADD.W	#1,MS4Field		; keep count (gamevb resets)
+* Simple timer "delta Q" hook. This code assumes that no timer events
+* will be added or deleted by any code running at a higher hardware
+* priority than itself. Since timer events should not be posted by
+* any code that executes at hardware interrupt level at all, this
+* should be a safe assumption. If needed, we could shut of all interrupts
+* during the update scan, but that would add to latency.
+	MOVE.L	#TICK_INCR,D1		; To subtract one "Tick" from next delta
+I4_17:
+	MOVE.L	__time_q,D0		; Check timer Queue
+	BEQ.S	I4_18
+	MOVE.L	D0,A0
+	SUB.L	D1,TQ_DELTA(A0)		; Decrement earliest timer
+	BHI.S	I4_18			; Still time left
+	MOVE.L	TQ_NEXT(A0),__time_q	; unlink from timer Queue
+	CLR.L	TQ_QUE(A0)		; Mark as "floating"
+	MOVE.L	A0,-(SP)
+	JSR	prc_q_action		; Add to "action" queue
+	ADDQ.L	#4,SP
+	MOVEQ.L	#0,D1			; Loop subtracting 0 from next delta
+	BRA	I4_17			; Check for next delta also expiring
+
+I4_18:
+	JSR	cn_irq			; coin routine handler
+	MOVE.L	ms4vec,D0
+	BEQ	IRQ_RET
+	MOVE.L	D0,A0
+	JSR	(A0)
+	BRA	IRQ_RET
+ IFNE 0
+	xref	ob_copy
+dummy_vb:
+	PEA	1
+	JSR	ob_copy
+	ADDQ.L	#4,SP
+	RTS
+	SECTION	14
+	DS.W	0
+* On the Jaguar, there are several devices on a single interrupt.
+* The cause of an interrupt is determined by looking in TOM_INT1,
+* and acknowledged by writing another bit in TOM_INT1. When all
+* interrupts have been serviced, a write to TOM_INT2 is used to
+* lower the CPU priority for access to DRAM
+*
+* The following vectors are in order for scanning D0..D4 while
+* counting _down_ from 4, a minor optimization for the 68K. If
+* we get a reason to sub-prioritze differently we will re-visit
+* this code.
+	xdef	dspvec,pitvec,objvec,gpuvec,vbvec
+TOM_VECS:
+dspvec:	DS.L	1
+pitvec:	DS.L	1
+objvec: DS.L	1
+gpuvec:	DS.L	1
+vbvec:	DS.L	1
+	xdef	tomint_shad
+tomint_shad:
+	DS.W	1
+	SECTION	9
+TOMINT:
+	MOVEM.L	A0/A1/D0/D1,-(SP)	; All Interrupts save these
+	MOVEM.L	D2/D3/A2/A3,-(SP)	; Needed to scan TOM_INT1
+	MOVEQ.L	#1,D2
+	MOVEQ.L	#16,D3
+	LEA	TOM_INT1,A2
+	LEA	TOM_VECS,A3	
+	MOVE.L	vbvec-TOM_VECS(A3),D0
+	BNE.S	TI00
+	MOVE.L	#VBINT,vbvec-TOM_VECS(A3)
+TI00:	MOVE.W	D2,D0
+	AND.W	(A2),D0
+	BEQ.S	TI20
+* We have an interrupt pending, clear the bit, keeping
+* the mask bits the same as always.
+	ASL.W	#8,D0
+	OR.W	tomint_shad,D0
+	MOVE.W	D0,(A2)
+* Pick up the appropriate vector and jump through it
+	MOVE.L	0(A3,D3.W),D0
+	BEQ.S	TI20
+	MOVE.L	D0,A0
+	JSR	(A0)
+TI20:	ADD.W	D2,D2
+	SUBQ.W	#4,D3
+	BPL	TI00
+	move.w  #0,TOM_INT2		; set interrupt resume register
+	MOVEM.L	(SP)+,D2/D3/A2/A3	; restore "private" regs
+	BRA	IRQ_RET
+
+VBINT:
+	MOVE.L	CPU_TIMER,D0		; Re-start 4mSec timer to sync with VB
+ IFNE	HAS_SMC_COM
+	xref	COMVBlank
+	JSR	COMVBlank	; take care of the SMC_COM stuff
+ ENDC
+	MOVE.L	gameint,D0
+	MOVE.L	D0,A0
+	BNE.S	.VB00
+	LEA	dummy_vb,A0
+.VB00:	JSR	(A0)
+	JSR	ctl_upd_sw
+	JSR	eer_hwt
+ IFNE	POT_CNT
+	JSR	VBIReadPots		; Update Pot values
+	JSR	PotsToSwitches		; Generate JOYSTICK switches from pots
+ ENDC
+	RTS
+ ENDC					; IFNE 0 for removing assembly tomint
+ IFEQ 0
+* This code is the minimal wrapper for a 'C' tom interrupt routine
+	xref	tomint
+	SECTION	9
+TOMINT:
+	MOVEM.L	A0/A1/D0/D1,-(SP)	; All Interrupts save these
+	jsr	tomint
+	BRA	IRQ_RET
+
+ ENDC
+	xref	eer_busy,eer_hwt,imess
+	xref	VBIReadPots,PotsToSwitches,ctl_upd_sw
+	xref	lampShad
+
+	SECTION	14
+	DS.W	0
+rfp:	DS.L	1
+	SECTION	9
+OLDPSW	EQU	20		; D0,D1,A0,A1,<ret to VBINT>
+
+*
+*
+*
+* GAME SPECIFIC Routine to output error message to screen.
+* The FLOOD portion in particular will have to depend on the
+* shape of your color RAM
+* A4 holds return address.
+* A0 points to:
+*	DC.W Foreground Color (DARK)
+*	DC.W Background color (BRIGHT)
+*	DC.B Message (NUL Terminated)
+* This routine write the message first, so the "FLOOD" entry can also
+* be used before the test.
+* This is not really possible on COJAG. We will be using the newer pm routines
+* for the most part, and will re-write flood later
+BEEPER:
+ IFNE 0
+	LEA	AN_RAM+AN_NXT_ROW+AN_NXT_ROW,A1
+	MOVEQ.L	#0,D1
+	MOVEQ.L	#0,D0
+.BP00:	MOVE.B	4(A0,D1.W),D0
+	BEQ.S	FLOOD
+	ADDQ.W	#1,D1
+	MOVE.W	D0,(A1)+
+	BRA	.BP00
+ ENDC
+FLOOD:
+ IFNE 0
+	MOVE.W	2(A0),D0		; background color! (BRIGHT)
+	LEA	COLRAM,A1
+	MOVE.W	#(COLRAM_size-2)/2,D1
+.BP10:	
+	MOVE.W	D0,(A1)+
+	DBF	D1,.BP10
+	WATCHDOG
+	MOVE.W	(A0),D0			; foreground color! (DARK)
+	LEA	AN_COL,A1
+	MOVEQ.L	#AN_PALS-1,D1		; -1 for DBF
+.BP20:	
+	MOVEQ.L	#(1<<AN_BIT_DEPTH)-3,D2	; -1 for DBF,-2 for 2 less colors
+	ADDQ.L	#4,A1			; skip first 2 colors
+.BP30:
+	MOVE.W	D0,(A1)+
+	DBF	D2,.BP30
+	DBF	D1,.BP20
+	WATCHDOG
+ ENDC
+	JMP	(A4)
+
+	xdef	flood
+flood:
+	MOVE.L	4(SP),A0		; pointer to color set
+	MOVE.L	A4,-(SP)	; save A4 for CALL4
+	CALL4	FLOOD
+	MOVE.L	(SP)+,A4	; restore A4
+	RTS
+
+	PAGE
+*	RAM test to be called from ram_test.c, performs "full" RAM test on all
+* RAMS, then resets because there is nothing else to do
+* Before we start, make sure EEPROM is up-to-date
+	xdef	asm_full_ram
+	xref	F_RAM_TEST
+asm_full_ram:
+	MOVE.W	#INTS_OFF,SR
+	BSR	FinishEE	;Wait for EEROM writes to finish	
+
+	LEA	RAM_LIST-RAM_BLOCK_size(PC),A5
+NXT_FRAM:
+	ADD.W	#RAM_BLOCK_size,A5
+TST_FRAM:
+	MOVE.L	(A5),D0		; Gets the label parameter
+	BEQ	FRAMT_END
+	LEA	4(A5),A0
+	CALL4	F_RAM_TEST	; Do full (extensive) RAM test
+	MOVE.L	D0,D4
+	BEQ.S	NXT_FRAM	; Success, do next RAM
+
+* On error, output message, then hold for a frame (at least), then re-test same RAM
+* unless NEXT switch is Pressed. If NEXT _is_ pressed, step to next RAM and wait for
+* NEXT to be released.
+
+	MOVE.L	(A5),A0
+	CALL4	BEEPER
+	WATCHDOG
+	NOTNEXT	TST_FRAM	; NEXT button not pressed, re-test
+* NEXT pressed test next RAM when NEXT released
+.FR040:	WFNVBL
+	WFVBL
+	WATCHDOG
+	IFNEXT	.FR040
+	BRA	NXT_FRAM
+FRAMT_END:
+	BRA	FAKE_RESET
+*	unsigned long l_over_us(ulong,ushort)
+*	unsigned long ulong;
+*	unsigned short ushort;
+	xdef	ul_over_us
+ULONG	SET	4
+USHORT	SET	10
+ul_over_us:
+	MOVEQ.L	#0,D0
+	MOVE.W	ULONG(SP),D0		; Get high word of dividend
+	DIVU.W	USHORT(SP),D0		; D0.W = (ulong/65536)/ushort
+	MOVE.L	D0,D1
+	SWAP	D0			; D0.W *= 65536
+	MOVE.W	ULONG+2(SP),D1		; "add" LSW of ulong to remainder
+	DIVU.W	USHORT(SP),D1		; finish divide, getting quot LSW
+	MOVE.W	D1,D0			; Add to quot MSW
+	RTS
+ IFEQ	MACRO_STYLE-MACROS_MAC68K
+	.psect	data,dat=1,seg=1
+	DC.W	0xDADA
+	SECTION	9
+ ENDC
+	SECTION	99			; So we can see where code ends
+	xdef	OS_END
+OS_END:	DS.W	0
+************************************************************************
+*** Experimental hooks for multi tasking. This stuff cribbed from the
+*** Mini-os used in the ASAP Development System
+	SECTION	14
+* Variables for "Software IRQ" style of single-stack "Multi-Tasking"
+irq_action:
+	DS.L	1		; points to chain of IRQ continuations
+irq_sem:
+	DS.W	1		; "Semaphore" for single-threading irq_action
+* The "soft vectors" used to re-direct the 'C' interrupt service routines
+N_SVECS EQU	6
+IRQ_SVEC:
+	DS.L	N_SVECS
+	SECTION 9
+__set_irq:
+	MOVE.L	4(SP),D1
+	MOVEQ.L	#N_SVECS-1,D0
+	CMP.L	D0,D1
+	BCC.S	SI90
+	ASL.W	#2,D1
+	LEA	IRQ_SVEC,A0
+	ADD.L	D1,A0
+	MOVE.W	SR,D1
+	MOVE.W	#INTS_OFF,SR
+	MOVE.L	(A0),D0
+	MOVE.L	8(SP),(A0)
+	MOVE.W	D1,SR
+SI90:	RTS
+
+* IRQ_RET checks whether we are about to return to "mainline".
+* If so, and if irq_action is non-zero, it is assumed to point to a
+* stucture whose first 4 elements (32-bit words) are:
+NEXT	SET	0	; Next structure in chain
+QUE	SET	4	; Points to head-pointer of que (if any) currently on
+FUNC	SET	8	; Function to call
+VARS	SET	12	; Pointer to variables for FUNC
+* All irq routines exit via this common point, with the exception frame
+* and D0/D1/A0/A1 on the stack
+STK_SR	SET	16	; Exception status register is just past saved regs
+IRQ_RET:
+	MOVE.W	STK_SR(SP),D0
+	AND	#$700,D0
+	IFNE	INTS_ON&$700
+	CMP.W	#INTS_ON&$700,D0
+	ENDC
+	BNE.S	IRQ_DONE
+	SUBQ.W	#1,irq_sem
+	BMI.S	IRQ_UP
+	MOVE.L	irq_action,D0
+	BEQ.S	IRQ_UP
+* We know _something_ is waiting. Disable IRQs for a while to safely unlink
+* exactly one pending action
+IRQ_RTRY:
+	MOVE	#INTS_OFF,SR
+	LEA	irq_action,A0
+IRQ_NOFUNC:
+	MOVE.L	(A0),D0		; Re-check with IRQs off
+	BEQ.S	IRQ_UP
+	MOVE.L	D0,A1
+	IFNE	NEXT
+	MOVE.L	NEXT(A1),(A0)	; Unlink
+	ENDC
+	IFEQ	NEXT
+	MOVE.L	(A1),(A0)	; Unlink
+	ENDC
+* irq_action has been "updated", and A1 points to a "floating" action structure
+	CLR.L	QUE(A1)		; Indicate floating
+	MOVE.L	FUNC(A1),D0
+	BEQ	IRQ_NOFUNC
+	MOVE.L	VARS(A1),-(SP)	; Push parameter
+	MOVE.L	D0,A0
+	MOVE	#INTS_ON,SR	; Enable IRQ fully (as if RTE happened)	
+	JSR	(A0)		; call func
+	ADDQ.L	#4,SP
+	BRA	IRQ_RTRY
+IRQ_UP:
+	ADDQ.W	#1,irq_sem
+IRQ_DONE:
+	MOVEM.L	(SP)+,A0/A1/D0/D1
+	RTE
+* prc_q_action takes a pointer to an "action" structure and puts it at the
+* end of the queue, provided it is not already on a queue. Otherwise, it
+* returns a pointer to the "queue head" for the queue it is already on
+* (including this one)
+* later :-)
+	xdef	prc_q_action
+prc_q_action:
+	LEA	irq_action,A0
+	MOVE.L	4(SP),A1
+	MOVE	SR,D1
+	MOVE	#INTS_OFF,SR
+	MOVE.L	QUE(A1),D0		; Check if already on some que
+	BEQ.S	PQ_CHN			; "floating", add to end
+	CMPA.L	D0,A0			
+	BEQ.S	PQ_DONE			; Already on action que
+	BRA.S	PQ_RET			; Not here, but somewhere
+* It is not clear what to do here. Un-linking it seems hasty. So we will return
+* the current Que contents in case the caller can do something more intelligent
+
+* D0 is used to fetch wp->next
+* A0 is working pointer wp
+* A1 points to new entry new
+* while ( wp ) {
+*    if ( wp->next == new ) return;
+*    if ( wp->next == 0 ) { wp->next = new; new->next = 0; return; }
+*    wp = wp->next;
+* }
+
+	IFNE	NEXT
+!!!! ASSUMES NEXT is offset 0, both for speed and to treat irq_action
+!!!! as a stub structure
+	ENDC
+PQ_CHN:
+	MOVE.L	(A0),D0
+	BEQ.S	PQ_INS
+	MOVE.L	D0,A0			; Follow chain (old wp is dead here)
+	CMP.L	D0,A1			; Already in queue?
+	BNE	PQ_CHN			; Loop in common case
+	BRA.S	PQ_DONE			; Skip insertion if so
+
+PQ_INS:
+	MOVE.L	A1,(A0)
+	CLR.L	(A1)			; Ensure closed chain
+	MOVE.L	#irq_action,QUE(A1)	; Indicate "on action que"
+PQ_DONE:
+	MOVEQ.L	#0,D0
+PQ_RET:
+	MOVE	D1,SR
+	RTS
+	.end	0x9d0000
+****		****
+****	THE	****
+	END
+@
+
+
+1.2
+log
+@Huge changes, as this was left out too long. Basic idea was
+to allow OS to live outside first 32K, co-exist with debug stub,
+and a few minor changes for better compatability with yet more
+mutant assemblers.
+@
+text
+@d401 2
+d405 1
+d1204 1
+a1204 1
+
+d1282 11
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d49 3
+a51 3
+	INCLUDE	config.i
+	INCLUDE	os_macros.i
+	INCLUDE	eer_defs.i
+d108 1
+a108 1
+	BSR	TrapIt		; Return address is pointer to string
+d139 1
+a139 1
+	BSR	TrapIt
+d165 2
+d193 5
+d199 8
+a206 4
+	DC.L	INT1
+	DC.L	INT2
+	DC.L	AUDINT		; 3: XBUS 0 (CAGE audio)
+	DC.L	VBINT		; 4: vertical blank interrupt
+d211 1
+a211 1
+	DC.L	INT5		; 5: No connect
+d213 3
+a215 2
+	DC.L	IR4MS		; 6: 4-millisecond interrupts
+	DC.L	INT7
+d254 1
+d285 7
+a291 7
+INT1:	SYSERR	<INT1>,0
+INT2:	SYSERR	<INT2>,0
+INT3:	SYSERR	<INT3>,0
+INT4:	SYSERR	<INT4>,0
+INT5:	SYSERR	<INT5>,0
+INT6:	SYSERR	<INT6>,0
+INT7:	SYSERR	<INT7>,0
+d452 2
+d470 28
+a497 1
+
+d499 4
+a502 11
+*	It's not likely we have a VAD, but we may need to do some sort
+*	of rain-dance just to have working RAM. If so, here's where we do it
+*
+ IFNE	HAS_VAD
+*
+*	KEEP DMA OFF! maybe this line used to read HDW_ENABLE?????
+*	.. but now, we'll turn it on ONLY AFTER clearing ram with RAMINIT
+*
+	MOVEQ.L	#0,D0			; Say to keep DMA off
+	CALL4	VAD_POR			; Do VAD Power-on Reset
+ ENDC
+d504 22
+a525 8
+******	SYSINIT Specific to growth hardwares
+*
+* GX2 MUST clear status before resetting or we will remain dead
+*
+	MOVE.W	#$0,MO_STATUS
+* RESYS expanded inline, since we only use it once and are not even
+* maintaining a pretence of a separate file.
+*	RESYS	RES0,RES1	; Reset FSG42 general hardware stuff...
+a533 23
+ IFNE HAS_DSP
+ IFEQ DSP_DEBUG
+	CLR.W	CDSP_RST_L		; halt dsp, don't want him bugging us
+	CLR.W	CDSP_BR_H		; clear his bus request line
+	CLR.W	CDSP_CLR_IRQ		; clear pending DSP interrupt
+ ENDC
+ ENDC
+ IFNE HAS_TWO		; ASSEMBLE FLAG FOR POSSIBLE 2 BOARD SET
+	BTST.B	#B_DOUBLE,HDWRCONFIG	; configured as double board set
+	BNE.S	\1			; no, clear the COMRAM
+	BTST.B	#B_RIGHT,HDWRCONFIG	; configured as right side
+	BNE.S	\2			; no, skip clear
+
+\1	CLR.B	COMRAM+3		; clear common ram flag bytes...
+	CLR.B	COMRAM+5		; clear common ram flag bytes...
+
+\2
+ ENDC
+	RESMO
+ IFNE HAS_VAD
+	MOVEQ.L	#0,D0			; Say to keep DMA off
+	CALL4	VAD_POR			; Do VAD Power-on Reset
+ ENDC
+d622 11
+d683 1
+d685 15
+a699 1
+	CMP.L	#PB_VALID,PBASE		; Setup our PBASE pointer
+d701 4
+a704 1
+	MOVE.L	PBASE+p_configb,D0	; is it legit?
+a711 1
+
+d730 1
+d739 1
+a740 1
+	DC.L	V_descrip,VRAM,VRAM_size,0		; skip MOB param RAM
+d742 1
+a742 1
+****	DC.L	BM_descrip,BIT_RAM,BIT_RAM_size,0
+a744 9
+ IFNE HAS_TWO
+ IFNE COMRAM_BYTE
+	DC.L	COM_descrip,COMRAM+4,COMRAM_size-4,$FF00FF00
+ ENDC
+ IFEQ COMRAM_BYTE
+	DC.L	COM_descrip,COMRAM+4,COMRAM_size-4,$00FF00FF
+ ENDC
+	DC.L	0,0		; stop here no matter
+ ENDC
+d748 1
+d759 1
+a759 18
+V_descrip:
+	DC.L	BLK_GRN			; Black on Green
+	DC.B	'Video RAM bad'
+	DC.B	0
+	DS.W	0
+
+COM_descrip:
+****	DC.L	BLK_BLU			; Black on Blue
+****	DC.B	'Common RAM bad'
+****	DC.B	0
+****	DS.W	0
+
+BM_descrip:
+	DC.L	BLK_RED			; Black on Red
+	DC.B	'BITMAP RAM bad'
+	DC.B	0
+	DS.W	0
+
+d774 1
+d786 25
+d813 1
+a813 12
+
+	xdef	InitOS
+InitOS:
+	MOVE.L	INT_VEC(SP),D0
+	BEQ.S	no_ivec
+	MOVE.W	#INTS_OFF,SR	;/* Initialize interrupt vector	*/
+	MOVE.L	D0,gameint
+no_ivec:
+	MOVE.W	INT_LVL(SP),SR
+	MOVE.L	#EER_GMOPT,4(SP)
+	JMP	eer_gets		;/* return game options 	*/
+
+d819 1
+a819 1
+SetIPL:	MOVEQ.L	#0,D0
+d885 3
+a887 1
+
+d900 6
+a905 2
+.DL010:	WFNVBL
+	WFVBL
+a936 36
+	xdef	mod_latch
+	xref	vid_master
+* This entry point dis-allows mucking with the video slave bit, in an attempt
+* to keep the game from screwing it up.
+mod_latch:
+	MOVE.L	4(SP),D0
+	BMI.S	MLK10
+* Positive means trying to SET one or more bits. Check if LM_COM_SLV is
+* involved, and use vid_master(0) instead if so.
+	MOVE.L	D0,D1
+	AND.L	#(-1-LM_COM_SLV),D0
+	CMP.L	D0,D1
+	BEQ.S	MKL20
+* Wants to set slave. call vid_master(0)
+	MOVE.L	D0,4(SP)
+	CLR.L	-(SP)
+	JSR	vid_master
+	ADDQ.L	#4,SP
+	BRA.S	prc_mod_latch
+
+MLK10:
+* Negative means trying to CLR one or more bits. Check if LM_COM_SLV is
+* involved, and use vid_master(1) instead if so.
+	MOVE.L	D0,D1
+	OR.L	#LM_COM_SLV,D0
+	CMP.L	D0,D1
+	BEQ.S	MKL20
+* Wants to clr slave. call vid_master(1)
+	MOVE.L	D0,4(SP)
+	PEA	1
+	JSR	vid_master
+	ADDQ.L	#4,SP
+	BRA.S	prc_mod_latch
+
+MKL20:	MOVE.L	D0,4(SP)
+
+d1071 8
+a1078 1
+	CLR.L	powerUp		; make this look like a hard-reset
+d1084 10
+a1093 2
+.FR00:	WFNVBL
+	WFVBL
+d1099 6
+a1104 1
+	SUBA.L	A0,A0		;DO POWERON RESET
+d1143 25
+d1169 1
+a1169 5
+ IFNDEF B_CPU_VSYNC
+B_CPU_VSYNC EQU -1
+ ENDC
+CPU_TIMINT:
+ IFNE HAS_4MSINT
+d1171 92
+a1262 13
+	MOVE.L	CPU_INTACK,D0
+ IFNE (B_CPU_VSYNC+1)
+* The VSYNC input is hooked up, use itdoes not work yet
+	MOVE.L	CPU_INP,D0
+	BTST	#B_CPU_VSYNC,D0
+ ENDC
+ IFEQ (B_CPU_VSYNC+1)
+* The VSYNC input is does not work yet, try the video version
+	MOVE.L	ZTV_STAT,D0
+	BTST	#B_Z_VB,D0
+ ENDC
+	BNE.S	.CT90
+* Following done only on Vblank
+d1267 5
+a1271 2
+	MOVE.L	gameint,A0
+	JSR	(A0)
+d1273 1
+d1278 1
+a1278 6
+.CT90:
+	JSR	cn_irq			; coin routine handler
+	MOVEM.L	(SP)+,A0/A1/D0/D1
+ ENDC
+	RTE
+*
+d1282 1
+a1282 4
+*
+*
+*	VBINT
+*
+a1287 2
+ZTV_INT:
+	MOVEM.L	D0-D1/A0-A1,-(SP)
+a1288 62
+	MOVE.L	D0,ZTV_INTACK
+	MOVE.W	bitshd,LATCH	; (ZTV_CTL+2)
+
+	MOVE.L	ZTV_STAT,D0
+	BTST	#B_Z_VB,D0
+	BNE.S	NOT_VB
+* Following done only on Vblank
+ IFNE	HAS_SMC_COM
+	xref	COMVBlank
+	JSR	COMVBlank	; take care of the SMC_COM stuff
+ ENDC
+	MOVE.L	gameint,A0
+	JSR	(A0)
+	JSR	ctl_upd_sw
+ IFNE	POT_CNT
+	JSR	VBIReadPots		; Update Pot values
+	JSR	PotsToSwitches		; Generate JOYSTICK switches from pots
+ ENDC
+NOT_VB:
+	JSR	cn_irq
+	BTST	#B_Z_RUN,bitshd+1	; Check if ZTV is halted
+	BNE.S	.VB90
+* If the ZTV is halted, re do a burst refresh here. If we have 4MS IRQ, we
+* are fine here. Even if we have only VBlank, it should work, although the
+* manufacturer advises against this.
+	MOVE.L	A2,-(SP)
+* If we have a 4 millisecond IRQ, we can do 1/4 of the DRAM at a time
+ IFNE HAS_4MSINT
+	MOVE.L	#(ZTV_BITMAP_size/4),D1
+ ENDC
+* If we don't have a 4 millisecond IRQ, we must do the whole thing
+ IFEQ HAS_4MSINT
+	MOVE.L	#ZTV_BITMAP_size,D1
+ ENDC
+	MOVE.L	rfp,D0
+	SUB.L	D1,D0
+	BPL.S	.RF10
+* Have done whole DRAM, start again at top
+	MOVE.L	#ZTV_BITMAP_size,D0
+* Back off by amount we want to do this time
+	SUB.L	D1,D0
+* Store updated offset (will be 0 every time if no 4mSec IRQ)
+.RF10:	MOVE.L	D0,rfp
+	MOVE.L	D0,A0
+* Build pointer into BITMAP at next offset, then also build two pointers
+* into Z-Buffer DRAM
+	ADDA.L	#ZTV_BITMAP,A0
+	MOVE.L	A0,A1
+	ADDA.L	#(ZTV_ZBUF-ZTV_BITMAP),A1
+	MOVE.L	A1,A2
+	ADDA.L	#(ZTV_ZBUF_size/2),A2
+	MOVE.L	D1,D0			; Total offset into D0
+	MOVE.L	#$400,D1		; Line size into D1
+	SUB.L	D1,D0			; Start of last line of current chunk
+.VB20:	TST.L	0(A0,D0.L)
+	TST.L	0(A1,D0.L)
+	TST.L	0(A2,D0.L)
+.VB70:	SUB.L	D1,D0
+	BPL	.VB20
+	MOVE.L	(SP)+,A2
+.VB90:	MOVEM.L	(SP)+,D0-D1/A0-A1
+	RTE
+a1289 23
+*	If we have a MOB but not a VAD, we will re-init the MOB often...
+*
+*
+ IFNE HAS_MOB
+	xdef mob_init
+mob_init:
+	LEA	MOB_PRM+$40,A0		;* slam "sets" in 
+	MOVEQ.L	#$0F,D1
+	MOVEQ.L	#0,D0
+mob_l0:	MOVE.L	D0,-(A0)		;* Clear $40 bytes at MOB_PRM
+	DBF	D1,mob_l0		;* .. leaving A0 at MOB_PRM
+
+	MOVE.W	#SET_MHOFF,(A0)+	;THERE is no scrolling on klax hdwr
+	MOVE.W	#SET_MVOFF+MV_BASE,(A0)+
+	MOVE.W	#SET_PHOFF,(A0)+
+	MOVE.W	#SET_PVOFF,(A0)+
+
+	MOVE.W	#HDW_MOCON,SET_MOCON	;* Set MOB chip Control Registers
+	MOVE.W	#HDW_PCON,SET_PCON
+	MOVE.W	#HDW_GRCON,SET_GRCON
+	RTS
+ ENDC
+*
+d1302 2
+d1305 1
+d1314 1
+d1316 1
+d1335 1
+d1383 16
+a1398 1
+
+d1407 28
+d1436 101
+@

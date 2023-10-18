@@ -1,0 +1,1702 @@
+head	1.7;
+access;
+symbols
+	RUSH_ROCK_1_0:1.7
+	RUSH_ROCK_1_0epst:1.7
+	RUSH_1_06A:1.7;
+locks; strict;
+comment	@ * @;
+
+
+1.7
+date	96.11.23.22.43.44;	author forrest;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.11.11.20.02.15;	author forrest;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.10.31.16.30.03;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.10.15.02.55.27;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.08.18.21.13.42;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.02.07.00.27.57;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.11.16.17.36.53;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@audio.c for zoid GUTS
+@
+
+
+1.7
+log
+@Made aud_dyn_adjvol global because aud_poll caused problems in RUSH game.
+Added delay to the buttons because the RUSH game removes the edges before
+we get to see them.
+@
+text
+@/*
+ *	audio.c
+ *
+ *		Copyright 1991 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+ *	'C' versions of basic audio control routines on a board with a separate
+ *	audio processor. This version for the ASAP bitmap board.
+ *
+ *	These may need to be editted for unusual hardware, or may need to be
+ *	written (at least partially) in assembly on some systems. The 'C' code
+ *	should be viewed as a guide to functionality.
+ */
+#include <config.h>
+#include <stdarg.h>
+#include <string.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <eer_defs.h>
+
+#define STATIC static
+#define AUTO_VERS (1)
+
+#if HAS_CAGE
+#if !(HAS_EXT_SND)
+#undef HAS_EXT_SND
+#define HAS_EXT_SND (1)
+#endif
+#endif
+
+/*#define OQ_DBG_X (2)*/
+#ifndef DEBUG
+#undef GUTS_OPT_AUD_PANIC
+#endif
+#ifdef GUTS_OPT_AUD_PANIC
+void aud_pm();
+#endif
+#if HAS_CAGE
+typedef unsigned short aud_t;
+#define MAX_AUD_TRIES	(0)		/* do not retry if output queue is busy */
+#define MAX_EXC_TRIES	(100)		/* at least 10us for exception response */
+#define MAX_RESET_TIME 	(5)		/* 5 fields, 1/12 second */
+# if HOST_BOARD == FLAGSTAFF
+# define CAGE_CTL (SND_CTL)
+# define CAGE_STS (SND_STS)
+# define CAGE_IRQ(x) do { int old_ipl = prc_set_ipl(INTS_OFF); \
+	U32 tmp = SND_IRQ & ~(CAGE_AUD_RDY_IRQ); \
+	SND_IRQ = (tmp | x); \
+	prc_set_ipl(old_ipl); } while (0)
+# else
+# define CAGE_CTL (SND_BUF)
+# define CAGE_STS (SND_BUF)
+# define CAGE_IRQ(x) do { SND_BUF = x; } while(0)
+# endif
+#define RESETOK (0x5555)		/* first response from audio board */
+# ifndef S_STOP
+# define S_STOP (0x8000)
+# endif
+#else
+typedef unsigned char aud_t;
+#define MAX_AUD_TRIES 	(255)		/* max tries for non-queued aud_put */
+#define MAX_RESET_TIME 	(180)		/* 180 fields, 3 seconds */
+#define RESETOK (0xFF)			/* first response from audio board */
+#ifndef S_STOP
+#define S_STOP (0)
+#endif
+#endif
+
+/*	Try to set a reasonable default for the location and size of the
+ *	Attract-mode volume ratio. This will only be used if EER_AUD_ATRVOL
+ *	is not defined.
+ */
+#ifndef AUD_AV_MSK
+#ifdef EER_GUTS_OPT
+#define AUD_AV_MSK (3)
+#else
+#define AUD_AV_MSK (0)
+#endif /* EER_GUTS_OPT defined */
+#endif /* AUD_AV_MSK defined */
+#ifndef AUD_AV_SHF
+#define AUD_AV_SHF (0)
+#endif
+#ifndef SND_IDX_MSK
+#define SND_IDX_MSK 	(0x3F)
+#endif
+#if (SND_IDX_MSK & (SND_IDX_MSK+1) )
+#error /* SND_IDX_MSK must be of the form (2^^n)-1 */
+#endif
+#ifndef AUD_MAX_TIME
+#define AUD_MAX_TIME 	(40000L)	/* about five frames without output */
+#endif
+
+#ifndef MIN_VOLUME
+#define	MIN_VOLUME	(0)
+#endif
+#ifndef MAX_VOLUME
+#define	MAX_VOLUME	(32)
+#endif
+#ifndef DEF_VOLUME
+#define	DEF_VOLUME	(MIN_VOLUME+((2*(MAX_VOLUME))/3))
+#endif
+
+#ifdef HAS_CAGE
+/* new style CAGE has coded "levels" of activity
+ * #undef B_RESET to get these definitions
+ */
+#undef B_RESET
+#endif
+
+#ifndef B_RESET
+#define CAGE_RESET (0)		/* hold reset line asserted */
+# if HOST_BOARD == FLAGSTAFF
+# define CAGE_ENABLE (IO_H2SND_CTL_SND_ENA)
+# define CAGE_NO_IRQ ~(SND_IMASK)
+# define CAGE_HOST_FULL_IRQ (IO_MAIN_STH_DATA_FULL)
+# define CAGE_AUD_RDY_IRQ (IO_MAIN_HTS_DATA_EMPTY|IO_MAIN_STH_DATA_FULL)
+# else
+# define CAGE_NO_IRQ (1)		/* no reset, but not IRQ enabled */
+# define CAGE_HOST_FULL_IRQ (2)	/* only IRQ for data _from_ CAGE */
+# define CAGE_AUD_RDY_IRQ (3)	/* IRQ on data from CAGE _or_ CAGE input empty*/
+# endif
+#else
+/* Old style CAGE had separate bits for reset and each IRQ, these are used
+ * below if B_RESET is defined (implying all are defined)
+ */
+#define CAGE_RESET (0)
+#define CAGE_NO_IRQ (1<<B_RESET)
+#define CAGE_HOST_FULL_IRQ ((1<<B_RESET)|(1<<B_HST_FUL_IRQ))
+#define CAGE_AUD_RDY_IRQ ((1<<B_RESET)|(1<<B_HST_FUL_IRQ)|(1<<B_AUD_RDY_IRQ))
+#endif
+
+
+#if (HAS_EXT_SND == FALSE)
+STATIC	const U8 dactbl[] = 
+{	
+    0,1,2,3,4,5,6,7,8,9,10,11,12,14,15,17,19,21,
+    24,27,31,35,39,44,49,55,62,70,79,88,99,111,127
+};
+#endif
+
+STATIC aud_t * volatile exc_ptr;		/* exception buffer pointer */
+STATIC unsigned long exc_cnt;		/* count of exception inputs expected */
+
+STATIC struct siq 			/* input queue */
+{
+    unsigned char in;			/* index for next sound in */
+    unsigned char out;			/* index for next sound out */
+    aud_t iq[SND_IDX_MSK+1];		/* sound queue */
+} iqs;
+
+STATIC struct soq 			/* output queue */
+{
+    unsigned long timer;		/* time since last output */
+    unsigned long waittosend;		/* time before next output can be sent */
+    unsigned char in;			/* index for next sound in */
+    unsigned char out;			/* index for next sound out */
+    aud_t oq[SND_IDX_MSK+1];		/* sound queue */
+} oqs;
+
+STATIC int prev_volume,prev_mode;
+
+#if HAS_CAGE
+const U16 ccmd17[] = {
+    0x0107,		/* First MOS version to which this applies */
+    0x8000,		/* Stop all sounds */
+    0x8001,		/* "Attract mode" */
+    0x8002,		/* "Game Mode" */
+    0x8003,		/* Volume adjust music */
+    0x8004,		/* Number of sounds */
+    0x8005,		/* "Run diagnostics" */
+    0x8006,		/* Set game volume */
+    0x8007,		/* "Set attract volume" */
+    0x8008,		/* Get MOS version */
+    0x8009,		/* Get Project version */
+    0x800A,		/* Get error count */
+    0x800B,		/* Clear error log */
+    0x800C,		/* get error log (list ending in 0xCA6E) */
+    0x800D,		/* get checksums */
+    0x800E,		/* Peek */
+    0x800F,		/* Speaker location test */
+    0x8010,		/* Sine wave test (1kHz) */
+    0x8011,		/* Stop sine wave test */
+    0x8012,		/* Sine wave sweep (34Hz and up) */
+    0x8013		/* Stop sweep */
+};
+#if AUTO_VERS
+const U16 ccmd00[] = {
+    0x0000,		/* First MOS version to which this applies */
+    0x8000,		/* Stop all sounds */
+    0,0,		/* would be "attract mode", "Game Mode" */
+    0x8003,		/* Volume adjust music */
+    0x8004,		/* Number of sounds */
+    0,			/* Would be "run diagnostics" */
+    0x8006,		/* Set (game) volume */
+    0,			/* would be "Set attract volume" */
+    0x8008,		/* Get MOS version */
+    0x8009,		/* Get Project version */
+    0x800A,		/* Get error count */
+    0,			/* Clear error log */
+    0,			/* get error log (list ending in 0xCA6E) */
+    0,			/* get checksums */
+    0,			/* Peek */
+    0,			/* Speaker location test */
+    0x800B,		/* Sine wave test (1kHz) */
+    0x800C,		/* Stop sine wave test */
+    0x800D,		/* Sine wave sweep (34Hz and up) */
+    0x800E		/* Stop sweep */
+};
+const U16 * const ccmd_list[] = {ccmd00,ccmd17,0};
+#endif
+const U16 *ccmds;
+STATIC int cage_get PARMS(( int cmd ));
+#if HOST_BOARD == FLAGSTAFF
+void aud_dyn_adjvol( int );
+#endif	/* HOST == FLAGSTAFF */
+
+#if AUTO_VERS
+int aud_cmd(which)
+int which;
+{
+    int mos_ver,idx;
+    const U16 *tcp;
+
+    if ( (tcp = ccmds) == 0 ) {
+	/* we don't know the MOS version yet, so we
+	 * also don't know what the commands are.
+	 */
+	mos_ver = cage_get( ccmd00[ST_C_MOS_VER+1] );
+        if ( mos_ver < 0 ) {
+	    /* if the game-doofus has wedged us, or we have
+	     * no CAGE, punt in a hopefully-harmless way.
+	     */
+	    tcp = ccmd00+1;
+	    return tcp[which];
+        }
+	for ( idx = 0 ; (tcp = ccmd_list[idx]) != 0 ; ++idx ) {
+	    if ( *tcp > mos_ver ) break;
+	}
+	tcp = ccmd_list[--idx]+1;
+	ccmds = tcp;
+    }
+    return tcp[which];
+}
+#else
+int aud_cmd(which) int which; { return ccmd17[(which)+1]; }
+#endif
+#endif
+
+/*		aud_reset()
+ *	Resets audio processor and vital state.
+ */
+void
+aud_reset()
+{
+    struct siq *iqp = &iqs;
+    int spin;
+
+#if HAS_CAGE
+    CAGE_CTL = CAGE_RESET;		/* assert reset */
+    prc_delay(15);
+#else
+    MISC_LATCHES[CTL_SND_R] = 0;	/* assert 6502 RESET line */
+    SND_O = S_STOP;			/* Hold NMI low until 6502 ready */
+#endif
+    spin = SND_I;			/* discard any input to us */
+    iqp->in = iqp->out = 0;
+    exc_ptr = 0;
+    for ( spin = 20; --spin ; ) 
+    { 		/* should be at least 2 6502 cycles or 1.5us for CH30 */
+	;
+    }
+#if HAS_CAGE
+# if HOST_BOARD == FLAGSTAFF
+    CAGE_CTL = CAGE_ENABLE;		/* assert reset */
+# endif
+    CAGE_IRQ( CAGE_HOST_FULL_IRQ );	/* release reset and IRQ lines */
+#else
+    MISC_LATCHES[SET_SND_R] = 0;	/* Release 6502 RESET line */
+#endif
+}
+
+#if HAS_CAGE
+STATIC int cage_get( int cmd )
+{
+    int status;
+    int timer;
+    timer = 42;
+    prc_delay0();
+    while ( aud_q_get() >= 0 ) {;}	/* purge buffer */
+    do {
+	prc_delay0();
+	status = aud_put(cmd);
+    } while ( status == 0 && --timer >= 0 );
+    if ( status == 0 ) return -1;
+    timer = 42;
+    do {
+	status = aud_q_get();
+	if ( status >= 0 ) break;
+	prc_delay0();
+    } while ( status < 0 && --timer >= 0);
+    return status;
+}
+#endif
+
+/*		aud_init(level)
+ *	Resets audio processor (or process) and varying amounts of
+ *	local state, depending on <level>.
+ *
+ *		If level is 0, reset the sound process[or] and any crucial
+ *	state (e.g. coin variables) but do not wait for the sound processor
+ *	to "come up". 
+ *	Returns: 0x10000 = 1 sound and all status bits OK.
+ *
+ *		If level is < 0, reset as for 0, but leave the sound
+ *	process[or] "dead" if possible. Not all configurations can do this,
+ *	but it is provided as sort of a "finished with sounds" call for
+ *	those that can, and would benefit in some way from having the sounds
+ *	processor stopped. 
+ *	Returns: 0x10000 = 1 sound and all status bits OK.
+ *
+ *		If level > 0, reset as for 0, but also wait for the sound
+ *	process[or] to "come up", then return a "status" and the "number of 
+ *	sounds".  
+ *	Returns:
+ *		-1 = sound processor did not respond or more than 32768 sounds
+ *		0 = user aborted (there are always 1 sound STOP, NOISY, ...)
+ *		0xnnnnssss = nnnn sounds and status of ssss.
+ */
+long
+aud_init(level)
+int level;
+{
+#if (HAS_EXT_SND)
+    int tries,status;
+    aud_t stat_ret;
+    struct soq *oqp = &oqs;
+    int	old_ipl;
+
+#if HAS_CAGE
+    if ( level < 0 ) {
+	/* Chuck Peplinski says don't turn CAGE off, even when "done" */
+	aud_put(S_STOP);
+	return 0x10000;
+    }
+#endif
+    old_ipl = prc_set_ipl(INTS_OFF);
+    aud_reset();
+    oqp->waittosend = MAX_RESET_TIME * 1000;
+    oqp->timer = oqp->in = oqp->out = 0;
+    prc_set_ipl(old_ipl);
+
+#if !(HAS_CAGE)
+    if ( level < 0 ) 
+        SND_BUF = CAGE_RESET;			/* assert reset */
+#endif
+    if ( level <= 0 ) 
+	return 0x10000;
+    for ( tries = MAX_RESET_TIME; tries ; --tries ) 
+    {
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT) 
+	    return 0;
+	if ( (status = aud_q_get()) > 0 ) 
+	    break;
+	prc_delay0();
+    }
+    if ( status < 0 ) 
+        return -1;
+    else if ( status != RESETOK ) 
+	return -1;
+#if !HAS_CAGE
+    /* 6502-based boards return status, CAGE does not, at
+     * least not right away.
+     */
+    for ( tries = MAX_RESET_TIME; tries != 0; --tries ) 
+    {
+	prc_delay0();
+	stat_ret = 0xFF;
+	status = aud_excw(ST_E_STAT,&stat_ret,1);
+	prc_delay0();
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) 
+	    return 0;					/* user abort */
+	if ( (stat_ret & 1) == 0 ) 
+	    break;					/* mainline running */
+    }
+    status = stat_ret;
+#else
+    status = 0;
+#endif
+    prc_delay0();
+#if !HAS_CAGE
+    /* JSAIII SMAX always works */
+    stat_ret = 0x100;
+    if ( aud_excw(ST_E_SMAX,&stat_ret,1) < 0 ) 
+	return -1;
+    prc_delay0();
+#else
+    /* CAGE may or may not. We use tries so we can get
+     * a negative return if it's not working
+     */
+    tries = cage_get(ST_E_SMAX);
+    if ( tries < 0 ) tries = 42;
+    stat_ret = tries;
+    aud_cmd(0);		/* prime the command-translator */
+#endif
+    return (status | ((long)stat_ret << 16));
+
+#else
+extern void rpm_init();
+extern void rpm_off();
+    rpm_init();					/* Kill sounds!		*/
+    rpm_off();					/* Disable the 4ms INTs	*/
+    return(0);
+#endif
+}
+
+
+/*		aud_q_get() 
+ *	Returns:
+ *		-1 if no input available
+ *		else data from port
+ */
+long
+aud_q_get()
+{
+    struct siq *iqp = &iqs;
+    int rval,idx;
+
+    idx = iqp->out;
+    if ( idx == iqp->in) 
+	return -1;
+    rval = iqp->iq[idx];
+    iqp->out = (idx + 1) & SND_IDX_MSK;
+    return rval;
+}
+
+
+/*		aud_q_put(code)
+ *	Adds <code> to queue of "sounds" to play. <code> is assumed to be a
+ *	single aud_t. See aud_mput() for multi-aud_t commands. On a system with
+ *	external Audio, <code> will then be written to the port communicating
+ *	with the sound processor. On a host-based audio system, <code> will
+ *	be placed directly in the "action" queue of the sound process. 
+ *	Returns:
+ *		0 if no room
+ *		1 if on queue.
+ */
+int
+aud_q_put(code)
+int code;
+{
+    struct soq *oqp = &oqs;
+    int idx,oidx;
+
+    oidx = oqp->in;
+    idx = (oidx + 1) & SND_IDX_MSK;
+    if ( idx == oqp->out ) 		/* filled que, drop it on the floor */
+    {
+#ifdef EER_SNDSLST
+	eer_incs(EER_SNDSLST,1);
+#endif
+	/* this _should_ not be needed, but is insurance against
+	 * IRQ accidentally being turned off
+	 */
+#if HAS_CAGE
+	if ( oqp->waittosend == 0) {
+	    /* allow host-empty IRQ */
+	    CAGE_IRQ( CAGE_AUD_RDY_IRQ );
+	}
+#endif
+	return 0;
+    }
+    oqp->oq[oidx] = code;
+    oqp->in = idx;
+#if HAS_CAGE
+    if ( oqp->waittosend == 0) {
+	CAGE_IRQ( CAGE_AUD_RDY_IRQ );		/* allow host-empty IRQ */
+    }
+#endif
+    if ( code == 0x8001 || code == 0x8002 ) prev_mode = code & 0xff;
+    return 1;
+}
+
+/*		aud_mput(buff,cnt)
+ *	Adds <cnt> aud_t's in buffer pointed to by <buff> to queue of "sounds"
+ *	to play. <buff> is assumed to contain _one_ complete command, so the
+ *	first aud_t will have D15 set, and the remainder will have D15 cleared.
+ *	Also, this routine will place the whole buffer, or none of it, on the
+ *	queue.
+ *		Note that the <param> are masked with 0x7FFF
+ *	to insure that they are not treated as commands.
+ *	Returns:
+ *		0 if no room (i.e. not sent)
+ *		<cnt> if queued
+ *      	< 0 if bogus
+ */
+#if HAS_CAGE
+int
+aud_mput( aud_t *buff, int cnt)
+{
+    struct soq *oqp = &oqs;
+    int room,idx,sofar;
+
+    if ( (*buff & 0x8000) == 0 ) return -1;
+    idx = oqp->in;
+    sofar = (oqp->in - oqp->out);
+	if ( sofar < 0 ) sofar += SND_IDX_MSK+1; /* # of slots used so far */
+    room = SND_IDX_MSK - sofar;
+    if ( room < cnt ) {
+	/* not room for whole msg. Again, for insurance, re-enable IRQ */
+	if ( oqp->waittosend == 0 ) {
+	    CAGE_IRQ( CAGE_AUD_RDY_IRQ );
+	}
+	return 0;
+    }
+    oqp->oq[idx] = (*buff++) | 0x8000;		/* "command" has D15 set */
+    for ( sofar = 1 ; sofar < cnt ; ++sofar ) {
+	idx = (idx+1) & SND_IDX_MSK;
+	oqp->oq[idx] = (*buff++)&0x7FFF;	/* params have D15 clear */
+    }
+    oqp->in = (idx+1) & SND_IDX_MSK;
+    if ( oqp->waittosend == 0 ) {
+	CAGE_IRQ( CAGE_AUD_RDY_IRQ );
+    }
+    return sofar;
+}
+#endif
+/*		aud_qlen()
+ *	Returns the length of the output queue. This
+ *	is scalled so that 0xFFFF is completely full,
+ *	0x8000 is half-full, etc, so that the game
+ *	programmer does not have to know what the
+ *	max queue size is.
+ */
+static int norm_shift;
+
+int aud_qlen()
+{
+    struct soq *oqp = &oqs;
+    int shift,idx,sofar;
+
+    if ( !(shift = norm_shift) ) {
+	for ( shift = 0 ; shift < 16  ; ++shift ) {
+	    if ( 0x8000 & (SND_IDX_MSK<<shift) ) break; 
+	}
+	norm_shift = shift;
+    }
+    idx = oqp->in;
+    sofar = (oqp->in - oqp->out);
+	if ( sofar < 0 ) sofar += SND_IDX_MSK+1; /* # of slots used so far */
+    return sofar<<shift;
+}
+
+#if HAS_CAGE
+/*		aud_q_mput(num,code,param,...)
+ *	Adds <code> to queue of "sounds" to play and adds num-1 parameters
+ *	to the queue as well.  Note that the <param> are masked with 0x7FFF
+ *	to insure that they are not treated as commands.
+ *	Returns:
+ *		0 if no room (i.e. something was not sent)
+ *		1 if sent 
+ *		2 if on queue
+ */
+int
+aud_q_mput(int cnt, ...)
+{
+    int retval,param;	
+    va_list argp;			/* pointer to all sounds */
+
+    va_start(argp,cnt);			/* list of arguments start after num */
+    retval = aud_q_put(va_arg(argp,int)); /* send command */
+    if (retval != 0)			/* room on queue */
+    {
+	for ( --cnt; cnt > 0; --cnt)
+	{
+	    param = va_arg(argp,int) & 0x7FFF;
+	    retval = aud_q_put(param);	/* send parameter */
+	    if (retval == 0)		/* no room on queue */
+	    {
+#ifdef EER_SNDSLST
+		eer_incs(EER_SNDSLST,1);
+#endif
+		break;	
+	    }
+        }
+    }
+    return (retval);
+}
+#endif
+
+
+/*		aud_put(code)
+ *	Mainly a new name for com_wrt(). Tries up to MAX_AUD_TRIES
+ *	times to write <code> to sound port.
+ *	Returns:
+ *		0 if failed
+ *		1 if sent
+ *		2 if on queue (if MAX_AUD_TRIES == 0)
+ */
+int
+aud_put(code)
+int code;
+{
+#if MAX_AUD_TRIES
+    int tries = MAX_AUD_TRIES;
+    int result;
+
+    while ( --tries ) 
+    {
+	if ( (result = aud_f_put(code)) != 0 ) 
+	    return result;
+    }
+    return 0;
+#else
+    return( aud_q_put(code) );
+#endif
+}
+
+
+/*		aud_poll(usec)
+ *	Check on sound processor status, using usec as the amount of time 
+ *	since last check.  For queued sounds without CAGE style interrupts
+ *	this routine will send a sound too.
+ *	Return:
+ *		1 if a sound has been sent
+ *		0 if nothing to output 
+ *		-1 if sound system should not be running from last reset
+ *		-2 if sound subsystem was reset 
+ */
+#ifdef EER_DATALST
+static unsigned int irq_datalst,ml_datalst;
+#endif
+
+#ifdef OQ_DBG_X
+#ifndef OQ_DBG_Y
+#define OQ_DBG_Y (AN_VIS_ROW-3)
+#endif
+const int oq_dbg_x = OQ_DBG_X,oq_dbg_y = OQ_DBG_Y;
+#endif
+
+int
+aud_poll(time)
+unsigned long time;
+{
+    struct soq *oqp = &oqs;
+    int rval,idx,qlen;
+    int	old_ipl;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    if ( oqp->waittosend >= time ) oqp->waittosend -= time;
+    else oqp->waittosend = 0;
+    if ( oqp->waittosend > 0 ) {
+	/* we can't send data yet */
+	prc_set_ipl(old_ipl);
+	return -1;
+    }
+#if HOST_BOARD == FLAGSTAFF
+    if ( prev_mode ) aud_dyn_adjvol( prev_mode & 1 );
+#endif	/* HOST == FLAGSTAFF */
+#ifdef EER_DATALST
+    if ( irq_datalst != ml_datalst ) {
+	eer_incs(EER_DATALST,1);
+	++ml_datalst;
+    }
+#endif
+    idx = oqp->out;
+    qlen = oqp->in - idx;
+    if ( qlen < 0 ) qlen += SND_IDX_MSK+1;
+#ifdef OQ_DBG_X
+    if ( (oq_dbg_x >= 0) && (debug_mode & GUTS_OPT_DBG_SW) ) {
+	/* show length of sound output queue */
+	txt_decnum(oq_dbg_x,oq_dbg_y,qlen,3,RJ_BF,WHT_PALB);
+    }
+#endif
+    if ( qlen == 0 ) {
+	rval = (oqp->timer != 0);
+	oqp->timer = 0;
+	prc_set_ipl(old_ipl);
+	return rval;
+    }
+    else 				/* something waiting in queue */
+    {
+#if HAS_CAGE
+	CAGE_IRQ( CAGE_AUD_RDY_IRQ );
+#endif
+	oqp->timer += time;		/* increase timer */
+	if ( oqp->timer >= AUD_MAX_TIME ) /* expiration has occured */
+	{
+	    int save_mode;
+	    prc_set_ipl(old_ipl);
+#ifdef GUTS_OPT_AUD_PANIC
+	    if ( debug_mode & GUTS_OPT_AUD_PANIC ) aud_pm();
+	    else
+#endif
+	    aud_init(0);		/* reset audio */
+	    save_mode = prev_mode;
+	    aud_setvol(-1);
+	    aud_setvol(-2);
+	    if ( save_mode ) {
+		prev_mode = save_mode;
+		aud_put(aud_cmd(save_mode));
+	    }
+#ifdef EER_AUDRESET
+	    eer_incs(EER_AUDRESET,1);
+#endif
+	    return -2;			/* tell user */
+	}
+    }
+    prc_set_ipl(old_ipl);
+    return 0;
+}
+
+
+/*		aud_setvol(volume)				(audio.c)
+ *	Set the volume of sound.  A parameter of -1 will set the
+ *	volume to the value stored in EEPROM. 
+ *	Returns:
+ *		-1 for an error
+ *		<volume> that was set
+ */
+
+int
+aud_setvol(volume)
+int	volume;
+{
+#if HAS_EXT_SND
+    int status;
+    aud_t volbuf[2];
+    int atrvol_cmd,atr_volume;
+    int	atr_ratio;
+#endif
+
+    atrvol_cmd = aud_cmd(ST_C_ATR_VOL);
+
+#if AUD_AV_MSK
+    atr_ratio = (eer_gets(EER_GUTS_OPT) >> AUD_AV_SHF) & AUD_AV_MSK;
+#endif
+
+    prev_mode = 0;
+    if (volume < 0)
+    {
+	/* set default volume (from EEPROM?) */
+	int def_volume;
+	if ( atrvol_cmd ) prev_mode = ST_C_GAME_MODE;
+#ifdef EER_AUD_VOL
+	def_volume = eer_gets(EER_AUD_VOL);
+#else
+	def_volume = DEF_VOLUME;
+#endif
+	/* calc Attract volume */
+#if AUD_AV_MSK
+	atr_volume = (def_volume * atr_ratio)/AUD_AV_MSK;
+#else
+	atr_volume = (def_volume + 1)>>1;
+#endif	/* GUTS_OPTion attract volume ratio */
+	if ( volume < -1 ) {
+	    def_volume = atr_volume;
+	    if ( atrvol_cmd ) prev_mode = ST_C_ATR_MODE;
+	}
+	volume = def_volume;
+    } else {
+	/* spec'd game volume, calc attract volume */
+#if AUD_AV_MSK
+	atr_volume = (volume * atr_ratio)/AUD_AV_MSK;
+#else
+	atr_volume = (volume + 1)>>1;
+#endif	/* GUTS_OPTion attract volume ratio */
+    }
+    if (volume > MAX_VOLUME
+    || volume < MIN_VOLUME)
+	volume = DEF_VOLUME;
+
+#if HAS_EXT_SND
+#if HAS_CAGE
+    volbuf[1] = volume;
+    /* we need to specify _which_ volume we
+     * are setting. Default to game (or only)
+     */
+    if ( prev_mode != ST_C_ATR_MODE ) {
+	/* either we only have game mode or at least we
+	 * are changing it now.
+	 */
+	volbuf[0] = aud_cmd(ST_C_GAME_VOL);
+	status = aud_mput(volbuf,2);
+	if ( status <= 0 ) return -1;
+	if ( atrvol_cmd ) {
+	    /* need to tell cage the attract volume too */
+	    prc_delay0();
+	    volbuf[0] = atrvol_cmd;
+	    volbuf[1] = atr_volume;
+	    status = aud_mput(volbuf,2);
+	    if ( status <= 0 ) return -1;
+	}
+	if ( prev_mode ) {
+	    /* We must want to be in "game mode" with a
+	     * dual-mode CAGE.
+	     */
+	    prc_delay0();
+	    status = aud_put(aud_cmd(prev_mode));
+	}
+    }
+    else if ( atrvol_cmd ) {
+	/* need to use attract volume command */
+	volbuf[0] = atrvol_cmd;
+	volbuf[1] = atr_volume;
+	status = aud_mput(volbuf,2);
+	if ( status <= 0 ) return -1;
+	if ( (status = aud_cmd(ST_C_ATR_MODE)) != 0 ) {
+		prc_delay0();
+		status = aud_put(status);
+		if ( status <= 0 ) return -1;
+	}
+    }
+    else {
+	/* old-style CAGE with one volume, but we
+	 * want the attract volume.
+	 */
+	volbuf[0] = aud_cmd(ST_C_GAME_VOL);
+	volbuf[1] = atr_volume;
+	status = aud_mput(volbuf,2);
+	if ( status <= 0 ) return -1;
+    }
+#else
+    status = aud_q_put(ST_E_DVCEXC);
+    if (status == 0)
+	return -1;
+    status = aud_q_put(volume);
+#endif
+    if (status == 0)
+	return -1;
+    return (prev_volume = volume);	/* return volume level		*/
+#else
+
+#ifndef AUD_DVC			/* combined AUDLATCH and AUD_DVC	*/
+    aud_latch( ~DVC_MASK );	/* clear all DVC bits in AUDLATCH	*/
+    aud_latch( dactbl[volume] );/* set appropriate bits in AUDLATCH	*/
+#else				/* separate AUDLATCH and AUD_DVC	*/
+    AUD_DVC = dactbl[volume];
+#endif
+    return(prev_volume = volume);
+#endif
+}
+
+
+#if HAS_CAGE
+/*		aud_irq()
+ *	Interrupt from sound processor.  Called from assembly after registers
+ *	saved.
+ */
+typedef unsigned short snd_t;
+void aud_irq()
+{
+    struct soq *oqp = &oqs;
+    struct siq *iqp = &iqs;
+    int idx,code;
+    snd_t *ptr;
+    int old_ipl;
+
+    old_ipl = prc_set_ipl(INTS_OFF);		/* guard against game doofus */
+    if ( (ptr = exc_ptr) == 0 ) 		/* normal Queued input */
+    {
+#if B_HIFULL
+	if ( (CAGE_STS & (1<<B_IFULL)) != 0 ) 	/* we have data */
+#else
+	if ( (CAGE_STS & (1<<B_IFULL)) == 0 ) 	/* we have data */
+#endif
+	{
+	    oqp->waittosend = 0;		/* clear timer */
+	    idx = (iqp->in+1) & SND_IDX_MSK;
+	    if ( idx != iqp->out ) 		/* room in buffer */
+	    {
+		iqp->iq[iqp->in] = SND_I;
+		iqp->in = idx;
+	    } 
+	    else /* if the buffer is full, we can over-write or ignore */
+	    {
+		int waste_it;
+
+		waste_it = SND_I;		/* ignores */
+#ifdef EER_DATALST
+		++irq_datalst;			/* count sounds lost */
+#endif
+	    }
+	}
+    } 
+#if B_HIFULL
+    else if ( (CAGE_STS & (1<<B_IFULL)) != 0 )	/* we have data */
+#else
+    else if ( (CAGE_STS & (1<<B_IFULL)) == 0 )	/* we have data */
+#endif
+    {
+	oqp->waittosend = 0;			/* clear timer */
+	*exc_ptr++ = SND_I;
+	if (--exc_cnt <= 0 ) 
+	    exc_ptr = 0;
+    }
+    idx = oqp->out;
+    if ( idx == oqp->in ) 
+    {
+#if HAS_CAGE
+	/* buffer is empty, shut off IRQ for now */
+    	    CAGE_IRQ( CAGE_HOST_FULL_IRQ );
+#endif
+	oqp->timer = 0;
+	prc_set_ipl(old_ipl);
+	return;			/* nothing to say */
+    }
+    code = oqp->oq[idx];
+    code = aud_f_put(code);
+    if ( code != 0 ) 			/* data sent */
+    {
+	oqp->out = (idx + 1) & SND_IDX_MSK;
+	oqp->timer = 0;
+#if HAS_CAGE
+	/* redundant _slight_ optimization to turn off
+	 * host-empty IRQ as soon as last item sent.
+	 */ 
+	if (oqp->in == oqp->out)	/* buffer is empty */
+    	    CAGE_IRQ( CAGE_HOST_FULL_IRQ ); /* ignore aud_rdy for now */
+#endif
+    }
+    prc_set_ipl(old_ipl);
+}
+
+#if DEBUG
+unsigned short out_trc[16],out_tidx;
+#endif
+
+/*		aud_f_put(code)
+ *	Attempts to send <code> to the sound processor. 
+ *	Returns:
+ *		0 if sound process (from reset) or port is currently busy
+ *		1 if code sent
+ */
+int aud_f_put(value)
+snd_t value;
+{
+    struct soq *oqp = &oqs;
+    int retval = 0;
+    int old_ipl;
+
+/* if 6502 is not ready		*/
+/* 	return (0);		*/
+
+
+    if (oqp->waittosend != 0)		/* we cannot send data now */
+	return 0;
+
+    old_ipl = prc_set_ipl(INTS_OFF);	/* turn interrupts off */
+#if HOST_BOARD == FLAGSTAFF
+# if B_HIFULL
+    if ( (CAGE_STS & (1<<B_OFULL)) != 0 ) 	/* queue is empty */
+# else
+    if ( (CAGE_STS & (1<<B_OFULL)) == 0 ) 	/* queue is empty */
+# endif
+#else
+# if B_HIFULL
+    if ( (CAGE_STS & (1<<B_OFULL)) == 0 ) 	/* queue is empty */
+# else
+    if ( (CAGE_STS & (1<<B_OFULL)) != 0 ) 	/* queue is empty */
+# endif
+#endif
+    {
+#if DEBUG
+	out_tidx = (out_tidx + 1)&0xF;
+	out_trc[out_tidx] = value;
+#endif
+	SND_O = value;
+	retval = 1;
+    }
+    prc_set_ipl(old_ipl);		/* restore interrupts */
+    return retval;
+}
+
+
+/*		aud_excw(code,buf,cnt)
+ *	Handle an exception-mode transfer, in the "one byte out, 'cnt' bytes in"
+ *	way.
+ *	Returns:
+ *		0 if exception in progress or sound processor is in reset
+ *		1 if exception complete or under way
+ */
+int aud_excw(code, buff, count)
+int code;
+void *buff;
+int count;
+{
+    struct soq *oqp = &oqs;
+    int old_ipl;
+    int spinner = MAX_EXC_TRIES;
+
+    if (oqp->waittosend != 0)		/* we cannot send data now */
+	return 0;
+
+    old_ipl = prc_set_ipl(INTS_OFF);	/* turn interrupts off */
+    if ( exc_ptr ) 
+    {
+	prc_set_ipl(old_ipl);		/* restore interrupts */
+	return 0;
+    }
+    exc_cnt = count;
+    exc_ptr = buff;
+#if DEBUG
+    out_tidx = (out_tidx + 1)&0xF;
+    out_trc[out_tidx] = code;
+#endif
+    SND_O = code;
+    while ( --spinner >= 0 ) 
+    {
+#if B_HIFULL
+	if ( (CAGE_STS & (1<<B_IFULL)) != 0 ) 	/* we have data */
+#else
+	if ( (CAGE_STS & (1<<B_IFULL)) == 0 ) 	/* we have data */
+#endif
+	{
+	    aud_irq();			/* get data */
+	    if (exc_ptr == 0)		/* exception complete */
+		break;
+	}
+    }
+    prc_set_ipl(old_ipl);
+    return 1;
+}
+
+#else
+/*	The writes are in the *irq.mac file, because they interact
+ *	intimately with the irq routines.
+ */
+extern int aud_f_put(int code);
+extern int aud_excw(int code, void *buff, int count);
+#endif
+#ifdef DEBUG
+void aud_q_dump(row,npal,ipal,opal)
+int row, npal, ipal, opal;
+{
+    int idx;
+    int col;
+    int pal;
+    col = 2;
+    for ( idx = 0 ; idx <= SND_IDX_MSK ; ++idx ) {
+	pal = npal;
+	if ( idx == oqs.in ) pal = ipal;
+	if ( idx == oqs.out ) pal = opal;
+	txt_hexnum(col,row,oqs.oq[idx],4,RJ_ZF,pal);
+	if ( (col += 5) > (AN_VIS_COL-6) ) {
+	    col = 2;
+	    ++row;
+	}
+    }
+}
+#endif
+
+#ifdef GUTS_OPT_AUD_PANIC
+static const int aud_panic_hold = 600;	/* frames to hold output queue dump */
+#define CAGE_LOG_LEN (12)		/* words of error log returned */
+void aud_pm()
+{
+#if (0)
+    unsigned short err_type;
+    unsigned char *saved_log;
+    m_int idx,e_idx;
+    int status;
+#endif
+    unsigned long old_rtc;
+
+    /* We want to know _WHY_ it died */
+    aud_q_dump(4,WHT_PAL,RED_PAL,GRN_PAL);
+    old_rtc = eer_rtc;
+#if (1)
+    aud_init(0);
+#else
+    aud_init(1);
+    idx = aud_cmd(ST_C_ERR_LOG);
+    if ( idx ) {
+	int reclen;
+	/* read "log so far" from EEPROM */
+	saved_log = eer_user_rd(USER_REC_AUD_ERRS,&reclen);
+	if ( saved_log == 0 || (reclen & 3) ) {
+	    prc_panic("Can't read CAGE LOG from EEPROM");
+	}
+	for ( e_idx = 0 ; e_idx < reclen ; e_idx += 2 ) {
+	    /* scan EEPROM version for 0xCA6E marker */
+	    unsigned short eewd;
+	    eewd = saved_log[e_idx] | (saved_log[e_idx+1] << 8);
+	    if ( eewd == 0xCA6E ) break;
+	}
+	/* At this point:
+	 *	e_idx is the length (in bytes) of the saved error log.
+	 */
+	/* Ask CAGE for current log */
+	status = aud_put(idx);
+	if ( status <= 0 ) {
+	    eer_user_free(USER_REC_AUD_ERRS);
+	    prc_panic("Can't Get CAGE LOG");
+	}
+	err_type = 0;
+	for ( idx = 0 ; idx < CAGE_LOG_LEN+1 ; ++idx ) {
+	    while ( (status = aud_q_get()) < 0 )prc_delay0();
+	    if ( status == 0xCA6E ) {
+		/* this is the "end of log" marker. It should only come
+		 * on an even word.
+		 */
+		if ( idx & 1 ) {
+		    txt_str(3,-1,"Dubious ERROR LOG from CAGE",RED_PALB);
+		}
+		break;
+	    }
+	    if ( idx == CAGE_LOG_LEN ) {
+		/* We should have gotten 0xCA6E by now */
+		txt_str(3,-1,"Dubious ERROR LOG from CAGE",RED_PALB);
+		--idx;
+		break;
+	    }
+	    if ( !(idx & 1) ) {
+		/* first word of each pair is error type */
+		err_type = status;
+	    } else {
+		/* second word is associated value */
+		if ( (e_idx + 4) > reclen ) {
+		    /* need to shuffle down to make room for new
+		     * sample.
+		     */
+		    memmove(saved_log,saved_log+4,reclen-4);
+		    e_idx -= 4;
+		}
+		saved_log[e_idx++] = (err_type & 0xFF);
+		saved_log[e_idx++] = (err_type >> 8);
+		saved_log[e_idx++] = (status & 0xFF);
+		saved_log[e_idx++] = (status >> 8);
+	    }
+	}
+	if ( e_idx < (reclen-2) ) {
+	    /* room for a "cork" in EEPRM too */
+	    saved_log[e_idx++] = 0x6E;
+	    saved_log[e_idx] = 0xCA;
+	}
+	eer_user_wrt(USER_REC_AUD_ERRS);
+    }
+    if ( status = aud_cmd(ST_C_CLR_ERR_LOG) ) aud_put(status); 
+#endif
+    while ( (eer_rtc - old_rtc) < aud_panic_hold ) prc_delay0();
+}
+#endif
+
+int aud_getErrorCount()
+{
+    int status;
+    int errcnt;
+    int timer;
+    errcnt = 0;
+#ifdef GUTS_OPT_AUD_PANIC
+    if ( (debug_mode & GUTS_OPT_AUD_PANIC) == 0) return 0;
+#endif
+    while ( (errcnt = aud_q_get()) >= 0 ) {}
+    status = aud_put(aud_cmd(ST_C_ERR_CNT));
+    if ( status <= 0 ) return -2;
+    timer = MAX_RESET_TIME;
+    while ( timer >= 0 ) {
+	if ( (errcnt = aud_q_get()) >= 0 ) break;
+	prc_delay0();
+	--timer;
+    }
+    return errcnt;
+}
+
+/* The following is copied from Dave Shepperd's original code
+ * placed in phx_audio.c September 1996 and rewritten for the
+ * CAGE implementation on FLAGSTAFF for RUSH.  It conforms to
+ * the AUD_AV_MSK and AUD_AV_SHF method of saving the attract
+ * volume ratio in the GUTS OPTIONS word in BRAM.  Support is
+ * not included for the EER_AUD_ATRVOL word in BRAM.  Support
+ * is also not included for the phx_audio.c method of storing
+ * the attract volume in the upper byte of the game volume in
+ * BRAM.  Protected by #if HOST_BOARD == FLAGSTAFF for now.
+ */
+
+#if HOST_BOARD == FLAGSTAFF
+
+# if SW_VOL_UP && SW_VOL_DN
+# define VOLUME_BUTTONS	(SW_VOL_UP|SW_VOL_DN)
+# define VOLUME_UP	(SW_VOL_UP)
+# define VOLUME_DOWN	(SW_VOL_DN)
+# else
+# define VOLUME_BUTTONS	(0)
+# define VOLUME_UP	(0)
+# define VOLUME_DOWN	(0)
+# endif
+
+/* Display GREEN up to low volume */
+# ifndef LOW_VOLUME
+# define LOW_VOLUME    (DEF_VOLUME-(MAX_VOLUME/8)) 
+# endif
+
+/* Display RED after HIGH volume */
+# ifndef HIGH_VOLUME
+# define HIGH_VOLUME   (DEF_VOLUME+(MAX_VOLUME/8))
+# endif
+
+# define VBAR_WIDTH	(32)
+# define VBAR_COL	((AN_VIS_COL-VBAR_WIDTH)>>1)
+# define VBAR_CHAR	"*"
+# define DYN_VBAR_ROW	(AN_VIS_ROW-3-1)
+
+# define DYN_INIT_AUTOREP	0x01
+# define DYN_INIT_DISPLAY_UP	0x02
+
+# define ATT_DELAY	10
+# define GAM_DELAY	5
+
+STATIC void ShowVolume(int volume, int row, int bg) 
+{
+ m_int i,j,color;
+
+for (i=0;i<VBAR_WIDTH;i++)
+	{
+	j=((MAX_VOLUME-MIN_VOLUME)*(i+1))/VBAR_WIDTH;
+	if (volume<j) color = GRY_PAL | bg;
+	else if (j<=LOW_VOLUME) color = GRN_PAL | bg;
+	else if (j>HIGH_VOLUME) color = RED_PAL | bg;
+	else color = YEL_PAL | bg;
+	 
+	txt_str(VBAR_COL+i,row,VBAR_CHAR,color);
+	txt_str(VBAR_COL+i,row+1,VBAR_CHAR,color);
+	txt_str(VBAR_COL+i,row+2,VBAR_CHAR,color);
+	}
+}
+
+void aud_dyn_adjvol(int which_volume)
+{
+ static int off_time, init, delay;
+ U32 ctrls;
+ int g_opt, att_vol, game_vol;
+ char *strng[4] = { "MUTE", "1/3", "2/3", "FULL" };
+
+ if (!init)
+ {
+  ctl_autorepeat(VOLUME_BUTTONS, 15, 15); /* Autorepeat after 15 frames, @@ 15 frames/key */
+  init |= DYN_INIT_AUTOREP;	/* signal we've done this already */
+  delay = 0;
+ }
+
+ ctrls = ctl_read_sw( 0 )&VOLUME_BUTTONS;
+ if (!ctrls)
+ {
+  if (off_time > 60) return;		/* nothing to do */
+  if (off_time == 60 && (init&DYN_INIT_DISPLAY_UP) )
+  {
+   txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW-1, VBAR_WIDTH+1);
+   txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+0, VBAR_WIDTH+1);
+   txt_clr_wid(VBAR_COL-4, DYN_VBAR_ROW+1, VBAR_WIDTH+5);
+   txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+2, VBAR_WIDTH+1);
+   init &= ~(DYN_INIT_DISPLAY_UP);	/* signal the display is off */
+  }
+  ++off_time;
+  return;
+ }
+
+ off_time = 0;
+ game_vol = eer_gets(EER_AUD_VOL);
+# if AUD_AV_MSK
+ att_vol = (eer_gets(EER_GUTS_OPT) >> AUD_AV_SHF) & AUD_AV_MSK;
+# endif	/* GUTS_OPTion attract volume ratio */
+
+ if ( (init&DYN_INIT_DISPLAY_UP) )	/* Adjust volume only after display is up */
+ {
+  if ((ctrls & VOLUME_DOWN))		/* decreasing volume */
+  {
+   if ( which_volume ) 
+   {
+    if ( ++delay > ATT_DELAY )
+    {
+     delay = 0;
+# if AUD_AV_MSK
+    if ( --att_vol < 0 ) att_vol = 0;
+# endif
+    }
+   }
+   else
+   {
+    if ( ++delay > GAM_DELAY )
+    {
+     delay = 0;
+     game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+     if (game_vol < MIN_VOLUME) game_vol = MIN_VOLUME;
+    }
+   }
+  }
+  if ((ctrls & VOLUME_UP)) 
+  {
+   if ( which_volume ) 
+   {
+    if ( ++delay > ATT_DELAY )
+    {
+     delay = 0;
+# if AUD_AV_MSK
+     if ( ++att_vol > AUD_AV_MSK ) att_vol = AUD_AV_MSK;
+# endif
+    }
+   }
+   else
+   {
+    if ( ++delay > GAM_DELAY )
+    {
+     delay = 0;
+     game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+     if (game_vol > MAX_VOLUME) game_vol = MAX_VOLUME;
+    }
+   }
+  }
+
+  if (game_vol<MIN_VOLUME) game_vol=MIN_VOLUME; 
+  if (game_vol>MAX_VOLUME) game_vol=MAX_VOLUME; 
+
+  /* we can save to EEPROM regardless of changes, since non-changes are
+   * innocuous.
+   */
+  eer_puts(EER_AUD_VOL, game_vol);	/* save volume level to EEROM */
+# if AUD_AV_MSK
+  g_opt = att_vol << AUD_AV_SHF;
+  g_opt |= (eer_gets(EER_GUTS_OPT) & ~(AUD_AV_MSK<<AUD_AV_SHF));
+  eer_puts(EER_GUTS_OPT,g_opt);
+# endif
+ }
+ if (which_volume)
+ {
+  txt_clr_wid(VBAR_COL,DYN_VBAR_ROW-1,20);
+  txt_str(VBAR_COL, DYN_VBAR_ROW-1,"ATTRACT VOLUME ", WHT_PALB);
+  txt_cstr(strng[att_vol], WHT_PALB);
+# if AUD_AV_MSK
+  att_vol = (game_vol * att_vol)/AUD_AV_MSK;
+# endif
+  ShowVolume(att_vol, DYN_VBAR_ROW, BGBIT);
+  aud_setvol(-2);
+ }
+ else
+ {
+  txt_clr_wid(VBAR_COL,DYN_VBAR_ROW-1,20);
+  txt_str(VBAR_COL, DYN_VBAR_ROW-1, "GAME VOLUME", WHT_PALB);
+  ShowVolume(game_vol, DYN_VBAR_ROW, BGBIT);
+  aud_setvol(-1);
+ }
+ init |= DYN_INIT_DISPLAY_UP;		/* next time we can adjust volume */
+}
+#endif	/* HOST == FLAGSTAFF */
+@
+
+
+1.6
+log
+@Added prc_delay(15) after CAGE_RESET in aud_reset for now.
+@
+text
+@d216 1
+a216 1
+STATIC void aud_dyn_adjvol( int );
+d1208 3
+d1229 1
+a1229 1
+STATIC void aud_dyn_adjvol(int which_volume)
+d1231 1
+a1231 1
+ static int off_time, init;
+d1240 1
+d1243 1
+a1243 1
+ ctrls = ctl_read_sw(VOLUME_BUTTONS)&VOLUME_BUTTONS;
+d1271 3
+d1277 1
+d1281 6
+a1286 2
+    game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+    if (game_vol < MIN_VOLUME) game_vol = MIN_VOLUME;
+d1293 3
+d1297 1
+a1297 1
+    if ( ++att_vol > AUD_AV_MSK ) att_vol = AUD_AV_MSK;
+d1299 1
+d1303 6
+a1308 2
+    game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+    if (game_vol > MAX_VOLUME) game_vol = MAX_VOLUME;
+@
+
+
+1.5
+log
+@Debugged and reworked aud_dyn_adjvol.  See comments line 1165.
+@
+text
+@d262 1
+@
+
+
+1.4
+log
+@Added (static) ShowVolume and aud_dyn_adjvol functions to set volume
+levels from attract or game using WMS volume buttons in the coin box.
+@
+text
+@a21 1
+#include <nsprintf.h>
+d215 3
+d657 3
+d1166 15
+a1180 2
+#if SW_VOL_UP && SW_VOL_DOWN
+# define VOLUME_BUTTONS	(SW_VOL_UP|SW_VOL_DOWN)
+d1182 3
+a1184 3
+# define VOLUME_DOWN	(SW_VOL_DOWN)
+#else
+# define VOLUME_BUTTONS (0)
+d1187 1
+a1187 1
+#endif
+d1189 4
+a1192 8
+       /* Display GREEN up to low volume */
+#ifndef LOW_VOLUME
+#define       LOW_VOLUME    (DEF_VOLUME-(MAX_VOLUME/8)) 
+#endif
+       /* Display RED after HIGH volume */
+#ifndef HIGH_VOLUME
+#define       HIGH_VOLUME   (DEF_VOLUME+(MAX_VOLUME/8))
+#endif
+d1194 4
+a1197 4
+#define VBAR_COL 4
+#define VBAR_CHAR "*"
+#define VBAR_WIDTH (56)
+#define DYN_VBAR_ROW	     (AN_VIS_ROW-3-1)
+d1199 4
+a1202 1
+#define ATTRACT_GRANULARITY 5
+d1204 2
+a1205 2
+#define DYN_INIT_AUTOREP	0x01
+#define DYN_INIT_DISPLAY_UP	0x02
+d1207 1
+a1207 1
+static void ShowVolume(int volume, int row, int bg) 
+a1209 1
+/*    char msg[5];	 */
+a1221 3
+
+/*	nsprintf(msg, sizeof(msg)-1, "%02d%%",((volume*100)+MAX_VOLUME-1)/MAX_VOLUME);
+	txt_str(VBAR_COL-4, row+1, msg, GRY_PAL | bg);*/
+d1225 98
+a1322 102
+
+int aud_dyn_adjvol(int which_volume) {
+    static int off_time, init;
+    U32 ctrls;
+    int att_vol, game_vol, volume,percent;
+    char strng[AN_VIS_COL];
+
+    if (!init) {
+	ctl_autorepeat(VOLUME_BUTTONS, 15, 15); /* Autorepeat after 15 frames, @@ 15 frames/key */
+	init |= DYN_INIT_AUTOREP;	/* signal we've done this already */
+    }
+
+    ctrls = ctl_read_sw(VOLUME_BUTTONS)&VOLUME_BUTTONS;
+    if (!ctrls) {
+	if (off_time > 60) return 0;		/* nothing to do */
+	if (off_time == 60 && (init&DYN_INIT_DISPLAY_UP) ) {
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW-1, VBAR_WIDTH+1);
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+0, VBAR_WIDTH+1);
+	    txt_clr_wid(VBAR_COL-4, DYN_VBAR_ROW+1, VBAR_WIDTH+5);
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+2, VBAR_WIDTH+1);
+	    init &= ~(DYN_INIT_DISPLAY_UP);	/* signal the display is off */
+	}
+	++off_time;
+	return 0;
+    }
+
+    off_time = 0;
+    volume = eer_gets(EER_AUD_VOL);
+    att_vol = (volume>>8)&0xFF;
+    game_vol = volume&0xFF;    
+    if (game_vol) percent=(((att_vol*100+(game_vol-1))/game_vol)/ATTRACT_GRANULARITY)*ATTRACT_GRANULARITY;
+    else percent=75;
+
+    if ( (init&DYN_INIT_DISPLAY_UP) )	/* Adjust volume only after display is up */
+		{
+    	if ((ctrls & VOLUME_DOWN)) 
+ 		   	{
+	    	/* decreasing volume */
+	    	if ( which_volume ) 
+				{
+				percent -= ATTRACT_GRANULARITY;
+				if (percent<00) percent=00;
+				att_vol=(game_vol*percent)/100; 
+				}
+	    	else
+	    		{
+ 				game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+ 				if (game_vol < MIN_VOLUME) game_vol = MIN_VOLUME;
+ 				att_vol=(game_vol*percent)/100;
+ 				}
+	    	}
+	    if ((ctrls & VOLUME_UP)) 
+    		{
+	    	if ( which_volume ) 
+				{
+ 				if (percent<100)
+					{				
+					percent += ATTRACT_GRANULARITY;
+					if (percent>100) percent=100;
+					att_vol=(game_vol*percent)/100;
+					}
+		 /*	Bump game volume if attract at 100%
+ 				else if (att_vol<MAX_VOLUME)	   
+					{
+					game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+					if (game_vol > MAX_VOLUME) game_vol = MAX_VOLUME;
+					att_vol=(game_vol*percent)/100;
+					}  	*/
+				}
+		    else
+				{
+				game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+				if (game_vol > MAX_VOLUME) game_vol = MAX_VOLUME;
+				att_vol=(game_vol*percent)/100;
+				}
+			}
+
+	    if (game_vol<MIN_VOLUME) game_vol=MIN_VOLUME; 
+    	if (game_vol>MAX_VOLUME) game_vol=MAX_VOLUME; 
+
+	    if (att_vol<MIN_VOLUME) att_vol=MIN_VOLUME; 
+    	if (att_vol>game_vol)   att_vol=game_vol; 
+
+	    volume = (att_vol << 8) | game_vol;
+	    eer_puts(EER_AUD_VOL, volume);
+		}
+	if (which_volume) {
+	    nsprintf(strng, sizeof(strng)-1,"ATTRACT VOLUME (%02d%% of Game) ",percent);
+		txt_str(VBAR_COL, DYN_VBAR_ROW-1,strng, WHT_PALB);
+	 	ShowVolume(att_vol, DYN_VBAR_ROW, BGBIT);
+		}
+	else {
+    	txt_str(VBAR_COL, DYN_VBAR_ROW-1, "GAME VOLUME", WHT_PALB);
+	  	ShowVolume(game_vol, DYN_VBAR_ROW, BGBIT);
+		}
+    init |= DYN_INIT_DISPLAY_UP;		/* next time we can adjust volume */
+    if (which_volume) {
+	aud_setvol(-2);
+    } else {
+	aud_setvol(-1);
+    }
+    return 0;
+d1324 1
+@
+
+
+1.3
+log
+@Added support for the Flagstaff version of CAGE.
+@
+text
+@d22 1
+d1159 155
+@
+
+
+1.2
+log
+@added aud_qlen() to return a fractional value for
+amount of output queue currently full. Not Tested
+@
+text
+@d45 12
+a56 1
+#define CAGE_CTL (SND_BUF)
+d58 3
+a60 3
+#ifndef S_STOP
+#define S_STOP (0x8000)
+#endif
+d114 10
+a123 3
+#define CAGE_NO_IRQ (1)		/* no reset, but not IRQ enabled */
+#define CAGE_HOST_FULL_IRQ (2)	/* only IRQ for data _from_ CAGE */
+#define CAGE_AUD_RDY_IRQ (3)	/* IRQ on data from CAGE _or_ CAGE input empty*/
+d271 4
+a274 1
+    CAGE_CTL = CAGE_HOST_FULL_IRQ;	/* release reset and IRQ lines */
+d465 1
+a465 1
+	    CAGE_CTL = CAGE_AUD_RDY_IRQ;
+d474 1
+a474 1
+	CAGE_CTL = CAGE_AUD_RDY_IRQ;		/* allow host-empty IRQ */
+d509 1
+a509 1
+	    CAGE_CTL = CAGE_AUD_RDY_IRQ;
+d520 1
+a520 1
+	CAGE_CTL = CAGE_AUD_RDY_IRQ;
+d678 1
+a678 1
+	CAGE_CTL = CAGE_AUD_RDY_IRQ;
+d857 1
+a857 1
+	if ( (SND_BUF & (1<<B_IFULL)) != 0 ) 	/* we have data */
+d859 1
+a859 1
+	if ( (SND_BUF & (1<<B_IFULL)) == 0 ) 	/* we have data */
+d881 1
+a881 1
+    else if ( (SND_BUF & (1<<B_IFULL)) != 0 )	/* we have data */
+d883 1
+a883 1
+    else if ( (SND_BUF & (1<<B_IFULL)) == 0 )	/* we have data */
+d896 1
+a896 1
+    	    CAGE_CTL = CAGE_HOST_FULL_IRQ;
+d913 1
+a913 1
+    	    CAGE_CTL = CAGE_HOST_FULL_IRQ; /* ignore aud_rdy for now */
+d944 12
+a955 4
+#if B_HIFULL
+    if ( (SND_BUF & (1<<B_OFULL)) == 0 ) 	/* queue is empty */
+#else
+    if ( (SND_BUF & (1<<B_OFULL)) != 0 ) 	/* queue is empty */
+d1005 1
+a1005 1
+	if ( (SND_BUF & (1<<B_IFULL)) != 0 ) 	/* we have data */
+d1007 1
+a1007 1
+	if ( (SND_BUF & (1<<B_IFULL)) == 0 ) 	/* we have data */
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d77 3
+d504 25
+@

@@ -1,0 +1,5312 @@
+head	1.37;
+access;
+symbols
+	XINU_ALPHA_0_0:1.31
+	MACE_1_0e:1.23
+	MACE_1_0d:1.23
+	AREA_52_00:1.26
+	MACE_1_0a:1.23;
+locks
+	shepperd:1.37; strict;
+comment	@ * @;
+
+
+1.37
+date	97.11.28.20.09.37;	author shepperd;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	97.11.26.01.36.44;	author shepperd;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	97.11.22.02.08.35;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	97.11.22.01.43.42;	author shepperd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	97.10.05.01.38.55;	author shepperd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	97.10.04.20.38.29;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	97.08.26.22.15.33;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	97.08.13.22.59.43;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	97.08.13.20.04.29;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	97.08.07.22.23.48;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	97.08.07.21.07.18;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	97.05.19.18.39.49;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	97.05.16.01.18.56;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	97.05.13.18.17.45;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	97.04.09.18.55.55;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	97.04.03.19.41.58;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	97.04.03.05.26.10;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	97.02.27.04.04.45;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	97.02.05.22.47.26;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.02.05.19.59.29;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	97.01.25.03.49.44;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	97.01.03.18.30.57;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.12.13.20.17.42;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.12.13.19.49.16;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.12.13.04.25.49;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.12.13.03.48.36;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.12.06.02.25.51;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.12.05.00.41.46;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.11.21.23.43.53;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.11.18.23.45.26;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.11.16.01.11.11;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.11.12.17.50.24;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.11.12.17.49.02;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.11.09.23.53.01;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.11.08.03.05.27;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.11.03.00.00.25;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.10.29.18.48.08;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Hard disk downloader.
+@
+
+
+1.37
+log
+@Removed bit field from fsys.h. Generation and FID are now
+combined into a single longword.
+@
+text
+@#include <config.h>
+#include <os_proto.h>
+#include <intvecs.h>
+#include <string.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#if HDDNL_USE_XINU
+# define pktQueRecv xi_pktQueRecv
+# define pktQueSend xi_pktQueSend
+# define pktInit    xi_pktInit
+# define pktPoll    xi_pktPoll
+#endif
+#include <iio_proto.h>
+#include <pktdebug.h>
+#include <nsprintf.h>
+#include <st_proto.h>
+#include <ctype.h>
+#include <phx_proto.h>
+#define QIO_LOCAL_DEFINES 1
+#include <qio.h>
+#include <fsys.h>
+#include <hddnl.h>
+#if HDDNL_ZLIB
+#include <zlib.h>
+#endif
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+#if HDDNL_GAME_MODE
+#undef INC_DUMP_VOLUME
+#undef INC_DUMP_VOL
+#undef TOSS_PACKET
+#endif
+
+extern void cache_test(void);
+extern void flush_cache(void);
+extern U32 prc_get_count(void);
+extern int ide_init(void);
+extern void fsys_init(void);
+#define HEAP_REMAINING() _heap_remaining_r(qio_reent)
+
+static const char date[]=__DATE__ " " __TIME__;
+
+#if HDDNL_SQUAWKING
+# define SQUAWK(x) do { ; } while (0)
+# ifndef SQUAWK
+#  define SQUAWK(x) iio_printf x
+# endif
+# define SQ(x) iio_printf x
+# if HOST_BOARD
+#  define FPRINTF(x) iio_printf x
+#  define OUTWHERE iop
+#  define DMP_ARG IcelessIO *iop
+# else
+#  define FPRINTF(x) fprintf x
+#  define OUTWHERE stdo
+#  define DMP_ARG FILE *stdo
+# endif
+#else
+# undef INC_DUMP_VOL			/* can't have these if not squawking */
+# undef INC_DUMP_VOLUME
+# define SQUAWK(x) do { ; } while (0)
+# define SQ(x) do { ; } while (0)
+# define FPRINTF(x) do { ; } while (0)
+#endif
+
+#if FSYS_REPEAT_SKIP
+# define REPEAT_SKIP_CTL ", repeat = %ld, skip = %ld"
+# define REPEAT_SKIP_ARGS(x) ,x->repeat, x->skip
+#else
+# define REPEAT_SKIP_CTL
+# define REPEAT_SKIP_ARGS(x)
+#endif
+
+#if INC_DUMP_VOL
+static int dump_vol(IcelessIO *iop, const char *volname);
+#endif
+#if INC_DUMP_VOLUME
+static int dump_volume(IcelessIO *);
+#endif
+
+void hddnlInit(void);
+static volatile int hddnl_busy;		/* != 0 busy processing packets */
+
+#ifndef HDDNL_SYNC_PERIOD
+# define HDDNL_SYNC_PERIOD	(15000000) /* microseconds between runs of sync task (15 seconds) */
+#endif
+#if !HDDNL_SYNC_PERIOD
+# error HDDNL_SYNC_PERIOd needs to be set to something other than 0
+#endif
+
+#ifndef MAX_NUM_PKTS
+# define MAX_NUM_PKTS	32		/* number of receive packets */
+#endif
+
+static U8 bufs[MAX_PKT_SIZE*MAX_NUM_PKTS];
+static PktIOStruct pkts[MAX_NUM_PKTS];
+static U32 timestamps[MAX_NUM_PKTS];		/* packet receipt timestamps */
+static volatile int pkts_rcvd, pkts_sent;
+#if !HDDNL_GAME_MODE
+static U32 since_boot;
+#else
+# if !HDDNL_USE_XINU
+static volatile int hddnl_unsafe;	/* 1 = unsafe to process packets */
+# endif
+int hddnl_guts_mode;
+#endif
+static int nxt_seq;
+#if HDDNL_SQUAWKING
+static IcelessIO *iop;
+#endif
+static QioMutex pkt_mutex;
+static struct act_q mutexes;	/* beginning of list of mutex elements */
+static struct act_q mutexes_arr[MAX_NUM_PKTS];
+static volatile int total_bytes;
+static int no_drive;
+static int been_mounted;
+
+static volatile struct {
+    int fn_changed;		/* set if the file is changed */
+    char file[AN_VIS_COL_MAX+1]; /* name of file being read/written */
+    char *action;		/* what we're up to */
+    int alloc;			/* total allocation of file */
+    int curr;			/* current sector being read/written */
+    U32 iostatus;		/* status of last operation */
+    int last_cmd;		/* last command issued */
+} current_work;
+
+#if !HDDNL_GAME_MODE
+static const struct pconfigb lcl_pbase =  {
+	hddnlInit,					/* RESET vector */
+	0,						/* Def option menu  */
+	0,						/* Def coin menu    */
+	date,						/* MAIN linktime    */
+	0,						/* trap type 0:STOP +:68K -:68010  */
+	NO_ROM_TEST+NO_RAM_TEST+NO_LOG_RESET
+#ifdef GAME_SPECIFIC
+	,(int(*)())no_op
+#endif
+};
+
+const U32 PBASE[2] = { 0xDEADBEEF, (U32)&lcl_pbase };
+#endif
+
+#if !HDDNL_GAME_MODE
+#define LCL_FLG_COUNT	1
+#define LCL_FLG_INCREM	2
+#define LCL_FLG_DISP	4
+
+static int lcl_vbs;
+
+static volatile int lcl_vb_flag, lcl_frames, lcl_hours, lcl_minutes, lcl_seconds, lcl_col, lcl_row;
+
+static void lcl_act_routine(void) {
+    if ((lcl_vb_flag&LCL_FLG_COUNT) != 0) {
+	++lcl_frames;
+	if (lcl_frames > 60) {
+	    lcl_frames = 0;
+	    ++lcl_seconds;
+	    if (lcl_seconds > 59) {
+		lcl_seconds = 0;
+		++lcl_minutes;
+		if (lcl_minutes > 59) {
+		    lcl_minutes = 0;
+		    ++lcl_hours;
+		}
+	    }
+	}
+    }
+    if ((lcl_vb_flag&LCL_FLG_DISP) != 0) {
+	U32 cookie;
+	cookie = txt_setpos(0);
+	txt_decnum(lcl_col, lcl_row, lcl_hours, 2, RJ_ZF, MNORMAL_PAL);
+	txt_cstr(":", MNORMAL_PAL);
+	txt_cdecnum(lcl_minutes, 2, RJ_ZF, MNORMAL_PAL);
+	txt_cstr(":", MNORMAL_PAL);
+	txt_cdecnum(lcl_seconds, 2, RJ_ZF, MNORMAL_PAL);
+	txt_setpos(cookie);
+    }
+    return;
+}
+
+
+static volatile struct act_q lcl_act;
+
+static void lcl_vb(void) {
+    ++lcl_vbs;
+    if (!lcl_act.que) {
+	lcl_act.action = lcl_act_routine;
+	lcl_act.param = 0;
+	prc_q_ast(QIO_ASTLVL, (struct act_q *)&lcl_act );
+    }
+    return;
+}
+#endif
+
+static void dump_pkt(char *id, unsigned char *buf, int count, int flag) {
+#if 0
+   int kk, cnt;  
+   char *tb;
+   static char tmp_buf[MAX_PKT_SIZE*4+2];
+   static const char hex2asc[] = "0123456789ABCDEF";
+
+   if (!(flag&2)) SQUAWK((iop, "%s: %d bytes ", id, count));
+   kk = 4*count+2;
+   if (kk > sizeof(tmp_buf)-2) kk = sizeof(tmp_buf)-2;
+   tb = tmp_buf;
+   for (kk=cnt = 0; cnt < count; ++cnt) {
+      if (flag && isprint(buf[cnt])) {
+         if (kk == 0) {
+            if (cnt != 0) *tb++ = ' ';
+            *tb++ = '"';
+         }
+         ++kk;
+         *tb++ = buf[cnt];
+      } else {
+         if (kk) *tb++ = '"';
+         if (cnt) *tb++ = ' ';
+         *tb++ = hex2asc[(buf[cnt]>>4)&15];
+         *tb++ = hex2asc[buf[cnt]&15];
+         kk = 0;
+      }
+   }
+   if (kk) *tb++ = '"';
+   *tb++ = '\n';
+   *tb = 0;
+   iio_write(iop, tmp_buf, tb+1 - tmp_buf);
+#endif
+}
+
+#if 0
+static int get_top() {
+    QioMutex *q;
+    struct act_q *aq;
+
+    q = &pkt_mutex;
+    if (!(aq=q->current)) return -1;
+    return (PktIOStruct *)aq->param - pkts;
+}
+#endif
+#if 0
+static int get_next() {
+    QioMutex *q;
+    struct act_q *aq;
+
+    q = &pkt_mutex;
+    if (!(aq=q->waiting)) return -1;
+    return (PktIOStruct *)aq->param - pkts;
+}
+#endif
+
+/************************************************************
+ * hddnl_getmutex - get mutex and switch to AST level.
+ * 
+ * At entry:
+ *	mutex - pointer to mutex struct
+ *	func - ptr to AST function
+ *	arg - argument to pkt
+ *
+ * At exit:
+ *	returns 0 if success or one of QIO_MUTEX_xxx if not.
+ *
+ * The function is queued at the specified AST level. If the mutex is
+ * busy, the function is put on a wait queue and will be queued
+ * when the mutex is free'd.
+ */
+static int hddnl_getmutex(QioMutex *mutex, void (*func)(PktIOStruct *), PktIOStruct *pkt) {
+    int oldipl, sts;
+    struct act_q *q;
+        
+    if (!mutex || !func) return QIO_MUTEX_INVARG;
+    oldipl = prc_set_ipl(INTS_OFF);	/* stop all activity */
+    if (!mutex->current) {		/* if the mutex is available */
+	q = mutexes.next;		/* get next available mutex */
+	if (!q) {			/* this is trouble */
+	    prc_set_ipl(oldipl);	/* interrupts ok now */
+	    return QIO_MUTEX_NOMUTEX;	/* pool is exhausted */
+	}
+	mutexes.next = q->next;		/* pluck item from freelist */
+	mutex->current = q;		/* claim the mutex */
+	prc_set_ipl(oldipl);		/* interrupts ok now */
+	q->next = q->que = 0;
+	q->action = (void (*)(void *))func; /* note who we are to call */
+	q->param = (void *)pkt;		/* and ptr to the packet */
+	if (prc_get_astlvl() >= 0) {	/* if we are already at AST level, just do it ... */
+	    func(pkt);			/* call his function immediately */
+	    return 0;			/* this cannot fail */
+	}
+	sts = prc_q_ast(QIO_ASTLVL, q);	/* queue his function at AST level */
+	if (sts) {
+	    prc_set_ipl(INTS_OFF);	/* put the mutex back on the free list */
+	    q->que = &mutexes;
+	    q->next = mutexes.next;
+	    mutexes.next = q;
+	    mutex->current = 0;		/* and not busy */
+	    prc_set_ipl(oldipl);	/* interrupts ok now */
+	    return QIO_MUTEX_FATAL;	/* couldn't queue AST for some reason */
+	}
+	return 0;			/* success */
+    }
+    if (mutex->current->param == (void *)pkt) {
+	prc_set_ipl(oldipl);
+	return QIO_MUTEX_NESTED;	/* cannot claim mutex with identical parameter */
+    }
+    q = mutexes.next;			/* pluck a mutex from the freelist */
+    if (!q) {				/* this is trouble */
+	prc_set_ipl(oldipl);		/* interrupts ok now */
+	return QIO_MUTEX_NOMUTEX;	/* pool is exhausted */
+    }
+    mutexes.next = q->next;
+    q->que = q->next = 0;		/* ready this for execution */
+    q->action = func;			/* remember caller's function */
+    q->param = (void *)pkt;		/* and ptr to QioIOQ */
+    if (mutex->tail) {			/* if there is a tail pointer */
+	mutex->tail->next = q;		/* put the new guy at the end of waiting list */
+    } else {
+	mutex->waiting = q;		/* else first is also the last */
+    }
+    mutex->tail = q;			/* new guy becomes the new tail */
+    prc_set_ipl(oldipl);		/* interrupts ok now */
+    return 0;				/* success */    
+}
+
+/************************************************************
+ * hddnl_freemutex - free a previously claimed volume mutex.
+ * 
+ * At entry:
+ *	mutex - pointer to mutex struct
+ *	valid - pointer to QioIOQ that was passed to the getmutex
+ *		function. (this parameter is used just to validate that
+ *		the 'free' is being done by the same I/O that
+ *		claimed the mutex).
+ *
+ * At exit:
+ *	returns 0 if success or one of QIO_MUTEX_xxx if error.
+ */
+static int hddnl_freemutex(QioMutex *mutex, PktIOStruct *pkt) {
+    int oldipl, sts;
+    struct act_q *q;
+
+    if (!mutex) return QIO_MUTEX_INVARG;		/* no mutex pointer */
+    if (!(q=mutex->current)) return QIO_MUTEX_NONE;	/* no mutex claimed */
+    if (q->param != (void *)pkt) return QIO_MUTEX_NOTOWN; /* mutex claimed by someone else */
+    q->que = &mutexes;
+    oldipl = prc_set_ipl(INTS_OFF);	/* can't have interrupts for the following */
+    q->next = mutexes.next;		/* put old current back on freelist */
+    mutexes.next = q;
+    q = mutex->waiting;			/* pluck the next guy off the waiting list */
+    mutex->current = q;			/* make it current */
+    if (!q) {				/* if nobody is waiting */
+	mutex->tail = 0;		/* call me paranoid */
+	prc_set_ipl(oldipl);		/* interrupts ok now */
+	return 0;			/* success */
+    }
+    if (!(mutex->waiting = q->next)) {	/* next guy in list is first one waiting */
+	mutex->tail = 0;		/* if we took the last one, then we also took the tail */
+    }
+    prc_set_ipl(oldipl);		/* interrupts ok now */
+    q->que = q->next = 0;		/* ready the queue for execution */
+    sts = prc_q_ast(QIO_ASTLVL, q);	/* jump to ast level */
+    if (sts) return QIO_MUTEX_FATAL;	/* I do not believe it is possible for prc_q_ast to fail */
+    return 0;
+}
+
+static int pkt_corrupt;
+
+static void mole_requeue_pkt(PktIOStruct *pkt) {
+    int pktn;
+    pktn = pkt - pkts;
+    if (pktn < 0 || pktn > n_elts(pkts)) {
+	SQ((iop, "Tried to requeue a bad packet pointer: %08lX (#%d)\n",
+		pkt, pktn));
+	return;
+    }
+    if (pkt->next) {
+	SQ((iop, "Tried to requeue packet %08lX (%d) with next field set to %08lX\n", 
+	    pkt, pktn, pkt->next));
+	pkt->next = 0;
+    }
+    SQ((iop, "Free'ing mutex on packet %d, cmd = %d, waiting = %d\n",
+    	pkt - pkts, (int)pkt->user, get_next()));
+    hddnl_freemutex(&pkt_mutex, pkt);
+    if (pkt < pkts || pkt >= pkts+MAX_NUM_PKTS) {
+	++pkt_corrupt;
+    } else {
+	pktQueRecv(pkt);
+    }
+    return;
+}
+
+static void mole_acknak(PktIOStruct *pkt) {
+    U8 *p, *src;
+    int to, cs;
+    p = pkt->buf;
+    src = p + PKTcs + 3;
+    if (*src) {
+	pkt->len = 5 + strlen((char *)src);
+	--src;
+	for (cs=0, to=4; to < pkt->len; ++to) cs += *src++;
+	p[PKTcs+0] = cs>>8;
+	p[PKTcs+1] = cs;
+    } else {
+	if (p[PKTcmd] == ICEack) {
+	    pkt->len = 2;
+	} else {
+	    pkt->len = 3;
+	}
+    }
+    to = pkt->from;
+    pkt->from = pkt->to;
+    pkt->to = to;
+    ++pkts_sent;
+#if 0
+    if (p[PKTcmd] == ICEack) {
+	src = (U8*)"ICEack";
+    } else if (p[PKTcmd] == ICEnak) {
+	src = (U8*)"ICEnack";
+    } else {
+	src = (U8*)"Unk";
+    }
+    SQ((iop, "Sending an %s packet using pkt %d; seq=%d, cmd=%d, count=%d\n",
+    		src, pkt - pkts, p[PKTpktn], p[PKTcmd], pkt->len));
+    if (p[PKTcmd] == ICEnak) dump_pkt("acknak()", p, pkt->len, 1);
+#endif
+    pktQueSend(pkt, 0);
+    mole_requeue_pkt(pkt);  
+    return;
+}
+
+static void mole_reply(PktIOStruct *pkt, int amt) {
+    U8 *p, *src;
+    int to, cs;
+
+    p = pkt->buf;
+    pkt->len = amt + 4;
+    src = p + PKTcs + 2;
+    for (cs=to=0; to < amt; ++to) cs += *src++;
+    p[PKTcs+0] = cs>>8;
+    p[PKTcs+1] = cs;
+    to = pkt->from;
+    pkt->from = pkt->to;
+    pkt->to = to;
+    ++pkts_sent;
+    SQUAWK((iop, "Sending a ICEreply packet using pkt %d; seq=%d, cmd=%d, count=%d\n",
+    		pkt - pkts, p[PKTpktn], p[PKTcmd], pkt->len));
+    pktQueSend(pkt, 0);
+    mole_requeue_pkt(pkt);  
+    return;
+}
+
+static void mole_nop(PktIOStruct *pkt) {
+    U8 *p;
+    if (!hddnl_busy) {
+#if !FSYS_READ_ONLY
+	hddnl_busy = fsys_sync_delay(HDDNL_SYNC_PERIOD);	/* set sync timer to run every 15 seconds */
+#else
+	hddnl_busy = 1;
+#endif
+    }
+    p = pkt->buf;
+    p[PKTcmd] = ICEack;		/* say command ok */
+    p[PKTcs+2] = 0;
+    p[PKTcs+3] = 0;
+    mole_acknak(pkt);
+    return;
+}
+
+static void mole_goodbye(PktIOStruct *pkt) {
+    mole_nop(pkt);
+#if !FSYS_READ_ONLY
+    fsys_sync_delay(hddnl_busy);		/* restore sync timer period */
+#endif
+    hddnl_busy = 0;		/* say we're not doing anything anymore */
+    return;
+}
+
+static void not_supp(PktIOStruct *pkt) {
+    char *p;
+    p = (char *)pkt->buf;
+    p[PKTcmd] = ICEnak;
+    p[PKTcs+2] = MOLE_ERR_NOTSUPP;
+    strcpy((char *)p+PKTcs+3, "Command not supported yet");
+    mole_acknak(pkt);
+    return;
+}
+
+static void mole_rtest(PktIOStruct *pkt) {
+    int ii, cs;
+    U8 var, *p;
+    p = pkt->buf;
+    var = p[PKTpktn];
+    for (cs=0, ii=PKTcs+2; ii < pkt->len; ++ii) {
+	int jj;
+	jj = p[ii];
+	if (jj != var) {
+	    nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3, "Data error at offset %d. s/b %02X, is %02X",
+		ii, var, jj);
+	    p[PKTcmd] = ICEnak;
+	    p[PKTcs+2] = MOLE_ERR_DATA;
+	    mole_acknak(pkt);
+	    return;
+	}
+	cs += jj;
+	++var;
+    }
+    if (p[PKTcs] != ((cs>>8)&0xFF) || p[PKTcs+1] != (cs&0xFF)) {
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+    		 "Checksum error. Expected %04X, found %04X",
+    		 cs&0xFFFF, (p[PKTcs]<<8) | p[PKTcs+1]);
+	p[PKTcmd] = ICEnak;
+	p[PKTcs+2] = MOLE_ERR_DATA;
+	mole_acknak(pkt);
+	return;
+    }	
+    if ((int)pkt->user == MOLE_RTEST) {
+	mole_requeue_pkt(pkt);
+    } else {
+	mole_nop(pkt);
+    }
+    return;
+}
+
+static void mole_stest(PktIOStruct *pkt) {
+    not_supp(pkt);
+    return;
+}
+
+static struct pls_mnt {
+    PktIOStruct * volatile pkt;
+    char *phys;
+    char *virt;
+    int type;
+} please_mount;
+
+static void mole_mount(PktIOStruct *pkt) {
+    U8 *p;
+    MoleMountExt *mnt;
+
+    p = pkt->buf;
+    if (pkt->len < sizeof(MoleMountExt) + 4) {
+	p[PKTcs+2] = MOLE_ERR_INVARG;		/* invalid argument */
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-2,
+	    "Wrong size input parameters. Expected >= %d. Got %d",
+	    sizeof(MoleInitFSExt) + 4, pkt->len);	    
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+#if HDDNL_GAME_MODE
+# define GUTS_MODE_TEST hddnl_guts_mode 
+#else
+# define GUTS_MODE_TEST 1
+#endif
+    if (GUTS_MODE_TEST && !been_mounted) {
+	mnt = (MoleMountExt *)(p + PKTcs + 2);	/* skip to parameter block */
+	please_mount.pkt = pkt;
+	please_mount.phys = (char *)mnt + mnt->phys;
+	please_mount.virt = (char *)mnt + mnt->virt;
+	please_mount.type = mnt->type;
+    } else {
+	p = pkt->buf;
+	p[PKTcmd] = ICEack;
+	p[PKTcs+2] = 0;
+	p[PKTcs+3] = 0;
+	mole_acknak(pkt);
+    }
+    if (!hddnl_busy) {
+#if HDDNL_GAME_MODE && !FSYS_READ_ONLY
+	hddnl_busy = fsys_sync_delay(HDDNL_SYNC_PERIOD);	/* set sync task period */
+#else
+	hddnl_busy = 1;
+#endif
+    }
+    return;			/* let background do the mount */
+}
+
+#if !HDDNL_QUIET
+static int banners_up;
+#endif
+
+#if !HDDNL_GAME_MODE || HDDNL_USE_XINU
+
+static struct pls_init {
+    PktIOStruct * volatile pkt;
+    FsysInitVol ifs;
+    U8 *phys;
+    U8 *virt;
+} please_init;
+
+#endif
+
+static void mole_initfs(PktIOStruct *pkt) {
+    U8 *p;
+#if !HDDNL_GAME_MODE || HDDNL_USE_XINU
+    FsysInitVol *ifs;
+    MoleInitFSExt *efs;
+    struct pls_init *pi = &please_init;
+#endif
+    
+    p = pkt->buf;
+    if (pkt->len < sizeof(MoleInitFSExt) + 4) {
+	p[PKTcs+2] = MOLE_ERR_INVARG;
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+	    "Wrong size input parameters. Expected >= %d. Got %d",
+	    sizeof(MoleInitFSExt) + 4, pkt->len);	    
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+#if !HDDNL_GAME_MODE || HDDNL_USE_XINU
+    if (been_mounted) {
+	p[PKTcs+2] = MOLE_ERR_ARMOUNT;		/* already mounted */
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+	    "Volume already mounted. Can only be INIT'd just after a reset.");
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    efs = (MoleInitFSExt *)(p + PKTcs + 2);	/* skip to parameter block */
+    ifs = &pi->ifs;
+    ifs->cluster = efs->cluster;
+    ifs->index_sectors = (efs->index_sectors[0]<<(3*8)) |
+    			(efs->index_sectors[1]<<(2*8)) |
+    			(efs->index_sectors[2]<<(1*8)) | 
+    			(efs->index_sectors[3]<<(0*8));
+    ifs->free_sectors = (efs->free_sectors[0]<<(3*8)) |
+    			(efs->free_sectors[1]<<(2*8)) |
+    			(efs->free_sectors[2]<<(1*8)) | 
+    			(efs->free_sectors[3]<<(0*8));
+    ifs->root_sectors = (efs->root_sectors[0]<<(3*8)) |
+    			(efs->root_sectors[1]<<(2*8)) |
+    			(efs->root_sectors[2]<<(1*8)) | 
+    			(efs->root_sectors[3]<<(0*8));
+    ifs->def_extend =   (efs->default_extend[0]<<(3*8))  |
+    			(efs->default_extend[1]<<(2*8)) |
+    			(efs->default_extend[2]<<(1*8)) | 
+    			(efs->default_extend[3]<<(0*8));
+    pi->phys = (U8 *)efs + efs->phys;
+    pi->virt = (U8 *)efs + efs->virt;
+    pi->pkt = pkt;
+    if (!hddnl_busy) {
+# if HDDNL_GAME_MODE && !FSYS_READ_ONLY
+	hddnl_busy = fsys_sync_delay(HDDNL_SYNC_PERIOD);	/* set sync task delay */
+# else
+	hddnl_busy = 1;
+# endif
+    }
+#else
+    p[PKTcs+2] = MOLE_ERR_ARMOUNT;		/* already mounted */
+    nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+	"Have to run standalone hddnl to init a volume.");
+    p[PKTcmd] = ICEnak;
+    mole_acknak(pkt);
+#endif
+
+    return;		/* let background do the job */
+}
+
+#define Z_FLAGS_EOF	0x01
+#define Z_FLAGS_DONE	0x02
+
+typedef struct lcl_dir {
+    FsysVolume *vol;	/* current volume under test */
+    int nitems;		/* number of dir items we are sending */
+    int state;		/* state info */
+    int fid;		/* current fid in process */
+    int hash;		/* current entry in directory hash table */
+    int dir;		/* current entry in link list */
+} LclDir;
+    
+typedef struct lcl_file {
+    int fd;		/* file descriptor to use */
+    int state;		/* state used by close and rdfile */
+    int which_buf;	/* which buffer are we using */
+    int rw_pending;	/* number of reads/writes pending */
+    PktIOStruct *close_pkt;	/* request to close */
+    LclDir lcldir;	/* directory read history goes here */
+    U8 *buf;		/* pointer to pair of buffers in non-cached RAM */
+    int len;		/* amount of data currently in buffer */
+    int pkt_len;	/* amount remaining in packet buffer */
+    int chksum;		/* tmp for checksummer */
+    int mode;		/* file mode bits */
+#if HDDNL_ZLIB
+    struct z_stream_s z; /* pointer to z struct */
+    int z_flags;
+#endif
+    U8 *pkt_buf;	/* ptr to packet buffer pointer */
+    int file_len;	/* number of sectors read/written to file */
+    char *name;		/* name of file currently being read/written */
+    PktIOStruct *pkt;	/* place to hold last packet processed */
+    FsysOpenT ot;	/* special open handler */
+    FsysOpenT dirot;	/* special handler the directory creator uses */
+    QioIOQ ioq;		/* ioq to use */
+} LclBuf;
+
+typedef struct open_str {
+    char *dst;
+    char *dir_strt;
+    char *dir_end;
+    int state;
+} DirLoop;
+    
+static void mole_opendone(QioIOQ *ioq) {
+    LclBuf *lb;
+    MoleMkFileExt *mf;
+    PktIOStruct *pkt;
+    FsysOpenT *ot;
+    U8 *p;
+
+    lb = (LclBuf *)ioq->user;
+    pkt = lb->pkt;
+    p = pkt->buf;
+
+    ioq->complete = 0;			/* burn our bridges */
+    current_work.iostatus = ioq->iostatus;
+    if (QIO_ERR_CODE(ioq->iostatus)) {	/* if open failed */
+	p[PKTcs+2] = MOLE_ERR_OPEN;
+	p[PKTcmd] = ICEnak;
+	qio_errmsg(ioq->iostatus, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	mole_acknak(pkt);
+	QIOfree(lb);
+	return;
+    }	
+    ot = &lb->ot;
+    mf = (MoleMkFileExt *)(p + PKTcs + 2);
+    memset((char *)mf, 0, sizeof(MoleMkFileExt));
+    p[PKTcmd] = ICEreply;
+/*  mf->fname = 0;		*/
+/*  mf->placement = 0;		*/
+    mf->copies = ot->copies;
+    mf->mkdir = ot->mkdir;
+    mf->cookie[0] = (int)lb >> (3*8);
+    mf->cookie[1] = (int)lb >> (2*8);
+    mf->cookie[2] = (int)lb >> (1*8);
+    mf->cookie[3] = (int)lb >> (0*8);
+    mf->mode[0]   = (int)(lb->mode >> (3*8));
+    mf->mode[1]   = (int)(lb->mode >> (2*8));
+    mf->mode[2]   = (int)(lb->mode >> (1*8));
+    mf->mode[3]   = (int)(lb->mode >> (0*8));
+    mf->fid[0]  = (int)(ot->fid) >> (3*8);
+    mf->fid[1]  = (int)(ot->fid) >> (2*8);
+    mf->fid[2]  = (int)(ot->fid) >> (1*8);
+    mf->fid[3]  = (int)(ot->fid) >> (0*8);
+    mf->parent[0]  = (int)(ot->parent) >> (3*8);
+    mf->parent[1]  = (int)(ot->parent) >> (2*8);
+    mf->parent[2]  = (int)(ot->parent) >> (1*8);
+    mf->parent[3]  = (int)(ot->parent) >> (0*8);
+    mf->alloc[0]  = (int)(ot->alloc) >> (3*8);
+    mf->alloc[1]  = (int)(ot->alloc) >> (2*8);
+    mf->alloc[2]  = (int)(ot->alloc) >> (1*8);
+    mf->alloc[3]  = (int)(ot->alloc) >> (0*8);
+    mf->eof[0]  = (int)(ot->eof) >> (3*8);
+    mf->eof[1]  = (int)(ot->eof) >> (2*8);
+    mf->eof[2]  = (int)(ot->eof) >> (1*8);
+    mf->eof[3]  = (int)(ot->eof) >> (0*8);
+    mf->ctime[0]  = (int)(ot->ctime) >> (3*8);
+    mf->ctime[1]  = (int)(ot->ctime) >> (2*8);
+    mf->ctime[2]  = (int)(ot->ctime) >> (1*8);
+    mf->ctime[3]  = (int)(ot->ctime) >> (0*8);
+    mf->def_extend[0] = (int)(ot->def_extend >> (1*8));
+    mf->def_extend[1] = (int)(ot->def_extend >> (0*8));
+    current_work.alloc = ot->alloc;
+    current_work.curr = 0;
+    mole_reply(pkt, sizeof(MoleMkFileExt));
+    return;
+}
+
+enum mkfile {
+    MKFILE_OPNDIR,
+    MKFILE_OPNCHK,
+    MKFILE_MKDIRCHK,
+    MKFILE_MKFILE
+};
+
+static void dir_loop(QioIOQ *ioq) {
+    DirLoop *dl;
+    FsysOpenT *dirot;
+    PktIOStruct *pkt;
+    LclBuf *lb;
+    U8 *p;
+    int ii;
+
+    lb = (LclBuf *)ioq->user;
+    dl = (DirLoop *)(lb+1);
+    dirot = &lb->dirot;
+    pkt = lb->pkt;
+    p = pkt->buf;
+
+    while (1) {
+	switch (dl->state) {
+	    case MKFILE_OPNDIR: {
+		while (1) {
+		    dl->dir_end = strchr(dl->dir_strt, QIO_FNAME_SEPARATOR); /* look for first delimiter after device */
+		    if (!dl->dir_end) break;	/* all directories made */
+		    *dl->dir_end = 0;
+		    if (strcmp(dl->dir_strt, "..") == 0 || strcmp(dl->dir_strt, ".") == 0) {
+			*dl->dir_end = QIO_FNAME_SEPARATOR;
+			dl->dir_strt = dl->dir_end + 1;
+			continue;		/* ignore filenames of . and .. */
+		    }
+		    dirot->spc.path = dl->dst;
+		    dirot->spc.mode = O_RDONLY;
+		    dirot->fid = 0;
+		    ioq->complete = dir_loop;
+		    dl->state = MKFILE_OPNCHK;
+		    ii = qio_openspc(ioq, &dirot->spc); /* try to open the file */
+		    if (ii) mole_opendone(ioq);
+		    return;
+		}
+		dl->state = MKFILE_MKFILE;
+		continue;
+	    }
+	    case MKFILE_OPNCHK: {
+		ii = ioq->iostatus;
+		if (QIO_ERR_CODE(ii) && ii != FSYS_LOOKUP_NOPATH && ii != FSYS_LOOKUP_FNF) {
+		    mole_opendone(ioq);
+		    return;
+		}
+		if (QIO_ERR_CODE(ii)) {
+		    dl->state = MKFILE_MKDIRCHK;
+		    ii = qio_mkdir( ioq, dl->dst, 0);	/* try to create the directory */
+		    if (ii) mole_opendone(ioq);
+		    return;
+		} else {
+		    if (!dirot->mkdir) {	/* pathname is not a directory */
+			ioq->complete = 0;	/* no completion required */
+			qio_close(ioq);	/* done with this */
+			p[PKTcs+2] = MOLE_ERR_OPENDIR;
+			p[PKTcmd] = ICEnak;
+			nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-2,
+			    "Pathname is not a directory: %s", dl->dst);
+			mole_acknak(pkt);
+			QIOfree(lb);
+			return;
+		    }
+		}
+		dl->state = MKFILE_MKDIRCHK;
+		qio_close(ioq);		/* done with the file */
+		return;			/* let completion recall us */
+	    }
+	    case MKFILE_MKDIRCHK: {
+		if (QIO_ERR_CODE(ioq->iostatus)) {
+		    mole_opendone(ioq);
+		    return;
+		}
+		*dl->dir_end = QIO_FNAME_SEPARATOR;	/* restore clobbered char */
+		dl->dir_strt = dl->dir_end + 1;	/* advance the string pointer */
+		dl->state = MKFILE_OPNDIR;	/* back to beginning */
+		continue;
+	    }
+	    case MKFILE_MKFILE: {
+		if ((ii=strlen(dl->dst)) > AN_VIS_COL-4) {
+		    strcpy((char *)current_work.file, "... ");
+		    strcpy((char *)current_work.file + 4, dl->dst + ii - (AN_VIS_COL-4));
+		} else {
+		    strncpy((char *)current_work.file, dl->dst, AN_VIS_COL);
+		}
+		current_work.fn_changed = 1;
+		current_work.action = (lb->ot.spc.mode & O_WRONLY) ? "written" : "read";
+		ioq->complete = mole_opendone;
+		lb->file_len = 0;
+		ii = qio_openspc(ioq, &lb->ot.spc);
+		if (ii) {
+		    ioq->iostatus = ii;
+		    mole_opendone(ioq);
+		}
+		return;
+	    }		/* case MKFILE_MKFILE */
+	}		/* switch (dl->state) */
+	break;
+    }			/* while (1) */
+    return;
+}
+
+#define PUT_4(dst, src) do { *dst++ = (int)((src) >> (3*8)); \
+    			     *dst++ = (int)((src) >> (2*8)); \
+    			     *dst++ = (int)((src) >> (1*8)); \
+    			     *dst++ = (int)((src) >> (0*8)); } while (0)
+#define PUT_2(dst, src) do { *dst++ = (int)((src) >> (1*8)); \
+    			     *dst++ = (int)((src) >> (0*8)); } while (0)
+#define PUT_1(dst, src) do { *dst++ = (int)(src); } while (0)
+
+static int unpack_fileheaders(LclBuf *lb) {
+    FsysVolume *vol;
+    FsysRamFH *rfh;
+    FsysRamRP *rp;
+    int nitems;
+    FsysOpenT *ot;
+    int ii, jj, dirsiz, mode;
+    U8 *lim, *dst;
+    extern FsysVolume volumes[];
+
+    ot = &lb->ot;
+    mode = ot->spc.mode;
+    if (!(vol=lb->lcldir.vol)) {
+	nitems = 4+1;
+	if ((mode&HDDNL_GETFH_ALLOC)) nitems += 4;
+	if ((mode&HDDNL_GETFH_SIZE)) nitems += 4;
+#if (FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_CMTIME)
+	if ((mode&HDDNL_GETFH_CTIME)) nitems += 4;
+	if ((mode&HDDNL_GETFH_MTIME)) nitems += 4;
+#endif
+#if (FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_ABTIME)
+	if ((mode&HDDNL_GETFH_ATIME)) nitems += 4;
+	if ((mode&HDDNL_GETFH_BTIME)) nitems += 4;
+#endif
+#if (FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_PERMS)
+	if ((mode&HDDNL_GETFH_PERMS)) nitems += 4;
+	if ((mode&HDDNL_GETFH_OWNER)) nitems += 4;
+#endif
+	if ((mode&HDDNL_GETFH_DEFEXT)) nitems += 2;
+	if ((mode&HDDNL_GETFH_NRPS)) nitems += 1;
+	if ((mode&HDDNL_GETFH_COPIES)) nitems += 1;
+	if ((mode&HDDNL_GETFH_FIRSTRP)) nitems += 2*4*FSYS_MAX_ALTS;
+	vol = lb->lcldir.vol = volumes;
+	for (rfh=vol->files, dirsiz=ii=0; ii < vol->files_ffree; ++ii, ++rfh) {
+	    if (rfh->directory && (mode&HDDNL_GETFH_DIR)) {
+		dirsiz += rfh->size+4;
+	    }
+	}
+	lb->lcldir.nitems = nitems;
+    } else {
+	nitems = lb->lcldir.nitems;
+    }
+    dst = lb->buf;
+    lim = dst + lb->len;
+    while (lim-dst >= nitems+256+4+2) {
+	if (lb->lcldir.fid >= vol->files_ffree) { /* reached EOF */
+	    break;
+	}
+	rfh = vol->files + lb->lcldir.fid;	/* point to current working file */
+	if (!lb->lcldir.hash && !lb->lcldir.dir) { /* not sending directory contents */
+	    int fid;
+	    fid = (rfh->generation<<24) | lb->lcldir.fid;	/* record the FID */
+	    PUT_4(dst, fid);
+	    if (!rfh->valid) {
+		*dst++ = 0;			/* file type 0 = invalid */
+	    } else if (!rfh->directory) {
+		*dst++ = 1;			/* file type 1 = plain file */
+	    } else {
+		*dst++ = 2;			/* file type 2 = directory */
+	    }
+	    if ((mode&(HDDNL_GETFH_NRPS|HDDNL_GETFH_COPIES|HDDNL_GETFH_FIRSTRP))) {
+		int nrps, max_rps=0, copies=0;
+		FsysRetPtr *firstrp[FSYS_MAX_ALTS];
+		if (rfh->valid) {
+		    if ((mode&HDDNL_GETFH_FIRSTRP)) {
+			memset(firstrp, 0, sizeof(firstrp));
+		    }
+		    for (jj=0; jj < FSYS_MAX_ALTS; ++jj) {
+			nrps = 0;
+			rp = rfh->ramrp+jj;
+			if (!rp || !rp->rptrs) break;
+			if ((mode&HDDNL_GETFH_FIRSTRP)) {
+			    firstrp[jj] = rp->rptrs;
+			}
+#if !FSYS_READ_ONLY
+			while (rp) {
+			    nrps += rp->num_rptrs;
+			    rp = rp->next;
+			}
+#else
+			nrps = rp->num_rptrs;
+#endif
+			if (nrps > max_rps) max_rps = nrps;
+			++copies;
+		    }
+		}
+		if ((mode&HDDNL_GETFH_NRPS)) PUT_1(dst, max_rps);
+		if ((mode&HDDNL_GETFH_COPIES)) PUT_1(dst, copies);
+		if ((mode&HDDNL_GETFH_FIRSTRP)) {
+		    int rpc;
+		    for (rpc=0; rpc < copies; ++rpc) {
+			FsysRetPtr *retp;
+			retp = firstrp[rpc];
+			if (retp) {
+			    PUT_4(dst, retp->start);
+			    PUT_4(dst, retp->nblocks);
+			} else {
+			    PUT_4(dst, 0);
+			    PUT_4(dst, 0);
+			}
+		    }
+		}
+	    }
+	    if ((mode&HDDNL_GETFH_ALLOC)) PUT_4(dst, rfh->clusters);
+	    if ((mode&HDDNL_GETFH_SIZE)) PUT_4(dst, rfh->size);
+	    if ((mode&HDDNL_GETFH_DEFEXT)) PUT_2(dst, rfh->def_extend);
+#if (FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_CMTIME)
+	    if ((mode&HDDNL_GETFH_CTIME)) PUT_4(dst, rfh->ctime);
+	    if ((mode&HDDNL_GETFH_MTIME)) PUT_4(dst, rfh->mtime);
+#endif
+#if (FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_ABTIME)
+	    if ((mode&HDDNL_GETFH_ATIME)) PUT_4(dst, rfh->atime);
+	    if ((mode&HDDNL_GETFH_BTIME)) PUT_4(dst, rfh->btime);
+#endif
+#if (FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_PERMS)
+	    if ((mode&HDDNL_GETFH_PERMS)) PUT_4(dst, rfh->perms);
+	    if ((mode&HDDNL_GETFH_OWNER)) PUT_4(dst, rfh->owner);
+#endif
+	}
+	if (rfh->valid && rfh->directory && (mode&HDDNL_GETFH_DIR)) {
+	    FsysDirEnt **hash, *dir;
+	    while (lb->lcldir.hash < FSYS_DIR_HASH_SIZE) {
+		hash = rfh->directory + lb->lcldir.hash;
+		dir = *hash;
+		for (jj=0; dir && jj < lb->lcldir.dir; ++jj) dir = dir->next;
+		while (dir) {
+		    int len = strlen(dir->name)+1;
+		    *dst++ = dir->gen_fid>>24;
+		    *dst++ = dir->gen_fid>>16;
+		    *dst++ = dir->gen_fid>>8;
+		    *dst++ = dir->gen_fid;
+		    *dst++ = len;
+		    strcpy((char *)dst, dir->name);
+		    dst += len;
+		    dir = dir->next;
+		    ++lb->lcldir.dir;
+		    if (lim-dst < 256+5) break;
+		}
+		if (lim-dst < 256+5) break;
+		++lb->lcldir.hash;
+		lb->lcldir.dir = 0;
+	    }
+	    if (lb->lcldir.hash >= FSYS_DIR_HASH_SIZE) {
+		*dst++ = 0;			/* need a null fid to end the list */
+		*dst++ = 0;
+		*dst++ = 0;
+		*dst++ = 0;
+		lb->lcldir.hash = 0;
+		lb->lcldir.dir = 0;
+	    }
+	}
+	if (!lb->lcldir.hash && !lb->lcldir.dir) ++lb->lcldir.fid;
+    }
+    lb->len = dst - lb->buf;		/* record amount of data stored */
+    return 0;
+}
+
+static void mole_delete(QioIOQ *ioq) {
+    PktIOStruct *pkt;
+    LclBuf *lb;
+    U8 *p;
+
+    lb = (LclBuf *)ioq->user;
+    pkt = lb->pkt;
+    p = pkt->buf;
+
+    if (QIO_ERR_CODE(ioq->iostatus)) {
+	p[PKTcs+2] = MOLE_ERR_DELETE;
+	p[PKTcmd] = ICEnak;
+	qio_errmsg(ioq->iostatus, (char *)p+PKTcs+3, pkt->size - PKTuser - PKTcs - 3);
+    } else {
+	p[PKTcmd] = ICEack;		/* say command ok */
+	p[PKTcs+2] = 0;
+	p[PKTcs+3] = 0;
+    }
+    mole_acknak(pkt);
+    QIOfree(lb);
+    return;
+}
+
+static int sectors_per_write;
+static int hddnl_buf_size;
+#define MOLE_BUF_SIZE hddnl_buf_size
+
+static const void *hddnl_getenv(const char *name, void *def) {
+    const struct st_envar *env;
+    const void *ans = def;
+    env = st_getenv(name, 0);
+    if (env) {
+	ans = env->value;
+    }
+    return ans;
+}
+
+#if HDDNL_ZLIB
+static const char *get_zlib_errmsg(char *buf, int buflen, struct z_stream_s *zs, int sts) {
+    static const char * const zlib_err[] = {
+	0, "ERRNO", "STREAM_ERROR", "DATA_ERROR", "MEM_ERROR", "BUF_ERROR", "VERSION_ERROR"
+	};
+    const char *s;
+    if (!(s=zs->msg)) {
+	if (sts < 0) {
+	    sts = -sts;
+	    if (sts > n_elts(zlib_err)) {
+		nsprintf(buf, buflen, "{unknown value of %d}", -sts);
+		s = buf;
+	    } else {
+		s = zlib_err[sts];
+	    }
+	} else {
+	    nsprintf(buf, sizeof(buf), "{unknown value of %d}", sts);
+	    s = buf;
+	}
+    }
+    return s;
+}
+#endif
+
+static void mole_openfile(PktIOStruct *pkt) {
+    U8 *p;
+    MoleMkFileExt *mf;
+    LclBuf *lb;
+    DirLoop *dl;
+    const QioDevice *dvc;
+    QioIOQ *ioq;
+    int ii, memsize;
+    FsysOpenT *ot;
+
+    SQUAWK((iop, "Entered mole_openfile. cmd = %d, pkt = %d\n", (int)pkt->user, pkt - pkts));
+    p = pkt->buf;
+    if (pkt->len < sizeof(MoleMkFileExt) + 2) {
+	p[PKTcs+2] = MOLE_ERR_INVARG;
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+	    "Wrong size input parameters. Expected >= %d. Got %d",
+	    sizeof(MoleMkFileExt) + 2, pkt->len);	    
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    mf = (MoleMkFileExt *)(p + PKTcs + 2);	/* skip to input parameter block */
+    ii = strlen((char *)((int)mf + mf->fname));
+    if (!MOLE_BUF_SIZE) {
+#ifndef HDDNL_SECTORS_PER_WRITE
+# define HDDNL_SECTORS_PER_WRITE	64
+#endif
+#define BYTES_PER_SECTOR	512
+	sectors_per_write = (int)hddnl_getenv("HDDNL_SECTORS_PER_WRITE", (void*)HDDNL_SECTORS_PER_WRITE);
+	MOLE_BUF_SIZE = (int)hddnl_getenv("HDDNL_BUF_SIZE", (void *)(sectors_per_write*BYTES_PER_SECTOR));
+    }
+    memsize = sizeof(LclBuf) + 2*MOLE_BUF_SIZE + QIO_CACHE_LINE_SIZE + ii + 1 + sizeof(DirLoop);
+    lb = (LclBuf *)QIOcalloc(1, memsize);
+    SQUAWK((iop, "openfile: calloc %d bytes: %08lX-%08lX\n", memsize, (U32)lb, (U32)lb+memsize-1));
+    if (!lb) {
+	p[PKTcs+2] = MOLE_ERR_NOMEM;
+	p[PKTcmd] = ICEnak;
+	nsprintf((char *)p+PKTcs+3, pkt->size - PKTuser - PKTcs - 3,
+    		"openfile: Ran out of memory QIOcalloc'ing %d bytes",
+    		sizeof(LclBuf) + 2*MOLE_BUF_SIZE + QIO_CACHE_LINE_SIZE + ii + 1);
+	mole_acknak(pkt);
+	return;
+    }
+    dl = (DirLoop *)(lb+1);
+    dl->dst = (char *)(dl+1);
+    lb->buf = (U8*)dl->dst + ii + 1;
+#if RW_VIA_DMA
+    lb->buf = (U8*)(QIO_MK_NONCACHE(QIO_ALIGN(lb->buf, QIO_CACHE_LINE_SIZE)));
+    flush_dcache();			/* make sure there are no data cache lines in use */
+#else
+    lb->buf = (U8*)(QIO_ALIGN(lb->buf, QIO_CACHE_LINE_SIZE));
+#endif
+    SQUAWK((iop, "openfile: buf limits %08lX-%08lX\n", (U32)lb->buf, (U32)lb->buf + 2*MOLE_BUF_SIZE-1));
+    lb->pkt = pkt;			/* remember packet */
+    ioq = &lb->ioq;
+    ioq->user = (void *)lb;
+    strcpy(dl->dst, (char *)((int)mf + mf->fname));
+    SQ((iop, "Open: %s\n", dl->dst));
+    dl->dir_strt = dl->dst;
+    dvc = qio_lookupdvc(dl->dir_strt); /* see if there's a device name at the beginning */
+    if (dvc) {			/* there is, so skip it */
+	dl->dir_strt += 2+dvc->name_len; /* skip over the device name "/dvc/" */
+    }
+    ii	=  mf->mode[0]<<(3*8) | 
+	       mf->mode[1]<<(2*8) |
+	       mf->mode[2]<<(1*8) |
+	       mf->mode[3]<<(0*8);
+    ot = &lb->ot;
+    memset((char *)ot, 0, sizeof(FsysOpenT));
+    ot->spc.path = dl->dst;
+    if ((ii&MOLE_O_DELETE)) {
+	int sts;
+	ioq->complete = mole_delete;
+	sts = qio_delete(ioq, ot->spc.path);	/* delete the file */
+	if (sts) {
+	    p[PKTcs+2] = MOLE_ERR_DELETE;
+	    p[PKTcmd] = ICEnak;
+	    qio_errmsg(sts, (char *)p+PKTcs+3, pkt->size - PKTuser - PKTcs - 3);
+	    mole_acknak(pkt);
+	    QIOfree(lb);
+	}
+	return;
+    }	
+    if ((ii&MOLE_O_FHBITS)) {
+	ot->spc.mode = mf->hddnlfhbits[0]<<(3*8) |
+		       mf->hddnlfhbits[1]<<(2*8) |
+		       mf->hddnlfhbits[2]<<(1*8) |
+		       mf->hddnlfhbits[3]<<(0*8);
+	ot->spc.mode &= (
+			HDDNL_GETFH_ALLOC	|
+		   	HDDNL_GETFH_SIZE	|
+#if (FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_CMTIME)
+		   	HDDNL_GETFH_CTIME	|
+		   	HDDNL_GETFH_MTIME	|
+#endif
+#if (FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_ABTIME)
+		   	HDDNL_GETFH_ATIME	|
+		   	HDDNL_GETFH_BTIME	|
+#endif
+#if (FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_PERMS)
+		   	HDDNL_GETFH_PERMS	|
+		   	HDDNL_GETFH_OWNER	|
+#endif
+		   	HDDNL_GETFH_DIR		|
+		   	HDDNL_GETFH_NRPS	|
+		   	HDDNL_GETFH_COPIES	|
+		   	HDDNL_GETFH_DEFEXT	|
+		   	HDDNL_GETFH_FIRSTRP
+		    	);
+    } else {
+	ot->spc.mode = ii&3;	/* O_RDONLY, O_WRONLY or O_RDWR */
+	if (ii&MOLE_O_APPEND) ot->spc.mode |= O_APPEND;
+	if (ii&MOLE_O_CREAT) ot->spc.mode |= O_CREAT;
+	if (ii&MOLE_O_TRUNC)  ot->spc.mode |= O_TRUNC;
+	if (ii&MOLE_O_EXCL)   ot->spc.mode |= O_EXCL;
+	if ((ii&MOLE_O_CREAT)) {
+	    ot->alloc = mf->alloc[0]<<(3*8) |
+			mf->alloc[1]<<(2*8) |
+			mf->alloc[2]<<(1*8) |
+			mf->alloc[3]<<(0*8);
+	    ot->eof = mf->eof[0]<<(3*8) |
+		      mf->eof[1]<<(2*8) |
+		      mf->eof[2]<<(1*8) |
+		      mf->eof[3]<<(0*8);
+	    ot->placement = mf->placement;
+	    if (!(ot->copies = mf->copies)) ot->copies = 1;
+	    ot->mkdir =  mf->mkdir;
+	    ot->ctime =  mf->ctime[0]<<(3*8) |
+			 mf->ctime[1]<<(2*8) |
+			 mf->ctime[2]<<(1*8) |
+			 mf->ctime[3]<<(0*8);
+	    ot->def_extend = (mf->def_extend[0] << (1*8)) |
+			     (mf->def_extend[1] << (0*8));
+	} else {
+	    dl->state = MKFILE_MKFILE;		/* go straight to file open */
+	}    
+    }
+    lb->mode = ii;
+    if ((ii&MOLE_O_COMPRESS)) {
+#if !HDDNL_ZLIB
+	lb->mode &= ~(MOLE_O_COMPRESS|MOLE_O_COMPRESS_OK); /* don't support compress */
+#else
+	char *err;
+	if ((ii&3) == O_RDWR) {
+	    p[PKTcs+2] = MOLE_ERR_INVARG;
+	    nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+		"Cannot use compression with file mode of O_RDWR");
+	    p[PKTcmd] = ICEnak;
+	    mole_acknak(pkt);
+	    QIOfree(lb);
+	    return;
+	}
+	if ((ii&3) == O_RDONLY) {	/* read */
+#if 0
+	    ii = deflateInit(&lb->z, (ii >> MOLE_V_COMPRESS) & 7);
+	    err = "deflateInit()";
+#else
+	    lb->mode &= ~(MOLE_O_COMPRESS|MOLE_O_COMPRESS_OK); /* don't support compress on read yet */
+	    err = 0;
+	    ii = Z_OK;
+#endif
+	} else {			/* write */
+	    ii = inflateInit(&lb->z);
+	    err = "inflateInit()";
+	    lb->mode |= MOLE_O_COMPRESS_OK;	/* tell other end we'll do compression */
+	}
+	if (ii != Z_OK) {
+	    char buf[40];
+	    const char *s;
+	    struct z_stream_s *zs = &lb->z;
+	    s = get_zlib_errmsg(buf, sizeof(buf), zs, ii);
+	    p[PKTcs+2] = MOLE_ERR_INVARG;
+	    nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+		"Error performing %s: %s", err, s);
+	    p[PKTcmd] = ICEnak;
+	    mole_acknak(pkt);
+	    QIOfree(lb);
+	    return;
+	}
+	lb->z_flags = 0;
+	lb->z.avail_out = 0;
+#endif
+    }
+    if ((lb->mode&MOLE_O_FHBITS)) {	/* we are to read file headers */
+	memset((char *)&lb->lcldir, 0, sizeof(LclDir));
+	mf = (MoleMkFileExt *)(p + PKTcs + 2);
+	memset((char *)mf, 0, sizeof(MoleMkFileExt));
+	mf->cookie[0] = (int)lb >> (3*8);
+	mf->cookie[1] = (int)lb >> (2*8);
+	mf->cookie[2] = (int)lb >> (1*8);
+	mf->cookie[3] = (int)lb >> (0*8);
+	mf->mode[0]   = (int)MOLE_O_FHBITS_OK >> (3*8);
+	mf->mode[1]   = (int)MOLE_O_FHBITS_OK >> (2*8);
+	mf->mode[2]   = (int)MOLE_O_FHBITS_OK >> (1*8);
+	mf->mode[3]   = ((int)MOLE_O_FHBITS_OK >> (0*8))&255;
+	mf->hddnlfhbits[0] = ot->spc.mode >> (3*8);
+        mf->hddnlfhbits[1] = ot->spc.mode >> (2*8);
+        mf->hddnlfhbits[2] = ot->spc.mode >> (1*8);
+        mf->hddnlfhbits[3] = ot->spc.mode >> (0*8);
+	p[PKTcmd] = ICEreply;
+	mole_reply(pkt, sizeof(MoleMkFileExt));
+    } else {
+	dir_loop(ioq);
+    }
+    return;
+}
+
+static void mole_rd_q(QioIOQ *ioq) {
+    LclBuf *lb;
+    PktIOStruct *pkt;
+    U8 *p, *src, *dst;
+    int cs, inner, outer, max;
+
+    lb = (LclBuf *)ioq->user;
+    pkt = lb->pkt;
+    --lb->rw_pending;
+    if (lb->rw_pending < 0) lb->rw_pending = 0;
+    if (QIO_ERR_CODE(ioq->iostatus)) {
+	p = pkt->buf;
+	if (ioq->iostatus == QIO_EOF) {
+	    p[PKTcs+2] = MOLE_EOF;	/* end of file */
+	} else {
+	    p[PKTcs+2] = MOLE_ERR_READING;	/* error queing write */
+	}
+	qio_errmsg(ioq->iostatus, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    current_work.curr += ioq->iocount;
+    current_work.iostatus = ioq->iostatus;
+    p = pkt->buf;
+    p[PKTcmd] = ICEreply;
+    src = lb->buf;
+    cs = pkt->from;
+    pkt->from = pkt->to;
+    pkt->to = cs;
+    max = pkt->size-4;
+    if (max > lb->pkt_len) max = lb->pkt_len;
+    for (outer = 0; outer < ioq->iocount; outer += max) {
+	dst = pkt->buf+4;
+	if (outer+max > ioq->iocount) max = ioq->iocount - outer;
+	for (cs=inner=0; inner < max; ++inner) {
+	    cs += *src;
+	    *dst++ = *src++;
+	}
+	p[PKTcs+0] = cs>>8;
+	p[PKTcs+1] = cs;
+	pkt->len = inner + 4;
+	++pkts_sent;
+	total_bytes += pkt->len;
+	pktQueSend(pkt, 0);
+	++p[PKTpktn];
+    }
+    if ((lb->mode&MOLE_O_FHBITS)) {	/* send a null packet to signal end of stream */
+	pkt->len = 2;
+	++pkts_sent;
+	pktQueSend(pkt, 0);
+	++p[PKTpktn];
+    }	
+    nxt_seq = p[PKTpktn];		/* set the next expected sequence number */
+    mole_requeue_pkt(pkt);
+}
+
+static void mole_rdfile(PktIOStruct *pkt) {
+    U8 *p;
+    LclBuf *lb;
+    int pktn, sts;
+    QioIOQ *ioq;
+
+    pktn = pkt - pkts;
+    SQUAWK((iop, "Entered mole_rdfile. cmd = %d, pkt = %d\n", (int)pkt->user, pktn));
+    SQUAWK((iop, "mole_rdfile: time = %10u usecs since boot, %10u usecs since queued\n",
+    	(prc_get_count() - since_boot + 25)/50, (prc_get_count() - timestamps[pktn]+25)/50));
+    p = pkt->buf;
+    if (pkt->len < sizeof(LclBuf *) + 4 + 4 + 4) {
+	SQUAWK((iop, "Error on packet %d. buf #=%d, cmd=%d, len=%d\n",
+    			pktn, (p - bufs)/MAX_PKT_SIZE, p[PKTcmd], pkt->len));
+	SQUAWK((iop, "pkt: to=%d, tothrd=%d, from=%d, frmth=%d, size=%d, len=%d, state=%d\n",
+		pkt->to, pkt->tothread, pkt->from, pkt->frmthread, pkt->size, pkt->len, pkt->state));
+	SQUAWK((iop, "next=%08lX, polling=%d, jj=%d, kk=%d\n",
+    		pkt->next, pkt->polling, pkt->jj, pkt->kk));
+	dump_pkt(0, pkt->buf, 16, 2);
+	p[PKTcs+2] = MOLE_ERR_INVARG;		/* invalid argument */
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-2,
+	    "Wrong size input parameters. Expected >= %d. Got %d",
+	    sizeof(LclBuf *) + 4, pkt->len);
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    p += PKTcs + 2;
+    lb = (LclBuf *)((p[ 0] << (3*8)) |
+         	    (p[ 1] << (2*8)) |
+         	    (p[ 2] << (1*8)) |
+         	    (p[ 3] << (0*8)));
+    lb->len = (int)((p[ 4] << (3*8)) |
+         	    (p[ 5] << (2*8)) |
+         	    (p[ 6] << (1*8)) |
+         	    (p[ 7] << (0*8)));
+    lb->pkt_len =  (int)((p[ 8] << (3*8)) |
+         	    (p[ 9] << (2*8)) |
+         	    (p[10] << (1*8)) |
+         	    (p[11] << (0*8)));
+    ioq = &lb->ioq;
+    ioq->complete = mole_rd_q;
+    ioq->user = (void *)lb;
+    lb->pkt = pkt;
+    if (lb->len > 2*MOLE_BUF_SIZE) lb->len = 2*MOLE_BUF_SIZE;
+    SQUAWK((iop, "\tReading %4d bytes from %08lX to fd %d\n",
+		lb->len, lb->buf, ioq->file));
+    if ((lb->mode&MOLE_O_FHBITS)) {
+	unpack_fileheaders(lb);
+	ioq->iocount = lb->len;
+	if (!lb->len) {
+	    ioq->iostatus = QIO_EOF;
+	} else {
+	    ioq->iostatus = QIO_SUCC|SEVERITY_INFO;
+	    lb->file_len += lb->len;
+	}
+	++lb->rw_pending;
+	mole_rd_q(ioq);
+    } else {
+	++lb->rw_pending;
+	sts = qio_read(ioq, lb->buf, lb->len);	/* read what will fit in the buffer */
+	if (sts) {
+	    --lb->rw_pending;
+	    p[PKTcs+2] = MOLE_ERR_READING;		/* error queing read */
+	    qio_errmsg(sts, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	    p[PKTcmd] = ICEnak;
+	    mole_acknak(pkt);
+	}
+    }
+    return;
+}
+
+static void mole_close(PktIOStruct *pkt);
+
+static void mole_wrt_q(QioIOQ *ioq) {
+    LclBuf *lb;
+    PktIOStruct *pkt;
+    U8 *p;
+
+    lb = (LclBuf *)ioq->user;
+    pkt = lb->pkt;
+    --lb->rw_pending;
+    if (lb->rw_pending < 0) lb->rw_pending = 0;
+    if (!lb->rw_pending && lb->close_pkt) {
+	ioq->aq.action = mole_close;
+	ioq->aq.param = (void *)lb->close_pkt;
+	prc_q_ast(QIO_ASTLVL, &ioq->aq);
+	lb->close_pkt = 0;
+    }
+    if (QIO_ERR_CODE(ioq->iostatus)) {
+	p = pkt->buf;
+	p[PKTcs+2] = MOLE_ERR_WRITING;	/* error queing write */
+	qio_errmsg(ioq->iostatus, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    if ((int)pkt->user == MOLE_WRFILEack) {
+	mole_nop(pkt);			/* ack the write */
+    } else {
+	mole_requeue_pkt(pkt);
+    }
+}
+
+static int q_wrt(QioIOQ *ioq, int amt) {
+    LclBuf *lb;
+    int sts;
+
+    lb = (LclBuf *)ioq->user;
+    ++lb->rw_pending;
+    SQ((iop, "\tQueing write of %4d bytes from %08lX to fd %d\n",
+		amt, lb->buf + lb->which_buf, ioq->file));
+    sts = qio_write(ioq, lb->buf + lb->which_buf, amt); /* write the buffer */
+    if (sts) {
+	PktIOStruct *pkt;
+	U8 *p;
+	--lb->rw_pending;
+	pkt = lb->pkt;
+	p = pkt->buf;
+	p[PKTcs+2] = MOLE_ERR_WRITING;	/* error queing write */
+	qio_errmsg(sts, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return sts;
+    }
+#if (MOLE_BUF_SIZE&-MOLE_BUF_SIZE) == MOLE_BUF_SIZE
+    lb->which_buf ^= MOLE_BUF_SIZE;	/* flip to other buffer */
+#else
+    lb->which_buf = (lb->which_buf) ? 0 : MOLE_BUF_SIZE;
+#endif
+    return sts;
+}
+		
+#if HDDNL_ZLIB
+static void mole_wrt_z_q(QioIOQ *ioq) {
+    LclBuf *lb;
+    PktIOStruct *pkt;
+    U8 *p;
+    struct z_stream_s *zs;
+    int sts;
+
+    lb = (LclBuf *)ioq->user;
+    pkt = lb->pkt;
+    p = pkt->buf;
+    --lb->rw_pending;
+    if (lb->rw_pending < 0) lb->rw_pending = 0;
+    SQ((iop, "\twrt_z_q complete. iostatus=%X, iocount=%d, avail_in=%d, avail_out=%d\n",
+		ioq->iostatus, ioq->iocount, lb->z.avail_in, lb->z.avail_out));
+    if (!QIO_ERR_CODE(ioq->iostatus)) {
+	zs = &lb->z;
+	zs->next_out = (Bytef *)(lb->buf + lb->which_buf);
+	zs->avail_out = MOLE_BUF_SIZE;
+	if (zs->avail_in) {
+	    int old;
+	    old = zs->avail_out;
+	    sts = inflate(zs, Z_PARTIAL_FLUSH); /* inflate the data */
+	    SQ((iop, "\t   Inflated more. After: sts=%d, avail_in=%d, avail_out=%d, which_buf=%d\n",
+			sts, zs->avail_in, zs->avail_out, lb->which_buf ? 1 : 0));
+	    lb->file_len += old - zs->avail_out;	/* accumulate the length */
+	    current_work.curr = lb->file_len;
+	    if (sts == Z_OK || sts == Z_STREAM_END) {
+		if (sts == Z_STREAM_END) lb->z_flags |= Z_FLAGS_DONE;
+		if (!zs->avail_out || sts == Z_STREAM_END) {
+		    q_wrt(ioq, MOLE_BUF_SIZE - zs->avail_out);
+		    return;
+		}
+	    } else {
+		char buf[40];
+		const char *s;
+		s = get_zlib_errmsg(buf, sizeof(buf), zs, sts);
+		p[PKTcs+2] = MOLE_ERR_INVARG;
+		nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+		    "Error (%d) inflate()'ing: %s", sts, s);
+		p[PKTcmd] = ICEnak;
+		mole_acknak(pkt);
+		return;
+	    }
+	}
+    }
+    if (!lb->rw_pending && lb->close_pkt) {
+	ioq->aq.action = mole_close;
+	ioq->aq.param = (void *)lb->close_pkt;
+	prc_q_ast(QIO_ASTLVL, &ioq->aq);
+	lb->close_pkt = 0;
+    }
+    if (QIO_ERR_CODE(ioq->iostatus)) {
+	p[PKTcs+2] = MOLE_ERR_WRITING;	/* error writing */
+	qio_errmsg(ioq->iostatus, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    if ((int)pkt->user == MOLE_WRFILEack) {
+	mole_nop(pkt);			/* ack the write */
+    } else {
+	mole_requeue_pkt(pkt);
+    }
+}
+#endif
+
+static void mole_wrfile(PktIOStruct *pkt) {
+    U8 *p;
+    LclBuf *lb;
+    int len, pktn;
+
+    pktn = pkt - pkts;
+    SQ((iop, "Entered mole_wrfile. cmd = %d, pkt = %d\n", (int)pkt->user, pktn));
+    SQ((iop, "mole_wrfile: time = %10u usecs since boot, %10u usecs since queued\n",
+    	(prc_get_count() - since_boot + 25)/50, (prc_get_count() - timestamps[pktn]+25)/50));
+    p = pkt->buf;
+    if (pkt->len < sizeof(LclBuf *) + 4) {
+	SQ((iop, "Error on packet %d. buf #=%d, cmd=%d, len=%d\n",
+    			pktn, (p - bufs)/MAX_PKT_SIZE, p[PKTcmd], pkt->len));
+	SQ((iop, "pkt: to=%d, tothrd=%d, from=%d, frmth=%d, size=%d, len=%d, state=%d\n",
+		pkt->to, pkt->tothread, pkt->from, pkt->frmthread, pkt->size, pkt->len, pkt->state));
+	SQ((iop, "next=%08lX, polling=%d, jj=%d, kk=%d\n",
+    		pkt->next, pkt->polling, pkt->jj, pkt->kk));
+	dump_pkt(0, pkt->buf, 16, 2);
+	p[PKTcs+2] = MOLE_ERR_INVARG;		/* invalid argument */
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-2,
+	    "Wrong size input parameters. Expected >= %d. Got %d",
+	    sizeof(LclBuf *) + 4, pkt->len);
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    p += PKTcs + 2;
+    lb = (LclBuf *)((p[0] << (3*8)) |
+         	    (p[1] << (2*8)) |
+         	    (p[2] << (1*8)) |
+         	    (p[3] << (0*8)));
+    len = pkt->len - 4 - sizeof(LclBuf *);
+    if (len > 0) {			/* if there is something to write */
+	int max;
+	QioIOQ *ioq;
+
+	total_bytes += len;
+	ioq = &lb->ioq;
+	p += 4;				/* advance to our data */
+#if HDDNL_ZLIB
+	if ((lb->mode&MOLE_O_COMPRESS)) {
+	    struct z_stream_s *zs;
+	    int sts, old;
+	    if (lb->z_flags&Z_FLAGS_DONE) {
+		p[PKTcs+2] = MOLE_ERR_WRITING;	/* too much input */
+		nsprintf((char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3,
+		    "Too much input");
+		p[PKTcmd] = ICEnak;
+		mole_acknak(pkt);
+		return;
+	    }
+	    zs = &lb->z;
+	    zs->next_in = (Bytef *)p;
+	    zs->avail_in = len;
+	    if (!zs->avail_out) {
+		zs->next_out = lb->buf + lb->which_buf;
+		zs->avail_out = MOLE_BUF_SIZE;
+	    }
+	    old = zs->avail_out;
+	    sts = inflate(zs, Z_PARTIAL_FLUSH); /* inflate the data */
+	    SQ((iop, "\tpkt %d: Inflated %3d bytes to %d. which_buf=%d\n",
+    		pktn, len, old - zs->avail_out, lb->which_buf ? 1 : 0));
+	    lb->file_len += old - zs->avail_out;
+	    current_work.curr = lb->file_len;
+	    if (!zs->avail_out || sts == Z_STREAM_END) { /* if no room or input done */
+		if (sts == Z_STREAM_END) lb->z_flags |= Z_FLAGS_DONE;
+		ioq->complete = mole_wrt_z_q;
+		ioq->user = (void *)lb;
+		lb->pkt = pkt;
+		q_wrt(ioq, MOLE_BUF_SIZE - zs->avail_out);
+		return;				/* wait for I/O to complete */
+	    }
+	    if (sts == Z_OK) {		/* ate all the input and there's still room in output */
+		if ((int)pkt->user == MOLE_WRFILEack) {
+		    mole_nop(pkt);			/* ack the packet */
+		} else {
+		    mole_requeue_pkt(pkt);
+		}
+	    } else {
+		char buf[40];
+		const char *s;
+		s = get_zlib_errmsg(buf, sizeof(buf), zs, sts);
+		p[PKTcs+2] = MOLE_ERR_INVARG;
+		nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+		    "Error (%d) inflate()'ing: %s", sts, s);
+		p[PKTcmd] = ICEnak;
+		mole_acknak(pkt);
+	    }
+	    return;
+	}
+#endif
+	lb->file_len += len;		/* accumulate the length */
+	current_work.curr = lb->file_len;
+	max = MOLE_BUF_SIZE - lb->len;	/* maximize the xfer to size in user's buffer */
+	if (max > len) max = len;
+	SQUAWK((iop, "\tpkt %d: Copying %3d bytes from %08lX to %08lX (%08lX-%08lX) lb=%08lX\n",
+    		pktn, max, p, lb->buf + lb->which_buf + lb->len,
+    		lb->buf, lb->buf + 2*MOLE_BUF_SIZE-1, lb));
+	memcpy(lb->buf + lb->which_buf + lb->len, p, max); /* copy user data to disk buffer */
+	len -= max;			/* take from total */
+	lb->len += max;
+	if (len || lb->len >= MOLE_BUF_SIZE ) { /* if there is a remainder or buffer exactly filled */
+	    ioq->complete = mole_wrt_q;
+	    ioq->user = (void *)lb;
+	    lb->pkt = pkt;
+	    SQUAWK((iop, "\tWriting %4d bytes from %08lX to fd %d\n",
+	    		MOLE_BUF_SIZE, lb->buf + lb->which_buf, ioq->file));
+	    if (q_wrt(ioq, MOLE_BUF_SIZE)) return;
+	    if (len) {			/* if there's a remainder */
+		p += max;		/* move input ptr */
+		SQUAWK((iop, "\tpkt %d: (part 2) Copying %d bytes from %08lX to %08lX (next=%08lX)\n",
+			pktn, len, p, lb->buf + lb->which_buf, pkt->next));
+		memcpy(lb->buf+lb->which_buf, p, len); /* copy rest to other buffer */
+	    }
+	    lb->len = len;		/* set new length */
+	    return;			/* let completion routine requeue the packet */
+	}
+    }	    
+    if ((int)pkt->user == MOLE_WRFILEack) {
+	mole_nop(pkt);			/* ack the packet */
+    } else {
+	mole_requeue_pkt(pkt);
+    }
+    return;    
+}
+
+static void mole_cs_q(QioIOQ *ioq) {
+    LclBuf *lb;
+    PktIOStruct *pkt;
+    int sts, cs;
+    U32 *up;
+
+    lb = (LclBuf *)ioq->user;
+    pkt = lb->pkt;
+    sts = ioq->iostatus;
+    if (QIO_ERR_CODE(sts)) {
+	U8 *p;
+	p = pkt->buf;
+	if (sts == QIO_EOF) {
+	    p[PKTcs+2+0] = lb->chksum >> (3*8);
+	    p[PKTcs+2+1] = lb->chksum >> (2*8);
+	    p[PKTcs+2+2] = lb->chksum >> (1*8);
+	    p[PKTcs+2+3] = lb->chksum >> (0*8);
+	    p[PKTcmd] = ICEreply;
+	    mole_reply(pkt, 4);
+	} else {
+	    p[PKTcs+2] = MOLE_ERR_READING;	/* error reading file */
+	    qio_errmsg(sts, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	    p[PKTcmd] = ICEnak;
+	    mole_acknak(pkt);
+	}
+	return;
+    }
+    if ((ioq->iocount&3)) {
+	char *scp;
+	scp = (char *)lb->buf + ioq->iocount;
+	switch (ioq->iocount&3) {
+	    case 1: *scp++ = 0;
+	    case 2: *scp++ = 0;
+	    case 3: *scp++ = 0;
+	}
+    }
+    cs = lb->chksum;
+    for ( up = (U32*)lb->buf, sts=0; sts < ioq->iocount; sts += 4) {
+	cs += *up++;
+    }
+    lb->chksum = cs;
+    current_work.curr += ioq->iocount;	/* notify background of where we are reading */
+    sts = qio_read(ioq, lb->buf, 2*MOLE_BUF_SIZE);
+    if (sts) {
+	U8 *p;
+	p = pkt->buf;
+	p[PKTcs+2] = MOLE_ERR_READING;	/* error queing read */
+	qio_errmsg(sts, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    return;
+}
+
+static void mole_cchksum(PktIOStruct *pkt) {
+    U8 *p;
+    LclBuf *lb;
+    int pktn, sts;
+    QioIOQ *ioq;
+
+    pktn = pkt - pkts;
+    SQUAWK((iop, "Entered mole_cchksum. cmd = %d, pkt = %d\n", (int)pkt->user, pktn));
+    SQUAWK((iop, "mole_chksum: time = %10u usecs since boot, %10u usecs since queued\n",
+    	(prc_get_count() - since_boot + 25)/50, (prc_get_count() - timestamps[pktn]+25)/50));
+    p = pkt->buf;
+    if (pkt->len != sizeof(LclBuf *) + 4) {
+	SQUAWK((iop, "Error on packet %d. buf #=%d, cmd=%d, len=%d\n",
+    			pktn, (p - bufs)/MAX_PKT_SIZE, p[PKTcmd], pkt->len));
+	SQUAWK((iop, "pkt: to=%d, tothrd=%d, from=%d, frmth=%d, size=%d, len=%d, state=%d\n",
+		pkt->to, pkt->tothread, pkt->from, pkt->frmthread, pkt->size, pkt->len, pkt->state));
+	SQUAWK((iop, "next=%08lX, polling=%d, jj=%d, kk=%d\n",
+    		pkt->next, pkt->polling, pkt->jj, pkt->kk));
+	dump_pkt(0, pkt->buf, 16, 2);
+	p[PKTcs+2] = MOLE_ERR_INVARG;		/* invalid argument */
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-2,
+	    "Wrong size input parameters. Expected %d. Got %d",
+	    sizeof(LclBuf *) + 4, pkt->len);
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    p += PKTcs + 2;
+    lb = (LclBuf *)((p[0] << (3*8)) |
+         	    (p[1] << (2*8)) |
+         	    (p[2] << (1*8)) |
+         	    (p[3] << (0*8)));
+    lb->chksum = 0;			/* init the checksum */
+    ioq = &lb->ioq;
+    ioq->complete = mole_cs_q;
+    ioq->user = (void *)lb;
+    lb->pkt = pkt;
+    current_work.curr = 0;		/* start reading at 0 */
+    current_work.action = "checksum'd";
+    sts = qio_read(ioq, lb->buf, 2*MOLE_BUF_SIZE);
+    if (sts) {
+	p[PKTcs+2] = MOLE_ERR_READING;	/* error queing read */
+	qio_errmsg(sts, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    return;    
+}
+
+static void mole_closedone(QioIOQ *ioq) {
+    U8 *p;
+    LclBuf *lb;
+    PktIOStruct *pkt;
+    int sts;
+
+    lb = (LclBuf *)ioq->user;
+    pkt = lb->pkt;
+    p = pkt->buf;
+    current_work.iostatus = ioq->iostatus;
+    switch (lb->state) {
+	case 1:
+	    if (QIO_ERR_CODE(ioq->iostatus)) {	/* if write failed */
+		p[PKTcs+2] = MOLE_ERR_WRITING;
+		p[PKTcmd] = ICEnak;
+		qio_errmsg(ioq->iostatus, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+		mole_acknak(pkt);		/* report error */
+		lb->state = 2;
+		qio_close(ioq);			/* now close the file quietly */
+		return;
+	    }
+	    lb->state = 0;			/* now issue the close */
+	    sts = qio_close(ioq);
+	    if (sts) {				/* if queue failed */
+		p[PKTcs+2] = MOLE_ERR_CLOSE;
+		p[PKTcmd] = ICEnak;
+		qio_errmsg(sts, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+		mole_acknak(pkt);		/* report error */
+		break;
+	    }
+	    return;
+	case 0:
+	    SQ((iop, "Close done: len=%9d, name=%s\n", lb->file_len, lb->name));
+	    current_work.file[0] = 0;		/* done with this file now */
+	    current_work.fn_changed = 1;	/* filename changed */
+	    if (QIO_ERR_CODE(ioq->iostatus)) {	/* if close failed */
+		p[PKTcs+2] = MOLE_ERR_CLOSE;
+		p[PKTcmd] = ICEnak;
+		qio_errmsg(ioq->iostatus, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	    } else {
+		p[PKTcs+2] = 0;
+		p[PKTcs+3] = 0;
+		p[PKTcmd] = ICEack;
+	    }
+	    mole_acknak(pkt);
+	default:
+	    break;
+    }
+#if HDDNL_ZLIB
+    if ((lb->mode&MOLE_O_COMPRESS)) {
+	if ((lb->mode&3) == O_RDONLY) {
+	    deflateEnd(&lb->z);
+	} else {
+	    inflateEnd(&lb->z);
+	}
+    }
+#endif
+    QIOfree(lb);
+    return;		/* NOTE: ioq is 'gone' at this point */
+}
+    
+static void mole_close(PktIOStruct *pkt) {
+    U8 *p;
+    LclBuf *lb;
+    QioIOQ *ioq;
+    int sts;
+
+    SQ((iop, "Entered mole_close. cmd = %d, pkt = %d\n", (int)pkt->user, pkt - pkts));
+    p = pkt->buf;
+    if (pkt->len < sizeof(LclBuf *) + 4) {
+	p[PKTcs+2] = MOLE_ERR_INVARG;		/* invalid argument */
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-2,
+	    "Wrong size input parameters. Expected >= %d. Got %d",
+	    sizeof(MoleInitFSExt) + 4, pkt->len);	    
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    p += PKTcs + 2;
+    lb = (LclBuf *)((p[0] << (3*8)) |
+         	    (p[1] << (2*8)) |
+         	    (p[2] << (1*8)) |
+         	    (p[3] << (0*8)));
+    if (lb->rw_pending) {		/* there are writes pending */
+	lb->close_pkt = pkt;		/* so save this */
+	return;				/* and process it later */
+    }
+    lb->pkt = pkt;
+    ioq = &lb->ioq;
+    ioq->complete = mole_closedone;
+    ioq->user = (void *)lb;
+    if ((lb->mode&MOLE_O_FHBITS)) {	/* special file header file */
+	ioq->iostatus = QIO_SUCC|SEVERITY_INFO;
+	lb->state = 0;
+	mole_closedone(ioq);
+	return;
+    }
+    if ((lb->mode&3) && lb->len) { /* if there's anything in the buffer */
+	lb->state = 1;
+	sts = qio_write(ioq, lb->buf + lb->which_buf, lb->len);
+	if (!sts) return;	/* let completion routine handle return status */
+	p[PKTcs+2] = MOLE_ERR_WRITING;	/* error queing write */
+	qio_errmsg(sts, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);	/* emit the error message */
+	lb->state = 2;
+	qio_close(ioq);		/* close without using pkt */
+	return;
+    }
+    lb->state = 0;		/* close only */
+    qio_close(ioq);
+    return;    
+}
+
+static void mole_opendir(PktIOStruct *pkt) {
+    not_supp(pkt);
+    return;
+}
+
+static void mole_rddir(PktIOStruct *pkt) {
+    not_supp(pkt);
+    return;
+}
+
+typedef struct lcl_stat {
+    QioIOQ ioq;
+    FsysOpenT ot;
+    PktIOStruct *pkt;
+    int state;
+} LclStat;
+
+static void mole_fstatdone(QioIOQ *ioq) {
+    LclStat *ls;
+    MoleMkFileExt *mk;
+    PktIOStruct *pkt;
+    FsysOpenT *ot;
+    U8 *p;
+
+    ls = (LclStat *)ioq->user;
+    pkt = ls->pkt;
+    p = pkt->buf;
+
+    current_work.iostatus = ioq->iostatus;
+    if (QIO_ERR_CODE(ioq->iostatus)) {	/* if open failed */
+	if (ioq->iostatus != FSYS_LOOKUP_FNF && ioq->iostatus != FSYS_LOOKUP_NOPATH) {
+	    p[PKTcs+2] = ls->state ? MOLE_ERR_CLOSE : MOLE_ERR_OPEN;
+	    p[PKTcmd] = ICEnak;
+	    qio_errmsg(ioq->iostatus, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	    mole_acknak(pkt);
+	    QIOfree(ls);
+	    return;
+	}
+    } else {
+	if (!ls->state) {
+	    ++ls->state;
+	    qio_close(ioq);
+	    return;
+	}
+    }
+    ot = &ls->ot;
+    mk = (MoleMkFileExt *)(p + PKTcs + 2);
+    memset((char *)mk, 0, sizeof(MoleMkFileExt));
+    p[PKTcmd] = ICEreply;
+    if (!QIO_ERR_CODE(ioq->iostatus)) {
+	mk->mode[0] = (int)(ot->spc.mode) >> (3*8);
+	mk->mode[1] = (int)(ot->spc.mode) >> (2*8);
+	mk->mode[2] = (int)(ot->spc.mode) >> (1*8);
+	mk->mode[3] = (int)(ot->spc.mode) >> (0*8);
+	mk->fid[0]  = (int)(ot->fid) >> (3*8);
+	mk->fid[1]  = (int)(ot->fid) >> (2*8);
+	mk->fid[2]  = (int)(ot->fid) >> (1*8);
+	mk->fid[3]  = (int)(ot->fid) >> (0*8);
+	mk->parent[0]  = (int)(ot->parent) >> (3*8);
+	mk->parent[1]  = (int)(ot->parent) >> (2*8);
+	mk->parent[2]  = (int)(ot->parent) >> (1*8);
+	mk->parent[3]  = (int)(ot->parent) >> (0*8);
+	mk->alloc[0]  = (int)(ot->alloc) >> (3*8);
+	mk->alloc[1]  = (int)(ot->alloc) >> (2*8);
+	mk->alloc[2]  = (int)(ot->alloc) >> (1*8);
+	mk->alloc[3]  = (int)(ot->alloc) >> (0*8);
+	mk->eof[0]  = (int)(ot->eof) >> (3*8);
+	mk->eof[1]  = (int)(ot->eof) >> (2*8);
+	mk->eof[2]  = (int)(ot->eof) >> (1*8);
+	mk->eof[3]  = (int)(ot->eof) >> (0*8);
+	mk->copies = ot->copies;
+	mk->mkdir = ot->mkdir;
+	mk->ctime[0]  = (int)(ot->ctime) >> (3*8);
+	mk->ctime[1]  = (int)(ot->ctime) >> (2*8);
+	mk->ctime[2]  = (int)(ot->ctime) >> (1*8);
+	mk->ctime[3]  = (int)(ot->ctime) >> (0*8);
+	mk->mtime[0]  = (int)(ot->mtime) >> (3*8);
+	mk->mtime[1]  = (int)(ot->mtime) >> (2*8);
+	mk->mtime[2]  = (int)(ot->mtime) >> (1*8);
+	mk->mtime[3]  = (int)(ot->mtime) >> (0*8);
+	mk->def_extend[0] = (int)(ot->def_extend >> (1*8));
+	mk->def_extend[1] = (int)(ot->def_extend >> (0*8));
+    }
+    QIOfree(ls);
+    mole_reply(pkt, sizeof(MoleMkFileExt));
+    return;
+}
+
+static void mole_fstat(PktIOStruct *pkt) {
+    U8 *p;
+    LclStat *ls;
+    int ii;
+    QioIOQ *ioq;
+
+    p = pkt->buf;
+    ls = (LclStat *)QIOcalloc(1, sizeof(LclStat));
+    SQUAWK((iop, "fstat: calloc %d bytes: %08lX-%08lX\n", sizeof(LclStat), (U32)ls, (U32)ls+sizeof(LclStat)));
+    if (!ls) {
+	p[PKTcs+2] = MOLE_ERR_NOMEM;
+	p[PKTcmd] = ICEnak;
+	nsprintf((char *)p+PKTcs+3, pkt->size - PKTuser - PKTcs - 3,
+    		"fstat: Ran out of memory QIOcalloc'ing %d bytes",
+    		sizeof(LclStat));
+	mole_acknak(pkt);
+	return;
+    }
+    ls->ot.spc.path = (char *)(p + PKTcs + 2); /* skip to filename */
+    ls->ot.spc.mode = O_RDONLY;
+    ls->pkt = pkt;
+    ioq = &ls->ioq;
+    ioq->complete = mole_fstatdone;
+    ioq->user = (void *)ls;
+    ii = qio_openspc(ioq, &ls->ot.spc);
+    if (ii) {
+	ioq->iostatus = ii;
+	mole_fstatdone(ioq);
+    }
+    return;
+}
+
+static void mole_fsstat(PktIOStruct *pkt) {
+    not_supp(pkt);
+    return;
+}
+
+static void (* const mole_funcs[])(PktIOStruct *pkt) = {
+    mole_nop,
+    mole_nop,		/* actually mole_resync */
+    mole_mount,
+    mole_initfs,
+    mole_openfile,
+    mole_rdfile,
+    mole_wrfile,
+    mole_wrfile,
+    mole_close,
+    mole_opendir,
+    mole_rddir,
+    mole_fstat,
+    mole_fsstat,
+    not_supp,		/* send EOF */
+    mole_rtest,
+    mole_rtest,
+    mole_stest,
+    mole_cchksum,	/* compute checksum on file */
+    mole_goodbye	/* signoff */
+};
+
+static void got_ice_pkt(PktIOStruct *pkt) {
+    U8 *p;
+    void (*func)(PktIOStruct *arg);
+    int cmd, pktn;
+
+    pktn = pkt - pkts;
+    ++pkts_rcvd;
+    p = pkt->buf;
+    SQUAWK((iop, "Received %d bytes from net on pkt %d, seq=%d, cmd=%d\n",
+    		pkt->len, pktn, p[PKTpktn], p[PKTcmd]));
+#if TOSS_PACKET
+    if ((ctl_read_sw(SW_ACTION)&SW_ACTION)) {
+	mole_requeue_pkt(pkt);
+	return;
+    }
+#endif
+    if ((cmd=p[PKTcmd]) >= MOLE_MAX || cmd < MOLE_NOP) { /* valid command? */
+	nsprintf((char *)p+PKTcs+3, pkt->size - (PKTuser + PKTcs + 3), "Undefined HDDNL command: %d. s/b %d <= x < %d",
+    		 cmd, MOLE_NOP, MOLE_MAX);
+	p[PKTcs+2] = MOLE_ERR_INVCMD;
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    if (cmd != MOLE_RESYNC && nxt_seq != p[PKTpktn]) {
+	nsprintf((char *)p+PKTcs+3, pkt->size - (PKTuser + PKTcs + 3),
+	    "Packet out of sequence. Expected: %d, got %d", nxt_seq, p[PKTpktn]);
+	p[PKTpktn] = nxt_seq;		/* tell 'em which one we're expecting next */
+	p[PKTcs+2] = MOLE_ERR_OOS;
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }	
+    if (pkt->len > 4) {
+	int ii, cs;
+	p = pkt->buf + PKTcs + 2;
+	for (cs=0, ii=4; ii < pkt->len; ++ii) cs += *p++;
+	p = pkt->buf;
+	if (p[PKTcs] != ((cs>>8)&0xFF) || p[PKTcs+1] != (cs&0xFF)) {
+	    if (p[PKTcmd] != MOLE_RTEST) {
+		nsprintf((char *)p+PKTcs+3, pkt->size - (PKTuser + PKTcs + 3),
+		    "Incoming packet checksum error. (len=%d) Expected %04X, got %04X",
+		    pkt->len, cs&0xFFFF, (p[PKTcs]<<8)|p[PKTcs+1]);
+		p[PKTcs+2] = MOLE_ERR_CS;
+		p[PKTcmd] = ICEnak;
+		mole_acknak(pkt);
+		return;
+	    }
+	}
+    }
+    nxt_seq = (p[PKTpktn]+1)&0xFF;
+    if (cmd != MOLE_RESYNC && no_drive) {
+	strcpy((char *)p+PKTcs+3, "Disk drive is not responding. It is probably not hooked up correctly.");
+	p[PKTcs+2] = MOLE_ERR_OFFLINE;
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    pkt->user = (void *)cmd;
+    func = mole_funcs[cmd-MOLE_NOP];
+    SQUAWK((iop, "%10u: Got a good packet. count=%d, cmd=%d, nxt_seq=%d, seq=%d, func=%08lX\n",
+    		(prc_get_count() - since_boot + 25)/50, pkt->len, cmd, nxt_seq, p[PKTpktn], func));
+    timestamps[pktn] = prc_get_count();
+    SQUAWK((iop, "Getting mutex. cmd = %d, pkt = %d, curr = %d\n",
+    		(int)pkt->user, pkt - pkts, get_top()));
+    if (hddnl_getmutex(&pkt_mutex, func, pkt)) {
+	SQUAWK((iop, "Failed to queue AST on packet %d\n", pkt - pkts));
+    }
+    return;
+}
+
+#if HDDNL_GAME_MODE
+static struct act_q pkt_queue[MAX_NUM_PKTS+1];
+static int pkt_qi;
+# if !HDDNL_USE_XINU
+static int pkt_qo;
+# endif
+
+static void post_ice_pkt(PktIOStruct *pkt) {
+#if !HDDNL_USE_XINU
+    if (hddnl_busy || !hddnl_unsafe) {
+	if (pkt_qo != pkt_qi) {
+	    pkt_queue[pkt_qi].action = (void (*)(void *))got_ice_pkt;
+	    pkt_queue[pkt_qi].param = (void *)pkt;
+	    if (++pkt_qi >= MAX_NUM_PKTS+1) pkt_qi = 0;
+	    while (pkt_qo != pkt_qi) {
+		prc_q_ast(QIO_ASTLVL, pkt_queue + pkt_qo);
+		if (++pkt_qo >= MAX_NUM_PKTS+1) pkt_qo = 0;
+	    }
+	} else {
+	    got_ice_pkt(pkt);
+	}
+    } else {
+	pkt_queue[pkt_qi].action = (void (*)(void *))got_ice_pkt;
+	pkt_queue[pkt_qi].param = (void *)pkt;
+	if (++pkt_qi >= MAX_NUM_PKTS+1) pkt_qi = 0;
+    }
+#else
+    pkt_queue[pkt_qi].action = (void (*)(void *))got_ice_pkt;
+    pkt_queue[pkt_qi].param = (void *)pkt;
+    prc_q_ast(QIO_ASTLVL, pkt_queue + pkt_qi);
+    if (++pkt_qi >= MAX_NUM_PKTS+1) pkt_qi = 0;
+#endif
+    return;    
+}
+#endif
+
+#if !HDDNL_QUIET
+static void show_mkb(int amt, int yel, int red) {
+    char msg[32], *ct;
+    int pal;
+    float conv;
+
+    conv = amt;
+    if (conv > 995*1024*1024.0) {
+	conv /= 1024*1024*1024.0;
+	ct = "GB";
+    } else if (conv > 995*1024.0) {
+	conv /= 1024*1024;
+	ct = "MB";
+    } else {
+	conv /= 1024.0;
+	ct = "KB";
+    }
+    nsprintf(msg, sizeof(msg), "%6.1f", conv);
+    pal = GRN_PAL;
+    if (amt < red) pal = RED_PAL;
+    else if (amt < yel) pal = YEL_PAL;
+    txt_cstr(msg, pal);
+    txt_cstr(ct, WHT_PAL);
+}
+
+#define TITLE_MSG "HD_DNL"
+#define TITLE_ROW	1
+#define TITLE_COL	-1
+#define DRIVE_STATS_ROW	3
+#define DRIVE_STATS_MSG "Drive capacity: "
+#define DRIVE_STATS_COL (sizeof(DRIVE_STATS_MSG))
+#define RAM_STATS_MSG "RAM free"
+#define RAM_STATS_ROW	DRIVE_STATS_ROW
+#define RAM_STATS_COL	(AN_VIS_COL-2-sizeof(RAM_STATS_MSG)-9)
+#define FSYS_STATS_MSG "File system has"
+#define FSYS_STATS_ROW  7
+#define FSYS_STATS_COL	1
+#define FSYS_FILES_ROW	FSYS_STATS_ROW
+#define FSYS_FILES_COL	(FSYS_STATS_COL+sizeof(FSYS_STATS_MSG)-1)
+#define FSYS_FILES_MSG "files, "
+#define FSYS_USED_COL	(FSYS_FILES_COL+6+sizeof(FSYS_FILES_MSG))
+#define FSYS_USED_MSG "used,"
+#define FSYS_FREE_MSG "free"
+#define FSYS_FREE_COL	(FSYS_USED_COL+9+sizeof(FSYS_FREE_MSG))
+#define PKT_STATS_ROW	5
+#define PKT_STATS_COL	1
+#define PKT_STATS_MSG "Packets:"
+#define PKT_RCV_MSG "rcvd,"
+#define PKT_RCV_COL	(PKT_STATS_COL+sizeof(PKT_STATS_MSG))
+#define PKT_SND_MSG "sent,"
+#define PKT_SND_COL	(PKT_RCV_COL+8+sizeof(PKT_RCV_MSG))
+#define PKT_BYT_MSG "xferred"
+#define PKT_BYT_COL	(PKT_SND_COL+8+sizeof(PKT_SND_MSG))
+#define VER_TITLE "Version: "
+#define VER_TITLE_ROW   9
+#define VER_TITLE_COL  ((AN_VIS_COL-sizeof(VER_TITLE)-1-sizeof(date)-1)/2)
+
+static U32 drv_capacity;
+
+static void banners(void) {
+    txt_str(TITLE_COL, TITLE_ROW, TITLE_MSG, RED_PAL|AN_BIG_SET);
+    txt_str(1, DRIVE_STATS_ROW, DRIVE_STATS_MSG, WHT_PAL);
+    show_mkb(drv_capacity*512, 0, 0);
+    txt_str(RAM_STATS_COL+9, RAM_STATS_ROW, RAM_STATS_MSG, WHT_PAL);
+    txt_str(PKT_STATS_COL, PKT_STATS_ROW, PKT_STATS_MSG, WHT_PAL);
+    txt_str(PKT_RCV_COL+9, PKT_STATS_ROW, PKT_RCV_MSG, WHT_PAL);
+    txt_str(PKT_SND_COL+9, PKT_STATS_ROW, PKT_SND_MSG, WHT_PAL);
+    txt_str(PKT_BYT_COL+9, PKT_STATS_ROW, PKT_BYT_MSG, WHT_PAL);
+    txt_str(VER_TITLE_COL, VER_TITLE_ROW, VER_TITLE, WHT_PAL);
+    txt_cstr(date, GRN_PAL);
+}
+
+static void fsys_banners(void) {
+    txt_str(FSYS_STATS_COL, FSYS_STATS_ROW, FSYS_STATS_MSG, WHT_PAL);
+    txt_str(FSYS_FILES_COL+6, FSYS_STATS_ROW, FSYS_FILES_MSG, WHT_PAL);
+    txt_str(FSYS_USED_COL+9, FSYS_STATS_ROW, FSYS_USED_MSG, WHT_PAL);
+    txt_str(FSYS_FREE_COL+10, FSYS_STATS_ROW, FSYS_FREE_MSG, WHT_PAL);
+    banners_up = 1;
+}
+
+static FsysVolume *volume;
+
+static void get_vol(char *volname) {
+    QioIOQ *ioq;
+    QioFile *file;
+    FsysVolume *vol=0;
+    char emsg[AN_VIS_COL_MAX];
+
+    ioq = qio_getioq();
+    qio_open(ioq, (void *)volname, O_RDONLY);
+    if (QIO_ERR_CODE(ioq->iostatus)) {
+	qio_errmsg(ioq->iostatus, emsg, sizeof(emsg));
+	FPRINTF((OUTWHERE, "Error opening \"%s\" to get volume pointer:\n%s\n", volname, emsg));
+	qio_freeioq(ioq);
+	return;
+    }
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc || !(vol=file->dvc->private) || vol->id != FSYS_ID_VOLUME) {
+	FPRINTF((OUTWHERE, "QIO device structs not correct\n"));
+	if (!file) FPRINTF((OUTWHERE, "file == 0\n"));
+	else if (!file->dvc) FPRINTF((OUTWHERE, "file->dvc == 0\n"));
+	else if (vol == 0) FPRINTF((OUTWHERE, "vol == 0\n"));
+	else if (vol->id != FSYS_ID_VOLUME) {
+	    FPRINTF((OUTWHERE, "vol->id is %08lX, s/b %08lX\n", vol->id, FSYS_ID_VOLUME));
+	}
+	qio_freeioq(ioq);
+	return;
+    }
+    qio_close(ioq);
+    qio_freeioq(ioq);
+    volume = vol;
+    return;
+}
+#endif
+
+#if !HDDNL_QUIET
+static const char * const waiting_msgs[] = {
+    "INPUT!!! I NEED INPUT!!!",
+    "Will work for bits",
+    "This space for rent",
+    "Hey, gimme sumthin to do",
+    "This space intentionally left blank",
+    "Waiting for work",
+    "Say the secret word, win $100",
+    "Take this time to fill out your registration card",
+    "The white zone is for loading/unloading only",
+    "Winners don\'t use drugs, ...much",
+    "Take a stress pill, Dave",
+    "There is another mechanism.",
+    "Beam me up, Scotty",
+    "I'm afraid I cannot do that, Dave.",
+    "So many idiots, so few comets",
+    0
+};
+static int which_msg, did_msg;
+
+static void upd_display(void) {
+    if (banners_up) {
+	if (!volume) get_vol("/d0/.");
+	if (volume) {
+	    txt_decnum(FSYS_FILES_COL, FSYS_FILES_ROW, volume->files_ffree, 5, RJ_BF, GRN_PAL);
+	    txt_str(FSYS_USED_COL, FSYS_FILES_ROW, "", WHT_PAL);
+	    show_mkb(volume->total_alloc_clusters*512, 0, 0);
+	    txt_str(FSYS_FREE_COL, FSYS_FILES_ROW, " ", WHT_PAL);
+	    show_mkb(volume->total_free_clusters*512, drv_capacity*512/8, 16*1024*1024);
+	}
+    }
+    txt_decnum(PKT_RCV_COL, PKT_STATS_ROW, pkts_rcvd, 8, RJ_BF, GRN_PAL);
+    txt_decnum(PKT_SND_COL, PKT_STATS_ROW, pkts_sent, 8, RJ_BF, GRN_PAL);
+    txt_str(PKT_BYT_COL, PKT_STATS_ROW, "", WHT_PAL);
+    show_mkb(total_bytes, 0, 0);
+    txt_str(RAM_STATS_COL, RAM_STATS_ROW, "", WHT_PAL);
+    show_mkb(HEAP_REMAINING(), 128*1024, 32*1024);
+    if (!current_work.file[0]) {
+	const char *cp;
+	if (!did_msg) {
+	    int pal;
+	    txt_clr_wid(0, AN_VIS_ROW/2+0, AN_VIS_COL);
+	    txt_clr_wid(0, AN_VIS_ROW/2+1, AN_VIS_COL);
+	    txt_clr_wid(0, AN_VIS_ROW/2+2, AN_VIS_COL);
+	    txt_clr_wid(0, AN_VIS_ROW/2+3, AN_VIS_COL);
+	    txt_clr_wid(0, AN_VIS_ROW/2+4, AN_VIS_COL);
+	    if (no_drive) {
+		cp = "Disk drive is OFFLINE";        
+		pal = RED_PAL;
+	    } else {
+		if (!which_msg) {
+		    srand(prc_get_count());
+		}
+		while (!(which_msg = (rand() % (n_elts(waiting_msgs))))) { ; }
+		cp = waiting_msgs[which_msg-1];
+		if (!cp) {
+		    cp = waiting_msgs[0];
+		}
+		pal = GRN_PAL;
+	    }
+	    txt_str(-1, AN_VIS_ROW/2+0, cp, pal);
+	    did_msg = 1;
+	}
+    } else {
+	if (current_work.fn_changed) {
+	    current_work.fn_changed = 0;
+	    txt_clr_wid(0, AN_VIS_ROW/2+0, AN_VIS_COL);
+	    did_msg = 0;
+	}
+	txt_str(-1, AN_VIS_ROW/2+0, (char *)current_work.file, GRN_PAL);
+	if (current_work.alloc > 0) {
+	    int ii, left, pcnt;
+	    float curr, alloc;
+	    
+	    curr = current_work.curr;
+	    alloc = current_work.alloc;
+	    pcnt = curr/alloc*100.0;
+	    if (pcnt > 100) pcnt = 100;
+	    txt_str( 4, AN_VIS_ROW/2 + 4, "Allocation: ", WHT_PAL);
+	    show_mkb(current_work.alloc, 0, 0);
+	    txt_cstr("  Currently ", WHT_PAL);
+	    txt_cstr(current_work.action, WHT_PAL);
+	    txt_cstr(": ", WHT_PAL);
+	    show_mkb(current_work.curr, 0, 0);
+	    left = AN_VIS_COL*3*pcnt/400;
+	    txt_decnum(1, AN_VIS_ROW/2+2, pcnt, 3, RJ_BF, WHT_PAL);
+	    txt_cstr("%", WHT_PAL);
+	    for (ii=0; ii < AN_VIS_COL*3/4; ++ii) {
+		txt_stamp( (AN_VIS_COL-AN_VIS_COL*3/4)/2 + ii, AN_VIS_ROW/2+2, (ii <= left) ? 0x02 : 0x01, CYN_PAL);
+	    }
+	}
+    }
+    return;
+}
+#endif
+
+#if HDDNL_GAME_MODE
+
+#ifndef CHAR_BITS
+# define CHAR_BITS	8
+#endif
+#define U32_BITS (sizeof(U32)*(CHAR_BITS))
+#define DIRTY_U32_PER_ROW	((AN_VIS_COL_MAX+U32_BITS-1)/U32_BITS)
+
+static int wants_mount() {
+    int sts;
+    char emsg[AN_VIS_COL_MAX];
+    struct act_q q;
+    U8 *p;
+
+    if (!please_mount.pkt) return 1;
+    p = please_mount.pkt->buf;
+    if (!been_mounted) {
+	sts = ide_init();
+#if !HDDNL_QUIET
+	txt_clr_wid(0, AN_VIS_ROW/2-4, AN_VIS_COL);
+#endif
+	if (sts) {
+	    no_drive = 1;
+	} else {
+#if !HDDNL_QUIET
+	    txt_str(-1, AN_VIS_ROW/2, "Initialising filesystem s/w", WHT_PAL);
+	    prc_delay(20);
+#endif
+	    fsys_init();
+	}
+	if (!no_drive) {
+#if !HDDNL_QUIET
+	    txt_clr_wid(0, AN_VIS_ROW/2+6, AN_VIS_COL);
+	    txt_str(-1, AN_VIS_ROW/2+6, "Mounting volume... ", WHT_PAL);
+	    txt_cstr((char *)please_mount.phys, WHT_PAL);
+	    txt_cstr(" (", WHT_PAL);
+	    txt_cstr((char *)please_mount.virt, WHT_PAL);
+	    txt_cstr(")", WHT_PAL);
+	    prc_delay(0);
+#endif
+	    sts = fsys_mountw(please_mount.phys, please_mount.virt);
+	    if (QIO_ERR_CODE(sts) && sts != FSYS_MOUNT_MOUNTED) {
+		qio_errmsg(sts, emsg, sizeof(emsg));  
+#if !HDDNL_QUIET
+		txt_clr_wid(0, AN_VIS_ROW-4, AN_VIS_COL);
+		txt_str(-1, AN_VIS_ROW-4, emsg, YEL_PAL);
+#endif
+		p[PKTcmd] = ICEnak;
+		p[PKTcs+2] = MOLE_ERR_MOUNT;
+		strcpy((char *)p+PKTcs+3, emsg);
+	    } else {
+		p[PKTcmd] = ICEack;
+		p[PKTcs+2] = 0;
+		p[PKTcs+3] = 0;
+		been_mounted = 1;
+	    }
+	} else {
+	    strcpy((char *)p+PKTcs+3, "No drive responding");
+#if !HDDNL_QUIET
+	    txt_clr_wid(0, AN_VIS_ROW-4, AN_VIS_COL);
+	    txt_str(-1, AN_VIS_ROW-4, (char *)p+PKTcs+3, YEL_PAL);
+#endif
+	    p[PKTcmd] = ICEnak;
+	    p[PKTcs+2] = MOLE_ERR_MOUNT;
+	}
+    } else {
+	p[PKTcmd] = ICEack;
+	p[PKTcs+2] = 0;
+	p[PKTcs+3] = 0;
+    }
+    q.que = q.next = 0;
+    q.action = (void (*)(void *))mole_acknak;
+    q.param = (void *)please_mount.pkt;
+    please_mount.pkt = 0;
+    prc_q_ast(QIO_ASTLVL, &q);
+#if !HDDNL_QUIET
+    txt_clr_wid(0, AN_VIS_ROW/2+6, AN_VIS_COL);
+#endif
+    if (!been_mounted) {
+#if !HDDNL_QUIET
+	prc_delay(30);
+#endif
+	return 1;
+    }
+    return 0;
+}
+
+#if HDDNL_USE_XINU
+static int wants_init(void) {
+    U8 *p;
+    struct act_q q;
+    int worked = 0, sts;
+    char emsg[AN_VIS_COL_MAX];
+
+    sts = ide_init();
+# if !HDDNL_QUIET
+    txt_clr_wid(0, AN_VIS_ROW/2-4, AN_VIS_COL);
+# endif
+    if (sts) {
+	no_drive = 1;
+    } else {
+# if !HDDNL_QUIET
+	txt_str(-1, AN_VIS_ROW/2, "Initialising filesystem s/w", WHT_PAL);
+	prc_delay(20);
+# endif
+	fsys_init();
+    }
+# if !HDDNL_QUIET
+    txt_clr_wid(0, AN_VIS_ROW/2+6, AN_VIS_COL);
+    txt_str(-1, AN_VIS_ROW/2+6, "Initializing volume... ", WHT_PAL);
+    txt_cstr((char *)please_init.phys, WHT_PAL);
+    txt_cstr(" (", WHT_PAL);
+    txt_cstr((char *)please_init.virt, WHT_PAL);
+    txt_cstr(")", WHT_PAL);
+    prc_delay(0);
+# endif
+    sts = fsys_initfs((char *)please_init.phys, &please_init.ifs);
+    p = please_init.pkt->buf;
+    if (QIO_ERR_CODE(sts)) {
+	qio_errmsg(sts, emsg, sizeof(emsg));  
+# if !HDDNL_QUIET
+	txt_clr_wid(0, AN_VIS_ROW-4, AN_VIS_COL);
+	txt_str(-1, AN_VIS_ROW-4, emsg, YEL_PAL);
+# endif
+	p[PKTcmd] = ICEnak;
+	p[PKTcs+2] = MOLE_ERR_INIT;
+	strcpy((char *)p+PKTcs+3, emsg);
+    } else {
+	p[PKTcmd] = ICEack;
+	p[PKTcs+2] = 0;
+	p[PKTcs+3] = 0;
+	worked = 1;
+    }
+    q.que = q.next = 0;
+    q.action = (void (*)(void *))mole_acknak;
+    q.param = (void *)please_init.pkt;
+    please_init.pkt = 0;
+    prc_q_ast(QIO_ASTLVL, &q);
+# if !HDDNL_QUIET
+    txt_clr_wid(0, AN_VIS_ROW/2+6, AN_VIS_COL);
+# endif
+    if (!worked) {
+	prc_delay(30);
+	return 1;
+    }
+    return 0;
+}
+#endif
+
+void hddnl_check(int unsafe) {
+#if !HDDNL_QUIET
+    int oldopt, sts;
+    U16 fake_screen[AN_VIS_ROW_MAX][AN_VIS_COL_MAX];
+    U32 dirty_bits[AN_VIS_ROW_MAX*DIRTY_U32_PER_ROW];
+    U32 cookie;
+    struct txt_alpha_ptr *old_vs, ourscreen;
+#endif
+
+    if (!hddnl_guts_mode && !been_mounted) been_mounted = 1;
+#if !HDDNL_USE_XINU
+    {
+	int oldps;
+	oldps = prc_set_ipl(INTS_OFF);
+	hddnl_unsafe = unsafe;		/* say whether we're safe or not */
+	if (!unsafe) {			/* making it safe */
+	    while (pkt_qi != pkt_qo) {	/* packets showed up while we were unsafe */
+		prc_q_ast(QIO_ASTLVL, pkt_queue + pkt_qo);
+		if (++pkt_qo >= MAX_NUM_PKTS+1) pkt_qo = 0;
+	    }
+	    prc_set_ipl(oldps);		/* this will launch the packet processor */
+	}
+	if (!hddnl_busy) {			/* it is not busy */
+	    prc_set_ipl(oldps);
+	    return;
+	}
+	prc_set_ipl(oldps);
+    }
+#endif
+    if (!been_mounted && !please_mount.pkt 
+#if HDDNL_USE_XINU
+    	&& !please_init.pkt
+#endif
+    	) return; /* wait until he asks us to mount */
+
+#if HDDNL_QUIET
+# if HDDNL_USE_XINU
+    if (please_init.pkt)  wants_init();
+# endif
+    if (please_mount.pkt) wants_mount();
+#else
+    cookie = txt_setpos(0);
+    oldopt = prc_delay_options(PRC_DELAY_OPT_TEXT2FB|PRC_DELAY_OPT_SWAP|PRC_DELAY_OPT_CLEAR);
+    ourscreen.screen = &fake_screen[0][0];
+    ourscreen.dirty = dirty_bits;
+    ourscreen.texture_offset = 0;
+    ourscreen.color_offset = 0;
+    old_vs = txt_vsptr(&ourscreen);
+    memset((char *)fake_screen, 0, sizeof(fake_screen));
+    memset((char *)dirty_bits, 0, sizeof(dirty_bits));
+
+    if (!been_mounted && please_mount.pkt) {
+	sts = wants_mount();
+    } else {
+	sts = 0;
+    }
+
+    if (!drv_capacity) {
+	QioIOQ *ioq;
+	struct stat devstat;
+	memset((char *)&devstat, 0, sizeof(devstat));
+	ioq = qio_getioq();
+	qio_open(ioq, "/rd0", O_RDWR);
+	qio_fstat(ioq, &devstat);
+	drv_capacity = devstat.st_size;
+	qio_freeioq(ioq);
+    }
+
+    if (!sts) {
+	banners();
+	fsys_banners();
+	while (hddnl_busy) {
+#if HDDNL_USE_XINU
+	    if (please_init.pkt) wants_init();
+#endif
+	    if (please_mount.pkt) wants_mount();
+	    upd_display();
+	    prc_delay(0);
+	}
+    }
+    txt_vsptr(old_vs);
+    prc_delay(45);
+    txt_setpos(cookie);
+    prc_delay_options(oldopt);
+#endif
+    return;        
+}
+#endif
+
+void hddnlInit(void) {
+    int loop;
+    PktIOStruct *pkt;
+    struct act_q *aqp;
+
+#if !HDDNL_QUIET
+    QioIOQ *io0;
+    struct stat devstat;
+#endif
+
+#if !HDDNL_GAME_MODE
+    int sts;
+    char emsg[AN_VIS_COL_MAX];
+
+# if !HDDNL_QUIET
+    since_boot = prc_get_count();
+    loop = 0;
+    prc_delay_options(PRC_DELAY_OPT_TEXT2FB|PRC_DELAY_OPT_SWAP|PRC_DELAY_OPT_CLEAR);
+    vid_clear();
+
+    vid_set_vb(lcl_vb);
+
+    lcl_vb_flag = LCL_FLG_COUNT|LCL_FLG_INCREM|LCL_FLG_DISP;
+    lcl_row = AN_VIS_ROW-2;
+    lcl_col = (AN_VIS_COL-(3*2+2))/2;
+
+    txt_str(-1, AN_VIS_ROW/2-4, "Initialising hard drive", WHT_PAL);
+    prc_delay(0);
+
+# endif
+    sts = ide_init();
+# if !HDDNL_QUIET
+    txt_clr_wid(0, AN_VIS_ROW/2-4, AN_VIS_COL);
+# endif
+    if (sts) {
+	no_drive = 1;
+    } else {
+# if !HDDNL_QUIET
+	txt_str(-1, AN_VIS_ROW/2, "Initialising system s/w", WHT_PAL);
+	prc_delay(20);
+# endif
+	fsys_init();
+    }
+#endif
+
+#if HDDNL_SQUAWKING
+    iop = iio_open(1);		/* open an iio connection to thread 1 */
+#endif
+
+    pkt = pkts;
+    aqp = mutexes.next = mutexes_arr;
+    for (loop=0; loop < MAX_NUM_PKTS; ++loop, ++pkt, ++aqp) {
+	aqp->que = &mutexes;
+	aqp->next = aqp+1;
+	pkt->buf = bufs + loop*MAX_PKT_SIZE;
+	pkt->tothread = 2;
+	pkt->frmthread = 2;
+	pkt->size = MAX_PKT_SIZE;
+#if HDDNL_GAME_MODE
+	pkt->func = post_ice_pkt;
+#else
+	pkt->func = got_ice_pkt;
+#endif
+	pktQueRecv(pkt);
+    }
+
+#if !HDDNL_QUIET
+# if HDDNL_GAME_MODE
+    ide_init();
+# endif
+    io0 = qio_getioq();
+    qio_open(io0, "/rd0", O_RDWR);
+    qio_fstat(io0, &devstat);
+    drv_capacity = devstat.st_size;
+    qio_close(io0);
+    qio_freeioq(io0);
+    io0 = 0;
+#endif
+
+#if !HDDNL_GAME_MODE
+    banners();
+
+    txt_clr_wid(0, AN_VIS_ROW/2, AN_VIS_COL);
+    prc_delay(0);
+
+    sts = AN_VIS_ROW-1;
+#if INC_DUMP_VOL || INC_DUMP_VOLUME
+    sts = st_insn(sts, "To dump volume,", t_msg_next, INSTR_PAL);
+#endif
+#if TOSS_PACKET
+    sts = st_insn(sts, "To eat packet,", t_msg_action, INSTR_PAL);
+#endif
+    while (1) {
+	prc_delay(0);
+
+	if (please_init.pkt) {
+	    U8 *p;
+	    struct act_q q;
+	    txt_clr_wid(0, AN_VIS_ROW/2+6, AN_VIS_COL);
+	    txt_str(-1, AN_VIS_ROW/2+6, "Initializing volume... ", WHT_PAL);
+	    txt_cstr((char *)please_init.phys, WHT_PAL);
+	    txt_cstr(" (", WHT_PAL);
+	    txt_cstr((char *)please_init.virt, WHT_PAL);
+	    txt_cstr(")", WHT_PAL);
+	    prc_delay(0);
+	    sts = fsys_initfs((char *)please_init.phys, &please_init.ifs);
+	    p = please_init.pkt->buf;
+	    if (QIO_ERR_CODE(sts)) {
+		qio_errmsg(sts, emsg, sizeof(emsg));  
+		txt_clr_wid(0, AN_VIS_ROW-4, AN_VIS_COL);
+		txt_str(-1, AN_VIS_ROW-4, emsg, YEL_PAL);
+		p[PKTcmd] = ICEnak;
+		p[PKTcs+2] = MOLE_ERR_INIT;
+		strcpy((char *)p+PKTcs+3, emsg);
+	    } else {
+		p[PKTcmd] = ICEack;
+		p[PKTcs+2] = 0;
+		p[PKTcs+3] = 0;
+	    }
+	    q.que = q.next = 0;
+	    q.action = (void (*)(void *))mole_acknak;
+	    q.param = (void *)please_init.pkt;
+	    please_init.pkt = 0;
+	    prc_q_ast(QIO_ASTLVL, &q);
+	    txt_clr_wid(0, AN_VIS_ROW/2+6, AN_VIS_COL);
+	}
+	if (please_mount.pkt) {
+	    U8 *p;
+	    struct act_q q;
+	    txt_clr_wid(0, AN_VIS_ROW/2+6, AN_VIS_COL);
+	    txt_str(-1, AN_VIS_ROW/2+6, "Mounting volume... ", WHT_PAL);
+	    txt_cstr((char *)please_mount.phys, WHT_PAL);
+	    txt_cstr(" (", WHT_PAL);
+	    txt_cstr((char *)please_mount.virt, WHT_PAL);
+	    txt_cstr(")", WHT_PAL);
+	    prc_delay(0);
+	    sts = fsys_mountw(please_mount.phys, please_mount.virt);
+	    p = please_mount.pkt->buf;
+	    if (QIO_ERR_CODE(sts) && sts != FSYS_MOUNT_MOUNTED) {
+		qio_errmsg(sts, emsg, sizeof(emsg));  
+		txt_clr_wid(0, AN_VIS_ROW-4, AN_VIS_COL);
+		txt_str(-1, AN_VIS_ROW-4, emsg, YEL_PAL);
+		p[PKTcmd] = ICEnak;
+		p[PKTcs+2] = MOLE_ERR_MOUNT;
+		strcpy((char *)p+PKTcs+3, emsg);
+	    } else {
+		p[PKTcmd] = ICEack;
+		p[PKTcs+2] = 0;
+		p[PKTcs+3] = 0;
+		fsys_banners();
+	    }
+	    q.que = q.next = 0;
+	    q.action = (void (*)(void *))mole_acknak;
+	    q.param = (void *)please_mount.pkt;
+	    please_mount.pkt = 0;
+	    prc_q_ast(QIO_ASTLVL, &q);
+	    txt_clr_wid(0, AN_VIS_ROW/2+6, AN_VIS_COL);
+	}
+#if INC_DUMP_VOL
+	do {
+	    if ((ctl_read_sw(SW_NEXT)&(SW_NEXT))) {
+
+		if (!been_mounted) {
+		    sts = fsys_mountw("/rd0", "/d0");
+		    qio_errmsg(sts, emsg, sizeof(emsg));  
+		    txt_str(-1, AN_VIS_ROW-4, emsg, YEL_PAL);
+		    if (!QIO_ERR_CODE(sts) || sts == FSYS_MOUNT_MOUNTED ) been_mounted = 1;
+		}
+		if (been_mounted) {
+		    txt_clr_wid(0, AN_VIS_ROW-5, AN_VIS_COL);
+		    sts = dump_vol(iop, "/d0/.");
+		    if (sts) {
+			qio_errmsg(sts, emsg, sizeof(emsg));  
+			txt_str(-1, AN_VIS_ROW-5, emsg, YEL_PAL);
+			break;
+		    }
+		}
+	    }		
+	} while (0);
+#endif
+#if INC_DUMP_VOLUME
+	do {
+	    if (1 && (ctl_read_sw(SW_NEXT)&(SW_NEXT))) {
+		int sts;
+		char emsg[AN_VIS_COL];
+		sts = dump_volume(iop);
+		if (QIO_ERR_CODE(sts)) {
+		    qio_errmsg(sts, emsg, sizeof(emsg));  
+		    txt_str(-1, AN_VIS_ROW-5, emsg, YEL_PAL);
+		}
+	    }
+	} while (0);
+#endif
+	upd_display();
+    }
+#endif
+}
+
+#if INC_DUMP_VOLUME
+
+#define FAKE_SIZE drv_capacity
+
+static int dump_volume(DMP_ARG) {
+    int ii, bcnt, hbgood;
+    FsysHomeBlock hb;
+    FsysHeader hdr;
+    FsysRetPtr *rp;
+    unsigned long *index=0;
+    int num_files=0;
+    unsigned long *buff;
+    int buf_size;
+    unsigned char *s;
+    QioIOQ *ioq;
+
+    ioq = qio_getioq();
+    ii = qio_open(ioq, "/rd0", O_RDONLY);
+    while (!ii && !ioq->iostatus) { ; }
+    if (!ii) ii = ioq->iostatus;
+    if (QIO_ERR_CODE(ii)) return ii;
+    buf_size = 10240;
+    buff = QIOmalloc(buf_size);
+    if (!buff) {
+	FPRINTF((OUTWHERE, "Ran out of memory\n"));
+	return 1;
+    }
+    FPRINTF((OUTWHERE, "Home blocks:\n"));
+    for (hbgood=bcnt=0; bcnt < FSYS_MAX_ALTS; ++bcnt) {
+	unsigned long cs;
+	FPRINTF((OUTWHERE, "  %d at LBA %8d:\n", bcnt, FSYS_HB_ALG(bcnt, FAKE_SIZE)));
+	ii = qio_readwpos(ioq, FSYS_HB_ALG(bcnt, FAKE_SIZE), buff, 512);
+	while (!ii && !ioq->iostatus) { ; }
+	if (!ii) ii = ioq->iostatus;
+	if (QIO_ERR_CODE(ii)) return ii;
+	for (cs=0, ii=0; ii < 512/4; ++ii) cs += buff[ii];
+	hb = *(FsysHomeBlock*)buff;
+	if (hb.id != FSYS_ID_HOME) {
+	    FPRINTF((OUTWHERE, "\tID of %08lX is incorrect. Expected %08X\n", hb.id, FSYS_ID_HOME));
+	    continue;
+	}
+	if (cs) {
+	    FPRINTF((OUTWHERE, "\tChecksum of %08lX is incorrect. Expected 0\n", cs));
+	    continue;
+	}
+	FPRINTF((OUTWHERE, "\tID = %08lX, hb_major=%d, hb_minor=%d, hb_size=%d\n", 
+	    hb.id, hb.hb_minor, hb.hb_major, hb.hb_size));
+	FPRINTF((OUTWHERE, "\tfh_major=%d, fh_minor=%d, fh_size=%d, fh_ptrs=%d\n", 
+		hb.fh_major, hb.fh_minor, hb.fh_size, hb.fh_ptrs));
+	FPRINTF(((OUTWHERE, "\tefh_major=%d, efh_minor=%d, efh_size=%d, efh_ptrs=%d\n", 
+		hb.efh_major, hb.efh_minor, hb.efh_size, hb.efh_ptrs));
+	FPRINTF(((OUTWHERE, "\trp_major=%d, rp_minor=%d, rp_size=%d\n", 
+		hb.rp_major, hb.rp_minor, hb.rp_size));
+	FPRINTF(((OUTWHERE, "\tcluster=%d, maxalts=%d, chksum=%08lX, computed cksum=%08lX\n",
+    	    hb.cluster, hb.maxalts, hb.chksum, cs));
+	FPRINTF(((OUTWHERE, "\tctime = %s", ctime((time_t *)&hb.ctime)));
+	FPRINTF(((OUTWHERE, "\tindex[0]=%8ld", hb.index[0]));
+	for (ii=1; ii < FSYS_MAX_ALTS; ++ii) {
+	    FPRINTF(((OUTWHERE, ", [%d]=%8ld", ii, hb.index[ii]));
+	}
+	FPRINTF(((OUTWHERE, "\n"));
+	hbgood = 1;
+    }
+    if (!hbgood) return FSYS_MOUNT_NOHBLK;
+    FPRINTF(((OUTWHERE, "Index files:\n"));
+    for (bcnt=0; bcnt < FSYS_MAX_ALTS; ++bcnt) {
+	FPRINTF(((OUTWHERE, "  %d FH at %8ld:\n", bcnt, hb.index[FSYS_INDEX_INDEX*FSYS_MAX_ALTS+bcnt]));
+	ii = qio_readwpos(ioq, hb.index[FSYS_INDEX_INDEX*FSYS_MAX_ALTS+bcnt], buff, 512);
+	while (!ii && !ioq->iostatus) { ; }
+	if (!ii) ii = ioq->iostatus;
+	if (QIO_ERR_CODE(ii)) return ii;
+	hdr = *(FsysHeader*)buff;
+	FPRINTF((OUTWHERE, "\tID = %08lX, ctime = %s", hdr.id, ctime((time_t *)&hdr.ctime)));
+	FPRINTF(((OUTWHERE, "\tsize = %ld, alloc = %ld, type = %d, generation = %d, extension = %08lX\n",
+	    hdr.size, hdr.clusters, hdr.type, hdr.generation, 
+#if (FSYS_FEATURES&FSYS_FEATURES_EXTENSION_HEADER)
+    	    hdr.extension
+#else
+    	    0L
+#endif
+            ));
+	FPRINTF((OUTWHERE, "\tRP set %2d:\n", bcnt));
+	for (rp=hdr.pointers[bcnt], ii=0; ii < FSYS_MAX_FHPTRS; ++ii, ++rp) {
+	    if (rp->start == 0) break;
+	    FPRINTF(((OUTWHERE, "\t       %2d: start = %8ld, nblocks = %ld" REPEAT_SKIP_CTL "\n",
+		ii, rp->start, rp->nblocks REPEAT_SKIP_ARGS(rp)));
+	}
+	if (bcnt == 0) {
+	    num_files = hdr.size/(sizeof(long)*FSYS_MAX_ALTS);
+	    FPRINTF((OUTWHERE, "    %d files, Contents of copy 0 at %8ld:\n",
+	    		num_files, hdr.pointers[bcnt][0].start));
+	    index = QIOcalloc(1, (hdr.size+511)&-512);
+	    if (!index) {
+		FPRINTF(((OUTWHERE, "Ran out of memory\n")(;
+		return 1;
+	    }
+	    ii = qio_readwpos(ioq, hdr.pointers[bcnt][0].start, index, (hdr.size+511)&-512);
+	    while (!ii && !ioq->iostatus) { ; }
+	    if (!ii) ii = ioq->iostatus;
+	    if (QIO_ERR_CODE(ii)) return ii;
+	    for (ii=0; ii < hdr.size/sizeof(long)*FSYS_MAX_ALTS; ii += FSYS_MAX_ALTS) {
+		int jj;
+		char *aux;
+		if (index[ii] == 0) break;
+		FPRINTF(((OUTWHERE, "\t%3d: ", (ii)/FSYS_MAX_ALTS));
+		for (jj=0; jj < FSYS_MAX_ALTS; ++jj) FPRINTF((OUTWHERE, " %8ld", index[ii+jj]));
+		switch (ii/FSYS_MAX_ALTS) {
+		    case FSYS_INDEX_INDEX: aux = " Index.sys"; break;
+		    case FSYS_INDEX_FREE: aux = " Freemap.sys"; break;
+		    case FSYS_INDEX_ROOT: aux = " Root directory"; break;
+		    default: aux = "";
+		}
+		FPRINTF((OUTWHERE, "%s\n", aux));
+	    }
+	}
+    }
+    FPRINTF((OUTWHERE, "Freemap files:\n"));
+    for (bcnt=0; bcnt < FSYS_MAX_ALTS; ++bcnt) {
+	FPRINTF((OUTWHERE, "  %d FH at %8ld:\n", bcnt, index[FSYS_INDEX_FREE*FSYS_MAX_ALTS+bcnt]));
+	ii = qio_readwpos(ioq, index[FSYS_INDEX_FREE*FSYS_MAX_ALTS+bcnt], buff, 512);
+	while (!ii && !ioq->iostatus) { ; }
+	if (!ii) ii = ioq->iostatus;
+	if (QIO_ERR_CODE(ii)) return ii;
+	hdr = *(FsysHeader*)buff;
+	FPRINTF((OUTWHERE, "\tID = %08lX, ctime = %s", hdr.id, ctime((time_t *)&hdr.ctime)));
+	FPRINTF((OUTWHERE, "\tsize = %ld, alloc = %ld, type = %d, generation = %d, extension = %08lX\n",
+	    hdr.size, hdr.clusters, hdr.type, hdr.generation,
+#if (FSYS_FEATURES&FSYS_FEATURES_EXTENSION_HEADER)
+    	    hdr.extension
+#else
+    	    0L
+#endif
+            ));
+	for (rp=hdr.pointers[bcnt], ii=0; ii < FSYS_MAX_FHPTRS; ++ii, ++rp) {
+	    if (rp->start == 0) break;
+	    FPRINTF((OUTWHERE, "\tretrieval: start = %8ld, nblocks = %ld" REPEAT_SKIP_CTL "\n",
+		rp->start, rp->nblocks REPEAT_SKIP_ARGS(rp)));
+	}
+	if (bcnt == 0) {
+	    FPRINTF((OUTWHERE, "    Contents of 0 at %8ld:\n", hdr.pointers[bcnt][0].start));
+	    if (hdr.size > buf_size) {
+		buf_size = (hdr.size + 511) & -512;
+		buff = QIOrealloc(buff, buf_size);
+		if (!buff) {
+		    FPRINTF((OUTWHERE, "Ran out of memory\n"));
+		    return 1;
+		}
+	    }
+	    ii = qio_readwpos(ioq, hdr.pointers[bcnt][0].start, buff, (hdr.size+511)&-512);
+	    while (!ii && !ioq->iostatus) { ; }
+	    if (!ii) ii = ioq->iostatus;
+	    if (QIO_ERR_CODE(ii)) return ii;
+	    for (rp=(FsysRetPtr *)buff,ii=0; ii < hdr.size/sizeof(FsysRetPtr); ++ii, ++rp) {
+		FPRINTF((OUTWHERE, "    %3d: start: %8ld, nblocks %ld" REPEAT_SKIP_CTL "\n",
+			ii, rp->start, rp->nblocks REPEAT_SKIP_ARGS(rp)));
+		if (rp->start == 0) break;
+	    }
+	}
+    }
+    FPRINTF((OUTWHERE, "File headers (copy number 0 in all cases):\n"));
+    for (bcnt=2; bcnt < num_files; ++bcnt) {
+	S32 lba;
+	int jj;
+	lba = index[bcnt*FSYS_MAX_ALTS];
+	if (lba <= 0) {
+	    FPRINTF((OUTWHERE, "%3d, lba 0x%08lX is inactive/invalid\n", bcnt, lba));
+	    continue;
+	}
+	FPRINTF((OUTWHERE, "%3d, lba %8ld:\n", bcnt, lba));
+	ii = qio_readwpos(ioq, lba, buff, 512);
+	while (!ii && !ioq->iostatus) { ; }
+	if (!ii) ii = ioq->iostatus;
+	if (QIO_ERR_CODE(ii)) return ii;
+	hdr = *(FsysHeader*)buff;
+	FPRINTF((OUTWHERE, "\tID = %08lX, ctime = %s", hdr.id, ctime((time_t *)&hdr.ctime)));
+	FPRINTF((OUTWHERE, "\tsize = %ld, alloc = %ld, type = %d, generation = %d, extension = %08lX\n",
+	    hdr.size, hdr.clusters, hdr.type, hdr.generation,
+#if (FSYS_FEATURES&FSYS_FEATURES_EXTENSION_HEADER)
+		hdr.extension
+#else
+		0L
+#endif
+		));
+	for (jj=0; jj < FSYS_MAX_ALTS; ++jj) {
+	    rp = hdr.pointers[jj];
+	    FPRINTF((OUTWHERE, "\tRP set %2d:\n", jj));
+	    for (ii=0; ii < FSYS_MAX_FHPTRS; ++ii, ++rp) {
+		if (rp->start == 0) break;
+		FPRINTF((OUTWHERE, "\t       %2d: start = %8ld, nblocks = %ld" REPEAT_SKIP_CTL "\n",
+		    ii, rp->start, rp->nblocks REPEAT_SKIP_ARGS(rp)));
+	    }
+	}
+	if (hdr.type != FSYS_TYPE_DIR) continue;
+	FPRINTF((OUTWHERE, "    Directory:\n"));
+	jj = (hdr.size + 511)&-512;
+	if (hdr.size > buf_size) {
+	    buf_size = jj;
+	    buff = QIOrealloc(buff, buf_size);
+	    if (!buff) {
+		FPRINTF((OUTWHERE, "Ran out of memory\n"));
+		return 1;
+	    }
+	}
+	ii = qio_readwpos(ioq, hdr.pointers[0][0].start, buff, jj);
+	while (!ii && !ioq->iostatus) { ; }
+	if (!ii) ii = ioq->iostatus;
+	if (QIO_ERR_CODE(ii)) return ii;
+	s = (unsigned char *)buff;
+	while (1) {
+	    unsigned long idx;
+	    int cnt, gen;
+	    char name[258];
+	    idx = (s[2]<<16) | (s[1]<<8) | s[0];
+	    if (idx == 0) break;
+	    s += 3;
+	    gen = *s++;
+	    cnt = *s++;
+	    if (!cnt) cnt = 256;
+	    memcpy(name, (char *)s, cnt);
+	    name[cnt] = 0;
+	    FPRINTF((OUTWHERE, "%6ld,%3d: (%d)%s\n", idx, gen, cnt, name));
+	    s += cnt;
+	}
+    }
+    QIOfree(buff);
+    ioq->complete = 0;
+    qio_close(ioq);
+    while (!ioq->iostatus) { ; }
+    qio_freeioq(ioq);
+    return 0;
+}
+#endif
+
+#if INC_DUMP_VOL
+static int dump_vol(DMP_ARG, const char *volname) {
+    int ii, jj, alt;
+    QioIOQ *ioq;
+    QioFile *file;
+    FsysRamFH *rfh;
+    FsysRetPtr *rp;
+    FsysVolume *vol=0;
+    unsigned long *ulp;
+    char emsg[132];
+
+    ioq = qio_getioq();
+    qio_open(ioq, (void *)volname, O_RDONLY);
+    if (QIO_ERR_CODE(ioq->iostatus)) {
+	qio_errmsg(ioq->iostatus, emsg, sizeof(emsg));
+	FPRINTF((OUTWHERE, "Error opening \"%s\" to get volume pointer:\n%s\n", volname, emsg));
+	return 1;
+    }
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc || !(vol=file->dvc->private) || vol->id != FSYS_ID_VOLUME) {
+	FPRINTF((OUTWHERE, "QIO device structs not correct\n"));
+	if (!file) FPRINTF((OUTWHERE, "file == 0\n"));
+	else if (!file->dvc) FPRINTF((OUTWHERE, "file->dvc == 0\n"));
+	else if (vol == 0) FPRINTF((OUTWHERE, "vol == 0\n"));
+	else if (vol->id != FSYS_ID_VOLUME) {
+	    FPRINTF((OUTWHERE, "vol->id is %08lX, s/b %08lX\n", vol->id, FSYS_ID_VOLUME));
+	}
+	return 2;
+    }
+    qio_close(ioq);
+    qio_freeioq(ioq);
+    FPRINTF((OUTWHERE, "Volume structure:\n\tstatus = %d, state=%d, substate=%d, iofd=%d\n",
+    	vol->status, vol->state, vol->substate, vol->iofd));
+    FPRINTF((OUTWHERE, "\tmaxlba=%ld, index_lbas[0]=%08lX", vol->maxlba, vol->index_lbas[0]));
+    for (ii=1; ii < FSYS_MAX_ALTS; ++ii) FPRINTF((OUTWHERE, ", index_lbas[%d]=%08lX", ii, vol->index_lbas[ii]));
+    FPRINTF((OUTWHERE, "\n\tfiles=%08lX, files_ffree=%d, files_elems=%d, files_indx=%d\n",
+    	(unsigned long)vol->files, vol->files_ffree, vol->files_elems, vol->files_indx));
+    rfh = vol->files;
+    FPRINTF((OUTWHERE, "\ttotal_free_clusters=%ld, total_alloc_clusters=%ld\n",
+    	vol->total_free_clusters, vol->total_alloc_clusters));
+    for (ii=0; ii < vol->files_ffree; ++ii, ++rfh) {
+	FsysRamRP *rp;
+	if (rfh->valid) {
+	    FPRINTF((OUTWHERE, "\t%3d: alloc=%ld, size=%ld, gen=%d, valid=%d\n\t     def_ext=%d, mtime=%08lX, dir=%08lX, active_rp=%d\n",
+		    	ii, rfh->clusters, rfh->size, rfh->generation, rfh->valid,
+    			rfh->def_extend, rfh->mtime, (unsigned long)rfh->directory, rfh->active_rp));
+	    for (alt=0; alt < FSYS_MAX_ALTS; ++alt) {
+		rp = rfh->ramrp + alt;
+		while (rp) {
+		    FsysRetPtr *retp;
+		    FPRINTF((OUTWHERE, "\t     rp=%08lX, next=%08lX, rptrs=%08lX, num_rptrs=%d, rptrs_size=%d\n",
+			(unsigned long)rp, (unsigned long)rp->next, (unsigned long)rp->rptrs,
+			rp->num_rptrs, rp->rptrs_size));
+		    retp = rp->rptrs;
+		    for (jj=0; jj < rp->num_rptrs; ++jj, ++retp) {
+			FPRINTF((OUTWHERE, "\t        %3d: start = %8ld, nblocks = %ld" REPEAT_SKIP_CTL "\n",
+			    jj, retp->start, retp->nblocks REPEAT_SKIP_ARGS(retp)));
+		    }
+		    rp = rp->next;
+		}
+	    }
+	}
+	if (rfh->directory) {
+	    FsysDirEnt *dir;
+	    FPRINTF((OUTWHERE, "\t\tDirectory:\n"));
+	    for (jj=0; jj < FSYS_DIR_HASH_SIZE; ++jj) {
+		dir = rfh->directory[jj];
+		if (dir) {
+		    FPRINTF((OUTWHERE, "\t\t%3d: fid=%6d,%3d  name=(%d)%s\n", jj,
+    				dir->gen_fid&FSYS_DIR_FIDMASK,
+    				dir->gen_fid>>FSYS_DIR_GENSHF,
+    				strlen(dir->name), dir->name));
+		    while ((dir = dir->next)) {
+			FPRINTF((OUTWHERE, "\t\t     fid=%6d,%3d  name=(%d)%s\n", dir->fid,
+    				dir->gen_fid&FSYS_DIR_FIDMASK,
+    				dir->gen_fid>>FSYS_DIR_GENSHF,
+    				strlen(dir->name), dir->name));
+		    }
+		}
+	    }
+	}
+    }
+    FPRINTF((OUTWHERE, "\tindex=%08lX, ffree=%d, elems=%d\n",
+    	(unsigned long)vol->index, vol->files_ffree, vol->files_elems));
+    ulp = vol->index;
+    for (ii=0; ii < vol->files_ffree; ++ii) {
+	FPRINTF((OUTWHERE, "\t%3d: %8ld", ii, *ulp++));
+	for (jj=1; jj < FSYS_MAX_ALTS; ++jj) {
+	    FPRINTF((OUTWHERE, ", %8ld", *ulp++));
+	}
+	FPRINTF((OUTWHERE, "\n"));
+    }
+    FPRINTF((OUTWHERE, "\tfree=%08lX, free_ffree=%d, free_elems=%d\n",
+    	(unsigned long)vol->free, vol->free_ffree, vol->free_elems));
+    rp = vol->free;
+    for (ii=0; ii < vol->free_ffree; ++ii, ++rp) {
+	FPRINTF((OUTWHERE, "\t%3d: start %8ld, nblocks %ld\n", ii, rp->start, rp->nblocks));
+    }
+#if !FSYS_READ_ONLY
+    FPRINTF((OUTWHERE, "\tdirty=%08lX, dirty_ffree=%d, dirty_elems=%d\n",
+    	(unsigned long)vol->dirty, vol->dirty_ffree, vol->dirty_elems));
+    ulp = vol->dirty;
+    for (ii=0; ii < vol->dirty_ffree; ++ii, ++ulp) {
+	FPRINTF((OUTWHERE, "\t%3d: fid %8ld\n", ii, *ulp));
+    }
+    FPRINTF((OUTWHERE, "\tunused=%08lX, unused_ffree=%d, unused_elems=%d\n",
+    	(unsigned long)vol->unused, vol->unused_ffree, vol->unused_elems));
+    ulp = vol->unused;
+    for (ii=0; ii < vol->unused_ffree; ++ii, ++ulp) {
+	FPRINTF((OUTWHERE, "\t%3d: fid %8ld\n", ii, *ulp));
+    }
+    FPRINTF((OUTWHERE, "\tindex_bits=%08lX, index_bits_elems=%d\n",
+    	(unsigned long)vol->index_bits, vol->index_bits_elems));
+    ulp = vol->index_bits;
+    for (ii=0; ii < vol->index_bits_elems; ++ii, ++ulp) {
+	FPRINTF((OUTWHERE, "\t%3d: %08lX\n", ii, *ulp));
+    }
+    FPRINTF((OUTWHERE, "\tfree_start=%8d\n", vol->free_start));
+#endif
+    return 0;
+}
+#endif
+@
+
+
+1.36
+log
+@Protected definition of get_zlib_errmsg with HDDNL_ZLIB.
+@
+text
+@d1016 4
+a1019 4
+		    *dst++ = dir->generation;
+		    *dst++ = dir->fid>>16;
+		    *dst++ = dir->fid>>8;
+		    *dst++ = dir->fid;
+d3119 4
+a3122 2
+		    FPRINTF((OUTWHERE, "\t\t%3d: fid=%6d,%3d  name=(%d)%s\n", jj, dir->fid,
+    				dir->generation, strlen(dir->name), dir->name));
+d3125 3
+a3127 1
+    				dir->generation, strlen(dir->name), dir->name));
+@
+
+
+1.35
+log
+@Put zlib error handling everywhere it is needed.
+@
+text
+@d1083 1
+d1105 1
+@
+
+
+1.34
+log
+@Put in more descriptive error message for zlib errors.
+@
+text
+@d1083 22
+a1271 3
+	    static const char * const zlib_err[] = {
+		0, "ERRNO", "STREAM_ERROR", "DATA_ERROR", "MEM_ERROR", "BUF_ERROR", "VERSION_ERROR"
+		};
+d1274 2
+a1276 14
+	    if (!(s=lb->z.msg)) {
+		if (ii < 0) {
+		    ii = -ii;
+		    if (ii > n_elts(zlib_err)) {
+			nsprintf(buf, sizeof(buf), "{unknown value of %d}", -ii);
+			s = buf;
+		    } else {
+			s = zlib_err[ii];
+		    }
+		} else {
+		    nsprintf(buf, sizeof(buf), "{unknown value of %d}", ii);
+		    s = buf;
+		}
+	    }
+d1535 11
+a1545 1
+	    }				
+d1647 9
+a1655 1
+		return;
+a1656 5
+	    p[PKTcs+2] = MOLE_ERR_WRITING;	/* error queing write */
+	    nsprintf((char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3,
+	    	"Error (%d) inflate()'ing: %s", sts, zs->msg);
+	    p[PKTcmd] = ICEnak;
+	    mole_acknak(pkt);
+@
+
+
+1.33
+log
+@Allowed HDDNL_SECTORS_PER_WRITE and HDDNL_BUF_SIZE to be set
+via environment variables.
+@
+text
+@d1250 5
+d1256 14
+d1271 1
+a1271 1
+		"Error performing %s: %s", err, lb->z.msg);
+@
+
+
+1.32
+log
+@qio_reent is now a pointer.
+@
+text
+@d1069 14
+d1106 1
+d1111 3
+a1113 3
+#ifndef MOLE_BUF_SIZE
+# define MOLE_BUF_SIZE	(HDDNL_SECTORS_PER_WRITE*BYTES_PER_SECTOR)
+#endif
+@
+
+
+1.31
+log
+@Added HDDNL_QUIET mode and HDDNL_USE_XINU.
+@
+text
+@d46 1
+a46 1
+#define HEAP_REMAINING() _heap_remaining_r(&qio_reent)
+@
+
+
+1.30
+log
+@Corrected setting of hddnl_busy with fsys_sync_delay().
+@
+text
+@d109 1
+d111 1
+d617 1
+a617 1
+    if (banners_up) {
+d2024 2
+a2025 1
+	nsprintf((char *)p+PKTcs+3, pkt->size - (PKTuser + PKTcs + 3), "Undefined MOLE command: %d", cmd);
+d2080 4
+a2083 1
+static int pkt_qi, pkt_qo;
+a2099 1
+#endif
+d2103 1
+a2103 5
+#if HDDNL_USE_XINU
+	while (pkt_qo != pkt_qi) {
+	    prc_q_ast(QIO_ASTLVL, pkt_queue + pkt_qo);
+	    if (++pkt_qo >= MAX_NUM_PKTS+1) pkt_qo = 0;
+	}
+d2105 4
+a2108 1
+    }
+d2344 1
+d2346 1
+d2350 1
+d2353 1
+d2357 1
+d2365 1
+d2369 1
+d2372 1
+d2384 1
+d2387 1
+d2401 1
+d2403 1
+d2405 1
+d2407 1
+d2421 1
+d2423 1
+d2427 1
+d2430 1
+d2433 1
+d2441 1
+d2446 1
+d2449 1
+d2464 1
+d2466 1
+a2475 1
+    int oldps;
+d2485 11
+a2495 6
+    oldps = prc_set_ipl(INTS_OFF);
+    hddnl_unsafe = unsafe;		/* say whether we're safe or not */
+    if (!unsafe) {			/* making it safe */
+	while (pkt_qi != pkt_qo) {	/* packets showed up while we were unsafe */
+	    prc_q_ast(QIO_ASTLVL, pkt_queue + pkt_qo);
+	    if (++pkt_qo >= MAX_NUM_PKTS+1) pkt_qo = 0;
+d2497 4
+a2500 3
+	prc_set_ipl(oldps);		/* this will launch the packet processor */
+    }
+    if (!hddnl_busy) {			/* it is not busy */
+a2501 1
+	return;
+d2503 1
+a2503 2
+    prc_set_ipl(oldps);
+
+d2578 1
+d2593 1
+d2595 1
+d2597 1
+a2597 1
+
+d2601 1
+d2604 1
+@
+
+
+1.29
+log
+@Uses local qio_get/freemutex since the internals of qio_getmutex
+expect the param to be a QioIOQ now.
+@
+text
+@d46 1
+a46 1
+extern int qio_free_size;
+d457 1
+d459 1
+a459 1
+    hddnl_busy = fsys_sync_delay(HDDNL_SYNC_PERIOD);	/* set sync timer to run every 15 seconds */
+d461 1
+a461 1
+    hddnl_busy = 1;
+d463 1
+d571 1
+d573 1
+a573 1
+    hddnl_busy = fsys_sync_delay(HDDNL_SYNC_PERIOD);	/* set sync task period */
+d575 1
+a575 1
+    hddnl_busy = 1;
+d577 1
+d645 1
+d647 1
+a647 1
+    hddnl_busy = fsys_sync_delay(HDDNL_SYNC_PERIOD);	/* set sync task delay */
+d649 1
+a649 1
+    hddnl_busy = 1;
+d651 1
+d1104 1
+a1104 1
+    		"Ran out of memory QIOcalloc'ing %d bytes",
+d1959 1
+a1959 1
+    		"Ran out of memory QIOcalloc'ing %d bytes",
+d2262 1
+a2262 1
+    show_mkb(qio_free_size, 128*1024, 32*1024);
+@
+
+
+1.28
+log
+@Protected calls to fsys_sync_delay with FSYS_READ_ONLY
+@
+text
+@d117 2
+d256 113
+d386 1
+a386 1
+    qio_freemutex(&pkt_mutex, (QioIOQ *)pkt);
+d2063 1
+a2063 1
+    if (qio_getmutex(&pkt_mutex, (void (*)(QioIOQ *))func, (QioIOQ *)pkt)) {
+d2530 2
+d2572 4
+a2575 1
+    for (loop=0; loop < MAX_NUM_PKTS; ++loop, ++pkt) {
+@
+
+
+1.27
+log
+@Added some Xinu support.
+@
+text
+@d342 1
+d344 3
+d357 1
+d359 1
+d454 1
+a454 1
+#if HDDNL_GAME_MODE
+d456 2
+d526 1
+a526 1
+# if HDDNL_GAME_MODE
+d528 2
+d2469 3
+@
+
+
+1.26
+log
+@Corrected array definition to use AN_VIS_COL_MAX.
+@
+text
+@d8 6
+d89 8
+a96 1
+static volatile int hddnl_busy;		/* 1 = busy processing packets */
+d254 2
+d272 5
+a276 1
+    pktQueRecv(pkt);
+d342 1
+a342 1
+    hddnl_busy = 1;		/* say we're doing something */
+d353 1
+d449 1
+a449 1
+    hddnl_busy = 1;
+d454 1
+d456 1
+d458 1
+a458 1
+#if !HDDNL_GAME_MODE
+d471 1
+a471 1
+#if !HDDNL_GAME_MODE
+d487 1
+a487 1
+#if !HDDNL_GAME_MODE
+d518 3
+d1949 1
+d1963 1
+d1967 6
+d1974 1
+d1979 1
+d2072 1
+d2084 1
+d2092 1
+d2094 1
+d2189 1
+d2199 1
+a2199 1
+static int need_mount() {
+d2205 1
+d2264 52
+d2317 3
+a2319 1
+    int oldps, oldopt, sts;
+d2324 1
+d2342 12
+a2353 2
+    if (!been_mounted && !please_mount.pkt) return; /* wait until he asks us to mount */
+
+d2364 2
+a2365 2
+    if (!been_mounted) {
+	sts = need_mount();
+d2385 4
+a2388 1
+	    if (please_mount.pkt) need_mount();
+d2397 1
+d2404 3
+a2406 1
+    QioIOQ *io0, *io1;
+d2408 1
+a2408 1
+    PktIOStruct *pkt;
+a2443 3
+    io0 = qio_getioq();
+    io1 = qio_getioq();
+
+d2458 2
+a2460 1
+
+a2461 1
+
+d2463 4
+@
+
+
+1.25
+log
+@Added code to return retrieval pointers.
+@
+text
+@d2300 1
+a2300 1
+    char emsg[AN_VIS_COL];
+@
+
+
+1.24
+log
+@New waiting message.
+@
+text
+@d762 1
+d791 1
+a791 1
+	    if ((mode&(HDDNL_GETFH_NRPS|HDDNL_GETFH_COPIES))) {
+d793 1
+d795 3
+d802 3
+d819 14
+d998 21
+a1089 1
+	int tmode;
+d1101 4
+a1104 14
+	tmode = ot->spc.mode;
+#if !(FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_CMTIME)
+        tmode &= ~(HDDNL_GETFH_MTIME|HDDNL_GETFH_CTIME);
+#endif
+#if !(FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_ABTIME)
+        tmode &= ~(HDDNL_GETFH_ATIME|HDDNL_GETFH_BTIME);
+#endif
+#if !(FSYS_FEATURES&FSYS_OPTIONS&FSYS_FEATURES_PERMS)
+        tmode &= ~(HDDNL_GETFH_PERMS|HDDNL_GETFH_OWNER);
+#endif
+	mf->hddnlfhbits[0] = tmode >> (3*8);
+        mf->hddnlfhbits[1] = tmode >> (2*8);
+        mf->hddnlfhbits[2] = tmode >> (1*8);
+        mf->hddnlfhbits[3] = tmode >> (0*8);
+@
+
+
+1.23
+log
+@Protected directory listing code with FSYS_READ_ONLY.
+@
+text
+@d2039 1
+@
+
+
+1.22
+log
+@Added another idle message..
+..
+@
+text
+@d797 1
+d802 3
+@
+
+
+1.21
+log
+@Support for uploads of directory information.
+@
+text
+@d2034 1
+@
+
+
+1.20
+log
+@Allowed for dynamic resolution. I.E. AN_VIS_COL et. al. can be made
+into ints instead of #defines. On 3dfx systems this is accompolished
+by defining the following in config.mac:
+DEC_CONST DYNAMIC_VIS_PIX 1
+DEC_CONST VIS_H_PIX_MAX whatever
+DEC_CONST VIS_V_PIX_MAX whatever
+After this, AN_VIS_COL, AN_VIS_ROW, VIS_V_PIX, VIS_H_PIX and
+SST_RESOLUTION become "extern int" instead of #defines.
+The new #defines AN_VIS_ROW_MAX and AN_VIS_COL_MAX are
+created (computed from VIS_H_PIX_MAX, VIS_V_PIX_MAX) so
+local arrays can be declared and this is the principle changed
+to this file.
+@
+text
+@d13 1
+a13 1
+#include "phx_proto.h"
+d15 3
+a17 3
+#include "qio.h"
+#include "fsys.h"
+#include "hddnl.h"
+d19 1
+a19 1
+#include "zlib.h"
+d510 9
+d521 1
+a521 1
+    int state;		/* state used by close */
+d525 1
+d723 162
+d954 18
+a971 23
+    ot->spc.mode = ii&3;	/* O_RDONLY, O_WRONLY or O_RDWR */
+    if (ii&MOLE_O_APPEND) ot->spc.mode |= O_APPEND;
+    if (ii&MOLE_O_CREAT) ot->spc.mode |= O_CREAT;
+    if (ii&MOLE_O_TRUNC)  ot->spc.mode |= O_TRUNC;
+    if (ii&MOLE_O_EXCL)   ot->spc.mode |= O_EXCL;
+    if ((ii&MOLE_O_CREAT)) {
+	ot->alloc = mf->alloc[0]<<(3*8) |
+		    mf->alloc[1]<<(2*8) |
+		    mf->alloc[2]<<(1*8) |
+		    mf->alloc[3]<<(0*8);
+	ot->eof = mf->eof[0]<<(3*8) |
+		  mf->eof[1]<<(2*8) |
+		  mf->eof[2]<<(1*8) |
+		  mf->eof[3]<<(0*8);
+	ot->placement = mf->placement;
+	if (!(ot->copies = mf->copies)) ot->copies = 1;
+	ot->mkdir =  mf->mkdir;
+	ot->ctime =  mf->ctime[0]<<(3*8) |
+		     mf->ctime[1]<<(2*8) |
+		     mf->ctime[2]<<(1*8) |
+		     mf->ctime[3]<<(0*8);
+	ot->def_extend = (mf->def_extend[0] << (1*8)) |
+			 (mf->def_extend[1] << (0*8));
+d973 27
+a999 2
+	dl->state = MKFILE_MKFILE;		/* go straight to file open */
+    }    
+d1012 1
+d1035 1
+d1042 32
+a1073 1
+    dir_loop(ioq);
+d1124 6
+d1181 21
+a1201 8
+    ++lb->rw_pending;
+    sts = qio_read(ioq, lb->buf, lb->len);	/* read what will fit in the buffer */
+    if (sts) {
+	--lb->rw_pending;
+	p[PKTcs+2] = MOLE_ERR_READING;		/* error queing read */
+	qio_errmsg(sts, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+d1643 6
+@
+
+
+1.19
+log
+@Protected all zlib references with HDDNL_ZLIB.
+@
+text
+@d22 7
+d110 1
+a110 1
+    char file[AN_VIS_COL+1];	/* name of file being read/written */
+d1744 1
+a1744 1
+    char emsg[AN_VIS_COL];
+d1869 1
+a1869 1
+#define DIRTY_U32_PER_ROW	((AN_VIS_COL+U32_BITS-1)/U32_BITS)
+d1873 1
+a1873 1
+    char emsg[AN_VIS_COL];
+d1937 2
+a1938 2
+    U16 fake_screen[AN_VIS_ROW][AN_VIS_COL];
+    U32 dirty_bits[AN_VIS_ROW*DIRTY_U32_PER_ROW];
+@
+
+
+1.18
+log
+@Added data compression for file writes..
+@
+text
+@d18 1
+d20 1
+d514 1
+d517 1
+d803 3
+d839 1
+d1016 1
+d1071 1
+d1112 1
+d1160 1
+d1349 1
+d1357 1
+@
+
+
+1.17
+log
+@Added conditional fprintfs.
+@
+text
+@d18 1
+a57 1
+
+d91 1
+a91 1
+#if DO_SQUAWKING
+d220 2
+a221 1
+
+d245 1
+a245 1
+    SQUAWK((iop, "Free'ing mutex on packet %d, cmd = %d, waiting = %d\n",
+d498 3
+d512 2
+d553 1
+d555 4
+d563 12
+a574 4
+    mf->ctime[0]  = (int)(ot->ctime) >> (3*8);
+    mf->ctime[1]  = (int)(ot->ctime) >> (2*8);
+    mf->ctime[2]  = (int)(ot->ctime) >> (1*8);
+    mf->ctime[3]  = (int)(ot->ctime) >> (0*8);
+a578 2
+    current_work.alloc = ot->alloc;
+    current_work.curr = 0;
+d583 4
+a586 8
+    mf->fid[0]  = (int)(ot->fid) >> (3*8);
+    mf->fid[1]  = (int)(ot->fid) >> (2*8);
+    mf->fid[2]  = (int)(ot->fid) >> (1*8);
+    mf->fid[3]  = (int)(ot->fid) >> (0*8);
+    mf->parent[0]  = (int)(ot->parent) >> (3*8);
+    mf->parent[1]  = (int)(ot->parent) >> (2*8);
+    mf->parent[2]  = (int)(ot->parent) >> (1*8);
+    mf->parent[3]  = (int)(ot->parent) >> (0*8);
+d589 2
+a590 4
+    mf->fname = 0;
+    mf->placement = 0;
+    mf->copies = ot->copies;
+    mf->mkdir = ot->mkdir;
+d747 1
+d750 3
+a775 1
+    lb->mode = ot->spc.mode;
+d797 36
+d979 84
+d1069 2
+a1070 2
+    SQUAWK((iop, "Entered mole_wrfile. cmd = %d, pkt = %d\n", (int)pkt->user, pktn));
+    SQUAWK((iop, "mole_wrfile: time = %10u usecs since boot, %10u usecs since queued\n",
+d1074 1
+a1074 1
+	SQUAWK((iop, "Error on packet %d. buf #=%d, cmd=%d, len=%d\n",
+d1076 1
+a1076 1
+	SQUAWK((iop, "pkt: to=%d, tothrd=%d, from=%d, frmth=%d, size=%d, len=%d, state=%d\n",
+d1078 1
+a1078 1
+	SQUAWK((iop, "next=%08lX, polling=%d, jj=%d, kk=%d\n",
+d1100 49
+a1150 2
+	ioq = &lb->ioq;
+	p += 4;				/* advance to our data */
+a1159 1
+	    int sts;
+d1165 1
+a1165 15
+	    ++lb->rw_pending;
+	    sts = qio_write(ioq, lb->buf + lb->which_buf, MOLE_BUF_SIZE); /* write the whole buffer */
+	    if (sts) {
+		--lb->rw_pending;
+		p[PKTcs+2] = MOLE_ERR_WRITING;	/* error queing write */
+		qio_errmsg(sts, (char *)p + PKTcs + 3, pkt->size - PKTuser - PKTcs - 3);  
+		p[PKTcmd] = ICEnak;
+		mole_acknak(pkt);
+		return;
+	    }
+#if (MOLE_BUF_SIZE&-MOLE_BUF_SIZE) == MOLE_BUF_SIZE
+	    lb->which_buf ^= MOLE_BUF_SIZE;	/* flip to other buffer */
+#else
+	    lb->which_buf = (lb->which_buf) ? 0 : MOLE_BUF_SIZE;
+#endif
+d1337 7
+d2019 1
+a2019 1
+#if DO_SQUAWKING
+@
+
+
+1.16
+log
+@Made reference to QioDevice * a const.
+@
+text
+@d34 15
+a48 10
+#define SQUAWK(x) do { ; } while (0)
+#ifndef SQUAWK
+# define SQUAWK(x) iio_printf x
+#endif
+#define SQ(x) iio_printf x
+
+#if HOST_BOARD
+# define FPRINTF iio_printf
+# define OUTWHERE iop
+# define DMP_ARG IcelessIO *iop
+d50 5
+a54 3
+# define FPRINTF fprintf
+# define OUTWHERE stdo
+# define DMP_ARG FILE *stdo
+d57 1
+d91 1
+d93 1
+d1556 1
+a1556 1
+	FPRINTF(OUTWHERE, "Error opening \"%s\" to get volume pointer:\n%s\n", volname, emsg);
+d1561 4
+a1564 4
+	FPRINTF(OUTWHERE, "QIO device structs not correct\n");
+	if (!file) FPRINTF(OUTWHERE, "file == 0\n");
+	else if (!file->dvc) FPRINTF(OUTWHERE, "file->dvc == 0\n");
+	else if (vol == 0) FPRINTF(OUTWHERE, "vol == 0\n");
+d1566 1
+a1566 1
+	    FPRINTF(OUTWHERE, "vol->id is %08lX, s/b %08lX\n", vol->id, FSYS_ID_VOLUME);
+d1846 1
+d1848 1
+d2016 1
+a2016 1
+	FPRINTF(OUTWHERE, "Ran out of memory\n");
+d2019 1
+a2019 1
+    FPRINTF(OUTWHERE, "Home blocks:\n");
+d2022 1
+a2022 1
+	FPRINTF(OUTWHERE, "  %d at LBA %8d:\n", bcnt, FSYS_HB_ALG(bcnt, FAKE_SIZE));
+d2030 1
+a2030 1
+	    FPRINTF(OUTWHERE, "\tID of %08lX is incorrect. Expected %08X\n", hb.id, FSYS_ID_HOME);
+d2034 1
+a2034 1
+	    FPRINTF(OUTWHERE, "\tChecksum of %08lX is incorrect. Expected 0\n", cs);
+d2037 12
+a2048 12
+	FPRINTF(OUTWHERE, "\tID = %08lX, hb_major=%d, hb_minor=%d, hb_size=%d\n", 
+	    hb.id, hb.hb_minor, hb.hb_major, hb.hb_size);
+	FPRINTF(OUTWHERE, "\tfh_major=%d, fh_minor=%d, fh_size=%d, fh_ptrs=%d\n", 
+		hb.fh_major, hb.fh_minor, hb.fh_size, hb.fh_ptrs);
+	FPRINTF(OUTWHERE, "\tefh_major=%d, efh_minor=%d, efh_size=%d, efh_ptrs=%d\n", 
+		hb.efh_major, hb.efh_minor, hb.efh_size, hb.efh_ptrs);
+	FPRINTF(OUTWHERE, "\trp_major=%d, rp_minor=%d, rp_size=%d\n", 
+		hb.rp_major, hb.rp_minor, hb.rp_size);
+	FPRINTF(OUTWHERE, "\tcluster=%d, maxalts=%d, chksum=%08lX, computed cksum=%08lX\n",
+    	    hb.cluster, hb.maxalts, hb.chksum, cs);
+	FPRINTF(OUTWHERE, "\tctime = %s", ctime((time_t *)&hb.ctime));
+	FPRINTF(OUTWHERE, "\tindex[0]=%8ld", hb.index[0]);
+d2050 1
+a2050 1
+	    FPRINTF(OUTWHERE, ", [%d]=%8ld", ii, hb.index[ii]);
+d2052 1
+a2052 1
+	FPRINTF(OUTWHERE, "\n");
+d2056 1
+a2056 1
+    FPRINTF(OUTWHERE, "Index files:\n");
+d2058 1
+a2058 1
+	FPRINTF(OUTWHERE, "  %d FH at %8ld:\n", bcnt, hb.index[FSYS_INDEX_INDEX*FSYS_MAX_ALTS+bcnt]);
+d2064 2
+a2065 2
+	FPRINTF(OUTWHERE, "\tID = %08lX, ctime = %s", hdr.id, ctime((time_t *)&hdr.ctime));
+	FPRINTF(OUTWHERE, "\tsize = %ld, alloc = %ld, type = %d, generation = %d, extension = %08lX\n",
+d2072 2
+a2073 2
+            );
+	FPRINTF(OUTWHERE, "\tRP set %2d:\n", bcnt);
+d2076 2
+a2077 2
+	    FPRINTF(OUTWHERE, "\t       %2d: start = %8ld, nblocks = %ld" REPEAT_SKIP_CTL "\n",
+		ii, rp->start, rp->nblocks REPEAT_SKIP_ARGS(rp));
+d2081 2
+a2082 2
+	    FPRINTF(OUTWHERE, "    %d files, Contents of copy 0 at %8ld:\n",
+	    		num_files, hdr.pointers[bcnt][0].start);
+d2085 1
+a2085 1
+		FPRINTF(OUTWHERE, "Ran out of memory\n");
+d2096 2
+a2097 2
+		FPRINTF(OUTWHERE, "\t%3d: ", (ii)/FSYS_MAX_ALTS);
+		for (jj=0; jj < FSYS_MAX_ALTS; ++jj) FPRINTF(OUTWHERE, " %8ld", index[ii+jj]);
+d2104 1
+a2104 1
+		FPRINTF(OUTWHERE, "%s\n", aux);
+d2108 1
+a2108 1
+    FPRINTF(OUTWHERE, "Freemap files:\n");
+d2110 1
+a2110 1
+	FPRINTF(OUTWHERE, "  %d FH at %8ld:\n", bcnt, index[FSYS_INDEX_FREE*FSYS_MAX_ALTS+bcnt]);
+d2116 2
+a2117 2
+	FPRINTF(OUTWHERE, "\tID = %08lX, ctime = %s", hdr.id, ctime((time_t *)&hdr.ctime));
+	FPRINTF(OUTWHERE, "\tsize = %ld, alloc = %ld, type = %d, generation = %d, extension = %08lX\n",
+d2124 1
+a2124 1
+            );
+d2127 2
+a2128 2
+	    FPRINTF(OUTWHERE, "\tretrieval: start = %8ld, nblocks = %ld" REPEAT_SKIP_CTL "\n",
+		rp->start, rp->nblocks REPEAT_SKIP_ARGS(rp));
+d2131 1
+a2131 1
+	    FPRINTF(OUTWHERE, "    Contents of 0 at %8ld:\n", hdr.pointers[bcnt][0].start);
+d2136 1
+a2136 1
+		    FPRINTF(OUTWHERE, "Ran out of memory\n");
+d2145 2
+a2146 2
+		FPRINTF(OUTWHERE, "    %3d: start: %8ld, nblocks %ld" REPEAT_SKIP_CTL "\n",
+			ii, rp->start, rp->nblocks REPEAT_SKIP_ARGS(rp));
+d2151 1
+a2151 1
+    FPRINTF(OUTWHERE, "File headers (copy number 0 in all cases):\n");
+d2157 1
+a2157 1
+	    FPRINTF(OUTWHERE, "%3d, lba 0x%08lX is inactive/invalid\n", bcnt, lba);
+d2160 1
+a2160 1
+	FPRINTF(OUTWHERE, "%3d, lba %8ld:\n", bcnt, lba);
+d2166 2
+a2167 2
+	FPRINTF(OUTWHERE, "\tID = %08lX, ctime = %s", hdr.id, ctime((time_t *)&hdr.ctime));
+	FPRINTF(OUTWHERE, "\tsize = %ld, alloc = %ld, type = %d, generation = %d, extension = %08lX\n",
+d2174 1
+a2174 1
+		);
+d2177 1
+a2177 1
+	    FPRINTF(OUTWHERE, "\tRP set %2d:\n", jj);
+d2180 2
+a2181 2
+		FPRINTF(OUTWHERE, "\t       %2d: start = %8ld, nblocks = %ld" REPEAT_SKIP_CTL "\n",
+		    ii, rp->start, rp->nblocks REPEAT_SKIP_ARGS(rp));
+d2185 1
+a2185 1
+	FPRINTF(OUTWHERE, "    Directory:\n");
+d2191 1
+a2191 1
+		FPRINTF(OUTWHERE, "Ran out of memory\n");
+d2212 1
+a2212 1
+	    FPRINTF(OUTWHERE, "%6ld,%3d: (%d)%s\n", idx, gen, cnt, name);
+d2240 1
+a2240 1
+	FPRINTF(OUTWHERE, "Error opening \"%s\" to get volume pointer:\n%s\n", volname, emsg);
+d2245 4
+a2248 4
+	FPRINTF(OUTWHERE, "QIO device structs not correct\n");
+	if (!file) FPRINTF(OUTWHERE, "file == 0\n");
+	else if (!file->dvc) FPRINTF(OUTWHERE, "file->dvc == 0\n");
+	else if (vol == 0) FPRINTF(OUTWHERE, "vol == 0\n");
+d2250 1
+a2250 1
+	    FPRINTF(OUTWHERE, "vol->id is %08lX, s/b %08lX\n", vol->id, FSYS_ID_VOLUME);
+d2256 6
+a2261 6
+    FPRINTF(OUTWHERE, "Volume structure:\n\tstatus = %d, state=%d, substate=%d, iofd=%d\n",
+    	vol->status, vol->state, vol->substate, vol->iofd);
+    FPRINTF(OUTWHERE, "\tmaxlba=%ld, index_lbas[0]=%08lX", vol->maxlba, vol->index_lbas[0]);
+    for (ii=1; ii < FSYS_MAX_ALTS; ++ii) FPRINTF(OUTWHERE, ", index_lbas[%d]=%08lX", ii, vol->index_lbas[ii]);
+    FPRINTF(OUTWHERE, "\n\tfiles=%08lX, files_ffree=%d, files_elems=%d, files_indx=%d\n",
+    	(unsigned long)vol->files, vol->files_ffree, vol->files_elems, vol->files_indx);
+d2263 2
+a2264 2
+    FPRINTF(OUTWHERE, "\ttotal_free_clusters=%ld, total_alloc_clusters=%ld\n",
+    	vol->total_free_clusters, vol->total_alloc_clusters);
+d2268 1
+a2268 1
+	    FPRINTF(OUTWHERE, "\t%3d: alloc=%ld, size=%ld, gen=%d, valid=%d\n\t     def_ext=%d, mtime=%08lX, dir=%08lX, active_rp=%d\n",
+d2270 1
+a2270 1
+    			rfh->def_extend, rfh->mtime, (unsigned long)rfh->directory, rfh->active_rp);
+d2275 1
+a2275 1
+		    FPRINTF(OUTWHERE, "\t     rp=%08lX, next=%08lX, rptrs=%08lX, num_rptrs=%d, rptrs_size=%d\n",
+d2277 1
+a2277 1
+			rp->num_rptrs, rp->rptrs_size);
+d2280 2
+a2281 2
+			FPRINTF(OUTWHERE, "\t        %3d: start = %8ld, nblocks = %ld" REPEAT_SKIP_CTL "\n",
+			    jj, retp->start, retp->nblocks REPEAT_SKIP_ARGS(retp));
+d2289 1
+a2289 1
+	    FPRINTF(OUTWHERE, "\t\tDirectory:\n");
+d2293 2
+a2294 2
+		    FPRINTF(OUTWHERE, "\t\t%3d: fid=%6d,%3d  name=(%d)%s\n", jj, dir->fid,
+    				dir->generation, strlen(dir->name), dir->name);
+d2296 2
+a2297 2
+			FPRINTF(OUTWHERE, "\t\t     fid=%6d,%3d  name=(%d)%s\n", dir->fid,
+    				dir->generation, strlen(dir->name), dir->name);
+d2303 2
+a2304 2
+    FPRINTF(OUTWHERE, "\tindex=%08lX, ffree=%d, elems=%d\n",
+    	(unsigned long)vol->index, vol->files_ffree, vol->files_elems);
+d2307 1
+a2307 1
+	FPRINTF(OUTWHERE, "\t%3d: %8ld", ii, *ulp++);
+d2309 1
+a2309 1
+	    FPRINTF(OUTWHERE, ", %8ld", *ulp++);
+d2311 1
+a2311 1
+	FPRINTF(OUTWHERE, "\n");
+d2313 2
+a2314 2
+    FPRINTF(OUTWHERE, "\tfree=%08lX, free_ffree=%d, free_elems=%d\n",
+    	(unsigned long)vol->free, vol->free_ffree, vol->free_elems);
+d2317 1
+a2317 1
+	FPRINTF(OUTWHERE, "\t%3d: start %8ld, nblocks %ld\n", ii, rp->start, rp->nblocks);
+d2320 2
+a2321 2
+    FPRINTF(OUTWHERE, "\tdirty=%08lX, dirty_ffree=%d, dirty_elems=%d\n",
+    	(unsigned long)vol->dirty, vol->dirty_ffree, vol->dirty_elems);
+d2324 1
+a2324 1
+	FPRINTF(OUTWHERE, "\t%3d: fid %8ld\n", ii, *ulp);
+d2326 2
+a2327 2
+    FPRINTF(OUTWHERE, "\tunused=%08lX, unused_ffree=%d, unused_elems=%d\n",
+    	(unsigned long)vol->unused, vol->unused_ffree, vol->unused_elems);
+d2330 1
+a2330 1
+	FPRINTF(OUTWHERE, "\t%3d: fid %8ld\n", ii, *ulp);
+d2332 2
+a2333 2
+    FPRINTF(OUTWHERE, "\tindex_bits=%08lX, index_bits_elems=%d\n",
+    	(unsigned long)vol->index_bits, vol->index_bits_elems);
+d2336 1
+a2336 1
+	FPRINTF(OUTWHERE, "\t%3d: %08lX\n", ii, *ulp);
+d2338 1
+a2338 1
+    FPRINTF(OUTWHERE, "\tfree_start=%8d\n", vol->free_start);
+@
+
+
+1.15
+log
+@Protected use of hddnl_guts_mode. Added a version number
+display. Added more messages and made them appear in random
+order.
+@
+text
+@d686 1
+a686 1
+    QioDevice *dvc;
+@
+
+
+1.14
+log
+@Protected definition of hddnl_unsafe.
+@
+text
+@d80 1
+a87 1
+int hddnl_guts_mode;
+d390 6
+a395 1
+    if (hddnl_guts_mode && !been_mounted) {
+d1507 3
+d1522 2
+d1578 2
+d1614 5
+a1618 1
+		cp = waiting_msgs[which_msg++];
+a1620 1
+		    which_msg = 1;
+@
+
+
+1.13
+log
+@Make sure screen gets displayed in game mode.
+@
+text
+@a66 1
+static volatile int hddnl_unsafe;	/* 1 = unsafe to process packets */
+d78 2
+@
+
+
+1.12
+log
+@Added ability to use hddnl while in guts menu.
+@
+text
+@d1722 1
+@
+
+
+1.11
+log
+@Added code to allow it to print banners during game.
+@
+text
+@d85 2
+a113 2
+#define NUM_SECTORS	128		/* number of sectors to read/write at once */
+
+a367 1
+#if !HDDNL_GAME_MODE
+a374 4
+static void fsys_banners(void);
+
+#endif
+
+a376 1
+#if !HDDNL_GAME_MODE
+d389 15
+a403 11
+    mnt = (MoleMountExt *)(p + PKTcs + 2);	/* skip to parameter block */
+    please_mount.pkt = pkt;
+    please_mount.phys = (char *)mnt + mnt->phys;
+    please_mount.virt = (char *)mnt + mnt->virt;
+    please_mount.type = mnt->type;
+#else
+    p = pkt->buf;
+    p[PKTcmd] = ICEack;
+    p[PKTcs+2] = 0;
+    p[PKTcs+3] = 0;
+    mole_acknak(pkt);
+d698 3
+a701 1
+#define SECTORS_PER_WRITE	128
+d703 1
+a703 1
+#define MOLE_BUF_SIZE	(SECTORS_PER_WRITE*BYTES_PER_SECTOR)
+d1587 1
+a1587 1
+    show_mkb(qio_free_size, 512*1024, 256*1024);
+d1651 64
+d1716 1
+a1716 1
+    int oldps, oldopt;
+d1724 1
+a1724 1
+    if (!unsafe) {			/* making it unsafe */
+d1729 1
+a1729 2
+	prc_set_ipl(oldps);
+	return;
+d1737 2
+d1748 26
+a1773 5
+    banners();
+    fsys_banners();
+    while (hddnl_busy) {
+	upd_display();
+	prc_delay(0);
+d1776 1
+a1925 1
+		static int been_mounted;
+@
+
+
+1.10
+log
+@Added part 1 of support for online hddnl.
+@
+text
+@d66 2
+d302 1
+d311 6
+d410 2
+a413 2
+static int banners_up;
+
+d1349 2
+a1350 1
+    mole_cchksum	/* compute checksum on file */
+d1423 26
+a1448 1
+#if !HDDNL_GAME_MODE
+d1642 52
+d1743 3
+d1747 1
+a1754 1
+#if !HDDNL_GAME_MODE
+d1757 1
+@
+
+
+1.9
+log
+@Added more waiting_msgs.
+@
+text
+@a15 1
+#include "qio_errs.h"
+d19 4
+a22 4
+#if 0
+#define INC_DUMP_VOLUME	0
+#define INC_DUMP_VOL	0
+#define TOSS_PACKET	0
+d64 2
+a65 1
+static void mole(void);
+d74 2
+d77 1
+a77 1
+static volatile int pkts_rcvd, pkts_sent;
+d94 1
+d96 1
+a96 1
+	mole,						/* RESET vector */
+d108 1
+d112 1
+d150 1
+a161 11
+
+#if 0
+static void write_loop(QioIOQ *ioq) {
+    ioq->iostatus = 1;
+    return;
+}
+
+static void read_loop(QioIOQ *ioq) {
+    ioq->iostatus = 2;
+    return;
+}
+d359 1
+d367 4
+d373 1
+d391 7
+d401 2
+d404 1
+d412 2
+d416 1
+d420 1
+d432 1
+d463 8
+d1413 1
+d1607 1
+d1609 2
+a1610 2
+static void mole(void) {
+    int loop, sts;
+d1615 2
+d1643 1
+d1664 1
+d1783 1
+@
+
+
+1.8
+log
+@Fixed upload and checksum bugs. removed dead code.
+@
+text
+@d1503 4
+a1506 1
+    "Take this time to fill our your registration card",
+@
+
+
+1.7
+log
+@Removed dead code. Added a checksum file command.
+@
+text
+@d459 2
+d514 1
+d712 1
+d760 2
+a784 1
+    lb->len = 0;			/* so close doesn't try any funny business */
+d982 4
+a985 4
+	    p[PKTcs+2+0] = lb->len >> (3*8);
+	    p[PKTcs+2+1] = lb->len >> (2*8);
+	    p[PKTcs+2+2] = lb->len >> (1*8);
+	    p[PKTcs+2+3] = lb->len >> (0*8);
+d1005 1
+a1005 1
+    cs = lb->len;
+d1009 1
+a1009 1
+    lb->len = cs;
+d1011 10
+d1056 1
+a1056 1
+    lb->len = 0;			/* init the checksum */
+d1156 1
+a1156 1
+    if (lb->len) {		/* if there's anything in the buffer */
+a1182 196
+#if 0
+static void mole_opncsum(PktIOStruct *pkt) {
+    U8 *p;
+    MoleMkFileExt *mf;
+    LclBuf *lb;
+    DirLoop *dl;
+    QioDevice *dvc;
+    QioIOQ *ioq;
+    int ii, jj, memsize;
+    FsysOpenT *ot;
+
+    SQUAWK((iop, "Entered mole_opencsum. cmd = %d, pkt = %d\n", (int)pkt->user, pkt - pkts));
+    p = pkt->buf;
+    if (pkt->len < sizeof(MoleMkFileExt) + 2) {
+	p[PKTcs+2] = MOLE_ERR_INVARG;
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+	    "Wrong size input parameters. Expected >= %d. Got %d",
+	    sizeof(MoleMkFileExt) + 2, pkt->len);	    
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    mf = (MoleMkFileExt *)(p + PKTcs + 2);	/* skip to input parameter block */
+    memsize = mf->alloc[0]<<(3*8) |		/* room for new file */
+		mf->alloc[1]<<(2*8) |
+		mf->alloc[2]<<(1*8) |
+		mf->alloc[3]<<(0*8);
+    ii = strlen((char *)((int)mf + mf->fname));
+    jj = memsize + sizeof(LclBuf) + ii + 1 + sizeof(DirLoop);
+    lb = (LclBuf *)QIOcalloc(1, jj);
+    SQUAWK((iop, "opencs: calloc %d bytes: %08lX-%08lX\n", jj, (U32)lb, (U32)lb+jj-1));
+    if (!lb) {
+	p[PKTcs+2] = MOLE_ERR_NOMEM;
+	p[PKTcmd] = ICEnak;
+	nsprintf((char *)p+PKTcs+3, pkt->size - PKTuser - PKTcs - 3,
+    		"Ran out of memory QIOcalloc'ing %d bytes",
+    		sizeof(LclBuf) + 2*MOLE_BUF_SIZE + QIO_CACHE_LINE_SIZE + ii + 1);
+	mole_acknak(pkt);
+	return;
+    }
+    dl = (DirLoop *)(lb+1);
+    dl->dst = (char *)(dl+1);
+    lb->buf = (U8*)(((int)dl->dst + ii + 1 + 3)&-4);
+    lb->pkt = pkt;			/* remember packet */
+    lb->file_len = memsize;
+    ioq = &lb->ioq;
+    ioq->user = (void *)lb;
+    strcpy(dl->dst, (char *)((int)mf + mf->fname));
+    SQ((iop, "Opencsum: %s\n", dl->dst));
+    dl->dir_strt = dl->dst;
+    dvc = qio_lookupdvc(dl->dir_strt); /* see if there's a device name at the beginning */
+    if (dvc) {			/* there is, so skip it */
+	dl->dir_strt += 2+dvc->name_len; /* skip over the device name "/dvc/" */
+    }
+    ot = &lb->ot;
+    ot->alloc = mf->alloc[0]<<(3*8) |
+		mf->alloc[1]<<(2*8) |
+		mf->alloc[2]<<(1*8) |
+		mf->alloc[3]<<(0*8);
+    ot->spc.path = dl->dst;
+    ii	=  mf->mode[0]<<(3*8) | 
+	       mf->mode[1]<<(2*8) |
+	       mf->mode[2]<<(1*8) |
+	       mf->mode[3]<<(0*8);
+    ot->spc.mode = ii&3;	/* O_RDONLY, O_WRONLY or O_RDWR */
+    if (ii&MOLE_O_APPEND) ot->spc.mode |= O_APPEND;
+    if (ii&MOLE_O_CREAT) ot->spc.mode |= O_CREAT;
+    if (ii&MOLE_O_TRUNC)  ot->spc.mode |= O_TRUNC;
+    if (ii&MOLE_O_EXCL)   ot->spc.mode |= O_EXCL;
+    ot->fid = 0;
+    ot->eof = mf->eof[0]<<(3*8) |
+	      mf->eof[1]<<(2*8) |
+	      mf->eof[2]<<(1*8) |
+	      mf->eof[3]<<(0*8);
+    ot->placement = mf->placement;
+    if (!(ot->copies = mf->copies)) ot->copies = 1;
+    ot->mkdir =  mf->mkdir;
+    ot->ctime =  mf->ctime[0]<<(3*8) |
+		 mf->ctime[1]<<(2*8) |
+		 mf->ctime[2]<<(1*8) |
+		 mf->ctime[3]<<(0*8);
+    ot->def_extend = (mf->def_extend[0] << (1*8)) |
+		     (mf->def_extend[1] << (0*8));
+    
+    p[PKTcmd] = ICEreply;
+    p += PKTcs + 2;	/* skip to parameter block */
+    p[0] = (int)lb >> (3*8);
+    p[1] = (int)lb >> (2*8);
+    p[2] = (int)lb >> (1*8);
+    p[3] = (int)lb >> (0*8);
+    mole_reply(pkt, 4);
+    return;
+}
+
+static void mole_wrcsum(PktIOStruct *pkt) {
+    U8 *p;
+    LclBuf *lb;
+    int len, pktn;
+
+    pktn = pkt - pkts;
+    SQUAWK((iop, "Entered mole_wrcsum. cmd = %d, pkt = %d\n", (int)pkt->user, pktn));
+    SQUAWK((iop, "mole_wrcsum: time = %10u usecs since boot, %10u usecs since queued\n",
+    	(prc_get_count() - since_boot + 25)/50, (prc_get_count() - timestamps[pktn]+25)/50));
+    p = pkt->buf;
+    if (pkt->len < sizeof(LclBuf *) + 4) {
+	SQUAWK((iop, "Error on packet %d. buf #=%d, cmd=%d, len=%d\n",
+    			pktn, (p - bufs)/MAX_PKT_SIZE, p[PKTcmd], pkt->len));
+	SQUAWK((iop, "pkt: to=%d, tothrd=%d, from=%d, frmth=%d, size=%d, len=%d, state=%d\n",
+		pkt->to, pkt->tothread, pkt->from, pkt->frmthread, pkt->size, pkt->len, pkt->state));
+	SQUAWK((iop, "next=%08lX, polling=%d, jj=%d, kk=%d\n",
+    		pkt->next, pkt->polling, pkt->jj, pkt->kk));
+	dump_pkt(0, pkt->buf, 16, 2);
+	p[PKTcs+2] = MOLE_ERR_INVARG;		/* invalid argument */
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-2,
+	    "Wrong size input parameters. Expected >= %d. Got %d",
+	    sizeof(LclBuf *) + 4, pkt->len);
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    p += PKTcs + 2;
+    lb = (LclBuf *)((p[0] << (3*8)) |
+         	    (p[1] << (2*8)) |
+         	    (p[2] << (1*8)) |
+         	    (p[3] << (0*8)));
+    len = pkt->len - 4 - sizeof(LclBuf *);
+    if (len > 0) {			/* if there is something to write */
+	int max;
+	QioIOQ *ioq;
+
+	total_bytes += len;
+	current_work.curr = lb->file_len;
+	ioq = &lb->ioq;
+	p += 4;				/* advance to our data */
+	if (lb->len+len > lb->file_len) {
+	    p[PKTcs+2] = MOLE_ERR_INVARG;		/* invalid argument */
+	    nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-2,
+		"Too much data. Expected no more than %d. Got %d",
+		lb->file_len, lb->len+len);
+	    p[PKTcmd] = ICEnak;
+	    mole_acknak(pkt);
+	    return;
+	}
+	SQUAWK((iop, "\tpkt %d: Copying %3d bytes from %08lX to %08lX (%08lX-%08lX) lb=%08lX\n",
+    		pktn, max, p, lb->buf + lb->which_buf + lb->len,
+    		lb->buf, lb->buf + 2*MOLE_BUF_SIZE-1, lb));
+	memcpy(lb->buf + lb->len, p, len); /* copy user data to disk buffer */
+	lb->len += len;			/* accumulate the length */
+    }	    
+    if ((int)pkt->user == MOLE_WRCSUMack) {
+	mole_nop(pkt);			/* ack the packet */
+    } else {
+	mole_requeue_pkt(pkt);
+    }
+    return;    
+}
+
+static LclBuf * volatile please_updcsum;
+
+static void mole_closecsum(PktIOStruct *pkt) {
+    U8 *p;
+    LclBuf *lb;
+    int len, pktn;
+
+    pktn = pkt - pkts;
+    SQUAWK((iop, "Entered mole_closecsum. cmd = %d, pkt = %d\n", (int)pkt->user, pktn));
+    SQUAWK((iop, "mole_closecsum: time = %10u usecs since boot, %10u usecs since queued\n",
+    	(prc_get_count() - since_boot + 25)/50, (prc_get_count() - timestamps[pktn]+25)/50));
+    p = pkt->buf;
+    if (pkt->len < sizeof(LclBuf *) + 4) {
+	SQUAWK((iop, "Error on packet %d. buf #=%d, cmd=%d, len=%d\n",
+    			pktn, (p - bufs)/MAX_PKT_SIZE, p[PKTcmd], pkt->len));
+	SQUAWK((iop, "pkt: to=%d, tothrd=%d, from=%d, frmth=%d, size=%d, len=%d, state=%d\n",
+		pkt->to, pkt->tothread, pkt->from, pkt->frmthread, pkt->size, pkt->len, pkt->state));
+	SQUAWK((iop, "next=%08lX, polling=%d, jj=%d, kk=%d\n",
+    		pkt->next, pkt->polling, pkt->jj, pkt->kk));
+	dump_pkt(0, pkt->buf, 16, 2);
+	p[PKTcs+2] = MOLE_ERR_INVARG;		/* invalid argument */
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-2,
+	    "Wrong size input parameters. Expected >= %d. Got %d",
+	    sizeof(LclBuf *) + 4, pkt->len);
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    p += PKTcs + 2;
+    lb = (LclBuf *)((p[0] << (3*8)) |
+         	    (p[1] << (2*8)) |
+         	    (p[2] << (1*8)) |
+         	    (p[3] << (0*8)));
+    lb->pkt = pkt;
+    please_upd_csum = lb;			/* let background job do the work from here */
+    return;
+}
+#endif
+
+a1499 1
+    "This is getting boring.",
+d1502 2
+@
+
+
+1.6
+log
+@Ditto.
+@
+text
+@d21 3
+a23 2
+# define INC_DUMP_VOLUME	0
+# define INC_DUMP_VOL		0
+d29 1
+a29 1
+extern void ide_init(void);
+d80 1
+d964 95
+d1496 2
+a1497 1
+    mole_stest
+d1510 4
+a1513 7
+#if 0
+    if (pkt->next) {
+	SQUAWK((iop, "WARNING WARNING WARNING WARNING WARNING pkt->next == %08lX\n", pkt->next));
+	SQUAWK((iop, "pkt: to=%d, tothrd=%d, from=%d, frmth=%d, size=%d, len=%d, state=%d\n",
+		pkt->to, pkt->tothread, pkt->from, pkt->frmthread, pkt->size, pkt->len, pkt->state));
+	SQUAWK((iop, "next=%08lX, polling=%d, jj=%d, kk=%d\n",
+    		pkt->next, pkt->polling, pkt->jj, pkt->kk));
+d1550 7
+a1569 25
+#if 0
+static U8 eatit_buf[MAX_PKT_SIZE*8];
+static PktIOStruct spcs[8];
+static VU32 turned;
+static VU32 eaten;
+
+static void echo_it(PktIOStruct *pkt) {
+    int to;
+    ++turned;
+    to = pkt->from;
+    pkt->from = pkt->to;
+    pkt->to = to;
+    pktQueSend(pkt,0);
+    pktQueRecv(pkt);
+    return;
+}
+
+static void eat_it(PktIOStruct *pkt) {
+    if (!(eaten&31)) prc_wait_n_usecs(16000);
+    ++eaten;
+    pktQueRecv(pkt);
+    return;
+}
+#endif
+
+d1676 12
+d1706 22
+a1727 6
+	txt_clr_wid(0, AN_VIS_ROW/2+0, AN_VIS_COL);
+	txt_clr_wid(0, AN_VIS_ROW/2+1, AN_VIS_COL);
+	txt_clr_wid(0, AN_VIS_ROW/2+2, AN_VIS_COL);
+	txt_clr_wid(0, AN_VIS_ROW/2+3, AN_VIS_COL);
+	txt_clr_wid(0, AN_VIS_ROW/2+4, AN_VIS_COL);
+	txt_str(-1, AN_VIS_ROW/2+0, "Waiting for work", GRN_PAL);
+d1732 1
+a1759 94
+#if 0
+static void update_checksum(void) {
+    U8 *p;
+    LclBuf *lb;
+    DirLoop *dl;
+    QioDevice *dvc;
+    QioIOQ *ioq;
+    int ii, jj, memsize;
+    FsysOpenT *ot;
+
+    SQUAWK((iop, "Entered mole_opencsum. cmd = %d, pkt = %d\n", (int)pkt->user, pkt - pkts));
+    p = pkt->buf;
+    if (pkt->len < sizeof(MoleMkFileExt) + 2) {
+	p[PKTcs+2] = MOLE_ERR_INVARG;
+	nsprintf((char *)p+PKTcs+3, pkt->size-PKTuser-PKTcs-3,
+	    "Wrong size input parameters. Expected >= %d. Got %d",
+	    sizeof(MoleMkFileExt) + 2, pkt->len);	    
+	p[PKTcmd] = ICEnak;
+	mole_acknak(pkt);
+	return;
+    }
+    mf = (MoleMkFileExt *)(p + PKTcs + 2);	/* skip to input parameter block */
+    memsize = mf->alloc[0]<<(3*8) |		/* room for new file */
+		mf->alloc[1]<<(2*8) |
+		mf->alloc[2]<<(1*8) |
+		mf->alloc[3]<<(0*8);
+    ii = strlen((char *)((int)mf + mf->fname));
+    jj = memsize + sizeof(LclBuf) + ii + 1 + sizeof(DirLoop);
+    lb = (LclBuf *)QIOcalloc(1, jj);
+    SQUAWK((iop, "opencs: calloc %d bytes: %08lX-%08lX\n", jj, (U32)lb, (U32)lb+jj-1));
+    if (!lb) {
+	p[PKTcs+2] = MOLE_ERR_NOMEM;
+	p[PKTcmd] = ICEnak;
+	nsprintf((char *)p+PKTcs+3, pkt->size - PKTuser - PKTcs - 3,
+    		"Ran out of memory QIOcalloc'ing %d bytes",
+    		sizeof(LclBuf) + 2*MOLE_BUF_SIZE + QIO_CACHE_LINE_SIZE + ii + 1);
+	mole_acknak(pkt);
+	return;
+    }
+    dl = (DirLoop *)(lb+1);
+    dl->dst = (char *)(dl+1);
+    lb->buf = (U8*)(((int)dl->dst + ii + 1 + 3)&-4);
+    lb->pkt = pkt;			/* remember packet */
+    lb->file_len = memsize;
+    ioq = &lb->ioq;
+    ioq->user = (void *)lb;
+    strcpy(dl->dst, (char *)((int)mf + mf->fname));
+    SQ((iop, "Opencsum: %s\n", dl->dst));
+    dl->dir_strt = dl->dst;
+    dvc = qio_lookupdvc(dl->dir_strt); /* see if there's a device name at the beginning */
+    if (dvc) {			/* there is, so skip it */
+	dl->dir_strt += 2+dvc->name_len; /* skip over the device name "/dvc/" */
+    }
+    ot = &lb->ot;
+    ot->alloc = mf->alloc[0]<<(3*8) |
+		mf->alloc[1]<<(2*8) |
+		mf->alloc[2]<<(1*8) |
+		mf->alloc[3]<<(0*8);
+    ot->spc.path = dl->dst;
+    ii	=  mf->mode[0]<<(3*8) | 
+	       mf->mode[1]<<(2*8) |
+	       mf->mode[2]<<(1*8) |
+	       mf->mode[3]<<(0*8);
+    ot->spc.mode = ii&3;	/* O_RDONLY, O_WRONLY or O_RDWR */
+    if (ii&MOLE_O_APPEND) ot->spc.mode |= O_APPEND;
+    if (ii&MOLE_O_CREAT) ot->spc.mode |= O_CREAT;
+    if (ii&MOLE_O_TRUNC)  ot->spc.mode |= O_TRUNC;
+    if (ii&MOLE_O_EXCL)   ot->spc.mode |= O_EXCL;
+    ot->fid = 0;
+    ot->eof = mf->eof[0]<<(3*8) |
+	      mf->eof[1]<<(2*8) |
+	      mf->eof[2]<<(1*8) |
+	      mf->eof[3]<<(0*8);
+    ot->placement = mf->placement;
+    if (!(ot->copies = mf->copies)) ot->copies = 1;
+    ot->mkdir =  mf->mkdir;
+    ot->ctime =  mf->ctime[0]<<(3*8) |
+		 mf->ctime[1]<<(2*8) |
+		 mf->ctime[2]<<(1*8) |
+		 mf->ctime[3]<<(0*8);
+    ot->def_extend = (mf->def_extend[0] << (1*8)) |
+		     (mf->def_extend[1] << (0*8));
+    
+    p[PKTcmd] = ICEreply;
+    p += PKTcs + 2;	/* skip to parameter block */
+    p[0] = (int)lb >> (3*8);
+    p[1] = (int)lb >> (2*8);
+    p[2] = (int)lb >> (1*8);
+    p[3] = (int)lb >> (0*8);
+    mole_reply(pkt, 4);
+    please_updcsum = 0;
+}
+#endif
+
+a1765 8
+#if 0
+    FsysInitVol iv;
+#endif
+
+#if 0
+    int row;
+    U32 lba;
+#endif
+d1782 1
+a1782 1
+    ide_init();
+d1785 7
+a1791 2
+    txt_str(-1, AN_VIS_ROW/2, "Initialising system s/w", WHT_PAL);
+    prc_delay(20);
+a1792 2
+    fsys_init();
+
+a1807 17
+#if 0
+    pkt = spcs;
+    for (loop=0; loop < 8; ++loop, ++pkt) {
+	pkt->buf = eatit_buf + loop*MAX_PKT_SIZE;
+	if (loop < 4) {
+	    pkt->tothread = 3;
+	    pkt->frmthread = 3;
+	    pkt->func = echo_it;
+	} else {
+	    pkt->tothread = 4;
+	    pkt->frmthread = 4;
+	    pkt->func = eat_it;
+	}
+	pkt->size = MAX_PKT_SIZE;
+	pktQueRecv(pkt);
+    }
+#endif
+d1819 3
+a1821 75
+    if (0) {
+	FsysInitVol iv;
+	txt_str(-1, AN_VIS_ROW/2+4, "Press BLACK or GREEN to INITFS", WHT_PAL);
+	while (1) {
+	    prc_delay(0);
+	    if ((ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION))) break;
+	}
+	txt_clr_wid(0, AN_VIS_ROW/2+4, AN_VIS_COL);
+	prc_delay(0);
+
+	iv.cluster = 1;
+	iv.index_sectors = 50;
+	iv.free_sectors = 50;
+	iv.root_sectors = 50;
+	sts = fsys_initfs("/rd0", &iv);
+	qio_errmsg(sts, emsg, sizeof(emsg));  
+	txt_str(-1, AN_VIS_ROW-3, emsg, YEL_PAL);
+
+	prc_delay(0);
+    }
+
+#if 0
+    txt_str(-1, AN_VIS_ROW/2+4, "Press BLACK or GREEN to MOUNTFS", WHT_PAL);
+    while (1) {
+	prc_delay(0);
+	if ((ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION))) break;
+    }
+    txt_clr_wid(0, AN_VIS_ROW/2+4, AN_VIS_COL);
+    txt_clr_wid(0, AN_VIS_ROW-3, AN_VIS_COL);
+    prc_delay(0);
+
+    sts = fsys_mountw("/rd0", "/d0");
+    qio_errmsg(sts, emsg, sizeof(emsg));  
+    txt_str(-1, AN_VIS_ROW-3, emsg, YEL_PAL);
+
+    prc_delay(0);
+
+    txt_str(-1, AN_VIS_ROW/2+4, "Press BLACK or GREEN to DUMP", WHT_PAL);
+    while (1) {
+	prc_delay(0);
+	if ((ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION))) break;
+    }
+    txt_clr_wid(0, AN_VIS_ROW/2+4, AN_VIS_COL);
+    txt_clr_wid(0, AN_VIS_ROW-3, AN_VIS_COL);
+    prc_delay(0);
+
+    sts = dump_vol(iop, "/d0/.");
+    qio_errmsg(sts, emsg, sizeof(emsg));  
+    txt_str(-1, AN_VIS_ROW-3, emsg, YEL_PAL);
+
+    txt_str(-1, AN_VIS_ROW/2+4, "Press BLACK or GREEN to Create temps", WHT_PAL);
+    while (1) {
+	prc_delay(0);
+	if ((ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION))) break;
+    }
+    txt_clr_wid(0, AN_VIS_ROW/2+4, AN_VIS_COL);
+    txt_clr_wid(0, AN_VIS_ROW-3, AN_VIS_COL);
+    prc_delay(0);
+
+    for (loop=0; loop < 20; ++loop) {
+	char fname[20];
+	sprintf(fname, "/d0/temp%02d", loop);
+	sts = qio_open(io1, fname, O_CREAT|O_WRONLY);
+	while (!io1->iostatus) { ; }
+	qio_errmsg(io1->iostatus, emsg, sizeof(emsg));
+	SQUAWK((iop, "create \"%s\" returned %d, sts=%08X (%s)\n",
+		    fname, io1->file, io1->iostatus, emsg));
+	qio_close(io1);
+    }
+    qio_fsync(io1, "/d0");
+    prc_delay(20);
+
+    sts = dump_vol(iop, "/d0/.");
+    qio_errmsg(sts, emsg, sizeof(emsg));  
+    txt_str(-1, AN_VIS_ROW-3, emsg, YEL_PAL);
+d1823 2
+a1824 3
+
+#if INC_DUMP_VOL
+    st_insn(AN_VIS_ROW-1, "To dump volume", t_msg_next, INSTR_PAL);
+a1828 3
+#if 0
+	if (please_upd_csum) update_checksum();
+#endif
+d1894 2
+a1895 6
+	    if ((ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION))) {
+		FsysOpenT ot;
+		QioIOQ *ioq;
+		void *tbuf, *nctbuf;
+		int ii, jj;
+		static int c_gen, been_mounted;
+a1911 124
+		tbuf = QIOmalloc(512*512+QIO_CACHE_LINE_SIZE);
+		nctbuf = (void *)QIO_MK_NONCACHE(QIO_ALIGN(tbuf, QIO_CACHE_LINE_SIZE));
+		for (ii=0; ii < 1000; ++ii) {
+		    ioq = qio_getioq();
+#if 0
+		    nsprintf(tbuf, 100, "/d0/abc%03d", c_gen);
+		    memset((char *)&ot, 0, sizeof(FsysOpenT));
+		    ot.spc.path = tbuf;
+		    ot.spc.mode = O_CREAT|O_WRONLY;
+		    ot.fid = 0;
+		    ot.alloc = 81920*512;
+		    ot.eof = 0;
+		    ot.placement = 0;
+		    ot.copies = 1;
+		    ot.mkdir = 0;
+		    ot.ctime = 0;
+		    qio_openspc(ioq, &ot.spc);
+		    while (!(sts=ioq->iostatus)) { ; }
+		    if (QIO_ERR_CODE(sts)) {
+			txt_str(4, AN_VIS_ROW-6, "Unable to open for write ", WHT_PAL);
+			txt_cstr(tbuf, GRN_PAL);
+			qio_errmsg(sts, emsg, sizeof(emsg));  
+			txt_str(-1, AN_VIS_ROW-5, emsg, YEL_PAL);
+			break;
+		    }
+		    txt_clr_wid(0, AN_VIS_ROW/2, AN_VIS_COL);
+		    strcpy((char *)current_work.file, tbuf);
+		    current_work.alloc = ot.alloc;
+		    current_work.curr = 0;
+		    current_work.action = "written";
+		    for (jj=0; jj < 81920*512; jj += 512*512) {
+			int kk;
+			for (kk=0; kk < 512*512/4; ++kk) {
+			    ((U32*)nctbuf)[kk] = (ii*81920*512 + jj)/4 + kk;
+			}
+			current_work.curr = jj;
+			qio_writewpos(ioq, jj, nctbuf, 512*512);
+			while (!(sts=ioq->iostatus)) { ; }
+			if (QIO_ERR_CODE(sts)) {
+			    qio_errmsg(sts, emsg, sizeof(emsg));  
+			    txt_str(-1, AN_VIS_ROW-5, emsg, YEL_PAL);
+			    break;
+			}
+			if (!(jj&(512*512*8-1))) {
+			    upd_display();
+			    prc_delay(0);
+			}
+			if ((ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION))) {
+			    sts = 1;
+			    break;
+			}
+		    }
+		    qio_close(ioq);
+		    if (QIO_ERR_CODE(sts)) break;
+#endif
+		    nsprintf(tbuf, 100, "/d0/abc%03d", c_gen);
+		    qio_open(ioq, tbuf, O_RDONLY);
+		    while (!(sts=ioq->iostatus)) { ; }
+		    if (QIO_ERR_CODE(sts)) {
+			txt_str(4, AN_VIS_ROW-6, "Unable to open for input ", WHT_PAL);
+			txt_cstr(tbuf, GRN_PAL);
+			qio_errmsg(sts, emsg, sizeof(emsg));  
+			txt_str(-1, AN_VIS_ROW-5, emsg, YEL_PAL);
+			break;
+		    }
+		    txt_clr_wid(0, AN_VIS_ROW/2, AN_VIS_COL);
+		    strcpy((char *)current_work.file, tbuf);
+		    current_work.action = "read";
+		    current_work.alloc = ot.alloc;
+		    current_work.curr = 0;
+		    for (jj=0; jj < 81920*512; jj += 512*512) {
+			int kk;
+			current_work.curr = jj;
+			qio_readwpos(ioq, jj, nctbuf, 512*512);
+			while (!(sts=ioq->iostatus)) { ; }
+			if (QIO_ERR_CODE(sts)) {
+			    qio_errmsg(sts, emsg, sizeof(emsg));  
+			    txt_str(-1, AN_VIS_ROW-5, emsg, YEL_PAL);
+			    break;
+			}
+			for (kk=0; kk < ioq->iocount/4; ++kk) {
+			    if (((U32*)nctbuf)[kk] != (ii*81920*512 + jj)/4 + kk) {
+				txt_str(-1, AN_VIS_ROW/2+5, "Data mismatch", WHT_PAL);
+				txt_str(2, AN_VIS_ROW/2+6, "At ", WHT_PAL);
+				txt_chexnum(jj*512*512 + kk*4, 8, RJ_BF, RED_PAL);
+				txt_cstr("  Found ", WHT_PAL);
+				txt_chexnum( ((U32*)nctbuf)[kk], 8, RJ_ZF, RED_PAL);
+				txt_cstr("  Expected ", WHT_PAL);
+				txt_chexnum( ii*81920*512 + jj + kk, 8, RJ_ZF, GRN_PAL);
+				txt_str(-1, AN_VIS_ROW/2+7, "Press button to continue", INSTR_PAL);
+				while (!(ctl_read_sw(SW_ACTION|SW_NEXT)&(SW_ACTION|SW_NEXT))) {
+				    upd_display();
+				    prc_delay(0);
+				}
+				txt_clr_wid(0, AN_VIS_ROW/2+5, AN_VIS_COL);
+				txt_clr_wid(0, AN_VIS_ROW/2+6, AN_VIS_COL);
+				txt_clr_wid(0, AN_VIS_ROW/2+7, AN_VIS_COL);
+			    }
+			}
+			upd_display();
+			prc_delay(0);
+			if ((ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION))) {
+			    sts = 1;
+			    break;
+			}
+		    }
+		    qio_readwpos(ioq, jj, nctbuf, 512*512);
+		    while (!(sts=ioq->iostatus)) { ; }
+		    qio_close(ioq);
+		    if (sts != QIO_EOF) {
+			qio_errmsg(sts, emsg, sizeof(emsg));  
+			txt_str(-1, AN_VIS_ROW-5, emsg, YEL_PAL);
+			break;
+		    }
+		}
+		++c_gen;
+		current_work.file[0] = 0;
+		txt_clr_wid(0, AN_VIS_ROW/2+0, AN_VIS_COL);
+		txt_clr_wid(0, AN_VIS_ROW/2+1, AN_VIS_COL);
+		txt_clr_wid(0, AN_VIS_ROW/2+2, AN_VIS_COL);
+		txt_clr_wid(0, AN_VIS_ROW/2+3, AN_VIS_COL);
+		QIOfree(tbuf);
+		qio_freeioq(ioq);
+		prc_delay(0);
+d1917 1
+a1917 1
+	    if (1 && (ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION))) {
+@
+
+
+1.5
+log
+@Up'd the number of packets from 16 to 32.
+@
+text
+@d20 4
+a23 2
+#define INC_DUMP_VOLUME	0
+#define INC_DUMP_VOL	0
+d1906 1
+a1906 1
+#if DMP_VOL
+@
+
+
+1.4
+log
+@This one seems to work on a PHXAD at least.
+@
+text
+@d64 3
+a66 1
+#define MAX_NUM_PKTS	16		/* number of receive packets */
+@
+
+
+1.3
+log
+@Added check. Fails init if volume already mounted.
+@
+text
+@d21 1
+a21 1
+#define INC_DUMP_VOL	1
+d522 1
+a522 1
+    mf->copies = 0;
+d619 1
+a619 1
+		current_work.action = "written";
+d647 1
+a647 1
+    if (pkt->len < sizeof(MoleInitFSExt) + 4) {
+d651 1
+a651 1
+	    sizeof(MoleInitFSExt) + 4, pkt->len);	    
+d696 1
+a697 4
+    ot->alloc = mf->alloc[0]<<(3*8) |
+		mf->alloc[1]<<(2*8) |
+		mf->alloc[2]<<(1*8) |
+		mf->alloc[3]<<(0*8);
+d703 21
+a723 14
+    ot->fid = 0;
+    ot->eof = mf->eof[0]<<(3*8) |
+	      mf->eof[1]<<(2*8) |
+	      mf->eof[2]<<(1*8) |
+	      mf->eof[3]<<(0*8);
+    ot->placement = mf->placement;
+    if (!(ot->copies = mf->copies)) ot->copies = 1;
+    ot->mkdir =  mf->mkdir;
+    ot->ctime =  mf->ctime[0]<<(3*8) |
+		 mf->ctime[1]<<(2*8) |
+		 mf->ctime[2]<<(1*8) |
+		 mf->ctime[3]<<(0*8);
+    ot->def_extend = (mf->def_extend[0] << (1*8)) |
+		     (mf->def_extend[1] << (0*8));
+d728 50
+d779 55
+a833 1
+    not_supp(pkt);
+d1067 274
+d1342 28
+a1369 1
+    not_supp(pkt);
+d1650 94
+d1902 1
+d1904 1
+d1908 3
+@
+
+
+1.2
+log
+@Cosmetic changes to display.
+@
+text
+@d387 1
+d411 8
+a1133 1
+static int banners_up;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d670 1
+d676 1
+a862 2
+	    current_work.file[0] = 0;		/* done with this file now */
+	    current_work.fn_changed = 1;	/* filename changed */
+d873 3
+d899 1
+a899 1
+    SQUAWK((iop, "Entered mole_close. cmd = %d, pkt = %d\n", (int)pkt->user, pkt - pkts));
+a923 1
+	lb->len = (lb->len + BYTES_PER_SECTOR-1) & -BYTES_PER_SECTOR; /* round up to sector size */
+d1077 1
+a1077 1
+    if (conv > 990*1024*1024.0) {
+d1080 1
+a1080 1
+    } else if (conv > 990*1024.0) {
+d1200 1
+d1216 1
+a1216 1
+	    txt_str( 4, AN_VIS_ROW/2 + 3, "Allocation: ", WHT_PAL);
+d1226 1
+a1226 1
+		txt_stamp( (AN_VIS_COL-AN_VIS_COL*3/4)/2 + ii, AN_VIS_ROW/2+2, (ii <= left) ? 0x02 : 0x01, RED_PAL);
+d1902 2
+a1903 2
+	    FPRINTF(OUTWHERE, "\t%3d: addr=%08lX, alloc=%ld, size=%ld, gen=%d, valid=%d\n\t     def_ext=%d, mtime=%08lX, dir=%08lX, active_rp=%d\n",
+		    	ii, (unsigned long)rfh, rfh->clusters, rfh->size, rfh->generation, rfh->valid,
+@

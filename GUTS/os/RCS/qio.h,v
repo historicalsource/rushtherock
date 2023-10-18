@@ -1,0 +1,2537 @@
+head	1.37;
+access;
+symbols
+	RUSH_ROCK_1_0:1.32
+	RUSH_ROCK_1_0epst:1.31
+	MACE_1_0e:1.18
+	MACE_1_0d:1.18
+	RUSH_1_06A:1.18
+	AREA_52_00:1.18
+	MACE_1_0a:1.18;
+locks; strict;
+comment	@ * @;
+
+
+1.37
+date	97.11.02.01.18.49;	author forrest;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	97.10.30.21.55.39;	author shepperd;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	97.10.30.21.44.36;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	97.10.30.21.38.54;	author shepperd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	97.10.28.21.09.26;	author forrest;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	97.10.04.20.35.23;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	97.10.01.15.17.26;	author forrest;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	97.09.11.00.56.45;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	97.09.03.22.41.57;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	97.08.30.02.38.36;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	97.08.28.23.02.57;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	97.08.28.22.47.54;	author forrest;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	97.08.12.22.17.34;	author forrest;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	97.08.07.19.11.20;	author forrest;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	97.08.06.03.22.10;	author forrest;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	97.07.30.18.24.00;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	97.07.25.03.01.24;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	97.07.25.01.25.03;	author forrest;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	97.07.15.01.38.40;	author forrest;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.04.16.00.45.26;	author forrest;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	97.03.28.02.12.31;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	97.03.26.01.17.10;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	97.02.01.21.56.30;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	97.01.07.23.07.34;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	97.01.07.00.18.56;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	97.01.02.23.23.45;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.12.10.23.53.02;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.11.22.01.45.42;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.11.20.00.18.48;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.11.19.18.34.13;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.10.29.18.27.31;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.10.26.19.13.20;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.10.26.17.48.53;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.10.08.02.02.17;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.10.07.16.47.54;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.10.01.20.04.13;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.10.01.18.13.15;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Support for QIO subsystem
+@
+
+
+1.37
+log
+@Added typedef struct iovect, and entries in qio_file_ops for
+readv and writev, and prototypes for qio_readv and qio_writev.
+@
+text
+@/*
+ * $Id: qio.h,v 1.36 1997/10/30 21:55:39 shepperd Exp forrest $
+ *
+ *		Copyright 1996 Atari Games, Corp.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+#if !defined(_QIO_H_) && !defined(QIO_ERR_MSG) && !defined(QIO_FACILITY_MSG)
+#define _QIO_H_
+
+#ifndef _OS_PROTO_H_
+# error You need to #include "os_proto.h" before including qio.h
+#endif
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#ifndef _FREAD
+# ifndef O_RDONLY
+#define _FREAD   0x0001  /* file opened for reading */
+#define _FWRITE  0x0002  /* file opened for writing */
+#define _FAPPEND 0x0004  /* file opened for append */
+#define _FCREAT	 0x0008  /* EOF has occurred */
+# else
+#define _FREAD	(O_RDONLY+1) /* file opened for reading */
+#define _FWRITE (O_WRONLY+1) /* file opened for writing */
+#define _FAPPEND (O_APPEND)  /* file opened for append */
+#define _FCREAT	(O_CREAT)    /* file opened for create */
+# endif
+#endif
+
+#if HOST_BOARD
+#include <reent.h>
+#endif
+
+#ifndef QIO_MAX_FILES
+# define QIO_MAX_FILES		64	/* set to the maximum number of files open at once */
+#endif
+
+#ifndef QIO_MAX_DEVICES
+# define QIO_MAX_DEVICES	8	/* set to the maximum number of devices in system */
+#endif
+
+#ifndef QIO_ASTLVL
+# define QIO_ASTLVL		0	/* File system and QIO AST's are always the highest priority */
+#endif
+
+#ifndef QIO_CACHE_LINE_SIZE
+# define QIO_CACHE_LINE_SIZE	32
+#endif
+
+#ifndef QIO_ALIGN
+# define QIO_ALIGN(x, amt) (((U32)(x)+((amt)-1))&-(amt))
+#endif
+
+#ifndef QIO_MK_NONCACHE
+# if HOST_BOARD
+#  define QIO_MK_NONCACHE(x) ((U32)(x)|0x20000000)
+# else
+#  define QIO_MK_NONCACHE(x) ((U32)(x))
+# endif
+#endif
+
+#ifndef QIO_PHYS
+# define QIO_PHYS(x) ((U32)(x)&0x1FFFFFFF)
+#endif
+
+/********************************************************************************
+QIO_FNAME_SEPARATOR - defines the character used to delimit device and directory
+names from filenames. The default is '/'.
+*/
+
+#ifndef QIO_FNAME_SEPARATOR
+# define QIO_FNAME_SEPARATOR	'/'
+#endif
+
+/**************************************************************************
+The QIO subsystem uses a re-enterant malloc, et al. to get memory to hold its
+data structures, buffers, etc. (Look in mallocr.c for these functions). These
+functions allocate memory from a private pool reserved explicitly to the
+subsystem. A single memory pool is used for all QIO operations and the
+filesystem(s) claim memory from this pool as well. QIO_POOL_SIZE sets the size
+(in bytes) of this pool. The default is 256k allowing for approximately 1000
+files in a single filesystem volume. A writeable filesystem takes much more
+memory than a read only system unless FSYS_TIGHT_MEM is set non-zero. Setting
+FSYS_TIGHT_MEM to non-zero makes the filesystem take roughly 15% more memory
+than a read only system.
+
+NOTE: on a READ_ONLY filesystem, once the volume has been mounted, no further
+malloc's are performed. One may check the residual value of of the static
+variable 'free_size' in fsys.c after all mounts have completed and adjust the
+value assigned to QIO_POOL_SIZE to retrieve some unused memory if desired.
+
+*/
+
+#ifndef QIO_POOL_SIZE
+# define QIO_POOL_SIZE (256*1024)	/* amount of memory filesystem can use */
+#endif
+
+#if defined(QIO_LOCAL_DEFINES) && QIO_LOCAL_DEFINES
+#  ifndef n_elts
+#   define n_elts(x) (sizeof(x)/sizeof((x)[0]))
+#  endif
+# if HOST_BOARD
+#  include <reent.h>
+extern struct _reent *qio_reent;
+#  include <stdlib.h>
+#  if MALLOC_DEBUG
+extern void *guts_malloc_r( struct _reent *rep, int amt, const char *file, int lineno );
+extern void *guts_realloc_r( struct _reent *rep, void *old, int amt, const char *file, int lineno );
+extern void *guts_calloc_r( struct _reent *rep, int amt, int size, const char *file, int lineno);
+extern void guts_free_r( struct _reent *rep, void *old, const char *file, int lineno);
+#   define QIOmalloc(x) guts_malloc_r((void *)qio_reent, x, __FILE__, __LINE__)
+#   define QIOrealloc(x, y) guts_realloc_r((void *)qio_reent, x, y, __FILE__, __LINE__)
+#   define QIOcalloc(x, y) guts_calloc_r((void *)qio_reent, x, y, __FILE__, __LINE__)
+#   define QIOfree(x) guts_free_r((void *)qio_reent, x, __FILE__, __LINE__)
+#  else
+#   define QIOmalloc(x) _malloc_r((void *)qio_reent, x)
+#   define QIOrealloc(x, y) _realloc_r((void *)qio_reent, x, y)
+#   define QIOcalloc(x, y) _calloc_r((void *)qio_reent, x, y)
+#   define QIOfree(x) _free_r((void *)qio_reent, x)
+#  endif
+# else
+#  define QIOmalloc(x) malloc(x)
+#  define QIOrealloc(x, y) realloc(x, y)
+#  define QIOcalloc(x, y) calloc(x, y)
+#  define QIOfree(x) free(x)
+# endif
+#endif		/* QIO_LOCAL_DEFINES */
+
+/*
+ * The following is the definition of the QioIOQ struct, a pointer to which is
+ * required by nearly all qio functions. 
+ */
+
+typedef struct qio_ioq {
+/*
+The following 3 members are required by the list manager (qio_getioq() and
+qio_freeioq()). If the QioIOQ was obtained via a qio_getioq(), these members
+MUST NOT be altered, cloned to another QioIOQ, etc. If the QioIOQ is not
+managed by the qio list manager (qio_getioq() and qio_freeioq(), i.e.
+allocated from bss, stack or by a user provided list manager) the contents of
+these 3 fields is not significant.
+
+* WARNING * DANGER * WARNING * DANGER * WARNING * DANGER * WARNING * DANGER *
+THESE 3 MEMBERS MUST APPEAR FIRST IN THE STRUCTURE. DO NOT MOVE
+THEM AND DO NOT CHANGE THE ORDER OF THESE MEMBERS.
+
+*/
+    struct qio_ioq **owner;	/* pointer to pointer of head of freelist */
+    struct qio_ioq **head;	/* pointer to pointer of head of list to which this element belongs */
+    struct qio_ioq *next;	/* next guy in the list */
+
+/* The 'file' member holds the file descriptor of the file to be processed
+ * by the qio. This field is a input to all qio functions except qio_open
+ * which uses it as an output (qio_open sets this field to the FD of the newly
+ * opened file). Except for qio_open, no qio function alters this field.
+ */
+    int file;			/* fd of file to access */
+
+/* The 'timeout' member holds the I/O timeout amount in microseconds. The
+ * underlying subsystem may not provide timeouts as resolute as microseconds
+ * (Phoenix class systems will only timeout to the nearest millisecond, for
+ * example), so value set here is only an approximate timeout.
+ * This field is only an input and no qio functions will alter it.
+ * Set this field to 0 if no timeout is to be used.
+ */
+    long timeout;		/* I/O timeout amount in microseconds */
+/*
+ * The following two members are set by the qio function to the status
+ * and I/O count respectively (or other values as defined by the specific
+ * qio function). These members are output only (set by the qio function)
+ * so their contents at entry to a qio call is not relevant unless
+ * specified otherwise by the specific qio function.
+ */
+    volatile long iostatus;	/* I/O completion status */
+    volatile long iocount;	/* I/O xfer count or FD after qio_open */
+
+/* The 'complete' member holds a pointer to a user completion routine.
+ * This member is only an input and no qio function will alter this member.
+ * The contents of this member must always be a valid 'pointer to function'
+ * or 0 (NULL) if no completion routine is to be called.
+ * The completion routine (if provided) will be called with a single
+ * parameter which is a pointer to this struct, the same pointer as used
+ * in the qio function call.
+ */
+    void (*complete)(struct qio_ioq *);	/* user's completion routine */
+/*
+ * The following two members may be used by the user for any purposes.
+ * qio functions neither reference nor modify the contents of these 2 members.
+ */
+    void *user;			/* user's field to do whatever s/he wants */
+    void *user2;		/* user's field to do whatever s/he wants */
+/*
+ * The remaining members are reserved for use by the qio code itself. The
+ * contents of these members at entry to a qio function is not significant
+ * unless specified otherwise by specific qio functions (i.e. private is used
+ * by qio_opendir, qio_readdir, etc).
+ * The contents of these members at entry to the user completion routine is
+ * not specified, but the pparamx and iparamx members will probably contain
+ * the parameters passed to the qio function (pointers go into pparamx,
+ * non-pointers go into iparamx).
+ */
+    void *private;
+    void *private2;
+    struct act_q aq;
+    struct tq timer;
+    void *pparam0;
+    void *pparam1;
+    void *pparam2;
+    long iparam0;
+    long iparam1;
+    long iparam2;
+} QioIOQ;
+
+typedef struct qio_mutex {
+    struct act_q *current;	/* which mutex is currently being used */
+    struct act_q *waiting;	/* list of those waiting to use this mutex */
+    struct act_q *tail;		/* last guy in the list */
+} QioMutex;    
+
+typedef struct qio_device {
+    const char *name;		/* name of device */
+    int name_len;		/* length of name string */
+    const struct qio_file_ops *fio_ops; /* list of FIO operations allowed on device */
+    QioMutex *mutex;		/* pointer to mutex for device */
+    int unit;			/* unit number for device */
+    void *private;		/* value specific to device */
+} QioDevice;
+
+/* Bits in the flags member of the qio_file struct:
+ */
+#define QIO_FFLAG_CLOSING	0x0001	/* close pending */
+#define QIO_FFLAG_SOCKET	0x0002	/* file is a socket */
+#define QIO_FFLAG_CANCEL	0x0004	/* cancel pending */
+
+typedef struct qio_file {
+    int mode;			/* access mode */
+    unsigned long pos;		/* current position in file of next byte to r/w */
+    unsigned long size;		/* size of file in bytes */
+    unsigned long flags;	/* misc flags */
+    unsigned long gen;		/* generation number */
+    const QioDevice *dvc;	/* ptr to device that this file is on */
+    void *private;		/* reserved for use by network, qio and fsys */
+    struct qio_file *next;	/* when free, pointer to next free. When busy, ptr to next dvc */
+    QioMutex mutex;		/* mutex to use with this file */
+} QioFile;
+        
+typedef struct open_spc {
+    const char *path;
+    int mode;
+} QioOpenSpc;
+
+typedef struct iovect {
+    void *iovbase; 		/* Starting address  */
+    U32 iov_len;		/* Number of bytes */
+} IOVect;
+
+typedef struct qio_file_ops {
+    int (*lseek) (QioIOQ *ioq, off_t where, int whence);
+    int (*read) (QioIOQ *ioq, void *buf, long len);
+    int (*write) (QioIOQ *ioq, const void *buf, long len);  
+    int (*ioctl) (QioIOQ *ioq, unsigned int cmd, void *arg);
+    int (*open) (QioIOQ *ioq, const char *name);
+    int (*close) (QioIOQ *ioq);
+    int (*delete) (QioIOQ *ioq, const char *path);
+    int (*fsync) (QioIOQ *ioq);
+    int (*mkdir) (QioIOQ *ioq, const char *path, int mode);
+    int (*rmdir) (QioIOQ *ioq, const char *path);
+    int (*rename) (QioIOQ *ioq, const char *old, const char *new);
+    int (*truncate) (QioIOQ *ioq);
+    int (*statfs) (QioIOQ *ioq, const char *path, void *stat);
+    int (*fstat) (QioIOQ *ioq, struct stat *stat);
+    int (*cancel) (QioIOQ *ioq);
+    int (*isatty) (QioIOQ *ioq);
+    int (*readwpos) (QioIOQ *ioq, off_t where, void *buf, long len);
+    int (*writewpos) (QioIOQ *ioq, off_t where, const void *buf, long len);  
+    int (*opendir) (QioIOQ *ioq, void **dpp, const char *name);
+    int (*seekdir) (QioIOQ *ioq, void *dirp);
+    int (*telldir) (QioIOQ *ioq, void *dirp);
+    int (*rewdir) (QioIOQ *ioq, void *dirp);
+    int (*readdir) (QioIOQ *ioq, void *dirp, void *directp);
+    int (*closedir) (QioIOQ *ioq, void *dirp);
+    int (*readv) (QioIOQ *ioq, const IOVect *iov, long iovcnt);
+    int (*writev) (QioIOQ *ioq, const IOVect *iov, long iovcnt);  
+} QioFileOps;
+
+/* The following functions are used by device drivers, although their
+ * use is not restricted to same. Extreme care must be used if using
+ * these functions outside a device driver.
+ */
+
+/************************************************************
+ * qio_getmutex - get mutex and switch to AST level.
+ * 
+ * At entry:
+ *	mutex - pointer to mutex struct
+ *	func - ptr to AST function
+ *	ioq - pointer to function's argument, a QioIOQ
+ *
+ * At exit:
+ *	returns 0 if success or one of QIO_MUTEX_xxx if not.
+ *
+ * The function is queued at the specified AST level. If the mutex is
+ * busy, the function is put on the end of mutex's wait queue and will
+ * be executed only after the mutex is free'd.
+ */
+extern int qio_getmutex(QioMutex *mutex, void (*func)(QioIOQ *), QioIOQ *ioq);
+
+/************************************************************
+ * qio_freemutex - free a previously claimed mutex.
+ * 
+ * At entry:
+ *	mutex - pointer to mutex struct
+ *	ioq - pointer the function's argument, a QioIOQ, that
+ *		was used in the qio_getmutex(). This parameter
+ *		is used only to validate that the 'free' is
+ *		being performed by the same function that
+ *		claimed the mutex. The contents pointed to by
+ *		this parameter is not referenced.
+ *
+ * At exit:
+ *	returns 0 if success or one of QIO_MUTEX_xxx if error.
+ *	If any tasks are waiting for mutex, the first one in the
+ *	list is queued at QIO_ASTLVL.
+ */
+extern int qio_freemutex(QioMutex *mutex, QioIOQ *ioq);
+
+/************************************************************
+ * qio_install_dvc - Add a new device to the device table
+ * 
+ * At entry:
+ *	dvc - pointer to new device 
+ *
+ * At exit:
+ *	device number installed or -1 if failed to install.
+ */
+int qio_install_dvc(const QioDevice *dvc);
+
+/************************************************************
+ * qio_deinstall_dvc - Remove a device from the device table
+ * 
+ * At entry:
+ *	dvc - pointer to device 
+ *
+ * At exit:
+ *	returns 0 if success, 1 if device not in table
+ */
+int qio_deinstall_dvc(const QioDevice *dvc);
+
+/************************************************************
+ * qio_freefile - Put an unused QioFile back into the system's pool
+ * 
+ * At entry:
+ *	file - pointer to QioFile which to free
+ *
+ * At exit:
+ *	returns 0 if success or 1 if failure.
+ */
+int qio_freefile(QioFile *file);
+
+/***********************************************************************
+ * qio_init - Initialize the QIO data structs. To be called once during
+ * boot sequence.
+ * 
+ * At entry:
+ *	No requirements.
+ *
+ * At exit:
+ *	Returns 0.
+ */
+int qio_init(void);
+
+/************************************************************
+ * qio_lookupdvc - Get a pointer to device
+ * 
+ * At entry:
+ *	name - pointer to null terminated string with device name
+ *
+ * At exit:
+ *	Returns pointer to QioDevice if one is found or 0 if not.
+ */
+
+const QioDevice *qio_lookupdvc(const char *name);
+
+/************************************************************
+ * qio_fd2file - convert fd to pointer to ptr to QioFile
+ * 
+ * At entry:
+ *	fd - file descriptor
+ *
+ * At exit:
+ *	returns pointer to QioFile or 0 if error
+ */
+QioFile *qio_fd2file( int fd );
+
+/************************************************************
+ * qio_complete - call user's completion routine. This routine
+ * is used by device drivers and such at the conclusion of their
+ * operations.
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->complete - if completion required else 0
+ *
+ * At exit:
+ *	returns nothing. May have queued the user's completion
+ *	routine (if provided) on the QIO_ASTLVL queue.
+ */
+void qio_complete(QioIOQ *ioq);
+
+#if 0 && HOST_BOARD		/* obsolete */
+/************************************************************
+qio_sbrk - doles out sections from a predefined array (qio_memory). This
+function is the underlying support function required and used by _malloc_r()
+and company (the re-enterant equivalent functions to malloc(), etc). Although
+qio_sbrk could be used directly by any local function, it it reserved for use
+by the libc functions. The re-enterant functions actually call _sbrk_r() which
+notices that the 'ptr' argument == qio_reent and, in turn, calls this
+function. _sbrk_r() is a function found in phx_stubs.c.
+ *
+ * At entry:
+ *	ptr - pointer to struct _reent
+ *	amt - amount to increase(decrease) allocated area
+ * At exit:
+ *	'amt' bytes removed from allocation pool
+ *	returns pointer to newly allocated area or
+ *	0 if there is not enough memory to satisfy the
+ *	request.
+ */
+void *qio_sbrk (struct _reent *ptr, long amt);
+
+/************************************************************
+qio_get_pool_size - returns amount of free space in the qio_free_pool
+ *
+ * At entry:
+ *	ptr - pointer to struct _reent
+ * At exit:
+ *	'amt' bytes remaining in free pool
+ */
+int qio_get_pool_size (struct _reent *ptr);
+
+/************************************************************
+qio_reset_free_pool - reset the free pool size to its max.
+ *
+ * At entry:
+ *	ptr - pointer to struct _reent
+ * At exit:
+ *	'amt' bytes remaining in free pool
+ */
+int qio_reset_free_pool (struct _reent *ptr);
+#endif		/* HOST_BOARD */
+
+/*
+ * The following functions can be used by game code and/or device drivers.
+ */
+
+/************************************************************
+ * qio_getioq - Get a QioIOQ from the system I/O queue pool
+ * 
+ * At entry:
+ *	no requirements
+ *
+ * At exit:
+ *	returns pointer to queue or 0 if none available.
+ */
+QioIOQ *qio_getioq(void);
+
+/************************************************************
+ * qio_freeioq - Free a QioIOQ as obtained from a previous
+ * call to qio_getioq().
+ * 
+ * At entry:
+ *	que - pointer to queue element to put back in pool.
+ *
+ * At exit:
+ *	0 if success or 1 if queue didn't belong to pool.
+ */
+int qio_freeioq(QioIOQ *que);
+
+/************************************************************
+ * qio_open - Open a device or file
+ * 
+ * At entry:
+ *	ioq - a pointer to a QioIOQ struct
+ *	name - pointer to a null terminated string with dvc/path/name.
+ *	mode - the logical 'or' of one or more of the O_xxx flags found
+ *		in fcntl.h
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	Returns one of QIO_xxx if there is an error or 0 for success.
+ *	The completion routine specified in the que struct is called
+ *	when the open completes. The iostatus member of ioq will
+ *	contain status about the success or failure of the open and the
+ *	file member of ioq will contain a file descriptor (a number
+ *	from 0 to QIO_MAX_FILES-1) if the open completes successfully
+ *	(or a -1 if not).
+ */
+int qio_open(QioIOQ *ioq, const char *name, int mode);
+
+/************************************************************
+ * qio_openspc - Open a device or file
+ * 
+ * At entry:
+ *	que - a pointer to a QioIOQ struct
+ *	spc - pointer to a QioOpenSpc struct which may be defined
+ *		differently depending on the device which is being opened.
+ *		The first two members of the struct _MUST_ be path and
+ *		mode respectively.
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	Returns one of QIO_xxx if there is an error or 0 for success.
+ *	The completion routine specified in the que struct is called
+ *	when the open completes. The iostatus member of ioq will
+ *	contain status about the success or failure of the open and the
+ *	file member of ioq will contain a file descriptor (a number
+ *	from 0 to QIO_MAX_FILES-1) if the open completes successfully
+ *	(or a -1 if not).
+ */
+int qio_openspc(QioIOQ *ioq, QioOpenSpc *spc);
+
+/************************************************************
+ * qio_close - close a file
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when close completes.
+ *	non-zero if unable to queue the close and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_close(QioIOQ *ioq);
+
+/************************************************************
+ * qio_ioctl - issue an ioctl to specified file
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	cmd - command argument
+ *	arg - argument defined by command and device
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when close completes.
+ *	non-zero if unable to queue the close and completion routne
+ *	will _not_ be called in that case.
+ */
+extern int qio_ioctl(QioIOQ *ioq, unsigned int cmd, void *arg);
+extern int ioctl(int fd, unsigned int cmd, unsigned long arg);
+
+/************************************************************
+ * qio_delete - delete a file
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	name - name of file to delete
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when close completes.
+ *	non-zero if unable to queue the close and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_delete(QioIOQ *ioq, const char *name);
+
+/************************************************************
+ * qio_rename - rename a file
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	old - pointer to old filename
+ *	new - pointer to new filename
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when close completes.
+ *	non-zero if unable to queue the close and completion routne
+ *	will _not_ be called in that case. The ioq->file field will
+ *	be set to -1.
+ */
+int qio_rename(QioIOQ *ioq, const char *old, const char *new);
+
+/************************************************************
+ * qio_isatty - is device a tty
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when close completes.
+ *	non-zero if unable to queue the close and completion routne
+ *	will _not_ be called in that case. If device is a tty,
+ *	iostatus will be IO_SUCC otherwise IO_NOTSUPP.
+ */
+int qio_isatty(QioIOQ *ioq);
+
+/************************************************************
+ * qio_fstat - stat a file or device
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct (ioq->file must be open)
+ *	stat - pointer to struct stat into which the stats are to
+ *		be placed.
+ * 
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when stat completes.
+ *	non-zero if unable to queue the stat and completion routne
+ *	will _not_ be called in that case. The values set to the
+ *	members, and which members, in the struct stat are device
+ *	dependent.
+ */
+int qio_fstat(QioIOQ *ioq, struct stat *stat);
+
+/************************************************************
+ * qio_read - read bytes from file
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	buf - pointer to buffer into which to read
+ *	len - number of bytes to read
+ * 
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	returns 0 if success or non-zero if error
+ */
+int qio_read(QioIOQ *ioq, void *buf, long len);
+
+/****************************************************************
+ * qio_readwpos - read bytes from file after positioning to 'where'
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	where - position of place in file to begin reading
+ *	buf - pointer to buffer into which to read
+ *	len - number of bytes to read
+ * 
+ * This function is equivalent to a
+ *	qio_lseek(ioq, where, SEEK_SET) followed by a
+ *	qio_read(ioq, buf, len);
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	returns 0 if success or non-zero if error
+ */
+int qio_readwpos(QioIOQ *ioq, off_t where, void *buf, long len);
+
+/************************************************************
+ * qio_write - write bytes to file
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	buf - pointer to buffer which to write
+ *	len - number of bytes to write
+ * 
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	returns 0 if success or non-zero if error
+ */
+int qio_write(QioIOQ *ioq, const void *buf, long len);
+
+/****************************************************************
+ * qio_writewpos - write bytes to file after position to 'where'
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	where - position in file/device to start writing
+ *	buf - pointer to buffer which to write
+ *	len - number of bytes to write
+ * 
+ * This function is equivalent to a
+ *	qio_lseek(ioq, where, SEEK_SET) followed by a
+ *	qio_write(ioq, buf, len);
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	returns 0 if success or non-zero if error
+ */
+int qio_writewpos(QioIOQ *ioq, off_t where, const void *buf, long len);
+
+/************************************************************
+ * qio_lseek - seek a file to a specific position
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	where - new position
+ *	whence - one of SEEK_SET, SEEK_END or SEEK_CUR (as defined
+ *		in <unistd.h>
+ * 
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	0 if successfully queued, although it normally does not
+ *	require that any queuing take place. iostatus contains
+ *	error code if any and iocount contains the new position.
+ */
+extern int qio_lseek(QioIOQ *ioq, off_t where, int whence );
+
+/************************************************************
+ * qio_mkdir - make a directory 
+ * 
+ * At entry:
+ *	que - a pointer to a QioIOQ struct
+ *	arg - pointer to null terminated string with dvc/path/dirname
+ *	mode - not used at this time.
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when open completes.
+ *	non-zero if unable to queue the open and completion routne
+ *	will _not_ be called in that case.
+ *	The file member of ioq will be set to -1 in any case.
+ */
+extern int qio_mkdir(QioIOQ *ioq, const char *name, int mode);
+
+/************************************************************
+ * qio_opendir - Open a directory 
+ * 
+ * At entry:
+ *	ioq - a pointer to a QioIOQ struct
+ *	dirp - pointer to pointer to type DIR (as defined in fsys.h for fsys directories)
+ *	path - pointer to a null terminated string with dvc/path/name.
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when open completes.
+ *	non-zero if unable to queue the open and completion routne
+ *	will _not_ be called in that case.
+ *	A pointer to a kernel provided struct (DIR in the case of fsys files)
+ *	will have been placed into the location pointed to by the dirp parameter
+ *	or 0 if an error prevented the open.
+ *	ioq->private holds information required by subsequent 'qio_xxxdir' qio
+ *	functions. Do not modify the contents of ioq->private until after a
+ *	qio_closedir() has been executed using the ioq.
+ */
+extern int qio_opendir(QioIOQ *ioq, void **dirp, const char *path);
+
+/************************************************************
+ * qio_readdir - read a directory entry.
+ * 
+ * At entry:
+ *	ioq - a pointer to a QioIOQ struct
+ *	dirp - pointer to pointer to type DIR (as defined in fsys.h for fsys directories)
+ *	direct - pointer to a type 'struct direct' into which the results will be placed.
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	ioq->private is required to have a value as set by a previous call to qio_opendir().
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when open completes.
+ *	non-zero if unable to queue the open and completion routne
+ *	will _not_ be called in that case.
+ */
+extern int qio_readdir(QioIOQ *ioq, void *dirp, void *direct);
+
+extern int qio_rewdir(QioIOQ *ioq, void *dirp);
+extern int qio_closedir(QioIOQ *ioq, void *dirp);
+extern int qio_seekdir(QioIOQ *ioq, void *dirp, long loc);
+extern int qio_telldir(QioIOQ *ioq, void *dirp);
+
+/************************************************************
+ * qio_fsync - sync a filesystem
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	name - pointer to null terminated string with name of
+ *		filesystem.
+ * 
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->complete - if completion required else 0
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when fsync completes.
+ *	non-zero if unable to queue the fsync and completion routne
+ *	will _not_ be called in that case.
+ */
+extern int qio_fsync(QioIOQ *ioq, const char *name);
+
+/************************************************************
+ * qio_errmsg - decode status code into an ASCII error message
+ *
+ * At entry:
+ *	sts - status code to decode (one of the values listed below)
+ *	ans - ptr to string into which message will be placed
+ *	size - size of ans 
+ *
+ * At exit:
+ *	returns length of message in ans which will have had the
+ *	text of the decoded message copied into it or a
+ *	"unknown error xxxxxxxx" string if sts isn't decodable.
+ */
+
+extern int qio_errmsg(int sts, char *ans, int size);
+
+/************************************************************
+ * qio_cancel - cancel a pending qio
+ *
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when cancel completes.
+ *	Non-zero if unable to queue the cancel; completion routine
+ *	will _not_ be called in that case.
+ */
+
+extern int qio_cancel(QioIOQ *ioq);
+
+/************************************************************
+ * qio_cleanup - remove QioIOQ structures associated with "file"
+ *		 from mutex waiting list specified by "pqm", and
+ *		 complete them with "status".
+ * 
+ * At entry:
+ *	pqm    - pointer to QioMutex structure
+ *	file   - file id to match during search
+ *	status - completion iostatus
+ *
+ * At exit:
+ *	Non-zero if QioIOQ structure on mutex.current is associated
+ *	with "file" -- pointer to QioIOQ but mutex is not released.
+ *	Zero if QioIOQ structure on mutex.current is not associated
+ *	with "file"
+ *
+ *	Used in qio_eth.c by eth_cancel_ast.
+ */
+
+extern QioIOQ *qio_cleanup( QioMutex *pqm, int file, off_t status );
+
+/************************************************************
+ * qio_readv - read input to scattered buffers
+ *
+ * At entry:
+ *	ioq    - pointer to QioIOQ struct
+ *	iov    - pointer to array of IOVect struct
+ *	iovcnt - number of IOVect struct in array
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when readv completes.
+ *	Non-zero if unable to queue the readv; completion routine
+ *	will _not_ be called in that case.
+ */
+
+extern int qio_readv(QioIOQ *ioq, const IOVect *iov, long iovcnt);
+
+/************************************************************
+ * qio_writev - write output from scattered buffers
+ *
+ * At entry:
+ *	ioq    - pointer to QioIOQ struct
+ *	iov    - pointer to array of IOVect struct
+ *	iovcnt - number of IOVect struct in array
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when writev completes.
+ *	Non-zero if unable to queue the writev; completion routine
+ *	will _not_ be called in that case.
+ */
+
+extern int qio_writev(QioIOQ *ioq, const IOVect *iov, long iovcnt);  
+
+/************************************************************
+ * unlink - delete a file
+ * 
+ * At entry:
+ *	str - pointer to null terminated ASCII filename
+ *
+ * At exit:
+ *	returns 0 on success or negative 'n' if error. 'n'
+ *	is one of the QIO_ERR's described below.
+ */
+
+extern int unlink(const char *ptr);
+
+/*
+ * The following are the definitions of the various errors and their
+ * descriptions. This qio.h file includes itself if it is #included
+ * with QIO_ERR_MSG undef'd which defines the error enums, required
+ * by all users of the qio subsystem. The qio.h file is #included a
+ * second time (technically, a third time) in qio_errs.c with
+ * QIO_ERR_MSG defined appropriately beforehand which gets the ASCII
+ * error message text deposited into a message table.
+ */
+
+/*
+If you need to add new messages, invent a new facility name (if you want or
+need one) and insert it at the end of FACILITY list below (just before the
+#include <qio.h>). Next add the 0'th error code for your facility by adding at
+the end of the QIO_ERR_MSG() list, the following:
+
+QIO_ERR_MSG( your_name_SUCC, =FACILITY_your_name<<FACILITY_SHIFT, 
+    	     "successful I/O" ),
+
+where 'your_name' is the name you invented for your facility. Next, add your
+errors in any order immediately following that entry.
+*/
+
+#ifndef QIO_ERR_MSG
+#define QIO_ERR_CODE(x) ( (x) & ((1<<SEVERITY_SHIFT)-1) )
+#define QIO_ERR_SEV(x)	( ((x) >> SEVERITY_SHIFT) & 3 )
+#define QIO_ERR_FAC(x)	( ((x) >> FACILITY_SHIFT) )
+
+enum error_codes {
+    FACILITY_SHIFT=10,		/* number of bits to shift right to get facility code */
+    SEVERITY_SHIFT=8,		/* number of bits to shift right to get severity code */
+    SEVERITY_ERROR=0,		/* error is the normal case */
+    SEVERITY_INFO=1<<SEVERITY_SHIFT,	/* code is informational */
+    SEVERITY_FATAL=2<<SEVERITY_SHIFT,	/* code is fatal */
+    SEVERITY_WARN=3<<SEVERITY_SHIFT,	/* code is a warning */
+#define QIO_FACILITY_MSG(name, text) FACILITY_##name
+#include <qio.h>
+#undef QIO_FACILITY_MSG
+#define QIO_ERR_MSG(name, init, text) name init
+#include <qio.h>
+#undef QIO_ERR_MSG
+    MAX_ERROR_MSGS		/* placeholder for end of list */
+};
+
+#endif				/* QIO_ERR_MSG */
+#endif				/* _QIO_H_ */
+
+#ifdef QIO_FACILITY_MSG
+QIO_FACILITY_MSG( FSYSIO=1, "FSYSIO" ),	/* filesystem I/O	*/
+QIO_FACILITY_MSG( MOUNT, "MOUNT" ), 	/* volume MOUNT errors */
+QIO_FACILITY_MSG( INITFS, "INITFS" ), 	/* volume INIT errors */
+QIO_FACILITY_MSG( CREATE, "CREATE" ),	/* file CREATE errors */
+QIO_FACILITY_MSG( DELETE, "DELETE" ), 	/* file DELETE errors */
+QIO_FACILITY_MSG( LOOKUP, "LOOKUP" ), 	/* file LOOKUP errors */
+QIO_FACILITY_MSG( OPEN, "OPEN" ),	/* file OPEN errors */
+QIO_FACILITY_MSG( EXTEND, "EXTEND" ),	/* file EXTEND errors */
+QIO_FACILITY_MSG( SYNC, "SYNC" ),	/* volume SYNC errors */
+QIO_FACILITY_MSG( FREE, "FREE" ), 	/* volume FREE errors */
+QIO_FACILITY_MSG( MUTEX, "MUTEX" ),	/* MUTEX handling errors */
+QIO_FACILITY_MSG( QIO, "QIO" ),		/* QIO errors */
+QIO_FACILITY_MSG( HDIO, "HDIO" ),	/* Hard Drive I/O errors */
+QIO_FACILITY_MSG( DMA, "DMA" ),		/* DMA Driver errors */
+QIO_FACILITY_MSG( ETH, "ETH" ),		/* Ethernet Driver errors */
+QIO_FACILITY_MSG( SOCK, "SOCKET" ),	/* BSD socket functions */
+
+#endif				/* QIO_FACILITY_MSG */
+
+#ifdef QIO_ERR_MSG
+QIO_ERR_MSG( FSYS_IO_SUCC, =FACILITY_FSYSIO<<FACILITY_SHIFT, "successful fsys I/O" ),
+QIO_ERR_MSG( FSYS_IO_RDERR,,		"file read error" ),
+QIO_ERR_MSG( FSYS_IO_WRTERR,,		"file write error" ),
+QIO_ERR_MSG( FSYS_IO_FATAL,,		"file read/write fatal internal error" ),
+QIO_ERR_MSG( FSYS_IO_NOSUPP,,		"function not supported by fsys" ),
+QIO_ERR_MSG( FSYS_IO_NOTOPEN,,		"file not open" ),
+QIO_ERR_MSG( FSYS_IO_NOT512,,		"length not a multiple of sector size (512)" ),
+QIO_ERR_MSG( FSYS_IO_NOQIO,,		"ran out of FsysQio's" ),
+QIO_ERR_MSG( FSYS_IO_NODIRS,,		"ran of of DIR structs" ),
+QIO_ERR_MSG( FSYS_MOUNT_SUCC, =FACILITY_MOUNT<<FACILITY_SHIFT,	"successful mount" ),
+QIO_ERR_MSG( FSYS_MOUNT_FATAL,,		"fatal internal error in mount code" ),
+QIO_ERR_MSG( FSYS_MOUNT_BADLVL,,	"executing at wrong level" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOMEM,,		"not enough memory for mount" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOSUPP,,	"feature not supported yet" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOHBLK,,	"could not find any valid home blocks" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOINDX,,	"could not read any index file headers" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOINDXF,,	"could not read any index files" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOFREE,,	"could not read any freemap file headers" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOFREEF,,	"could not read any freemap files" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOROOT,,	"could not read any root file headers" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOROOTF,,	"could not read any root files" ),
+QIO_ERR_MSG( FSYS_MOUNT_BUSY,,		"volume is busy mounting" ),
+QIO_ERR_MSG( FSYS_MOUNT_FHRDERR,,	"file header read error" ),
+QIO_ERR_MSG( FSYS_MOUNT_RDERR,,		"(probably a) directory read error" ),
+QIO_ERR_MSG( FSYS_MOUNT_DIRCORR,,	"directory corrupt" ),
+QIO_ERR_MSG( FSYS_MOUNT_MOUNTED,,	"volume is already mounted" ),
+QIO_ERR_MSG( FSYS_MOUNT_NSV,,		"no such volume name" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOPHYS,,	"couldn't stat the physical device" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOIOQ,,		"ran out of IOQ's" ),
+QIO_ERR_MSG( FSYS_INITFS_SUCC, =FACILITY_INITFS<<FACILITY_SHIFT, "completed successfully" ),
+QIO_ERR_MSG( FSYS_INITFS_INVARG,,	"invalid argument to initfs" ),
+QIO_ERR_MSG( FSYS_INITFS_FATAL,,	"fatal internal error in initfs code" ),
+QIO_ERR_MSG( FSYS_INITFS_BADLVL,,	"executing at wrong level" ),
+QIO_ERR_MSG( FSYS_INITFS_NOMEM,,	"ran out of memory" ),
+QIO_ERR_MSG( FSYS_INITFS_NOSUPP,,	"feature not supported" ),
+QIO_ERR_MSG( FSYS_INITFS_BADHB,,	"error writing the home blocks" ),
+QIO_ERR_MSG( FSYS_INITFS_BADINDX,,	"error writing the index header" ),
+QIO_ERR_MSG( FSYS_INITFS_BADINDXF,,	"error writing the index file" ),
+QIO_ERR_MSG( FSYS_INITFS_BADFREE,,	"error writing the freemap header" ),
+QIO_ERR_MSG( FSYS_INITFS_BADFREEF,, 	"error writing the freemap file" ),
+QIO_ERR_MSG( FSYS_INITFS_BADROOT,,	"error writing the root header" ),
+QIO_ERR_MSG( FSYS_INITFS_BADROOTF,,	"error writing the root file" ),
+QIO_ERR_MSG( FSYS_INITFS_BUSY,,		"initfs is already busy" ),
+QIO_ERR_MSG( FSYS_INITFS_NODRV,,	"no drive" ),
+QIO_ERR_MSG( FSYS_INITFS_NOINFO,,	"error getting drive info" ),
+QIO_ERR_MSG( FSYS_INITFS_NOFREE,,	"ran out of free blocks" ),
+QIO_ERR_MSG( FSYS_INITFS_NOIV,,		"No FsysInitVol parameter supplied" ),
+QIO_ERR_MSG( FSYS_INITFS_CLUSTERNOT1,,	"Cluster size not equal to 1" ),
+QIO_ERR_MSG( FSYS_INITFS_TOOMANYCLUST,,	"Allocated file sizes greater than drive capacity" ),
+QIO_ERR_MSG( FSYS_CREATE_SUCC, =FACILITY_CREATE<<FACILITY_SHIFT,	"file creation completed successfully" ),
+QIO_ERR_MSG( FSYS_CREATE_INVARG,,	"invalid argument to file creation call" ),
+QIO_ERR_MSG( FSYS_CREATE_FATAL,,	"fatal internal error in creation handler" ),
+QIO_ERR_MSG( FSYS_CREATE_BADLVL,,	"executing at wrong level" ),
+QIO_ERR_MSG( FSYS_CREATE_NOMEM,,	"create ran out of memory" ),
+QIO_ERR_MSG( FSYS_CREATE_NOSUPP,,	"cannot create on read only filesystem" ),
+QIO_ERR_MSG( FSYS_CREATE_NOPATH,,	"no such path" ),
+QIO_ERR_MSG( FSYS_CREATE_NAMEINUSE,,	"name already in use by a directory" ),
+QIO_ERR_MSG( FSYS_CREATE_NOFH,,		"filesystem full, no more file headers" ),
+QIO_ERR_MSG( FSYS_CREATE_FULL,,		"filesystem full, no room for file" ),
+QIO_ERR_MSG( FSYS_CREATE_FATALNOPRIV,,	"private field has been zeroed" ),
+QIO_ERR_MSG( FSYS_DELETE_SUCC, =FACILITY_DELETE<<FACILITY_SHIFT,	"file deletion completed successfully" ),
+QIO_ERR_MSG( FSYS_DELETE_INVARG,,	"invalid argument to file deletion call" ),
+QIO_ERR_MSG( FSYS_DELETE_NOMEM,,	"delete ran out of memory" ),
+QIO_ERR_MSG( FSYS_DELETE_FNF,,		"no such file" ),
+QIO_ERR_MSG( FSYS_DELETE_DIR,,		"cannot delete a directory" ),
+QIO_ERR_MSG( FSYS_LOOKUP_SUCC, =FACILITY_LOOKUP<<FACILITY_SHIFT,	"lookup worked" ),
+QIO_ERR_MSG( FSYS_LOOKUP_INVARG,,	"invalid argument to lookup" ),
+QIO_ERR_MSG( FSYS_LOOKUP_FATAL,,	"fatal internal error in lookup" ),
+QIO_ERR_MSG( FSYS_LOOKUP_NOPATH,,	"no such directory" ),
+QIO_ERR_MSG( FSYS_LOOKUP_FNF,,		"no such file" ),
+QIO_ERR_MSG( FSYS_LOOKUP_TOODEEP,,	"too many directories" ),
+QIO_ERR_MSG( FSYS_LOOKUP_FSNF,,		"no such file system to stat" ),
+QIO_ERR_MSG( FSYS_LOOKUP_NOTDIR,,	"not a directory" ),
+QIO_ERR_MSG( FSYS_OPEN_SUCC, =FACILITY_OPEN<<FACILITY_SHIFT,	"file open completed successfully" ),
+QIO_ERR_MSG( FSYS_OPEN_INVARG,,		"invalid argument to file open call" ),
+QIO_ERR_MSG( FSYS_OPEN_FATAL,,		"fatal internal error in open handler" ),
+QIO_ERR_MSG( FSYS_OPEN_BADLVL,,		"executing at wrong level" ),
+QIO_ERR_MSG( FSYS_OPEN_NOMEM,,		"open ran out of memory" ),
+QIO_ERR_MSG( FSYS_OPEN_NOFID,,		"No such file (FID out of range)" ),
+QIO_ERR_MSG( FSYS_OPEN_NOGEN,,		"No such file (generation number mismatch)" ),
+QIO_ERR_MSG( FSYS_OPEN_NOTMNT,,		"No such file (volume not mounted)" ),
+QIO_ERR_MSG( FSYS_OPEN_NOTOPEN,,	"Fatal internal error. fsys_open_q found file closed." ),
+QIO_ERR_MSG( FSYS_EXTEND_SUCC, =FACILITY_EXTEND<<FACILITY_SHIFT,	"extend completed successfully" ),
+QIO_ERR_MSG( FSYS_EXTEND_INVARG,,	"invalid argument to extend function" ),
+QIO_ERR_MSG( FSYS_EXTEND_FATAL,,	"fatal internal error in extend function" ),
+QIO_ERR_MSG( FSYS_EXTEND_2MNYRP,,	"too many retrieval pointers" ),
+QIO_ERR_MSG( FSYS_EXTEND_NOMEM,,	"extend function ran out of memory" ),
+QIO_ERR_MSG( FSYS_EXTEND_FULL,,		"filesystem full" ),
+QIO_ERR_MSG( FSYS_SYNC_SUCC, =FACILITY_SYNC<<FACILITY_SHIFT,	"sync completed successfully" ),
+QIO_ERR_MSG( FSYS_SYNC_INVARG,,		"invalid argument to sync" ),
+QIO_ERR_MSG( FSYS_SYNC_FATAL,,		"fatal internal error in sync function" ),
+QIO_ERR_MSG( FSYS_SYNC_NOMEM,,		"sync function ran out of memory" ),
+QIO_ERR_MSG( FSYS_SYNC_NOMNT,,		"file system not mounted" ),
+QIO_ERR_MSG( FSYS_FREE_SUCC, =FACILITY_FREE<<FACILITY_SHIFT,	"freelist bit update completed successfully" ),
+QIO_ERR_MSG( FSYS_FREE_INVARG,,		"invalid argument to freelist function" ),
+QIO_ERR_MSG( FSYS_FREE_FATAL,,		"fatal internal error in freelist function" ),
+QIO_ERR_MSG( FSYS_FREE_NOMEM,,		"freelist function ran out of memory" ),
+QIO_ERR_MSG( QIO_MUTEX_SUCC, =FACILITY_MUTEX<<FACILITY_SHIFT,	"mutex function completed successfully" ),
+QIO_ERR_MSG( QIO_MUTEX_INVARG,,		"invalid argument to mutex call" ),
+QIO_ERR_MSG( QIO_MUTEX_FATAL,,		"fatal internal error in mutex handler" ),
+QIO_ERR_MSG( QIO_MUTEX_BADLVL,,		"executing at wrong level" ),
+QIO_ERR_MSG( QIO_MUTEX_NESTED,,		"mutex is already claimed by 'task'" ),
+QIO_ERR_MSG( QIO_MUTEX_NOTBUSY,,	"mutex is not busy" ),
+QIO_ERR_MSG( QIO_MUTEX_NOMUTEX,,	"mutex pool is empty" ),
+QIO_ERR_MSG( QIO_MUTEX_QUEUED,,		"function to claim mutex has been queued" ),
+QIO_ERR_MSG( QIO_MUTEX_NOTOWN,,		"mutex 'free'd by other than 'task' that claimed it" ),
+QIO_ERR_MSG( QIO_MUTEX_NONE,,		"no mutex to free" ),
+QIO_ERR_MSG( QIO_SUCC, =FACILITY_QIO<<FACILITY_SHIFT,	"function completed successfully" ),
+QIO_ERR_MSG( QIO_INVARG,,		"invalid argument to QIO call" ),
+QIO_ERR_MSG( QIO_FATAL,,		"fatal internal error in QIO handler" ),
+QIO_ERR_MSG( QIO_BADLVL,,		"executing at wrong AST level" ),
+QIO_ERR_MSG( QIO_NOTSUPP,,		"function not supported on device" ),
+QIO_ERR_MSG( QIO_NOIOQ,,		"ran out of IOQ's" ),
+QIO_ERR_MSG( QIO_NOMEM,,		"ran out of memory" ),
+QIO_ERR_MSG( QIO_IOQBUSY,,		"QioIOQ already on a queue" ),
+QIO_ERR_MSG( QIO_NSD,,			"no such device" ),
+QIO_ERR_MSG( QIO_NOFILE,,		"no more file descriptors" ),
+QIO_ERR_MSG( QIO_STAT_FNF,,		"no such file to stat" ),
+QIO_ERR_MSG( QIO_NOTOPEN,,		"file not open" ),
+QIO_ERR_MSG( QIO_EOF,,			"EOF on file" ),
+QIO_ERR_MSG( QIO_NOT_ORD,,		"file not open for read" ),
+QIO_ERR_MSG( QIO_NOT_OWR,,		"file not open for write" ),
+QIO_ERR_MSG( QIO_NOTSAMEDVC,,		"cannot rename to different device" ),
+QIO_ERR_MSG( QIO_ALREADY_INST,,		"device already installed" ),
+QIO_ERR_MSG( QIO_TOO_MANY_DVCS,,	"no room for more devices" ),
+QIO_ERR_MSG( HDIO_SUCC, =FACILITY_HDIO<<FACILITY_SHIFT, "function completed successfully" ),
+QIO_ERR_MSG( HDIO_INVARG,,		"invalid argument to QIO call" ),
+QIO_ERR_MSG( HDIO_FATAL,,		"fatal internal error in QIO handler" ),
+QIO_ERR_MSG( HDIO_BADLVL,,		"executing at wrong AST level" ),
+QIO_ERR_MSG( HDIO_NOTSUPP,,		"function not supported" ),
+QIO_ERR_MSG( HDIO_NOHDIO,,		"ran out of HdIO's" ),
+QIO_ERR_MSG( HDIO_RDERR,,		"read error on hard disk" ),
+QIO_ERR_MSG( HDIO_WRERR,,		"write error on hard disk" ),
+QIO_ERR_MSG( HDIO_SEEKERR,,		"seek error on hard disk" ),
+QIO_ERR_MSG( HDIO_TIMEOUT,,		"device timeout on hard disk" ),
+QIO_ERR_MSG( HDIO_NOMEM,,               "IDE driver ran out of memory" ),
+QIO_ERR_MSG( HDIO_WRONLY,,              "file opened \"write only\"" ),
+QIO_ERR_MSG( HDIO_RDONLY,,              "file opened \"read only\"" ),
+QIO_ERR_MSG( HDIO_UNCORR,,              "Uncorrectable read error" ),
+QIO_ERR_MSG( HDIO_IDNF,,                "Sector ID not found" ),
+QIO_ERR_MSG( HDIO_ABRT,,		"device error" ),
+QIO_ERR_MSG( HDIO_TK0NF,,		"Track 0 not found" ),
+QIO_ERR_MSG( HDIO_AMNF,,		"Address mark not found" ),
+QIO_ERR_MSG( DMA_SUCC, =FACILITY_DMA<<FACILITY_SHIFT, "function completed successfully" ),
+QIO_ERR_MSG( DMA_NOTSUPP,,		"function not supported" ),
+QIO_ERR_MSG( DMA_INVARG,,		"invalid argument" ),
+QIO_ERR_MSG( DMA_TIMEOUT,,		"timeout" ),
+QIO_ERR_MSG( DMA_CANCEL,,		"cancel" ),
+QIO_ERR_MSG( DMA_INCONSISTENT,,		"inconsistent state" ),
+QIO_ERR_MSG( ETH_SUCC, =FACILITY_ETH<<FACILITY_SHIFT, "function completed successfully" ),
+QIO_ERR_MSG( ETH_NOTSUPP,,		"function not supported" ),
+QIO_ERR_MSG( ETH_INVARG,,		"invalid argument" ),
+QIO_ERR_MSG( ETH_OFFLINE,,		"offline" ),
+QIO_ERR_MSG( ETH_TIMEOUT,,		"timeout" ),
+QIO_ERR_MSG( ETH_CANCEL,,		"cancel" ),
+QIO_ERR_MSG( ETH_NOIOQ,,		"no IOQ's" ),
+QIO_ERR_MSG( ETH_TOOBIG,,		"too big" ),
+QIO_ERR_MSG( ETH_TX_ERR,,		"tx error" ),
+QIO_ERR_MSG( ETH_TRUNC,,		"too small" ),
+QIO_ERR_MSG( SOCK_SUCC, =FACILITY_SOCK<<FACILITY_SHIFT, "function completed successfully" ),
+QIO_ERR_MSG( SOCK_INVARG,,		"invalid argument to socket call" ),
+QIO_ERR_MSG( SOCK_FATAL,,		"fatal internal error in socket handler" ),
+QIO_ERR_MSG( SOCK_BADLVL,,		"cannot run at interrupt, action or AST level" ),
+QIO_ERR_MSG( SOCK_NOTSUPP,,		"function not supported in sockets" ),
+QIO_ERR_MSG( SOCK_NOSOCKETS,,		"ran out of network sockets" ),
+QIO_ERR_MSG( SOCK_NOTSOCK,,		"fd is not a socket" ),
+QIO_ERR_MSG( SOCK_NOTAVAIL,,		"address is not available" ),
+QIO_ERR_MSG( SOCK_AFNOSUPP,,		"address family not supported") ,
+QIO_ERR_MSG( SOCK_ISCONN,,		"socket already connected" ),
+QIO_ERR_MSG( SOCK_TIMEDOUT,,		"connection timed out" ),
+QIO_ERR_MSG( SOCK_REFUSED,,		"connection refused" ),
+QIO_ERR_MSG( SOCK_NOTREACH,,		"network not reachable" ),
+QIO_ERR_MSG( SOCK_INUSE,,		"address already in use" ),
+QIO_ERR_MSG( SOCK_INPROGRESS,,		"connection is proceeding" ),
+QIO_ERR_MSG( SOCK_NONAMESRVR,,		"cannot contact nameserver" ),
+QIO_ERR_MSG( SOCK_TOOMANYMEMBERS,,	"IGMP group member table full" ),
+QIO_ERR_MSG( SOCK_RDERR,,		"read error on socket" ),
+QIO_ERR_MSG( SOCK_WRERR,,		"write error on socket" ),
+QIO_ERR_MSG( SOCK_NOTCONN,,		"socket not connected" ),
+QIO_ERR_MSG( SOCK_TOOMUCH,,		"UDP datagram too big" ),
+QIO_ERR_MSG( SOCK_BINDERR,,		"Unable to bind to addr/port" ),
+QIO_ERR_MSG( SOCK_NOTSTREAM,,		"Not a TCP socket" ),
+QIO_ERR_MSG( SOCK_NOTBOUND,,		"No BIND done on this socket" ),
+QIO_ERR_MSG( SOCK_ERRACCEPT,,		"Error doing accept" ),
+QIO_ERR_MSG( SOCK_NOPEER,,		"Error getting peer" ),
+#endif		/* QIO_ERR_MSG */
+@
+
+
+1.36
+log
+@Includes fcntl.h to get the _FREAD, etc. variables. Defines
+them if necessary.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.35 1997/10/30 21:44:36 shepperd Exp shepperd $
+d256 5
+d286 2
+d924 34
+d1196 1
+@
+
+
+1.35
+log
+@Obsoleted qio_sbrk.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.34 1997/10/30 21:38:54 shepperd Exp shepperd $
+d18 1
+@
+
+
+1.34
+log
+@Changed size_t to off_t for positions and sizes. Changed read/write
+lengths from int to long. iostatus and iocount are now long instead
+of int and timeout is a long instead of int.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.33 1997/10/28 21:09:26 forrest Exp shepperd $
+d409 1
+a409 1
+#if HOST_BOARD
+@
+
+
+1.33
+log
+@Added error messages for DMA and Ethernet.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.32 1997/10/04 20:35:23 shepperd Exp forrest $
+d19 14
+d101 1
+a101 1
+#if QIO_LOCAL_DEFINES
+d169 1
+a169 1
+    int timeout;		/* I/O timeout amount in microseconds */
+d177 2
+a178 2
+    volatile size_t iostatus;	/* I/O completion status */
+    volatile size_t iocount;	/* I/O xfer count or FD after qio_open */
+d256 3
+a258 3
+    int (*lseek) (QioIOQ *ioq, size_t where, int whence);
+    int (*read) (QioIOQ *ioq, void *buf, int len);
+    int (*write) (QioIOQ *ioq, const void *buf, int len);  
+d272 2
+a273 2
+    int (*readwpos) (QioIOQ *ioq, size_t where, void *buf, int len);
+    int (*writewpos) (QioIOQ *ioq, size_t where, const void *buf, int len);  
+d428 1
+a428 1
+void *qio_sbrk (struct _reent *ptr, size_t amt);
+d678 1
+a678 1
+int qio_read(QioIOQ *ioq, void *buf, int len);
+d703 1
+a703 1
+int qio_readwpos(QioIOQ *ioq, size_t where, void *buf, int len);
+d723 1
+a723 1
+int qio_write(QioIOQ *ioq, const void *buf, int len);
+d749 1
+a749 1
+int qio_writewpos(QioIOQ *ioq, size_t where, const void *buf, int len);
+d772 1
+a772 1
+extern int qio_lseek(QioIOQ *ioq, size_t where, int whence );
+d913 1
+a913 1
+extern QioIOQ *qio_cleanup( QioMutex *pqm, int file, size_t status );
+@
+
+
+1.32
+log
+@xxx_reent are pointers now rather than structs.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.31 1997/10/01 15:17:26 forrest Exp shepperd $
+d1128 2
+a1129 2
+QIO_ERR_MSG( DMA_TIMEOUT,,		"timeout on device" ),
+QIO_ERR_MSG( DMA_CANCEL,,		"cancel on device" ),
+d1132 1
+a1132 1
+QIO_ERR_MSG( ETH_NOTSUPP,,		"function not supported on device" ),
+d1134 6
+a1139 3
+QIO_ERR_MSG( ETH_TIMEOUT,,		"timeout on device" ),
+QIO_ERR_MSG( ETH_CANCEL,,		"cancel on device" ),
+QIO_ERR_MSG( ETH_NOIOQ,,		"ran out of IOQ's" ),
+@
+
+
+1.31
+log
+@Added prototype for qio_cleanup.
+Changed some DMA_ and ETH_ error codes and messages.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.30 1997/09/11 00:56:45 shepperd Exp forrest $
+d93 1
+a93 1
+extern struct _reent qio_reent;
+d100 4
+a103 4
+#   define QIOmalloc(x) guts_malloc_r((void *)&qio_reent, x, __FILE__, __LINE__)
+#   define QIOrealloc(x, y) guts_realloc_r((void *)&qio_reent, x, y, __FILE__, __LINE__)
+#   define QIOcalloc(x, y) guts_calloc_r((void *)&qio_reent, x, y, __FILE__, __LINE__)
+#   define QIOfree(x) guts_free_r((void *)&qio_reent, x, __FILE__, __LINE__)
+d105 4
+a108 4
+#   define QIOmalloc(x) _malloc_r((void *)&qio_reent, x)
+#   define QIOrealloc(x, y) _realloc_r((void *)&qio_reent, x, y)
+#   define QIOcalloc(x, y) _calloc_r((void *)&qio_reent, x, y)
+#   define QIOfree(x) _free_r((void *)&qio_reent, x)
+@
+
+
+1.30
+log
+@Added more socket error messages.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.29 1997/09/03 22:41:57 shepperd Exp shepperd $
+d881 4
+a884 2
+ * qio_ioq_enq - Place QioIOQ entry at end of list.
+ *
+d886 3
+a888 2
+ *	list - pointer to list of QioIOQ struct
+ *	new  - pointer to QioIOQ struct to enqueue
+d891 4
+a894 17
+ *	0 if error -- means bad parameter
+ *	Non-zero is a pointer to the list that new is on.
+ */
+
+typedef struct qio_ioq_head
+{
+ QioIOQ *next;
+ QioIOQ *tail;
+} QioIOQHead;
+
+extern QioIOQHead *qio_ioq_enq(QioIOQHead *list, QioIOQ *new);
+
+/************************************************************
+ * qio_ioq_deq - Remove QioIOQ entry from head of list.
+ *
+ * At entry:
+ *	list - pointer to list of QioIOQ struct
+d896 1
+a896 3
+ * At exit:
+ *	0 if list is empty
+ *	Non-zero is the next QioIOQ removed from the list.
+d899 1
+a899 1
+extern QioIOQ *qio_ioq_deq(QioIOQHead *list);
+d1126 5
+a1130 5
+QIO_ERR_MSG( DMA_NOTSUPP,,		"function not supported on device" ),
+QIO_ERR_MSG( DMA_INVARG,,		"invalid argument to QIO call" ),
+QIO_ERR_MSG( DMA_CLOSING,,		"file marked for close" ),
+QIO_ERR_MSG( DMA_TIMEOUT,,		"timeout on dma device" ),
+QIO_ERR_MSG( DMA_CANCEL,,		"cancel on dma device" ),
+d1133 4
+a1136 4
+QIO_ERR_MSG( ETH_INVARG,,		"invalid argument to QIO call" ),
+QIO_ERR_MSG( ETH_CLOSING,,		"file marked for close" ),
+QIO_ERR_MSG( ETH_TIMEOUT,,		"timeout on ethernet device" ),
+QIO_ERR_MSG( ETH_CANCEL,,		"cancel on ethernet device" ),
+@
+
+
+1.29
+log
+@Added SOCK_BINDERR.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.28 1997/08/30 02:38:36 shepperd Exp shepperd $
+d1171 4
+@
+
+
+1.28
+log
+@Added more socket error messages.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.27 1997/08/28 23:02:57 shepperd Exp shepperd $
+d1170 1
+@
+
+
+1.27
+log
+@Added more socket error messages.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.26 1997/08/28 22:47:54 forrest Exp shepperd $
+d1166 4
+a1169 1
+
+@
+
+
+1.26
+log
+@Added support for the CANCEL function.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.25 1997/08/12 22:17:34 forrest Exp forrest $
+d1149 1
+a1149 1
+QIO_ERR_MSG( SOCK_SUCC, =FACILITY_ETH<<FACILITY_SHIFT, "function completed successfully" ),
+d1164 2
+@
+
+
+1.25
+log
+@Revert to 1.23
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.23 1997/08/06 03:22:10 forrest Exp $
+d222 1
+d884 1
+a884 1
+ *	head - pointer to pointer to QioIOQ struct
+d889 1
+a889 1
+ *	Non-zero is the head of the queue that new is on.
+d892 5
+a896 1
+extern QioIOQ **qio_ioq_enq(QioIOQ **head, QioIOQ *new);
+d898 15
+d1142 1
+d1148 1
+@
+
+
+1.24
+log
+@Revert to 1.22
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.22 1997/07/30 18:24:00 shepperd Exp $
+a24 4
+#endif
+
+#ifndef QIO_MUTEXES
+# define QIO_MUTEXES	(3*QIO_MAX_FILES)
+@
+
+
+1.23
+log
+@Removed QIO_MUTEXES.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.22 1997/07/30 18:24:00 shepperd Exp forrest $
+d25 4
+@
+
+
+1.22
+log
+@Added socket error messages.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.h,v 1.21 1997/07/25 03:01:24 shepperd Exp shepperd $
+a24 4
+#endif
+
+#ifndef QIO_MUTEXES
+# define QIO_MUTEXES	(3*QIO_MAX_FILES)
+@
+
+
+1.21
+log
+@Added QIO_FFLAG and new error message.
+@
+text
+@d2 1
+a2 1
+ * $Id$
+d973 2
+a1102 1
+QIO_ERR_MSG( QIO_NOSOCKETS,,		"No more network sockets" ),
+d1131 15
+@
+
+
+1.20
+log
+@Added qio_ioq_enq() prototype.
+Added FACILITY for ETH messages.
+@
+text
+@d2 1
+a2 1
+ *	qio.h
+d222 5
+d234 1
+a234 1
+    void *private;		/* reserved for use by qio and fsys */
+d1101 1
+@
+
+
+1.19
+log
+@Added qio_cancel prototype.
+Added generation number field to QioFile structure.
+@
+text
+@d849 1
+a849 1
+ * 
+d865 1
+a865 1
+ * 
+d879 14
+d967 1
+d1119 5
+@
+
+
+1.18
+log
+@Added FACILITY_DMA messages.
+@
+text
+@d227 1
+d845 1
+a845 1
+int qio_fsync(QioIOQ *ioq, const char *name);
+d862 15
+@
+
+
+1.17
+log
+@Added a qio_ioctl() and ioctl() prototype.
+@
+text
+@d936 1
+d1083 5
+@
+
+
+1.16
+log
+@Added reset_malloc() and heap_remaining() functions.
+Moved some primitives from phx_stubs.c to mallocr.c.
+@
+text
+@d242 1
+a242 1
+    int (*ioctl) (QioIOQ *ioq, unsigned int cmd, unsigned long flag);
+d534 17
+@
+
+
+1.15
+log
+@Added prototype for unlink().
+@
+text
+@d412 20
+@
+
+
+1.14
+log
+@Now includes facility definitions and strings.
+@
+text
+@d825 13
+@
+
+
+1.13
+log
+@Added and corrected comments.
+@
+text
+@d9 1
+a9 1
+#if !defined(_QIO_H_) && !defined(QIO_ERR_MSG)
+a852 2
+#define QIO_ERR_MSG(name, init, text) name init
+
+d860 4
+a863 13
+    FACILITY_FSYS_IO=1,		/* FSYS I/O errors */
+    FACILITY_MOUNT,		/* volume MOUNT errors */
+    FACILITY_INITFS,		/* volume INIT errors */
+    FACILITY_CREATE,		/* file CREATE errors */
+    FACILITY_DELETE,		/* file DELETE errors */
+    FACILITY_LOOKUP,		/* file LOOKUP errors */
+    FACILITY_OPEN,		/* file OPEN errors */
+    FACILITY_EXTEND,		/* file EXTEND errors */
+    FACILITY_SYNC,		/* volume SYNC errors */
+    FACILITY_FREE,		/* volume FREE errors */
+    FACILITY_MUTEX,		/* MUTEX handling errors */
+    FACILITY_QIO,		/* QIO errors */
+    FACILITY_HDIO,		/* Hard Drive I/O errors */
+d865 1
+a868 1
+#undef QIO_ERR_MSG
+d872 16
+d889 1
+a889 1
+QIO_ERR_MSG( FSYS_IO_SUCC, =FACILITY_FSYS_IO<<FACILITY_SHIFT, "successful fsys I/O" ),
+@
+
+
+1.12
+log
+@Moved the contents of qio_elst.h into this file. Rearranged
+some #if's so this file can be included multiple times as
+appropriate. Note that this file now #includes itself.
+@
+text
+@d69 16
+a84 13
+The QIO subsystem uses GNU's re-enterant malloc, et al. to get memory to hold its
+data structures, buffers, etc. These functions allocate memory from a private
+pool reserved explicitly to the subsystem. A single memory pool is used for
+all QIO operations and the filesystem(s) claim memory from this pool as well.
+QIO_POOL_SIZE sets the size (in bytes) of this pool. The default
+is 256k allowing for approximately 1000 files in a single filesystem volume.
+A writeable filesystem with 1000 files will require much more memory than 128k.
+
+NOTE: on a READ_ONLY filesystem, once the volume has been mounted, no
+further malloc's are performed. One may check the resuidual value of
+of the static variable 'free_size' in fsys.c after all mounts have
+completed and adjust the value assigned to QIO_POOL_SIZE to retrieve
+some unused memory if desired.
+d129 12
+a140 10
+ * The following 3 members are required by the list manager (qio_getioq() and
+ * qio_freeioq()). If the QioIOQ was obtained via a qio_getioq(), these members
+ * MUST NOT be altered, cloned to another QioIOQ, etc. If the QioIOQ is not managed by
+ * the qio list manager (qio_getioq() and qio_freeioq(), i.e. allocated from bss, stack
+ * or by a user provided list manager) the contents of these 3 fields is not significant.
+ *
+ * WARNING * DANGER * WARNING * DANGER * WARNING * DANGER * WARNING * DANGER * WARNING *
+ * THESE 3 MEMBERS MUST APPEAR FIRST IN THE STRUCTURE. DO NOT MOVE THEM. DO NOT CHANGE
+ * THE ORDER OF THESE MEMBERS.
+ */
+d208 3
+a210 3
+    struct act_q *current;		/* which mutex is currently being used */
+    struct act_q *waiting;		/* list of those waiting to use this mutex */
+    struct act_q *tail;			/* last guy in the list */
+d265 5
+d276 1
+a276 1
+ *	arg - argument to pass to function
+d282 2
+a283 2
+ * busy, the function is put on a mutex wait queue and will be queued
+ * when the mutex is free'd.
+d292 6
+a297 4
+ *	valid - pointer to function that 'claimed' the mutex
+ *		(this parameter is used just to validate that
+ *		the 'free' is being done by the same 'task' that
+ *		claimed the mutex).
+d302 1
+a302 1
+ *	list is queued at its AST level.
+d329 90
+a441 11
+ * qio_freefile - Put an unused QioFile back into the system's pool
+ * 
+ * At entry:
+ *	file - pointer to QioFile which to free
+ *
+ * At exit:
+ *	returns 0 if success or 1 if failure.
+ */
+int qio_freefile(QioFile *file);
+
+/************************************************************
+d446 1
+a446 1
+ *	path - pointer to a null terminated string with dvc/path/name.
+a452 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+a479 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+a503 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+a524 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+d541 2
+a542 2
+ *	source - pointer to source filename
+ *	dest - pointer to destination filename
+a546 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+d554 2
+a555 1
+ *	will _not_ be called in that case.
+d557 1
+a557 1
+int qio_rename(QioIOQ *ioq, const char *source, const char *dest);
+a568 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+a581 47
+ * qio_fsync - sync a filesystem
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	name - pointer to null terminated string with name of fs
+ * 
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when fsync completes.
+ *	non-zero if unable to queue the fsync and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_fsync(QioIOQ *ioq, const char *name);
+
+/***********************************************************************
+ * qio_init - Initialize the QIO data structs. To be called once during
+ * boot sequence.
+ * 
+ * At entry:
+ *	No requirements.
+ *
+ * At exit:
+ *	Returns 0.
+ */
+int qio_init(void);
+
+/************************************************************
+ * qio_lookupdvc - Get a pointer to device
+ * 
+ * At entry:
+ *	name - pointer to null terminated string with device name
+ *
+ * At exit:
+ *	Returns pointer to QioDevice if one is found or 0 if not.
+ */
+
+const QioDevice *qio_lookupdvc(const char *name);
+
+/************************************************************
+a592 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+d600 3
+a602 1
+ *	will _not_ be called in that case.
+a617 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+d627 1
+a627 1
+ * qio_readwpos - read bytes from file after positioning to where
+a642 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+a662 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+a709 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+d754 2
+a755 1
+ *	functions. Do not modify the contents of this member.
+d766 5
+d772 1
+d788 1
+a788 1
+ * qio_fd2file - convert fd to pointer to ptr to QioFile
+d791 3
+a793 11
+ *	fd - file descriptor
+ *
+ * At exit:
+ *	returns pointer to QioFile or 0 if error
+ */
+QioFile *qio_fd2file( int fd );
+
+/************************************************************
+ * qio_complete - call user's completion routine. This routine
+ * is used by device drivers and such at the conclusion of their
+ * operations.
+a794 3
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *
+a796 1
+ *	ioq->file - must be a valid file descriptor
+a797 1
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+d802 4
+a805 2
+ *	returns nothing. May have queued the user's completion
+ *	routine on the AST queue.
+d807 1
+a807 26
+void qio_complete(QioIOQ *ioq);
+
+#if HOST_BOARD
+/************************************************************
+ * qio_sbrk - allows use of GNU's malloc() and company
+ * to dole out sections from a predefined array (qio_memory).
+ * This function is the underlying support function required
+ * and used by _malloc_r() and company (the re-enterant equivalent
+ * functions to malloc(), etc). Although qio_sbrk could be used directly
+ * by any local function, it it reserved for use by the libc
+ * functions. The re-enterant functions actually call _sbrk_r()
+ * which notices that the 'ptr' argument == qio_reent and,
+ * in turn, calls this function. _sbrk_r() is a function
+ * found in phx_stubs.c.
+ *
+ * At entry:
+ *	ptr - pointer to struct _reent
+ *	amt - amount to increase(decrease) allocated area
+ * At exit:
+ *	'amt' bytes removed from allocation pool
+ *	returns pointer to newly allocated area or
+ *	0 if there is not enough memory to satisfy the
+ *	request.
+ */
+void *qio_sbrk (struct _reent *ptr, size_t amt);
+#endif		/* HOST_BOARD */
+a808 1
+#ifndef QIO_ERR_MSG
+d810 1
+a810 1
+ * io_errmsg - decode status code into an ASCII error message
+d813 1
+a813 1
+ *	sts - status code to decode (one of the values listed above)
+d815 1
+a815 1
+ *	size - size of string
+d818 15
+a832 4
+ *	returns 'ans' which will have had the text of the decoded
+ *	message copied into it or a "unknown error xxxxxxxx" string
+ *	if the code isn't decodable.
+ *
+d835 8
+a842 1
+extern char *qio_errmsg(int sts, char *ans, int size);
+d844 3
+a846 1
+/* The following are error codes returned by various fsys and qio functions. */
+d848 1
+d875 1
+a875 1
+#include "qio.h"
+@
+
+
+1.11
+log
+@Added support for MALLOC_DEBUG
+@
+text
+@d9 1
+a9 2
+#if !QIO_INCLUDE_ONLY_ERRS
+#ifndef _QIO_H_
+d119 83
+a201 2
+#ifndef _QIO_TYPEDEF_MUTEX_T_
+# define _QIO_TYPEDEF_MUTEX_T_
+a206 1
+#endif
+a207 2
+#ifndef _QIO_TYPEDEF_DVC_T_
+# define _QIO_TYPEDEF_DVC_T_
+a214 1
+    int use;			/* use counter */
+a215 1
+#endif
+a216 2
+#ifndef _QIO_TYPEDEF_QIOFILE_T_
+# define _QIO_TYPEDEF_QIOFILE_T_
+d222 1
+a222 1
+    QioDevice *dvc;		/* ptr to device that this file is on */
+a226 1
+#endif
+a227 26
+#ifndef _QIO_TYPEDEF_QUEE_T_
+# define _QIO_TYPEDEF_QUEE_T_
+typedef struct qio_ioq {
+    struct qio_ioq **owner;	/* pointer to pointer of head of freelist */
+    struct qio_ioq **head;	/* pointer to pointer of head of list to which this element belongs */
+    struct qio_ioq *next;	/* next guy in the list */
+    int file;			/* fd of file to access */
+    volatile size_t iostatus;	/* I/O completion status */
+    volatile size_t iocount;	/* I/O xfer count or FD after qio_open */
+    void (*complete)(struct qio_ioq *);	/* user's completion routine */
+    void *user;			/* user's field to do whatever s/he wants */
+    void *user2;		/* user's field to do whatever s/he wants */
+    void *private;		/* reserved for use by fsys and/or qio internals */
+    void *private2;		/* reserved for use by device drivers */
+    int timeout;		/* I/O timeout amount in microseconds */
+    struct act_q aq;		/* reserved for use by AST handler */
+    struct tq timer;		/* reserved for use by the timer */
+    void *pparam0;		/* some space for user's parameters */
+    void *pparam1;
+    void *pparam2;
+    long iparam0;
+    long iparam1;
+    long iparam2;
+} QioIOQ;
+#endif
+
+a232 2
+#ifndef _QIO_TYPEDEF_FIOOPS_T_
+# define _QIO_TYPEDEF_FIOOPS_T_
+a258 1
+#endif
+d301 1
+a301 2
+ *	pointer to entry in device table where device added
+ *	or 0 if failed for some reason.
+d303 1
+a303 1
+QioDevice *qio_install_dvc(const QioDevice *dvc);
+d540 1
+a540 1
+QioDevice *qio_lookupdvc(const char *name);
+d705 1
+a705 1
+ *	que - a pointer to a QioIOQ struct
+d717 2
+d726 1
+a726 1
+ *	que - a pointer to a QioIOQ struct
+d729 1
+a800 2
+#endif		/* _QIO_H_ */
+#endif		/* !QIO_INCLUDE_ONLY_ERRS */
+d802 13
+a814 2
+/*
+ *	qio_errs.h
+a815 4
+ *		Copyright 1996 Atari Games, Corp.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+d817 2
+a818 2
+#ifndef _QIO_ERRS_H_
+#define _QIO_ERRS_H_
+d848 1
+a848 1
+#include "qio_elst.h"
+d853 2
+a854 15
+
+/************************************************************
+ * io_errmsg - decode status code into an ASCII error message
+ * 
+ * At entry:
+ *	sts - status code to decode (one of the values listed above)
+ *	ans - ptr to string into which message will be placed
+ *	size - size of string
+ *
+ * At exit:
+ *	returns 'ans' which will have had the text of the decoded
+ *	message copied into it or a "unknown error xxxxxxxx" string
+ *	if the code isn't decodable.
+ *
+ */
+d856 144
+a999 1
+extern char *qio_errmsg(int sts, char *ans, int size);
+d1001 1
+a1001 1
+#endif		/* _ERRORS_H_ */
+@
+
+
+1.10
+log
+@Added qio_delete() and qio_rename() prototypes.
+@
+text
+@d97 15
+a111 4
+#  define QIOmalloc(x) _malloc_r((void *)&qio_reent, x)
+#  define QIOrealloc(x, y) _realloc_r((void *)&qio_reent, x, y)
+#  define QIOcalloc(x, y) _calloc_r((void *)&qio_reent, x, y)
+#  define QIOfree(x) _free_r((void *)&qio_reent, x)
+@
+
+
+1.9
+log
+@Moved the contents of qio_errs.h into qio.h and removed all
+references to qio_errs.h.
+@
+text
+@d375 45
+@
+
+
+1.8
+log
+@Added additional parameters to QioIOQ.
+@
+text
+@d9 1
+d375 23
+d701 65
+@
+
+
+1.7
+log
+@Added protos for dirent functions.
+@
+text
+@d161 6
+@
+
+
+1.6
+log
+@Corrected compile time errors when FSYS_READ_ONLY is true.
+@
+text
+@d150 1
+a152 1
+    int file;			/* fd of file to access */
+a174 1
+    int (*readdir) (QioIOQ *ioq, void *dir, int flags);
+d190 6
+d571 41
+a611 1
+int qio_mkdir(QioIOQ *ioq, const char *name, int mode);
+@
+
+
+1.5
+log
+@This version of qio and fsys stuff all works. It isn't done yet,
+but since it works, I checked in what there is so far.
+/
+@
+text
+@a11 3
+#if HOST_BOARD && !defined(_STDIO_H_)
+# error You need to #include <stdio.h> before including qio.h
+#endif
+d15 1
+a15 3
+#if 0 && !defined(_FSYS_H_)
+# error You need to #include "fsys.h" before including qio.h
+#endif
+@
+
+
+1.4
+log
+@Still under development. Not quite ready for primetime.
+@
+text
+@d79 1
+a79 1
+is 128k allowing for approximately 1000 files in a single filesystem volume.
+d90 1
+a90 1
+# define QIO_POOL_SIZE (128*1024)	/* amount of memory filesystem can use */
+a118 1
+    struct qio_mutex *registry;		/* mutex registry chain */
+d145 1
+d160 3
+a163 1
+    void *private;		/* reserved for use by fsys and/or qio internals */
+d194 2
+d302 1
+a302 1
+ *	ioq->param - if complete also set
+d330 1
+a330 1
+ *	ioq->param - if complete also set
+d355 1
+a355 1
+ *	ioq->param - if complete also set
+d378 1
+a378 1
+ *	ioq->param - if complete also set
+d426 1
+a426 1
+ *	ioq->param - if complete also set
+d450 1
+a450 1
+ *	ioq->param - if complete also set
+d459 26
+d497 1
+a497 1
+ *	ioq->param - if complete also set
+d506 26
+d545 1
+a545 1
+ *	ioq->param - if complete also set
+d557 17
+d596 1
+a596 1
+ *	ioq->param - if complete also set
+@
+
+
+1.3
+log
+@Still under development. Not ready for prime time.
+@
+text
+@d23 2
+d26 1
+d119 1
+d533 1
+d556 1
+@
+
+
+1.2
+log
+@Corrected spelling of _STDIO_H_ and added QIO_POOL_SIZE variable.
+@
+text
+@d18 1
+a18 1
+#ifndef _FSYS_H_
+d23 1
+d25 2
+a26 2
+#ifndef QIO_MUTEX_QUEUES
+# define QIO_MUTEX_QUEUES	4
+d29 2
+a30 2
+#ifndef QIO_MAX_FILES
+# define QIO_MAX_FILES		64	/* set to the maximum number of files open at once */
+d41 29
+d97 1
+d113 3
+a115 5
+    int	mutex;				/* mutex flag */
+    struct act_q mq_q[QIO_MUTEX_QUEUES]; /* mutex wait queues */
+    struct act_q mw_free;		/* place for qio_freemutex to use */
+    int mq_in;				/* next available mutex queue */
+    int mq_out;				/* free'd queue gets put here */
+a131 2
+#define O_QIOSPC	0x10000	 /* in qio_open(), path is pointer to type struct */
+
+d151 2
+a152 2
+    size_t iostatus;		/* I/O completion status */
+    size_t iocount;		/* I/O xfer count or FD after qio_open */
+d154 2
+a155 2
+    void (*complete)(void *);	/* user's completion routine */
+    void *param;		/* parameter returned to completion routine */
+d163 5
+d172 3
+a174 3
+    int (*read) (QioIOQ *ioq, size_t where, char *buf, int len);
+    int (*write) (QioIOQ *ioq, size_t where, char *buf, int len);  
+    int (*readdir) (QioIOQ *ioq, struct dirent *dir, int flags);
+d176 1
+a176 1
+    int (*open) (QioIOQ *ioq, const char *name, int mode);
+d184 1
+a184 1
+    int (*statfs) (QioIOQ *ioq, const char *path, struct statfs *stat);
+d186 2
+a190 3
+#define QIO_MUTEX_QUEUEIT 0	/* always queue the action */
+#define QIO_MUTEX_GO	  1	/* if mutex available, call action immediately */
+
+a197 1
+ *	what - what to do if mutex available
+d206 1
+a206 1
+extern int qio_getmutex(QioMutex *mutex, void (*func)(void *), void *arg, int what);
+d213 4
+d223 1
+a223 1
+extern int qio_freemutex(QioMutex *mutex);
+d286 27
+d314 11
+a324 11
+ *	spc - If mode has bit O_QIOSPC clear, this is a pointer to a
+ *		null terminated string with dvc/path/name.
+ *	      if mode has bit O_QIOSPC set, then this is a pointer
+ *    		to a struct the contents of which are defined by the
+ *		driver to which the open is directed (the first member of
+ *		the struct _must_ be the pathname in order for the qio
+ *		handler to correctly identify which driver to direct the
+ *		open). Fields of the struct may be set by the driver to
+ *		indicate some relevant details about the open.
+ *	mode - the logical 'or' of one or more of the O_xxx flags found
+ *		in fcntl and O_QIOSPC flag defined in this file.
+d335 1
+a335 1
+int qio_open(QioIOQ *ioq, void *name_or_spc, int mode);
+d343 8
+d365 8
+d413 8
+a434 1
+ *	where - byte address in file to read
+d437 8
+d449 1
+a449 1
+int qio_read(QioIOQ *ioq, size_t where, void *buf, int len);
+a455 1
+ *	where - byte address in file to begin writing
+d458 8
+d470 25
+a494 1
+int qio_write(QioIOQ *ioq, size_t where, void *buf, int len);
+d497 1
+a497 1
+ * qio_fd2file - convert fd to pointer to QioFile
+d508 3
+a510 1
+ * qio_complete - call user's completion routine.
+d515 8
+d528 23
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 1
+a12 1
+#if HOST_BOARD && !defined(STDIO_H_)
+d38 20
+@

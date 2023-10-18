@@ -1,0 +1,170 @@
+head	1.3;
+access;
+symbols
+	CJ2_03:1.3;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	95.07.27.17.35.17;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.04.11.22.11.06;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.22.44;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Trying to bring some order into interrupt dispatching.
+@
+
+
+1.3
+log
+@re-hid the examples by changing #if (1) to #if (0).
+These were not intended to be anything but documentation.
+@
+text
+@/*		dispatch.c
+ *
+ *		Copyright 1994 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+ *	Preliminary IRQ dispatch code. This is very much a "work in progress",
+ *	and much of the magic is in intvecs.h. The basic idea is that there
+ *	exists a "softvec" for any possible interrupt cause. That is, the
+ *	assembly-language interrupt handler will save the appropriate
+ *	registers (D0/D1/A0/A1 on a 68K) and determine what caused the
+ *	interrupt, then call the C routine via the softvec, a pointer
+ *	to a function with no parameters, returning void. Due to the
+ *	current (and forseeable future) tangled state of hardware
+ *	interrupts, we cannot presume that these softvecs are contiguous,
+ *	so we have a table to map vector name (an enum vecno) to which
+ *	vector to patch. The table also contains other potentially useful,
+ *	but not yet used, information. In particular, it contains a pointer
+ *	to a "default ack" routine, to place in the softvec. This pointer
+ *	is currently always 0, because the assembly-language routines already
+ *	deal with that case, and must continue to do so for the foreseeable
+ *	future. The reason is left as an exercise to the reader :-), but has
+ *	to do with 68K prioritized interrupts. See the file intvecs.h for
+ *	further information.
+ */
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+
+/*	intvecs.h is included three times. First, we pre-declare
+ *	the vectors we will use. Next, we generate the table we
+ *	use to map from enum vecno to which vector to patch.
+ *	Finally we generate an enum for our callers to use to tell
+ *	us which vector to patch. This last bit is only needed in
+ *	this file to define the *_INTVECs for the examples.
+ */
+#define MAKE_EXTERNS
+#include <intvecs.h>
+#undef MAKE_EXTERNS
+
+#define MAKE_TABLE
+#include <intvecs.h>
+#undef MAKE_TABLE
+
+#define MAKE_ENUM
+#include <intvecs.h>
+#undef MAKE_ENUM
+
+void (*prc_set_vec (unsigned int vecnum, void (*routine)() ))()
+{
+    void (*old_rtn)();
+    void (**softvec)();
+    const struct irq_tab *tbp;
+    int old_ipl;
+
+    if ( vecnum >= N_VECS ) return 0;
+    tbp = irq_inits+vecnum;
+    softvec = tbp->softvec;
+    old_rtn = 0;
+    old_ipl = prc_set_ipl(INTS_OFF);
+    if ( tbp->installer ) tbp->installer(tbp, routine);
+    if ( tbp->softvec ) {
+	old_rtn = *softvec;
+	*softvec = routine;
+    }
+    prc_set_ipl(old_ipl);
+    return old_rtn;
+}
+
+#if (0)
+/*	A sample call, where we wish to totally replace the previous
+ *	interrupt routine.
+ */
+void replace_vec(new)
+void (*new)();
+{
+    prc_set_vec(GPU_INTVEC,new);
+}
+
+/*	A sample call, where we wish to run our routine, then the previous
+ *	routine, or vice versa. totally replace the previous
+ *	interrupt routine. CAUTION: This is generally the "safest" approach,
+ *	not requiring knowledge of the gritty details of the existing
+ *	interrupt handler, BUT.. it is not recommended for those among
+ *	us who have a tenuous grasp on the concept of initialization, and
+ *	would call insert_my_routine() more than once. Such action could
+ *	result in infinite recursion and death by stack overflow.
+ */
+void (*prev_vec)();
+
+void my_routine()
+{
+    /* ... do our thing before the previously active routine */
+    if ( prev_vec ) prev_vec();
+    /* ... do our thing after the previously active routine */
+
+}
+
+void insert_my_routine()
+{
+    prev_vec = prc_set_vec(GPU_INTVEC,my_routine);
+}
+
+#endif
+@
+
+
+1.2
+log
+@added installer hook, to allow system-specific driver code to be
+notified when vectors change.
+@
+text
+@d71 1
+a71 1
+#if (1)
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d54 1
+d58 3
+a60 2
+
+    softvec = irq_inits[vecnum].softvec;
+d62 5
+a66 2
+    old_rtn = *softvec;
+    *softvec = routine;
+@

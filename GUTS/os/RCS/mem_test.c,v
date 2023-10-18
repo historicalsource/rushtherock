@@ -1,0 +1,1281 @@
+head	1.13;
+access;
+symbols
+	RUSH_ROCK_1_0:1.13
+	RUSH_ROCK_1_0epst:1.13
+	MACE_1_0e:1.12
+	MACE_1_0d:1.12
+	RUSH_1_06A:1.11
+	AREA_52_00:1.13
+	MACE_1_0a:1.12
+	CJ_206:1.11
+	CJ2_05:1.11
+	CJ2_04:1.10
+	CJ2_03:1.8;
+locks; strict;
+comment	@ * @;
+
+
+1.13
+date	97.07.01.22.01.01;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	97.01.29.22.58.06;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.11.07.20.44.26;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.09.05.17.20.39;	author forrest;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.12.07.00.57.39;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.11.01.00.02.15;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.10.27.21.54.16;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.10.19.18.44.18;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.10.19.17.21.26;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.10.18.20.57.49;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.07.28.01.47.26;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.04.18.21.51.01;	author mckee;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.02.23.21.21.35;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@C version of Applied Microsystems RAM test, as modified through
+the years. This file also copes with "holey" RAM, although
+not very well.
+@
+
+
+1.13
+log
+@Added embedded RCS ID.
+@
+text
+@/*		mem_test.c
+ *		Copyright 1994 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+*/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+/*	This file serves as a "reference implementation" of the
+ *	GUTS ram tests. The assembly-level register-call versions
+ *	have been omitted, for obvious reasons. This code could
+ *	be used as is, in a non-time-critical diagnostic, or the
+ *	assembly code resulting from its compilation could be used
+ *	as a starting point, or one could merely view it as a
+ *	slightly more readable version of the algoithm. Those tests
+ *	marked AMS were derived from the Applied Microsystems "SF" tests,
+ *	with their permission. Use outside Atari Games (TWI) should
+ *	probably be avoided unless permission is once again sought.
+ *
+ *
+ *	Changes to this file should be forwarded to Daves Shepperd and Akers
+ */
+/*	While bringing up new hardware, it is often helpful to have some
+ * simple "strobe" as soon as possible after an error is detected. The
+ * "BLIP" macros are intended to allow this to be customized relatively
+ * painlessly.
+ */
+#if MINH_WATCH
+/* THIS HACK STRICTLY FOR USE BY Minh and Brian, debugging Williams-produced
+ * Area51/JackHammer boards.
+ */
+extern int cojag_rev;
+extern unsigned long *kluge_watch;
+
+#define BLIP_LOCALS \
+    volatile unsigned char *latp; \
+    unsigned long lval,lvalb;
+
+#define BLIP_INIT \
+    do { if ( cojag_rev == 4 ) { latp = &COJAG_2_CF_REG; \
+         lval = (*latp ^ CM_VOLCTRL_DATA) & ~CM_VCR_REC;	\
+    	 lvalb = lval | CM_VCR_REC;}			 \
+	else { latp = (unsigned char *)&lval; lval = lvalb = 0; } } while (0)
+
+#define BLIP \
+    do { *latp = lvalb; *latp = lval; } while (0)
+#define PARANOID_FILL (1)
+#endif /* MINH_WATCH */
+
+#ifdef ZRE_CSR
+/* For example, If there is a ZRE on the stack, the following might be used
+ * to blink the XLED on the ZRE.
+ */
+
+#define BLIP_LOCALS \
+    volatile unsigned long *latp; \
+    unsigned long lval,lvalb;
+
+#define BLIP_INIT \
+    do { latp = &ZRE_CSR; \
+         lval = *latp;	\
+    	 lvalb = lval ^ (1<<B_ZRE_XLED); } while (0)
+
+#define BLIP \
+    do { *latp = lvalb; *latp = lval; } while (0)
+    
+#else
+#ifdef ZTV_CTL
+/* For example, on a ZTV stack, the following might be used
+ */
+extern unsigned long ztv_mod_latch();
+
+#define BLIP_LOCALS \
+    volatile unsigned long *latp; \
+    unsigned long lval,lvalb;
+
+#define BLIP_INIT \
+    do { latp = &ZTV_CTL;		\
+         lval = ztv_mod_latch(0);	\
+         lvalb = lval | 0x4000; } while (0)
+
+#define BLIP \
+    do { *latp = lvalb; *latp = lval; } while (0)
+    
+#endif
+#endif
+
+#ifndef BLIP
+#define BLIP do {;} while (0)
+#define BLIP_INIT do {;} while (0)
+#define BLIP_LOCALS
+#endif
+
+#define STAND_ALONE (0)
+#if STAND_ALONE
+/*
+ *	Structure to describe RAM area to test
+ */
+struct rdb {
+	unsigned long * rd_base;	/*  Starting address  */
+	unsigned long rd_len;	/*  Length in bytes  */
+	unsigned long rd_misc;	/*  Which bits don't exist */
+};
+/*
+ *	Structure for optional return of RAM test results
+ */
+struct rrb {
+	unsigned long * rr_addr;	/*  Where it choked  */
+	unsigned long rr_expected;	/*  What it wanted  */
+	unsigned long rr_got;	/*  What it got */
+	int rr_test_no;	/*  Which test  */
+};
+#define watchdog() do {;} while (0)
+#else
+/*	Get structure definitions from config.h
+ */
+#include <config.h>
+#ifndef watchdog
+#ifdef WDOG
+#define watchdog() do {WDOG = 0;} while (0)
+#else
+#define watchdog() do {;} while (0)
+#endif /* WDOG defined */
+#endif /* watchdog not defined */
+#include <os_proto.h>
+#endif /* STAND_ALONE */
+
+
+#ifndef WDOG_LOOP_CNT
+#ifdef WDI_MASK
+#define WDOG_LOOP_CNT (WDI_MASK)
+#else
+#define WDOG_LOOP_CNT (0x1000)
+#endif	/* base LOOP_CNT on old WDI_MASK */
+#endif /* WDOG_LOOP_CNT defined? */
+
+/*		UNDER CONSTRUCTION:
+ */
+
+/*		f_ram_test(desc,result)
+ *	Test ram area described by desc, with optional detailed result.
+ *	Returns:
+ *		==0 for success,
+ *		!=0 for failure (1 in erroneous bit location(s))
+ *	Optionally fills in struct rrb with more detailed information.
+ */
+#define CUSHION (42)	/* longwords of "unexpected" stack frame */
+#define NOISY (0)
+
+static void logit(test_no)
+int test_no;
+{
+#if NOISY
+    if ( test_no > 1 )txt_cstr(" Passed",MNORMAL_PAL);
+    txt_str(2,test_no+5,"Test ",MNORMAL_PAL);
+    txt_cdecnum(test_no,2,LJ_NF,MNORMAL_PAL);
+#endif
+}
+
+unsigned long
+f_ram_test(desc, result)
+struct rdb *desc;
+struct rrb *result;
+{
+    /* Pointers within, to first loc., to last loc. */
+    volatile unsigned long *addr,*start,*end;
+
+    /* len starts out in bytes, but both it and t_len are
+     * in longwords for most of the test.
+     */
+    unsigned long len,t_len;
+
+    /* ignore and check are complements of each other, to
+     * "spoon feed" some stupid compilers which would otherwise
+     * re-complement ignore every time check is needed, even
+     * on machines with AND_NOT !
+     */
+    unsigned long ignore,check;
+
+    /* w_len is used to limit the length of the "inner loop" to
+     * what can safely be done between watchdog()s.
+     */
+    unsigned long w_len;
+
+    /* Allocate variables, if any, needed for simple error
+     * indication.
+     */
+    BLIP_LOCALS
+    unsigned long expect,got,retval,flipper;
+    int test_no = 0;
+    unsigned long marker;	/* _may_ be "bottom" of our stack frame */
+#if MINH_WATCH
+    volatile unsigned long *wp;
+    unsigned long wval;
+#endif
+
+    BLIP_INIT;
+
+    start = desc->rd_base;
+    len = desc->rd_len;
+    if ( len == 0 ) {
+	/* Kluge for when we test our own working RAM. Try to stay well
+	 * below our own stack frame.
+	 */
+	len = (&marker - start)-CUSHION;
+	len *= sizeof(unsigned long);
+    }
+    len /= sizeof(unsigned long);
+    end = start+len-1;
+#if NOISY
+    txt_str(2,3,"Testing 0x",MNORMAL_PAL);
+    txt_chexnum(len,8,RJ_ZF,MNORMAL_PAL);
+    txt_cstr(" longwords @@ 0x",MNORMAL_PAL);
+    txt_chexnum((U32)start,8,RJ_ZF,MNORMAL_PAL);
+#endif
+
+    ignore = 0;
+    if ( (check = desc->rd_misc) != 0 ) {
+	/* "test with gaps" */
+	ignore = ~check;
+#if NOISY
+	txt_str(2,4," Except bits: 0x ",MNORMAL_PAL);
+	txt_chexnum(ignore,8,RJ_ZF,MNORMAL_PAL);
+#endif
+    } else check = ~0;
+
+#if MINH_WATCH
+    wp = (VU32 *)kluge_watch;
+    wval = 0;
+#endif
+
+    retval = 0;
+    expect = 0;
+    got = ~expect;
+    /* In reality, the while loops below are so constructed that flipper
+     * is never really "used before set", but the flow-analysis is not
+     * quite bright enough to notice, so we initialize it to mute the
+     * warning.
+     */
+    flipper = 0;		/* Keeps "used before set" warning away */
+    /* First, fill RAM with 0, to provide "expectation" for test 1
+     */
+    addr = start;
+    t_len = len;
+    while ( t_len ) {
+	w_len = t_len;
+	if ( w_len > WDOG_LOOP_CNT ) w_len = WDOG_LOOP_CNT;
+	t_len -= w_len;
+#if !(PARANOID_FILL)
+	while ( w_len-- ) *addr++ = 0;
+#else
+	expect = 0;
+	while ( w_len-- ) {
+	    *addr = 0;
+	    if ( (got = *addr++) != 0) BLIP;
+	}
+#endif
+	watchdog();
+    }
+    /* Test 1-2:  Starting with presumed zeroes, check for word being zero,
+     *		then flip one bit at a time, starting from MSB, checking
+     *		between each write. Moves from start..end, then scans
+     *		back by words, looking for new expected value (~0)
+     */
+    ++test_no;
+    addr = start;
+    end = start+len-1;
+    t_len = len;
+    logit(test_no);
+    if ( ignore ) {
+	/* We need to skip over some bits in the word.
+	 */
+	while ( addr <= end ) {
+	    expect = 0;
+	    flipper = 0x80000000;
+	    while ( flipper & ignore ) flipper >>= 1;
+	    while ( flipper ) {
+		if ( ((got = *addr) ^ expect) & check ) break;
+		expect ^= flipper;
+		do  { flipper >>= 1; } while ( flipper & ignore );
+		*addr = expect;
+	    }
+	    if ( flipper ) {
+		BLIP;
+		test_no = -test_no;
+		break;
+	    }
+	    if ( ++addr == 0 ) break;
+	}
+    } else {
+	/* More or less the same code, but we can ignore 'ignore'
+	 */
+	while ( t_len ) {
+	    w_len = t_len;
+	    if ( w_len > (WDOG_LOOP_CNT>>5) ) w_len = (WDOG_LOOP_CNT>>5);
+	    t_len -= w_len;
+	    while ( w_len-- ) {
+		expect = 0;
+		flipper = 0x80000000;
+		while ( flipper ) {
+		    if ( (got = *addr) != expect ) break;
+		    expect ^= flipper;
+		    flipper >>= 1;
+		    *addr = expect;
+		}
+#if WANTS_AMS_BUG
+		/* The original AMS test did not check last write.
+		 */
+		if ( flipper )
+#else
+		/* We might want to check the last write _before_ moving
+		 * on to the next word.
+		 */
+		if ( flipper || ((got = *addr) != expect) )
+#endif
+		{
+		    BLIP;
+		    test_no = -test_no;
+		    break;
+		}
+#if MINH_WATCH
+		/* Trying to find bizarre RAM problems with
+		 * Single-board CoJag's, Minh asked for a modification
+		 * to allow "watching" a specified location for
+		 * unexpected changes. This is specified in the
+		 * CUSTOM TEST. Note that we have to change our
+		 * "watch value" (wval) as the address to test
+		 * passes our "watch point" (wp).
+		 */
+		if ( wp ) {
+		    if ( wp == addr ) wval = ~wval;
+		    if ( *wp != wval ) {
+			BLIP;
+			test_no = -test_no;
+			break;
+		    }
+		}
+#endif
+		if ( ++addr == 0 ) break;
+	    }
+	    if ( test_no < 0 ) break;
+	    watchdog();
+	}
+    } /* endif ( ignore ) */
+    if ( test_no >= 0 ) { 
+	++test_no;
+	logit(test_no);
+	/* this is phrased oddly to avoid problems when either start or
+	 * end is 0.
+	 */
+	addr = end+1;
+	if ( ignore ) {
+	    /* Need to ignore some bits, so need to 'AND' with 'check'
+	     */
+	    while ( addr != start ) {
+		got = *--addr;
+		if ( (got ^ expect) & check ) {
+		    BLIP;
+		    test_no = -test_no;
+		    break;
+		}
+	    }
+	    if ( (addr == start)
+	      && ( ((got = *addr) ^ expect) & check )
+	      && (test_no >= 0) ) {
+		/* failed on very last word...
+		 */
+		BLIP;
+		test_no = - test_no;
+	    }
+	} else {
+	    /* Ignoring 'ignore', whole-word test.
+	     */
+	    t_len = len;
+	    while ( t_len ) {
+		w_len = t_len;
+		if ( w_len > WDOG_LOOP_CNT ) w_len = WDOG_LOOP_CNT;
+		t_len -= w_len;
+		while ( w_len-- ) {
+		    got = *--addr;
+		    if ( got != expect ) {
+			BLIP;
+			test_no = -test_no;
+			break;
+		    }
+		}
+		watchdog();
+		if ( got != expect ) break;
+	    }
+	} /* endif ( ignore ) */
+    } /* endif (testno >= 0) */
+
+    if ( test_no >= 0 ) {
+	/* Test 3-4: 	Starting with presumed "all ones", check each word,
+	 *		then flip one bit at a time, starting from MSB, checking
+	 *		between each write. Moves from start..end
+	 */
+	++test_no;
+	logit(test_no);
+	addr = start;
+	end = start+len-1;
+
+	if ( ignore ) {
+	    /* Need to ignore some bits in the word.
+	     */
+	    while ( addr <= end ) {
+		expect = ~0;
+		flipper = 0x80000000;
+		while ( flipper & ignore ) flipper >>= 1;
+		while ( flipper ) {
+		    if ( ((got = *addr) ^ expect) & check ) break;
+		    expect ^= flipper;
+		    do  { flipper >>= 1; } while ( flipper & ignore );
+		    *addr = expect;
+		}
+		if ( flipper ) {
+		    BLIP;
+		    test_no = -test_no;
+		    break;
+		}
+		if ( ++addr == 0 ) break;
+	    }
+	} else {
+	    /* ignoring ignore, and testing whole words.
+	     */
+	    t_len = len;
+	    while ( t_len ) {
+		w_len = t_len;
+		if ( w_len > (WDOG_LOOP_CNT>>5) ) w_len = WDOG_LOOP_CNT>>5;
+		t_len -= w_len;
+		while ( w_len-- ) {
+		    expect = ~0;
+		    flipper = 0x80000000;
+		    while ( flipper ) {
+			if ( (got = *addr) != expect ) break;
+			expect ^= flipper;
+			flipper >>= 1;
+			*addr = expect;
+		    }
+#if WANTS_AMS_BUG
+		    /* The original AMS test did not check last write.
+		     */
+		    if ( flipper )
+#else
+		    /* We might want to check the last write _before_ moving
+		     * on to the next word.
+		     */
+		    if ( flipper || ((got = *addr) != expect) )
+#endif
+		    {
+			BLIP;
+			test_no = -test_no;
+			break;
+		    }
+#if MINH_WATCH
+		    /* Trying to find bizarre RAM problems with
+		     * Single-board CoJag's, Minh asked for a modification
+		     * to allow "watching" a specified location for
+		     * unexpected changes. This is specified in the
+		     * CUSTOM TEST. Note that we have to change our
+		     * "watch value" (wval) as the address to test
+		     * passes our "watch point" (wp).
+		     */
+		    if ( wp ) {
+			if ( wp == addr ) wval = ~wval;
+			if ( *wp != wval ) {
+			    BLIP;
+			    test_no = -test_no;
+			    break;
+			}
+		    }
+#endif
+		    if ( ++addr == 0 ) break;
+		}
+		watchdog();
+		if ( test_no < 0 ) break;
+	    } /* end while ( t_len ) */
+	} /* end if ( ignore ) */
+    } /* endif (testno >= 0) */
+    if ( test_no >= 0 ) {
+	++test_no;
+	logit(test_no);
+	/* this is phrased oddly to avoid problems when either start or
+	 * end is 0.
+	 */
+	addr = end+1;
+	if ( ignore ) {
+	    /* ignoring some bits in a word.
+	     */
+	    while ( addr != start ) {
+		got = *--addr;
+		if ( (got ^ expect) & check ) {
+		    BLIP;
+		    test_no = -test_no;
+		    break;
+		}
+	    }
+	    if ( (addr == start)
+	      && ( ((got = *addr) ^ expect) & check )
+	      && (test_no >= 0) ) {
+		/* failed on very last word...
+		 */
+		BLIP;
+		test_no = - test_no;
+	    }
+	} else {
+	    /* Testing only whole words.
+	     */
+	    t_len = len;
+	    while ( t_len ) {
+		w_len = t_len;
+		if ( w_len > WDOG_LOOP_CNT ) w_len = WDOG_LOOP_CNT;
+		t_len -= w_len;
+		while ( w_len-- ) {
+		    got = *--addr;
+		    if ( got != expect ) {
+			BLIP;
+			test_no = -test_no;
+			break;
+		    }
+		}
+		watchdog();
+		if ( got != expect ) break;
+	    }
+	} /* endif ( ignore ) */
+    } /* endif (testno >= 0) */
+#if NOISY
+    if ( test_no > 0 ) {
+	txt_str(2,test_no+6,"RAM Passed all tests so far",MNORMAL_PAL);
+    } else {
+	txt_cstr("FAILED",ERROR_PAL);
+    }
+    prc_delay(240);
+#endif
+    if ( result ) {
+	result->rr_test_no = test_no < 0 ? -test_no : test_no ;
+	result->rr_addr = (unsigned long *)addr;
+	result->rr_expected = expect & check;
+	result->rr_got = got & check;
+    }
+    return (expect ^ got)& check;
+}
+
+unsigned long
+bram_test(base, len, misc, result)
+U32 *base,len,misc;
+struct rrb *result;
+{
+    struct rdb desc;
+
+    desc.rd_base = base;
+    desc.rd_len = len;
+    desc.rd_misc = misc;
+    return f_ram_test(&desc,result);
+}
+
+/* Rather than simply pare the full test, this new quick test is
+ * based on an algorithm brought to my (MEA) attention by Senthil
+ * Vinayagam. Memory is "backgrounded" in a pattern with length
+ * of three, which is mutually prime to any "naturally occuring"
+ * likely problem in addressing. The three patterns are then
+ * "rolled up" via exclusive-or, and should cancel at the end
+ * of memory. By repeating the test in all three "phases", every
+ * bit is written at least once as a one or zero, with each
+ * neighbor in the oposite state. While this test is unlikely
+ * to be as effective as the full test in locating noise or
+ * timing related problems, it should find the majority of
+ * "stuck at" faults.
+ *				19OCT95 Mike Albaugh
+ */
+
+#define PAT1 (0x6DDBB66D)
+#define PAT2 (0xDBB66DDB)
+#define PAT3 (0xB66DDBB6)
+
+unsigned long
+q_ram_test(desc, result)
+struct rdb *desc;
+struct rrb *result;
+{
+    U32 wdata,rdata,check;
+    U32 pat1,pat2,pat3;
+    VU32 *dp;
+    int wd_len;
+    int loop_len,loop_cnt;
+    int pass = 0;
+
+    pat1 = PAT1;
+    pat2 = PAT2;
+    pat3 = PAT3;
+    wdata = 0;
+    /* rd_misc field for RAM is bits to check, unless it
+     * is zero, in which case we check them all. Don't Ask!
+     */
+    check = desc->rd_misc;
+    if ( !check ) check = ~0;
+    while ( pass < 3 ) {
+	int inner_len;
+	/* get length in (32-bit) words, then trim it to
+	 * 0, mod 3. This allows an unrolled loop, although
+	 * it costs a divde by three. On the 68EC020, the
+	 * cost of the divide is "paid for" by the lower
+	 * number of branches at a loop_len of about 20,
+	 * corresponding to a memory area of 240 bytes. Since
+	 * the quick-test will likely be nearly instantaneous
+	 *  on such small areas, I'm losing no sleep (MEA)
+	 */
+	wd_len = (desc->rd_len + sizeof(U32)-1)/sizeof(U32);
+	loop_len = wd_len/3;
+	wd_len -= (loop_len*3);
+
+	dp = desc->rd_base;
+
+	for ( loop_cnt = loop_len ; loop_cnt ; ) {
+	    inner_len = loop_cnt;
+	    /* make inner_len the largest multiple of three that
+	     * does not exceed WDOG_LOOP_CNT, so we can maintain
+	     * alignment with our patterns of three.
+	     */
+	    if ( inner_len > ((WDOG_LOOP_CNT/3)*3) ) inner_len = (WDOG_LOOP_CNT/3)*3;
+	    loop_cnt -= inner_len;
+	    while ( inner_len ) {
+		*dp++ = pat1;
+		*dp++ = pat2;
+		*dp++ = pat3;
+		--inner_len;
+	    }
+	    watchdog();
+	}
+	/* There are at most two words left to store.
+	 */
+	if ( wd_len ) {
+	    *dp++ = pat1;
+	    --wd_len;
+	}
+	if ( wd_len ) {
+	    *dp++ = pat2;
+	    --wd_len;
+	}
+	wd_len = (desc->rd_len + sizeof(U32)-1)/sizeof(U32);
+	dp = desc->rd_base;
+	while ( wd_len > 1 ) {
+	    inner_len = wd_len-1;
+	    if ( inner_len > WDOG_LOOP_CNT ) inner_len = WDOG_LOOP_CNT;
+	    wd_len -= inner_len;
+	    while ( --inner_len >= 0 ) {
+		rdata = *dp++;
+		wdata = *dp;
+		wdata ^= rdata;
+		*dp = wdata;
+	    }
+	    watchdog();
+	}
+	if ( wd_len ) {
+	    rdata = *dp;
+	    wdata ^= rdata;
+	    --wd_len;
+	}
+	if ( ++pass < 3 ) {
+	    U32 hold = pat1;
+	    pat1 = pat2;
+	    pat2 = pat3;
+	    pat3 = hold;
+	}
+	if ( wdata &= check ) break;
+    }
+    if ( wdata && result ) {
+	/* Error somewhere, we report it at base */
+	result->rr_addr = desc->rd_base;
+	result->rr_expected = 0;
+	result->rr_got = wdata;
+	result->rr_test_no = pass;
+    }
+    return wdata;
+}
+
+unsigned long
+rom_cksum(desc)
+struct rdb *desc;
+{
+    U32 hi,lo;
+    U32 hi_mask, lo_mask;
+    U32 *rp,data;
+    int loop_len,wd_len;
+
+    hi_mask = 0xFF00FF00;
+    lo_mask = ~hi_mask;
+
+    hi = desc->rd_misc & hi_mask;
+    lo = desc->rd_misc & lo_mask;
+
+    wd_len = (desc->rd_len + sizeof(U32)-1)/sizeof(U32);
+    rp = desc->rd_base;
+    while ( wd_len ) {
+	loop_len = wd_len;
+/* Limit loop to 255, regardless of WDOG_LOOP_CNT, so that
+ * carries do not mess us up.
+ */
+	if ( loop_len > 255 ) loop_len = 255;
+	wd_len -= loop_len;
+	while ( loop_len-- ) {
+	    data = *rp++;
+	    hi += (data & hi_mask);
+	    lo += (data & lo_mask);
+	}
+	watchdog();
+	hi &= hi_mask;
+	lo &= lo_mask;
+    }
+
+    return hi | lo;
+}
+
+@
+
+
+1.12
+log
+@Deleted unused TEST_BAIL, which mis-lead about use of TEST switch.
+@
+text
+@d2 9
+a10 1
+ *	This file serves as a "reference implementation" of the
+a20 5
+ *		Copyright 1994 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+a23 1
+
+@
+
+
+1.11
+log
+@Fixed long-standing AMS-memory-test bug of not checking
+last write to location. You can get it back with
+-DWANTS_AMS_BUG. Added more extensive checks and BLIP
+for use with Logic Analyzer on bench, only if you
+-DMINH_WATCH.
+@
+text
+@a135 15
+#if (HOST_BOARD != PHOENIX) && (HOST_BOARD != PHOENIX_AD) && (HOST_BOARD != FLAGSTAFF)
+/*
+ * Do not use the TEST switch here with Williams (Phoenix Class) hardware.
+ */
+# ifdef TEST
+# ifdef B_TEST
+# define TEST_BAIL (TEST & (1<<B_TEST))
+# endif
+# endif
+
+# ifndef TEST_BAIL
+# define TEST_BAIL (0)
+# endif
+#endif /* HOST_BOARD != PHOENIX ... */
+
+a136 1
+ *	This code does not yet account for the need to hit watchdog.
+@
+
+
+1.10
+log
+@Do not use the TEST switch here with Williams (Phoenix Class) hardware.
+@
+text
+@d27 22
+d207 4
+d242 5
+d264 1
+d266 7
+d321 11
+a331 1
+		if ( flipper ) {
+d336 18
+d356 1
+a356 1
+	    if ( flipper ) break;
+d455 11
+a465 1
+		    if ( flipper ) {
+d470 18
+d491 1
+a491 1
+		if ( flipper ) break;
+@
+
+
+1.9
+log
+@added "partial word" capability to q_ram_test().
+@
+text
+@d114 9
+a122 5
+#ifdef TEST
+#ifdef B_TEST
+#define TEST_BAIL (TEST & (1<<B_TEST))
+#endif
+#endif
+d124 4
+a127 3
+#ifndef TEST_BAIL
+#define TEST_BAIL (0)
+#endif
+@
+
+
+1.8
+log
+@moved definition of WDOG_LOOP_LEN _after_ inclusion of
+config.h, where it can be over-ridden.
+@
+text
+@d496 1
+a496 1
+    U32 wdata,rdata;
+d507 5
+d580 1
+a580 1
+	if ( wdata ) break;
+@
+
+
+1.7
+log
+@added loop-limit for watchdog to f_ram_test(). Added default
+value for that loop limit, based on WDI_MASK if it is defined.
+Fixed carry-bug in rom_cksum(), also "off-by-one" count error
+in the unlikely event that someone tried to checksum an area
+whose length was not divisible by four.
+@
+text
+@a70 8
+#ifndef WDOG_LOOP_CNT
+#ifdef WDI_MASK
+#define WDOG_LOOP_CNT (WDI_MASK)
+#else
+#define WDOG_LOOP_CNT (0x1000)
+#endif	/* base LOOP_CNT on old WDI_MASK */
+#endif /* WDOG_LOOP_CNT defined? */
+
+d104 9
+@
+
+
+1.6
+log
+@fixed problem with ASCLEAP-based systems by refining fallback
+on watchdog() macro definition.
+@
+text
+@d71 8
+a124 2
+ *	It also does not yet deal with "partial word" RAM, e.g. 24-bits
+ *	of each 32-bit word unless "WITH_HOLES" is non-zero.
+a146 2
+#define WITH_HOLES (1)
+
+d152 1
+d154 4
+d159 6
+a164 1
+#if WITH_HOLES
+d166 4
+a169 3
+#endif
+#if (0)
+#ifdef WDI_MASK
+d171 4
+a174 2
+#endif
+#endif
+d188 1
+a188 1
+	len = &marker - start;
+a199 1
+#if WITH_HOLES
+a208 1
+#endif
+d213 8
+a220 2
+
+    /* first, fill RAM with 0, to provide "expectation" for test 1 */
+d223 7
+a229 2
+    while ( t_len-- ) *addr++ = 0;
+
+d238 1
+d240 2
+a241 69
+    while ( addr <= end ) {
+	expect = 0;
+	flipper = 0x80000000;
+#if WITH_HOLES
+	while ( flipper & ignore ) flipper >>= 1;
+#endif
+	while ( flipper ) {
+#if !(WITH_HOLES)
+	    if ( (got = *addr) != expect ) break;
+	    expect ^= flipper;
+	    flipper >>= 1;
+	    *addr = expect;
+#else
+	    if ( ((got = *addr) ^ expect) & check ) break;
+	    expect ^= flipper;
+	    do  { flipper >>= 1; } while ( flipper & ignore );
+	    *addr = expect;
+#endif
+	}
+	if ( flipper ) {
+	    BLIP;
+	    test_no = -test_no;
+	    break;
+	}
+	if ( ++addr == 0 ) break;
+    }
+    if ( test_no >= 0 ) { 
+	++test_no;
+	logit(test_no);
+	/* this is phrased oddly to avoid problems when either start or
+	 * end is 0.
+	 */
+	addr = end+1;
+#if !(WITH_HOLES)
+	while ( addr != start ) if ((got = *--addr) != expect) {
+	    BLIP;
+	    test_no = -test_no;
+	    break;
+	}
+	if ( (addr == start) && ((got = *addr) != expect) && (test_no >= 0) ) {
+	    /* failed on very last word...
+	     */
+	    BLIP;
+	    test_no = - test_no;
+	}
+#else
+	while ( addr != start ) {
+	    got = *--addr;
+	    if ( (got ^ expect) & check ) {
+		BLIP;
+		test_no = -test_no;
+		break;
+	    }
+	}
+	if ( (addr == start)
+	  && ( ((got = *addr) ^ expect) & check )
+	  && (test_no >= 0) ) {
+	    /* failed on very last word...
+	     */
+	    BLIP;
+	    test_no = - test_no;
+	}
+#endif
+    }
+
+    if ( test_no > 0 ) {
+	/* Test 3-4: 	Starting with presumed "all ones", check each word,
+	 *		then flip one bit at a time, starting from MSB, checking
+	 *		between each write. Moves from start..end
+a242 5
+	++test_no;
+	logit(test_no);
+	addr = start;
+	end = start+len-1;
+
+d244 1
+a244 1
+	    expect = ~0;
+a245 1
+#if WITH_HOLES
+a246 1
+#endif
+a247 6
+#if !(WITH_HOLES)
+		if ( (got = *addr) != expect ) break;
+		expect ^= flipper;
+		flipper >>= 1;
+		*addr = expect;
+#else
+a251 1
+#endif
+d260 28
+a287 2
+    }
+    if ( test_no >= 0 ) {
+d294 2
+a295 8
+#if !(WITH_HOLES)
+	while ( addr != start ) if ((got = *--addr) != expect) {
+	    BLIP;
+	    test_no = -test_no;
+	    break;
+	}
+	if ( (addr == start) && ((got = *addr) != expect) && (test_no >= 0) ) {
+	    /* failed on very last word...
+d297 13
+a309 7
+	    BLIP;
+	    test_no = - test_no;
+	}
+#else
+	while ( addr != start ) {
+	    got = *--addr;
+	    if ( (got ^ expect) & check ) {
+d311 1
+a311 2
+		test_no = -test_no;
+		break;
+d313 2
+a314 5
+	}
+	if ( (addr == start)
+	  && ( ((got = *addr) ^ expect) & check )
+	  && (test_no >= 0) ) {
+	    /* failed on very last word...
+d316 21
+a336 8
+	    BLIP;
+	    test_no = - test_no;
+	}
+#endif
+    }
+#if (0)
+    if ( test_no > 0 ) {
+	/* Test 3:	Starting with presumed "all ones", check each word,
+d345 66
+a410 8
+	while ( addr != end ) {
+	    expect = ~0;
+	    flipper = 0x80000000;
+	    while ( flipper ) {
+		if ( (got = *addr) != expect ) break;
+		expect ^= flipper;
+		flipper >>= 1;
+		*addr = expect;
+d412 5
+a416 1
+	    if ( flipper ) {
+d418 20
+a437 2
+		test_no = -test_no;
+		break;
+d439 2
+a440 4
+	    ++addr;
+	}
+    }
+#endif
+d526 1
+a526 1
+	     * does not exceed WDI_MASK, so we can maintain
+d529 1
+a529 1
+	    if ( inner_len > ((WDI_MASK/3)*3) ) inner_len = (WDI_MASK/3)*3;
+d553 1
+a553 1
+	    if ( inner_len > WDI_MASK ) inner_len = WDI_MASK;
+d601 1
+a601 1
+    wd_len = (desc->rd_len + sizeof(U32))/sizeof(U32);
+d605 4
+a608 1
+	if ( loop_len > WDI_MASK ) loop_len = WDI_MASK;
+d619 1
+@
+
+
+1.5
+log
+@added watch-dog length-limits to q_ram_test(). Also added
+documentation for q_ram_test() design and goals.
+@
+text
+@d95 1
+d98 4
+a101 1
+#endif
+d103 1
+a103 1
+#endif
+@
+
+
+1.4
+log
+@Added first-cut "real" q_ram_test() and rom_cksum(). These
+now actually run a test, rather than being dummies which
+always return success. They do not yet handle watchdog,
+and q_ram_test() does not handle "holes".
+@
+text
+@d408 15
+d436 1
+a436 1
+    int loop_len,loop_idx;
+d444 10
+a454 1
+	dp = desc->rd_base;
+d457 18
+a474 4
+	for ( loop_idx = loop_len ; loop_idx ; --loop_idx ) {
+	    *dp++ = pat1;
+	    *dp++ = pat2;
+	    *dp++ = pat3;
+d476 2
+d489 10
+a498 5
+	    rdata = *dp++;
+	    wdata = *dp;
+	    wdata ^= rdata;
+	    *dp = wdata;
+	    --wd_len;
+@
+
+
+1.3
+log
+@reconciled with Zoid version, regarding BLIP
+definitions, which cannot be used on CoJag anyway.
+@
+text
+@d408 4
+d417 59
+a475 1
+    return 0;
+d482 27
+a508 1
+    return 0;
+@
+
+
+1.2
+log
+@move copyright notice and default "BLIP" definitions. Cleaner encapsulation
+of BLIP_INIT.
+@
+text
+@d27 19
+a45 1
+#if (0)
+d48 1
+a48 1
+extern volatile unsigned long ztv_latch_shad;
+d56 2
+a57 2
+    lval = ztv_latch_shad;	\
+    lvalb = lval | 0x4000; } while (0)
+d62 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d13 6
+d21 1
+a26 5
+#ifndef BLIP
+#define BLIP do {;} while (0)
+#define BLIP_INIT do {;} while (0)
+#define BLIP_LOCALS
+#endif
+d37 1
+a37 1
+    latp = &ZTV_CTL;		\
+d39 1
+a39 1
+    lvalb = lval | 0x4000;
+d46 6
+a51 6
+/*
+*		Copyright 1994 Atari Games.
+*	Unauthorized reproduction, adaptation, distribution, performance or 
+*	display of this computer program or the associated audiovisual work
+*	is strictly prohibited.
+*/
+@

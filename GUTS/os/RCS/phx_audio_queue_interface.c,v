@@ -1,0 +1,3325 @@
+head	1.16;
+access;
+symbols;
+locks
+	todd:1.16; strict;
+comment	@ * @;
+
+
+1.16
+date	97.10.28.00.40.35;	author todd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	97.10.06.16.40.45;	author todd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	97.09.18.17.29.48;	author todd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	97.08.30.00.01.38;	author todd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	97.08.28.18.27.01;	author todd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	97.08.26.21.56.19;	author todd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	97.08.26.18.03.07;	author todd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	97.08.26.01.47.54;	author todd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	97.08.22.01.55.29;	author todd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	97.08.15.19.22.01;	author todd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.08.07.20.04.39;	author todd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	97.08.07.00.29.08;	author todd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	97.08.06.17.36.29;	author todd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.07.31.16.36.40;	author todd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.07.30.23.33.04;	author todd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.07.30.01.34.03;	author todd;	state Exp;
+branches;
+next	;
+
+
+desc
+@A queued latch os for DCS
+@
+
+
+1.16
+log
+@Cleaner equ safer
+@
+text
+@/***************************************************************************/
+/*
+ *	aud_queue_interface.c
+ *
+ *		Copyright 1996/1997 Atari Games.			  
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+ *
+ */ 
+/***************************************************************************/
+#define ADI_VERSION        0x0101
+/* Atari DCS Interface (ADI) */
+
+#include <config.h>
+#include <os_proto.h>
+#include <eer_defs.h>
+#include <intvecs.h>
+#include <phx_audio_internal.h>
+#include <phx_audio_proto.h>
+/***************************************************************************/
+#if !defined(SOUND_DCS_CHANNELS)
+	#define SOUND_DCS_CHANNELS 6
+#endif
+
+#if !defined(SOUND_QUEUE_TIMER_TIME)
+	#define SOUND_QUEUE_TIMER_TIME 4000 
+#endif
+/***************************************************************************/
+	/* ADI_QUEUE_SIZE must be a power of 2 */
+#if !defined(SOUND_QUEUE_SIZE)
+	#define SOUND_QUEUE_SIZE (1<<8)
+#endif
+	#define SOUND_QUEUE_MASK (SOUND_QUEUE_SIZE-1)
+/***************************************************************************/
+struct audio_stats *aud_stat;
+struct audio_stats2 *aud_stat2;
+struct audio_stats2 *aud_stat2b;
+struct audio_stats3 *aud_stat3;
+int aud_stat_touched;
+/***************************************************************************/
+#define ADI_LOG_ERROR(x,y) if (!(x)) {if (aud_stat->error[y]<255) {aud_stat->error[y]++;aud_stat_touched++;}}
+/***************************************************************************/
+#define DCS_RESERVE_TRACK   (0x8000)
+#define DCS_CHECK_PRIORITY  (0x4000)
+#define ADI_XFER_HEAD  1
+#define ADI_XFER_PUT   2
+#define ADI_XFER_GET   3
+#define ADI_XFER_TAIL  4
+#define ADI_XFER_SYNC1  5
+#define ADI_XFER_SYNC2  6
+#define ADI_XFER_SYNC3  7
+#define ADI_XFER_GET_MT_BLOCKS	8
+#define ADI_XFER_RESYNC  9
+#define ADI_XFER_GET_STREAM_RETVAL 10
+
+#define ADI_XFER_STREAM_RESYNC 11
+/***************************************************************************/
+/***************************************************************************/
+typedef struct adi_track_info
+	{
+	U32 cookie;
+	U8 priority;
+    U8 sound;
+    } ADI_TRACK_INFO;
+/***************************************************************************/
+static int ADI_FATAL_ERROR;
+/***************************************************************************/
+static ADI_TRACK_INFO _adi_track_table[SOUND_DCS_CHANNELS];
+static U16 ADI_DCS_COOKIE;
+static U16 ADI_TRACK_RESERVE;
+static U16 DCS_SOFTWARE_VERSION=0xDEAD;
+/***************************************************************************/
+static void (*ADI_SIGNAL_CALLBACK)(U16 signal,U16 data,U32 user,U16 user2,U16 user3);
+/***************************************************************************/
+U16 adi_LatchQueue[SOUND_QUEUE_SIZE];
+volatile U16 adi_LatchIndex;
+volatile U16 adi_LatchOutIndex;
+volatile int adi_QueueDisable;  /* if nonzero, don't send queued data */
+volatile int adi_XferState;
+/***************************************************************************/
+struct adi_call_parm 
+	{
+	struct act_q aque;
+	U32 user;
+	U16 user2;
+	U16 user3;
+	U16 data;
+	U16 signal;
+	};
+#define adi_call_parm_size (1<<4)
+#define adi_call_parm_mask (adi_call_parm_size-1)
+struct adi_call_parm adi_callback_parms[adi_call_parm_size];
+U32 adi_callback_parms_idx;
+/***************************************************************************/
+int _adiGetLatch(U16 *data); 
+int _adiPutLatch(U16 data);
+int _adiTryPutLatch(U16 data);
+void _adiAudioFatalError(int err);
+U16 _adiGetNextCookie(void);
+int _adiTrackMaskToValue(U16 mask);
+U16 _adiSoundToTrackMask(U16 snd); 
+U16 _adiCookieToTrackMask(U32 cookie); 
+U16 _adiPriorityToTrackMask(U16 Priority); 
+void adiXferQueue(void *timer);
+void adiMainlineXferQueue(void);
+/***************************************************************************/
+struct tq adi_time_queue;
+/***************************************************************************/
+U16 errorLog[8];
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int _adiGetLatch(U32 *data)                                   */
+/*                                                                         */
+/*           Reads a single 16-bit word from the latch.                    */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout                                              */
+/*                                                                         */
+/* note: This function polls a bit to determine when the port is ready,    */
+/*       this is a horible waste of time in a preemtive multitasking system*/
+/*       although this is probably the fastest way.                        */
+/***************************************************************************/
+int _adiGetLatch(U16 *data) 
+{
+U32 i;
+
+i=eer_rtc;
+while (!(SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) 
+    	if (eer_rtc-i>2) {return(ERROR);}
+
+*data = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+/*SOUND_PORT_GET_DATA = 0x0000;*/ /* this statment should only be nessecarry for a c30 host */
+return(OK);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int _adiPutLatch(U32 data)                                    */
+/*                                                                         */
+/*           Sends a single 16-bit word to the DSP.                        */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout                                              */
+/*                                                                         */
+/* note: This function polls a bit to determine when the port is ready,    */
+/*       this is a horible waste of time in a preemtive multitasking system*/
+/***************************************************************************/
+int _adiPutLatch(U16 data)
+{
+int i;
+
+i=eer_rtc;
+while (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) if (eer_rtc-i>2) {return(ERROR);}
+
+SOUND_PORT_PUT_DATA = data;
+return(OK);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int _adiTryPutLatch(U32 data)                                 */
+/*                                                                         */
+/*           Sends a single 16-bit word to the DSP, if latch is free       */
+/*                                                                         */
+/* RETURNS:  OK if data sent                                               */
+/*           ERROR if no send                                              */
+/*                                                                         */
+/***************************************************************************/
+int _adiTryPutLatch(U16 data)
+{
+if (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) return(ERROR);
+
+SOUND_PORT_PUT_DATA = data;
+return(OK);
+}
+/***************************************************************************/
+void _adiAudioFatalError(int err)
+{
+ADI_FATAL_ERROR=err;
+}
+/***************************************************************************/
+U16 _adiGetNextCookie(void)
+{
+ADI_DCS_COOKIE++;
+if (ADI_DCS_COOKIE==0) ADI_DCS_COOKIE++;
+return(ADI_DCS_COOKIE);
+}
+/***************************************************************************/
+int _adiTrackMaskToValue(U16 mask)
+{
+int x;
+int track;
+
+track=0;
+for (x=0;x<SOUND_DCS_CHANNELS && (!(mask&1));x++)
+	{
+	mask = mask >> 1;
+	track++;
+	}
+return(track);
+}
+/***************************************************************************/
+U16 _adiSoundToTrackMask(U16 snd) 
+{
+int x;
+U16 mask;
+
+mask=0;
+for (x=0;x<SOUND_DCS_CHANNELS;x++)
+	{
+	if (_adi_track_table[x].sound==snd)	mask=mask+(1<<(x+8));
+	}
+return (mask);
+}
+/***************************************************************************/
+U16 _adiCookieToTrackMask(U32 cookie) 
+{
+int x;
+U16 mask;
+
+mask=0;
+for (x=0;x<SOUND_DCS_CHANNELS;x++)
+	{
+	if (_adi_track_table[x].cookie==cookie)	mask=mask+(1<<(x+8));
+	}
+return (mask);
+}
+/***************************************************************************/
+U16 _adiPriorityToTrackMask(U16 Priority) 
+{
+int x;
+U16 mask;
+
+mask=0;
+for (x=0;x<SOUND_DCS_CHANNELS;x++)
+	{
+	if (_adi_track_table[x].priority>=Priority)	mask=mask+(1<<(x+8));
+	}
+return (mask);
+}
+/***************************************************************************/
+U16 _adiRangePriorityToTrackMask(U16 Priority,U16 start,U16 end) 
+{
+int x;
+U16 mask;
+
+mask=0;
+for (x=0;x<SOUND_DCS_CHANNELS;x++)
+	{
+	if (_adi_track_table[x].priority>=Priority
+		&& _adi_track_table[x].sound>=start
+		&& _adi_track_table[x].sound<=end)	mask=mask+(1<<(x+8));
+	}
+return (mask);
+}
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int adiStopAllSounds( void ) 
+{
+int _adiStopAllSoundsCallback(U16 index);
+U16 data[3];
+/*int x; */
+
+data[0]=0;
+data[1]=0;
+data[2]=0; 
+
+if (adiQueueCommand(data,3,0,NULL,(U32)_adiStopAllSoundsCallback,NULL,NULL,NULL)) 
+	{
+/*	x=0;
+	while (adiQueueAmountFree()!=SOUND_QUEUE_MASK && x<30) {prc_delay(1);x++;}
+*/
+	adiSendAllQueue();
+	prc_delay(2);
+	return(1);
+	}
+else return(NULL);
+}
+/*******************************/
+int _adiStopAllSoundsCallback(U16 index)
+{
+int x;
+
+for (x=0;x<SOUND_DCS_CHANNELS;x++)
+	{
+	_adi_track_table[x].sound=NULL;
+	_adi_track_table[x].cookie=NULL;
+	_adi_track_table[x].priority=NULL;
+	}
+return(0); 
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int adiReserveTrack(U16 track)
+{
+U16 data[2];
+ADI_ASSERT(track<SOUND_DCS_CHANNELS);
+
+ADI_TRACK_RESERVE = (ADI_TRACK_RESERVE | ((1<<track)<<8));
+
+data[0]=0x55AF;
+data[1]=ADI_TRACK_RESERVE;
+if (adiQueueCommand(data,2,0,NULL,NULL,NULL,NULL,NULL)) return(ADI_TRACK_RESERVE);
+else return(NULL);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int adiUnreserveTrack(U16 track)
+{
+U16 data[2];
+ADI_ASSERT(track<SOUND_DCS_CHANNELS);
+
+ADI_TRACK_RESERVE = (ADI_TRACK_RESERVE & (~((1<<track)<<8)));
+
+data[0]=0x55AF;
+data[1]=ADI_TRACK_RESERVE;
+if (adiQueueCommand(data,2,0,NULL,NULL,NULL,NULL,NULL)) return(ADI_TRACK_RESERVE);
+else return(NULL);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int adiSetTrackPriority( U16 track, U16 priority ) 
+{
+int _adiSetTrackPriorityCallback(U16 index);
+U16 data[2];
+ADI_ASSERT(track<SOUND_DCS_CHANNELS);
+ADI_ASSERT(priority<128);
+
+data[0]=0x55AD;
+data[1]=priority | ((1<<track)<<8);
+if (adiQueueCommand(data,2,0,NULL,(U32)_adiSetTrackPriorityCallback,track,priority,NULL)) return(1);
+else return(NULL);
+}
+/*******************************/
+int _adiSetTrackPriorityCallback(U16 index)
+{
+_adi_track_table[adi_LatchQueue[(index+7)&SOUND_QUEUE_MASK]].priority= adi_LatchQueue[(index+8)&SOUND_QUEUE_MASK];
+return(0); /* end of command */
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int adiStopTrack(U16 track) 
+{
+int _adiStopTrackCallback(U16 index);
+U16 data[6];
+ADI_ASSERT(track<SOUND_DCS_CHANNELS);
+
+data[0]=0x55AF;
+data[1]=0;
+
+data[2]=0x55AE;
+data[3]=((1<<track)<<8);
+data[4]=0x55AF;
+data[5]=ADI_TRACK_RESERVE;
+
+if (adiQueueCommand(data,6,0,NULL,(U32)_adiStopTrackCallback,track,NULL,NULL)) return(1);
+else return(NULL);
+}
+/*******************************/
+int _adiStopTrackCallback(U16 index)
+{
+int track;
+
+track=adi_LatchQueue[(index+11)&SOUND_QUEUE_MASK];
+_adi_track_table[track].cookie=0;
+_adi_track_table[track].sound=0;
+_adi_track_table[track].priority=0;
+return(0); /* end of command */
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiPlayReservedSound(U16 SndNum,U8 volume,U8 pan,U8 priority,U16 track)
+{
+int _adiPlaySoundCallback(U16 index);
+U16 cookie;
+U16 data[3];
+
+#if !defined(SOUND_DCS_STREAMED_AUDIO)
+if (SndNum>=adiNumberOfSounds()) return(NULL);  
+#endif
+cookie=_adiGetNextCookie();
+
+data[0]=SndNum;
+data[1]=(volume<<8)+pan;
+data[2]=priority|((track)<<7)|DCS_RESERVE_TRACK;
+if (adiQueueCommand(data,3,1,NULL,(U32)_adiPlaySoundCallback,cookie,priority,NULL)) return(cookie);
+else return(NULL);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiPlaySound(U16 SndNum,U8 volume,U8 pan,U8 priority)
+{
+int _adiPlaySoundCallback(U16 index);
+U16 cookie;
+U16 data[3];
+
+ADI_ASSERT(priority<128);
+#if !defined(SOUND_DCS_STREAMED_AUDIO)
+if (SndNum>=adiNumberOfSounds()) return(NULL);  
+#endif
+cookie=_adiGetNextCookie();
+
+data[0]=SndNum;
+data[1]=(volume<<8)+pan;
+data[2]=priority | DCS_CHECK_PRIORITY;
+if (adiQueueCommand(data,3,1,NULL,(U32)_adiPlaySoundCallback,cookie,priority,NULL)) return(cookie);
+else return(NULL);
+}
+/*******************************/
+int _adiPlaySoundCallback(U16 index)
+{
+U16 chan;
+
+chan = adi_LatchQueue[(index+5)&SOUND_QUEUE_MASK] >> 8;
+if( chan )
+	{
+	chan=_adiTrackMaskToValue(chan);
+	_adi_track_table[chan].sound = adi_LatchQueue[(index+2)&SOUND_QUEUE_MASK];
+	_adi_track_table[chan].priority = adi_LatchQueue[(index+10)&SOUND_QUEUE_MASK];
+	_adi_track_table[chan].cookie = adi_LatchQueue[(index+9)&SOUND_QUEUE_MASK];
+	}
+return(0); /* end of command */
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiSetSoundPriority(U16 cookie,U8 priority)
+{
+int _adiSetSoundPriorityCallback(U16 index);
+
+ADI_ASSERT(priority<128);
+
+if (adiQueueCommand(NULL,0,2,NULL,(U32)_adiSetSoundPriorityCallback,cookie,priority,NULL)) return(cookie);
+return(NULL);
+}
+/*******************************/
+int _adiSetSoundPriorityCallback(U16 index)
+{
+U16 trackMask;
+
+trackMask=_adiCookieToTrackMask(adi_LatchQueue[(index+7)&SOUND_QUEUE_MASK]);
+if (trackMask)
+	{
+	U16 priority;
+	int x;
+
+	priority = adi_LatchQueue[(index+8)&SOUND_QUEUE_MASK];
+
+	index = (index+1) & SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x0002;
+	index = (index+1) & SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AD;
+	index = (index+1) & SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=priority|trackMask;
+	index = (index+1) & SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	index = (index+1) & SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	index = (index+1) & SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	/* 2 more till end */
+	for(x=0;x<SOUND_DCS_CHANNELS;x++)
+		{
+		if (trackMask & (1<<(x+8)))	_adi_track_table[x].priority= priority;
+		}
+	return(1); /* insert command */
+	}
+return(0); /* end of command */
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiStopSound(U16 cookie)
+{
+int _adiStopSoundCallback(U16 index);
+if (adiQueueCommand(NULL,0,6,NULL,(U32)_adiStopSoundCallback,cookie,NULL,NULL)) return(1);
+return(NULL);
+}
+/*******************************/
+int _adiStopSoundCallback(U16 index)
+{
+U16 mask;
+
+mask = _adiCookieToTrackMask(adi_LatchQueue[(index+11)&SOUND_QUEUE_MASK]);
+if (mask)
+	{
+	int x;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x0006; /* six out zero in */
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AF;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AE;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=mask;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AF;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=ADI_TRACK_RESERVE;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+
+	for(x=0;x<SOUND_DCS_CHANNELS;x++)
+		{
+		if (mask & (1<<(x+8)))	
+			{
+			_adi_track_table[x].cookie=0;
+			_adi_track_table[x].sound=0;
+			_adi_track_table[x].priority=0;
+			}
+		}
+	return(1); /* insert a command */
+	}						
+return(0); /* end of command */
+}
+
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int adiStopSoundNumber(U16 SndNum)
+{
+int _adiStopSoundNumberCallback(U16 index);
+if (adiQueueCommand(NULL,0,6,NULL,(U32)_adiStopSoundNumberCallback,SndNum,NULL,NULL)) return(1);
+return(NULL);
+}
+/*******************************/
+int _adiStopSoundNumberCallback(U16 index)
+{
+U16 mask;
+
+mask = _adiSoundToTrackMask(adi_LatchQueue[(index+11)&SOUND_QUEUE_MASK]);
+
+if (mask)
+	{
+	int x;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x0006; /* two out zero in */
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AF;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AE;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=mask;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AF;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=ADI_TRACK_RESERVE;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+
+	for(x=0;x<SOUND_DCS_CHANNELS;x++)
+		{
+		if (mask & (1<<(x+8)))	
+			{
+			_adi_track_table[x].cookie=0;
+			_adi_track_table[x].sound=0;
+			_adi_track_table[x].priority=0;
+			}
+		}
+	return(1); /* insert a command */
+	}
+return(0); /* end of command */
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int adiStopSoundPriority( U16 priority ) 
+{
+int _adiStopSoundPriorityCallback(U16 index);
+if (adiQueueCommand(NULL,0,6,NULL,(U32)_adiStopSoundPriorityCallback,priority,NULL,NULL)) return(1);
+return(NULL);
+}
+/*******************************/
+int _adiStopSoundPriorityCallback(U16 index)
+{
+U16 mask;
+
+mask = _adiPriorityToTrackMask(adi_LatchQueue[(index+11)&SOUND_QUEUE_MASK]);
+
+if (mask)
+	{
+	int x;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x0006; /* two out zero in */
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AF;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AE;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=mask;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AF;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=ADI_TRACK_RESERVE;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+
+	for(x=0;x<SOUND_DCS_CHANNELS;x++)
+		{
+		if (mask & (1<<(x+8)))	
+			{
+			_adi_track_table[x].cookie=0;
+			_adi_track_table[x].sound=0;
+			_adi_track_table[x].priority=0;
+			}
+		}
+	return(1); /* insert a command */
+	}
+return(0); /* end of command */
+}
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int adiStopSoundRangePriority(U16 start,U16 end, U16 priority ) 
+{
+int _adiStopSoundRangePriorityCallback(U16 index);
+if (adiQueueCommand(NULL,0,6,NULL,(U32)_adiStopSoundRangePriorityCallback,priority,start,end)) return(1);
+return(NULL);
+}
+/*******************************/
+int _adiStopSoundRangePriorityCallback(U16 index)
+{
+U16 mask;
+
+mask = _adiRangePriorityToTrackMask(adi_LatchQueue[(index+11)&SOUND_QUEUE_MASK],adi_LatchQueue[(index+12)&SOUND_QUEUE_MASK],adi_LatchQueue[(index+13)&SOUND_QUEUE_MASK]);
+
+if (mask)
+	{
+	int x;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x0006; /* two out zero in */
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AF;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AE;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=mask;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0x55AF;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=ADI_TRACK_RESERVE;
+
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+	index = (index+1)&SOUND_QUEUE_MASK;
+	adi_LatchQueue[index]=0;
+
+	for(x=0;x<SOUND_DCS_CHANNELS;x++)
+		{
+		if (mask & (1<<(x+8)))	
+			{
+			_adi_track_table[x].cookie=0;
+			_adi_track_table[x].sound=0;
+			_adi_track_table[x].priority=0;
+			}
+		}
+	return(1); /* insert a command */
+	}
+return(0); /* end of command */
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiSetSoundVolume(U16 cookie,U8 volume)
+{
+U16 trackMask;
+
+ADI_ASSERT(volume<256);
+trackMask=_adiCookieToTrackMask(cookie);
+if (trackMask)
+	{
+	U16 data[2];
+	data[0]=0x55AB;
+	data[1]=volume|trackMask;
+	if (adiQueueCommand(data,2,0,NULL,NULL,NULL,NULL,NULL)) return(cookie);
+	}
+return(NULL);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiSetTrackVolume(U16 track,U8 volume)
+{
+U16 trackMask;
+
+ADI_ASSERT(volume<256);
+ADI_ASSERT(track<SOUND_DCS_CHANNELS);
+trackMask=(1<<track)<<8;
+if (trackMask)
+	{
+	U16 data[2];
+	data[0]=0x55AB;
+	data[1]=volume|trackMask;
+	if (adiQueueCommand(data,2,0,NULL,NULL,NULL,NULL,NULL)) return(1);
+	}
+return(NULL);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiUpdatePlayerEngine(U8 volume,U8 pan,U8 pitch)
+{
+U16 data[3];
+data[0]=0x55E0;
+data[1]=volume|(pitch<<8);
+data[2]=pan;
+if (adiQueueCommand(data,3,0,NULL,NULL,NULL,NULL,NULL)) return(1);	
+
+return(NULL);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiUpdateDroneEngine(U8 drone,U8 volume,U8 pan,U8 pitch)
+{
+U16 data[3];
+data[0]=0x55E3+drone;
+data[1]=volume|(pitch<<8);
+data[2]=pan;
+if (adiQueueCommand(data,3,0,NULL,NULL,NULL,NULL,NULL)) return(1);	
+
+return(NULL);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiSetSoundPan(U16 cookie,U8 pan)
+{
+U16 trackMask;
+
+ADI_ASSERT(pan<256);
+trackMask=_adiCookieToTrackMask(cookie);
+if (trackMask)
+	{
+	U16 data[2];
+	data[0]=0x55AC;
+	data[1]=pan|trackMask;
+	if (adiQueueCommand(data,2,0,NULL,NULL,NULL,NULL,NULL)) return(cookie);
+	}
+return(NULL);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiSetTrackPan(U8 track,U8 pan)
+{
+U16 trackMask;
+
+ADI_ASSERT(pan<256);
+ADI_ASSERT(track<SOUND_DCS_CHANNELS);
+trackMask=(1<<track)<<8;
+if (trackMask)
+	{
+	U16 data[2];
+	data[0]=0x55AC;
+	data[1]=pan|trackMask;
+	if (adiQueueCommand(data,2,0,NULL,NULL,NULL,NULL,NULL)) return(1);
+	}
+return(NULL);
+}
+
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiOSVersion(void) 
+{
+return(DCS_SOFTWARE_VERSION);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+U16 adiInterfaceVersion(void) 
+{
+return (ADI_VERSION);
+}
+/***************************************************************************/
+__inline__ void adiEnable(void)  
+{
+int old_ipl;
+old_ipl = prc_set_ipl( INTS_OFF );
+adi_QueueDisable--;
+prc_set_ipl( old_ipl );
+}
+/***************************************************************************/
+__inline__ void adiDisable(void) 
+{
+int old_ipl;
+old_ipl = prc_set_ipl( INTS_OFF );
+adi_QueueDisable++;
+prc_set_ipl( old_ipl );
+}
+/***************************************************************************/
+int adiResyncQueue(void)
+{
+U16 xxx,yyy;
+
+adiDisable();
+ADI_LOG_ERROR(1==0,40);
+
+IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+
+xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);	  
+
+xxx=0;
+yyy=0;
+
+while (xxx!=0xDead+yyy && yyy<10)
+	{
+	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);	  
+	if (yyy>6) _adiPutLatch(0);
+	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);	  
+	if (yyy>7) _adiPutLatch(0);
+	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);	  
+	if (yyy>8) _adiPutLatch(0);
+	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);	  
+	if (yyy>9) _adiPutLatch(0);
+	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);	  
+
+	_adiPutLatch(0x55B0);
+	_adiPutLatch(0xDEAD+yyy+1);
+	_adiGetLatch(&xxx); 
+	yyy++;
+	}
+
+if (xxx!=(0xDEAD+yyy)) 
+	{
+	ADI_LOG_ERROR(1==0,41);
+	adiEnable();
+	return(1);
+	}	
+adiEnable();
+return(0);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: void adiLockQueue(void)                                       */
+/*                                                                         */
+/*           disallows data to be transfered from the queue to the latch.  */
+/*                                                                         */
+/*           NOTE: this command may transfer data from the queue to the    */
+/*           latch if part of a command has already has been Xfered.       */
+/*           therefore this command may not return immediatly              */
+/***************************************************************************/
+void adiLockQueue(void)
+{
+int timeout;
+
+adiDisable();
+
+IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+
+while (adi_XferState!=ADI_XFER_HEAD)
+	{
+	switch(adi_XferState)
+		{
+		case ADI_XFER_HEAD:
+		case ADI_XFER_PUT:
+		case ADI_XFER_TAIL:
+		case ADI_XFER_SYNC1:
+		case ADI_XFER_SYNC2:
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);
+		break;
+
+		case ADI_XFER_GET:
+		case ADI_XFER_SYNC3:
+		case ADI_XFER_GET_MT_BLOCKS:
+		case ADI_XFER_GET_STREAM_RETVAL:
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_STH_DATA_FULL);
+		break;
+		}
+
+	timeout=eer_rtc;
+	while ((adi_XferState!=ADI_XFER_HEAD)) 
+		{
+		if (eer_rtc-timeout<30)
+			{
+			; /* waitin' */
+			}
+		else
+			{
+			adiResyncQueue();
+
+			adi_XferState=ADI_XFER_RESYNC;
+
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL);
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);
+			return;	
+			}
+		}
+	}
+}
+
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: void adiUnlockQueue(void)                                     */
+/*                                                                         */
+/*           allows data to be transfered from the queue to the latch.     */
+/*                                                                         */
+/***************************************************************************/
+void adiUnlockQueue(void)
+{
+adiEnable();
+ADI_ASSERT(adi_QueueDisable>=0);
+if (adi_QueueDisable<0) adi_QueueDisable=0;
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: void adiFlushQueue(void)                                      */
+/*                                                                         */
+/*           clears the entire queue.                                      */
+/*                                                                         */
+/***************************************************************************/
+void adiFlushQueue(void)
+{
+adiLockQueue();
+adi_LatchOutIndex=0;
+adi_LatchIndex=0;
+adiUnlockQueue();
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: void adiRegisterCallback(void (*SignalCallback)(U16 signal	   */
+/*                                ,U16 data,U32 user,U16 user2,U16 user3)) */
+/*                                                                         */
+/*           Returns the amount of free space on the queue.                */
+/*                                                                         */
+/* RETURNS:  OK if data sent                                               */
+/*           ERROR if no send                                              */
+/*                                                                         */
+/***************************************************************************/
+void adiRegisterCallback(void (*SignalCallback)(U16 signal,U16 data,U32 user,U16 user2,U16 user3))
+{
+ADI_SIGNAL_CALLBACK=SignalCallback;
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: void adiSendAllQueue(void)                                    */
+/*                                                                         */
+/*           Sends all the data on the latch.                              */
+/*                                                                         */
+/*           NOTE: this command may be slow to execute                     */
+/***************************************************************************/
+void adiSendAllQueue(void)
+{
+int timeout;
+int rep;
+
+adiDisable();
+
+rep=0;
+while (adiQueueAmountFree()!=SOUND_QUEUE_MASK && rep<30)
+	{
+	timeout=eer_rtc;
+	while ((adi_XferState!=ADI_XFER_HEAD) && (eer_rtc-timeout<5)) ; /* waitin' */
+
+	if (adi_XferState==ADI_XFER_HEAD)
+		{
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);
+		}
+	else
+		{
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+
+		switch(adi_XferState)
+			{
+			case ADI_XFER_HEAD:
+			case ADI_XFER_PUT:
+			case ADI_XFER_TAIL:
+			case ADI_XFER_SYNC1:
+			case ADI_XFER_SYNC2:
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);
+			break;
+
+			case ADI_XFER_GET:
+			case ADI_XFER_SYNC3:
+			case ADI_XFER_GET_MT_BLOCKS:
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_STH_DATA_FULL);
+			break;
+			}
+		}
+	rep++;
+	}
+adiEnable();
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int adiQueueAmountFree(void)                                  */
+/*                                                                         */
+/*           Returns the amount of free space on the queue.                */
+/*                                                                         */
+/* RETURNS:  OK if data sent                                              */
+/*           ERROR if no send                                              */
+/*                                                                         */
+/***************************************************************************/
+int adiQueueAmountFree(void)
+{
+return(((adi_LatchOutIndex+SOUND_QUEUE_MASK)-adi_LatchIndex) & SOUND_QUEUE_MASK);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int adiQueueCommand(U16 *data,U16 outsize,U16 insize		   */
+/*                             ,U16 signal,U32 user,U16 user2,U16 user3,user4)   */
+/*                                                                         */
+/*           data                                                          */
+/*           outsize                                                       */
+/*           insize                                                        */
+/*           signal                                                        */
+/*                                                                         */
+/*           Puts a sound command on the queue.                            */
+/*                                                                         */
+/* RETURNS:  The 1 if ok                                                   */
+/*           or 0 if ERROR or not enough space available                   */
+/*                                                                         */
+/* note: the implimentation is a bit ugly.  It uses a unified queue for    */
+/*       both incomming and outgoing data as well as control data (size).  */
+/*       I can get away with this becuase of the half duplex nature of DCS.*/
+/*       After the command is completed and if signal is nonzero a callback*/
+/*       function gives you the results of the sound call.                 */
+/*                                                                         */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int adiQueueCommand(U16 *data,U16 outsize,U16 insize,U16 signal,U32 user,U16 user2,U16 user3,U16 user4)
+{
+U32 x;
+U16 *retdat;
+int old_ipl;
+
+ADI_ASSERT(outsize<7);
+ADI_ASSERT(insize<7);
+
+if(adiQueueAmountFree() < (outsize+insize+2+2+2+2)) 
+	{
+	return(0);
+	} /* not enough space on queue */
+
+old_ipl = prc_set_ipl( INTS_OFF );
+
+adi_LatchIndex = (adi_LatchIndex+1) & SOUND_QUEUE_MASK;
+adi_LatchQueue[adi_LatchIndex]=(insize<<8)+outsize;
+
+if (outsize)
+	{
+	for (x=0;x<outsize;x++)
+		{
+		adi_LatchIndex = (adi_LatchIndex+1) & SOUND_QUEUE_MASK;
+		adi_LatchQueue[adi_LatchIndex]=data[x];
+		}
+
+	retdat= &adi_LatchQueue[adi_LatchIndex];
+	}
+
+if (insize)
+	for (x=0;x<insize;x++)
+		{
+		adi_LatchIndex = (adi_LatchIndex+1) & SOUND_QUEUE_MASK;
+		adi_LatchQueue[adi_LatchIndex]=0;
+		}
+/* or */
+/*adi_LatchIndex = (adi_LatchIndex+insize) & SOUND_QUEUE_MASK;
+  */
+
+adi_LatchIndex = (adi_LatchIndex+1) & SOUND_QUEUE_MASK;
+adi_LatchQueue[adi_LatchIndex]=signal;
+
+adi_LatchIndex = (adi_LatchIndex+1) & SOUND_QUEUE_MASK;
+adi_LatchQueue[adi_LatchIndex]=(U16)((user&0xFFFF0000)>>16);
+adi_LatchIndex = (adi_LatchIndex+1) & SOUND_QUEUE_MASK;
+adi_LatchQueue[adi_LatchIndex]=(U16)(user&0x0000FFFF);
+
+adi_LatchIndex = (adi_LatchIndex+1) & SOUND_QUEUE_MASK;
+adi_LatchQueue[adi_LatchIndex]=user2;
+adi_LatchIndex = (adi_LatchIndex+1) & SOUND_QUEUE_MASK;
+adi_LatchQueue[adi_LatchIndex]=user3;
+adi_LatchIndex = (adi_LatchIndex+1) & SOUND_QUEUE_MASK;
+adi_LatchQueue[adi_LatchIndex]=user4;
+
+adi_LatchIndex = (adi_LatchIndex+1) & SOUND_QUEUE_MASK;
+adi_LatchQueue[adi_LatchIndex]=0x1111;	/* command wall */
+prc_set_ipl( old_ipl );
+
+return(1);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: void adiXferQueue(void)                                       */
+/*                                                                         */
+/*           sends or retrieves the next latch command if flags are set    */
+/*                                                                         */
+/*       The queue provides state information so commands can be           */
+/*       inserted in between blocked memory transfers through the latch    */
+/***************************************************************************/
+void _adiQXfer();
+
+void adiXferQueue(void *timer)
+{
+static int wcntr;
+
+adi_time_queue.delta=SOUND_QUEUE_TIMER_TIME;
+tq_ins(&adi_time_queue);
+
+if (adi_QueueDisable) return;	
+if (ADI_FATAL_ERROR) return;
+
+if(adi_XferState==ADI_XFER_HEAD) 
+	{
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL);
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);
+	 /* turn on IRQ, now we are waiting for DCS */
+	wcntr=0;
+	}
+else if (wcntr<30) wcntr++; 
+else 
+	{
+	ADI_LOG_ERROR(1==0,1);
+	wcntr=0;
+
+	while (SOUND_PORT_FLAGS & (SOUND_PORT_DATA_READY))
+		{
+		U16 data;
+
+		ADI_LOG_ERROR(1==0,0);
+		data = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+		prc_delay(1);
+		}	
+
+	adi_XferState=ADI_XFER_RESYNC;
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL);
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);
+	}
+}
+/********************************/
+/********************************/
+void _adiSignal(U32 idx)	
+{
+if (idx< (adi_call_parm_size-1)) 
+	{
+	if (ADI_SIGNAL_CALLBACK) 
+		ADI_SIGNAL_CALLBACK(adi_callback_parms[idx].signal
+							,adi_callback_parms[idx]
+							.data,adi_callback_parms[idx].user
+							,adi_callback_parms[idx].user2
+							,adi_callback_parms[idx].user3);
+	}
+}
+/********************************/
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+static int scntr;
+#endif
+/********************************/
+void LOG_ERROR_COMMAND(void)
+{
+int x;
+U16 indx;
+
+for(x=0;x<8;x++)
+	{
+	aud_stat2b->cmd4[x]=aud_stat2b->cmd3[x];
+	aud_stat2b->cmd3[x]=aud_stat2b->cmd2[x];
+	aud_stat2b->cmd2[x]=aud_stat2b->cmd1[x];
+	aud_stat2b->cmd1[x]=aud_stat2->cmd4[x];
+
+	aud_stat2->cmd4[x]=aud_stat2->cmd3[x];
+	aud_stat2->cmd3[x]=aud_stat2->cmd2[x];
+	aud_stat2->cmd2[x]=aud_stat2->cmd1[x];
+	}
+  
+x=0;
+
+indx=adi_LatchOutIndex;
+indx = (indx+1) & SOUND_QUEUE_MASK;
+indx = (indx+1) & SOUND_QUEUE_MASK;
+
+while(adi_LatchQueue[indx]!=0x1111 && x<8)
+	{
+	aud_stat2->cmd1[x++]=adi_LatchQueue[indx];
+	indx = (indx+1) & SOUND_QUEUE_MASK;
+	}
+aud_stat_touched++;
+}
+/********************************/
+void LOG_ERROR_MULTI_COMMAND(void)
+{
+int x;
+
+for(x=0;x<8;x++)
+	{
+	aud_stat2b->cmd4[x]=aud_stat2b->cmd3[x];
+	aud_stat2b->cmd3[x]=aud_stat2b->cmd2[x];
+	aud_stat2b->cmd2[x]=aud_stat2b->cmd1[x];
+	aud_stat2b->cmd1[x]=aud_stat2->cmd4[x];
+
+	aud_stat2->cmd4[x]=aud_stat2->cmd3[x];
+	aud_stat2->cmd3[x]=aud_stat2->cmd2[x];
+	aud_stat2->cmd2[x]=aud_stat2->cmd1[x];
+	}
+
+for (x=0;x<8;x++)
+	{
+	aud_stat2->cmd1[x]=errorLog[x];
+	}
+
+aud_stat_touched++;
+}
+/********************************/
+/********************************/
+void LOG_ERROR_DATA(U16 flags,U16 data)
+{
+int x;
+
+for(x=14;x>=0;x--)
+	{
+	aud_stat3->flags[x+1]=aud_stat3->flags[x];
+	aud_stat3->data[x+1]=aud_stat3->data[x];
+	}
+aud_stat3->flags[0]=flags;
+aud_stat3->data[0]=data;
+
+aud_stat_touched++;
+}
+/********************************/
+void _adiQXfer()
+{
+/**/	/**/	/**/	/**/	/**/	/**/	/**/	/**/	/**/	/**/
+static U16 index;
+static U16 in_index;
+static int outcnt;
+static int incnt;
+U16 xxx;U16 yyy;
+static int instate;
+ 
+/**/	/**/	/**/	/**/
+
+if (ADI_FATAL_ERROR) 
+	{
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+	return;
+	}
+
+if(adi_XferState==ADI_XFER_HEAD)
+	{
+	index=adi_LatchOutIndex;	
+
+	if ((SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) 
+		{
+		xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+		ADI_LOG_ERROR(1==0,39);
+		}
+	
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+	if (adi_DCS_FULL_BLOCKS) 
+		{
+		/* streaming block is in the buffer, tell dcs about it */
+		SOUND_PORT_PUT_DATA = 0x55de;
+		adi_DCS_FULL_BLOCKS--;
+
+ 			adi_XferState=ADI_XFER_GET_STREAM_RETVAL;
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_HTS_DATA_EMPTY);
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_STH_DATA_FULL);
+
+		return;
+		}		 
+	if (adi_STREAM_ON)
+		{
+		if (scntr>0) scntr--;
+		else if(!adi_DCS_EMPTY_BLOCKS)
+			{
+			SOUND_PORT_PUT_DATA = 0x55d9;
+ 			adi_XferState=ADI_XFER_GET_MT_BLOCKS;
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_HTS_DATA_EMPTY);
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_STH_DATA_FULL);
+			return;
+			}
+		}
+	else IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_FIFO_EMPTY);	
+#endif
+
+if (adi_LatchIndex==adi_LatchOutIndex) 
+	{
+	/* nothing to do ... wait for timer to try again */
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+	return;
+	} 
+
+	index=adi_LatchOutIndex;	
+
+	while(0x1111!=adi_LatchQueue[index])
+		{
+		ADI_LOG_ERROR(1==0,2);
+		
+		index = (index+1) & SOUND_QUEUE_MASK;
+		if (adi_LatchIndex==index) 
+			{
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+			return;
+			} 
+		}
+	
+	index = (index+1) & SOUND_QUEUE_MASK;
+	xxx=adi_LatchQueue[index];
+
+	incnt =(xxx >> 8) & 0x00FF;
+	outcnt= xxx & 0x00FF;
+
+	ADI_LOG_ERROR(outcnt<8,3);
+	ADI_LOG_ERROR(incnt<8,4);
+	if (incnt>7 || outcnt>7) return;
+
+	for (xxx=7;xxx>=1;xxx--) errorLog[xxx]=errorLog[xxx-1];
+	errorLog[0]=adi_LatchQueue[(index+1) & SOUND_QUEUE_MASK];
+
+	if (outcnt) {adi_XferState=ADI_XFER_PUT;}
+	else
+		{ 
+		index=(index+incnt)&SOUND_QUEUE_MASK;
+		adi_XferState=ADI_XFER_TAIL;
+		}
+	}
+/**/	/**/	/**/	/**/
+/*else*/
+if(adi_XferState==ADI_XFER_PUT)
+	{
+	index = (index+1) & SOUND_QUEUE_MASK;
+	SOUND_PORT_PUT_DATA = adi_LatchQueue[index];
+
+	outcnt--;
+	if(outcnt==0) 
+		{
+		if (incnt)
+			{
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_HTS_DATA_EMPTY);
+			IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_STH_DATA_FULL);
+			adi_XferState=ADI_XFER_GET; 
+			in_index=(index+1) & SOUND_QUEUE_MASK;
+			}
+		else adi_XferState=ADI_XFER_TAIL;
+		}
+	}
+/**/	/**/	/**/	/**/
+else if(adi_XferState==ADI_XFER_GET)
+	{
+	xxx=SOUND_PORT_FLAGS;
+
+	switch((xxx&0x7F00))
+		{
+		case 0x0100: /* play list signal */
+			ADI_LOG_ERROR(1==0,7);
+			LOG_ERROR_COMMAND();
+		   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+			return;
+		break;
+
+		case 0x0200: /* track allocation info */
+		case 0x1A00: /* track allocation info */
+			/* should be me */
+		break;
+
+		case 0x0300: /* checksum */
+			ADI_LOG_ERROR(1==0,8);
+			LOG_ERROR_COMMAND();
+		   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+			return;
+		break;
+
+		case 0x0400: /* synchronation */
+			ADI_LOG_ERROR(1==0,9);
+			LOG_ERROR_COMMAND();
+		   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+			return;
+		break;
+
+		case 0x0500: /* streaming handshake */
+			ADI_LOG_ERROR(1==0,10);
+			LOG_ERROR_COMMAND();
+		   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+			return;
+		break;
+
+		case 0x0600: /* track busy mask */
+			ADI_LOG_ERROR(1==0,11);
+			LOG_ERROR_COMMAND();
+		   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+			return;
+		break;
+
+		case 0x9900: /* system error */
+			ADI_LOG_ERROR(1==0,12);
+			LOG_ERROR_COMMAND();
+		   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+			return;
+		break;
+
+		case 0x8000: /* real time flag */
+			ADI_LOG_ERROR(1==0,13);
+			LOG_ERROR_COMMAND();
+		   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+			return;
+		break;
+
+		default:
+			xxx=xxx&0xFF00;
+			xxx=xxx|(aud_stat->num_cmds&0x00000FF);
+			ADI_LOG_ERROR(1==0,14);
+			LOG_ERROR_COMMAND();
+		   	yyy = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+			LOG_ERROR_MULTI_COMMAND();
+			LOG_ERROR_DATA(xxx,yyy);
+			return;
+		break;
+		}
+
+	index = (index+1) & SOUND_QUEUE_MASK;
+   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+   	adi_LatchQueue[index] =	xxx;
+
+	incnt--;
+	if(incnt==0) 
+		{
+		adi_XferState=ADI_XFER_TAIL;
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL);
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);
+		}
+	}
+/**/	/**/	/**/	/**/
+else if(adi_XferState==ADI_XFER_TAIL)
+	{
+	S32 x;
+	U16 signal;
+
+	index = (index+1) & SOUND_QUEUE_MASK;
+	signal=adi_LatchQueue[index];
+
+	index = (index+1) & SOUND_QUEUE_MASK;
+	x=adi_LatchQueue[index]<<16;
+	index = (index+1) & SOUND_QUEUE_MASK;
+	x=x+adi_LatchQueue[index];
+
+	aud_stat->num_cmds++;
+	aud_stat_touched++;
+
+	if (x && (!signal))
+		{
+		int (*_callback)(U16 index);
+		
+		_callback=(int (*)(U16))x;
+
+		if (_callback(adi_LatchOutIndex)) 
+			{
+			adi_XferState=ADI_XFER_HEAD;
+			return;
+			}
+		}
+
+	if (signal)
+		{
+		adi_callback_parms_idx= (adi_callback_parms_idx+1) & adi_call_parm_mask;
+		adi_callback_parms[adi_callback_parms_idx].data = adi_LatchQueue[in_index];
+		adi_callback_parms[adi_callback_parms_idx].user = x;
+		adi_callback_parms[adi_callback_parms_idx].signal = signal;
+
+		index = (index+1) & SOUND_QUEUE_MASK;	/* user2 */
+		adi_callback_parms[adi_callback_parms_idx].user2 = adi_LatchQueue[index];
+		index = (index+1) & SOUND_QUEUE_MASK;	/* user3 */
+		adi_callback_parms[adi_callback_parms_idx].user3 = adi_LatchQueue[index];
+		index = (index+1) & SOUND_QUEUE_MASK;	/* user4 */
+
+		adi_callback_parms[adi_callback_parms_idx].aque.action=_adiSignal;
+		adi_callback_parms[adi_callback_parms_idx].aque.param=(void *)adi_callback_parms_idx;
+		prc_q_action((struct act_q *)&adi_callback_parms[adi_callback_parms_idx]);
+		} 
+	else
+		{
+		index = (index+1) & SOUND_QUEUE_MASK;	/* user2 */
+		index = (index+1) & SOUND_QUEUE_MASK;	/* user3 */
+		index = (index+1) & SOUND_QUEUE_MASK;	/* user4 */
+		}
+
+	index = (index+1) & SOUND_QUEUE_MASK;
+	ADI_LOG_ERROR(0x1111==adi_LatchQueue[index],15); /* sync word */
+
+
+	adi_XferState=ADI_XFER_SYNC1; 
+	}
+else if (adi_XferState==ADI_XFER_SYNC1)
+	{
+	SOUND_PORT_PUT_DATA = 0x55B0;
+	adi_XferState=ADI_XFER_SYNC2;
+	}
+else if (adi_XferState==ADI_XFER_SYNC2)
+	{
+	SOUND_PORT_PUT_DATA = 0xBeef;
+	adi_XferState=ADI_XFER_SYNC3;
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_HTS_DATA_EMPTY);
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_STH_DATA_FULL);
+	}
+else if (adi_XferState==ADI_XFER_SYNC3)
+	{
+   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+
+	if (xxx!=0xBeef)
+		{
+		ADI_LOG_ERROR(xxx==0xBEEF,16);
+/*		LOG_ERROR_DATA(-1,xxx);	 */
+		LOG_ERROR_MULTI_COMMAND();
+		}
+	if (xxx!=0x0BEEF) return;
+	adi_LatchOutIndex=index;
+	adi_XferState=ADI_XFER_HEAD;
+
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+	/* turn off irq.... end of command... Wait for timer to wake me up */
+	}
+/**/	/**/	/**/	/**/
+else if (adi_XferState==ADI_XFER_RESYNC)
+	{
+	index=adi_LatchOutIndex;
+   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+	adi_XferState=ADI_XFER_SYNC1;
+	}
+/**/	/**/	/**/	/**/
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+else if (adi_XferState==ADI_XFER_GET_STREAM_RETVAL)
+	{
+   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL);
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);
+
+	adi_XferState=ADI_XFER_HEAD;
+
+	if(xxx)	
+		{
+		ADI_LOG_ERROR(1==0,38);
+		instate=0;
+		adi_XferState=ADI_XFER_STREAM_RESYNC;
+		}
+	}
+else if (adi_XferState==ADI_XFER_GET_MT_BLOCKS)
+	{
+	xxx=SOUND_PORT_FLAGS;
+   	adi_DCS_EMPTY_BLOCKS = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+	if (adi_DCS_EMPTY_BLOCKS>16)
+		{
+	   	ADI_LOG_ERROR(1==0,17);
+	   	LOG_ERROR_DATA(xxx,adi_DCS_EMPTY_BLOCKS); 
+		adi_DCS_EMPTY_BLOCKS=0;
+		}
+   	 
+	if (adi_DCS_EMPTY_BLOCKS) IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_FIFO_EMPTY);
+	else IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_FIFO_EMPTY);
+	if (adi_DCS_EMPTY_BLOCKS<2)	scntr=(14000/SOUND_QUEUE_TIMER_TIME)+1;
+
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL);
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);
+
+	adi_XferState=ADI_XFER_HEAD;
+	}
+else if (adi_XferState==ADI_XFER_STREAM_RESYNC)
+	{
+	if (instate==0)
+		{
+		SOUND_PORT_PUT_DATA = 0x55d7; /* stop */
+		instate++;
+		}
+	else if (instate==1)
+		{
+		SOUND_PORT_PUT_DATA = 0x55d8; /* flush */
+		instate++;
+		}
+	else if (instate==2)
+		{
+		SOUND_PORT_PUT_DATA = 0x55d6;  /* start */
+		adi_DCS_EMPTY_BLOCKS=0;
+		adi_XferState=ADI_XFER_HEAD;
+		}
+	}
+#endif
+else 
+	{
+	ADI_LOG_ERROR(1==0,18);
+	adi_XferState=ADI_XFER_RESYNC;
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+	return;
+	}
+return;
+
+}
+/***************************************************************************/
+/***************************************************************************/
+void _adi_fifo_irq_action(void *whenRemoved);
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+void _adi_irq_vector(void *whenRemoved)
+{ /* called within an interupt context */
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+extern struct act_q paqFifoIRQ;
+
+if ((IO_MAIN_STS_T & IO_MAIN_FIFO_EMPTY) && (IO_MAIN_CTL_T & IO_MAIN_FIFO_EMPTY)) /* did I cause the IRQ? */
+	{
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_FIFO_EMPTY); /* disable myself */
+	prc_q_action(&paqFifoIRQ);  /* call callback (eventually) */
+	}
+#endif
+
+if ((IO_MAIN_STS_T & IO_MAIN_STH_DATA_FULL) && (IO_MAIN_CTL_T & IO_MAIN_STH_DATA_FULL)) /* did I cause the IRQ? */
+	{
+	_adiQXfer();
+	}
+if ((IO_MAIN_STS_T & IO_MAIN_HTS_DATA_EMPTY) && (IO_MAIN_CTL_T & IO_MAIN_HTS_DATA_EMPTY)) /* did I cause the IRQ? */
+	{
+	_adiQXfer();
+	}
+
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: void adiInit(void)                                            */
+/*                                                                         */
+/*           Initializes adi varables.                                     */
+/*                                                                         */
+/***************************************************************************/
+long adiInit(U8 *comp , U8 *osys , U8 *dm_ext , U8 *dm_int) 
+{
+int x;
+int er;
+U16 temp;
+
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+scntr=0;
+#endif
+
+ADI_FATAL_ERROR=0;
+#if defined(USER_REC_UREC10)
+aud_stat=(struct audio_stats *)eer_user_rd(USER_REC_UREC10,NULL);
+eer_user_free(USER_REC_UREC10);
+aud_stat2=(struct audio_stats2 *)eer_user_rd(USER_REC_UREC11,NULL);
+eer_user_free(USER_REC_UREC11);
+aud_stat2b=(struct audio_stats2 *)eer_user_rd(USER_REC_UREC12,NULL);
+eer_user_free(USER_REC_UREC12);
+aud_stat3=(struct audio_stats3 *)eer_user_rd(USER_REC_UREC13,NULL);
+eer_user_free(USER_REC_UREC13);
+aud_stat_touched=0;
+#endif
+
+temp=SOUND_PORT_GET_DATA; /* remove extra data if any */
+temp=SOUND_PORT_GET_DATA; /* remove extra data if any */
+temp=SOUND_PORT_GET_DATA; /* remove extra data if any */
+
+x=0;er=1;
+while (x<5 && er!=0)
+	{
+	er=0;
+    if (soundHardwareReset()) er++;
+	temp=SOUND_PORT_GET_DATA; /* remove extra data if any */
+
+    if (!er) if (soundLatchTest()) er++;
+    if (!er) if (soundCustomSoftwareReset(comp ,osys ,dm_ext ,dm_int)) er++;
+	x++;
+	}
+if(x>=5) {_adiAudioFatalError(1);return(0);}
+
+prc_set_vec(SND_INTVEC,_adi_irq_vector);  /* Load the Sound Int Vector */
+
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+_adiStreamInit();
+#endif
+
+adiClearAll();
+adiAttractVolume();
+
+ADI_DCS_COOKIE=1;
+ADI_TRACK_RESERVE=0;
+adi_LatchIndex=0;
+adi_LatchOutIndex=0;
+adi_LatchQueue[0]=0x1111;
+adi_XferState=ADI_XFER_HEAD;
+
+adi_QueueDisable=0;
+
+ADI_SIGNAL_CALLBACK=0;
+adi_callback_parms_idx=0;
+
+for(x=0;x<SOUND_DCS_CHANNELS;x++)
+	{
+	_adi_track_table[x].cookie=NULL;
+	_adi_track_table[x].priority=NULL;
+	_adi_track_table[x].sound=NULL;
+	}
+
+if (_adiPutLatch(0x55D3)) {_adiAudioFatalError(2);return(0);}
+if (_adiPutLatch(0x55D4)) {_adiAudioFatalError(3);return(0);}
+if (_adiGetLatch(&DCS_SOFTWARE_VERSION)) {_adiAudioFatalError(4);return(0);}
+
+adi_time_queue.next=NULL;
+adi_time_queue.que=NULL;
+adi_time_queue.vars=NULL;
+adi_time_queue.func=adiXferQueue;
+adi_time_queue.delta=SOUND_QUEUE_TIMER_TIME;
+
+IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+tq_ins(&adi_time_queue); 
+
+return(1);
+}
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+void adiOnOffSwitch(int x)
+{
+static int lastX=1;
+U16 data[2];
+
+if (x) x=1;
+
+if (x==lastX) return;
+else
+	if (x)
+		{
+		data[0]=0x55aa;
+		data[1]=0x40bF;
+		adiQueueCommand(data,2,0,0,0,0,0,0);
+		}
+	else
+		{
+		data[0]=0x55aa;
+		data[1]=0x00FF;
+		adiQueueCommand(data,2,0,0,0,0,0,0);
+		}
+lastX=x; 
+}
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+int adiGameVolume(void)
+{
+U16 vol;
+U16 data[2];
+
+vol=eer_gets(EER_AUD_VOL);
+vol=vol&0x00FF;
+vol=(vol<<8)|((~vol) & 0x00FF);
+
+data[0]=0x55aa;
+data[1]=vol;
+if (adiQueueCommand(data,2,0,0,0,0,0,0)) return(1);
+return(0);
+}
+/************************************************************************/
+int adiAttractVolume(void) 
+{
+U16 vol;
+U16 data[2];
+
+vol=eer_gets(EER_AUD_VOL);
+vol=(vol>>8)&0x00FF;
+vol=(vol<<8)|((~vol) & 0x00FF);
+
+data[0]=0x55aa;
+data[1]=vol;
+
+if (adiQueueCommand(data,2,0,0,0,0,0,0)) return(1);
+return(0);
+}
+/*****************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+int adiNumberOfSounds(void)
+{
+int aud_number_of_sounds(void);
+return(aud_number_of_sounds());
+}
+/***************************************************************************/
+int adiAddressOfPartition(int part_num)
+{
+int aud_AddressOfPartition(int part_num) ;
+return(aud_AddressOfPartition(part_num));
+}
+/***************************************************************************/
+int adiSizeOfPartition(int part_num)
+{
+int aud_SizeOfPartition(int part_num) ;
+return(aud_SizeOfPartition(part_num));
+}
+/***************************************************************************/
+void adiClearAll(void)
+{
+void aud_clear_all(void);
+aud_clear_all();
+}
+/***************************************************************************/
+void adiClearAllBanks(void)
+{
+void aud_clear_all_banks(void);
+aud_clear_all_banks();
+}
+/***************************************************************************/
+int adiLoadBank(U8 *data_buffer)
+{
+int aud_load_bank (U8 *data_buffer);
+int x;
+
+adiLockQueue();
+/*adiSendAllQueue();*/
+x=aud_load_bank (data_buffer);
+adiUnlockQueue();
+return(x);
+}
+/***************************************************************************/
+int adiLoadBankWithPlayback(U8 *data_buffer)
+{
+int aud_load_bank_with_playback (U8 *data_buffer);
+int x;
+
+adiLockQueue();
+x=aud_load_bank_with_playback(data_buffer);
+adiUnlockQueue();
+return(x);
+}
+/***************************************************************************/
+int adiMakePartition(int cmd_size,int data_size)
+{
+int aud_make_partition (int cmd_size,int data_size);
+
+return(aud_make_partition (cmd_size,data_size));
+}
+/***************************************************************************/
+int adiLoadPartition(int cmd,U8 *data)
+{
+int aud_load_partition (int cmd,U8 *data);
+int x;
+
+adiLockQueue();
+x=aud_load_partition(cmd,data);
+adiUnlockQueue();
+return(x);
+}
+/***************************************************************************/
+int adiLoadPartitionWithPlayback(int cmd,U8 *data)
+{
+int aud_load_partition_with_playback(int cmd,U8 *data);
+int x;
+
+adiLockQueue();
+x=aud_load_partition_with_playback(cmd,data);
+adiUnlockQueue();
+return(x);
+}
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+int adiInitBlockedLoad(U8 *buff,int size)
+{
+int audInitBlockedLoad(U8 *buff,int size);
+int x;
+x=audInitBlockedLoad(buff,size);
+return(x);
+}
+/***************************************************************************/
+int adiPreloadBlockedBankLoad(U8 *buff,int len)
+{
+int audPreloadBlockedBankLoad(U8 *buff,int len);
+int x;
+adiLockQueue();
+x=audPreloadBlockedBankLoad(buff,len);
+if (!x) adiUnlockQueue();
+return(x);
+}
+/***************************************************************************/
+int adiPreloadBlockedBankLoadWithPlayback(U8 *buff,int len)
+{
+int audPreloadBlockedBankLoadWithPlayback(U8 *buff,int len);
+int x;
+adiLockQueue();
+x=audPreloadBlockedBankLoadWithPlayback(buff,len);
+if (!x) adiUnlockQueue();
+return(x);
+}
+/***************************************************************************/
+int adiPreloadBlockedPartitionLoad(U16 cmd,U8 *buff,int len)
+{
+int audPreloadBlockedPartitionLoad(U16 cmd,U8 *buff,int len);
+int x;
+adiLockQueue();
+x=audPreloadBlockedPartitionLoad(cmd,buff,len);
+if (!x) adiUnlockQueue();
+return(x);
+}
+/***************************************************************************/
+int adiPreloadBlockedPartitionLoadWithPlayback(U16 cmd,U8 *buff,int len) 
+{
+int audPreloadBlockedPartitionLoadWithPlayback(U16 cmd,U8 *buff,int len) ;
+int x;
+
+adiLockQueue();
+x=audPreloadBlockedPartitionLoadWithPlayback(cmd,buff,len) ;
+if (!x) adiUnlockQueue();
+return(x);
+}
+/***************************************************************************/
+int adiLoadBlock(U8 *buffer,int size)
+{
+int audLoadBlock(U8 *buffer,int size);
+int x;
+
+x=audLoadBlock(buffer,size);
+
+if (x<1) adiUnlockQueue();
+return(x);
+}
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+#if 0
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int adiSendDMBlock(char *buffer, int start, int end)          */
+/*                                                                         */
+/*           Transfers a block on memory from the host to the V++ DSP's	   */
+/*           Data Memory Segment (data width = 16 bits)                    */
+/*                                                                         */
+/* INPUTS:   char *buffer - The block of memory to xfer to the dsp         */
+/*           long start   - DSP Data Memory starting address 		       */
+/*           long end     - DSP Data Memory ending address                 */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout or checksum failure                          */
+/*                                                                         */
+/***************************************************************************/
+int adiSendDMBlock(U8 *buffer,U16 start,U16 end) 
+{
+S32 size;			/* number of 16-bit words to send */
+S32 i;				/* counters for send loop */
+U16 temp;
+U32 checksum;			/* our computed checksum as data sent */
+
+if (buffer == NULL) {auderr=AUDERR_NO_DATA;return(ERROR);}
+if (start>=end) {auderr=AUDERR_START_GE_END;return(ERROR);}
+
+adiLockQueue();
+
+/* load command format:  command, start, end, type, data... , checksum */
+
+if (_adiPutLatch(SOUND_CMD_LOAD) != OK) return(ERROR);
+if (_adiPutLatch(start) != OK) return(ERROR);
+if (_adiPutLatch(end) != OK) return(ERROR);
+if (_adiPutLatch(SOUND_LOAD_TYPE_DM) != OK) return(ERROR);
+
+size = (end - start + 1)*2;
+checksum=0;
+i=0;
+
+while(i<size) 
+   	{
+	temp = (((short)buffer[i++])&0x000000FF) <<8; 
+	temp = temp | (((short)buffer[i++])&0x000000FF);
+	checksum += temp;
+
+	if (_adiPutLatch(temp)!=OK)	return(ERROR);
+	}
+
+/* after the data is loaded, the sound DSP will return its */
+/* checksum... make sure it matches ours */
+
+if (_adiGetLatch(&temp) != OK) return(ERROR);
+if ((checksum & MASK16) != temp) {auderr=AUDERR_CHECKSUM;return(ERROR);}
+
+/* after the checksum, monitor should go back to ready mode */
+
+if (_adiGetLatch(&temp) != OK ) {auderr=AUDERR_NO_ACK;return(ERROR);}
+if (temp != MONITOR_READY) {auderr=AUDERR_BAD_ACK;return(ERROR);}
+
+adiUnlockQueue();
+
+return(OK);
+}
+
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int adiSendPMBlock(char *buffer, int start, int end)          */
+/*                                                                         */
+/*           Transfers a block on memory from the host to the V++ DSP's	   */
+/*           Program Memory Segment (data width = 24 bits)                 */
+/*                                                                         */
+/* INPUTS:   char *buffer - The block of memory to xfer to the dsp         */
+/*           long start   - DSP Data Memory starting address 		       */
+/*           long end     - DSP Data Memory ending address                 */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout or checksum failure                          */
+/*                                                                         */
+/***************************************************************************/
+int adiSendPMBlock(U8 *buffer,U16 start,U16 end) 
+{
+S32 size;			/* number of 16-bit words to send */
+S32 i;				/* counters for send loop */
+U16 temp,temp2;
+U32 checksum;			/* our computed checksum as data sent */
+
+if (buffer == NULL) {auderr=AUDERR_NO_DATA;return(ERROR);}
+if (start>=end) {auderr=AUDERR_START_GE_END;return(ERROR);}
+
+adiLockQueue();
+
+/* send the load command */
+/* format is command, start, end, type, data... return(checksum) */
+
+if (_adiPutLatch(SOUND_CMD_LOAD) != OK) return(ERROR);
+if (_adiPutLatch(start) != OK) return(ERROR);
+if (_adiPutLatch(end) != OK) return(ERROR);
+if (_adiPutLatch(SOUND_LOAD_TYPE_PM) != OK) return(ERROR);
+
+/* for each 24-bit word sent to the sound DSP */
+/* we actually send two 16-bit words */
+
+size = (end - start + 1) * 3;
+
+i = 0;
+checksum = 0;
+while (i<size) 
+	{
+	temp = (((short)buffer[i++])&0x000000FF) <<8;
+	temp = temp | (((short)buffer[i++])&0x000000FF);
+	checksum += temp;
+	if (_adiPutLatch(temp)!=OK) return(ERROR);
+
+	temp2= buffer[i++] | 0x0000FF00;
+	checksum += temp2;
+	if (_adiPutLatch(temp2)!=OK) return(ERROR);
+    }
+
+/* after the data is loaded, the sound DSP will return its */
+/* checksum... make sure it matches ours */	
+if (_adiGetLatch(&temp) != OK) return(ERROR);
+if ((checksum & MASK16) != temp) {auderr=AUDERR_CHECKSUM;return(ERROR);}
+
+/* after the checksum, monitor should go back to ready mode */
+if (_adiGetLatch(&temp) != OK ) {auderr=AUDERR_NO_ACK;return(ERROR);}
+if (temp != MONITOR_READY) {auderr=AUDERR_BAD_ACK;return(ERROR);}
+
+adiUnlockQueue();
+return(OK);
+}
+/***************************************************************************/
+#endif
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+int adiPoll(unsigned long time) 
+{
+if (aud_stat_touched)
+	{
+	aud_stat_touched=0;
+#if defined(USER_REC_UREC10)
+	eer_user_wrt(USER_REC_UREC10);
+	eer_user_free(USER_REC_UREC10);
+	eer_user_wrt(USER_REC_UREC11);
+	eer_user_free(USER_REC_UREC11);
+	eer_user_wrt(USER_REC_UREC12);
+	eer_user_free(USER_REC_UREC12);
+	eer_user_wrt(USER_REC_UREC13);
+	eer_user_free(USER_REC_UREC13);
+#endif
+	}
+return 0;
+}
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+
+@
+
+
+1.15
+log
+@removed the ff stream bug
+@
+text
+@d289 1
+d294 10
+a303 1
+if (adiQueueCommand(data,3,0,NULL,(U32)_adiStopAllSoundsCallback,NULL,NULL,NULL)) return(1);
+d1052 1
+d1136 1
+d1140 2
+a1141 1
+while (adiQueueAmountFree()!=SOUND_QUEUE_MASK)
+d1143 2
+a1144 1
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+d1146 1
+a1146 1
+	switch(adi_XferState)
+a1147 5
+		case ADI_XFER_HEAD:
+		case ADI_XFER_PUT:
+		case ADI_XFER_TAIL:
+		case ADI_XFER_SYNC1:
+		case ADI_XFER_SYNC2:
+d1149 4
+a1152 1
+		break;
+d1154 9
+a1162 5
+		case ADI_XFER_GET:
+		case ADI_XFER_SYNC3:
+		case ADI_XFER_GET_MT_BLOCKS:
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_STH_DATA_FULL);
+		break;
+d1164 6
+d1171 1
+a1171 3
+
+	timeout=eer_rtc;
+	while ((adi_XferState!=ADI_XFER_HEAD) && (eer_rtc-timeout<30)) ; /* waitin' */
+@
+
+
+1.14
+log
+@Removed a dependancy on USER_REC_URECxx
+@
+text
+@d56 1
+d58 1
+d849 2
+a850 2
+data[3]=pan;
+if (adiQueueCommand(data,3,0,NULL,NULL,NULL,NULL,NULL)) return(1);
+d868 2
+a869 2
+data[3]=pan;
+if (adiQueueCommand(data,3,0,NULL,NULL,NULL,NULL,NULL)) return(1);
+d1403 1
+d1416 6
+d1429 5
+d1435 1
+a1435 2
+		}
+
+d1676 1
+a1677 1
+		LOG_ERROR_DATA(-1,xxx);
+d1695 16
+d1713 1
+a1714 1
+
+d1718 1
+d1731 19
+d1876 1
+a1876 1
+tq_ins(&adi_time_queue);	 
+@
+
+
+1.13
+log
+@Changed logging method
+@
+text
+@d1338 1
+a1338 1
+
+a1389 2
+x=0;
+
+d1469 1
+a1469 1
+	for (xxx=1;xxx<8;xxx++) errorLog[xxx-1]=errorLog[xxx];
+d1566 1
+d1759 1
+a1759 1
+
+d1769 1
+d2234 1
+d2243 1
+@
+
+
+1.12
+log
+@Declared some volatile vars as volatile.
+@
+text
+@d55 1
+d109 1
+a109 1
+
+d1055 1
+a1055 1
+			adi_XferState=ADI_XFER_HEAD;
+d1283 1
+a1283 1
+else if (wcntr<80) wcntr++; 
+d1298 1
+a1298 1
+	adi_XferState=ADI_XFER_SYNC1;
+d1325 1
+a1325 1
+U16 index;
+d1341 27
+a1367 3
+index=adi_LatchOutIndex;
+index = (index+1) & SOUND_QUEUE_MASK;
+index = (index+1) & SOUND_QUEUE_MASK;
+d1369 1
+a1369 1
+while(adi_LatchQueue[index]!=0x1111 && x<8)
+d1371 1
+a1371 2
+	aud_stat2->cmd1[x++]=adi_LatchQueue[index];
+	index = (index+1) & SOUND_QUEUE_MASK;
+d1373 1
+d1447 2
+a1459 2
+
+	index=adi_LatchOutIndex;	
+d1471 3
+a1646 3
+	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+
+d1652 1
+a1652 1
+	SOUND_PORT_PUT_DATA = 0xBEEF;
+d1664 1
+a1664 1
+		LOG_ERROR_COMMAND();
+d1675 7
+d1706 1
+a1706 1
+	adi_XferState=ADI_XFER_SYNC1;
+@
+
+
+1.11
+log
+@ditto
+@
+text
+@d74 5
+a78 6
+static U16 adi_LatchQueue[SOUND_QUEUE_SIZE];
+static U16 adi_LatchIndex;
+static U16 adi_LatchOutIndex;
+static int adi_QueueDisable;  /* if nonzero, don't send queued data */
+static int adi_XferState;
+/*static int adi_QueueMutex;*/
+d963 43
+d1019 1
+d1044 1
+a1044 2
+	while ((adi_XferState!=ADI_XFER_HEAD) && (eer_rtc-timeout<30)) ; /* waitin' */
+	if (eer_rtc-timeout>=30)
+d1046 7
+a1052 3
+		U16 xxx;
+		xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+		xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+d1054 1
+a1054 2
+		adi_XferState=ADI_XFER_SYNC1;
+		ADI_LOG_ERROR(1==0,40);
+d1056 4
+a1059 2
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL);
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);	
+a1064 46
+#if 0
+void adiSafeTLockQueue(void)
+{
+int timeout;
+U16 xxx;
+
+adiDisable();
+
+while (adiQueueAmountFree()!=SOUND_QUEUE_MASK)
+	{
+	IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+
+	switch(adi_XferState)
+		{
+		case ADI_XFER_HEAD:
+		case ADI_XFER_PUT:
+		case ADI_XFER_TAIL:
+		case ADI_XFER_SYNC1:
+		case ADI_XFER_SYNC2:
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);
+		break;
+
+		case ADI_XFER_GET:
+		case ADI_XFER_SYNC3:
+		case ADI_XFER_GET_MT_BLOCKS:
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_STH_DATA_FULL);
+		break;
+		}
+
+	timeout=eer_rtc;
+	while ((adi_XferState!=ADI_XFER_HEAD) && (eer_rtc-timeout<30)) ; /* waitin' */
+	if (eer_rtc-timeout>=30)
+		{
+		adi_XferState=ADI_XFER_SYNC1;
+		ADI_LOG_ERROR(1==0,40);
+
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL);
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T | (IO_MAIN_HTS_DATA_EMPTY);	
+		}
+	}
+xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+}
+#endif
+d1077 1
+d1282 1
+a1282 1
+else if (wcntr<30) wcntr++; 
+d1381 6
+d1442 3
+a1444 2
+	ADI_LOG_ERROR(outcnt<7,3);
+	ADI_LOG_ERROR(incnt<7,4);
+d1488 1
+d1829 1
+d1837 3
+a1839 1
+		adiUnlockQueue();
+d1843 3
+a1845 1
+		adiLockQueue();
+d1847 1
+a1847 1
+lastX=x;
+@
+
+
+1.10
+log
+@actually fixed the deadlock bug
+@
+text
+@d558 1
+a558 1
+	adi_LatchQueue[index]=0x0006; /* two out zero in */
+d1146 1
+a1146 1
+	while ((adi_XferState!=ADI_XFER_HEAD) && (eer_rtc-timeout<100)) ; /* waitin' */
+d1382 1
+a1382 1
+
+d1419 5
+a1423 1
+		if (adi_LatchIndex==index) {return;} 
+d1426 2
+d1665 1
+@
+
+
+1.9
+log
+@fixed a deadlock bug (I hope)
+@
+text
+@d981 1
+a981 1
+if (adi_XferState!=ADI_XFER_HEAD)
+a982 2
+	ADI_ASSERT(adi_QueueDisable==1);
+
+d1002 12
+d1018 1
+d1048 2
+a1049 2
+	while ((adi_XferState!=ADI_XFER_HEAD) && (eer_rtc-timeout<300)) ; /* waitin' */
+	if (eer_rtc-timeout>=300)
+d1063 1
+a1063 1
+
+a1378 9
+#if (0)
+if (adi_QueueDisable)
+		{
+		/* Output locked ... wait for timer to start me up again */
+		IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY);
+		return;
+		} 
+#endif
+
+d1620 6
+a1625 4
+	ADI_LOG_ERROR(xxx==0xBEEF,16);
+
+	LOG_ERROR_DATA(-1,xxx);
+
+d1915 1
+a1915 1
+adiSafeTLockQueue();
+d1927 1
+a1927 1
+adiSafeTLockQueue();
+d1945 1
+a1945 1
+adiSafeTLockQueue();
+d1956 1
+a1956 1
+adiSafeTLockQueue();
+d1977 1
+a1977 1
+adiSafeTLockQueue();
+d1987 1
+a1987 1
+adiSafeTLockQueue();
+d1997 1
+a1997 1
+adiSafeTLockQueue();
+d2008 1
+a2008 1
+adiSafeTLockQueue();
+@
+
+
+1.8
+log
+@fixed a bug where BSS initialized data wasn't when exiting selftest
+@
+text
+@a50 1
+#define ADI_XFER_GET_MT_BLOCKS	8
+d54 1
+d428 1
+d430 1
+d455 1
+d457 1
+a457 1
+
+d1003 43
+a1045 1
+	while ((adi_XferState!=ADI_XFER_HEAD) && (eer_rtc-timeout<15)) ; /* waitin' */
+d1047 4
+d1135 1
+a1135 1
+	while ((adi_XferState!=ADI_XFER_HEAD) && (eer_rtc-timeout<15)) ; /* waitin' */
+d1247 1
+a1247 1
+/*       The queue provides state information so commands can be      */
+d1275 9
+d1368 1
+d1375 1
+d1620 2
+d1911 2
+a1912 1
+adiLockQueue();
+d1923 1
+a1923 1
+adiLockQueue();
+d1941 1
+a1941 1
+adiLockQueue();
+d1952 1
+a1952 1
+adiLockQueue();
+d1973 1
+a1973 1
+adiLockQueue();
+d1983 1
+a1983 1
+adiLockQueue();
+d1993 1
+a1993 1
+adiLockQueue();
+d2004 1
+a2004 1
+adiLockQueue();
+a2186 1
+
+@
+
+
+1.7
+log
+@Commands are put to the latch from the IOASIC irq, The timer irq use to be used.
+@
+text
+@d65 1
+a65 1
+static int ADI_FATAL_ERROR=-1;
+d107 1
+a107 8
+struct tq adi_time_queue =
+	{
+	NULL,
+	NULL,
+	adiXferQueue,
+	(void *)5,
+	500
+	};
+d428 1
+d453 1
+a453 1
+/*  ADI_ASSERT(SndNum<=adiNumberOfSounds());  */
+d1211 1
+a1211 1
+if (ADI_FATAL_ERROR) {return;}
+d1215 1
+d1220 10
+a1229 2
+else if (wcntr<3) wcntr++; 
+else ADI_LOG_ERROR(1==0,1);
+d1247 1
+a1247 1
+static int scntr=0;
+d1563 1
+d1638 5
+d1644 1
+a1644 1
+ADI_FATAL_ERROR=-1;
+d1656 4
+a1662 2
+	U16 temp;
+
+d1705 4
+a1709 1
+ADI_FATAL_ERROR++;
+@
+
+
+1.6
+log
+@More debugging changes
+@
+text
+@d19 1
+d51 1
+a51 2
+#define ADI_XFER_MT_BLOCKS1	8
+#define ADI_XFER_MT_BLOCKS2 9
+d439 1
+a439 1
+data[2]=priority|((track-1)<<7)|DCS_RESERVE_TRACK;
+d979 1
+d982 2
+d988 19
+a1006 1
+	while (adi_XferState!=ADI_XFER_HEAD) adiMainlineXferQueue(); /* insure that a partial command is not xfered */
+d1065 2
+d1068 1
+d1071 22
+a1092 1
+	adiMainlineXferQueue(); /* insure that a partial command is not xfered */
+a1141 1
+/*ADI_ASSERT(data);	*/
+d1207 2
+a1208 9
+void _adiQXfer(int foo);
+/*struct act_q paqQXFR =
+{
+NULL,
+NULL,
+_adiQXfer,
+(void *)1
+};
+*/
+d1211 2
+d1219 8
+a1226 3
+/*prc_q_action(&paqQXFR);*/
+_adiQXfer(1);
+
+a1228 10
+void adiMainlineXferQueue()
+{
+
+/*if (adi_LatchIndex==adi_LatchOutIndex) {return;}*/ 
+if (ADI_FATAL_ERROR) {return;}
+
+adiDisable();
+_adiQXfer(0);
+adiEnable();
+}
+d1244 1
+a1244 1
+static int scntr;
+d1296 1
+a1296 1
+void _adiQXfer(int foo)
+a1302 1
+static int timeout;
+d1307 6
+a1312 1
+if (foo && adi_QueueDisable) return;	
+d1316 2
+d1321 1
+a1321 1
+		if (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) {return;} 
+d1324 1
+d1329 2
+a1330 3
+		scntr=(scntr+1)&0x03;
+
+		if(!adi_DCS_EMPTY_BLOCKS && !scntr)
+d1332 4
+a1335 2
+			timeout=eer_rtc;
+			adi_XferState=ADI_XFER_MT_BLOCKS1;
+d1339 1
+a1339 1
+	else IO_MAIN_CTL_T = IO_MAIN_CTL_T & ~(IO_MAIN_FIFO_EMPTY);
+d1342 6
+a1347 1
+	index=adi_LatchOutIndex;	
+d1349 7
+a1355 1
+	if (adi_LatchIndex==adi_LatchOutIndex) {return;} 
+d1363 2
+a1364 3
+	ADI_LOG_ERROR(outcnt<7,1);
+	ADI_LOG_ERROR(incnt<7,2);
+
+d1366 1
+a1366 1
+	if (outcnt) {adi_XferState=ADI_XFER_PUT;timeout=eer_rtc;}
+a1376 12
+	if (adi_LatchIndex==adi_LatchOutIndex) {return;} 
+	if (eer_rtc-timeout>5) 
+		{
+		timeout=eer_rtc;
+		index=adi_LatchOutIndex; 
+		adi_XferState=ADI_XFER_SYNC1;
+		ADI_LOG_ERROR(0x1111==adi_LatchQueue[index],3); /* sync word */
+		ADI_LOG_ERROR(1==0,4);
+		return;
+		}
+	if (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) {return;} 
+
+d1385 2
+a1386 1
+			timeout=eer_rtc; 
+a1395 12
+	if (adi_LatchIndex==adi_LatchOutIndex) {return;} 
+	if (eer_rtc-timeout>5) 
+		{
+		timeout=eer_rtc;
+		index=adi_LatchOutIndex; 
+		adi_XferState=ADI_XFER_SYNC1;
+		ADI_LOG_ERROR(0x1111==adi_LatchQueue[index],5); /* sync word */
+		ADI_LOG_ERROR(1==0,6);
+		return;
+		}
+   	if (!(SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) {return;}
+
+d1408 1
+a1466 1
+    /* SOUND_PORT_GET_DATA = 0x0000;*/ /* this statment should only be nessecarry for a c30 host */
+d1469 6
+a1474 1
+	if(incnt==0) adi_XferState=ADI_XFER_TAIL;
+a1481 2
+	if (adi_LatchIndex==adi_LatchOutIndex) {return;} 
+	
+a1489 1
+
+a1534 1
+	timeout=eer_rtc;
+d1538 3
+a1540 10
+	if (eer_rtc-timeout>5) 
+		{
+		xxx=(SOUND_PORT_GET_DATA & 0x0000FFFF);
+		timeout=eer_rtc;
+		adi_XferState=ADI_XFER_SYNC1;
+		ADI_LOG_ERROR(0x1111==adi_LatchQueue[index],16); /* sync word */
+		ADI_LOG_ERROR(1==0,17);
+		return;
+		}
+	if (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) {return;} 
+a1542 1
+	timeout=eer_rtc;
+a1545 11
+#if !defined(SOUND_DEBUG)
+	if (eer_rtc-timeout>5) 
+		{
+		timeout=eer_rtc;
+		adi_XferState=ADI_XFER_SYNC1;
+		ADI_LOG_ERROR(0x1111==adi_LatchQueue[index],18); /* sync word */
+		ADI_LOG_ERROR(1==0,19);
+		return;
+		}
+#endif
+	if (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) {return;} 
+d1548 2
+a1549 1
+	timeout=eer_rtc;
+a1552 9
+	if (eer_rtc-timeout>5) 
+		{
+		timeout=eer_rtc;
+		adi_XferState=ADI_XFER_SYNC1;
+		ADI_LOG_ERROR(0x1111==adi_LatchQueue[index],20); /* sync word */
+		ADI_LOG_ERROR(1==0,21);
+		return;
+		}
+   	if (!(SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) {return;}
+d1555 1
+a1555 1
+	ADI_LOG_ERROR(xxx==0xBEEF,22);
+d1560 2
+d1565 1
+a1565 1
+else if (adi_XferState==ADI_XFER_MT_BLOCKS1)
+d1567 1
+a1567 28
+	if (eer_rtc-timeout>5) 
+		{
+		timeout=eer_rtc;
+		index=adi_LatchOutIndex; 
+		adi_XferState=ADI_XFER_SYNC1;
+		ADI_LOG_ERROR(0x1111==adi_LatchQueue[index],23); /* sync word */
+		ADI_LOG_ERROR(1==0,24);
+		return;
+		}
+	if (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) {return;} 
+
+	SOUND_PORT_PUT_DATA = 0x55d9;
+	adi_XferState=ADI_XFER_MT_BLOCKS2;
+	timeout=eer_rtc;
+	}
+/**/	/**/	/**/	/**/
+else if (adi_XferState==ADI_XFER_MT_BLOCKS2)
+	{
+	if (eer_rtc-timeout>5) 
+		{
+		timeout=eer_rtc;
+		index=adi_LatchOutIndex; 
+		adi_XferState=ADI_XFER_SYNC1;
+		ADI_LOG_ERROR(0x1111==adi_LatchQueue[index],25); /* sync word */
+		ADI_LOG_ERROR(1==0,26);
+		return;
+		}
+   	if (!(SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) {return;}
+a1568 1
+   	adi_DCS_EMPTY_BLOCKS = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+d1571 1
+a1571 1
+	   	ADI_LOG_ERROR(1==0,28);
+d1577 5
+d1587 1
+a1587 3
+#if defined(SOUND_DEBUG)
+	ADI_LOG_ERROR(1==0,27);
+#endif
+d1593 28
+a1620 1
+/* last error 28 */
+d1662 2
+d1675 1
+d1696 2
+@
+
+
+1.5
+log
+@silly error loging message.
+@
+text
+@a1325 1
+#if !defined(SOUND_DEBUG)
+a1334 1
+#endif
+a1355 1
+#if !defined(SOUND_DEBUG)
+a1364 1
+#endif
+d1424 2
+d1458 4
+a1474 1
+
+a1501 2
+	aud_stat->num_cmds++;
+	aud_stat_touched++;
+a1507 1
+#if !defined(SOUND_DEBUG)
+a1516 1
+#endif
+a1540 1
+#if !defined(SOUND_DEBUG)
+a1548 1
+#endif
+a1553 1
+#if !defined(SOUND_DEBUG)
+a1554 2
+#else  
+#endif
+a1561 1
+#if !defined(SOUND_DEBUG)
+a1570 1
+#endif
+a1579 1
+#if !defined(SOUND_DEBUG)
+a1588 1
+#endif
+d1643 2
+d1647 1
+@
+
+
+1.4
+log
+@Dubugging information added
+@
+text
+@d1556 3
+a1561 1
+	ADI_LOG_ERROR(xxx==0xBEEF,22);
+@
+
+
+1.3
+log
+@more shims
+@
+text
+@d36 5
+a40 1
+
+d42 1
+a42 1
+/*#define ADI_ASSERT(x) if (!(x)) while (1==1) ;*/
+d1213 49
+d1270 2
+a1271 1
+U16 xxx;
+d1310 2
+a1311 2
+	ADI_ASSERT(outcnt<7);
+	ADI_ASSERT(incnt<7);
+a1320 2
+
+
+d1327 1
+a1327 1
+	if (eer_rtc-timeout>40) 
+d1332 2
+a1333 2
+		ADI_ASSERT(0x1111==adi_LatchQueue[index]); /* sync word */
+		ADI_ASSERT(1==0);
+d1359 1
+a1359 1
+	if (eer_rtc-timeout>40) 
+d1364 2
+a1365 2
+		ADI_ASSERT(0x1111==adi_LatchQueue[index]); /* sync word */
+		ADI_ASSERT(1==0);
+d1371 1
+a1371 1
+	xxx=SOUND_PORT_FLAGS&0xFF00;
+d1373 1
+a1373 1
+	if (xxx==0x0100)
+d1375 59
+a1433 2
+	   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+	 	return;
+a1434 3
+	if (xxx!=0x0200)
+		{
+		}
+d1437 1
+a1437 1
+   	xxx = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+d1499 4
+a1502 1
+	ADI_ASSERT(0x1111==adi_LatchQueue[index]); /* sync word */
+d1510 1
+a1510 1
+	if (eer_rtc-timeout>40) 
+d1515 2
+a1516 2
+		ADI_ASSERT(0x1111==adi_LatchQueue[index]); /* sync word */
+		ADI_ASSERT(1==0);
+d1528 1
+a1528 1
+	if (eer_rtc-timeout>40) 
+d1532 2
+a1533 2
+		ADI_ASSERT(0x1111==adi_LatchQueue[index]); /* sync word */
+		ADI_ASSERT(1==0);
+d1545 1
+a1545 1
+	if (eer_rtc-timeout>40) 
+d1549 2
+a1550 2
+		ADI_ASSERT(0x1111==adi_LatchQueue[index]); /* sync word */
+		ADI_ASSERT(1==0);
+d1559 1
+a1559 1
+	ADI_ASSERT(xxx==0xBEEF);
+d1569 1
+a1569 1
+	if (eer_rtc-timeout>40) 
+d1574 2
+a1575 2
+		ADI_ASSERT(0x1111==adi_LatchQueue[index]); /* sync word */
+		ADI_ASSERT(1==0);
+d1589 1
+a1589 1
+	if (eer_rtc-timeout>40) 
+d1594 2
+a1595 2
+		ADI_ASSERT(0x1111==adi_LatchQueue[index]); /* sync word */
+		ADI_ASSERT(1==0);
+d1601 7
+a1607 1
+   	adi_DCS_EMPTY_BLOCKS = (SOUND_PORT_GET_DATA & 0x0000FFFF); 
+d1616 1
+a1616 1
+	ADI_ASSERT(1==0);
+d1621 1
+d1623 1
+a1623 1
+return;
+d1640 10
+d2089 17
+@
+
+
+1.2
+log
+@fixed a shim bug concerning streaming
+@
+text
+@d1274 1
+a1274 1
+
+d1284 1
+d1306 1
+a1306 1
+	
+d1316 1
+a1316 1
+
+d1400 1
+d1410 1
+d1418 1
+d1427 1
+d1435 1
+d1444 1
+d1447 3
+a1449 1
+/*	if (xxx!=0x0BEEF) return;  */
+d1451 1
+d1459 1
+d1469 1
+d1479 1
+d1489 1
+a1489 1
+
+d1498 8
+a1505 1
+else {ADI_ASSERT(1==0);return;}
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1205 1
+a1205 1
+#if defined(ADI_STREAMED_AUDIO)
+d1224 1
+a1224 1
+#if defined(ADI_STREAMED_AUDIO)
+@

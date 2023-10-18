@@ -1,0 +1,292 @@
+head	1.4;
+access;
+symbols
+	CJ2_04:1.4;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	96.02.07.18.52.32;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.06.09.22.10.45;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.04.11.22.08.26;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.39.10;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@used both to build the table actually use dby dispatch.c and to
+define (for the game programmer) the names *_INTVEC to symbolically
+refer to the "C-level" interrupt vectors.
+@
+
+
+1.4
+log
+@re-added the ability to use this file on a Zoid system
+It was apparently deleted without leaving any trace in RCS
+(possibly by a move-and-link mishap) Since this file has
+been mostly superceded by DMS's auto-generated version,
+it should be moot, except on the ASCLEAP.
+@
+text
+@/*		intvecs.h
+ *
+ *		Copyright 1994 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+ *		Rudimentary vector "name" definitions. This file defines
+ *	a symbolic name (xxx_INTVEC) for each possible soft vector, and is
+ *	used to build the table that is used by prc_set_vec() in dispatch.c
+ *	to patch the pointers in the actual assembly interrupt handlers in
+ *	os_root.asm or root_int.asm. See dispatch.c for an overview of usage.
+ *
+ *		This file should be #included in any C file that needs
+ *	to call prc_set_vec().
+ */
+
+/*	For each re-directable interrupt, there is presumed to be a "softvec"
+ *	which point to a C language routine to call after the Caller-save
+ *	registers have been saved and the actual interrupt cause has been
+ *	determined. See os_root.asm or root_int.asm for examples. Each
+ *	interrupt is specified by an IRQ_DEF:
+ */
+/* #define IRQ_DEF( name, softvec, installer, notes ) */
+/*
+ *	Where:
+ *		<name> is the symbolic "handle" to use in referring to the
+ *		vector. It will be turned into a value for the enum vecno,
+ *		of the form "name_INTVEC". For example, the name GAMEVB
+ *		will cause a definition of GAMEVB_INTVEC, for use in the
+ *		prc_set_vec() call.
+ *
+ *		<softvec> specifies the location to patch.
+ *
+ *		<installer> (if non-NULL) specifies which a routine to
+ *		call when this entry is changed. The purpose of this "hook"
+ *		is to allow any other hardware-specific processing to be
+ *		done. The installer will be called with a pointer to the
+ *		table entry and the proposed new vector. It need not patch
+ *		the vector in the normal case, but may wish to set (or clear,
+ *		if the new vector is NULL) the hardware interrupt enable.
+ *
+ *		<notes> is a catch-all integer with bits to represent
+ *		various special cases as needed for "ingenious" hardware :-)
+ */
+
+ /*	RESERVED NAMES:
+  *
+  *	GAMEVB	is reserved as the name of the "post-housekeeping" redirection
+  *		for vertical blanking. Often, it is the only vector needed.
+  *		"prc_set_vec(GAMEVB,my_vb);" is equivalent to the old:
+  *		"gameint = my_vb;", but safer.
+  *
+  *	MS4	is reserved for the 4 millisecond interrupt, required for
+  *		coin and possibly control sampling.
+  *
+  *	RAWVB	is reserved for the hardware vertical blank interrupt,
+  *		which may not exist. Used of this vector is discouraged,
+  *		as the user may inadvertantly fail to do some action that
+  *		is required for proper hardware function. This vector may
+  *		actually not exist on hardware that has no "vblank interrupt"
+  *		per se, but e.g. checks for vblank during the 4 mSec IRQ.
+  */
+
+#ifndef MAKE_EXTERNS
+#ifndef MAKE_TABLE
+#define MAKE_ENUM
+#endif
+#endif
+
+extern void (*prc_set_vec ( unsigned int, void (*)() ))();
+
+#ifdef MAKE_EXTERNS
+#define IRQ_DEF( name, softvec, installer, notes ) extern void (*softvec)();
+/* Sample installer declaration for CoJag */
+struct irq_tab;
+extern void tom_install(const struct irq_tab *, void(*)());
+struct irq_tab {
+	void 	(**softvec)();
+	void 	(*def_ack)();
+	void	(*installer)(const struct irq_tab *, void (*new)());
+	int	notes;
+};
+#endif
+
+#ifdef MAKE_TABLE
+static const struct irq_tab irq_inits[] = {
+#define IRQ_DEF( name, softvec, installer, notes ) \
+ { &softvec, 0, installer, notes },
+#endif
+
+#ifdef MAKE_ENUM
+#define IRQ_DEF( name, softvec, installer, notes ) name##_INTVEC,
+enum vecno {
+#endif
+
+/* sample entries for CoJag */
+/* First define any "notes" that we need, but be careful not to
+ * collide with random user defines by only doing so in the one
+ * case where "notes" are not ignored.
+ */
+#ifdef MAKE_TABLE
+#ifdef TOM_BASE
+#define TOM_VI (0)
+#define TOM_GPU (1)
+#define TOM_OBJ (2)
+#define TOM_PIT (3)
+#define TOM_DSP (4)
+#endif
+#endif
+
+IRQ_DEF( GAMEVB, gameint, 0, 0 )	/* post-wierdness Vblank */
+#ifdef TOM_BASE
+IRQ_DEF( RAWVB, vbvec, 0, 0  )		/* Vertical blanking, derived */
+IRQ_DEF( RAWVI, vivec, tom_install, TOM_VI )	/* Cojag VI (maybe VB) IRQ */
+#if (0)
+IRQ_DEF( MS4, ms4vec, 0, 0 )		/* 4 Millisecond IRQ */
+IRQ_DEF( GPU, gpuvec, tom_install, TOM_GPU ) /* Cojag GPU "done" IRQ */
+IRQ_DEF( DSP, dspvec, tom_install, TOM_DSP ) /* Cojag DSP "service" IRQ */
+IRQ_DEF( OBJ, objvec, tom_install, TOM_OBJ ) /* Cojag Object Processor IRQ */
+IRQ_DEF( PIT, pitvec, tom_install, TOM_PIT ) /* Cojag Prog Interval Timer */
+#endif
+#endif
+#ifdef ZTV_CTL
+IRQ_DEF( ZTV, ztvint, 0, 0 )
+#endif
+IRQ_DEF( PRC_DELAY, prc_delay_vec, 0, 0 )	/* prc_delay soft vector */
+#ifdef MAKE_ENUM
+  N_VECS
+};
+#undef IRQ_DEF
+#undef MAKE_ENUM
+/*		prc_set_irq(which,what)
+ *	Sets the IRQ vector for the IRQ identified by <which>
+ *	to call the routine specified by <what>. <what> is
+ *	a struct that contains both a pointer to the code
+ *	to execute and an optional pointer to the private
+ *	variables for that routine. This is a change from the
+ *	behavior of prc_set_vec, and is intended to allow
+ *	multiple incarnations of a given device to share code.
+ */
+struct opaque;
+extern struct IRQ_vector {
+    void (*function)(struct opaque *);	/* Who you gonna call */
+    struct opaque *cookie;		/* a magic cookie to hand him */
+} prc_set_irq PARMS((
+    int __which,			/* one of INTLVL_* */
+    struct IRQ_vector __what		/* BY VALUE!!! */
+));
+#endif
+
+#ifdef MAKE_EXTERNS
+#undef IRQ_DEF
+#undef MAKE_EXTERNS
+#endif
+
+#ifdef MAKE_TABLE
+    { 0, 0, 0, 0 } };
+#undef IRQ_DEF
+#undef MAKE_TABLE
+#endif
+@
+
+
+1.3
+log
+@switched CoJag Vertical Interrupt from once per frame to
+four times per frame
+@
+text
+@d87 1
+a87 1
+const struct irq_tab irq_inits[] = {
+d103 1
+d110 2
+d113 1
+d116 1
+d122 6
+a127 1
+
+d133 17
+@
+
+
+1.2
+log
+@replaced unused "hardvec" with "installer", to allow notification
+of changes in vectors to be passed to whatever wierd driver you need.
+Also added RAWVB vector for CoJag.
+@
+text
+@d103 1
+a103 1
+#define TOM_VB (0)
+d110 2
+a111 1
+IRQ_DEF( RAWVB, vbvec, tom_install, TOM_VB ) /* Cojag VI (maybe VB) IRQ */
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d24 1
+a24 1
+/* #define IRQ_DEF( name, softvec, hardvec, notes ) */
+d35 7
+a41 3
+ *		<hardvec> specifies which hardware vector this interrupt
+ *		uses. This information is not currently used, but is
+ *		included for the possibility of future enhancments.
+d74 5
+a78 5
+#define IRQ_DEF( name, softvec, hardvec, notes ) extern void (*softvec)();
+#endif
+
+#ifdef MAKE_TABLE
+const struct irq_tab {
+d81 1
+a81 1
+	int	hardvec;
+d83 1
+a83 3
+} irq_inits[] = {
+#define IRQ_DEF( name, softvec, hardvec, notes ) \
+ { &softvec, 0, hardvec,notes },
+d86 6
+d93 1
+a93 1
+#define IRQ_DEF( name, softvec, hardvec, notes ) name##_INTVEC,
+d98 1
+a98 1
+/* First defiane any "notes" that we need, but be careful not to
+d103 5
+a107 1
+#define TOM_IRQ (1)
+d109 7
+a115 6
+IRQ_DEF( GAMEVB, gameint, 6, TOM_IRQ )	/* post-wierdness Vblank */
+IRQ_DEF( MS4, ms4vec, 4, 0 )		/* 4 Millisecond IRQ */
+IRQ_DEF( GPU, gpuvec, 6, TOM_IRQ )	/* Cojag GPU "done" IRQ */
+IRQ_DEF( DSP, dspvec, 6, TOM_IRQ )	/* Cojag DSP "service" IRQ */
+IRQ_DEF( OBJ, objvec, 6, TOM_IRQ )	/* Cojag Object Processor IRQ */
+IRQ_DEF( PIT, pitvec, 6, TOM_IRQ )	/* Cojag Programable Interval Timer */
+@

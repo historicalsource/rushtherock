@@ -1,0 +1,341 @@
+head	1.4;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	96.04.14.22.53.22;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.01.06.02.46.18;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.04.25.21.11.13;	author mckee;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.16.46.12;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Stubs for those audio routines called by the rest of GUTS.
+This is due to be replaced when we get a real audio driver.
+@
+
+
+1.4
+log
+@Added stub for aud_qlen().
+@
+text
+@/*
+ *	audio.c
+ *
+ *		Copyright 1991 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+ *	'C' versions of basic audio control routines on a board with a separate
+ *	audio processor. This version for the ASAP bitmap board.
+ *
+ *	These may need to be editted for unusual hardware, or may need to be
+ *	written (at least partially) in assembly on some systems. The 'C' code
+ *	should be viewed as a guide to functionality.
+ */
+#include <config.h>
+#include <stdarg.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <eer_defs.h>
+
+#define STATIC static
+
+#if HAS_CAGE
+#if !(HAS_EXT_SND)
+#undef HAS_EXT_SND
+#define HAS_EXT_SND (1)
+#endif
+
+typedef unsigned short aud_t;
+#define MAX_AUD_TRIES	(0)		/* do not retry if output queue is busy */
+#define MAX_EXC_TRIES	(100)		/* at least 10us for exception response */
+#define MAX_RESET_TIME 	(30)		/* 30 fields, 1/2 second */
+#define CAGE_CTL (SND_BUF)
+#define RESETOK (0x5555)		/* first response from audio board */
+#else
+typedef unsigned char aud_t;
+#define MAX_AUD_TRIES 	(255)		/* max tries for non-queued aud_put */
+#define MAX_RESET_TIME 	(180)		/* 180 fields, 3 seconds */
+#define RESETOK (0xFF)			/* first response from audio board */
+#endif
+
+/*	Try to set a reasonable default for the location and size of the
+ *	Attract-mode volume ratio. This will only be used if EER_AUD_ATRVOL
+ *	is not defined.
+ */
+#ifndef AUD_AV_MSK
+#ifdef EER_GUTS_OPT
+#define AUD_AV_MSK (3)
+#define AUD_AV_SHF (0)
+#else
+#define AUD_AV_MSK (0)
+#endif /* EER_GUTS_OPT defined */
+#endif /* AUD_AV_MSK defined */
+
+#ifndef SND_IDX_MSK
+#define SND_IDX_MSK 	(0x3F)
+#endif
+#ifndef AUD_MAX_TIME
+#define AUD_MAX_TIME 	(40000L)	/* about five frames without output */
+#endif
+
+#ifndef MIN_VOLUME
+#define	MIN_VOLUME	(0)
+#endif
+#ifndef MAX_VOLUME
+#define	MAX_VOLUME	(32)
+#endif
+#ifndef DEF_VOLUME
+#define	DEF_VOLUME	(MIN_VOLUME+((2*(MAX_VOLUME))/3))
+#endif
+
+int aud_cmd(st_val)
+int st_val;
+{
+    return 0;
+}
+
+/*		aud_reset()
+ *	Resets audio processor and vital state.
+ */
+void
+aud_reset()
+{
+    return;
+}
+
+
+/*		aud_init(level)
+ *	Resets audio processor (or process) and varying amounts of
+ *	local state, depending on <level>.
+ *
+ *		If level is 0, reset the sound process[or] and any crucial
+ *	state (e.g. coin variables) but do not wait for the sound processor
+ *	to "come up". 
+ *	Returns: 0x10000 = 1 sound and all status bits OK.
+ *
+ *		If level is < 0, reset as for 0, but leave the sound
+ *	process[or] "dead" if possible. Not all configurations can do this,
+ *	but it is provided as sort of a "finished with sounds" call for
+ *	those that can, and would benefit in some way from having the sounds
+ *	processor stopped. 
+ *	Returns: 0x10000 = 1 sound and all status bits OK.
+ *
+ *		If level > 0, reset as for 0, but also wait for the sound
+ *	process[or] to "come up", then return a "status" and the "number of 
+ *	sounds".  
+ *	Returns:
+ *		-1 = sound processor did not respond or more than 32768 sounds
+ *		0 = user aborted (there are always 1 sound STOP, NOISY, ...)
+ *		0xnnnnssss = nnnn sounds and status of ssss.
+ */
+long
+aud_init(level)
+int level;
+{
+    return 0;
+}
+
+
+/*		aud_q_get() 
+ *	Returns:
+ *		-1 if no input available
+ *		else data from port
+ */
+long
+aud_q_get()
+{
+    return -1;
+}
+
+
+/*		aud_q_put(code)
+ *	Adds <code> to queue of "sounds" to play. <code> is assumed to be a
+ *	single aud_t. See aud_mput() for multi-aud_t commands. On a system with
+ *	external Audio, <code> will then be written to the port communicating
+ *	with the sound processor. On a host-based audio system, <code> will
+ *	be placed directly in the "action" queue of the sound process. 
+ *	Returns:
+ *		0 if no room
+ *		1 if on queue.
+ */
+int
+aud_q_put(code)
+int code;
+{
+    return 0;
+}
+
+/*		aud_mput(buff,cnt)
+ *	Adds <cnt> aud_t's in buffer pointed to by <buff> to queue of "sounds"
+ *	to play. <buff> is assumed to contain _one_ complete command, so the
+ *	first aud_t will have D15 set, and the remainder will have D15 cleared.
+ *	Also, this routine will place the whole buffer, or none of it, on the
+ *	queue.
+ *		Note that the <param> are masked with 0x7FFF
+ *	to insure that they are not treated as commands.
+ *	Returns:
+ *		0 if no room (i.e. not sent)
+ *		<cnt> if queued
+ */
+int
+aud_mput( unsigned short *buff, int cnt)
+{
+    return 0;
+}
+
+/*		aud_put(code)
+ *	Mainly a new name for com_wrt(). Tries up to MAX_AUD_TRIES
+ *	times to write <code> to sound port.
+ *	Returns:
+ *		0 if failed
+ *		1 if sent
+ *		2 if on queue (if MAX_AUD_TRIES == 0)
+ */
+int
+aud_put(code)
+int code;
+{
+    return 0;
+}
+
+
+/*		aud_poll(usec)
+ *	Check on sound processor status, using usec as the amount of time 
+ *	since last check.  For queued sounds without CAGE style interrupts
+ *	this routine will send a sound too.
+ *	Return:
+ *		1 if a sound has been sent
+ *		0 if nothing to output 
+ *		-1 if sound system should not be running from last reset
+ *		-2 if sound subsystem was reset 
+ */
+
+int
+aud_poll(time)
+unsigned long time;
+{
+    return 0;
+}
+
+/*		aud_setvol(volume)				(audio.c)
+ *	Set the volume of sound.  A parameter of -1 will set the
+ *	volume to the value stored in EEPROM. 
+ *	Returns:
+ *		-1 for an error
+ *		<volume> that was set
+ */
+
+int
+aud_setvol(volume)
+int	volume;
+{
+    return -1;
+}
+
+/*		aud_irq()
+ *	Interrupt from sound processor.  Called from assembly after registers
+ *	saved.
+ */
+typedef unsigned short snd_t;
+void aud_irq()
+{
+    return;
+}
+
+/*		aud_f_put(code)
+ *	Attempts to send <code> to the sound processor. 
+ *	Returns:
+ *		0 if sound process (from reset) or port is currently busy
+ *		1 if code sent
+ */
+int aud_f_put(value)
+snd_t value;
+{
+    return 0;
+}
+
+
+/*		aud_excw(code,buf,cnt)
+ *	Handle an exception-mode transfer, in the "one byte out, 'cnt' bytes in"
+ *	way.
+ *	Returns:
+ *		0 if exception in progress or sound processor is in reset
+ *		1 if exception complete or under way
+ */
+int aud_excw(code, buff, count)
+int code;
+void *buff;
+int count;
+{
+    return 0;
+}
+
+/****************************************************************************
+    		streaming stubs, added to get past broken audio.a
+****************************************************************************/
+
+void strmInit() {;}
+void strmStartStreaming() {;}
+int strmCurrentBufferDonePlaying() {return 1;}
+void strmSwapBuffer() {return;}
+void strmSetupStreaming() {;}
+void strmStop() {;}
+void strmPause() {;}
+void strmResume() {;}
+void strmSetVolume() {;}
+int strmGetSampleRate() { return 42;}
+void synPrintJVcb() {return;}
+void aud_q_dump() {return;}
+int aud_q_mput(int num, ...) {return 0;}
+int aud_getErrorCount() {return 0;}
+void aud_pm() {return;}
+int aud_qlen(void) {return 0;}
+@
+
+
+1.3
+log
+@Added some missing stubs.
+@
+text
+@d274 1
+@
+
+
+1.2
+log
+@added stubs for streaming audio
+@
+text
+@d270 4
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d255 15
+@

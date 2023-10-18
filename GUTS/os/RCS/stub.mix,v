@@ -1,0 +1,40 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	94.12.16.19.19.35;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@MIXIT control file to generate romable .DIO file from combination
+of stub and GUTS.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@out stubm.vlda
+in stub.vlda -addr=9E4000:9E43FF:000000
+in stub.vlda -addr=9E4000:9E43FF:020000
+in stub.vlda -addr=9E4000:9E43FF:040000
+in stub.vlda -addr=9E4000:9E43FF:060000
+in stub.vlda -addr=9E4000:9FFFFF:004000
+in stub.vlda -addr=9E4000:9FFFFF:024000
+in stub.vlda -addr=9E4000:9FFFFF:044000
+in stub.vlda -addr=9E4000:9FFFFF:064000
+in os.vlda -addr=9e8000:9FFFFF:068000
+in last.rom
+out stub.dio
+in stubm.vlda -fill=ff
+exit
+
+@

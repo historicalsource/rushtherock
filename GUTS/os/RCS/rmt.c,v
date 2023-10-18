@@ -1,0 +1,469 @@
+head	1.5;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.5
+date	96.07.29.18.36.02;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.07.27.20.55.59;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.07.23.19.00.56;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.07.23.18.39.05;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.06.06.17.33.14;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Functions to deliver statistics in TEKHEX format from NVRAM to a modem
+through the I/O ASIC uart on Phoenix.
+Some cut and paste (and edit) from Dave Shepperd's MIXIT directory, and
+from the MIB directory.
+Tested and works with dumb terminal and cellular modem with Nucleus demo running.
+Includes comments pointing out possible improvements or problem areas:  see
+-- fom per mea.
+@
+
+
+1.5
+log
+@Fixed bug:  transmission was one byte short.
+@
+text
+@
+/*
+ *	rmt.c -- Forrest Miller -- May 1996
+ *
+ *	Functions to deliver statistics in TEKHEX format from NVRAM to a modem
+ *	through the I/O ASIC uart on Phoenix.
+ *
+ *
+ *		Copyright 1996 Atari Games Corporation
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+/*
+ *	Functions:
+ *		static void rmt_irq()
+ *		static char *to_tekhex(int number)
+ *		static char *to_hex( U8 value, char *str )
+ *		static void rmt_tekhex( char *outp, int inx, int cnt )
+ *		static void rmt_job(int setup)
+ *		static void rmt_act(void *status)
+ *		void rmt_init()
+ */
+
+#include <config.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <intvecs.h>
+#include <stat_defs.h>
+#include <ioa_uart.h>
+#include <nsprintf.h>
+#include <stdlib.h>
+
+#define	STATIC	static
+
+#define TTY_ECHO 1
+
+/*
+ * Structure definitions
+ */
+#define REC_LEN	32
+
+#define IN_BUF_SIZE  16
+#define OUT_BUF_SIZE 80
+
+STATIC struct uart
+{
+ struct act_q action_que;	/* _NOT_ a pointer */
+ char in_buf[IN_BUF_SIZE];
+ VU8  in_count;
+ U8   in_length;
+ U8   dropped;
+ U8   nested;
+ U8   brk;
+ U8   frame;
+ U8   overrun;
+ U8   rcv_full;
+ char out_buf[OUT_BUF_SIZE];
+ U8   out_count;
+ U8   out_length;
+ int  top;
+ int  bottom;
+ int  flags;
+} rmt;
+
+/*
+ * rmt_irq - Interrupt service routine saves the interrupt status,
+ *	     services the hardware, and queues the action routine.
+ */
+STATIC void rmt_irq()
+{
+ U32 intr;	/* Bits which actually caused this interrupt */
+
+ intr = IO_STATUS & IO_CONTROL & UART_INT;
+
+ if ( intr )
+ {
+  if ( intr & UART_RCV )
+  {
+   int ii;
+
+   for ( ii = 0; ii < FIFO_SIZE; ++ii )
+   {
+    U32 rc = UART_RECEIVER;
+
+    if ( rc & BRK ) ++rmt.brk;
+    if ( rc & FRAME ) ++rmt.frame;
+    if ( rc & OVERRUN ) ++rmt.overrun;
+    if ( rc & RCV_FULL ) ++rmt.rcv_full;
+
+    if ( rc & CHAR_RCV )
+    {
+     if ( rmt.flags & TTY_ECHO ) UART_XMITTER = rc;
+     if ( rmt.in_count < IN_BUF_SIZE )
+	rmt.in_buf[ rmt.in_count++ ] = (char)rc;
+     else
+	++rmt.dropped;
+    }
+    else break;
+   }
+  }
+
+  if ( intr & UART_XMT )
+  {
+   if ( rmt.out_count < rmt.out_length )
+	UART_XMITTER = rmt.out_buf[ rmt.out_count++ ];
+   else
+	IO_CONTROL &= ~UART_XMT;
+  }
+
+  if ( rmt.action_que.que == 0 )
+  {
+   rmt.action_que.param = (void *)intr;
+   prc_q_action(&rmt.action_que);
+  }
+  else rmt.nested++;
+ }
+}
+
+/*
+ * to_tekhex - Converts a binary number into variable length hex format.
+ */
+STATIC const char hex_dig[] = { '0', '1', '2', '3', '4', '5', '6', '7',
+				'8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+STATIC char *to_tekhex(int number)
+{
+ static char str[18];
+ int len;
+
+/* Use utl_chex here -- fom per mea */
+
+ nsprintf( &str[1], 17, "%lX", number );
+ len = strlen( str + 1 );
+ str[0] = hex_dig[ len & 0x0F ];
+ return str;
+}
+
+/*
+ * to_hex - Converts a character into two bytes of hex.
+ */
+STATIC char *to_hex( U8 value, char *str )
+{
+ *str++ = hex_dig[(value >> 4) & 0x0F];
+ *str++ = hex_dig[ value & 0x0F ];
+ return str;
+} /* end to_hex */
+
+/*
+ * rmt_tekhex - Converts the amount of bytes specified by "cnt" into
+ *		a tekhex record.
+ */
+#define in(l,m,h)	( ((l) <= (m))  &&  ((m) <= (h)))
+#define CR_LF_NULL 3
+
+STATIC void rmt_tekhex( char *outp, int inx, int cnt )
+{
+ int len, j;
+ char *cp;
+ char csum[4];
+ U32 cksum;
+
+/* nsprintf _should_ return length -- fom per mea */
+
+ nsprintf( rmt.out_buf, OUT_BUF_SIZE, "%%00600%s", to_tekhex( inx ) );
+ len = strlen( rmt.out_buf );
+ for ( cp = rmt.out_buf + len, j = 0; j < cnt; ++j )
+	cp = to_hex( *( BRAM + ( (inx + j) << STRIDE ) ), cp );
+
+ *cp++ = '\r';
+ *cp++ = '\n';
+ *cp   = '\0';
+
+ to_hex( ( U8 )( ( cp - rmt.out_buf - CR_LF_NULL ) & 0xFF ), csum );
+ rmt.out_buf[ 1 ] = csum[ 0 ];
+ rmt.out_buf[ 2 ] = csum[ 1 ];
+
+ for ( cp -= CR_LF_NULL, cksum = 0; cp > rmt.out_buf; --cp )
+ {
+  if ( in( '0', *cp, '9' ) )
+	cksum += *cp - '0';
+  else if ( in( 'A', *cp, 'Z' ) )
+	cksum += *cp - 'A' + 10;
+  else if ( in( 'a', *cp, 'z' ) )
+	cksum += *cp - 'a' + 40;
+  else
+	switch (*cp)
+	{
+	 case '$' : cksum += 36; break;
+	 case '%' : cksum += 37; break;
+	 case '.' : cksum += 38; break;
+	 case '_' : cksum += 39; break;
+	}
+ }
+ to_hex( ( U8 )( cksum & 0xFF ), csum );
+ rmt.out_buf[ 4 ] = csum[ 0 ];
+ rmt.out_buf[ 5 ] = csum[ 1 ];
+
+ rmt.out_length = strlen( rmt.out_buf );
+ rmt.out_count = 0;
+}
+
+/*
+ * rmt_job - Sets up the job request if setup, and
+ *	     continues the job until completion.
+ */
+STATIC void rmt_job(int setup)
+{
+ int cnt;
+
+/* what if still busy? -- fom per mea */
+
+ if ( setup )
+ {
+  char *bp, *cp;
+  bp = rmt.in_buf;
+  rmt.bottom = strtol(bp, &cp, 16);
+  if ( bp != cp ) rmt.top = strtol(bp = cp, &cp, 16) + 1;
+  rmt.in_count = rmt.in_length = rmt.out_count = rmt.out_length = 0;
+  if ( bp == cp )
+  {
+   rmt.top = rmt.bottom = 0;
+   return;
+  }
+  if ( rmt.bottom < 0 ) rmt.bottom = 0;
+  if ( rmt.top >= BRAM_SIZE ) rmt.top = BRAM_SIZE;
+ }
+ if ( rmt.out_count < rmt.out_length ) return;
+ cnt = rmt.top - rmt.bottom;
+ if ( cnt < 0 )
+ {
+  cnt = rmt.top = rmt.bottom = 0;
+ }
+ if ( cnt > REC_LEN ) cnt = REC_LEN;
+ if ( cnt )
+ {
+  rmt_tekhex( rmt.out_buf, rmt.bottom, cnt );
+  rmt.bottom += cnt;
+ }
+ else if ( rmt.bottom )
+ {
+  strcpy( rmt.out_buf, "%0781010\n\r" );
+  rmt.out_length = strlen( rmt.out_buf );
+  rmt.out_count = rmt.top = rmt.bottom = 0;
+ }
+ if ( setup )
+ {
+
+/* try just enabling irq -- fom per mea */
+
+  UART_XMITTER = rmt.out_buf[ rmt.out_count++ ];
+  IO_CONTROL |= UART_XMT;
+ }
+}
+
+/*
+ * rmt_act - Action routine
+ */
+STATIC void rmt_act(void *status)
+{
+ if ( (U32)status & UART_RCV )
+ {
+  while ( rmt.in_length < rmt.in_count )
+  {
+   char c = rmt.in_buf[ rmt.in_length++ ];
+   if ( ( c == '\r' ) || ( c == '\n' ) )
+   {
+    rmt.in_buf[ rmt.in_length++ ] = ( c == '\r' ) ? '\n' : '\r';
+    rmt.in_buf[ rmt.in_length++ ] = '\0';
+    rmt_job(1);
+   }
+   else if ( rmt.in_length == IN_BUF_SIZE )
+   {
+    rmt.in_count = rmt.in_length = rmt.out_count = rmt.out_length = 0;
+   }
+  }
+ }
+ if ( (U32)status & UART_XMT ) rmt_job(0);
+}
+
+/*
+ * rmt_init - Resets the UART, loads the interrupt vector, loads the
+ *	      action routine, initializes the UART and enables the
+ *	      receive interrupt.
+ */
+void rmt_init(code) U16 code;		/* Baud rate code */
+{
+ UART_CONTROL = 0;			/* Reset the UART */
+ prc_set_vec(UART_INTVEC, rmt_irq);	/* Load the I/O ASIC Vector */
+ rmt.action_que.action = rmt_act;	/* Load the Action Routine */
+ UART_CONTROL = UART_ENABLE | code;	/* Init the UART */
+ IO_CONTROL |= UART_RCV;		/* Start the receiver */
+}
+@
+
+
+1.4
+log
+@Changed to include ioa_uart.h; removed local definitions.
+@
+text
+@d220 1
+a220 1
+  if ( bp != cp ) rmt.top = strtol(bp = cp, &cp, 16);
+d228 1
+a228 1
+  if ( rmt.top >= BRAM_SIZE ) rmt.top = BRAM_SIZE - 1;
+@
+
+
+1.3
+log
+@Added echo option (TTY_ECHO) which is ok for testing, but
+not ok for a real driver.
+@
+text
+@d32 1
+a37 32
+/*
+ * Interrupt Controller Definitions
+ */
+#define IO_STATUS  ( *((VU32 *)IO_MAIN_STS) )
+#define IO_CONTROL ( *((VU32 *)IO_MAIN_CTL) )
+
+#define UART_BRK ( IO_MAIN_UART_BRK_DETECT )
+#define UART_ERR ( IO_MAIN_UART_FRAME_ERROR | IO_MAIN_UART_OVER_RUN )
+#define UART_RCV ( IO_MAIN_UART_RCV_CHAR )
+#define UART_XMT ( IO_MAIN_UART_XMT_EMPTY )
+
+#define UART_INT ( IO_MAIN_UART_BRK_DETECT | IO_MAIN_UART_FRAME_ERROR \
+		   | IO_MAIN_UART_OVER_RUN | IO_MAIN_UART_RCV_FULL    \
+		   | IO_MAIN_UART_RCV_CHAR | IO_MAIN_UART_XMT_EMPTY )
+
+/*
+ * UART Definitions
+ */
+#define UART_ENABLE   ( IO_UART_CTL_INTERNAL_ENA )
+
+#define UART_CONTROL  ( *((VU32 *)IO_UART_CTL) )
+#define UART_XMITTER  ( *((VU32 *)IO_UART_TX) )
+#define UART_RECEIVER ( *((VU32 *)IO_UART_RCV) )
+
+#define CHAR_RCV ( IO_UART_RCV_CHAR )
+#define BRK      ( IO_UART_RCV_BREAK_DETECT )
+#define FRAME    ( IO_UART_RCV_FRAME_ERROR )
+#define OVERRUN  ( IO_UART_RCV_OVER_RUN )
+#define FIFO     ( IO_UART_RCV_FULL )
+
+#define FIFO_SIZE ( IO_UART_RCV_FIFO_SIZE )
+
+d59 1
+a59 1
+ U8   fifo;
+d91 1
+a91 1
+    if ( rc & FIFO ) ++rmt.fifo;
+@
+
+
+1.2
+log
+@Changed to 32 bit addressing.  Added input error checking.
+Changed fields in struct uart to U8 from int where possible.
+@
+text
+@d69 2
+d96 1
+d126 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d40 2
+a41 2
+#define IO_STATUS  ( *((VU16 *)IO_MAIN_STS) )
+#define IO_CONTROL ( *((VU16 *)IO_MAIN_CTL) )
+d43 5
+a51 3
+#define UART_RCV ( IO_MAIN_UART_RCV_CHAR )
+#define UART_XMT ( IO_MAIN_UART_XMT_EMPTY )
+
+d55 5
+a59 3
+#define UART_CONTROL  ( *((VU16 *)IO_UART_CTL) )
+#define UART_XMITTER  ( *((VU8 *)IO_UART_TX) )
+#define UART_RECEIVER ( *((VU16 *)IO_UART_RCV) )
+d62 4
+d80 14
+a93 10
+ volatile int in_count;
+ int	      in_length;
+ char	      in_buf[IN_BUF_SIZE];
+ int	      dropped;
+ int	      nested;
+ int	      out_count;
+ int	      out_length;
+ char	      out_buf[OUT_BUF_SIZE];
+ int	      top;
+ int	      bottom;
+d104 1
+a104 1
+ intr = IO_STATUS & IO_CONTROL;
+a110 1
+   U16 rc;
+d114 8
+a121 1
+    if ( ( rc = UART_RECEIVER ) & CHAR_RCV )
+d126 1
+a126 1
+	rmt.dropped++;
+d320 1
+a320 1
+ UART_CONTROL = 0x200 | code;		/* Init the UART */
+@

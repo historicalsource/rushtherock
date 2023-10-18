@@ -1,0 +1,167 @@
+head	1.7;
+access;
+symbols
+	RUSH_ROCK_1_0:1.7
+	RUSH_ROCK_1_0epst:1.7
+	RUSH_ROCK_1_0boot:1.7
+	MACE_1_0a:1.7
+	CJ_206:1.7
+	CJ2_05:1.7
+	CJ2_04:1.7;
+locks; strict;
+comment	@# @;
+
+
+1.7
+date	96.06.29.18.23.09;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.03.11.21.32.37;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.01.03.05.37.03;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.01.02.18.15.49;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.07.18.00.16.51;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.07.10.18.41.58;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.18.35.05;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@simple shell script to see who has what checked out locked
+@
+
+
+1.7
+log
+@Changed dodd to todd
+@
+text
+@#!/bin/sh
+echo '-------------ALBAUGH-----------------';
+rlog -lalbaugh -L -R RCS/*,v;
+echo '-------------BIRMINGHAM--------------';
+rlog -lbirmingham -L -R RCS/*,v;
+echo '-------------MAJESKI-----------------';
+rlog -ltodd -L -R RCS/*,v;
+echo '-------------FORREST-----------------';
+rlog -lforrest -L -R RCS/*,v;
+echo '-------------GRISAFI-----------------';
+rlog -lgrisafi -L -R RCS/*,v;
+echo '-------------MCKEE-------------------';
+rlog -lmckee -L -R RCS/*,v;
+echo '-------------SHEPPERD----------------';
+rlog -lshepperd -L -R RCS/*,v;
+echo '_____________________________________'
+@
+
+
+1.6
+log
+@Added DODD and Grisafi
+@
+text
+@d6 2
+a7 2
+echo '-------------DODD--------------------';
+rlog -ldodd -L -R RCS/*,v;
+@
+
+
+1.5
+log
+@Put the damn comment chars on the right lines.
+@
+text
+@d2 1
+a2 1
+echo '--------------ALBAUGH----------------';
+d6 3
+a8 1
+echo '--------------FORREST----------------';
+d10 3
+a12 1
+echo '---------------MCKEE-----------------';
+d14 1
+a14 3
+#echo '--------------PEPLINSKI--------------';
+#rlog -lpeplinski -L -R RCS/*,v;
+echo '--------------SHEPPERD---------------';
+@
+
+
+1.4
+log
+@Removed peplinski from the list.
+@
+text
+@d10 1
+a10 1
+echo '--------------PEPLINSKI--------------';
+d12 1
+a12 1
+#echo '--------------SHEPPERD---------------';
+@
+
+
+1.3
+log
+@added Shepperd, Forrest. Alphabetized names
+@
+text
+@d1 1
+d11 2
+a12 2
+rlog -lpeplinski -L -R RCS/*,v;
+echo '--------------SHEPPERD---------------';
+@
+
+
+1.2
+log
+@Removed MENCONI and added shepperd and forrest
+@
+text
+@d1 2
+d5 2
+d9 2
+a12 4
+echo '--------------ALBAUGH----------------';
+rlog -lalbaugh -L -R RCS/*,v;
+echo '--------------FORREST----------------';
+rlog -lforrest -L -R RCS/*,v;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d5 2
+a6 2
+echo '--------------MENCONI----------------';
+rlog -lmenconi -L -R RCS/*,v;
+d9 2
+@

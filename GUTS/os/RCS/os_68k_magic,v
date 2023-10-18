@@ -1,0 +1,149 @@
+head	1.5;
+access;
+symbols
+	CJ_206:1.5
+	CJ2_05:1.5;
+locks; strict;
+comment	@# @;
+
+
+1.5
+date	95.08.08.21.11.04;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.07.18.18.04.11;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.06.14.17.11.40;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.05.31.20.33.15;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.05.26.19.52.16;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@second try at linker control-file magic.
+@
+
+
+1.5
+log
+@added linker kluge for gpu_make_shadow and gpu_shut_down
+@
+text
+@MEMORY {
+	junk : ORIGIN = 0x00000000,  LENGTH = 0
+	orgd : ORIGIN = 0x00800000,  LENGTH = 0x00000400
+	prog : ORIGIN = 0x00800400,  LENGTH = 0x0001FBFC
+	oops : ORIGIN = 0x0081FFFC,  LENGTH = 0x00000004
+	ram  : ORIGIN = 0xFFA00400,  LENGTH = 0x00001C00
+}
+
+SECTIONS {
+	VECTORS : {
+		*($$seg0)
+	} >orgd
+
+	TEXT : {
+		_text_start = .;
+		*(first)
+		*($$seg1)
+		*($$seg8)
+		*(.text)
+		*($$seg9)
+		_gpu_int1 = .;
+		*(GPU_CODE)
+		_gpu_ide_isr = _gpu_int1 + O_gpu_ide_isr;
+		_gpu_obp_isr = _gpu_int1 + O_gpu_obp_isr;
+		_gpu_task_dispatcher = _gpu_int1 + O_gpu_task_dispatcher;
+		_gpu_decompress = _gpu_int1 + O_gpu_decompress;
+		_gpu_movie = _gpu_int1 + O_gpu_movie;
+		_gpu_memory_test = _gpu_int1 + O_gpu_memory_test;
+		_gpu_ide_read = _gpu_int1 + O_gpu_ide_read;
+		_gpu_make_shadow = _gpu_int1 + O_gpu_make_shadow;
+		_gpu_shut_down = _gpu_int1 + O_gpu_shut_down;
+		_DSP_ROM = .;
+		*(DSP_CODE)
+		_text_end = .;
+	} >prog
+
+	DATA : {
+		*(data)
+		*(DATA)
+	} >oops
+
+	BSS  (NOLOAD) : {
+		_bss_start = .;
+		*($$seg50)
+		*(.bss) *(bss) *(BSS) *(COMMON)
+		*($$seg14)
+		*($$seg51)
+		_bss_end = .;
+	} >ram
+
+	_bss_size = (_bss_end - _bss_start + 3) / 4;
+}
+
+_ROM_DATA_ADDRESS = 0x900000;
+PBASE = 0x820000;
+_PBASE = 0x820000;
+ENTRY (_stub_start)
+
+SEARCH_DIR ( ./ )
+
+@
+
+
+1.4
+log
+@Added label definition for main-line GPU IDE read task.
+@
+text
+@d30 2
+@
+
+
+1.3
+log
+@"Publish" _PBASE as well as PBASE, so 68k C can see it.
+@
+text
+@d29 1
+@
+
+
+1.2
+log
+@fixed link-file definitions of gpu_* labels. This should all
+go away soon, I hope.
+@
+text
+@d53 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d23 6
+a28 5
+		_gpu_ide_isr = _gpu_int1 + gpu_ide_isr;
+		_gpu_obp_isr = _gpu_int1 + gpu_obp_isr;
+		_gpu_task_dispatcher = _gpu_int1 + gpu_task_dispatcher;
+		_gpu_decompress = _gpu_int1 + gpu_decompress;
+		_gpu_movie = _gpu_int1 + gpu_movie;
+@

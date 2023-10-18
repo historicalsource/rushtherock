@@ -1,0 +1,103 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	95.06.26.23.40.31;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@MACPP constants, macros and .defines defining the TWI MCUBE host board
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@.if ndf, _CONSTANTS_MAC_
+  .warn ;You should .include constants.mac before including lcr3k.mac
+  .include constants.mac
+.endc
+.if ndf, _PPTYPES_MAC_
+  .warn ;You should .include types.mac before including lcr3k.mac
+  .include pptypes.mac
+.endc
+;
+.if ndf,HOST_BOARD
+	HEX_CONST HOST_BOARD	MCUBE
+.endc
+REM <	MCUBE host board specific definitions>
+;
+; Big-Endian Byte offset is 32 (or 64) - (bit offset)>>3
+	HEX_CONST SHORT0_OFFS 2
+	HEX_CONST SHORT16_OFFS 0
+	HEX_CONST BYTE0_OFFS 3
+	HEX_CONST BYTE8_OFFS 2
+	HEX_CONST BYTE16_OFFS 1
+	HEX_CONST BYTE24_OFFS 0
+REMB
+REMM <The EC020 memory map appears as the following:			>
+REME
+;  
+	HEX_CONST ROM0_BASE	0x00000000 <       0x00000000-0x001FFFFF, ROM 0 (rw)>
+	HEX_CONST ROM1_BASE	0x00200000 <       0x00200000-0x003FFFFF, ROM 1 (rw)>
+	HEX_CONST PROG_BASE     ROM0_BASE
+	HEX_CONST XBUS_SLOT1	0x00400000 < xb=1, 0x00400000-0x005FFFFF, ZTV (rw) >
+	HEX_CONST XBUS_SLOT2	0x00600000 < xb=2, 0x00600000-0x007FFFFF, ZRE (rw) >
+	HEX_CONST XBUS_SLOT3	0x00800000 < xb=3, 0x00800000-0x009FFFFF, C30 Math (rw) >
+	HEX_CONST XBUS_SLOT4	0x00A00000 < xb=4, 0x00A00000-0x00A8FFFF, TGS Math (rw) >
+	HEX_CONST XBUS_SLOT5	0x00B00000 < xb=5, 0x00B00000-0x00B3FFFF, n.u. (rw) >
+	HEX_CONST XBUS_SLOT6	0x00B40000 < xb=6, 0x00B40000-0x00B7FFFF, cage audio, 128kb (rw) >
+	HEX_CONST CAGE_BASE     XBUS_SLOT6
+	HEX_CONST XBUS_SLOT7	0x00B80000 < xb=7, 0x00B80000-0x00B8FFFF, Xbus slot 7 (ICELESS) (rw) >
+	HEX_CONST XBUS_SLOT70	0x00B80000 < xb=7, 0x00B80000-0x00B8FFFF, Xbus slot 7-0 (ICELESS) (rw) >
+	HEX_CONST XBUS_SLOT71	0x00B90000 < xb=7, 0x00B90000-0x00B9FFFF, Xbus slot 7-1 (ICELESS) (rw) >
+	HEX_CONST XBUS_SLOT72	0x00BA0000 < xb=7, 0x00BA0000-0x00BAFFFF, Xbus slot 7-2 (ICELESS) (rw) >
+	HEX_CONST XBUS_SLOT73	0x00BB0000 < xb=7, 0x00BB0000-0x00BBFFFF, Xbus slot 7-3 (ICELESS) (rw) >
+	HEX_CONST XBUS_SLOT74	0x00BC0000 < xb=7, 0x00BC0000-0x00BCFFFF, Xbus slot 7-4 (ICELESS) (rw) >
+	HEX_CONST XBUS_SLOT75	0x00BD0000 < xb=7, 0x00BD0000-0x00BDFFFF, Xbus slot 7-5 (ICELESS) (rw) >
+	HEX_CONST XBUS_SLOT76	0x00BE0000 < xb=7, 0x00BE0000-0x00BEFFFF, Xbus slot 7-6 (ICELESS) (rw) >
+	HEX_CONST XBUS_SLOT77	0x00BF0000 < xb=7, 0x00BF0000-0x00BFFFFF, Xbus slot 7-7 (ICELESS) (rw) >
+	HEX_CONST BBRAM_BASE    0x00FC0000 <       0x00FC0000-0x00FCC7FF, Zero power RAM, 64KB (rw) >
+	HEX_CONST BBRAM_SIZE    (2040*2)   < BRAM size (almost 2k words)			>
+	HEX_CONST BRAM_BASE     BBRAM_BASE < alias for BBRAM >
+	HEX_CONST BRAM_SIZE     BBRAM_SIZE < alias for BBRAM_SIZE >
+	HEX_CONST BBRLOCK       0x00FC8000 <       0x00FC8000-0x00FC8FFF, Unlock BBRAM, 4KB (wo) >
+	HEX_CONST BBRUNLOCK     0x00FCC000 <       0x00FCC000-0x00FCCFFF, Unlock BBRAM, 4KB (wo) >
+	HEX_CONST WDOG_BASE     0x00F02000 <       0x00F02000-0x00F02FFF, Kick the dog, 4KB (wo) >
+	HEX_CONST TIMER_BASE	0x00F08000 <       0x00F08000-0x00F0FFFF, Interval timer 32kb (ro) >
+	HEX_CONST TIMER_RST     0x00F15000 <       0x00F15000-0x00F15FFF, reset the timer IRQ. 4KB (ro) >
+	HEX_CONST TIMER_ACK     TIMER_RST  < alias for TIMER_RST >
+	HEX_CONST RAM_BASE	0x00FD0000 <       0x00FD0000-0x00FEFFFF, scratch ram (rw) >
+	HEX_CONST SRAM_BASE	RAM_BASE   < SRAM phys 0x00A00000-0x00A1FFFF (cached)			>
+	HEX_CONST SRAM_SIZE	0x00002000 < SRAM size (128k) >
+	HEX_CONST ROMULATOR_START 0x00000000 < ROMBUS board 0x00000000-0x003FFFFF >
+	HEX_CONST ROMULATOR_END   0x00400000 < ROMBUS board 0x00000000-0x003FFFFF >
+;
+	HEX_CONST XIO_BASE      XBUS_SLOT5 < xb=5, 0x00B00000-0x00B3FFFF, XIO devices, 128KB, (rw) >
+;
+	DEC_CONST UART_LVL	2			< XBUS 2 interrupt >
+	DEC_CONST XBUS1_LVL	3			< XBUS 1 interrupt >
+	DEC_CONST XBUS0_LVL	4			< XBUS 0 interrupt >
+	DEC_CONST LINK_LVL	5			< Link interrupt >
+	DEC_CONST TIMER_LVL	6			< CPU timer interrupt >
+	DEC_CONST ICELESS_LVL	7			< ICELESS debugger interrupt >
+	HEX_CONST INTS_ON	0x2000			< Enable all interrupts >
+	HEX_CONST INTS_OFF	0x2700			< Disable all XBUS interrupts >
+;
+	VAR	WDOG	VU32	WDOG_BASE	< Watchdog kick (ro) >
+REM <	Work RAM>
+	ARRAY	WRAM,	U32, 	SRAM_BASE, SRAM_SIZE < Working RAM	>
+REM <	EEPROM>
+	ADDR	EEPROM	U16	BBRAM_BASE	< EEPROM 		>
+REM <	BRAM>
+	ADDR	BRAM 	U16	BBRAM_BASE	< BRAM			>
+;
+@

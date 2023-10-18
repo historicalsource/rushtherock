@@ -1,0 +1,205 @@
+head	1.2;
+access
+	avellar;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.2
+date	95.06.14.01.43.27;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.18.50.57;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@changeable spec for the various EEPROM parameters and statistics
+needed by a particular game.
+@
+
+
+1.2
+log
+@Moving toward a more suitable two-player generic STATS setup for CoJag
+@
+text
+@N_TRIES	==	4
+EEPROM_SIZE == 2040
+STRIDE	== 2
+HST_INITIAL_COMPRESS == 0
+HST_TIE_TO_NEWER == 0
+;
+;
+;	Signature for each game should be unique to force re-init of stats
+;
+SIGNATURE <Generic CoJag 2-Player 1.0>
+;
+	.list ME
+;
+DEF_STAT CC0,16,fast,<left coin mech>
+DEF_STAT CC1,16,fast,<right coin mech>
+DEF_STAT CCX,16,fast,<aux coin mech>
+;
+;	the 0PTIME (no player), 1PTIME, 2PTIME, ..., SESTIM
+;		game timers must be in order!
+;
+DEF_STAT 0PTIME,20,wrap,<idle time>
+DEF_STAT 1PTIME,20,fast,<1 player time in play>
+DEF_STAT 2PTIME,20,fast,<2 player time in play>
+DEF_STAT SESTIM,20,fast,<session time>
+;
+;	The COINS (NEW/CONT then LR)
+;	must be contiguous, followed immediately by
+;	the TIMES for display purposes
+;
+;	in SIMUL games, use NEW,CONT,LEFT,[CENTER,]RIGHT
+;	in nonSIMUL: use NEW-1,CONT_1,NEW-2,CONT-2player
+;
+DEF_STAT NEWCOINS,20,fast,<new games>
+DEF_STAT CONTCOINS,20,fast,<cont games>
+DEF_STAT FREEGMS,20,fast,<won games>
+;
+;	NEWTIM and CONTTIM must be in sequence with LRC
+;	  for display purposes
+;	LPL, CPL, RPL, and SESSION must be in sequence
+;	  to correctly accumulate run time
+;
+;	If non-SIMUL games, use:
+;	  NEW-1PL,NEW-2PL,NEW-3PL,CONT-1PL,CONT-2PL,CONT-3PL
+;
+DEF_STAT NEWTIM,20,fast,<new game time>
+DEF_STAT CONTTIM,20,fast,<continued game time>
+DEF_STAT FREETIM,20,fast,<won game time>
+;
+DEF_STAT GMS,20,fast,<total games>
+DEF_STAT SESSIONS,20,fast,<total sessions>
+DEF_STAT 1PGAMS,20,fast,<1 player games>
+DEF_STAT 2PGAMS,20,fast,<2 player games>
+;
+DEF_STAT ERRORS,16,slow,<count of EEPROM errors>
+;
+;	Stats could be CLEARED to ERRORS (but are NOW
+;		cleared to CNOPT...
+;
+DEF_STAT HI_CNT,16,fast,<hi score games since hi-score reset>
+DEF_STAT GAME_CNT,16,fast,<games since hi-score reset>
+DEF_STAT CNOPT,16,fixed,<coin options>
+DEF_STAT GMOPT,32,fixed,<game options>
+DEF_STAT GUTS_OPT,8,fixed,<GUTS options, incl. attract mute>
+;
+;	Counters for system errors
+;
+; The counters with 'PROC' in their titles are used by the root
+; SOFT is used by aud_ctls.c
+; others are game dependent...
+;
+; >>->	KEEP THEM CONTIGUOUS so they can be cleared as a group!
+;
+DEF_STAT RESET,8,slow,<PROC non-powerup RESETS>
+DEF_STAT BUSERR,8,slow,<PROC bus errors>
+DEF_STAT ADRERR,8,slow,<PROC address errors>
+DEF_STAT ILGINS,8,slow,<PROC illegal instructions>
+DEF_STAT DVDBY0,8,slow,<PROC divide by 0>
+DEF_STAT CHKINS,8,slow,<PROC CHK instruction errors>
+DEF_STAT TRPVINS,8,slow,<PROC TRAPV instructions>
+DEF_STAT PRVVIOL,8,slow,<PROC privelege violations>
+DEF_STAT SNDSLST,8,slow,<SOFT sounds lost>
+DEF_STAT DATALST,8,slow,<SOFT sound data lost>
+DEF_STAT AUDRESET,8,slow,<SOFT sound proc resets>
+DEF_STAT LINKFAIL,8,slow,<SOFT LINK failures>
+;
+; VALUE for adjusting the audio volume
+;
+DEF_STAT AUD_VOL,16,fixed,<audio volume level>
+;
+; POT (A->D) calibration values
+;
+;DEF_STAT POT0L,8,fixed,<pot 0 - low limit>
+;DEF_STAT POT1L,8,fixed,<pot 1 - low limit>
+;DEF_STAT POT2L,8,fixed,<pot 2 - low limit>
+;DEF_STAT POT3L,8,fixed,<pot 3 - low limit>
+;DEF_STAT POT0H,8,fixed,<pot 0 - high limit>
+;DEF_STAT POT1H,8,fixed,<pot 1 - high limit>
+;DEF_STAT POT2H,8,fixed,<pot 2 - high limit>
+;DEF_STAT POT3H,8,fixed,<pot 3 - high limit>
+;
+; GUN calibration values
+;
+DEF_STAT GUN0H,8,fixed,<GUN 0, Horiz. offset>
+DEF_STAT GUN0V,8,fixed,<GUN 0, Vert. offset>
+DEF_STAT GUN1H,8,fixed,<GUN 1, Horiz. offset>
+DEF_STAT GUN1V,8,fixed,<GUN 1, Vert. offset>
+;
+; name of hist, #of bins, sizeof first, sizeof rest,title[,fields]
+;
+DEF_HISTOGRAM NEWGAME,20,30,30,<New Game Times (in seconds)>
+DEF_HISTOGRAM CONTGAME,20,30,30,<Continued Game Times (in seconds)>
+;DEF_HISTOGRAM FREEGAME,20,30,30,<Won Game Times (in seconds)>
+DEF_HISTOGRAM SESSION,20,1,1,<Session Length (in games)>
+;DEF_HISTOGRAM WINNING,20,1,1,<SOLO Winning Streaks (in games)>
+;
+;DEF_HISTOGRAM TANKSELECT,6,1,1,<Tank Selects\tSPEED   \tSTEALTH \tASSAULT \tHYPER   \tLURKER  \tSUICIDE >
+;DEF_HISTOGRAM ARENASELECT,6,1,1,<Arena Selects\tINFERNO \tANVIL   \tK.FLOOR \tSTONE   \tNEST    \tSTORM   >
+;
+;DEF_HISTOGRAM HUMAN_RANK,4,1,1,<Human Rank in SOLO games\t1: \t2: \t3: \t4: >
+;DEF_HISTOGRAM AI_RANK,4,1,1,<AI Rank in LINKED games\t1: \t2: \t3: \t4: >
+;
+;DEF_HISTOGRAM SP_RANK,4,1,1,<SpeedMEK Ranks\t1: \t2: \t3: \t4: >
+;DEF_HISTOGRAM ST_RANK,4,1,1,<StealthMEK Ranks\t1: \t2: \t3: \t4: >
+;DEF_HISTOGRAM AS_RANK,4,1,1,<AssaultMEK Ranks\t1: \t2: \t3: \t4: >
+;DEF_HISTOGRAM HP_RANK,4,1,1,<HyperMEK Ranks\t1: \t2: \t3: \t4: >
+;DEF_HISTOGRAM LK_RANK,4,1,1,<LurkerMEK Ranks\t1: \t2: \t3: \t4: >
+;DEF_HISTOGRAM SU_RANK,4,1,1,<SuicideMEK Ranks\t1: \t2: \t3: \t4: >
+;
+;DEF_HISTOGRAM DEATHS,11,1,1,<Deaths (per game)>
+;DEF_HISTOGRAM TOURNAMENT,13,1,1,<Highest Tournament Level (SOLO)\t 1: \t 2: \t 3: \t 4: \t 5: \t 6: \t 7: \t 8: \t 9: \t10: \t11: \t12: \t13: >
+;DEF_HISTOGRAM CONTLEVEL,12,1,1,<Continues per Level (SOLO)\t 1: \t 2: \t 3: \t 4: \t 5: \t 6: \t 7: \t 8: \t 9: \t10: \t11: \t12: >
+;
+;DEF_HISTOGRAM RELOADS,11,1,1,<Weapon Reloads (per game)>
+;
+; High Score Table(s)
+;;;DEF_H_S_T	TOPGAME,10,4,3,8	; 10 tot,4 perm,3 score & 8 init bytes
+DEF_H_S_T	TOPGAME,22,22,1,8	; 22 tot,22 perm,1 score & 8 init bytes
+;
+;DEF_USER	CITIES,6		; 6 entries of city codes
+;DEF_USER	STATS,80		; 4 entries worth of 20-bytes stats
+;
+EPILOGUE
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d5 1
+a5 1
+HST_TIE_TO_NEWER == 1
+d10 1
+a10 1
+SIGNATURE <AREA 51 0.1>
+d111 2
+a112 2
+DEF_HISTOGRAM CONTGAME,20,30,30,<Continuation Times (in seconds)>
+DEF_HISTOGRAM FREEGAME,20,30,30,<Won Game Times (in seconds)>
+d114 1
+a114 1
+DEF_HISTOGRAM WINNING,20,1,1,<SOLO Winning Streaks (in games)>
+d116 2
+a117 2
+DEF_HISTOGRAM TANKSELECT,6,1,1,<Tank Selects\tSPEED   \tSTEALTH \tASSAULT \tHYPER   \tLURKER  \tSUICIDE >
+DEF_HISTOGRAM ARENASELECT,6,1,1,<Arena Selects\tINFERNO \tANVIL   \tK.FLOOR \tSTONE   \tNEST    \tSTORM   >
+d119 2
+a120 2
+DEF_HISTOGRAM HUMAN_RANK,4,1,1,<Human Rank in SOLO games\t1: \t2: \t3: \t4: >
+DEF_HISTOGRAM AI_RANK,4,1,1,<AI Rank in LINKED games\t1: \t2: \t3: \t4: >
+d133 1
+a133 1
+DEF_HISTOGRAM RELOADS,11,1,1,<Weapon Reloads (per game)>
+@

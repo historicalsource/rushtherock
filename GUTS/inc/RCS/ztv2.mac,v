@@ -1,0 +1,612 @@
+head	1.11;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.11
+date	96.02.14.01.03.18;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.02.06.21.48.03;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.01.18.18.52.40;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.01.18.00.13.25;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.01.11.22.21.05;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.01.04.00.46.35;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.12.29.20.08.02;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.12.12.19.20.10;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.12.12.18.35.20;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.12.10.00.36.01;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.12.10.00.06.28;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Zoid 20 TV, ZRE and ZMB definitions.
+@
+
+
+1.11
+log
+@Added definitions for HBLANK and OVLY_BUF (new on ZIG),
+Also "soft switches" for "Wait for HBLANK" and "EconoZig"
+(One Bank)
+@
+text
+@.if not_defined,_ZTV2_MAC_
+_ZTV2_MAC_ == 0
+ .if true, OUTPUT_LANG == LANG_C
+#ifndef HDW_INIT
+# define HDW_INIT(x) do { extern void prc_init_vecs(void); prc_init_vecs(); } while (0)
+#endif
+ .endc
+ .if not_defined, ZTV_VERS
+	HEX_CONST ZTV_VERS	2
+ .endc
+ .if not_defined,_Z20ALPHA_MAC_
+ _Z20ALPHA_MAC_ == 0
+; >>-> Set appropriately for your game
+	HEX_CONST VIS_H_PIX	512.	< horizontal screen resolution	>
+	HEX_CONST TOT_H_PIX	512.	< pixel count to next line	>
+	HEX_CONST VIS_V_PIX	384.	< vertical screen resolution	>
+	HEX_CONST TOT_V_PIX	1024.	< Total vertical screen size	>
+;
+;
+REM <	Color pair constants>
+; >>-> Set appropriately for your game.
+ .if	lt,ZTV_VERS-2
+; values below (0x400, 0x10, 1) are for ZTV with 6-6-4 RGB
+	HEX_CONST RED_LSB	0x0400		< RED gun LSB		>
+	HEX_CONST GRN_LSB	0x0010		< GREEN gun LSB		>
+	HEX_CONST BLU_LSB	0x0001		< BLUE gun LSB		>
+	HEX_CONST ALL_LSB	<RED_LSB | GRN_LSB | BLU_LSB>
+;	HEX_CONST INTEN_MSK	0x8000		< INTENSITY MASK	>
+ .endc
+ .if	eq,ZTV_VERS-2
+; values below (0x400, 0x20, 1) are for ZTV2 with 5-5-5 RGB
+	HEX_CONST RED_LSB	0x0400		< RED gun LSB		>
+	HEX_CONST GRN_LSB	0x0020		< GREEN gun LSB		>
+	HEX_CONST BLU_LSB	0x0001		< BLUE gun LSB		>
+	HEX_CONST ALL_LSB	<RED_LSB | GRN_LSB | BLU_LSB>
+;	HEX_CONST INTEN_MSK	0x8000		< INTENSITY MASK	>
+ .endc
+; >>-> Set appropriately for your game.
+ .if	lt,ZTV_VERS-2
+; values below are for ZTV with 6-6-4 RGB
+	HEX_CONST RED_MSK	0xFC00		< RED INTENSITY MASK	>
+	HEX_CONST GRN_MSK	0x03F0		< GREEN INTENSITY MASK	>
+	HEX_CONST BLU_MSK	0x000F		< BLUE INTENSITY MASK	>
+	HEX_CONST RED_SHF	10.		< RED INTENSITY SHIFT	>
+	HEX_CONST GRN_SHF	4		< GREEN INTENSITY SHIFT	>
+	HEX_CONST BLU_SHF	0		< BLUE INTENSITY SHIFT	>
+ .endc
+ .if	eq,ZTV_VERS-2
+; values below are for ZTV2 with 5-5-5 RGB
+	HEX_CONST RED_MSK	0x7C00		< RED INTENSITY MASK	>
+	HEX_CONST GRN_MSK	0x03E0		< GREEN INTENSITY MASK	>
+	HEX_CONST BLU_MSK	0x001F		< BLUE INTENSITY MASK	>
+	HEX_CONST RED_SHF	10.		< RED INTENSITY SHIFT	>
+	HEX_CONST GRN_SHF	5		< GREEN INTENSITY SHIFT	>
+	HEX_CONST BLU_SHF	0		< BLUE INTENSITY SHIFT	>
+ .endc
+; >>-> These are derived, sometimes badly...
+	HEX_CONST ALL_MSK	<RED_MSK | GRN_MSK | BLU_MSK>
+	HEX_CONST BITS_PER_GUN	4		< (KLUGE) # of bits/gun	>
+;
+	HEX_CONST YEL_MSK	<RED_MSK | GRN_MSK>
+	HEX_CONST CYN_MSK	<GRN_MSK | BLU_MSK>
+	HEX_CONST VIO_MSK	<RED_MSK | BLU_MSK>
+	HEX_CONST RED_QTR	((RED_MSK+RED_LSB)>>2)
+	HEX_CONST GRN_QTR	((GRN_MSK+GRN_LSB)>>2)
+	HEX_CONST BLU_QTR	((BLU_MSK+BLU_LSB)>>2)
+	HEX_CONST WHT_FUL	(ALL_MSK-RED_QTR-GRN_QTR-BLU_QTR)
+	HEX_CONST SLT_FUL	(ALL_MSK-(2*(RED_QTR+GRN_QTR+BLU_QTR)))
+	HEX_CONST GRY_FUL	(ALL_MSK-(3*(RED_QTR+GRN_QTR+BLU_QTR)))
+	HEX_CONST GRY_BAK	(GRY_FUL<<16.)
+;
+	HEX_CONST BLK_SLT	SLT_FUL		< Slate on black	>
+	HEX_CONST BLK_WHT	WHT_FUL		< White on black	>
+	HEX_CONST BLK_YEL	YEL_MSK		< Yellow on Black	>
+	HEX_CONST BLK_RED	RED_MSK		< Red on black		>
+	HEX_CONST BLK_GRN	GRN_MSK		< Green on Black	>
+	HEX_CONST BLK_CYN	CYN_MSK		< Cyan on black		>
+	HEX_CONST BLK_VIO	VIO_MSK		< Violet on black	>
+	HEX_CONST BLK_BLU	BLU_MSK		< Blue on black		>
+	HEX_CONST GRY_SLT	<GRY_BAK + SLT_FUL>
+	HEX_CONST GRY_WHT	<GRY_BAK + WHT_FUL>
+	HEX_CONST GRY_YEL 	<GRY_BAK + YEL_MSK>
+	HEX_CONST GRY_RED	<GRY_BAK + RED_MSK>
+	HEX_CONST GRY_GRN	<GRY_BAK + GRN_MSK>
+	HEX_CONST GRY_CYN	<GRY_BAK + CYN_MSK>
+	HEX_CONST GRY_VIO	<GRY_BAK + VIO_MSK>
+	HEX_CONST GRY_BLU	<GRY_BAK + BLU_MSK>
+;
+; NOTE: much of the code that uses the NXT_ROW or NXT_COL relies on the fact
+;	that the step-size is given in BYTES and the data size is WORDS of
+;	exactly two bytes.  This is done because pointer arithmetic is scaled
+;	in C by the data size but isn't scaled at all in the assembled modules.
+;       We should examine the uses of these constants with an eye to either
+;	having them generated differently by MACPP or having a scale factor
+;	explicitly declared.  We might also explictly define an ORIENTATION
+;	(vertical or horizontal).  For now, note that the orientation is
+;	VERTICAL (sequential addresses display vertically) if AN_NEXT_ROW
+;	is equal to "sizeof(some-data-pointer)".
+;
+REM <	Alpha size, count, and stamp constants>
+; >>-> GAME SPECIFIC, below is ZTV medium-res
+	HEX_CONST AN_TOT_COL	0x40	< AN total stamps horiz.	>
+	HEX_CONST AN_TOT_ROW	0x40	< AN total stamps vert.		>
+	HEX_CONST AN_VIS_COL	0x40	< AN visible stamps horiz.	>
+	HEX_CONST AN_VIS_ROW	0x30	< AN visible stamps vert.	>
+	HEX_CONST AN_TOT_SIZ	<AN_TOT_COL * AN_TOT_ROW>
+	HEX_CONST AN_NXT_COL	0x04	< AN offset to next horz. stamp (bytes)	>
+	HEX_CONST AN_NXT_ROW	(-0x100) < AN offset to next vert. stamp (bytes)	>
+	HEX_CONST AN_RC_BUMP	((AN_NXT_ROW<<16.)+AN_NXT_COL)	< ROW-COLUMN BUMP CONST	>
+;
+	HEX_CONST AN_A_STMP	0x47	< code for 'A' stamp		>
+	HEX_CONST AN_SQUARE	0x3	< AN stamp # completely filled	>
+	HEX_CONST AN_BORDER	AN_SQUARE
+	HEX_CONST AN_VOL_BAR	0x166	< AN stamp for volume stamp	>
+;
+	HEX_CONST BGBIT		0x8000
+	HEX_CONST AN_PAL_MSK	0x7C00
+	HEX_CONST AN_PAL_SHF	0xA
+	HEX_CONST AN_NXT_PAL	(1<<AN_PAL_SHF)
+	HEX_CONST GRY_PAL	0		< GREY is palette 0	>
+	HEX_CONST GRY_PALB	(GRY_PAL|BGBIT)
+	HEX_CONST BLU_PAL	(1<<AN_PAL_SHF)	< BLUE is palette 1	>
+	HEX_CONST BLU_PALB	(BLU_PAL|BGBIT)
+	HEX_CONST GRN_PAL	(2<<AN_PAL_SHF)	< GREEN is palette 2	>
+	HEX_CONST GRN_PALB	(GRN_PAL|BGBIT)
+	HEX_CONST CYN_PAL	(3<<AN_PAL_SHF)	< CYAN is palette 3	>
+	HEX_CONST CYN_PALB	(CYN_PAL|BGBIT)
+	HEX_CONST RED_PAL	(4<<AN_PAL_SHF)	< RED is palette 4	>
+	HEX_CONST RED_PALB	(RED_PAL|BGBIT)
+	HEX_CONST VIO_PAL	(5<<AN_PAL_SHF)	< VIOLET is palette 5	>
+	HEX_CONST VIO_PALB	(VIO_PAL|BGBIT)
+	HEX_CONST YEL_PAL	(6<<AN_PAL_SHF)	< YELLOW is palette 6	>
+	HEX_CONST YEL_PALB	(YEL_PAL|BGBIT)
+	HEX_CONST WHT_PAL	(7<<AN_PAL_SHF)	< WHITE is palette 7	>
+	HEX_CONST WHT_PALB	(WHT_PAL|BGBIT)
+;
+	HEX_CONST BOLD_FONT	(1)
+	HEX_CONST UL_FONT	(2)
+	HEX_CONST REVERSE_FONT	(4)
+	HEX_CONST NORMAL_FONT	(0)
+	HEX_CONST MNORMAL_PAL NORMAL_FONT
+	HEX_CONST TITLE_PAL	RED_PALB
+	HEX_CONST INSTR_PAL	GRN_PALB
+	HEX_CONST BORDER_PAL	RED_PAL
+	HEX_CONST VERSION_PAL	CYN_PALB
+	HEX_CONST MHILITE_PAL	YEL_PALB
+	HEX_CONST MNORMAL_PAL	GRY_PAL
+	HEX_CONST ERROR_PAL	RED_PALB
+;
+REMB
+REMM <	Playfield size, count, and stamp constants>
+REMM <  On ZTV1, PF and AN are the same, 64x48 8x8 stamp "overlay" screen>
+REME
+	HEX_CONST PF_BIT_DEPTH	8
+	HEX_CONST PF_CNT	1	< Number of playfields		>
+	HEX_CONST PF_SEP_PAL	0	< PF palettes in parallel RAM	>
+	HEX_CONST PF_PALS	0x80
+	HEX_CONST PF_PAL_SEP	(((1<<PF_BIT_DEPTH)))
+	HEX_CONST PF_PAL_SHF	24.
+	HEX_CONST PF_PAL_MSK	((PF_PALS-1)<<PF_PAL_SHF)
+	HEX_CONST PF_STMP_CNT	32768.	< PF total stamps in 2Meg ROM	>
+	HEX_CONST PF_TOT_COL	0x40	< PF total stamps horiz.	>
+	HEX_CONST PF_TOT_ROW	0x40	< PF total stamps vert.		>
+	HEX_CONST PF_TOT_SIZ	<PF_TOT_COL * PF_TOT_ROW>
+	HEX_CONST PF_VIS_COL	0x40	< PF visible stamps horiz.	>
+	HEX_CONST PF_VIS_ROW	0x30	< PF visible stamps vert.	>
+	HEX_CONST PF_NXT_COL	0x04	< PF offset to next horz. stamp (bytes)	>
+	HEX_CONST PF_NXT_ROW	(-0x100) < PF offset to next vert. stamp (bytes)	>
+	HEX_CONST PF_BLANK	0x00	< PF stamp # for blank		>
+	HEX_CONST PF_COLOR0	0x00	< PF stamp # for color 0 solid	>
+	HEX_CONST PF_CROSSHTCH	0x227	< PF stamp # for crosshatch display (convergence)	>
+	HEX_CONST PF_CH_COLOR	3	< color index of crosshatch	>
+;
+	HEX_CONST PF_PAL0	(0<<PF_PAL_SHF)
+	HEX_CONST PF_PAL1	(1<<PF_PAL_SHF)
+	HEX_CONST PF_PAL2	(2<<PF_PAL_SHF)
+	HEX_CONST PF_PAL3	(3<<PF_PAL_SHF)
+;
+REM <	MESSAGE ROUTINE CONFIGURATION>
+	HEX_CONST MAX_MESS	3	< maximum # of special message types	>
+	HEX_CONST BIG_CHAR	0x0080	< BIG character bit offset		>
+	HEX_CONST COLMSK	<BGBIT | AN_PAL_MSK>	< palette mask+bgbit	>
+	HEX_CONST SETMSK	0x0003	< character set mask	>
+	HEX_CONST AN_SET0	0x0000		
+	HEX_CONST AN_SET1	0x0001
+	HEX_CONST AN_SET2	0x0002
+	HEX_CONST AN_BIG_SET	0x0003
+;	HEX_CONST AN_BIG_SET	0x0004 < Cannot match, No Big alphas yet>
+ .endc		;_Z20ALPHA_MAC_
+;
+ .if not_defined,ZTV_ALPHAS_ONLY
+REM <	Video RAM>
+  .if not_defined, ZTV_LVL
+    .if defined, XBUS0_LVL
+	DEC_CONST ZTV_LVL	XBUS0_LVL	< ZTV interrupt level	>
+    .endc
+  .endc
+	HEX_CONST ZTV XBUS_SLOT1 <ZTV (Zoid TV) board on Xbus at slot 1>
+	VAR	ZTV_CTL, VU32 ZTV <ZTV control register>
+  .if not_defined, NO_ZIG
+	HEX_CONST ZIG XBUS_SLOT2 <combined ZTV/ZRE board on Xbus at slot 2>
+	VAR	ZIGTV_CTL VU32 ZIG+0x800000
+	VAR	ZIGTV_STAT VU32 ZIG+0x800000
+	VAR	ZIGTV_XTOT VU32 ZIG+0x80000
+	VAR	ZIGZRE_INTACK VU32 ZIG+0x100000
+  .endc
+  .if eq,ZTV_VERS-1
+	HEX_CONST B_Z_RUN 0	< ZTV RUN/~HALT bitmap available if 0 >
+	HEX_CONST B_Z_BUFSEL 1	< ZTV Buffer Select (0=AB), posted>
+	HEX_CONST B_Z_TAVEN 2	< ZTV Trapezoid H averaging >
+	HEX_CONST B_Z_ZCMP 3	< ZTV Z sort direction (N.C.) >
+	HEX_CONST B_Z_RESOL 4	< ZTV Resolution select D4-5 (N.C)>
+;	D6,D7 unused
+	HEX_CONST B_Z_BANK 8	< ZTV Parameter bank select (D8-10)>
+  .endc
+  .if eq,ZTV_VERS-2
+	HEX_CONST B_Z_XACC 0	< ZTV bitmap available to XBUS if 0 >
+	HEX_CONST B_Z_BUFSEL 1	< ZTV Buffer Select (0=AB), posted>
+	HEX_CONST B_Z_DSM_OFF 2	< ZTV Display State machine off if 1 >
+	HEX_CONST B_Z_ZBUFF_EN 3 < ZTV Z buffer mapped to XBUS DRAM AREA if 1>
+	HEX_CONST B_Z_RESOL 4	< ZTV Resolution select D4-5 MUST BE 00>
+	HEX_CONST B_Z_TWO_DISP 6 < ZTV drives two displays if == 1 >
+	HEX_CONST B_Z_DISP_SEL 7 < Select which display is filled from overlay >
+	HEX_CONST B_Z_HAS_OVLY 8 < Overlay board installed, no frame-buff clear>
+; D9 Unused
+	HEX_CONST B_Z_REFRESH 10. < 1 enables refresh, 0 suppresses (for diag)>
+  .endc
+
+	HEX_CONST B_Z_SOFTRES 11. < ZTV Soft reset (0=reset)>
+	HEX_CONST B_Z_INTENB 12. < ZTV IRQ enable (1=enabled)>
+  .if eq,ZTV_VERS-2
+; D13..14 Unused
+	HEX_CONST B_Z_SYNC_MASTER 15. < 1 supplies SYNC, 0 uses external SYNC>
+  .endc
+	HEX_CONST B_Z_SOFT_REFRESH 16. < 1 allows software refresh in IRQ>
+	.if	eq,OUTPUT_LANG-LANG_C
+#define ZTV_OPT_SOFT_REFRESH (1<<B_Z_SOFT_REFRESH)
+	.endc
+;
+	VAR	ZTV_STAT, VU32 ZTV <ZTV status register>
+	HEX_CONST B_Z_INT 0	< ZTV IRQ status in D0 (1==ACTIVE)>
+	HEX_CONST B_Z_VB 1	< ZTV Vblank status in D1 (0==Vert Blank)>
+	HEX_CONST B_Z_VIDB 2	< ZTV Vid (H|V) blank status (0==blanked)>
+	HEX_CONST B_Z_CURBUF 3	< ZTV Currently displayed (0=AB) in D3 >
+;
+	VAR	VBLANK	VU8	(ZTV+BYTE0_OFFS) < VBLANK SWITCH ADDR >
+	HEX_CONST B_VBL		B_Z_VB	< VBLANK SWITCH BIT	>
+
+;
+  .if lt,ZTV_VERS-2
+	VAR	ZTV_INTACK, VU32 (ZTV+0x60000) <Interupt Acknowledge>
+	VAR	VBACK VU16 (ZTV_INTACK)
+	ARRAY	PF_RAM,U32,ZTV+0x20000,<AN_TOT_ROW,AN_TOT_COL>	< ALPHA-NUMERIC RAM		>
+	ARRAY	COLRAM,U32,ZTV+0x40000,0x8000	<Overlay color RAM>
+;	
+	ARRAY	ZTV_BITMAP, U32, ZTV+0x80000, <0x10000> <Direct access to bitmap for diags>
+	ARRAY	ZTV_ZBUF, U32, ZTV+0x100000, <0x20000> <Direct access to Z-buf>
+  .endc
+  .if ge,ZTV_VERS-2
+REMB
+REMM < ZTV 2 maps Display Bitmap and Z-Buffer to same address. Selection >
+REMM < of which to "see" is via bit B_Z_ZBUFF_EN in ZTV_CTL. When this bit >
+REMM < is '1', the Z buffer is visible on the 24 LSBs of the data bus. When >
+REMM < it is '0', the "active" bitmap is visible in the 16 LSBs of the data >
+REMM < bus, with the "displaying" bitmap visible in the 16 MSBs, if B_Z_DSM_OFF>
+REMM < is also a '1'. In either case, address lines A2..A10 select a pixel>
+REMM < within a line (512 pixels) while A11..A20 select one of 1024 lines.>
+REME
+	VAR	ZTV_INTACK, VU32 (ZTV+0x20000) <Interupt Acknowledge>
+	VAR	VBACK VU32 (ZTV_INTACK)
+	ARRAY	ZTV_BITMAP, U32, ZTV+0x200000, <0x80000> <Direct access to bitmap for diags>
+	ARRAY	ZTV_ZBUF, U32, ZTV+0x200000, <0x80000> <Direct access to Z-buf>
+  .if not_defined, NO_ZIG
+REMB
+REMM < ZIG has separate address ranges for Bitmap and Z-Buffer. All of the former>
+REMM < ZTV is located at ZIG+0x800000, with various pieces offset from that>
+REME
+	VAR	ZIGTV_INTACK, VU32 (ZIG+0x820000) <ZTV Interrupt acknowledge>
+	ARRAY	ZIGTV_BITMAP, U32, (ZIG+0xA00000) <0x80000> <Direct access to bitmap for diags>
+	ARRAY	ZIGTV_ZBUF, U32, (ZIG+0xC00000) <0x80000> <Direct access to Z-buf>
+REMB
+REMM < ZIG has a working HBLANK, and also supports overlay Video.>
+REMM < We also add a few "soft switches" to the "ZTV Options">
+REME
+	HEX_CONST B_Z_HBLANK B_Z_VIDB		< VIDB may be HBLANK >
+	HEX_CONST B_Z_OVLY_BUF 9		< Used with Zover>
+REMB
+REMM <Definition below are for a "soft switch" to choose whether>
+REMM <host-written text waits for Hblank>
+REME
+	DEC_CONST B_Z_HBL_WAIT 20
+	HEX_CONST ZTV_OPT_HBL_WAIT (1<<B_Z_HBL_WAIT)
+REMB
+REMM <Definition for a "soft switch" to choose whether>
+REMM <we have the original dual-bank ZTV2, or the>
+REMM <"Economy model" with only the even bank>
+REME
+	DEC_CONST B_Z_ONE_BANK 21
+  .endc
+REMB
+REMM < Gamma-correction is applied to each of the possible two displays via >
+REMM < a "gamma RAM", with 8 bits each of Red (D16..D23), Green (D8..D15) >
+REMM < and Blue (D0..D7) in each 32-bit word. The words are addressed by the >
+REMM < five-bit "pixel value" in A12..A16 and five bits each of "row" (A7..A10)>
+REMM < and "column" (A2..A6), to experiment with "dithering" gamma. > 
+REME
+	ARRAY	ZTV_GAMMA1, U32, ZTV+0x40000, <0x8000>
+	ARRAY	ZTV_GAMMA2, U32, ZTV+0x60000, <0x8000>
+  .if not_defined, NO_ZIG
+	ARRAY	ZIGTV_GAMMA1, U32, ZIG+0x840000, <0x8000>
+	ARRAY	ZIGTV_GAMMA2, U32, ZIG+0x860000, <0x8000>
+  .endc
+REMB
+REMM < The ZRE20 (Zoid Render Engine) has converts TRAPs on the>
+REMM < TBUS to Pixels on the VBUS. It has the following "presence">
+REMM < on the XBUS.>
+REME
+	ARRAY	ZRE, U32, XBUS_SLOT2, <0x80000> < Base address >
+	VAR	ZRE_CSR VU32 (ZRE)		< Control and status>
+	VAR	ZRE_RST VU32 (ZRE+0x10000)	< Assert RESET on any write>
+	VAR	ZRE_RUN VU32 (ZRE+0x20000)	< De-assert RESET on any write>
+	VAR	ZRE_XTOT VU32 (ZRE+0x40000)	< XBUS Side-door to TBUS>
+; Deleted LOCTEX temporarily 30JAN96, MEA
+;	ARRAY	ZRE_LOCTEX, U32, (ZRE+0x100000), <0x20000> < Local Texture RAM >
+	ARRAY	ZRE_COLRAM, U32, (ZRE+0x180000), <0x20000> < Texture Color RAM >
+REM <Bit assignments in CSR. First 8 are R/W>
+	DEC_CONST B_ZRE_REON (0) <0 after reset, 1 enables clock to sync-up with ZTV>
+	DEC_CONST B_ZRE_XTOT (1) <TBUS Source 0: TBUS, 1: XBUS>
+	DEC_CONST B_ZRE_INTEN (2) <0: IRQ disabled, 1: IRQ enabled>
+	DEC_CONST B_ZRE_INTCLR (3) <write 1, then 0 to clear FDONE interrupt>
+	DEC_CONST B_ZRE_SOFTRES (3) <0: Reset ZRE portion of ZIG, 1:normal>
+	DEC_CONST B_ZRE_TLACC (4) <Not used>
+	DEC_CONST B_ZRE_TLEN (5) <0: ZRE drives texture/colram addrs, 1: Host>
+REM <D6 was not used on ZRE, used to enable THOLD on ZIG. Only zero for debug>
+	DEC_CONST B_ZRE_THOLD (6) <0: ignore THOLD, 1: Normal operation>
+	DEC_CONST B_ZRE_XLED (7) <0: Lit 1: Dark led:XLED>
+REM <Following bits are read-only>
+	DEC_CONST B_ZRE_IDLE (8) <0: Tex Pipe idle led IDLE, 1:busy>
+	DEC_CONST B_ZRE_RESET (9) <0: Board rest by XBus or ZRE_RST>
+	DEC_CONST B_ZRE_FBUSY (10) <Frame BUSY (~done) status led:FRAME DONE>
+	DEC_CONST B_ZRE_TFULL (11) <0: Tex Pipe full led:TFULL>
+REM <D12-D15 not used>
+REMB
+REMM < TEXEDO is the production texture RAM board. It uses EDO DRAM, rather>
+REMM < than the static RAM of LOCTEX or TEXMEM. Besides the main area of .5>
+REMM < to 8 MBytes, it can be stuffed with a double-buffered "movie" area>
+REMM < with two .5 or 1MByte buffers, alternately connected to the ZRE>
+REME
+	HEX_CONST TEXEDO_BASE XBUS_SLOT4 <Base address for board>
+	VAR	TEXEDO_CSR VU32 TEXEDO_BASE <Not fully Read/Write>
+	DEC_CONST B_TEX_MOBUF 0 <Selects which MOTION buffer is used>
+	DEC_CONST B_TEX_MOPAT 1 < Inactive MOTION cntld by 0:XBUS, 1:PATNET>
+	DEC_CONST B_TEX_OWNER 2 < Two-bit codes, different for R/W)
+REM <Writing, one of three patterns select "owner" of main RAM>
+	HEX_CONST TEX_XBUS_SEL (0<<B_TEX_OWNER) < Set to request XBUS control>
+	HEX_CONST TEX_PATNET_SEL (2<<B_TEX_OWNER) < Set to request PATNET control>
+	HEX_CONST TEX_ZRE_SEL (1<<B_TEX_OWNER) <Set to relinquish to ZRE>
+REM < Reading, two bits indicate current owner of main>
+	DEC_CONST B_TEX_NOT_X (3) <Zero if XBUS controls main>
+	DEC_CONST B_TEX_NOT_P (2) <Zero if PATNET controls main>
+	ARRAY	TEXEDO_MAIN, U32, (TEXEDO_BASE+0x01000000), <0x200000> 
+	ARRAY	TEXEDO_MOTION, U32, (TEXEDO_BASE+0x01800000), <0x40000> 
+REMB
+REMM < The TEXRAM card provides writeable texture memory for ZRE. It is>
+REMM < interleaved for speed, so each 16-bits should be duplicated and written to>
+REMM < both the top and bottom 16-bits of a longword. The memory can be tested as>
+REMM < 32-bits wide RAM, but having the top and bottom disagree will lead to>
+REMM < an odd appearance in the resulting pictures. This memory is only available>
+REMM < to the host when the TLEN bit of the ZRE CSR is '1'>
+REME
+	ARRAY	TEXRAM, U32, XBUS_SLOT4, <0x20000> <TEXRAM card, fed from Xbus>
+REMB
+REMM < The 4600 mathbox has basically two addresses: shared memory and the >
+REMM < control register. The board has been renamed ZAG, so if you get confused >
+REMM < just remember that ZMB == ZAG >
+REME
+
+   .if not_defined,HOST_IS_MATHBOX
+HOST_IS_MATHBOX == 0
+   .endc
+   .if true, HOST_IS_MATHBOX == 0
+	ARRAY	ZMB, U32, XBUS_SLOT3, <0x01000000> < Base address (24 bits) >
+	VAR	ZMB_CSR VU32 (ZMB+0x01000000)	   < Control and status >
+	DEC_CONST B_ZMB_RESET_N    (0) <Pulses board and processor reset if 0 written here >
+	DEC_CONST B_ZMB_HRESET     (1) <Holds processor in reset if 1 written here >
+	DEC_CONST B_ZMB_INT	   (2) <Interrupts the MB processor if 1 written here >
+	DEC_CONST B_ZMB_INTACK     (3) <ACK's the MB interrupt if 1 written here >
+	DEC_CONST B_ZMB_INTEN_N	   (4) <XBUS Interrupt enable>
+	DEC_CONST B_ZMB_IDBITS	   (5) <3 bits of ID>
+	DEC_CONST ZMB_IDBITS 	   (^B010<<B_ZMB_IDBITS)
+	DEC_CONST ZMB_IDMASK	   (^B111<<B_ZMB_IDBITS)
+    .if not_defined, ZMB_LVL
+     .if defined, XBUS2_LVL
+	DEC_CONST ZMB_LVL	XBUS2_LVL	< ZMB interrupt level	>
+     .endc
+    .endc
+    .if not_defined, ZMB_DRAM_SIZE
+	DEC_CONST ZMB_DRAM_SIZE	0x00400000	< Assume mathbox has 4MB of DRAM >
+    .endc; ZMB_DRAM_SIZE
+   .endc ; !HOST_IS_MATHBOX
+  .endc ; ZTV Version 2
+ .endc	; ZTV_ALPHAS_ONLY
+.endc	; _ZTV2_MAC_
+@
+
+
+1.10
+log
+@added TEXEDO definition. Deleted LOCTEX definition.
+@
+text
+@d281 18
+@
+
+
+1.9
+log
+@Removed ZRE_LVL since it is no longer needed.
+@
+text
+@d305 2
+a306 1
+	ARRAY	ZRE_LOCTEX, U32, (ZRE+0x100000), <0x20000> < Local Texture RAM >
+d325 20
+@
+
+
+1.8
+log
+@Changed the AN_SQUARE to a filled block char
+@
+text
+@a294 5
+  .if not_defined, ZRE_LVL
+    .if defined, XBUS0_LVL
+	DEC_CONST ZRE_LVL	XBUS0_LVL	< ZRE interrupt level	>
+    .endc
+  .endc
+@
+
+
+1.7
+log
+@Enabled big alphas
+@
+text
+@d112 1
+a112 1
+	HEX_CONST AN_SQUARE	0x2E	< AN stamp # completely filled	>
+@
+
+
+1.6
+log
+@Put HOST_IS_MATHBOX conditional around definitions of ZMB_*.
+@
+text
+@d187 2
+a188 2
+;	HEX_CONST AN_BIG_SET	0x0003
+	HEX_CONST AN_BIG_SET	0x0004 < Cannot match, No Big alphas yet>
+@
+
+
+1.5
+log
+@Changed definition of AN_A_STMP from 0x41 to 0x47.
+@
+text
+@d343 5
+d358 2
+a359 2
+   .if not_defined, ZMB_LVL
+    .if defined, XBUS2_LVL
+d361 1
+d363 1
+a363 2
+   .endc
+   .if not_defined, ZMB_DRAM_SIZE
+d365 2
+a366 1
+   .endc; ZMB_DRAM_SIZE
+@
+
+
+1.4
+log
+@Protected the #define of HDW_INIT
+@
+text
+@d111 1
+a111 1
+	HEX_CONST AN_A_STMP	0x41	< code for 'A' stamp		>
+@
+
+
+1.3
+log
+@Added a HDW_INIT macro which just calls prc_init_vecs().
+@
+text
+@d4 3
+a6 1
+#define HDW_INIT(x) do { extern void prc_init_vecs(void); prc_init_vecs(); } while (0)
+@
+
+
+1.2
+log
+@Added a NO_ZIG conditional.
+@
+text
+@d3 3
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d194 2
+a196 1
+	VAR	ZTV_CTL, VU32 ZTV <ZTV control register>
+d201 1
+d268 1
+d276 1
+d286 1
+d289 3
+a291 2
+   .if not_defined, ZRE_LVL
+     .if defined, XBUS0_LVL
+d293 2
+a294 2
+     .endc
+   .endc
+@

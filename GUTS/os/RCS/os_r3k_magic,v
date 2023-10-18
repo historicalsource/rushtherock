@@ -1,0 +1,295 @@
+head	1.7;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.7
+date	95.11.01.18.26.39;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.10.31.02.20.49;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.09.12.20.27.24;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.08.01.21.48.01;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.07.19.22.13.26;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.06.28.18.22.58;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.06.14.03.02.55;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Linker template for lcr3k build of CoJag GUTS
+@
+
+
+1.7
+log
+@Added back in the GPU stuff that was inadvertently removed sometime back.
+@
+text
+@SRAM_START	= 0x90000000;
+SRAM_SIZE	= 0x00080000;
+
+DRAM_START 	= 0x92000000;
+DRAM_SIZE   	= 0x00100000;
+
+/*
+ * If you want to build a version of GUTS that uses DRAM instead of SRAM,
+ *  change the values on the following two lines from SRAM to DRAM _and_
+ *  change the hard coded constants in the MEMORY section for "ram" and
+ *  "vecs" from 0x90... to 0x92... (damn linker doesn't allow expressions
+ *  in the MEMORY section!)
+ */
+
+RAM_BASE	= SRAM_START;
+RAM_SIZE	= SRAM_SIZE;
+
+MEMORY {
+	junk : ORIGIN = 0x00000000,  LENGTH = 0
+	prog : ORIGIN = 0x9FC00000,  LENGTH = 0x00032000
+	ram  : ORIGIN = 0x90000080,  LENGTH = 0x00004F80
+}
+
+INIT_SP 	= RAM_BASE + RAM_SIZE - 4;
+STACK_INIT 	= RAM_BASE + RAM_SIZE - 4;
+EEPROM  	= 0xB8000003;
+PBASE   	= 0x9FC32000;
+
+WRAM		= RAM_BASE;
+RAMVBR		= RAM_BASE;
+
+SECTIONS {
+	BSS  (NOLOAD) : {
+		bss_start = .;
+		*(fbss) *(.bss) *(bss) *(BSS) *(COMMON) *(.scommon)
+		. = (. + 7) & -8;
+		bss_end = .;
+		end_static = .;
+	} >ram
+
+	TEXT : {
+		text_start = .;
+		*(first)
+		*(.text)
+		*(TEXT)
+		*(.rdata)
+		gpu_int1 = .;
+		*(gpudisp)
+		gpu_ide_isr = gpu_int1 + O_gpu_ide_isr;
+		gpu_obp_isr = gpu_int1 + O_gpu_obp_isr;
+		gpu_task_dispatcher = gpu_int1 + O_gpu_task_dispatcher;
+		gpu_decompress = gpu_int1 + O_gpu_decompress;
+		gpu_movie = gpu_int1 + O_gpu_movie;
+		gpu_memory_test = gpu_int1 + O_gpu_memory_test;
+		gpu_ide_read = gpu_int1 + O_gpu_ide_read;
+		gpu_make_shadow = gpu_int1 + O_gpu_make_shadow;
+		gpu_shut_down = gpu_int1 + O_gpu_shut_down;
+		DSP_ROM = .;
+		*(DSP_CODE)
+		ram_test_table = .;
+		LONG(bss_start + PM_SIZE);
+		LONG(STACK_INIT);
+		LONG(0);
+		text_end = .;
+	} >prog
+
+	DATA : {
+		*(.data)
+		*(data)
+		*(DATA)
+	} >junk
+
+	sbss_start = pm_end;
+	sbss_size = (bss_end - sbss_start + 3) / 4;
+	bss_size = (bss_end - bss_start + 3) / 4;
+}	
+
+stub_start = begin;
+
+pktInit    = 0x9fc00010 + 0x10;
+pktPoll    = 0x9fc00010 + 0x14;
+pktQueRecv = 0x9fc00010 + 0x18;
+pktQueSend = 0x9fc00010 + 0x1C;
+
+ROM_DATA_ADDRESS = 0x9FD00000;
+
+UNLK_EP = 0xB4000004;
+ENTRY (startup)
+SEARCH_DIR ( . )
+@
+
+
+1.6
+log
+@Removed several link time generated symbols
+@
+text
+@d47 13
+@
+
+
+1.5
+log
+@Added sbss_start and sbss_size to account for the pm_ fields
+@
+text
+@d21 1
+a21 2
+	ram  : ORIGIN = 0x90000080,  LENGTH = 0x00002780
+	vecs : ORIGIN = 0x90000000,  LENGTH = 0x80
+a30 1
+vector_table	= RAM_BASE;
+a46 13
+		gpu_int1 = .;
+		*(gpudisp)
+		gpu_ide_isr = gpu_int1 + O_gpu_ide_isr;
+		gpu_obp_isr = gpu_int1 + O_gpu_obp_isr;
+		gpu_task_dispatcher = gpu_int1 + O_gpu_task_dispatcher;
+		gpu_decompress = gpu_int1 + O_gpu_decompress;
+		gpu_movie = gpu_int1 + O_gpu_movie;
+		gpu_memory_test = gpu_int1 + O_gpu_memory_test;
+		gpu_ide_read = gpu_int1 + O_gpu_ide_read;
+		gpu_make_shadow = gpu_int1 + O_gpu_make_shadow;
+		gpu_shut_down = gpu_int1 + O_gpu_shut_down;
+		DSP_ROM = .;
+		*(DSP_CODE)
+a59 26
+
+	vec (NOLOAD) : {
+		RAM_START = .;
+		irq_table = .;
+		swint0p = .;
+		. = . + 4;
+		swint1p = .;
+		. = . + 4;
+		icelessintp = .;
+		. = . + 4;
+		xbus0intp = .;
+		. = . + 4;
+		xbus1intp = .;
+		. = . + 4;
+		xbus2intp = .;
+		. = . + 4;
+		xbus3intp = .;
+		. = . + 4;
+		ms4vec = .;
+		. = . + 4;
+		genintp = .;
+		. = . + 4;
+		exception_table = .;
+	} >vecs
+		
+	bss_size = (bss_end - bss_start + 3) / 4;
+d62 1
+d66 5
+a70 9
+swint0 = 0;
+swint1 = 0;
+icelessint = 0;
+xbus0int = 0;
+xbus1int = 0;
+xbus2int = 0;
+xbus3int = tomint;
+ms4vec = 0; /* cputimerint; */
+genint = 0;
+@
+
+
+1.4
+log
+@Added new labels for 'gpu_make_shadow' and 'gpu_shut_down' which
+were added to GPUDISP.GAS.
+@
+text
+@d101 2
+@
+
+
+1.3
+log
+@moved end of ROM (PBASE, to game) up.
+added gpu_ide_read
+@
+text
+@d58 2
+@
+
+
+1.2
+log
+@Cleaned this up a bit and added variables and comments for switching from SRAM
+to DRAM for bss, etc.
+@
+text
+@d20 2
+a21 2
+	prog : ORIGIN = 0x9FC00000,  LENGTH = 0x00030000
+	ram  : ORIGIN = 0x90000080,  LENGTH = 0x00001F80
+d28 1
+a28 1
+PBASE   	= 0x9FC31000;
+d57 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 17
+d25 2
+a26 2
+INIT_SP 	= 0x90000000 + 0x7FFFC;
+STACK_INIT 	= 0x90000000 + 0x7FFFC;
+d30 3
+a32 7
+SRAM_START	= 0x90000000;
+SRAM_END	= 0x9007FFFC;
+
+WRAM		= SRAM_START;
+
+DRAM_START 	= 0x92000000;
+DRAM_END   	= 0x920FFFFF;
+a33 6
+TEST_START 	= 0x9FC80000;
+TEST_END   	= 0x9FCFFFFC;
+
+RAMVBR		  = 0x90000000;
+vector_table	  = 0x90000000;
+
+a61 6
+/*
+		LONG(TEST_START);
+		LONG(TEST_END);
+		LONG(DRAM_START);
+		LONG(DRAM_END);
+*/
+d100 1
+a100 1
+stub_start = SelfTest;
+@

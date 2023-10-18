@@ -1,0 +1,1323 @@
+head	1.9;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.9
+date	95.06.14.21.38.24;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.06.01.21.35.44;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.02.08.19.01.11;	author birmingham;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	94.12.16.21.59.05;	author birmingham;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	94.12.16.21.40.03;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	94.07.22.20.01.52;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	94.06.22.16.34.35;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	94.06.21.21.26.15;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.06.21.17.30.15;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Generic tiny jag test file Makefile
+@
+
+
+1.9
+log
+@bumped minor rev, removed annoying message when audio.a out of date
+@
+text
+@#	OS makefile. This copy is set up for GCC/GAS/GLD, although they
+#	go under different names now. See GCC1_Makefile for an example
+#	using gcc version 1.40 with MAC68k and LLF
+
+# We need the definition below to defeat the brain-dead csh built-in
+ECHO = /bin/echo
+# On a Sun, we need to go even further
+#ECHO	= /usr/5bin/echo
+BELL	= $(ECHO) "\007" > /dev/tty
+INCDIR	= ../inc
+INC	= $(INCDIR)/
+AUD_DIR = /home/curly/usr3/peplinski/guts/aud_68k
+AUD	= $(AUD_DIR)/
+# Set the following to your global #defines you'd like to use while compiling C
+DEFS = -DBUILTIN_MEMCPY -DDEBUG
+
+#	CFLAGS - the -I files should NOT be removed but you COULD add
+#	  other pathnames to help include files that are unique to your
+#	  own game's O.S. These are spelled "-J" for MRI compilers (why??)
+#	The -DDEBUG is available and supported by many O.S. modules. You
+#	  could also add your own #DEFINES on this line.
+
+# MRI toolchain
+MCFLAGS	= -A -J$(INCDIR) -J. $(DEFS)
+# GCC and LLF toolchain
+#GCFLAGS = -I. -I$(INCDIR) -I/u/local/cross_clib $(DEFS) -Wall -ansi -pedantic -m68020 -mbras
+
+# GCC 2.* with Cygnus/HAC toolchain
+GCFLAGS	= -I. -I$(INCDIR) -I/u/local/cross_clib $(DEFS) -Wall -ansi -pedantic -m68020
+
+#	These definitions help generalize the REST of the makefile between
+#	different game environments.  We define the LINKER, COMPILER, and
+#	other utilities that are frequently used.  If a utility only is
+#	referenced in one place, don't bother to define it here....
+
+SHELL	= /bin/sh
+DEL	= -rm -f
+PP	= macpp
+POUT	= -out=
+PPFLAGS	= 	# set to -lis if you also want listings with MACPP'd sources
+ASM_PPFLAGS = -line	# ditto, but leave the -line if you want asxx to report
+#			# the correct line numbers of your asm files that have
+#			# been CPP'd or MACPP'd.
+# MRI toolchain
+#LN	= /usr5/mri/bin/lnk68k
+#CCO	= /usr5/mri/bin/mcc68k -c -g -p68020 -nQ -Ob -Og -Ot -us $(MCFLAGS) -Wa,-f,case
+#ASM	= /usr5/mri/bin/asm68k
+#AFLAGS	= -f "case,d,e,opnop,p=68020" -I$(INCDIR)
+#AOUT	= -o 
+#MOUT	= -o 
+#OUT	= -o 
+# This is used as $O, to specify the extension for object files. Popular
+# values are ".o" (*nix native, and mri) ".ol" (MACxx, LLF, text format)
+# and ".ob" (MACxx, LLF, binary format)
+#O	= .o
+
+# GCC and LLF toolchain
+#LN	= /u/local/llf
+LLF	= llf
+#CCO	= /u/local/gcm $(GCFLAGS) -O
+#AFLAGS	= -include=$(INCDIR) -debug -sym=32 $(INC)compat.mac
+#ASM	= /u/local/mac682k
+#MAC	= /u/local/mac682k
+#AOUT	= -obj=
+#MOUT	= -obj=
+#OUT	= -out=
+# This is used as $O, to specify the extension for object files. Popular
+# values are ".o" (*nix native, and mri) ".ol" (MACxx, LLF, text format)
+# and ".ob" (MACxx, LLF, binary format)
+#O	= .ol
+#
+# Set OUTPUT_LANG to the appropriate assembly language according to definitions
+# found in def_pp.mac
+#OUTPUT_LANG = LANG_MAC
+
+# GCC 2.* with Cygnus/HAC toolchain (68k)
+PROCESSOR = 68k
+#FLOATING =
+GCFLAGS = -I. -I$(INCDIR) -I/u/local/cross_clib -DDEBUG -Wall -ansi -pedantic -m68020
+
+CFLAGS = $(GCFLAGS)
+CC = gcc$(PROCESSOR) $(CFLAGS)
+CCO = gcc$(PROCESSOR) -O $(CFLAGS)
+ASM = as$(PROCESSOR)
+ASMFLAGS = $(GNU_INCS) 
+LN = ld$(PROCESSOR)
+CPP = cccp$(PROCESSOR)
+CPPFLAGS = $(GNU_INCS) $(DEFS) -DASSEM_ONLY
+RM = /sbin/rm -f
+# Set OUTPUT_LANG to the appropriate assembly language according to definitions
+# found in def_pp.mac
+OUTPUT_LANG = LANG_ASRxk
+
+# This is used as $O, to specify the extension for object files. Popular
+# values are ".o" (*nix native, and mri) ".ol" (MACxx, LLF, text format)
+# and ".ob" (MACxx, LLF, binary format)
+O	= .o
+
+#	@@ before line does not echo command line
+.SILENT:
+#	.SILENT: makes 'make' not echo command lines through out file
+
+#	Default
+
+# MRI toolchain
+#os	: os.x os_vec.asm
+#	$(BELL)
+#	@@$(ECHO) "\tEverything is up to date."
+# GCC and LLF toolchain
+#os	: os.hex os_vec.asm os_vec.mac
+#	$(BELL)
+#	@@$(ECHO) "\tEverything is up to date."
+# Cygnus/HAC GCC 2.*
+
+default : os.coff os_vec.mac
+	$(BELL)
+	@@$(ECHO) "\tEverything is up to date."
+
+INIT_SP = FFA1E7FC
+TEXT_BASE 	= 00800400
+TEXT_END  	= 0080FFFD
+DATA_BASE 	= 0080FFFE
+DATA_END  	= 0080FFFF
+RR_TEXT_BASE 	= 00800400
+RR_TEXT_END  	= 0080FFFD
+RR_DATA_BASE 	= 0080FFFE
+RR_DATA_END  	= 0080FFFF
+BSS_BASE 	= FFA00400
+BSS_END 	= FFA00FFF
+PBASE		= 00810000
+
+OS_FILES = pm$O time$O dispatch$O gamedefs$O selftest$O eedrive$O vectors$O
+UTL_FILES = cdec_hex$O cj_coin$O coin94$O random$O stats$O pots$O string$O
+JAG_JRISC = gpudisp.cof
+JAG_GFX	= font8x8$O jag_an$O twi_logo$O
+JAG_BASE = jag_vid$O jag_text$O oblist$O dll$O
+JAG_UTILS = gun$O decomp$O blitlib$O rastlib$O rectlib$O gputask$O 
+JAG_IDE = ide2$O
+JAG_AUDIO = audio.a # stub_aud$O
+JAG_FILES = $(JAG_BASE) $(JAG_UTILS) $(JAG_GFX) $(JAG_JRISC) $(JAG_AUDIO) \
+  $(JAG_MOVIE) $(JAG_IDE)
+DIAG_FILES = ram_test$O mem_test$O snd_test$O scope$O entry$O menus$O \
+ swt_test$O jag_init$O
+NOT_YET = smc_test$O packet$O joy_an$O
+BASE_H_FILES = $(INC)config.h $(INC)os_proto.h st_proto.h
+CONFIG_FILES = config.mac ec020x32.mac cojag.mac ide.mac
+JAG_H = $(INC)oblist.h $(INC)rectlib.h $(INC)dll.h $(INC)jag_defs.h
+
+# 68k OS_ROOT is simply os_root.asm
+OS_ROOT = gnu_os_root$O
+# R3k OS_ROOT is os_rootr3k.asm
+#OS_ROOT = os_rootr3k
+# Just to get a grip on the extent of the problem, we make OS_ROOT a dummy
+#OS_ROOT = int_eval$O os_shims$O 
+
+SRCFILES = $(OS_ROOT) $(OS_FILES) $(UTL_FILES) $(JAG_FILES) $(DIAG_FILES)
+
+# NOTE: the FIRST FILE -MUST- be the OS_ROOT file!  This allows the BSR to
+#	be used by the assembler files. Actually, I (MEA) have no idea who
+#	added that comment, and in any case it would only apply to to 68K
+#	systems. The reason os_root comes first is primarily to accomodate
+#	some bogus linkers that understand too few sections and thus require
+#	the vectors to be in the very beginning of the very first file linked
+
+# MRI toolchain deleted because it was _way_ out of date, and unlikely
+# to work with JRISC assembly in any case
+
+# GCC and LLF toolchain
+llf_opts.opt	: Makefile
+	@@$(ECHO) > llf_opts.opt "LOCATE	("
+	@@$(ECHO) >> llf_opts.opt "\$$\$$seg0 \$$\$$seg1 \$$\$$seg8 \$$\$$seg9\c"
+	@@$(ECHO) >> llf_opts.opt " .REL. text grafix \$$\$$seg99 : \c"
+	@@$(ECHO) >> llf_opts.opt " 0x$(TEXT_BASE) TO 0x$(TEXT_END), -- ROM"
+	@@$(ECHO) >> llf_opts.opt "data : 0x$(DATA_BASE) to 0x$(DATA_END)"
+	@@$(ECHO) >> llf_opts.opt "\$$\$$seg50 \$$\$$seg14 bss \c"
+	@@$(ECHO) >> llf_opts.opt "\$$\$$seg51 : 0x$(BSS_BASE) TO 0x$(BSS_END) NOOUTPUT -- selftest RAM );"
+	@@$(ECHO) >> llf_opts.opt "\t)"
+	@@$(ECHO) >> llf_opts.opt "DECLARE (PBASE : 0x$(PBASE));"
+	@@$(ECHO) >> llf_opts.opt "DECLARE (INIT_SP : 0x$(INIT_SP));"
+	@@$(ECHO) >> llf_opts.opt "FILE ("
+	@@$(ECHO) >> llf_opts.opt "\t$(OS_ROOT) date$O"
+	@@$(ECHO) >> llf_opts.opt "\t$(OS_FILES)"
+	@@$(ECHO) >> llf_opts.opt "\t$(UTL_FILES)"
+	@@$(ECHO) >> llf_opts.opt "\t$(JAG_FILES)"
+	@@$(ECHO) >> llf_opts.opt "\t$(DIAG_FILES)"
+	@@$(ECHO) >> llf_opts.opt "\t)"
+	@@$(ECHO) "\tDone with llf_opts.opt "
+
+os.coff : os.lnk $(SRCFILES) date.c
+	-rm -f os.err
+	-rm -f date.err
+	touch lamb.err
+	-ls *.err | grep -v "lamb" || true
+	-rm lamb.err
+	if [ ! -s *.err ];\
+	then\
+	  $(ECHO) '\tLinking os.coff ...' ;\
+	  $(CC) $(CFLAGS) -c date.c -DMAJOR_REV=2 -DMINOR_REV=02CJ> date.err 2>&1; \
+	  if [ ! -s date.err ];\
+	  then\
+	    rm date.err;\
+	    $(LN) -o os.coff -Map os.map -Tos.lnk $(LIBDIRS) $(LIBS) > osw.err 2>&1; \
+	    grep -v "needed" osw.err > os.err ; \
+	    rm -f osw.err; \
+	    if [ ! -s os.err ];\
+	    then\
+	      rm os.err;\
+	    else\
+	      $(ECHO) 'Errors in os.map';\
+	    fi\
+	  else\
+	    $(ECHO) 'Errors in "date.c"';\
+	  fi\
+	else \
+	  $(ECHO) 'NO link due to ".err" files' ;\
+	  exit 1 ;\
+	fi
+
+os.lnk:	Makefile os_$(PROCESSOR)_magic
+		cat os_$(PROCESSOR)_magic > os.lnk
+		@@$(ECHO) >> os.lnk "INPUT ("
+		@@$(ECHO) $(OS_ROOT)  >> os.lnk
+		@@$(ECHO) $(OS_FILES)  >> os.lnk
+		@@$(ECHO) $(UTL_FILES)  >> os.lnk
+		@@$(ECHO) $(JAG_FILES)  >> os.lnk
+		@@$(ECHO) $(DIAG_FILES)  >> os.lnk
+		@@$(ECHO) date.o >>os.lnk
+		@@$(ECHO) >> os.lnk ") "
+
+os_$(PROCESSOR)_magic : RCS/os_$(PROCESSOR)_magic,v
+	co  os_$(PROCESSOR)_magic 
+#
+#	BUILT library files (some used by MAIN PROG)
+#
+
+LIBFILES = $(INC)config.h $(INC)config.i $(INC)eer_defs.i $(INC)eer_defs.h
+
+# suffixes: make OL from MAC or C or S or ASM
+#	    >> The order is significant; does this mean that the order
+#	    >> of the .C and .S should be switched????
+#
+.SUFFIXES : .ol .o .mac .c .s .asm .E
+#
+# >>->  Make the rules for generating the objects
+#
+#	MAC returns 1 for ERRORS or WARNINGS, 0 for OK
+#	CCS returns 1 for ERRORS, 0 for WARNINGS or OK
+#
+
+.mac$O	:
+	@@$(ECHO) "\tAssembling $*.mac..."
+	$(MAC) $* $(AOUT)$*$O -sym=32
+
+
+# Cygnus/HAC as68k, asr3k or asr4k
+.asm.o	: gnu_compat.mac
+	rm -f $*.lis
+	@@$(ECHO) "\tAssembling $*.asm..."
+	- $(PP) $(ASM_PPFLAGS) $(POUT)$*.pasm -INCLUDE=$(INCDIR) gnu_compat.mac $*.asm > $*.err 2>&1; \
+	if [ ! -s $*.err ];\
+	then\
+	  as$(PROCESSOR) -o $*.o $*.pasm > $*.err 2>&1;\
+	  if [ ! -s $*.err ];\
+	  then\
+	    rm $*.err;\
+	  else\
+	    $(ECHO) 'Errors in "$*.pasm"';\
+	  fi\
+	else\
+	  $(ECHO) 'Errors in "$*.asm"';\
+	fi
+
+#.asm.ol	:
+#	rm -f $*.lis
+#	@@$(ECHO) "\tAssembling $*.asm..."
+#	$(MAC) -nobin $(AFLAGS) -obj=$*.ol $*.asm > $*.err 2>&1 && rm $*.err;
+
+# MRI _or_ cygnus GCC toolchain
+.c.o	:
+	@@$(ECHO) "\tCompiling $*.c..."
+	- $(CCO) -c -g  $< > $*.err 2>&1;\
+	if [ ! -s $*.err ];\
+	then\
+	  rm $*.err;\
+	else\
+	  $(ECHO) 'Errors in "$*.c"';\
+	  rm -f $*.o; \
+	fi
+
+# GCC and LLF toolchain
+.c.ol	:
+	@@$(ECHO) "\tCompiling $*.c..."
+	- $(CCO) -S -g -o $*.s $< > $*.err 2>&1;\
+	if [ ! -s $*.err ];\
+	then\
+	  rm $*.err;\
+	  $(MAC) -nobin -sym=32 -debug -obj=$*.ol $*.s >> $*.err 2>&1 && rm $*.err;\
+	else\
+	  $(ECHO) 'Errors in "$*.c"';\
+	fi
+
+.SUFFIXES:	.ot .olt .gas
+
+.gas.ot:
+	mac $(MACFLAGS) -dmac=1 -o$*.ot $*.gas
+
+.gas.olt:
+	@@$(ECHO) "\tAssembling $*.gas..."
+	$(DEL) $*.err
+	mactj -inc=$(INC) -lis -obj=$*.olt -sym=32 -debug $(INC)g_compat.mac $*.gas  > $*.err 2>&1
+	if [ ! -s $*.err ];\
+	then\
+	  rm $*.err;\
+	else\
+	  $(ECHO) 'Errors in "$*.gas"';\
+	fi
+
+$O	:
+	@@$(ECHO) "\tbuilding $*"
+
+#
+#	the rest...
+#
+
+os.x	: $(LIBFILES) $(SRCFILES) date.c os_files.opt
+	$(CCO) date.c
+	@@$(ECHO) "\tLink in progress..."
+	$(LN) $(OUT)os.x -f d,t,x -m -F ieee -c os_files.opt > map
+	@@$(ECHO) "\tmake complete."
+
+os.vlda	: $(LIBFILES) $(SRCFILES) date.c llf_opts.opt
+	touch lamb.err
+	-ls *.err | grep -v "lamb" || true
+	-rm lamb.err
+	if [ ! -s *.err ];\
+	then\
+	  $(CCO) -S date.c ; \
+	  $(ASM) date.s ; \
+	  $(ECHO) '\tLink in progress...';\
+	  $(LN) -sym -cross -map=os.map -vlda $(OUT)os.vlda -opt=llf_opts.opt ; \
+	else\
+	  $(ECHO) 'NO LINK due to ".err" files!';\
+	  exit 1;\
+	fi
+
+os.hex	: $(LIBFILES) $(SRCFILES) date.c llf_opts.opt
+	if [ ! -s *.err ];\
+	then\
+	  $(CCO) -S date.c ; \
+	  $(ASM) date.s ; \
+	  $(ECHO) '\tLink in progress...';\
+	  $(LN) -sym -cross -map=os.map $(OUT)os.hex -opt=llf_opts.opt ; \
+	else\
+	  $(ECHO) 'NO LINK due to ".err" files!';\
+	  exit 1;\
+	fi
+
+#
+#	CONFIG dependencies
+#
+config		: $(INC)config.h $(INC)config.i
+
+$(INC)config.h	: $(CONFIG_FILES)
+	@@$(ECHO) "\tMaking config.h"
+	$(PP) $(PPFLAGS) $(POUT)$(INC)config.h -lis def_pp.mac config.mac
+
+$(INC)config.i	: $(CONFIG_FILES)
+	@@$(ECHO) "\tMaking config.i"
+	$(PP) $(PPFLAGS) $(POUT)$(INC)config.i \
+	  -assem="OUTPUT_LANG==$(OUTPUT_LANG)" \
+	  -assem="MAX_ALIGN==2" def_pp.mac config.mac
+
+$(INC)jag_defs.h	: jag_defs.mac def_pp.mac
+	@@$(ECHO) "\tMaking jag_defs.h"
+	$(PP) $(PPFLAGS) $(POUT)$(INC)jag_defs.h def_pp.mac jag_defs.mac
+
+$(INC)jag_defs.i	: jag_defs.mac def_pp.mac
+	@@$(ECHO) "\tMaking jag_defs.i"
+	$(PP) $(PPFLAGS) $(POUT)$(INC)jag_defs.i \
+	  -assem="OUTPUT_LANG==$(OUTPUT_LANG)" \
+	  -assem="MAX_ALIGN==2" def_pp.mac jag_defs.mac
+#
+#	SMC communication dependencies
+#
+$(INC)smc.h	: smc.mac def_pp.mac
+	@@$(ECHO) "\tMaking smc.h"
+	$(PP) $(PPFLAGS) $(POUT)$(INC)smc.h def_pp.mac smc.mac
+
+$(INC)smc.i	: smc.mac def_pp.mac
+	@@$(ECHO) "\tMaking smc.i"
+	$(PP) $(PPFLAGS) $(POUT)$(INC)smc.i \
+	  -assem="OUTPUT_LANG == $(OUTPUT_LANG)" \
+	  def_pp.mac smc.mac
+
+packet		: packet$O
+packet$O	: packet.asm $(INC)config.i $(INC)eer_defs.i $(INC)smc.i $(INC)os_macros.i 
+
+smc_test	: smc_test$O
+smc_test$O	: $(BASE_H_FILES) $(INC)smc.h $(INC)eer_defs.h $(INC)gamopt.h
+
+#
+#	ASM dependancies
+#
+
+os_root		: os_root$O
+os_root$O	: $(INC)config.i $(INC)os_macros.i $(INC)eer_defs.i
+
+gnu_os_root$O	: $(CONFIG_FILES) def_pp.mac gnu_compat.mac gnu_os_macros.i $(INC)eer_defs.i
+
+string		: string$O
+
+vectors		: vectors$O
+vectors$O	: $(INC)config.i
+
+# GCC and LLF toolchain
+os_vec.asm	: os.vlda wantfile.txt
+	@@$(ECHO) "\tVECEXTRACT in progress..."
+	vec_ex -v -a os.vlda wantfile.txt -o os_vec.asm 
+#os_vec.mac	: os.vlda wantfile.txt
+#	@@$(ECHO) "\tVECEXTRACT in progress..."
+#	vec_ex -v -m os.vlda wantfile.txt -o os_vec.mac 
+
+# Cygnus toolchain
+os_vec.mac	: os.coff
+	@@$(ECHO) "\tExtracting Jump Vectors"
+	nm68k os.coff |	awk '/VECT_/ { printf "\tVECTOR\t%s,0x%s\n", substr($$3,6,length($$3) ), $$1 }' > os_vec.mac
+#
+#	C dependancies
+#
+#	(NOTE: i THINK that the $*.C is redundant and implied....)
+#
+
+audio$O		: $(BASE_H_FILES) $(INC)eer_defs.h 
+
+cdec_hex	: cdec_hex$O
+cdec_hex$O	: $(BASE_H_FILES) $(INC)string.h
+
+gamedefs	: gamedefs$O
+gamedefs$O	: $(BASE_H_FILES) $(INC)eer_defs.h
+
+jag_vid		: jag_vid$O
+jag_vid$O	: $(BASE_H_FILES) $(JAG_H) $(INC)string.h $(INC)decomp.h $(INC)gputask.h
+
+dispatch$O	: $(BASE_H_FILES) $(INC)intvecs.h
+
+entry		: entry$O
+entry$O		: $(BASE_H_FILES)
+
+gun		: gun$O
+gun$O		: $(BASE_H_FILES) $(INC)eer_defs.h $(JAG_H) $(INC)gun.h
+
+menus		: menus$O
+menus$O		: $(BASE_H_FILES) $(INC)eer_defs.h $(INC)string.h 
+
+mt_emul		: mt_emul$O
+mt_emul$O	: $(BASE_H_FILES) $(INC)message.h $(INC)string.h
+
+pm		: pm$O
+pm$O		: $(BASE_H_FILES) $(INC)string.h $(INC)eer_defs.h
+
+pots		: pots$O
+pots$O		: $(BASE_H_FILES) $(INC)eer_defs.h
+
+ram_test	: ram_test$O
+ram_test$O	: $(BASE_H_FILES) $(INC)string.h ram_desc.h
+
+scope		: scope$O
+scope$O		: $(BASE_H_FILES) $(INC)string.h
+
+selftest	: selftest$O
+selftest$O	: $(BASE_H_FILES) $(INC)string.h $(INC)eer_defs.h
+
+snd_test	: snd_test$O
+snd_test$O	: $(BASE_H_FILES) $(INC)string.h $(INC)eer_defs.h
+
+stats		: stats$O
+stats$O		: $(BASE_H_FILES) $(INC)string.h $(INC)eer_defs.h
+
+swt_test	: swt_test$O
+swt_test$O	: $(BASE_H_FILES) $(INC)string.h
+
+time		: time$O
+time$O		: $(BASE_H_FILES)
+
+jag_text	: jag_text$O
+jag_text$O	: $(BASE_H_FILES) $(INC)string.h $(JAG_H) txt_tab.h
+
+#
+#	CoJag extensions (as opposed to CoJag versions of "canonical"
+#		files e.g. jag_vid.c
+#
+
+blitlib		: blitlib$O
+blitlib$O	: $(BASE_H_FILES) $(INC)blitlib.h $(INC)blit.h $(INC)jag_defs.h
+
+decomp		: decomp$O
+decomp$O	: $(BASE_H_FILES) $(INC)decomp.h $(INC)blit.h \
+ $(INC)blitlib.h $(INC)gputask.h
+
+gpudisp.cof : gpudisp.vlda
+	v2c -o0 -n GPU_CODE gpudisp.vlda gpudisp.cof
+
+gpudisp.vlda : gpudisp.olt
+	  $(LLF) -sym -map -vlda gpudisp.olt
+
+gpudisp.olt : gpudisp.gas $(INC)g_compat.mac $(INC)jag_defs.i
+
+rastlib		: rastlib$O
+rastlib$O	: $(BASE_H_FILES) $(INC)jag_defs.h $(INC)blit.h \
+ $(INC)rastlib.h $(INC)rectlib.h
+
+rectlib		: rectlib$O
+rectlib$O	: $(BASE_H_FILES) $(INC)jag_defs.h $(INC)rectlib.h
+
+#
+#	EEPROM
+#
+stat_map	: stat_map.h stat_defs.h $(INC)eer_defs.h $(INC)eer_defs.i
+	@@$(ECHO) "\tdone with stat_map"
+
+stat_map.h	: stat_pp.mac stat_map.mac
+	@@$(ECHO) "\tMaking stat_map.h"
+	$(PP) $(PPFLAGS) $(POUT)stat_map.h \
+	  -assem="MAKE_STAT_MAP == 1" stat_pp.mac stat_map.mac
+
+stat_defs.h	: stat_pp.mac stat_map.mac
+	@@$(ECHO) "\tMaking stat_defs.h"
+	$(PP) $(PPFLAGS) $(POUT)stat_defs.h \
+	  -assem="MAKE_STAT_DEFS == 1" stat_pp.mac stat_map.mac
+
+$(INC)eer_defs.h : stat_pp.mac stat_map.mac
+	@@$(ECHO) "\tMaking eer_defs.h"
+	$(PP) $(PPFLAGS) $(POUT)$(INC)eer_defs.h \
+	  -assem="MAKE_EER_DEFS == 1" stat_pp.mac stat_map.mac
+
+$(INC)eer_defs.i : stat_pp.mac stat_map.mac
+	@@$(ECHO) "\tMaking eer_defs.i"
+	$(PP) $(PPFLAGS) $(POUT)$(INC)eer_defs.i \
+		-assem="MAKE_EER_DEFS == 1" \
+		-assem="OUTPUT_LANG==$(OUTPUT_LANG)" \
+		stat_pp.mac stat_map.mac
+
+#
+#	COINS
+#
+coin		: coin94$O gel_coin$O
+coin94$O	: $(BASE_H_FILES) coin.h $(INC)eer_defs.h 
+gel_coin$O	: $(BASE_H_FILES) coin.h $(INC)eer_defs.h 
+cj_coin$O	: $(BASE_H_FILES) coin.h $(INC)eer_defs.h 
+
+eedrive		: eedrive$O
+eedrive$O	:  $(INC)string.h $(INC)os_proto.h stat_defs.h stat_map.h
+
+#
+#	GRAPHICS
+#
+
+jag_an$O : jag_an.asm gnu_compat.mac
+
+twi_logo$O : $(BASE_H_FILES) $(JAG_H) $(INC)decomp.h $(INC)gputask.h
+
+#
+#	AUDIO
+#
+#audio.a : $(AUD)audio.a
+#	$(ECHO) "\007\naudio.a is out of date, please copy"
+
+STUB = /home/sprint/shepperd/jaguar/stub/stub.vlda
+
+stub.dio : os.vlda stub.mix last.rom $(STUB)
+	cp $(STUB) ./stub.vlda
+	mixit stub
+
+#
+# >>->
+#	Cleanup
+#
+clean	:
+	$(DEL) *.upd *.pasm
+	$(DEL) *.o *.ol *.olt gpudisp.vlda gpudisp.cof
+	$(DEL) *.s
+	$(DEL) *.lis *.od *.L
+	$(DEL) $(INC)config.%
+	$(DEL) $(INC)eer_defs.%
+	$(DEL) $(INC)jag_defs.%
+	$(DEL) stat_defs.h stat_map.h
+
+@
+
+
+1.8
+log
+@general cleanup for guts 2.01 relase. Deleted obsolet test files,
+added dependencies until make in an empty directory worked :-)
+@
+text
+@d198 1
+a198 1
+	  $(CC) $(CFLAGS) -c date.c -DMAJOR_REV=2 -DMINOR_REV=01CJ> date.err 2>&1; \
+a556 1
+font8x8$O : font8x8.asm gnu_compat.mac
+d565 2
+a566 2
+audio.a : $(AUD)audio.a
+	$(ECHO) "\007\naudio.a is out of date, please copy"
+@
+
+
+1.7
+log
+@relocated GUTS text_base and PBASE to bottom of ROM area
+@
+text
+@d1 3
+a3 5
+#	OS makefile. This copy is set up for GCC/LLF, so can be used anywhere
+#	by anyone, although MRI users will have to forego symbolic debug in the
+#	os itself if they use it. For a makefile using MRI tools, which must
+#	be run on a sun by a licensed user, see MRI_Makefile. It
+#	_Should_ be very similar to this one.
+d12 4
+d24 1
+a24 1
+MCFLAGS	= -A -J$(INCDIR) -J. -DDEBUG
+d26 1
+a26 1
+GCFLAGS	= -I. -I$(INCDIR) -DDEBUG -Wall -ansi -pedantic -m68020 -mbras
+d28 3
+d36 1
+a36 1
+SHELL = /bin/sh
+d38 1
+a38 1
+PP	= /u/local/macpp
+d40 4
+d45 7
+a51 7
+LN	= /usr5/mri/bin/lnk68k
+CCO	= /usr5/mri/bin/mcc68k -c -g -p68020 -nQ -Ob -Og -Ot -us $(MCFLAGS) -Wa,-f,case
+ASM	= /usr5/mri/bin/asm68k
+AFLAGS	= -f "case,d,e,opnop,p=68020" -I$(INCDIR)
+AOUT	= -o 
+MOUT	= -o 
+OUT	= -o 
+d55 1
+a55 1
+O	= .o
+d58 36
+a93 8
+LN	= /u/local/llf
+CCO	= /u/local/gcm $(GCFLAGS) -O
+AFLAGS	= -include=$(INCDIR) -debug -sym=32 $(INC)compat.mac
+ASM	= /u/local/mac682k
+MAC	= /u/local/mac682k
+AOUT	= -obj=
+MOUT	= -obj=
+OUT	= -out=
+d97 1
+a97 1
+O	= .ol
+d107 2
+d110 6
+a115 1
+os	: os.hex os_vec.asm os_vec.mac
+a118 33
+CFILE1 =  eedrive$O gamedefs$O jag_vid$O entry$O gun$O oblist$O decomp$O dll$O
+CFILE2 = menus$O ram_test$O selftest$O scope$O stats$O snd_test$O
+CFILE3 =  swt_test$O stub_aud$O gel_coin$O coin94$O blitlib$O # show_fish$O
+CFILE4 = jag_text$O cdec_hex$O pm$O time$O dispatch$O rastlib$O rectlib$O gpu$O
+ASMF1 = mem_test$O bram_test$O gpurle$Ot gpuj1$Ot #ultodec$O 
+ASMF2 = string$O vectors$O jag_an$O font8x8$O
+BASE_H_FILES = $(INC)config.h $(INC)os_proto.h st_proto.h
+JAG_H = $(INC)oblist.h $(INC)dll.h $(INC)jag_defs.h
+NOT_YET = audio$O pots$O smc_test$O snd_test$O stats$O packet$O
+
+#INIT_SP = FF21E0FC
+#TEXT_BASE = 1E8000
+#TEXT_END = 1F7FFD
+#DATA_BASE = 1F7FFE
+#DATA_END = 1F7FFF
+#BSS_BASE = FF200000
+#BSS_END =  FF2007FF
+#VEC_BASE = 0
+#PBASE = 8000
+
+#INIT_SP = FFA1E0FC
+#TEXT_BASE = 9E8000
+#TEXT_END = 9F7FFD
+#DATA_BASE = 9F7FFE
+#DATA_END = 9F7FFF
+#RR_TEXT_BASE = 9D0000
+#RR_TEXT_END = 9DFFFD
+#RR_DATA_BASE = 9DFFFE
+#RR_DATA_END = 9DFFFF
+#BSS_BASE = FFA00400
+#BSS_END =  FFA00FFF
+#PBASE = 800000
+
+d132 23
+a154 3
+AFILES = os_root$O $(ASMF1) $(ASMF2)
+CFILES = $(CFILE1) $(CFILE2) $(CFILE3) $(CFILE4)
+SRCFILES = $(AFILES) $(CFILES)
+d156 2
+d159 5
+a163 1
+#	be used by the assembler files.
+d165 2
+a166 20
+# MRI toolchain
+os_files.opt	: makefile
+	@@echo CHIP 68020 > os_files.opt
+	@@echo ORDER 0,1,8,9,code,12,const,strings,99 >> os_files.opt
+	@@echo ORDER 50,zerovars,vars,14,11,51 >> os_files.opt
+	@@echo "SECT 0 =\$$0000408" >> os_files.opt
+	@@echo "SECT 50 =\$$fff80000" >> os_files.opt
+	@@echo "RESADD \$$10000, \$$fff7ffff" >> os_files.opt
+	@@echo "PUBLIC COMRAM = \$$FFF80900" >> os_files.opt
+	@@echo "PUBLIC PBASE =\$$10000" >> os_files.opt
+	@@echo LOAD os_root$O date$O >> os_files.opt
+	@@echo LOAD $(ASMF1) >> os_files.opt
+	@@echo LOAD $(ASMF2) >> os_files.opt
+	@@echo LOAD $(CFILE1) >> os_files.opt
+	@@echo LOAD $(CFILE2) >> os_files.opt
+	@@echo LOAD $(CFILE3) >> os_files.opt
+	@@echo LOAD $(CFILE4) >> os_files.opt
+	@@echo LOAD /usr5/mri/lib/mcc68kab020.lib >> os_files.opt
+	@@echo END >> os_files.opt
+	@@$(ECHO) "\tDone with os_files.opt "
+d181 5
+a185 7
+	@@$(ECHO) >> llf_opts.opt "os_root$O date$O"
+	@@$(ECHO) >> llf_opts.opt "\t$(ASMF1)"
+	@@$(ECHO) >> llf_opts.opt "\t$(ASMF2)"
+	@@$(ECHO) >> llf_opts.opt "\t$(CFILE1)"
+	@@$(ECHO) >> llf_opts.opt "\t$(CFILE2)"
+	@@$(ECHO) >> llf_opts.opt "\t$(CFILE3)"
+	@@$(ECHO) >> llf_opts.opt "\t$(CFILE4)"
+d188 30
+a217 24
+# Downloadable version for RAMROM board
+rr_files.opt	: Makefile
+	@@$(ECHO) > rr_files.opt "DECLARE (PBASE : 0x$(PBASE));"
+	@@$(ECHO) >> rr_files.opt "DECLARE (INIT_SP : 0x$(INIT_SP));"
+	@@$(ECHO) >> rr_files.opt "FILE ("
+	@@$(ECHO) >> rr_files.opt "os_root$O date$O"
+	@@$(ECHO) >> rr_files.opt "\t$(ASMF1)"
+	@@$(ECHO) >> rr_files.opt "\t$(ASMF2)"
+	@@$(ECHO) >> rr_files.opt "\t$(CFILE1)"
+	@@$(ECHO) >> rr_files.opt "\t$(CFILE2)"
+	@@$(ECHO) >> rr_files.opt "\t$(CFILE3)"
+	@@$(ECHO) >> rr_files.opt "\t$(CFILE4)"
+	@@$(ECHO) >> rr_files.opt "\t)"
+	@@$(ECHO) "\tDone with rr_files.opt "
+rr_loc.opt	: Makefile
+	@@$(ECHO) > rr_loc.opt "LOCATE	("
+	@@$(ECHO) >> rr_loc.opt "\$$\$$seg0 \$$\$$seg1 \$$\$$seg8 \$$\$$seg9\c"
+	@@$(ECHO) >> rr_loc.opt " .REL. text grafix \$$\$$seg99 : \c"
+	@@$(ECHO) >> rr_loc.opt " 0x$(RR_TEXT_BASE) TO 0x$(RR_TEXT_END), -- ROM"
+	@@$(ECHO) >> rr_loc.opt "data : 0x$(RR_DATA_BASE) to 0x$(RR_DATA_END)"
+	@@$(ECHO) >> rr_loc.opt "\$$\$$seg50 \$$\$$seg14 bss \c"
+	@@$(ECHO) >> rr_loc.opt "\$$\$$seg51 : 0x$(BSS_BASE) TO 0x$(BSS_END) NOOUTPUT -- selftest RAM );"
+	@@$(ECHO) >> rr_loc.opt "\t)"
+	@@$(ECHO) "\tDone with rr_loc.opt "
+d219 13
+d242 1
+a242 1
+.SUFFIXES : .ol .o .mac .c .s .asm
+d255 2
+a256 1
+.asm.o	:
+d259 13
+a271 6
+	$(ASM) $(AOUT)$*$O $(AFLAGS) $*.asm
+
+.asm.ol	:
+	rm -f $*.lis
+	@@$(ECHO) "\tAssembling $*.asm..."
+	$(MAC) -nobin $(AFLAGS) -obj=$*.ol $*.asm > $*.err 2>&1 && rm $*.err;
+d273 4
+a276 3
+# Following temp for building image files
+.ol.o	:
+	/home/sprint/albaugh/tools/oltoo/oltoo $*.ol
+d278 1
+a278 1
+# MRI toolchain
+d281 1
+a281 1
+	- $(CCO) -g  $< > $*.err 2>&1;\
+d287 1
+d310 7
+a316 1
+	mactj -inc=$(INC) -obj=$*$Ot -sym=32 -debug $(INC)g_compat.mac $*.gas  > $*.err 2>&1 && rm $*.err;
+a345 51
+osrr.vlda	: $(LIBFILES) $(SRCFILES) date.c rr_files.opt rr_loc.opt
+	touch lamb.err
+	-ls *.err | grep -v "lamb" || true
+	-rm lamb.err
+	if [ ! -s *.err ]; \
+	then \
+	  $(CCO) -S date.c ; \
+	  $(ASM) date.s ; \
+	  $(ECHO) '\tLink in progress...';\
+	  $(LN) -sym -cross -map=osrr.map -vlda $(OUT)osrr.vlda -opt=rr_files.opt -opt=rr_loc.opt ; \
+	  $(LN) -sym=osrr.hex -out=$$.hex -nobin -opt=rr_files.opt -opt=rr_loc.opt ; \
+	  /bin/rm -f $$.hex; \
+	  $(ECHO) "\tVECEXTRACT in progress..." ; \
+	  vec_ex -v -m osrr.vlda wantfile.txt -o ros_vec.mac ; \
+	else \
+	  $(ECHO) 'NO LINK due to ".err" files!'; \
+	  exit 1; \
+	fi
+
+mapdefs.ol : Makefile
+	$(ECHO) > mapdefs.asm "PBASE EQU 0x$(PBASE)"
+	$(ECHO) >> mapdefs.asm "INIT_SP EQU 0x$(INIT_SP)"
+	$(ECHO) >> mapdefs.asm "\txdef INIT_SP,PBASE"
+	$(MAC) -nobin $(AFLAGS) -obj=mapdefs.ol mapdefs.asm > mapdefs.err 2>&1 && rm mapdefs.err;
+	
+osrr.ln	: $(LIBFILES) $(SRCFILES) date.c rr_files.opt
+	touch lamb.err
+	-ls *.err | grep -v "lamb" || true
+	-rm lamb.err
+	if [ ! -s *.err ];\
+	then\
+	  $(CCO) -S date.c ; \
+	  $(ASM) date.s ; \
+	  $(ECHO) '\tLink in progress...';\
+	  $(LN) -rel -nobin -out=osrr.ln -opt=rr_files.opt ; \
+	else\
+	  $(ECHO) 'NO .ln due to ".err" files!';\
+	  exit 1;\
+	fi
+
+osrr.o	: osrr.ln rr_o.sh
+	  ./rr_o.sh
+
+osrr.abs : osrr.vlda
+	vlda2coff osrr.vlda
+
+boot.vlda	: boot.ol boot_llf.opt
+	@@$(ECHO) "\tLink in progress..."
+	$(LN) -sym -cross -map=boot.map -vlda $(OUT)boot.vlda -opt=boot_llf.opt
+	@@$(ECHO) "\tLink complete."
+
+a357 11
+boot.hex : boot.ol boot_llf.opt
+	@@$(ECHO) "\tLink in progress..."
+	$(LN) -sym -cross -map=boot.map $(OUT)boot.hex -opt=boot_llf.opt
+	@@$(ECHO) "\tLink complete."
+
+os.mot	: $(LIBFILES) $(SRCFILES) date.c os_files.opt
+	$(CCO) date.c
+	@@$(ECHO) "\tLink in progress..."
+	$(LN) $(OUT)os.mot -f d,t,x -m -F S -c os_files.opt > map
+	@@$(ECHO) "\tmake complete (MOTOROLA FORMAT)."
+
+d363 1
+a363 1
+$(INC)config.h	: config.mac def_pp.mac
+d365 1
+a365 1
+	$(PP) $(POUT)$(INC)config.h -lis def_pp.mac config.mac
+d367 1
+a367 1
+$(INC)config.i	: config.mac def_pp.mac
+d369 3
+a371 3
+	@@echo > foobie "OUTPUT_LANG == LANG_ASM"
+	@@echo >> foobie "MAX_ALIGN == 2"
+	$(PP) $(POUT)$(INC)config.i -lis foobie def_pp.mac config.mac
+d375 1
+a375 1
+	$(PP) $(POUT)$(INC)jag_defs.h -lis def_pp.mac jag_defs.mac
+d379 3
+a381 23
+	$(DEL) foobie
+	@@echo > foobie "OUTPUT_LANG == LANG_ASM"
+	@@echo >> foobie "MAX_ALIGN == 2"
+	$(PP) $(POUT)$(INC)jag_defs.i -lis foobie def_pp.mac jag_defs.mac
+
+guts_mt.h	: guts_mt.mac def_pp.mac
+	@@$(ECHO) "\tMaking guts_mt.h"
+	$(PP) $(POUT)guts_mt.h -lis def_pp.mac guts_mt.mac
+
+guts_mt.txt : guts_mt.mac def_pp.mac
+	@@$(ECHO) "\tMaking guts_mt.txt"
+	$(DEL) foobie
+	@@echo > foobie "OUTPUT_LANG == LANG_TXT"
+	@@echo >> foobie "MAX_ALIGN == 2"
+	$(PP) $(POUT)guts_mt.txt -lis foobie def_pp.mac guts_mt.mac
+
+guts_mt.i	: guts_mt.mac def_pp.mac
+	@@$(ECHO) "\tMaking guts_mt.i"
+	$(DEL) foobie
+	@@echo > foobie "OUTPUT_LANG == LANG_ASM"
+	@@echo >> foobie "MAX_ALIGN == 2"
+	$(PP) $(POUT)guts_mt.i -lis foobie def_pp.mac guts_mt.mac
+
+d387 1
+a387 1
+	$(PP) $(POUT)$(INC)smc.h -lis def_pp.mac smc.mac
+d391 3
+a393 3
+	$(DEL) foobie
+	@@echo > foobie "OUTPUT_LANG == LANG_ASM"
+	$(PP) $(POUT)$(INC)smc.i -lis foobie def_pp.mac smc.mac
+a403 1
+bram_test	: bram_test$O
+a404 3
+joy_an		: joy_an$O
+joy_an$O	: $(INC)config.i
+
+d408 1
+a408 2
+mem_test	: mem_test$O
+mem_test$O	: $(INC)config.i $(INC)os_macros.i
+a411 3
+ultodec		: ultodec$O
+ultodec$O	: $(INC)config.i
+
+a414 4
+# MRI toolchain
+#os_vec.asm	: os.x wantfile.txt
+#	@@$(ECHO) "\tVECEXTRACT in progress..."
+#	vec_ex -u -v -a map wantfile.txt $(OUT)os_vec.asm 
+d419 3
+a421 3
+os_vec.mac	: os.vlda wantfile.txt
+	@@$(ECHO) "\tVECEXTRACT in progress..."
+	vec_ex -v -m os.vlda wantfile.txt -o os_vec.mac 
+d423 4
+a432 1
+audio		: audio$O
+d442 1
+a442 1
+jag_vid$O	: $(BASE_H_FILES) $(JAG_H) $(INC)string.h $(INC)decomp.h
+a443 1
+dispatch	: dispatch$O
+d450 1
+a450 1
+gun$O		: $(BASE_H_FILES) $(INC)eer_defs.h $(JAG_H)
+d498 4
+a501 1
+ $(INC)blitlib.h $(INC)gpu.h
+d503 2
+a504 1
+gpurle$Ot	:	gpurle.gas $(INC)g_compat.mac
+d506 1
+a506 1
+gpuj1$Ot	:	gpuj1.gas $(INC)jag_defs.i $(INC)g_compat.mac
+a514 3
+show_fish	: show_fish$O
+show_fish$O	: $(BASE_H_FILES) $(JAG_H)
+
+d523 2
+a524 3
+	$(DEL) foobie
+	@@echo > foobie "MAKE_STAT_MAP == 1"
+	$(PP) $(POUT)stat_map.h foobie stat_pp.mac stat_map.mac
+d528 2
+a529 3
+	$(DEL) foobie
+	echo > foobie "MAKE_STAT_DEFS == 1"
+	$(PP) -lis $(POUT)stat_defs.h foobie stat_pp.mac stat_map.mac
+d533 2
+a534 3
+	$(DEL) foobie
+	@@echo > foobie "MAKE_EER_DEFS == 1"
+	$(PP) $(POUT)$(INC)eer_defs.h -lis=eer_defs.lis foobie stat_pp.mac stat_map.mac
+d538 4
+a541 4
+	$(DEL) foobie
+	@@echo > foobie "MAKE_EER_DEFS == 1"
+	@@echo >> foobie "ASM_OUTPUT == 1"
+	$(PP) $(POUT)$(INC)eer_defs.i -lis=eer_defs.lis foobie stat_pp.mac stat_map.mac
+d549 1
+a553 6
+game.ln	:	g_root.ol g_fake.ol os_vec.ol date.c
+	$(CCO) -S date.c
+	$(ASM) date.s
+	@@$(ECHO) "\tLink in progress..."
+	$(LN) -rel -nobin $(OUT)game.ln g_root.ol date.ol g_fake.ol os_vec.ol
+	@@$(ECHO) "\tLink complete."
+d557 1
+a557 1
+font8x8$O : font8x8.asm
+d559 1
+a559 1
+jag_an$O : jag_an.mac
+d561 1
+a561 2
+fish.o		: fish.ol
+	/home/sprint/albaugh/tools/oltoo/oltoo fish.ol
+d563 5
+a567 5
+rotest	: rotest.c math.o
+	gcc -Wall -O -I. -I../inc -o rotest rotest.c math.o
+
+math.o	: trigtab.h
+	gcc -Wall -O -I. -I../inc -c math.c
+d580 2
+a581 2
+	$(DEL) *.upd
+	$(DEL) *.o *.ol *.olt
+@
+
+
+1.6
+log
+@added dependency on g_compat.mac to force RCS fetch
+@
+text
+@d95 25
+a119 12
+INIT_SP = FFA1E0FC
+TEXT_BASE = 9E8000
+TEXT_END = 9F7FFD
+DATA_BASE = 9F7FFE
+DATA_END = 9F7FFF
+RR_TEXT_BASE = 9D0000
+RR_TEXT_END = 9DFFFD
+RR_DATA_BASE = 9DFFFE
+RR_DATA_END = 9DFFFF
+BSS_BASE = FFA00400
+BSS_END =  FFA00FFF
+PBASE = 800000
+@
+
+
+1.5
+log
+@added several dependancies to fix RCS auto-checkout probs
+@
+text
+@d527 1
+a527 1
+gpurle$Ot	:	gpurle.gas
+d529 1
+a529 1
+gpuj1$Ot	:	gpuj1.gas $(INC)jag_defs.i
+@
+
+
+1.4
+log
+@Jag version (sort of ) of Normal GUTS Makefile
+@
+text
+@a25 1
+
+d33 1
+a33 1
+PP	= /u/local/macpp.v9.4
+d71 1
+a71 1
+os	: os.hex os_vec.asm
+d75 9
+d85 23
+a107 9
+CFILE1 =  eedrive$O gamedefs$O jag_vid$O entry$O
+CFILE2 = menus$O ram_test$O selftest$O scope$O
+CFILE3 =  swt_test$O 
+CFILE4 = text$O cdec_hex$O pm$O
+ASMF1 = ultodec$O mem_test$O bram_test$O
+ASMF2 = string$O vectors$O
+BASE_H_FILES = $(INC)config.h $(INC)os_proto.h st_proto.h
+NOT_YET = audio$O gel_coin$O coin94$O pots$O smc_test$O snd_test$O stats$O packet$O 
+ 
+d140 3
+a142 3
+	@@$(ECHO) >> llf_opts.opt " .REL. text \$$\$$seg12 \$$\$$seg99 : \c"
+	@@$(ECHO) >> llf_opts.opt " 0x408 TO 0xFFFD, -- ROM"
+	@@$(ECHO) >> llf_opts.opt "data : 0xFFFE to 0x0FFFF"
+d144 1
+a144 1
+	@@$(ECHO) >> llf_opts.opt "\$$\$$seg51 : 0xFFF80000 TO 0xFFFFFFFF NOOUTPUT -- selftest RAM );"
+d146 2
+a147 1
+	@@$(ECHO) >> llf_opts.opt "DECLARE (PBASE : 0x10000);"
+d158 24
+d203 1
+a203 1
+	$(MAC) $* $(AOUT)$*.$O -sym=32
+d216 4
+d243 10
+d260 1
+a260 1
+os.x	: $(LIBFILES) $(SRCFILES) os_files.opt
+d266 14
+a279 6
+os.vlda	: $(LIBFILES) $(SRCFILES) llf_opts.opt
+	$(CCO) -S date.c
+	$(ASM) date.s
+	@@$(ECHO) "\tLink in progress..."
+	$(LN) -sym -cross -map=os.map -vlda $(OUT)os.vlda -opt=llf_opts.opt
+	@@$(ECHO) "\tLink complete."
+d281 46
+d332 11
+a342 6
+os.hex	: $(LIBFILES) $(SRCFILES) llf_opts.opt
+	$(CCO) -S date.c
+	$(ASM) date.s
+	@@$(ECHO) "\tLink in progress..."
+	$(LN) -nosym -cross -map=os.map $(OUT)os.hex -opt=llf_opts.opt
+	@@$(ECHO) "\tLink complete."
+d349 1
+a349 1
+os.mot	: $(LIBFILES) $(SRCFILES) os_files.opt
+a365 1
+	$(DEL) foobie
+d370 29
+d448 3
+d459 1
+a459 1
+audio$O		: $(BASE_H_FILES) $(INC)stdarg.h $(INC)eer_defs.h 
+d467 2
+a468 2
+gt_vid		: gt_vid$O
+gt_vid$O	: $(BASE_H_FILES) $(INC)string.h
+d470 3
+d476 3
+d492 1
+a492 1
+ram_test$O	: $(BASE_H_FILES) $(INC)string.h
+d509 2
+a510 2
+text		: text$O
+text$O		: $(BASE_H_FILES) $(INC)string.h
+d512 3
+d516 26
+d582 6
+d589 22
+d616 1
+a616 1
+	$(DEL) *.o *.ol
+d621 2
+a622 1
+
+@
+
+
+1.3
+log
+@new make file for testrgb program [uses custom rgbboot.asm]
+@
+text
+@d1 5
+a5 2
+#	Crude Jag makefile. A sort of dumping ground where we can slop
+#	in bits and pieces from Tramiel makefiles and fire off a make
+d9 2
+d21 2
+d36 8
+d69 4
+a72 5
+# Temp for Brian
+
+RGB_OBJ =  rgbboot$O testrgb$O test$O intserv$O vidinit$O jlister$O clearjag$O
+
+rgb	: rgb.hex
+d74 1
+a74 1
+	@@$(ECHO) "\tRGB test is up to date."
+a75 3
+boot	: boot.hex
+	$(BELL)
+	@@$(ECHO) "\tBoot is up to date."
+d77 12
+a88 4
+rgb.vlda : $(RGB_OBJ) rgb.opt
+	@@$(ECHO) "\tLink in progress..."
+	$(LN) -sym -cross -map=rgb.map -vlda $(OUT)rgb.vlda -opt=rgb.opt
+	@@$(ECHO) "\tLink complete."
+d90 2
+a91 4
+rgb.hex : $(RGB_OBJ) rgb.opt
+	@@$(ECHO) "\tLink in progress..."
+	$(LN) -sym -cross -map=rgb.map $(OUT)rgb.hex -opt=rgb.opt
+	@@$(ECHO) "\tLink complete."
+d93 20
+a112 2
+STADDR	= 0x1000
+STEND = 0x4000
+d114 21
+a134 11
+rgb.opt	: Makefile
+	@@$(ECHO) > rgb.opt "LOCATE	("
+	@@$(ECHO) >> rgb.opt " .REL. text data : $(STADDR) to $(STEND), -- ROM"
+#	@@$(ECHO) >> rgb.opt "bss : 0xFFF80000 TO 0xFFFFFFFF NOOUTPUT -- selftest RAM );"
+	@@$(ECHO) >> rgb.opt "bss : 0xFF200000 TO 0xFF21FFFF NOOUTPUT -- selftest RAM );"
+	@@$(ECHO) >> rgb.opt "\t)"
+	@@$(ECHO) >> rgb.opt "DECLARE ( INIT_SP : 0xFF21FFFC);"
+	@@$(ECHO) >> rgb.opt "FILE ("
+	@@$(ECHO) >> rgb.opt "\t$(RGB_OBJ)"
+	@@$(ECHO) >> rgb.opt "\t)"
+	@@$(ECHO) "\tDone with rgb.opt "
+d136 3
+a138 1
+test$O : $(INC)vidstuff.inc
+d140 1
+a140 1
+jlister$O : $(INC)vidstuff.inc
+d167 1
+a167 1
+	$(MAC) $(MOUT)$*.ol $(AFLAGS) $*.asm
+d199 13
+d217 3
+a219 1
+boot.hex : boot.ol
+d221 1
+a221 1
+	$(LN) -sym -cross -map=boot.map $(OUT)boot.hex boot.ol
+d224 11
+d236 161
+a406 1
+
+@
+
+
+1.2
+log
+@Changed for Brian: ORG 0x1000, BSS 0xff200000
+@
+text
+@a54 3
+boot	: boot.hex
+	$(BELL)
+	@@$(ECHO) "\tBoot is up to date."
+d56 1
+a56 1
+RGB_OBJ =  testrgb$O test$O intserv$O vidinit$O jlister$O clearjag$O
+d62 4
+d85 1
+d157 1
+a157 1
+boot.hex : boot.ol boot_llf.opt
+d159 1
+a159 1
+	$(LN) -sym -cross -map=boot.map $(OUT)boot.hex -opt=boot_llf.opt
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d54 1
+a54 1
+# Temp for Brain
+d75 2
+a76 2
+STADDR	= 0x802000
+STEND = 0x806000
+d81 2
+a82 1
+	@@$(ECHO) >> rgb.opt "bss : 0xFFF80000 TO 0xFFFFFFFF NOOUTPUT -- selftest RAM );"
+@

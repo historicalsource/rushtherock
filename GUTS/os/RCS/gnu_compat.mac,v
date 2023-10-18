@@ -1,0 +1,76 @@
+head	1.2;
+access;
+symbols
+	CJ_206:1.2
+	CJ2_05:1.2
+	CJ2_04:1.2;
+locks; strict;
+comment	@;; @;
+
+
+1.2
+date	95.05.26.22.45.53;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.05.26.22.17.55;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@macpp hacks to mimic Motorola syntax when pre-processing for GAS (Gnu Assembler)
+@
+
+
+1.2
+log
+@added .phrase to simulated pseudo-ops
+@
+text
+@	.MACRO SECTION NUMBER
+	.section $$seg'NUMBER
+	.ENDM
+	.MACRO	PAGE
+	.ENDM
+	.MACRO	page
+	.ENDM
+	.MACRO	TTL
+	.ENDM
+	.MACRO	.phrase
+	.align	3
+	.ENDM
+	.radix	10.
+	.DEFINE EQU =
+	.DEFINE SET =
+	.DEFINE xdef .globl
+	.DEFINE xref .globl
+	.DEFINE xrefs .globs
+	.DEFINE EVEN .align 1
+	.DEFINE IF_GE .if ge,
+	.DEFINE IFNE .if ne,
+	.DEFINE IFEQ .if eq,
+	.DEFINE IFNDEF .if ndf,
+	.DEFINE ENDC .endc
+	.DEFINE ifne .if ne,
+	.DEFINE ifeq .if eq,
+	.DEFINE endc .endc
+	.macro	__include file
+	.include file
+	.endm
+	.macro	include file
+	__include ^'file
+	.endm
+MACRO_STYLE	= 1
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d10 3
+@

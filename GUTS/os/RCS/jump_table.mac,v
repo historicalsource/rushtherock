@@ -1,0 +1,1087 @@
+head	1.34;
+access;
+symbols
+	CJ_206:1.31
+	CJ2_05:1.31
+	CJ2_04:1.31;
+locks; strict;
+comment	@;; @;
+
+
+1.34
+date	97.02.27.22.45.37;	author albaugh;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	97.02.14.20.32.02;	author albaugh;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	97.01.29.21.35.45;	author albaugh;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	96.07.18.22.00.16;	author birmingham;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	96.06.14.22.34.27;	author albaugh;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	96.05.09.23.59.58;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	96.05.08.21.36.10;	author albaugh;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.04.19.01.52.10;	author forrest;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.04.19.01.19.41;	author forrest;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.04.17.23.11.20;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.04.17.16.44.43;	author albaugh;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.03.06.21.22.52;	author forrest;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.03.01.20.59.56;	author forrest;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.02.28.21.17.29;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.02.27.19.39.28;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.02.23.02.57.00;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.02.17.01.20.47;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.02.09.19.16.34;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.02.08.18.10.50;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.02.08.01.51.28;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.02.08.01.04.24;	author birmingham;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.01.03.21.25.09;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.11.02.00.07.27;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.11.01.19.04.20;	author birmingham;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.09.30.01.15.21;	author peplinski;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.09.26.20.23.27;	author forrest;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.09.22.22.58.44;	author peplinski;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.09.19.20.20.06;	author peplinski;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.08.18.20.22.15;	author peplinski;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.08.15.21.55.56;	author birmingham;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.08.09.22.37.33;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.08.09.01.40.20;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.07.19.22.09.45;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.07.10.18.50.00;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@R3K/R4K GUTS vector jump table
+@
+
+
+1.34
+log
+@Added properly-protected jumps for wacko interlaced
+video calls. Should not have any effect on other games.
+@
+text
+@;#
+	.include config.mac
+;#
+ .if ndf,GUN_CNT
+	HEX_CONST GUN_CNT	0
+ .endc
+;#
+.MACRO VJMP name	;# VJMP is word-sized (name < 0x8000)
+	.globl name, VEC_'name
+VEC_'name:
+	j	name
+.endm
+
+VSTART:
+;##;##
+;##;##	OS utility vectors
+;##;##
+	VJMP	stub_start		;# For use with Corp's debug stub
+
+	VJMP	prc_reboot		;# restart/switch
+	VJMP	prc_delay0		;# Wait <=1 frames
+	VJMP	prc_delay		;# Wait <=n frames
+	VJMP	prc_panic		;# to dump to screen
+	VJMP	prc_set_ipl		;# set new interrupt level, return old level
+	VJMP	prc_set_vec		;# set an interrupt vector
+	VJMP	prc_q_action
+	VJMP	prc_mod_latch		;# set or clear LATCH/shadow bits
+
+	VJMP	ctl_autorepeat		;# set auto repeat values for ctl_read_sw()
+	VJMP	ctl_read_debug		;# read debounced debug switches
+	VJMP	ctl_read_sw		;# (MASK) return levels or edges(then cleared)
+	VJMP	ctl_upd_sw		;# setup/read self-test style switches(VBINT)
+
+;#	VJMP	rand			;# random number generator
+;#
+;#	Timer queue vectors
+;#
+	VJMP	tq_ins
+	VJMP	tq_del
+	VJMP	tq_maint
+
+	VJMP	vcr			;# start/stop vcr
+;#
+;#	EEPROM statistics vectors
+;#
+	VJMP	eer_incs		;# increment specified stat
+	VJMP	eer_init		;#Called at power-on to setup shadows
+	VJMP	eer_gets		;#Get Statistic (or option)
+	VJMP	eer_puts		;#Put/clear Statistic or option
+	VJMP	eer_hstr		;#Read High Score Table
+	VJMP	eer_hstw		;#Write High Score Table
+	VJMP	eer_rank		;#Return Rank corresponding to score
+	VJMP	eer_bumph
+
+	VJMP	eer_play		;#Start/Stop player timers
+	VJMP	eer_start		;#Start Game and timers
+	VJMP	eer_stop		;#Stop a player's timer, not game
+	VJMP	eer_end			;#End of game, updates stats.
+
+	VJMP	eer_hwt			;# does the writes necessary
+	VJMP	eer_busy		;#EEROM write active
+
+	VJMP	eer_user_rd		;# read in the user records
+	VJMP	eer_user_wrt		;# write 'em out
+	VJMP	eer_user_free		;# done with it
+
+	VJMP	eer_tally_hist		;# Histogram call
+	VJMP	erc_vbex		;# maintain eeprom & coin polling
+
+	VJMP	eer_p_incs
+	VJMP	eer_stats
+;#
+;#	COIN routine vectors
+;#
+	VJMP	cn_init			;# call AFTER eer_init (INTS ENABLED!)
+	VJMP	cn_discount		;# returns 0 if no discount, else cost to cont.
+	VJMP	cn_price		;#Report price of a game
+	VJMP	cn_chkcoin		;# returns TRUE if enough coins
+	VJMP	cn_credits		;# returns 32bits of- 31:16 Whole, 15:8/7:0 part for NEW Games
+	VJMP	cn_continues		;# returns 32bits of- 31:16 Whole, 15:8/7:0 part for CONT Games
+	VJMP	cn_debit		;# -- old, takes ONE credit (price of one game)
+	VJMP	cn_dbcoin		;# subtracts a specified number of COINS
+	VJMP	cn_zap_bonus		;# clears bonus accumulators (if used)
+	VJMP	cn_total_coins		;# used by stats, returns total coins dropped
+	VJMP	cn_total_creds		;# used by stats, returns coins/price
+	VJMP	cn_bong			;# used to return NEW COINS dropped
+	VJMP	cn_next			;# returns number of coins needed to first credit
+	VJMP	cn_coins		;# returns number of coins in bucket
+
+	VJMP 	cn_check
+	VJMP 	cn_coin_counters
+	VJMP 	cn_irq
+;#
+;#	Pot handling vectors
+;#
+ .if ndf, POT_CNT
+	HEX_CONST POT_CNT	0
+ .endc
+ .if ne, POT_CNT
+	VJMP	pot_age
+	VJMP	pot_init
+	VJMP	pot_linear
+	VJMP	pot_parabolic
+	VJMP	pot_raw
+	VJMP	pot_save
+ .endc
+;#
+;# new-style text routines
+;#
+
+	VJMP	txt_width
+	VJMP	txt_height
+	VJMP	txt_stamp
+	VJMP	txt_str
+	VJMP	txt_clr_str
+	VJMP	txt_clr_wid
+	VJMP	txt_cstr
+	VJMP	txt_decnum
+	VJMP	txt_cdecnum
+	VJMP	txt_hexnum
+	VJMP	txt_chexnum
+
+;# and a couple of utilities useful in printing
+
+	VJMP	utl_cdec
+	VJMP	utl_chex
+
+	VJMP	vid_clear
+	VJMP	vid_fields
+	VJMP	vid_init
+	VJMP	vid_set_vb
+	VJMP	setancolors
+
+;#	Chuck Peplinski's audio library...
+;#  - standard audio library
+	VJMP	aud_put			;# send sound
+	VJMP	aud_poll		;# check up, maybe empty queue
+	VJMP	aud_init		;# reset
+	VJMP	aud_setvol		;# set volume
+	VJMP	aud_mput
+	VJMP	aud_q_get
+ .if true, (HAS_CAGE == 1)
+	VJMP	aud_qlen
+ .endc
+;# Shep adds aud_q_dump, aud_q_mput, aud_f_put, aud_getErrorCount, aud_pm,
+;# Shep adds aud_cmd, aud_q_put, aud_irq, aud_excw, aud_reset, aud_cksum_dly
+ .if	df,JERRY_BASE
+;# Stream library
+	VJMP	strmInit
+	VJMP	strmStartStreaming
+	VJMP	strmCurrentBufferDonePlaying
+	VJMP	strmSwapBuffer
+	VJMP	strmSetupStreaming
+	VJMP	strmStop
+	VJMP    strmFinish
+	VJMP	strmPause
+	VJMP	strmResume
+	VJMP	strmSetVolume
+	VJMP	strmGetSampleRate
+   VJMP  strmPlayRamSound
+   VJMP  strmRamSoundFinished
+   VJMP  strmSetRamSoundVolume
+   VJMP  strmSetRamSoundPitch
+   VJMP  strmStopRamSound
+   VJMP  imGetLoadAddress
+   VJMP  imLoadBankExternal
+
+;# debugging functions
+	VJMP	synPrintJVcb
+   VJMP  synPrintOneVcb
+   VJMP  synCheckBreakPoint
+ .endc
+
+ .if	df,TOM_BASE
+	VJMP	vid_set_pal
+	VJMP	vid_setscr
+	VJMP	vid_set_vmode    
+	VJMP	vid_set_bg
+
+	VJMP	dram_alloc
+
+;# Jaguar related services from Robert Birmingham...
+
+	VJMP	ob_add
+	VJMP	ob_del
+	VJMP	ob_build
+	VJMP	ob_clone
+	VJMP	ob_copy
+	VJMP	ob_reset
+	VJMP	ob_text
+	VJMP	ob_init
+	VJMP	ob_get_dpitch
+	VJMP	ob_get_dwidth
+	VJMP	ob_get_firstpix
+	VJMP	ob_get_flags
+	VJMP	ob_get_hscale
+	VJMP	ob_get_img
+	VJMP	ob_get_iwidth
+	VJMP	ob_get_palnum
+	VJMP	ob_get_pixdepth
+	VJMP	ob_get_pixh
+	VJMP	ob_get_pixw
+	VJMP	ob_get_xhotspot
+	VJMP	ob_get_yhotspot
+	VJMP	ob_get_priority
+	VJMP	ob_get_vscale
+	VJMP	ob_get_x
+	VJMP	ob_get_y
+	VJMP	ob_set_dpitch
+	VJMP	ob_set_dwidth
+	VJMP	ob_set_firstpix
+	VJMP	ob_set_flags
+	VJMP	ob_set_hscale
+	VJMP	ob_set_img
+	VJMP	ob_set_iwidth
+	VJMP	ob_set_mem
+	VJMP	ob_set_palnum
+	VJMP	ob_set_pixdepth
+	VJMP	ob_set_pixh
+	VJMP	ob_set_pixw
+	VJMP	ob_set_xhotspot
+	VJMP	ob_set_yhotspot
+	VJMP	ob_set_priority
+	VJMP	ob_set_vscale
+	VJMP	ob_set_x
+	VJMP	ob_set_y
+	VJMP	ob_set_mcliprect
+	VJMP	ob_get_mcliprect
+	VJMP	ob_set_mclipflag
+	VJMP	ob_get_mclipflag
+	VJMP	ob_mem_init
+	VJMP	ob_get_mem
+
+.if	TRUE,0
+	VJMP	ob_create
+	VJMP	ob_destroy
+.endc
+
+	VJMP	rst_copy
+	VJMP	rst_clear
+	VJMP	rst_set
+	VJMP	rst_size
+
+	VJMP	rect_set
+	VJMP	rect_clip
+	VJMP	rect_translate
+	VJMP	rect_intersect
+
+	VJMP	blit_clear
+	VJMP	blit_copy
+	VJMP	blit_pattern
+	VJMP	blit_status
+	VJMP	blit_wait
+
+	VJMP	gpu_task_init
+	VJMP	gpu_load_task
+	VJMP	gpu_run_task
+	VJMP	gpu_push_stack
+	VJMP	gpu_set_bss
+	VJMP	gpu_get_bss
+	VJMP	gpu_task_complete
+
+	VJMP	decomp_init
+	VJMP	decomp_register
+	VJMP	decomp_unregister
+	VJMP	decomp_image
+
+.if	TRUE,0
+	VJMP	gr_init
+	VJMP	gr_point
+	VJMP	gr_line
+	VJMP	gr_obox
+	VJMP	gr_fbox
+	VJMP	gr_hline
+	VJMP	gr_vline
+	VJMP	gr_circle
+	VJMP	gr_ellipse
+	VJMP	gr_text
+	VJMP	gr_reference
+.endc
+
+
+ .endc
+
+ .if	df,IDE_REG_OFFSET
+	VJMP	ide_reset
+	VJMP	ide_check_devstat
+	VJMP	ide_identify
+	VJMP	ide_get_rpm
+	VJMP	ide_get_hdinfo
+	VJMP	ide_get_rdstatus
+ .if defined, THOMAS_OPTIONS
+;# The two function below should be one, to remove a race
+;# condition, and in fact should not exist at all. They are
+;# "Hostile" to the whole idea of queued, managed, disk access
+	VJMP	ide_set_xfer_func
+	VJMP	ide_get_xfer_func
+ .endc
+ .if	df,COJAG_GAME
+	VJMP	ide_get_errstatus
+ .endc
+	VJMP	ide_calc_checksum
+ .if	df,COJAG_GAME
+	VJMP	ide_read_sectors
+  .if true,(COJAG_GAME & COJAG_AREA51)
+	VJMP	ide_read_decomp_sectors
+  .endc
+	VJMP	ide_gread_sectors
+ .endc
+	VJMP	ide_hread_sectors
+;# Shep adds ide_hverify_sectors, ide_enable_interrupts, ide_disable_interrupts
+;# Shep adds ide_send_command, ide_wait_bsy, ide_get_rdstatus, ide_set_xfer_func
+;# Shep adds ide_get_xfer_func, ide_verify_sectors, ide_get_errstatus
+	VJMP	ide_write_sectors
+ .endc
+
+ .if	defined,GUN_CNT
+  .if	ne,GUN_CNT
+	VJMP	ctl_rd_gun		;# (which (0 or 1)) return packed gun status
+	VJMP	gun_vb
+	VJMP	gun_init
+	VJMP	gun_retrigger
+;#
+;# Temporary gun hardware trace dump
+;#
+	VJMP	gun_dump
+  .endc
+ .endc
+
+;# Special hack for fishing, who use isprintf() in their editor
+ .if	not_defined, SST_GAME
+	VJMP	isprintf
+ .endc
+	VJMP	strlen
+	VJMP	memset
+ .if	df,ZOID_GAME
+	VJMP	ztv_bufswap
+	VJMP	zre_frames
+	VJMP	zre_init
+	VJMP	zre_setup
+	VJMP	zmb_init
+	VJMP	txt_select
+ .endc
+;# Shep adds 
+ .if true,((HOST_BOARD == HCR4K)||(HOST_BOARD == LCR3K))
+	VJMP	set_timer_ptr
+  .if defined, ZOID_GAME
+	VJMP	txt_vsptr
+  .endc
+ .endc
+ .if true, (HOST_BOARD == HCR4K)
+	VJMP	prc_set_led
+	VJMP	set_timer_rate
+	VJMP	prc_smack_wdog
+	VJMP	get_uptime
+  .if defined, ZOID_GAME
+    .if true, HOST_IS_MATHBOX
+	VJMP	zag_text2traps
+    .endc
+	VJMP	ztv_texture_write
+  .endc
+ .endc
+.INC_UIO == 0
+ .if defined, TEST_UIO
+.INC_UIO == TEST_UIO
+ .endc
+ .if defined, HAS_UIO
+.INC_UIO == .INC_UIO + HAS_UIO
+ .endc
+ .if true, .INC_UIO
+	VJMP	ctl_uio_get
+	VJMP	ctl_uio_put
+	VJMP	ctl_uio_swt
+ .endc
+ .if defined, USE_XIO_STUBS
+  .if true, USE_XIO_STUBS
+	VJMP	ctl_mod_latch
+  .endc
+ .endc
+;# Shep adds get_uptime
+;# Added at end to minimize pain. If you don't have a txt_setpos,
+;# you should copy the jist of the one in jag_text.c, z20_text.c,
+;# or gsp_text.c. The only other system under RCS is Phoenix, and
+;# it doesn't use jump_table.mac
+	VJMP	txt_setpos
+.if defined, ZOID_GAME
+	VJMP	get_vb_count
+.endc
+	VJMP	memcpy
+	VJMP	rand
+	VJMP	srand
+	VJMP	SetANPal
+ .if df, COJAG_GAME
+	VJMP	nd16_decomp
+;# Since nobody seems to be calling aud_poll(), but MaxForce wanted
+;# game-watched volume buttons, MEA added the following...
+	VJMP	aud_adj_volume
+;# Last-minute hack to MaxForce to activate NAMCO gun solenoids
+	VJMP	ctl_gun_thud
+  .if defined, COJAG_NUVID
+   .if true, (COJAG_GAME & COJAG_NUVID)
+	VJMP	vid_set_init
+	VJMP	ob_get_kluge
+   .endc
+  .endc
+ .endc
+@
+
+
+1.33
+log
+@Added function call for game to "thud" the NAMCO gun
+solenoid kicker.
+@
+text
+@a380 6
+ .if defined, COJAG_NUVID
+  .if true, COJAG_GAME == COJAG_NUVID
+	VJMP	vid_set_init
+	VJMP	ob_get_kluge
+  .endc
+ .endc
+d400 6
+@
+
+
+1.32
+log
+@added aud_adj_volume(), to allow customized volume-setting
+via Williams coin-door buttons during game-play.
+@
+text
+@d404 2
+@
+
+
+1.31
+log
+@Added vector for nd16_decomp() function in DECOMP.C.
+@
+text
+@d399 1
+a399 1
+
+d401 4
+a404 1
+
+@
+
+
+1.30
+log
+@added rand, srand, and memcpy (for Silencer), and txt_setpos
+and SetANPal (for Freeze). These are fairly generally useful,
+so I did _not_ "protect" them with conditionals. They were
+added at the end to not cause os_vec.asm mismatch problems
+@
+text
+@d399 3
+@
+
+
+1.29
+log
+@Added vector to get_vb_count
+@
+text
+@d305 3
+a335 1
+	VJMP	memcpy
+d395 4
+@
+
+
+1.28
+log
+@added vector for txt_setpos().
+@
+text
+@d390 3
+@
+
+
+1.27
+log
+@Added vector for pot_save.
+@
+text
+@d385 5
+@
+
+
+1.26
+log
+@Added vectors for pot_age and pot_raw.
+@
+text
+@d105 1
+@
+
+
+1.25
+log
+@Conditionalled the inclusion of isprintf
+@
+text
+@d100 1
+d104 1
+@
+
+
+1.24
+log
+@added ability to change video parameters (vid_set_init()),
+plus a kluge for a single interlaced screen object. Both
+are "protected" by COJAG_GAME == COJAG_NUVID, as both are
+likely only needed for the video-testbed used by McKee
+and Batty.
+@
+text
+@d325 1
+d327 1
+@
+
+
+1.23
+log
+@Protected aud_qlen with HAS_CAGE == 1.
+@
+text
+@d374 6
+@
+
+
+1.22
+log
+@Added aud_qlen and memcpy.
+@
+text
+@d139 1
+d141 1
+@
+
+
+1.21
+log
+@Conditionalled zag_text2traps with HOST_IS_MATHBOX
+@
+text
+@d139 1
+d326 1
+@
+
+
+1.20
+log
+@Added ctl_mod_latch temporarily.
+@
+text
+@d346 1
+d348 1
+@
+
+
+1.19
+log
+@Added preliminary support for UIO routines
+@
+text
+@d362 5
+@
+
+
+1.18
+log
+@Added ztv_texture_write
+@
+text
+@d350 12
+@
+
+
+1.17
+log
+@Added zre_init and zre_setup
+@
+text
+@d347 1
+@
+
+
+1.16
+log
+@Added prc_set_led and set_timer_rate
+@
+text
+@d328 2
+@
+
+
+1.15
+log
+@Added prc_smack_wdog, txt_vsptr, get_uptime and zag_text2traps
+@
+text
+@d339 2
+@
+
+
+1.14
+log
+@Added entries for two additional object functions ob_create() and
+ob_destroy().  Added graphics library functions.  These are if'ed
+out so they don't conflict with anyone's code.  They will be enabled
+at some later time.
+@
+text
+@d331 1
+a331 1
+;# Shep adds zre_text_init, dbg_select
+d334 10
+@
+
+
+1.13
+log
+@reconciled jump_table.mac between CoJag and various Zoid
+incarnations. Included comments about jump_vectors included
+in Dave Shepperd's Zoid GUTS that were not in others and not
+added to this, for possible future inclusion.
+@
+text
+@d228 5
+d261 16
+@
+
+
+1.12
+log
+@Protected items enclosed with GUN_CNT if it is not defined
+@
+text
+@d96 4
+d103 1
+d139 2
+a140 1
+
+d157 1
+d265 8
+d274 1
+d276 1
+d279 1
+d281 3
+d304 11
+a314 4
+
+; added to stream interface, but not ordered
+   VJMP  strmSetRamSoundPitch
+
+@
+
+
+1.11
+log
+@deleted unused low-level ide routines. Added ide_gread_sectors
+@
+text
+@d266 2
+a267 1
+ .if	ne,GUN_CNT
+d276 1
+@
+
+
+1.10
+log
+@added strmSetRamSoundPitch vector
+@
+text
+@d252 2
+a253 3
+	VJMP	ide_enable_interrupts
+	VJMP	ide_disable_interrupts
+	VJMP	ide_send_command
+d255 5
+d261 1
+a263 9
+	VJMP	ide_get_hdinfo
+	VJMP	ide_wait_bsy
+	VJMP	ide_get_rdstatus
+	VJMP	ide_get_rpm
+	VJMP	ide_verify_sector
+	VJMP	ide_calc_checksum
+	VJMP	ide_reset
+	VJMP	ide_check_devstat
+	VJMP	ide_get_errstatus
+@
+
+
+1.9
+log
+@Include config.mac; introduce GUN_CNT; if def'ing for JERRY_BASE, TOM_BASE,
+and IDE_REG_OFFSET where appropriate.
+@
+text
+@d286 3
+@
+
+
+1.8
+log
+@added several audio jump table entries (strmFinish, etc)
+@
+text
+@d1 7
+d18 1
+a18 1
+	VJMP	stub_start	;# For use with Corp's debug stub
+d20 6
+a25 6
+	VJMP	prc_reboot	;# restart/switch
+	VJMP	prc_delay0	;# Wait <=1 frames
+	VJMP	prc_delay	;# Wait <=n frames
+	VJMP	prc_panic	;# to dump to screen
+	VJMP	prc_set_ipl	;# set new interrupt level, return old level
+	VJMP	prc_set_vec	;# set an interrupt vector
+d27 6
+a32 1
+	VJMP	prc_mod_latch	;# set or clear LATCH/shadow bits
+d34 7
+a40 5
+	VJMP	ctl_autorepeat	;# set auto repeat values for ctl_read_sw()
+	VJMP	ctl_read_debug	;# read debounced debug switches
+	VJMP	ctl_read_sw	;# (MASK) return levels or edges(then cleared)
+	VJMP	ctl_rd_gun	;# (which (0 or 1)) return packed gun status
+	VJMP	ctl_upd_sw	;# setup/read self-test style switches(VBINT)
+d42 1
+a42 2
+;#	VJMP	rand		;# random number generator
+	VJMP	vcr		;# start/stop vcr
+d69 3
+d75 24
+a98 16
+
+	VJMP	cn_init		;# call AFTER eer_init (INTS ENABLED!)
+	VJMP	cn_discount	;# returns 0 if no discount, else cost to cont.
+	VJMP	cn_price	;#Report price of a game
+	VJMP	cn_chkcoin	;# returns TRUE if enough coins
+	VJMP	cn_credits	;# returns 32bits of- 31:16 Whole, 15:8/7:0 part for NEW Games
+	VJMP	cn_continues	;# returns 32bits of- 31:16 Whole, 15:8/7:0 part for CONT Games
+	VJMP	cn_debit	;# -- old, takes ONE credit (price of one game)
+	VJMP	cn_dbcoin	;# subtracts a specified number of COINS
+	VJMP	cn_zap_bonus	;# clears bonus accumulators (if used)
+	VJMP	cn_total_coins	;# used by stats, returns total coins dropped
+	VJMP	cn_total_creds	;# used by stats, returns coins/price
+	VJMP	cn_bong		;# used to return NEW COINS dropped
+	VJMP	cn_next		;# returns number of coins needed to first credit
+	VJMP	cn_coins	;# returns number of coins in bucket
+
+a119 3
+	VJMP	gun_vb
+	VJMP	gun_init
+
+d121 1
+d124 1
+a124 9
+	VJMP	vid_set_pal
+	VJMP	vid_setscr
+	VJMP	vid_set_vmode    
+	VJMP	vid_set_bg
+
+	VJMP	tq_ins
+	VJMP	tq_del
+
+	VJMP	dram_alloc
+d135 1
+d159 9
+d237 8
+d249 1
+d251 1
+d268 1
+d270 6
+a275 8
+	VJMP	gpu_task_init
+	VJMP	gpu_load_task
+	VJMP	gpu_run_task
+	VJMP	gpu_push_stack
+	VJMP	gpu_set_bss
+	VJMP	gpu_get_bss
+	VJMP	gpu_task_complete
+
+d277 1
+d279 2
+a280 1
+	VJMP	gun_retrigger
+a284 1
+
+@
+
+
+1.7
+log
+@added some streaming audio protos.
+@
+text
+@d113 1
+a113 1
+
+d121 1
+d128 1
+d133 8
+d142 2
+a249 5
+; added 8/23 for Hero
+        VJMP    imGetLoadAddress
+        VJMP    imLoadBankExternal
+        VJMP    strmPlayRamSound
+        VJMP    strmSoundFinished
+@
+
+
+1.6
+log
+@Removed ide_init()
+Put all the idexxx() funcs together
+Moved vid_set_bg() with the other vidxxx() functions.
+@
+text
+@d238 7
+@
+
+
+1.5
+log
+@Added jump vector for ide_check_devstat().
+@
+text
+@d105 1
+d183 1
+a205 1
+	VJMP	ide_init
+d219 3
+a230 3
+	VJMP	ide_get_errstatus
+;#	VJMP	ide_hread_sectors
+
+a237 9
+;# Late additions, should be merged in line at next major release
+	VJMP	vid_set_bg
+
+;# [RMB] New oblist.c call, should be merged in line at next major release
+	VJMP	ob_get_mem
+;# [RMB] New IDE reset call "                                            "
+	VJMP	ide_reset
+	VJMP	ide_check_devstat
+
+@
+
+
+1.4
+log
+@Added new jump vector for the function: ide_reset().
+@
+text
+@a228 1
+;#	VJMP	ide_check_devstat
+d244 2
+@
+
+
+1.3
+log
+@Added entry for new ob_get_mem() function in OBLIST.C
+@
+text
+@d243 2
+@
+
+
+1.2
+log
+@added vid_set_bg
+@
+text
+@d240 3
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d238 2
+@

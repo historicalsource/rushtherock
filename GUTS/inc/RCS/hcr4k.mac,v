@@ -1,0 +1,522 @@
+head	1.15;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.15
+date	96.03.08.03.16.19;	author forrest;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.03.02.18.09.44;	author forrest;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.03.01.22.52.58;	author forrest;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.10.12.20.04.27;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.10.09.22.17.17;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.10.09.22.13.12;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.10.06.03.09.41;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.10.05.17.49.34;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.10.05.17.48.17;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.10.05.01.58.20;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.10.05.01.56.12;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.10.05.01.52.25;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.10.05.01.30.22;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.07.20.16.30.06;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.07.06.01.29.59;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Mark/Senthil's High Cost R4K Host board
+@
+
+
+1.15
+log
+@Removed wbflush().
+@
+text
+@.if ndf, _HCR4K_MAC_
+_HCR4K_MAC_ == 0
+.if ndf, _CONSTANTS_MAC_
+  .warn ;You should .include constants.mac before including hcr4k.mac
+  .include constants.mac
+.endc
+.if ndf, _PPTYPES_MAC_
+  .warn ;You should .include types.mac before including hcr4kk.mac
+  .include pptypes.mac
+.endc
+;
+.if ndf,HOST_BOARD
+	HEX_CONST HOST_BOARD	HCR4K
+.endc
+.if ndf,NUCLEUS_OS
+	HEX_CONST NUCLEUS_OS	0
+.endc
+.if ndf,PROCESSOR
+	HEX_CONST PROCESSOR	MIPS4600
+.endc
+	.include mbhost.mac
+	.include idt.mac
+.endc 		;_HCR4K_MAC_
+@
+
+
+1.14
+log
+@Changed cast of CTRL_BASE to (VU32 *) per Dave Shepperd.
+@
+text
+@a11 3
+.if true, OUTPUT_LANG == LANG_C
+#define wbflush(x) do { int tmp = *( (VU32 *)CTRL_BASE ); } while(0)
+.endc
+@
+
+
+1.13
+log
+@Defined wbflush(x) macro.
+@
+text
+@d13 1
+a13 1
+#define wbflush(x) do { int tmp = *( (int *)CTRL_BASE ); } while(0)
+@
+
+
+1.12
+log
+@Moved most definitions into mbhost.mac
+@
+text
+@d12 3
+@
+
+
+1.11
+log
+@Changed BRAM to BRAM_BASE+HBYTE56_OFFS
+@
+text
+@d1 2
+d4 1
+a4 1
+  .warn ;You should .include constants.mac before including lcr3k.mac
+d8 1
+a8 1
+  .warn ;You should .include types.mac before including lcr3k.mac
+d13 1
+a13 1
+	HEX_CONST HOST_BOARD	MB4600
+d21 1
+a21 145
+REM <	Senthil's 4600 Mathbox board specific definitions>
+;
+; Big-Endian Byte offset is 32 (or 64) - (bit offset)>>3
+	HEX_CONST WORD0_OFFS 4
+	HEX_CONST WORD32_OFFS 0
+	HEX_CONST SHORT0_OFFS 2
+	HEX_CONST SHORT16_OFFS 0
+	HEX_CONST BYTE0_OFFS 3
+	HEX_CONST BYTE8_OFFS 2
+	HEX_CONST BYTE16_OFFS 1
+	HEX_CONST BYTE24_OFFS 0
+.if true, 1
+; Big-Endian Byte offset (in 64 bit address space) is (64 - (bit offset)>>3
+	HEX_CONST HWORD0_OFFS 4
+	HEX_CONST HWORD32_OFFS 0
+	HEX_CONST HSHORT0_OFFS 6
+	HEX_CONST HSHORT16_OFFS 4
+	HEX_CONST HSHORT32_OFFS 2
+	HEX_CONST HSHORT48_OFFS 0
+	HEX_CONST HBYTE0_OFFS 7
+	HEX_CONST HBYTE8_OFFS 6
+	HEX_CONST HBYTE16_OFFS 5
+	HEX_CONST HBYTE24_OFFS 4
+	HEX_CONST HBYTE32_OFFS 3
+	HEX_CONST HBYTE40_OFFS 2
+	HEX_CONST HBYTE48_OFFS 1
+	HEX_CONST HBYTE56_OFFS 0
+.endc
+REMB
+REMM <The R4k virtual memory map appears as the	following:		>
+REME
+;  
+	HEX_CONST MEM_KUSEG	0x00000000 < -0x7FFFFFFF (  2GB, mapped, cached)	>
+	HEX_CONST MEM_KSEG0	0x80000000 < -0x9FFFFFFF phys 00000000-1FFFFFFF (512MB, unmapped, cached)	>
+	HEX_CONST MEM_KSEG1	0xA0000000 < -0xBFFFFFFF phys 00000000-1FFFFFFF (512MB, unmapped, uncached)	>
+	HEX_CONST MEM_KSSEG	0xC0000000 < -0xDFFFFFFF (512MB, mapped)		>
+	HEX_CONST MEM_KSEG3	0xE0000000 < -0xFFFFFFFF (512MB, mapped)		>
+;
+	HEX_CONST DRAM_BASE	0x00200000 < DRAM phys 0x80000000-0x803FFFFF >
+	HEX_CONST DRAM_BASEnc	0x00800000 < DRAM phys 0x80000000-0x803FFFFF (uncached) >
+	HEX_CONST DRAM_SIZE	0x00400000 < DRAM size (4Mb) >
+	HEX_CONST TBUS_BASE	0x01000004 < TBUS FIFO phys 0xA0000004-0xA0000FFF (uncached) >
+	HEX_CONST TBUS_SIZE	0x00001000 < TBUS size (4Kb) >
+	HEX_CONST RDRAM_BASE	0x20000000 < Random DRAM phys 0x20000000-0x203FFFFF >
+	HEX_CONST RDRAM_BASEnc	0x20400000 < Random DRAM phys 0x20000000-0x203FFFFF (uncached) >
+	HEX_CONST RDRAM_SIZE	0x00400000 < DRAM size (4Mb) >
+	HEX_CONST SDRAM_BASE	0x40000000 < Sequential DRAM phys 0x40000000-0x40000FFF (uncached) >
+	HEX_CONST SDRAM_SIZE	0x00001000 < SDRAM size (4kb) >
+	HEX_CONST RRBUS_BASE	0x38000000 < Random ROM BUS phys 0x38000000-0x387FFFFF >
+	HEX_CONST RRBUS_BASEnc	0x38800000 < Random ROM BUS phys 0x38000000-0x387FFFFF (uncached) >
+	HEX_CONST RRBUS_SIZE	0x00800000 < ROM BUS size (8Mb)					>
+	HEX_CONST SRBUS_BASE	0x58000000 < Sequential ROM BUS phys 0x58000000-0x587FFFFF (uncached) >
+	HEX_CONST SRBUS_SIZE	0x00001000 < SROM BUS size (4k) >
+	HEX_CONST CTRL_BASE	0x60000000 < Control register phys 0x60000000 >
+REM < Bits within the latch itself >
+	HEX_CONST    CT0_FIFO_RST	      1	< D00: 0=reset FIFO, 1=enable FIFO>
+	HEX_CONST    CT0_FIFO_ENAB	      2	< D01: 0=normal FIFO, 1=enable FIFO readback>
+	HEX_CONST    CT0_ZERO_MAP	      8 < D03: 0=map physical 0x1FCXXXXX to DRAM >
+	HEX_CONST    CT0_FIFO_MTINT	0x10000	< D16: 0=disable and reset FIFO empty interrupt >
+	HEX_CONST    CT0_LED_CR1	0x20000 < D17: 0=turn on LED CR1 >
+	HEX_CONST    CT1_FIFO_FULLINT	      1 < D32: 0=disable and reset FIFO full interrupt >
+	HEX_CONST    CT1_LED_CR2	      2 < D33: 0=turn on LED CR2 >
+	HEX_CONST    CT1_XBUS_RST	0x10000 < D48: 0=assert XBUS reset >
+	HEX_CONST    CT1_LED_CR3	0x20000 < D49: 0=turn on LED CR3 >
+.if true, OUTPUT_LANG == LANG_C
+extern unsigned short bitshd;
+.endc
+REM < Bits within the latch shadow register >
+	HEX_CONST    CTS_FIFO_RST	   0x001 < D00: 0=reset FIFO, 1=enable FIFO>
+	HEX_CONST    CTS_FIFO_ENAB	   0x002 < D01: 0=normal FIFO, 1=enable FIFO readback>
+	HEX_CONST    CTS_ZERO_MAP	   0x004 < D02: 0=physical address 0x1fcXXXX maps to DRAM >
+	HEX_CONST    CTS_FIFO_MTINT	   0x008 < D03: 0=disable and reset FIFO empty interrupt >
+	HEX_CONST    CTS_LED_CR1	   0x010 < D04: 0=turn on LED CR1>
+	HEX_CONST    CTS_FIFO_FULLINT	   0x020 < D05: 0=disable and reset FIFO full interrupt >
+	HEX_CONST    CTS_LED_CR2	   0x040 < D06: 0=turn on LED CR2 >
+	HEX_CONST    CTS_XBUS_RST	   0x080 < D07: 0=assert XBUS reset >
+	HEX_CONST    CTS_LED_CR3	   0x100 < D08: 0=turn on LED CR3 >
+	HEX_CONST PROM_BASE	0x9FC00000 < PROM phys 0x1FC00000-0x1FFFFFFF (cached)			>
+	DEC_CONST SWINT0_LVL	0		< Software interrupt 0 >
+	DEC_CONST SWINT1_LVL	1		< Software interrupt 1 >
+	DEC_CONST ICELESS_LVL	2		< ICELESS debugger interrupt >
+	DEC_CONST XBUS_LVL	3		< Any XBUS interrupt >
+	DEC_CONST FIFO_EMPTY_LVL 5
+	DEC_CONST FIFO_FULL_LVL 6
+	DEC_CONST TIMER_LVL	7		< CPU timer interrupt >
+.if not_defined, NO_INTS
+NO_INTS == 0
+.endc
+.if true, NO_INTS == 0
+  .if true, NUCLEUS_OS == 0
+	HEX_CONST INTS_ON	0xFF01			< Enable all interrupts >
+  .iff
+	HEX_CONST INTS_ON	0x7F01			< Enable all interrupts >
+  .endc
+	HEX_CONST INTS_OFF	(INTS_ON&~1)		< Disable all interrupts >
+.iff
+	HEX_CONST INTS_ON	0x0301
+	HEX_CONST INTS_OFF	0x0300
+.endc
+;
+.if true, 0
+	HEX_CONST WDOG_BASE	0x70000000 < WDOG (cause TLBS miss)		>
+.iff
+	HEX_CONST WDOG_BASE	(DRAM_BASEnc+DRAM_SIZE-8) < WDOG (temporarily make it top of mem) >
+.endc
+	HEX_CONST BRAM_BASE	0x28000000 < BRAM phys 0x18000000-0x1BFFFFFF (nocached)			>
+	HEX_CONST BRAM_SIZE	((2048-8)*8)   < BRAM size (almost 2k doublewords)					>
+;
+	HEX_CONST XBUS_BASE	0xC0000000		< XBUS base >
+	HEX_CONST XBUS_SLOT0	XBUS_BASE+0x00000000	< XBUS Slot 0 >
+	HEX_CONST XBUS_SLOT1	XBUS_BASE+0x02000000	< XBUS Slot 1 >
+	HEX_CONST XBUS_SLOT2	XBUS_BASE+0x04000000	< XBUS Slot 2 >
+	HEX_CONST XBUS_SLOT3	XBUS_BASE+0x06000000	< XBUS Slot 3 >
+	HEX_CONST XBUS_SLOT4	XBUS_BASE+0x08000000	< XBUS Slot 4 >
+	HEX_CONST XBUS_SLOT5	XBUS_BASE+0x0A000000	< XBUS Slot 5 >
+	HEX_CONST XBUS_SLOT6	XBUS_BASE+0x0C000000	< XBUS Slot 6 >
+	HEX_CONST XBUS_SLOT7	XBUS_BASE+0x0E000000	< XBUS Slot 7 >
+	HEX_CONST XBUS_SLOT70	XBUS_BASE+0x0E000000	< XBUS Slot 7-0 >
+	HEX_CONST XBUS_SLOT71	XBUS_BASE+0x0E400000	< XBUS Slot 7-1 >
+	HEX_CONST XBUS_SLOT72	XBUS_BASE+0x0E800000	< XBUS Slot 7-2 >
+	HEX_CONST XBUS_SLOT73	XBUS_BASE+0x0EC00000	< XBUS Slot 7-3 >
+	HEX_CONST XBUS_SLOT74	XBUS_BASE+0x0F000000	< XBUS Slot 7-4 >
+	HEX_CONST XBUS_SLOT75	XBUS_BASE+0x0F400000	< XBUS Slot 7-5 >
+	HEX_CONST XBUS_SLOT76	XBUS_BASE+0x0F800000	< XBUS Slot 7-6 >
+	HEX_CONST XBUS_SLOT77	XBUS_BASE+0x0FC00000	< XBUS Slot 7-7 >
+;
+	HEX_CONST BBRAM_BASE	BRAM_BASE
+	HEX_CONST BBRAM_SIZE	BRAM_SIZE	
+	HEX_CONST BRAM_UNLK	0x28400000 < BRAM unlock >
+.if not_defined,NO_WDOG
+NO_WDOG == 0
+.endc
+.if true, NO_WDOG == 0
+	VAR	WDOG	VU32	WDOG_BASE	< Watchdog kick >
+.endc
+REM <	Work RAM>
+	ARRAY	WRAM,	U32, 	DRAM_BASE, DRAM_SIZE < Working RAM	>
+REM <	EEPROM>
+  .ifndf EEPROM_SIZE
+	EEPROM_SIZE == BRAM_SIZE ; Guaranteed minimum
+ .endc
+	ARRAY	EEPROM	U8	BRAM_BASE+HBYTE56_OFFS	EEPROM_SIZE < EEPROM 		>
+REM <	BRAM>
+	ADDR	BRAM 	U8	BRAM_BASE+HBYTE56_OFFS	< BRAM	(non-cached)	>
+;
+d23 1
+@
+
+
+1.10
+log
+@Enabled the 64 bit xBYTEn_OFFS variables.
+@
+text
+@d160 1
+a160 1
+	ARRAY	EEPROM	U8	BRAM_BASE+HBYTE0_OFFS	EEPROM_SIZE < EEPROM 		>
+d162 1
+a162 1
+	ADDR	BRAM 	U8	BRAM_BASE+HBYTE0_OFFS	< BRAM	(non-cached)	>
+@
+
+
+1.9
+log
+@Changed INTS_OFF to simply clear bit 0
+@
+text
+@d30 1
+a30 1
+.if true, 0
+d160 1
+a160 1
+	ARRAY	EEPROM	U8	BRAM_BASE+BYTE0_OFFS	EEPROM_SIZE < EEPROM 		>
+d162 1
+a162 1
+	ADDR	BRAM 	U8	BRAM_BASE+BYTE0_OFFS	< BRAM	(non-cached)	>
+@
+
+
+1.8
+log
+@Changed the comment on CTS_XBUS_RST
+@
+text
+@d113 1
+a113 1
+	HEX_CONST INTS_OFF	0x0701			< Disable all XBUS interrupts >
+@
+
+
+1.7
+log
+@Changed the CTS_XBUS_INT to the correct CTS_XBUS_RST
+@
+text
+@d81 1
+a81 1
+	HEX_CONST    CT1_XBUS_RST	0x10000 < D48: 1=assert XBUS reset >
+d94 1
+a94 1
+	HEX_CONST    CTS_XBUS_RST	   0x080 < D07: 1=assert XBUS interrupt (pulse activated, os_shims prevents this bit from staying on) >
+@
+
+
+1.6
+log
+@Fix EEPROM once again
+@
+text
+@d81 1
+a81 1
+	HEX_CONST    CT1_XBUS_INT	0x10000 < D48: 1=assert XBUS interrupt (pulse this) >
+d94 1
+a94 1
+	HEX_CONST    CTS_XBUS_INT	   0x080 < D07: 1=assert XBUS interrupt (pulse activated, os_shims prevents this bit from staying on) >
+@
+
+
+1.5
+log
+@Fixed EEPROM again
+@
+text
+@d158 1
+a158 1
+	EEPROM_SIZE == 512 ; Guaranteed minimum
+@
+
+
+1.4
+log
+@Fixed EEPROM
+@
+text
+@d160 1
+a160 1
+	ARRAY	EEPROM	U8	BRAM_BASEnc+BYTE0_OFFS	EEPROM_SIZE < EEPROM 		>
+@
+
+
+1.3
+log
+@Made it match mb4600.mac
+@
+text
+@d157 4
+a160 1
+	ADDR	EEPROM	U8	BRAM_BASE+BYTE0_OFFS	< EEPROM 		>
+@
+
+
+1.2
+log
+@Still under development
+@
+text
+@d21 1
+a21 1
+; Big-Endian Byte offset (in 32 bit address space) is (32 - (bit offset)>>3)
+d30 1
+d46 1
+d76 4
+a79 3
+	HEX_CONST    CT0_FIFO_INT5	0x10000	< D16: 0=disable and reset FIFO interrupt 5>
+	HEX_CONST    CT0_WDOG		0x20000 < D17: 0=kick the watchdog >
+	HEX_CONST    CT1_FIFO_INT4	      1 < D32: 0=disable and reset FIFO interrupt 4>
+d81 1
+a81 1
+	HEX_CONST    CT1_XBUS_INT	0x10000 < D48: 0=assert XBUS interrupt (pulse this) >
+d87 9
+a95 8
+	HEX_CONST    CTS_FIFO_RST	   0x01	< D00: 0=reset FIFO, 1=enable FIFO>
+	HEX_CONST    CTS_FIFO_ENAB	   0x02	< D01: 0=normal FIFO, 1=enable FIFO readback>
+	HEX_CONST    CTS_FIFO_INT5	   0x04 < D02: 0=disable and reset FIFO interrupt 5>
+	HEX_CONST    CTS_WDOG		   0x08 < D03: 0=kick the watchdog >
+	HEX_CONST    CTS_FIFO_INT4	   0x10 < D04: 0=disable and reset FIFO interrupt 4>
+	HEX_CONST    CTS_LED_CR2	   0x20 < D05: 0=turn on LED CR2 >
+	HEX_CONST    CTS_XBUS_INT	   0x40 < D06: 0=assert XBUS interrupt (pulse this) >
+	HEX_CONST    CTS_LED_CR3	   0x80 < D07: 0=turn on LED CR3 >
+d101 2
+a102 6
+	DEC_CONST XBUS0_LVL	3		< XBUS 0 interrupt >
+	DEC_CONST XBUS1_LVL	3		< XBUS 1 interrupt >
+	DEC_CONST XBUS2_LVL	3		< XBUS 2 interrupt >
+	DEC_CONST XBUS3_LVL	3		< XBUS 3 interrupt >
+	DEC_CONST FIFO_EMPTY_LVL 4
+	DEC_CONST FIFO_FULL_LVL 5
+d104 10
+a113 2
+.if true, NUCLEUS_OS == 0
+	HEX_CONST INTS_ON	0xFF01		< Enable all interrupts >
+d115 2
+a116 1
+	HEX_CONST INTS_ON	0x7F01		< Enable all interrupts >
+a117 1
+	HEX_CONST INTS_OFF	0x0701		< Disable all XBUS interrupts >
+d125 1
+a125 1
+	HEX_CONST BRAM_SIZE	(2040*8)   < BRAM size (almost 2k doublewords)					>
+d148 4
+d153 1
+d157 1
+a157 1
+	ADDR	EEPROM	U8	BRAM_BASE+HBYTE56_OFFS	< EEPROM 		>
+d159 1
+a159 1
+	ADDR	BRAM 	U8	BRAM_BASE+HBYTE56_OFFS	< BRAM	(non-cached)	>
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d21 1
+a21 1
+; Big-Endian Byte offset is 32 (or 64) - (bit offset)>>3
+d30 15
+d81 1
+a81 1
+extern U32 bitshd;
+d95 9
+a103 8
+	DEC_CONST ICELESS_LVL	2			< ICELESS debugger interrupt >
+.if true, 0
+	DEC_CONST XBUS0_LVL	3			< XBUS 0 interrupt >
+	DEC_CONST XBUS1_LVL	4			< XBUS 1 interrupt >
+	DEC_CONST XBUS2_LVL	5			< XBUS 2 interrupt >
+	DEC_CONST XBUS3_LVL	6			< XBUS 3 interrupt >
+.endc
+	DEC_CONST TIMER_LVL	7			< CPU timer interrupt >
+d105 1
+a105 1
+	HEX_CONST INTS_ON	0xFF01			< Enable all interrupts >
+d107 1
+a107 1
+	HEX_CONST INTS_ON	0x7F01			< Enable all interrupts >
+d109 3
+a111 2
+	HEX_CONST INTS_OFF	0x0701			< Disable all XBUS interrupts >
+
+d113 3
+d139 1
+a139 1
+	HEX_CONST BRAM_UNLK	0x2C000000 < BRAM unlock >
+d144 1
+a144 1
+	ADDR	EEPROM	U8	BRAM_BASE+BYTE0_OFFS	< EEPROM 		>
+d146 1
+a146 1
+	ADDR	BRAM 	U8	BRAM_BASE+BYTE0_OFFS	< BRAM	(non-cached)	>
+@

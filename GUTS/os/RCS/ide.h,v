@@ -1,0 +1,138 @@
+head	1.1;
+access;
+symbols
+	CJ_206:1.1
+	CJ2_05:1.1
+	CJ2_04:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	95.05.17.21.05.29;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@extern declarations for IDE disk interface
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/********************************************************
+* IDE.H | Copyright 1995, Time Warner Interactive, Inc. *
+* ===================================================== *
+* Author: Robert M. Birmingham -- January 23, 1995      *
+* ===================================================== *
+* Header file for IDE Device Driver functions in IDE.C  *
+********************************************************/
+
+#define  VIA_REG_BASE           (0xffE00000)
+
+#define  VIA_REG_KEY            (*(VU8 *)(VIA_REG_BASE+0x37))
+#define  VIA_REG_INDEX          (*(VU8 *)(VIA_REG_BASE+0x3b))
+#define  VIA_REG_DATA           (*(VU8 *)(VIA_REG_BASE+0x3f))
+
+#define  IDE_REG_BASE           (VIA_REG_BASE+0x1f0)
+#define  IDE_REG_WORDDATA       (*(VU16 *)(IDE_REG_BASE+0x0002)) /* R/W */
+#define  IDE_REG_LONGDATA       (*(VU32 *)(IDE_REG_BASE+0x0000)) /* R/W */
+#define  IDE_REG_ERROR          (*(VU8 *)(IDE_REG_BASE+0x0002))  /* R */
+#define  IDE_REG_PRECOMP        (*(VU8 *)(IDE_REG_BASE+0x0002))  /* W */
+#define  IDE_REG_SCOUNT         (*(VU8 *)(IDE_REG_BASE+0x0001))  /* R/W */
+#define  IDE_REG_SNUM           (*(VU8 *)(IDE_REG_BASE+0x0000))  /* R/W */
+#define  IDE_REG_LCYLINDER      (*(VU8 *)(IDE_REG_BASE+0x0007))  /* R/W */
+#define  IDE_REG_HCYLINDER      (*(VU8 *)(IDE_REG_BASE+0x0006))  /* R/W */
+#define  IDE_REG_DRIVEHEAD      (*(VU8 *)(IDE_REG_BASE+0x0005))  /* R/W */
+#define  IDE_REG_COMMAND        (*(VU8 *)(IDE_REG_BASE+0x0004))  /* W */
+#define  IDE_REG_STATUS         (*(VU8 *)(IDE_REG_BASE+0x0004))  /* R */
+#define  IDE_REG_ALT_STATUS     (*(VU8 *)(IDE_REG_BASE+0x0205))  /* R */
+#define  IDE_REG_FIXED_DISK     (*(VU8 *)(IDE_REG_BASE+0x0205))  /* W */
+#define  IDE_REG_DIGITAL_INPUT  (*(VU8 *)(IDE_REG_BASE+0x0204))  /* R */
+
+#define  IDE_CMD_RECALIBRATE    (0x10)
+#define  IDE_CMD_SREAD          (0x20)
+#define  IDE_CMD_SWRITE         (0x30)
+#define  IDE_CMD_SVERIFY        (0x40)
+#define  IDE_CMD_FORMAT         (0x50)
+#define  IDE_CMD_SEEK           (0x70)
+#define  IDE_CMD_DIAGNOSTICS    (0x90)
+#define  IDE_CMD_INITPARMS      (0x91)
+#define  IDE_CMD_MREAD          (0xC4)
+#define  IDE_CMD_MWRITE         (0xC5)
+#define  IDE_CMD_MULTIMODE      (0xC6)
+#define  IDE_CMD_BREAD          (0xE4)
+#define  IDE_CMD_BWRITE         (0xE8)
+#define  IDE_CMD_IDENTIFY       (0xEC)
+#define  IDE_CMD_BUFFERMODE     (0xEF)
+
+#define  IDE_STB_BUSY           (0x80)
+#define  IDE_STB_READY          (0x40)
+#define  IDE_STB_WRFAULT        (0x20)
+#define  IDE_STB_SEEKDONE       (0x10)
+#define  IDE_STB_DATAREQ        (0x08)
+#define  IDE_STB_CORRDATA       (0x04)
+#define  IDE_STB_INDEX          (0x02)
+#define  IDE_STB_ERROR          (0x01)
+
+#define  IDE_ERB_BADBLOCK       (0x80)
+#define  IDE_ERB_UNCDATA        (0x40)
+#define  IDE_ERB_IDNFOUND       (0x10)
+#define  IDE_ERB_ABORTCMD       (0x04)
+#define  IDE_ERB_TK0NFOUND      (0x02)
+#define  IDE_ERB_AMNFOUND       (0x01)
+
+#define  DRIVE_HEAD_INFO        (0xA0)    /* sector size and master select */
+
+#define  BYTES_PER_SECTOR       (512)
+#define  WORDS_PER_SECTOR       (BYTES_PER_SECTOR / 2)
+#define  LONGS_PER_SECTOR       (BYTES_PER_SECTOR / 4)
+
+/*************************************************************************/
+
+/*
+** General constant and device status definitions.
+*/
+
+#define  IDE_INTS_OFF           (0)
+#define  IDE_INTS_ON            (1)
+
+#define  IDE_DEVICE_INVALID     (0)
+#define  IDE_DEVICE_CONNECTED   (1)
+
+/************************************************************************/
+
+/*
+** position information for data kept in IDE interrupt handler's BSS area.
+*/
+
+#define IDE_BSS_BUFPTR (0)
+#define IDE_BSS_CNTPTR (1)
+#define IDE_BSS_RDPEND (2)
+#define IDE_BSS_DEVPTR (3)
+
+/*************************************************************************/
+
+U16 ide_init( void );
+U16 ide_check_devstat( void );
+void ide_enable_interrupts( void );
+void ide_disable_interrupts( void );
+U8 ide_send_command( int );
+U8 ide_identify( U16 *readbuf );
+U8 ide_write_sectors( U16 *writebuf, int head, int cyl, int snum, int scnt );
+U8 ide_read_sectors( U16 *readbuf, int head, int cyl, int snum, int scnt );
+U8 ide_get_hdinfo( U16 *nheads, U16 *ncylinders, U16 *nsectors );
+void ide_wait_bsy( void );
+U32 ide_get_rdstatus( void );
+U16 ide_get_rpm( U32 *vcnt );
+U16 ide_verify_sector( U16 *verify_buffer, int head, int cylinder, int sector );
+U32 ide_calc_checksum( U8 *bufptr, int numbytes );
+
+/*************************************************************************
+* End of file: IDE.H                                                     *
+*************************************************************************/
+@

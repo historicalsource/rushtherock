@@ -1,0 +1,91 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	96.02.09.00.50.53;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.01.10.23.50.38;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Standalone diagnostics, ICELESS I/O tester.
+@
+
+
+1.2
+log
+@Added ICE test back in.
+@
+text
+@#include <config.h>
+#include <sad_proto.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <icelesspkt.h>
+#include <nsprintf.h>
+#include <os_root.h>
+
+int read_iceless(void) {
+   int did_msg=0;
+   int pktnum, which;
+
+   pktnum = which = 0;
+   while (1) {
+      IcelessBoard *xb = BOARD_ADDR1;
+
+      if (!did_msg) {
+	 nisprintf(emsg, sizeof(emsg), "Expecting:   100  002  003  000  002  000  %03X  03F  1FF\r\n", pktnum);
+	 diag_serial_str(emsg);
+         nisprintf(emsg, sizeof(emsg), "Status reg addr=%08lX, is %02X\r\n",
+    		&xb->stat, xb->stat&0xFF);
+	 diag_serial_str(emsg);
+	 did_msg = 1;
+      }
+      while ((xb->stat&XSTAT_SEF) != 0) {
+	 int ii;
+		    
+	 if (did_msg != 2) {
+	     diag_serial_str("Got:       ");
+	     did_msg = 2;
+             which = 0;
+	 }
+	 ii = xb->data;
+	 ii |= (xb->stat&XSTAT_SYNC) ? 0 : 0x100;
+	 nisprintf(emsg, sizeof(emsg), "  %03X", ii);
+	 diag_serial_str(emsg);
+         if (which++ == 6) pktnum = (ii+1)&0xFF;
+	 if (ii == 0x1FF) {
+	    nisprintf(emsg, sizeof(emsg), "\r\n");
+	    diag_serial_str(emsg);
+	    did_msg = 0;
+	    break;
+	 }
+      }
+      if ((*(VU32*)SERIAL_ADDRESS&1) == 0) break;		/* he wants us to stop */
+   }
+   return 0;
+}
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d2 1
+a2 1
+#include <proto.h>
+d7 2
+@

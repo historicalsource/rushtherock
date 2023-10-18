@@ -1,0 +1,481 @@
+head	1.6;
+access;
+symbols
+	CJ_206:1.6
+	CJ2_05:1.6
+	CJ2_04:1.6;
+locks; strict;
+comment	@ * @;
+
+
+1.6
+date	95.08.09.22.26.22;	author birmingham;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.07.27.19.10.15;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.06.14.01.50.42;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.03.22.21.47.32;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.02.14.01.38.28;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.12.19.00.04;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@declarations of Jaguar Object-list manipulation routines.
+@
+
+
+1.6
+log
+@Added prototype for new function ob_get_mem() in OBLIST.C
+@
+text
+@/***********************************************************
+* OBLIST.H | Author: Robert M. Birmingham | August 4, 1994 *
+* ======================================================== *
+* Header file for OBLIST.C which contains the Jaguar       *
+* Object functions for G.U.T.S.                            *
+***********************************************************/
+
+#ifndef _OBLIST_H
+#define _OBLIST_H
+#if (0)
+#include <jag_defs.h>
+#include <dll.h>
+#include <rectlib.h>
+#endif
+/************************************************************************/
+
+/* define macro for aligning pointers to arbitrary boundaries */
+#define ALIGNPTR(a,b)  (((U32)a + ((U32)b-1)) & ~((U32)b-1))
+
+#define OLP_OBJECT_SIZE (4)       /* worst case size for an OLP OBJECT entry */
+#define NUM_OBLISTS     (3)       /* number of OLP oblists */
+
+#define OBL_AUX0        (0)       /* index for auxilliary oblist #0 */
+#define OBL_AUX1        (1)       /* index for auxilliary oblist #1 */
+#define OBL_OLP         (2)       /* index for fixed hardware oblist */
+
+/* Arguments for ob_add() */
+
+#define NBMAP_OBTYPE    (0)       /* Normal bitmap object */
+#define SBMAP_OBTYPE    (1)       /* Scaled bitmap object */
+#define GPU_OBTYPE      (2)       /* Graphics processor object */
+#define BRANCH_OBTYPE   (3)       /* Branch object */
+#define STOP_OBTYPE     (4)       /* Stop object */
+#define PARALLAX_OBTYPE (5)       /* Parallax object (MetaObject) */
+
+/* Definitions for ob_set_flags() */
+
+#define OBFLAG_NONE     (0x0000)  /* No flags set */
+#define OBFLAG_FLIP     (0x0001)  /* flip object horizontally */
+#define OBFLAG_RMW      (0x0002)  /* Add object data to line buffer */
+#define OBFLAG_TRANS    (0x0004)  /* Background color is transparent */
+#define OBFLAG_RELEASE  (0x0008)  /* Object releases BUS */
+#define OBFLAG_HIDDEN   (0x0010)  /* Object not displayed */
+#define OBFLAG_NOCLIP   (0x0020)  /* Exclude object from master clipping */
+
+/* Arguments for ob_set_mclipflag() */
+
+#define OB_MCLIP_OFF    (0)
+#define OB_MCLIP_ON     (1)
+
+/* Definitions for OBJECT node 'obflags' field (internal use only) */
+
+#define OBNODE_NONE     (0x0000)  /* No flags set */
+#define OBNODE_USED     (0x0001)  /* Object node has been allocated */
+#define OBNODE_DIRTY    (0x0002)  /* Object node is dirty */
+#define OBNODE_FBIT2    (0x0004)  /* reserved */
+#define OBNODE_FBIT3    (0x0008)  /* reserved */
+#define OBNODE_FBIT4    (0x0010)  /* reserved */
+#define OBNODE_FBIT5    (0x0020)  /* reserved */
+#define OBNODE_FBIT6    (0x0040)  /* reserved */
+#define OBNODE_FBIT7    (0x0080)  /* reserved */
+
+/* Branch object conditions: */
+
+#define BR_YEQ_VC       (0)       /* Fall through if YPOS == VC */
+#define BR_YGT_VC       (1)       /* Fall through if YPOS > VC */
+#define BR_YLT_VC       (2)       /* Fall through if YPOS < VC */
+#define BR_OPF_SET      (3)       /* Fall through if OLP flag set */
+#define BR_2ND_HALF     (4)       /* Fall through if on 2nd part of line */
+
+/* Definitions for OBJECT 'pixwidth' field. */
+
+#define OBPIX1          (0)       /* 1 bit per pixel */
+#define OBPIX2          (1)       /* 2 bits per pixel */
+#define OBPIX4          (2)       /* 4 bits per pixel */
+#define OBPIX8          (3)       /* 8 bits per pixel */
+#define OBPIX16         (4)       /* 16 bits per pixel */
+#define OBPIX24         (5)       /* 24 bits per pixel */
+
+/* OBJECT node structure: */
+
+typedef struct object{
+    struct object *next;
+    struct object *prev;
+    struct object *next_visible;
+
+#if 1
+    void *extobptr;      /* ptr to blocks with extended object info */
+#endif
+
+    U16 obflags;         /* mark as used for ob_malloc() */
+    U16 obtype;          /* object type (normal/scaled bitmap) */
+
+    void *imageptr;      /* pointer to object image data */
+    S16 xpos;            /* x position of object */
+    S16 ypos;            /* y position of object */
+    U16 pixw;            /* width of object in pixels */
+    U16 pixh;            /* height of object in scanlines */
+    S16 xhotspot;        /* x offset of hotspot */
+    S16 yhotspot;        /* y offset of hotspot */
+    U16 pixdepth;        /* bit depth of pixels */
+    U16 dpitch;          /* data pitch */
+    U16 dwidth;          /* data width in phrases */
+    U16 iwidth;          /* image width in phrases */
+    U16 firstpix;        /* starting pixel index */
+    U16 hscale;          /* horizontal scale (iii.fffff) */
+    U16 vscale;          /* vertical scale (iii.fffff) */
+    U16 usrflags;        /* hidden:reflect:rmw:transparent:release */
+    U16 priority;        /* display priority (0 = lowest, 65535 = highest) */
+    U16 pal_num;         /* palette number to use (for bit depths 1,2,4) */
+    } OBJECT;
+
+/* OBINIT structure: */
+
+typedef struct{
+    void *imageptr;
+    S16 xpos;
+    S16 ypos;
+    U16 pixw;
+    U16 pixh;
+    S16 xhotspot;
+    S16 yhotspot;
+    U16 pixdepth;
+    U16 dpitch;
+    U16 usrflags;
+    } OBINIT;
+
+/* Define OLPMEM structure for calls to ob_mem_init(). */
+
+typedef struct olpmem{
+    PHRASE olpdata[OLP_OBJECT_SIZE];
+    } OLPMEM;
+
+/* Define OLPBLK structure for calls to ob_set_mem() [obsolete]. */
+
+typedef struct olpblk{
+    OLPMEM olpdata[NUM_OBLISTS];
+    } OLPBLK;
+
+/************************************************************************/
+
+typedef struct parallax_block{
+    U32 type;
+    U32 xpos;
+    U32 table_index;
+    U32 table_size;
+    U32 *tabptr1;
+    U32 *tabptr2;
+    } PARALLAX_BLOCK;
+
+/************************************************************************/
+
+#ifndef NO_OBLIST_MACROS
+
+#define ob_set_type(obptr,otype)      do{ (obptr)->obtype = (otype); } while(0)
+#define ob_set_img(obptr,imgptr)      do{ (obptr)->imageptr = (imgptr); } while(0)
+#define ob_set_x(obptr,x)             do{ (obptr)->xpos = (x); } while(0)
+#define ob_set_y(obptr,y)             do{ (obptr)->ypos = (y); } while(0)
+#define ob_set_pixw(obptr,w)          do{ (obptr)->pixw = (w); } while(0)
+#define ob_set_pixh(obptr,h)          do{ (obptr)->pixh = (h); } while(0)
+#define ob_set_xhotspot(obptr,xhot)   do{ (obptr)->xhotspot = (xhot); } while(0)
+#define ob_set_yhotspot(obptr,yhot)   do{ (obptr)->yhotspot = (yhot); } while(0)
+#define ob_set_pixdepth(obptr,pixd)   do{ (obptr)->pixdepth = (pixd); } while(0)
+#define ob_set_dpitch(obptr,pitch)    do{ (obptr)->dpitch = (pitch); } while(0)
+#define ob_set_dwidth(obptr,dwid)     do{ (obptr)->dwidth = (dwid); } while(0)
+#define ob_set_iwidth(obptr,iwid)     do{ (obptr)->iwidth = (iwid); } while(0)
+#define ob_set_firstpix(obptr,firstp) do{ (obptr)->firstpix = (firstp); } while(0)
+#define ob_set_hscale(obptr,hscl)     do{ (obptr)->hscale = (hscl); } while(0)
+#define ob_set_vscale(obptr,vscl)     do{ (obptr)->vscale = (vscl); } while(0)
+#define ob_set_flags(obptr,flags)     do{ (obptr)->usrflags = (flags); } while(0)
+#define ob_set_palnum(obptr,paln)     do{ (obptr)->pal_num = (paln); } while(0)
+
+#define ob_get_type(obptr)            ((obptr)->obtype)
+#define ob_get_img(obptr)             ((obptr)->imageptr)
+#define ob_get_x(obptr)               ((obptr)->xpos)
+#define ob_get_y(obptr)               ((obptr)->ypos)
+#define ob_get_pixw(obptr)            ((obptr)->pixw)
+#define ob_get_pixh(obptr)            ((obptr)->pixh)
+#define ob_get_xhotspot(obptr)        ((obptr)->xhotspot)
+#define ob_get_yhotspot(obptr)        ((obptr)->yhotspot)
+#define ob_get_pixdepth(obptr)        ((obptr)->pixdepth)
+#define ob_get_dpitch(obptr)          ((obptr)->dpitch)
+#define ob_get_dwidth(obptr)          ((obptr)->dwidth)
+#define ob_get_iwidth(obptr)          ((obptr)->iwidth)
+#define ob_get_firstpix(obptr)        ((obptr)->firstpix)
+#define ob_get_hscale(obptr)          ((obptr)->hscale)
+#define ob_get_vscale(obptr)          ((obptr)->vscale)
+#define ob_get_flags(obptr)           ((obptr)->usrflags)
+#define ob_get_palnum(obptr)          ((obptr)->pal_num)
+#define ob_get_priority(obptr)        ((obptr)->priority)
+
+#endif
+
+/************************************************************************/
+
+/*
+** Prototypes for functions in OBJECT.C...
+*/
+
+void ob_get_mem( OLPMEM **, OLPMEM **, OLPMEM **, OBJECT **, U16 * );
+void ob_mem_init( OLPMEM *, OLPMEM *, OLPMEM *, OBJECT *, int );
+void ob_set_mem( void *, void *, int );
+OBJECT *ob_add( int );
+OBJECT *ob_clone( OBJECT * );
+void ob_init( OBJECT *, const OBINIT * );
+void ob_del( OBJECT * );
+void ob_build( void );
+void ob_copy( int );
+void ob_reset( void );
+int ob_text( OBJECT *, int, int, const U8 *, int );
+void ob_set_priority( OBJECT *obptr, int priority );
+
+struct rectangle;
+void ob_set_mcliprect( struct rectangle *cliprect );
+void ob_get_mcliprect( struct rectangle *cliprect );
+void ob_set_mclipflag( int clipflag );
+U16 ob_get_mclipflag( void );
+
+/*
+** The following prototypes have been disabled
+** and have been replaced by define statements.
+*/
+
+#ifdef NO_OBLIST_MACROS
+
+void ob_set_img( OBJECT *obptr, void *imgptr );
+void ob_set_x( OBJECT *obptr, int xpos );
+void ob_set_y( OBJECT *obptr, int ypos );
+void ob_set_pixw( OBJECT *obptr, int pixelw );
+void ob_set_pixh( OBJECT *obptr, int pixelh );
+void ob_set_xhotspot( OBJECT *obptr, int xhotspot );
+void ob_set_yhotspot( OBJECT *obptr, int yhotspot );
+void ob_set_pixdepth( OBJECT *obptr, int pixdepth );
+void ob_set_dpitch( OBJECT *obptr, int dpitch );
+void ob_set_dwidth( OBJECT *obptr, int dwidth );
+void ob_set_iwidth( OBJECT *obptr, int iwidth );
+void ob_set_firstpix( OBJECT *obptr, int firstpix );
+void ob_set_hscale( OBJECT *obptr, int hscale );
+void ob_set_vscale( OBJECT *obptr, int vscale );
+void ob_set_flags( OBJECT *obptr, int newflags );
+void ob_set_palnum( OBJECT *obptr, int palnum );
+
+void *ob_get_img( OBJECT *obptr );
+S16 ob_get_x( OBJECT *obptr );
+S16 ob_get_y( OBJECT *obptr );
+U16 ob_get_pixw( OBJECT *obptr );
+U16 ob_get_pixh( OBJECT *obptr );
+S16 ob_get_xhotspot( OBJECT *obptr );
+S16 ob_get_yhotspot( OBJECT *obptr );
+U16 ob_get_pixdepth( OBJECT *obptr );
+U16 ob_get_dpitch( OBJECT *obptr );
+U16 ob_get_dwidth( OBJECT *obptr );
+U16 ob_get_iwidth( OBJECT *obptr );
+U16 ob_get_firstpix( OBJECT *obptr );
+U16 ob_get_hscale( OBJECT *obptr );
+U16 ob_get_vscale( OBJECT *obptr );
+U16 ob_get_flags( OBJECT *obptr );
+U16 ob_get_priority( OBJECT *obptr );
+U16 ob_get_palnum( OBJECT *obptr );
+
+#endif
+
+/************************************************************************/
+#if (COJAG_GAME != CORP_JAG)
+/* an egregious hack, but on COJAG, we can alter/access the object which
+ * is the text screen. vid_setscr(new) will set the text object to a
+ * new one (not really fully working) and return a pointer to the old
+ * one. vid_setscr(0) will return the current text screen, but not change
+ * to a new one. It can be used to simply _find_ the current one.
+ */
+extern OBJECT *vid_setscr(OBJECT *new);
+#if (0)
+extern PHRASE *dram_sbrk(int);	/* Obsolete, do no use */
+#endif
+/* a very minimal dynamic allocation scheme is provided for DRAM.
+ * each region has a separate "high water mark", which can be
+ * moved (in integral phrases) by dram_alloc(). For example,
+ *
+ *	mybuf = dram_alloc(42,0) 
+ *
+ * will return a (phrase aligned) pointer to the next free phrase in
+ * region 0 (0-$400000), and increment the high-water mark by 42 phrases.
+ * calling dram_alloc() with a negative length will "give back" that
+ * many phrases, which would be a very bad idea unless you were the one
+ * who last took them :-)
+ */
+extern PHRASE *dram_alloc(int n_phrases, int region);
+#define dram_sbrk(len) dram_alloc((len),-1)
+#endif
+/************************************************************************/
+
+#endif
+
+/*************************************************************************
+* End of file: OBLIST.H                                                  *
+*************************************************************************/
+
+@
+
+
+1.5
+log
+@removed extern declaration of ob_set_olp(), which
+has been re-defined as static
+@
+text
+@d200 1
+@
+
+
+1.4
+log
+@deleted hidden includes. added pre-declaration of struct rectangle to
+fix only problem this caused.
+@
+text
+@a205 1
+void ob_set_olp( void );
+@
+
+
+1.3
+log
+@Added comments, clipping functions, object set/get type
+definitions.
+@
+text
+@d10 1
+a10 1
+
+d14 1
+a14 1
+
+d213 3
+a215 2
+void ob_set_mcliprect( RECT *cliprect );
+void ob_get_mcliprect( RECT *cliprect );
+@
+
+
+1.2
+log
+@renamed ob_xset_mem() to ob_mem_init(), used actual pointer types
+in prototype.
+@
+text
+@d13 1
+d20 2
+a21 2
+#define OLP_OBJECT_SIZE  4    /* worst case size for an OLP OBJECT entry */
+#define NUM_OBLISTS      3    /* number of OLP oblists */
+d23 3
+a25 3
+#define OBL_AUX0         0    /* index for auxilliary oblist #0 */
+#define OBL_AUX1         1    /* index for auxilliary oblist #1 */
+#define OBL_OLP          2    /* index for fixed hardware oblist */
+d27 1
+a27 5
+#define NBMAP_OBTYPE    (0)
+#define SBMAP_OBTYPE    (1)
+#define GPU_OBTYPE      (2)
+#define BRANCH_OBTYPE   (3)
+#define STOP_OBTYPE     (4)
+d29 6
+a34 5
+#define BR_YEQ_VC       (0)
+#define BR_YGT_VC       (1)
+#define BR_YLT_VC       (2)
+#define BR_OPF_SET      (3)
+#define BR_2ND_HALF     (4)
+d36 1
+a36 6
+#define OBFLAG_NONE     (0x0000)
+#define OBFLAG_FLIP     (0x0001)
+#define OBFLAG_RMW      (0x0002)
+#define OBFLAG_TRANS    (0x0004)
+#define OBFLAG_RELEASE  (0x0008)
+#define OBFLAG_HIDDEN   (0x0010)
+d38 7
+a44 9
+#define OBNODE_NONE     (0x0000)
+#define OBNODE_USED     (0x0001)
+#define OBNODE_DIRTY    (0x0002)
+#define OBNODE_FBIT2    (0x0004)
+#define OBNODE_FBIT3    (0x0008)
+#define OBNODE_FBIT4    (0x0010)
+#define OBNODE_FBIT5    (0x0020)
+#define OBNODE_FBIT6    (0x0040)
+#define OBNODE_FBIT7    (0x0080)
+d46 36
+d87 4
+d113 1
+a113 3
+typedef struct olpblk{
+    PHRASE olpdata[OLP_OBJECT_SIZE*NUM_OBLISTS];
+    } OLPBLK;
+a114 5
+
+typedef struct olp2blk{
+    PHRASE olp2data[OLP_OBJECT_SIZE];
+    } OLP2BLK;
+
+d128 12
+d142 11
+d155 1
+d173 1
+d189 1
+a189 1
+#define ob_get_palnum(obptr)          ((obptr)->palnum)
+d200 1
+a200 1
+PHRASE *ob_mem_init( PHRASE *, PHRASE *, PHRASE *, OBJECT *, int );
+d213 5
+d219 2
+a220 2
+** The following prototypes have been disabled and have been replaced
+** by define statements.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d87 4
+d151 1
+a151 1
+void ob_xset_mem( void *, void *, void *, void *, int );
+@

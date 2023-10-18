@@ -1,0 +1,1846 @@
+head	1.24;
+access;
+symbols
+	RUSH_ROCK_1_0:1.22
+	RUSH_ROCK_1_0epst:1.22
+	RUSH_1_06A:1.17
+	CJ_206:1.13
+	CJ2_05:1.12
+	CJ2_04:1.12
+	CJ2_03:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.24
+date	97.12.09.00.25.44;	author forrest;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	97.10.10.04.30.40;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	97.07.09.23.46.28;	author forrest;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	97.07.01.22.40.48;	author albaugh;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	97.06.26.23.19.51;	author albaugh;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	97.06.25.23.21.53;	author forrest;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.03.24.17.07.07;	author forrest;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.11.25.09.48.50;	author forrest;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.11.23.18.56.54;	author forrest;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.11.18.21.32.17;	author forrest;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.11.18.06.18.59;	author forrest;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.11.10.04.38.38;	author forrest;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.08.21.19.31.08;	author forrest;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.08.18.02.56.53;	author forrest;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.07.21.20.57.06;	author forrest;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.07.18.21.26.38;	author forrest;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.07.16.16.26.56;	author forrest;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.05.07.02.06.34;	author forrest;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.05.06.21.57.19;	author forrest;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.05.06.00.59.24;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.05.02.17.11.07;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.04.19.20.58.21;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.04.17.23.54.28;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.02.24.00.44.16;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Interim (needs cleanup) A->D (potentiometer) reading and calibration code
+@
+
+
+1.24
+log
+@Moved plot_pot to pot_desc.h
+@
+text
+@/*	pots.c
+ *	Copyright 1985-1997 ATARI Games Corporation.  Unauthorized reproduction,
+ *	adaptation, distribution, performance or display of this computer
+ *	program or the associated audiovisual work is strictly prohibited. 
+*/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id: pots.c,v 1.23 1997/10/10 04:30:40 shepperd Exp forrest $";
+#endif
+/*==============================================================*
+ *                 How to use these routines			*
+ *								*
+ *  Initialization:						*
+ *	pot_init(); (was InitPots()) once at power up		*
+ *	ResetPots();		only to reset limits		*
+ *  Read values:						*
+ *	VBIReadPots();		each frame(VBINT)		*
+ *	pot_linear();		called from a main()		*
+ *	pot_parabolic();	called from a main()		*
+ *	JoyPot();		whenever			*
+ *	pot_raw();		whenever			*
+ *  Save values:						*
+ *	pot_save() (was SavePots())	periodically		*
+ *	pot_age() (was AgePots())	occasionally in play	*
+ ****************************************************************/
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <eer_defs.h>
+
+#if POT_CNT
+#include <pot_desc.h>
+
+# if POT_WHEN_OK
+int pot_only_when_ok;
+# endif
+
+#define	PRIVATE	static
+
+#define	LINEAR		1
+#define	PARABOLIC	2
+#define	POT_ANAL	(LINEAR+PARABOLIC)	/* method for analyzing pot data	*/
+
+#define HISTART 0x0000		/* start hi here			*/
+#define LOSTART 0xFFFF		/* start lo here 			*/
+#define LIMCNT	2		/* count before adjusting lo or hi count */
+#define NEWNOISE 1		/* Ignore quantization noise of A-D converter */
+
+/*==============================================================*
+ *                 ram/rom/defines/inits			*
+ ****************************************************************/
+
+typedef	struct
+{
+    U16		lim;	/* limiting value, clip at this value		*/
+    U16		nxt;	/* next best try at a lim value when cnt gets hi enuf */
+    U8		cnt;	/* # of times we tried to exceed lim value	*/
+    U8		age;	/* count before limit reduced			*/
+} LIM_TYP;
+
+typedef	struct
+{
+    U16		new;	/* latest hardware value */
+    U16 	good;	/* good value to use elsewhere, filtered and limited */
+    LIM_TYP	hi;
+    LIM_TYP	lo;
+} POT_TYP;
+
+
+PRIVATE	U16	RAW_AD[POT_CNT];	/* RAW AtoD inputs from hardware */
+PRIVATE	POT_TYP	potBank[POT_CNT];	/* filtered and limited		*/
+PRIVATE int	pots_being_read;
+
+PRIVATE	void	ResetPots();
+PRIVATE	void	Filter();
+PRIVATE	void	Limit();
+PRIVATE	void	LoadPots();
+	S16	JoyPot();
+
+#define POT_CODE
+#include <pot_desc.h>
+#undef POT_CODE
+
+/*==============================================================*
+ *	pot_init()	init pot vars on power_up		*
+ ****************************************************************/
+void
+pot_init(level)
+int level;
+{
+    U32	oldIPL;
+    
+#if POT_WHEN_OK
+    if (!pot_only_when_ok) return;
+#endif
+
+    oldIPL = prc_set_ipl(INTS_OFF);
+
+    ResetPots();
+    if ( !level ) LoadPots();
+
+    prc_set_ipl(oldIPL);
+
+    pot_POST( level );
+}
+
+PRIVATE void
+ResetPots()
+{
+    m_int	i;
+    POT_TYP	*pots = potBank;
+
+#if POT_WHEN_OK
+    if (!pot_only_when_ok) return;
+#endif
+
+    tq_del( &tqtmr );			/* remove from queue if necessary */
+    tqtmr.delta = POT_TIME;		/* delay until conversion valid */
+    tqtmr.func = pot_timer;
+    tqtmr.vars = (void *)0;		/* beginning of pot array */
+    ReadPot( pot_desc[ 0 ].pot );	/* prime the A/D pump */
+    tq_ins( &tqtmr );			/* start next series of reads */
+
+    for (i=0; i<POT_CNT; ++i) {
+	pots->good =
+	pots->new = 0x0;		/* start here until limits are valid */
+	pots->hi.nxt = 0xFFFF;
+	pots->hi.lim = HISTART;		/* start hi limit very low	*/
+	pots->lo.nxt = 0;
+	pots->lo.lim = LOSTART;		/* start lo limit very hi	*/
+	pots->hi.cnt =
+	pots->lo.cnt = 0;		/* count starts at zero		*/
+	pots->hi.age =
+	pots->lo.age = 0;		/* count starts at zero		*/
+	++pots;
+    }
+}
+
+/*==============================================================*
+ *	FilterPot()	filters pot values once when read	*
+ ****************************************************************/
+PRIVATE void
+FilterPot(potnum)
+U16	potnum;
+{
+    Filter(&potBank[potnum],RAW_AD[potnum]);
+    Limit(&potBank[potnum]);		/* handle hi/lo limits */
+}
+
+
+PRIVATE void
+Filter(pots,newval)
+POT_TYP	*pots;
+U16	newval;
+{
+    m_uint good;
+    
+    good = pots->good;
+    
+    if (newval <= (U16)(good + NEWNOISE)	/* ignore new values...	*/
+    && newval >= (U16)(good - NEWNOISE))	/* ... too close	*/
+	newval = good;				/* use previous value	*/
+
+    if (pots->hi.lim < pots->lo.lim) {
+	/* have no limits yet, so call current value "good" to average 
+	 * with ourself below, avoids artificially low initial reading
+	 */
+	good = newval;
+    }
+
+    if (newval >= (good + (4 * NEWNOISE))	/* use new values...	*/
+      || newval <= (good - (4 * NEWNOISE)))	/* ... if value distant	*/
+	good = newval;			/* use current value	*/
+    else
+	good = (newval + good) >> 1;	/* save filtered value	*/
+    pots->good = good;
+/*
+ *	 beware of NEWNOISE = 2 and newval = 13,14,15,16 and good = 16
+ * because it will occilate between 13 and 16 instead of stopping at 14 or 15
+ */
+}
+
+
+PRIVATE void
+Limit(pots)
+POT_TYP	*pots;
+{
+    if (pots->good > pots->hi.lim)	/* if above hi limit		*/
+    {
+	pots->hi.cnt += 1;		/* then count transgressions	*/
+	pots->hi.age = 0;
+    
+	if (pots->hi.nxt > pots->good)	/* if ever going to change hilim */
+	    pots->hi.nxt = pots->good;	/* then capture safest ( closest ) */
+	    				/* change			*/
+    
+	if (pots->hi.cnt >= LIMCNT)
+	{				/* Then move part way to new limit */
+	    pots->hi.lim += ( pots->hi.nxt - pots->hi.lim ) >> 1;
+	    pots->hi.nxt = 0xFFFF;	/* prepare for handling next...	*/
+	    pots->hi.cnt = 0;		/* ... new limit		*/
+	}
+	
+	pots->good = pots->hi.lim;	/* restrict good value to within limits */
+    }
+    else	/* within hi range, so start over looking for new hi limit */
+    {
+	pots->hi.nxt = 0xFFFF;	/* next trial limit must be less than this */
+	pots->hi.cnt = 0;	/* start countup from scratch		*/
+    }
+    
+    if (pots->good < pots->lo.lim) /* If good value is under current low limit */
+    {
+	pots->lo.cnt += 1;	/*   then keep track of this 'error'	*/
+	pots->lo.age = 0;
+    
+	if (pots->lo.nxt < pots->good)	/* if ( nxt_potential_lolim < good_current_value */
+	    pots->lo.nxt = pots->good;	/* move nxt up to good -- keep it as close to curr */
+    
+	if (pots->lo.cnt >= LIMCNT) 
+	{				/* half speed to new lolim	*/
+	    pots->lo.lim -= ( pots->lo.lim - pots->lo.nxt ) >> 1;
+	    pots->lo.nxt = 0;		/* Prepare for next capture...	*/
+	    pots->lo.cnt = 0;		/* of best ( highest ) lolim	*/
+	}
+	pots->good = pots->lo.lim;	/* since good was past limit, correct its value */
+    }
+    else			/* else good_currect_value is fine as is */
+    {
+	pots->lo.nxt = 0;	/* next trial limit must be more than this */
+	pots->lo.cnt = 0;	/* start delay counter again */
+    }
+}
+
+
+/*==============================================================*
+ *	pot_age()	age pots to reduce limits		*
+ ****************************************************************/
+void
+pot_age()
+{
+    POT_TYP	*pots;
+    const struct pot_config *pcp;
+    
+    for (pots=&potBank[0], pcp=&pot_desc[0]; 
+    pots<&potBank[POT_CNT];
+    ++pots, ++pcp)
+    {
+	++pots->hi.age;
+	if (pots->hi.age >= (pcp->flags&PF_AMSK))
+	{
+	    --pots->hi.lim;
+	    pots->hi.age = 0;
+	}
+	++pots->lo.age;
+	if (pots->lo.age >= (pcp->flags&PF_AMSK))
+	{
+	    ++pots->lo.lim;
+	    pots->lo.age = 0;
+	}
+    }	
+}
+
+
+/*==============================================================*
+ *	VBIReadPots()	handle pot values once per frame	*
+ ****************************************************************/
+void
+VBIReadPots()
+{
+    register m_int	i;
+
+    if ( tqtmr.que ) return;	/* wait until all pots are read */
+    if ( tqtmr.delta > 0 )
+	tq_ins( &tqtmr );	/* start next series of reads */
+
+    if ( pots_being_read == 0 ) return;
+    --pots_being_read;
+
+#if POT_WHEN_OK
+    if (!pot_only_when_ok) return;
+#endif
+
+    for ( i = 0; i < POT_CNT; ++i )
+    {
+	FilterPot(i);			/* filter,limit this Pot	*/
+    }
+}
+
+/*==============================================================*
+ *	PotsToSwitches()	pots->switches once per frame	*
+ ****************************************************************/
+void
+PotsToSwitches()
+{
+#if USE_POT_SWITCHES || (FAKE_UP|FAKE_DOWN|FAKE_LEFT|FAKE_RIGHT)
+    m_int	idx;
+    int		delta,center;
+    POT_TYP	*pot;
+    const struct pot_config *pcp;
+
+    unsigned long newstick;
+
+#if POT_WHEN_OK
+    if (!pot_only_when_ok) return;
+#endif
+
+    newstick = fake_controls;
+    pot = &potBank[POT_CNT-1];
+    pcp = &pot_desc[POT_CNT-1];
+    for ( idx = POT_CNT - 1 ; idx >= 0 ; --idx ) {
+	newstick &= ~(pcp->low_swt|pcp->high_swt);  
+	delta = pot->hi.lim - pot->lo.lim;
+	/* only use pots with valid ranges */
+	if ( delta >= pcp->range ) {
+	    delta >>= 2;
+	    center = (pot->hi.lim + pot->lo.lim + 1)>>1;
+	    if ( pot->good < (center - delta) ) {
+		newstick |= pcp->low_swt;
+	    }
+	    else if ( pot->good > (center + delta) ) {
+		newstick |= pcp->high_swt;
+	    }
+	}
+	--pcp;
+	--pot;
+    }
+    fake_controls = newstick;
+#endif
+}
+
+#if (POT_ANAL & LINEAR)
+/*==============================================================*
+ *	pot_linear() (was LinearPot())	linear pot values	*
+ *								*
+ *	A value is returned from -width to +width.		*
+ *	The play is the number of values around the middle to	*
+ *	ignore (ie. treat as if the middle).			*
+ *	The fuzz is the number of values at the max/min to	*
+ *	ignore (ie. treat as the max/min).			*
+ *								*
+ *	Modified 2APR96 to accept a _negative_ width, and to	*
+ *	interpret that as a request to return an unsigned value *
+ *	from 0 to |width|, with <play> indicating the number	*
+ *	of values to ignore at the low end, and <fuzz> 		*
+ *	indicating the number of values to ignore at the high	*
+ *	end. Note that this interpretation will return a total  *
+ *	of (|width|+1) values, while the original routine	*
+ *	returned (2*width) values. I didn't write it :-) MEA	*
+ *								*
+ *	Although the use of a _signed_ width to indicate an	*
+ *	_unsigned_ return value is wierd, it was done in the	*
+ *	name of backward compatibility. All previous games	*
+ *	which used this code (or its ancestors) had centered	*
+ *	controls. Most previous driving games came out of	*
+ *	Applied Research, so they did all pot-massaging in the	*
+ *	game code.						*
+ *								*
+ ****************************************************************/
+
+int
+pot_linear(potNum,play,width,fuzz)
+S16	potNum,play,width,fuzz;
+{
+    POT_TYP	*pot;
+    U32 lo,hi;	/* copy them here in case hi and lo change	*/
+		/* instead of copying whole structure and stopping interrupts */
+    U32 range;	/* lowest to highest pot value			*/
+    U16 middle;	/* middle pot value				*/
+    S16 x;	/* value in the range (-range/2,range/2)	*/
+
+#if POT_WHEN_OK
+    if (!pot_only_when_ok) return 0;
+#endif
+
+    pots_being_read = 2;
+    pot = &potBank[potNum];
+
+    hi = pot->hi.lim;
+    lo = pot->lo.lim;
+    if ( width > 0 ) {
+	range = hi - lo - (2*play) - (2*fuzz);
+	if (range <= 1)			/* pots are not good */
+	    return(0);		/* avoid range=1 (divide by zero) */
+	middle = (hi + lo + 1) / 2;
+	x = pot->good - middle; 	/* change from the middle */
+	if (x < 0			/* there should be two middle values in this case */
+	&& (range&1) != 0)
+	    ++x;
+	range >>= 1;			/* half range */
+	if (x < 0)
+	{
+	    x += play;		/* add in play near the middle */
+	    if (x > 0)
+		x = 0;		/* this is the same as the middle */
+	    if (x < (short)-range)	/* fuzz factor here */
+		x = -range;
+	}
+	else 
+	{
+	    x -= play;		/* add in play near the middle */
+	    if (x < 0)
+		x = 0;		/* this is the same as the middle */
+	    if (x > (short)range)		/* fuzz factor here */
+		x = range;
+	}
+    } else {
+	/* Added hack for unsigned return values */
+	range = hi - lo - play - fuzz;
+	if (range <= 0)			/* pots are not good */
+	    return(0);		/* avoid range=1 (divide by zero) */
+	middle = (hi + lo + 1) / 2;
+	x = pot->good - lo - play; 	/* change from bottom */
+	if (x < 0 ) x = 0;		/* count ( x < play) as zero. */
+	if ( x > (range-fuzz) ) x = range; /* count as max value */
+	width = -width;			/* Make it positive */
+    }
+    return( (short)( (x * width) / (short)range) );
+}
+#endif
+
+
+#if (POT_ANAL & PARABOLIC)
+/*==============================================================*
+ *	pot_parabolic() - parabolic pot values 			*
+ *								*
+ *	A value is returned from -width to +width.		*
+ *	The play is the number of values around the middle to	*
+ *	ignore (ie. treat as if the middle).			*
+ ****************************************************************/
+int
+pot_parabolic(potnum,play,width)
+S16	potnum,play,width;
+{
+    U16 lo,hi;			/* copy them here in case hi and lo change */
+	    /* instead of copying whole structure and stopping interrupts */
+    U16 range;			/* lowest to highest pot value		*/
+    U16 middle;			/* middle pot value			*/
+    S16 x;			/* value in the range (-range/2,range/2) */
+    S32 result;
+    
+#if POT_WHEN_OK
+    if (!pot_only_when_ok) return 0;
+#endif
+
+    pots_being_read = 2;
+    hi = potBank[potnum].hi.lim;
+    lo = potBank[potnum].lo.lim;
+    if ((long)(hi-lo-2*play-1) <= 0) /* pots are not good */
+	return(0);		/* avoid range=1 (divide by zero) */
+    range = hi - lo - 2*play;
+    middle = (hi + lo + 1) / 2;
+    x = potBank[potnum].good - middle; /* change from the middle */
+    if (x < 0			/* there should be two middle values in this case */
+    && (range&1) != 0)
+	++x;
+    range >>= 1;			/* half range */
+    if (x < 0)
+    {
+	x += play;		/* add in play near the middle */
+	if (x > 0)
+	    x = 0;		/* this is the same as the middle */
+    }
+    else 
+    {
+	x -= play;		/* add in play near the middle */
+	if (x < 0)
+	    x = 0;		/* this is the same as the middle */
+    }
+    result = (S16)((x << 7) / (S16)range);	/* 0 <= result <= 0x80 */
+    result = (S16)result * (S16)result;	/* 0 <= result <= 0x4000 */
+    result = (S16)result * (S16)width;	/* 0 <= result < 0x20000000 */
+    result += 1<<13;			/* round up */
+    result >>= 14;				/* 0 <= result < 0x8000 */
+    if (x < 0)
+	result = -result;
+    return(result);
+}
+#endif
+    
+/*==============================================================*
+ *	JoyPot()	signed pot values(center == 0)		*
+ *								*
+ *	A value is for the joystick simulation(-127,128).	*
+ *								*
+ ****************************************************************/
+S16
+JoyPot(potNum)
+S16	potNum;
+{
+    POT_TYP	*pot;
+
+#if POT_WHEN_OK
+    if (!pot_only_when_ok) return 0;
+#endif
+
+    pots_being_read = 2;
+    pot = &potBank[potNum];
+    return(pot->good - ((pot->hi.lim + pot->lo.lim + 1) / 2));
+}
+
+
+/*==============================================================*
+ *	RawPot()	raw pot values 				*
+ *								*
+ *	A value is for the raw pot value read.			*
+ *								*
+ ****************************************************************/
+U16
+pot_raw(potNum)
+S16	potNum;
+{
+    pots_being_read = 2;
+
+#ifndef GAME_VALUE
+#define GAME_VALUE (potBank[potNum].good)
+#endif
+
+    return( GAME_VALUE );
+}
+    
+    
+/*==============================================================*
+ *	LoadPots()	load pot var limits from EEROM		*
+ ****************************************************************/
+PRIVATE void
+LoadPots()
+{
+    m_int	i;
+
+#if POT_WHEN_OK
+    if (!pot_only_when_ok) return;
+#endif
+
+    for (i=0; i<POT_CNT; ++i)
+    {
+#ifdef EER_POT0L
+	int high = ( pot_desc[i].flags & PF_DBUG ) ? 0 : eer_gets(i + EER_POT0H);
+	if ( high > 0 ) {
+	    potBank[i].lo.lim = eer_gets(i + EER_POT0L);
+	    potBank[i].hi.lim = high;
+	} else
+#endif
+	{
+	    potBank[i].lo.lim = 0x7fff;
+	    potBank[i].hi.lim = 0;
+	}
+    }
+}
+
+
+/*==============================================================*
+ *	pot_save()	save pot var limits into EEROM		*
+ ****************************************************************/
+void
+pot_save()
+{
+#ifdef EER_POT0L
+    m_int i;
+
+    for (i=0; i<POT_CNT; ++i)
+    {
+	if ( pot_desc[i].flags & PF_DBUG ) break;
+	eer_puts(i + EER_POT0L,potBank[i].lo.lim);
+	eer_puts(i + EER_POT0H,potBank[i].hi.lim);
+    }
+#endif
+}
+
+
+/*
+ *
+ *		SELFTEST
+ *
+ */
+
+PRIVATE void
+SetupDisplayPots(unsigned long gopts)
+{
+    int idx;
+    const struct pot_config *pcp;
+
+    for ( idx = 0, pcp = pot_desc ; idx < POT_CNT ; ++idx, ++pcp ) {
+	if ( ( ( gopts & GUTS_OPT_DEVEL ) == 0 ) && ( pcp->flags & PF_DBUG ) )
+	    continue;
+	if ( pcp->labels ) {
+	   if ( pcp->flags & PF_VERT )
+	    txt_str(pcp->x-(txt_width(pcp->labels, WHT_PALB)/2),
+		pcp->y+1, pcp->labels,WHT_PALB);
+	   else
+	    txt_str(pcp->x+5-(txt_width(pcp->labels, WHT_PALB)/2),
+		pcp->y+2, pcp->labels,WHT_PALB);
+	}
+    }
+}
+
+/*	Display a pot's parameters, either vertically (axis != 0 )
+ *	or horizontally (axis == 0).
+ */
+PRIVATE void
+DisplayPot(potPtr,pcp)
+POT_TYP	*potPtr;
+const struct pot_config *pcp;
+{
+    S16	x, y, delta;
+
+    if ( pcp->flags & PF_VERT ) {
+	x = pcp->x;
+	y = pcp->y - 1;
+    }
+    else {
+	x = pcp->x + 2;
+	y = pcp->y;
+    }
+
+    txt_hexnum(x,y,potPtr->lo.lim,2,RJ_ZF,WHT_PALB);
+
+    delta = potPtr->hi.lim - potPtr->lo.lim;
+    if (delta <= 0)
+	delta = 1;
+    if ( pcp->flags & PF_VERT ) y -= 2;
+    else x += 3;
+    txt_hexnum(x,y,potPtr->good,2,RJ_ZF,(delta >= pcp->range ? GRN_PALB : RED_PALB));
+
+    /* temp display of normalized, but not scaled, value.
+     */
+    if ( ( pcp->flags & PF_DBUG ) == 0 ) {
+	int value;
+	if ( pcp->flags & PF_PARA ) {
+	    value = pot_parabolic(potPtr-potBank,3,pcp->scale);
+	} else {
+	    value = pot_linear(potPtr-potBank,3,pcp->scale,0);
+	}
+	if ( value < 0 ) {
+	    txt_str(x-3,y+1,"-",WHT_PALB);
+	    txt_cdecnum(-value,4,RJ_ZF,WHT_PALB);
+	} else {
+	    txt_str(x-3,y+1," ",WHT_PALB);
+	    txt_decnum(x-2,y+1,value,4,RJ_ZF,WHT_PALB);
+	}
+    }
+
+    if ( pcp->flags & PF_VERT ) y -= 2;
+    else x += 3;
+    txt_hexnum(x,y,potPtr->hi.lim,2,RJ_ZF,WHT_PALB);
+}
+
+
+void
+pot_display(prev)
+S16 *prev;
+{
+    int idx,plot_able;
+    const struct pot_config *pcp;
+    unsigned long gopts = eer_gets(EER_GUTS_OPT) | debug_mode ;
+
+    pots_being_read = 2;
+    plot_able = 1;
+    if ( *prev < -32000 ) {
+	SetupDisplayPots( gopts );
+	plot_able = 0;
+    }
+    for ( idx = 0, pcp = pot_desc ; idx < POT_CNT ; ++idx, ++pcp ) {
+	if ( ( ( gopts & GUTS_OPT_DEVEL ) == 0 ) && ( pcp->flags & PF_DBUG ) )
+	    continue;
+	if ( (idx & 1) == 0 && plot_able ) plot_pot(prev,pcp,GRY_PAL);
+	if ( *prev != (S16)potBank[idx].good ) {
+	    *prev = (S16)potBank[idx].good;
+	    DisplayPot(potBank+idx, pcp);
+	}
+	if ( (idx & 1) && plot_able ) plot_pot(prev-1,pcp,YEL_PAL+1);
+	++prev;
+    }
+}
+#else
+void pot_init PARMS((int level)) { return; }
+int pot_linear( potnum, play, width, fuzz ) int potnum, play, width, fuzz;
+{ return 0; }
+int pot_parabolic(potnum,play,width)
+S16	potnum,play,width;
+{ return 0; }
+#endif /* POT_CNT */
+@
+
+
+1.23
+log
+@Added a pot_only_when_ok flag that has to be used on systems
+which cannot touch the pots until somebody says it's ok to
+do so (such as Seattle without the widget board).
+@
+text
+@d7 1
+a7 1
+const char FILE_ID_NAME[] = "$Id: pots.c,v 1.22 1997/07/09 23:46:28 forrest Exp shepperd $";
+a569 1
+
+d586 4
+d620 1
+a620 1
+    if ( pcp->flags & PF_VERT ) y -= 4;
+d637 1
+a637 1
+	    txt_clr_str(x-3,y+1,"-",WHT_PALB);
+d642 1
+a642 1
+    if ( pcp->flags & PF_VERT ) y -= 3;
+a646 38
+#ifndef plot_pot
+/*	If the hardware can support pixel-plotting, show a dot and leave
+ *	a trail tracing the physical limits of the pot (scaled down)
+ */
+static void
+plot_pot(vals,pcp,color)
+S16 *vals;
+const struct pot_config *pcp;
+int color;
+{
+    int x,y,pot_range;
+    x = *vals++;
+    y = *vals;
+    pot_range = ( pcp->range < 0 ) ? -pcp->range : pcp->range;
+    if ( x < -pot_range ) x = -pot_range;
+    if ( x > pot_range ) x = pot_range;
+    if ( y < -pot_range ) y = -pot_range;
+    if ( y > pot_range ) y = pot_range;
+    x += ((pcp->x+6) << 3);
+    y += ((pcp->y-4)<<3);
+#if VIDEO_BOARD == ZOID20_V
+/* This works, but the dimensions are wrong for this video system.
+ * SF Rush does not have joystick pots, so no effort will be spent
+ * on this now.  - fom 4/5/96
+ */
+    {
+	extern void bm_rect( int x1, int y1, int x2, int y2, int outside, int inside );
+	extern int ztv_bufswap();
+	bm_rect( x, y, x+1, y+1, color, color );
+	ztv_bufswap();
+	prc_delay0();
+	bm_rect( x, y, x+2, y+2, color, color );
+    }
+#else
+    draw_pt[y][x] = color;
+#endif
+}
+#endif
+@
+
+
+1.22
+log
+@Fix new compiler errors.
+@
+text
+@d7 1
+a7 1
+const char FILE_ID_NAME[] = "$Id: pots.c,v 1.21 1997/07/01 22:40:48 albaugh Exp forrest $";
+d33 4
+d92 4
+d112 4
+d279 4
+d303 4
+d371 4
+d441 4
+d492 4
+d529 4
+@
+
+
+1.21
+log
+@Added RCS ID string
+@
+text
+@d7 1
+a7 1
+const char FILE_ID_NAME[] = "$Id$";
+d237 1
+a237 1
+	if (pots->hi.age >= pcp->flags&PF_AMSK)
+d243 1
+a243 1
+	if (pots->lo.age >= pcp->flags&PF_AMSK)
+@
+
+
+1.20
+log
+@Added possibility for FAKE joystick switches which are
+not part of J_*. This allows some routines, which are aware
+of the limitations of the fakery, to use the pots_to_switches
+conversion, without needing to define J_*, and enable code
+that expects a fully-functional joystick.
+@
+text
+@d1 8
+@
+
+
+1.19
+log
+@Added call to ReadPot in ResetPots to prime the A/D pump.
+Fixed a bug I put into VBIReadPots.
+@
+text
+@d271 1
+a271 1
+#if USE_POT_SWITCHES
+@
+
+
+1.18
+log
+@Moved game specific definitions and code to pot_desc.h
+Sample pot_desc.h in main RCS directory; copy it to your
+game specific RCS directory and make your own.
+@
+text
+@d100 1
+d253 1
+a253 1
+    if ( tqtmr.delta )
+@
+
+
+1.17
+log
+@Added SetForce definition for PHOENIX.
+@
+text
+@d23 2
+d67 3
+a69 91
+
+/* Pot Flags Used in pot_desc below */
+
+#define PF_VERT 0x80	/* Pot Flag Vertical  */
+#define PF_PARA 0x40	/* Pot Flag Parabolic */
+#define PF_DBUG 0x20	/* Pot Flag Debug     */
+#define PF_AMSK 0x0F	/* Pot Flag Age Mask  */
+
+static const struct pot_config {
+    int range;
+    int scale;
+    unsigned long low_swt;
+    unsigned long high_swt;
+    const char *labels;         /* String for display function to use */
+    unsigned char pot,x,y,flags;
+} pot_desc[POT_CNT] = {		/* One per pot, in "potBank order" */
+#if (HOST_BOARD == PHOENIX) && (SST_GAME & SST_RUSH)
+    { 64,  -0x1000, 0, 0,  "Brake", 5, 28, 34,		     1 },
+    { 64,  -0x1000, 0, 0,    "Gas", 6, 38, 34,		     1 },
+    { 64,  -0x1000, 0, 0, "Clutch", 7, 18, 34,		     1 },
+    { 192,  0x0400, 0, 0,  "Wheel", 1, 28, 30,	     1|PF_PARA },
+    { 250, -0x1000, 0, 0,  "Pot 0", 0, 36,  4,	     1|PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 2", 2, 46,  4,	     1|PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 3", 3, 36,  8,	     1|PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 4", 4, 46,  8,	     1|PF_DBUG }
+#else
+# if (HOST_BOARD == FLAGSTAFF) && (SST_GAME & SST_RUSH)
+    { 64,  -0x1000, 0, 0,  "Brake", 13, 28, 34,		     1 },
+    { 64,  -0x1000, 0, 0,    "Gas", 12, 38, 34,		     1 },
+    { 64,  -0x1000, 0, 0, "Clutch", 14, 18, 34,		     1 },
+    { 192,  0x0400, 0, 0,  "Wheel", 15, 28, 30,	     1|PF_PARA },
+    { 250, -0x1000, 0, 0,  "Pot 0",  8, 36,  4,	     1|PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 1",  9, 46,  8,	     1|PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 2", 10, 46,  4,	     1|PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 3", 11, 36,  8,	     1|PF_DBUG }
+# else
+    { 32, 32, J1_LEFT,   J1_RIGHT, "Left Joystick",  13, 7,  40,         1 },
+    { 32, 32, J1_UP,     J1_DOWN,                0,  14, 7,  40, 1|PF_VERT },
+    { 32, 32, SW_ACTION, SW_NEXT,  "Right Joystick", 15, 23, 40,         1 },
+    { 32, 32, 0,               0,                0,   9, 23, 40, 1|PF_VERT },
+    { 250, -0x1000, 0, 0,  "Pot 0",  8, 36,  4,	     1|PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 2", 10, 46,  4,	     1|PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 3", 11, 36,  8,	     1|PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 4", 12, 46,  8,	     1|PF_DBUG }
+# endif
+#endif
+};
+
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == PHOENIX) || (HOST_BOARD == FLAGSTAFF)
+
+int ReadPot(int pot)
+{
+ int val;
+
+# if (HOST_BOARD == FLAGSTAFF)
+
+ val = *( (VU32 *)AD_PORTS_ADDR );
+ *( (VU32 *)AD_PORTS_ADDR ) = pot;
+ return ( val & 0xff );
+
+# else
+
+ int trash;
+
+ val = *( (VU32 *)AD_PORTS_ADDR );
+ trash = *( (VU32 *)AD_PORTS_ADDR + pot );
+ return ( val & 0xff );
+
+# endif /* (HOST_BOARD == FLAGSTAFF) */
+}
+
+#define POT_TIME ( 1000 )
+
+PRIVATE struct tq tqtmr;
+
+void pot_timer( void *which )
+{
+    int i = ( int )which;
+    int next = ( i == ( POT_CNT - 1 ) ) ? 0 : i + 1;
+
+    if ( pots_being_read > 0 )
+	RAW_AD[ i ] = ReadPot( pot_desc[ next ].pot );
+
+    tqtmr.delta = POT_TIME;		/* delay until conversion valid */
+    tqtmr.func = pot_timer;
+    tqtmr.vars = (void *)next;		/* next pot */
+
+    if ( next ) tq_ins( &tqtmr );	/* if 0, VBIReadPots will start */
+}
+
+#endif /* (HOST_BOARD == HCR4K) || (HOST_BOARD == PHOENIX) || (HOST_BOARD == FLAGSTAFF) */
+a70 123
+#if SST_GAME == SST_RUSH && !NO_EER_WRITE
+
+#if HOST_BOARD == PHOENIX
+#define SWFORCE (*(volatile char *)(XBUS_SLOT5+0x0000080))
+#define SetForce(force) do SWFORCE = (char)(~force); while(0)
+#endif
+
+#if HOST_BOARD == FLAGSTAFF
+extern void SetForce(S16);
+#endif
+
+#define NEEDS_CAL_GAS	 ( 1 << POT_GAS )
+#define NEEDS_CAL_BRAKE  ( 1 << POT_BRAKE )
+#define NEEDS_CAL_CLUTCH ( 1 << POT_CLUTCH )
+
+#define GAS_ROW		 9
+#define BRAKE_ROW	 12
+#define CLUTCH_ROW	 15
+
+#define POST_TIME	 180
+
+PRIVATE int pot_check( void )
+{
+ int i, result;
+
+ for ( i = 0, result = 0; i < POT_CNT; ++i )
+ {
+  result |= ( ( potBank[ i ].hi.lim - potBank[ i ].lo.lim ) < pot_desc[ i ].range ) << i;
+ }
+ return ( result & ( NEEDS_CAL_GAS | NEEDS_CAL_BRAKE | NEEDS_CAL_CLUTCH ) );
+}
+
+PRIVATE void pot_ask_cal( int result )
+{
+ if ( result & NEEDS_CAL_GAS )
+ {
+  txt_str( -1, GAS_ROW, "PRESS GAS TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+ }
+ else
+ {
+  txt_clr_str( -1, GAS_ROW, "PRESS GAS TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+  pot_save();
+ }
+ if ( result & NEEDS_CAL_BRAKE )
+ {
+  txt_str( -1, BRAKE_ROW, "PRESS BRAKE TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+ }
+ else
+ {
+  txt_clr_str( -1, BRAKE_ROW, "PRESS BRAKE TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+  pot_save();
+ }
+ if ( result & NEEDS_CAL_CLUTCH )
+ {
+  txt_str( -1, CLUTCH_ROW, "PRESS CLUTCH TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+ }
+ else
+ {
+  txt_clr_str( -1, CLUTCH_ROW, "PRESS CLUTCH TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+  pot_save();
+ }
+}
+
+PRIVATE void pot_POST( int level )
+{
+ if ( !level && !go_to_self_test && DIAG&1 )
+ {
+  int i, result, wait_abort;
+  U16 hi_val, lo_val;
+  S16 prev[POT_CNT];
+
+  ctl_read_sw(SW_ACTION);
+  prev[0] = -32767;
+  txt_str( -1, 3, "PRESS ABORT TO SKIP TESTS", WHT_PAL|AN_BIG_SET);
+  txt_str( -1, 24, "TESTING STEERING WHEEL", WHT_PAL|AN_BIG_SET);
+  for ( i = 0; i < POST_TIME; ++i )
+  {
+   if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) return;
+   SetForce( 0x18 );
+   pot_ask_cal( pot_check() );
+   pot_display(prev);
+   prc_delay(0);
+   hi_val = pot_raw( POT_WHEEL );
+  }
+  for ( i = 0; i < POST_TIME; ++i )
+  {
+   if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) return;
+   SetForce( 0xE8 );
+   pot_ask_cal( pot_check() );
+   pot_display(prev);
+   prc_delay(0);
+   lo_val = pot_raw( POT_WHEEL );
+  }
+  if ( ( hi_val - lo_val ) < pot_desc[ POT_WHEEL ].range )
+  {
+   txt_clr_str( -1, 3, "PRESS ABORT TO SKIP TESTS", WHT_PAL|AN_BIG_SET);
+   txt_clr_str( -1, 24, "TESTING STEERING WHEEL", WHT_PAL|AN_BIG_SET);
+   txt_str( -1, 21, "STEERING WHEEL NOT RESPONDING", RED_PAL|AN_BIG_SET);
+   txt_str( -1, 24, "PRESS ABORT TO CONTINUE", RED_PAL|AN_BIG_SET);
+   wait_abort = 1;
+  }
+  else
+  {
+   pot_save();
+   wait_abort = 0;
+  }
+  i = 1;
+  while ( ( result = pot_check() ) || --i )
+  {
+   if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) return;
+   if ( result ) i = 120;
+   pot_ask_cal( result );
+   pot_display(prev);
+   prc_delay(0);
+  }
+  if ( wait_abort )
+  {
+   while ( ( ctl_read_sw(SW_ACTION) & SW_ACTION ) == 0 ) prc_delay(0);
+  }
+ }
+}
+#endif
+
+a86 1
+#if SST_GAME == SST_RUSH && !NO_EER_WRITE
+a87 1
+#endif
+a95 1
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == PHOENIX) || (HOST_BOARD == FLAGSTAFF)
+a100 1
+#endif
+a242 10
+#if (HOST_BOARD != HCR4K) && (HOST_BOARD != PHOENIX) && (HOST_BOARD != FLAGSTAFF)
+
+#define	ReadPot(which)	(AD_PORTS[(which) & (POT_CNT-1)] & 0xff)
+
+#endif
+
+#ifndef ReadPot
+extern int ReadPot PARMS(( int which ));
+#endif
+
+a250 1
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == PHOENIX) || (HOST_BOARD == FLAGSTAFF)
+a253 1
+#endif
+d258 1
+a258 1
+    for (i=0; i<POT_CNT; ++i)
+a259 23
+#if (HOST_BOARD != HCR4K) && (HOST_BOARD != PHOENIX) && (HOST_BOARD != FLAGSTAFF)
+/*
+ *	this delay for MA_AD_DONE is only necessary for
+ *	processor speeds > 8 Mhz.
+ *	60 with the loop written AS IS:
+ *	while ((AD_STATUS & MA_AD_DONE) == 0 && ++tmp < AtoD_TIMEOUT);
+ *	causes a maximum delay of 110 us.
+ */
+	register m_int	tmp = 0;
+#define	AtoD_TIMEOUT	90
+	while ((AD_STATUS & MA_AD_DONE) == 0 && ++tmp < AtoD_TIMEOUT);
+	if (tmp >= AtoD_TIMEOUT)
+	    prc_panic("AtoD timeout error");
+
+	RAW_AD[i] = ReadPot(i+1);	/* save last AtoD conv to RAM	*/
+
+/*	The ADC chip may not clear its AD_DONE line for up to 12 us after
+ *	the start of conversion. So we need at least a 12 us period
+ *	to occur between the end of ReadPot() and the start of polling
+ *	for AD_DONE. I assume FilterPot() meets this requirement.
+ */
+#endif	/* (HOST_BOARD != HCR4K) && (HOST_BOARD != PHOENIX) && (HOST_BOARD != FLAGSTAFF) */
+
+d472 3
+a474 4
+#if SST_GAME == SST_RUSH
+    return(RAW_AD[potNum]);
+#else
+    return(potBank[potNum].good);
+d476 2
+d599 1
+a599 1
+#if (0)
+a635 3
+#else
+/* if you can't you can't */
+#define plot_pot(vals,pcp,color) do {;} while (0)
+@
+
+
+1.16
+log
+@Added definition of POST_TIME and changed it to 180 frames
+(3 sec) for driving the steering wheel during POST.
+@
+text
+@d159 9
+a223 1
+  extern void SetForce(S16);
+@
+
+
+1.15
+log
+@Removed text clearing when skipping tests.
+@
+text
+@d167 2
+d224 1
+a224 1
+  for ( i = 0; i < 300; ++i )
+d233 1
+a233 1
+  for ( i = 0; i < 300; ++i )
+@
+
+
+1.14
+log
+@Improved pot_POST for SST_RUSH.
+@
+text
+@d224 1
+a224 10
+   if ( ctl_read_sw(SW_ACTION) & SW_ACTION )
+   {
+    txt_clr_str( -1, 3, "PRESS ABORT TO SKIP TESTS", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, 24, "TESTING STEERING WHEEL", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, GAS_ROW, "PRESS GAS TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, BRAKE_ROW, "PRESS BRAKE TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, CLUTCH_ROW, "PRESS CLUTCH TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+    prc_delay(0);
+    return;
+   }
+d233 1
+a233 10
+   if ( ctl_read_sw(SW_ACTION) & SW_ACTION )
+   {
+    txt_clr_str( -1, 3, "PRESS ABORT TO SKIP TESTS", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, 24, "TESTING STEERING WHEEL", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, GAS_ROW, "PRESS GAS TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, BRAKE_ROW, "PRESS BRAKE TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, CLUTCH_ROW, "PRESS CLUTCH TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+    prc_delay(0);
+    return;
+   }
+d256 1
+a256 10
+   if ( ctl_read_sw(SW_ACTION) & SW_ACTION )
+   {
+    txt_clr_str( -1, 3, "PRESS ABORT TO SKIP TESTS", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, 24, "TESTING STEERING WHEEL", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, GAS_ROW, "PRESS GAS TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, BRAKE_ROW, "PRESS BRAKE TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+    txt_clr_str( -1, CLUTCH_ROW, "PRESS CLUTCH TO CALIBRATE", WHT_PAL|AN_BIG_SET);
+    prc_delay(0);
+    return;
+   }
+@
+
+
+1.13
+log
+@Got rid of GUTS_OPT_SWINPUT.  Got rid of agelim array in pot_age;
+now using 4 bits in struct pot_config flags field.  Added POST of
+steering wheel for SST_RUSH.
+@
+text
+@d157 140
+d312 1
+d314 1
+a314 27
+    if ( !level && !go_to_self_test )
+    {
+     extern void SetForce(S16);
+     int i;
+     U16 hi_val, lo_val;
+     txt_str( -1, AN_VIS_ROW >> 1, "TESTING STEERING WHEEL", WHT_PAL|AN_BIG_SET);
+     for ( i = 0; i < 300; ++i )
+     {
+      SetForce( 0x18 );
+      prc_delay(0);
+      hi_val = pot_raw( POT_WHEEL );
+     }
+     for ( i = 0; i < 300; ++i )
+     {
+      SetForce( 0xE8 );
+      prc_delay(0);
+      lo_val = pot_raw( POT_WHEEL );
+     }
+     if ( ( hi_val - lo_val ) < pot_desc[ POT_WHEEL ].range )
+     {
+      txt_clr_str( -1, AN_VIS_ROW >> 1, "TESTING STEERING WHEEL", WHT_PAL|AN_BIG_SET);
+      txt_str( -1, AN_VIS_ROW >> 1, "STEERING WHEEL BROKEN", RED_PAL|AN_BIG_SET);
+      txt_str( -1, ( AN_VIS_ROW >> 1 ) + 3, "PRESS ABORT TO CONTINUE", RED_PAL|AN_BIG_SET);
+      while ( ( ctl_read_sw(SW_ACTION) & SW_ACTION ) == 0 ) prc_delay(0);
+     }
+     else pot_save();
+    }
+@
+
+
+1.12
+log
+@Added support for Flagstaff.
+@
+text
+@d68 4
+a71 4
+#define PF_VERT 0x1	/* Pot Flag Vertical  */
+#define PF_PARA 0x2	/* Pot Flag Parabolic */
+#define PF_DBUG 0x4	/* Pot Flag Debug     */
+#define PF_SWIN 0x8	/* Pot Flag Wheel In  */
+d81 9
+a89 9
+#if (ZOID_GAME & ZOID_RUSH) || (SST_GAME & SST_RUSH)
+    { 64,  -0x1000, 0, 0,  "Brake", 5, 28, 34,		     0 },
+    { 64,  -0x1000, 0, 0,    "Gas", 6, 38, 34,		     0 },
+    { 64,  -0x1000, 0, 0, "Clutch", 7, 18, 34,		     0 },
+    { 64,   0x0400, 0, 0,  "Wheel", 1, 28, 30, PF_PARA|PF_SWIN },
+    { 250, -0x1000, 0, 0,  "Pot 0", 0, 36,  4,	       PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 2", 2, 46,  4,	       PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 3", 3, 36,  8,	       PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 4", 4, 46,  8,	       PF_DBUG }
+d91 19
+a109 8
+    { 32, 32, J1_LEFT,   J1_RIGHT, "Left Joystick",  13, 7,  40,       0 },
+    { 32, 32, J1_UP,     J1_DOWN,                0,  14, 7,  40, PF_VERT },
+    { 32, 32, SW_ACTION, SW_NEXT,  "Right Joystick", 15, 23, 40,       0 },
+    { 32, 32, 0,               0,                0,   9, 23, 40, PF_VERT },
+    { 250, -0x1000, 0, 0,  "Pot 0",  8, 36,  4,	       PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 2", 10, 46,  4,	       PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 3", 11, 36,  8,	       PF_DBUG },
+    { 250, -0x1000, 0, 0,  "Pot 4", 12, 46,  8,	       PF_DBUG }
+d172 29
+a334 1
+    static const U8	agelim[] = { 1, 1, 1, 1};
+d336 1
+a336 1
+    const U8		*agecnt; 
+d338 1
+a338 1
+    for (pots=&potBank[0], agecnt=&agelim[0]; 
+d340 1
+a340 1
+    ++pots, ++agecnt)
+d343 1
+a343 1
+	if (pots->hi.age >= *agecnt)
+d349 1
+a349 1
+	if (pots->lo.age >= *agecnt)
+a687 4
+#ifdef GUTS_OPT_SWINPUT
+	if ( ( ( gopts & GUTS_OPT_SWINPUT ) == 0 ) && ( pcp->flags & PF_SWIN ) )
+	    continue;
+#endif
+a804 4
+#ifdef GUTS_OPT_SWINPUT
+	if ( ( ( gopts & GUTS_OPT_SWINPUT ) == 0 ) && ( pcp->flags & PF_SWIN ) )
+	    continue;
+#endif
+@
+
+
+1.11
+log
+@If SST_GAME == SST_RUSH then pot_raw returns the unfiltered RAW_AD[potNum].
+@
+text
+@d91 8
+a98 4
+    { 32, 32, J1_LEFT,   J1_RIGHT, "Left Joystick",  5, 7,  22,       0 },
+    { 32, 32, J1_UP,     J1_DOWN,                0,  6, 7,  22, PF_VERT },
+    { 32, 32, SW_ACTION, SW_NEXT,  "Right Joystick", 7, 23, 22,       0 },
+    { 32, 32, 0,               0,                0,  1, 23, 22, PF_VERT }
+d102 1
+a102 1
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == PHOENIX)
+d106 1
+a106 1
+ int val, trash;
+d108 10
+d121 2
+d143 2
+a144 1
+#endif
+d169 1
+a169 1
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == PHOENIX)
+d319 1
+a319 1
+#if (HOST_BOARD != HCR4K) && (HOST_BOARD != PHOENIX)
+d337 1
+a337 1
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == PHOENIX)
+d348 1
+a348 1
+#if (HOST_BOARD != HCR4K) && (HOST_BOARD != PHOENIX)
+d369 1
+a369 1
+#endif	/* (HOST_BOARD != HCR4K) && (HOST_BOARD != PHOENIX) */
+@
+
+
+1.10
+log
+@Removed pot switches from RUSH pot table.
+Added conditional USE_POT_SWITCHES to function PotsToSwitches.
+@
+text
+@d109 1
+a109 1
+#define POT_TIME ( ( 16 / POT_CNT ) * 1000 )	/* valid if 0 < POT_CNT < 17 */
+d566 3
+d570 1
+@
+
+
+1.9
+log
+@Fixed LoadPots and pot_save to handle "debug" pots.
+@
+text
+@d82 8
+a89 8
+    { 64,  -0x1000, 0,       SW_BRAKE,  "Brake",  5, 28, 34,		   0 },
+    { 64,  -0x1000, 0,       SW_GAS,    "Gas",    6, 38, 34,		   0 },
+    { 64,  -0x1000, 0,       SW_CLUTCH, "Clutch", 7, 18, 34,		   0 },
+    { 64,   0x0400, SW_WH_L, SW_WH_R,   "Wheel",  1, 28, 30, PF_PARA|PF_SWIN },
+    { 250, -0x1000, 0,       0,		"Pot 0",  0, 36,  4,	     PF_DBUG },
+    { 250, -0x1000, 0,       0,		"Pot 2",  2, 46,  4,	     PF_DBUG },
+    { 250, -0x1000, 0,       0,		"Pot 3",  3, 36,  8,	     PF_DBUG },
+    { 250, -0x1000, 0,       0,		"Pot 4",  4, 46,  8,	     PF_DBUG }
+d364 1
+a371 1
+
+a391 1
+
+d393 1
+@
+
+
+1.8
+log
+@Centered RUSH pots.
+@
+text
+@d581 1
+a581 1
+	int high = eer_gets(i + EER_POT0H);
+d606 1
+@
+
+
+1.7
+log
+@Added "pots_being_read" to detect if game is using pots, and
+to stop reading and filtering them if game _not_ using them.
+@
+text
+@d82 4
+a85 4
+    { 64,  -0x1000, 0,       SW_BRAKE,  "Brake",  5, 14, 34,		   0 },
+    { 64,  -0x1000, 0,       SW_GAS,    "Gas",    6, 24, 34,		   0 },
+    { 64,  -0x1000, 0,       SW_CLUTCH, "Clutch", 7,  4, 34,		   0 },
+    { 64,   0x0400, SW_WH_L, SW_WH_R,   "Wheel",  1, 14, 30, PF_PARA|PF_SWIN },
+@
+
+
+1.6
+log
+@Added checks for PHOENIX HOST_BOARD.
+@
+text
+@d57 1
+d100 1
+a100 1
+int ReadPot(int next)
+d105 1
+a105 1
+ trash = *( (VU32 *)AD_PORTS_ADDR + next );
+d109 1
+a109 1
+#define POT_TIME ( ( 16 / POT_CNT ) * 1000 )	/* valid if 0 < POT_CNT < 18 */
+d118 2
+a119 1
+    RAW_AD[ i ] = ReadPot( pot_desc[ next ].pot );
+d326 3
+d436 1
+d502 1
+d549 1
+d565 1
+d741 1
+@
+
+
+1.5
+log
+@Added conditional SST_RUSH.
+@
+text
+@d97 1
+a97 1
+#if HOST_BOARD == HCR4K
+d150 1
+a150 1
+#if HOST_BOARD == HCR4K
+d300 1
+a300 1
+#if HOST_BOARD != HCR4K
+d318 1
+a318 1
+#if HOST_BOARD == HCR4K
+d326 1
+a326 1
+#if HOST_BOARD != HCR4K
+d347 1
+a347 1
+#endif	/* HOST_BOARD != HCR4K */
+@
+
+
+1.4
+log
+@Fixed "dummy" pot_parabolic() to agree with params of
+"real" one.
+@
+text
+@d80 1
+a80 1
+#if ZOID_GAME == ZOID_RUSH
+@
+
+
+1.3
+log
+@Changed to allow unused pots to be displayed in debug mode.
+@
+text
+@d757 3
+a759 1
+int pot_parabolic() { return 0; }
+@
+
+
+1.2
+log
+@Integrated RUSH pots.  Some cleanup of the code.  Many changes.
+@
+text
+@d69 2
+d81 8
+a88 4
+    { 64, -0x1000, 0,       SW_BRAKE,  "Brake",  5, 14, 34,       0 },
+    { 64, -0x1000, 0,       SW_GAS,    "Gas",    6, 24, 34,       0 },
+    { 64, -0x1000, 0,       SW_CLUTCH, "Clutch", 7,  4, 34,       0 },
+    { 64,  0x0400, SW_WH_L, SW_WH_R,   "Wheel",  1, 14, 30, PF_PARA }
+d612 1
+a612 1
+SetupDisplayPots()
+a615 1
+    int num_pots = POT_CNT;
+d617 4
+a620 6
+#if ZOID_GAME == ZOID_RUSH
+# ifdef GUTS_OPT_SWINPUT
+    unsigned long gopts = eer_gets(EER_GUTS_OPT);
+
+    if ( ( gopts & GUTS_OPT_SWINPUT ) == 0 ) --num_pots;
+# endif
+d622 2
+a623 2
+
+    for ( idx = 0, pcp = pot_desc ; idx < num_pots ; ++idx, ++pcp ) {
+d634 1
+a634 1
+PRIVATE int
+a639 1
+    int value;
+d661 14
+a674 4
+    if ( pcp->flags & PF_PARA ) {
+        value = pot_parabolic(potPtr-potBank,3,pcp->scale);
+    } else {
+        value = pot_linear(potPtr-potBank,3,pcp->scale,0);
+a675 7
+    if ( value < 0 ) {
+	txt_str(x-3,y+1,"-",WHT_PALB);
+	txt_cdecnum(-value,4,RJ_ZF,WHT_PALB);
+    } else {
+	txt_clr_str(x-3,y+1,"-",WHT_PALB);
+	txt_decnum(x-2,y+1,value,4,RJ_ZF,WHT_PALB);
+    }
+a679 1
+    return value;
+d730 1
+a730 5
+    int num_pots = POT_CNT;
+
+#if ZOID_GAME == ZOID_RUSH
+# ifdef GUTS_OPT_SWINPUT
+    unsigned long gopts = eer_gets(EER_GUTS_OPT);
+a731 4
+    if ( ( gopts & GUTS_OPT_SWINPUT ) == 0 ) --num_pots;
+# endif
+#endif
+
+d734 1
+a734 1
+	SetupDisplayPots();
+d737 7
+a743 1
+    for ( idx = 0, pcp = pot_desc ; idx < num_pots ; ++idx, ++pcp ) {
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d4 12
+a15 12
+ *	Initialization:						*
+ *		pot_init(); (was InitPots()) once at power up	*
+ *		ResetPots();		only to reset limits	*
+ *	Read values:						*
+ *		VBIReadPots();		each frame(VBINT)	*
+ *		pot_linear();		called from a main()	*
+ *		pot_parabolic();	called from a main()	*
+ *		JoyPot();		whenever		*
+ *		pot_raw();		whenever		*
+ *	Save values:						*
+ *		pot_save() (was SavePots())	periodically		*
+ *		pot_age() (was AgePots())	occasionally in play	*
+d65 56
+d144 8
+d156 1
+a156 1
+	pots->hi.lim = HISTART;	/* start hi limit very low	*/
+d158 1
+a158 1
+	pots->lo.lim = LOSTART;	/* start lo limit very hi	*/
+d294 5
+a298 1
+#define	ReadPot(which)	(AD_PORTS[which & (POT_CNT-1)] & 0xff)
+d310 7
+a316 1
+    register m_int	i,tmp;
+d320 1
+d328 1
+a329 1
+	tmp = 0;
+d341 1
+a346 10
+static const struct pot_config {
+    int range;
+    unsigned long low_swt;
+    unsigned long high_swt;
+} pot_desc[POT_CNT] = {
+    { 32,	J1_LEFT,	J1_RIGHT },
+    { 32,	J1_UP,		J1_DOWN },
+    { 32,	SW_ACTION,	SW_NEXT },
+};
+
+d394 18
+d413 1
+d424 1
+a424 1
+    
+d429 10
+a438 20
+    range = hi - lo - (2*play) - (2*fuzz);
+    if (range <= 1)			/* pots are not good */
+	return(0);		/* avoid range=1 (divide by zero) */
+    middle = (hi + lo + 1) / 2;
+    x = pot->good - middle; 	/* change from the middle */
+    if (x < 0			/* there should be two middle values in this case */
+    && (range&1) != 0)
+	++x;
+    range >>= 1;			/* half range */
+    if (x < 0)
+    {
+	x += play;		/* add in play near the middle */
+	if (x > 0)
+	    x = 0;		/* this is the same as the middle */
+	if (x < (short)-range)	/* fuzz factor here */
+	    x = -range;
+    }
+    else 
+    {
+	x -= play;		/* add in play near the middle */
+d440 25
+a464 3
+	    x = 0;		/* this is the same as the middle */
+	if (x > (short)range)		/* fuzz factor here */
+	    x = range;
+a465 1
+    
+a561 1
+    int		high;
+d566 1
+a566 1
+	high = eer_gets(i + EER_POT0H);
+a604 5
+#define POT_DISP_COL1 (7)
+#define POT_DISP_COL2 (23)
+#define POT_DISP_ROW (22)
+#define	POT_RANGE	(32)
+
+d608 10
+a617 5
+    txt_str(POT_DISP_COL1+5-(txt_width("Left Joystick", WHT_PALB)/2),
+	POT_DISP_ROW+2, "Left Joystick",WHT_PALB);
+#if (POT_CNT > 2)
+    txt_str(POT_DISP_COL2+5-(txt_width("Right Joystick", WHT_PALB)/2),
+	POT_DISP_ROW+2,	"Right Joystick",WHT_PALB);
+d619 7
+d632 1
+a632 1
+DisplayPot(potPtr,x,y,axis)
+d634 1
+a634 2
+S16	x,y;
+int axis;
+d636 1
+a636 1
+    S16	delta;
+d639 8
+a646 2
+    if ( axis ) y -= 1;
+    else x += 2;
+d653 1
+a653 1
+    if ( axis ) y -= 4;
+d655 1
+a655 1
+    txt_hexnum(x,y,potPtr->good,2,RJ_ZF,(delta >= POT_RANGE ? GRN_PALB : RED_PALB));
+d659 5
+a663 1
+    value = pot_linear(potPtr-potBank,3,POT_RANGE,0);
+d672 1
+a672 1
+    if ( axis ) y -= 3;
+d683 1
+a683 1
+plot_pot(vals,center,color)
+d685 2
+a686 1
+int center,color;
+d688 1
+a688 1
+    int x,y;
+d691 21
+a711 6
+    if ( x < -POT_RANGE ) x = -POT_RANGE;
+    if ( x > POT_RANGE ) x = POT_RANGE;
+    if ( y < -POT_RANGE ) y = -POT_RANGE;
+    if ( y > POT_RANGE ) y = POT_RANGE;
+    x += ((center+6) << 3);
+    y += ((POT_DISP_ROW-4)<<3);
+d713 1
+d717 1
+a717 1
+#define plot_pot(vals,center,color) do {;} while (0)
+d725 10
+a734 1
+    int col = POT_DISP_COL1;
+d741 7
+a747 5
+    for ( idx = 0 ; idx < POT_CNT ; ++idx ) {
+	if ( idx & 2 ) col = POT_DISP_COL2;
+	if ( (idx & 1) == 0 && plot_able ) plot_pot(prev,col,GRY_PAL);
+	*prev = DisplayPot(potBank+idx,col,POT_DISP_ROW,idx&1);
+	if ( (idx & 1) && plot_able ) plot_pot(prev-1,col,YEL_PAL+1);
+@

@@ -1,0 +1,246 @@
+head	1.2;
+access;
+symbols
+	RUSH_ROCK_1_0:1.1
+	RUSH_ROCK_1_0epst:1.1
+	XINU_ALPHA_0_0:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	97.10.09.17.22.05;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.03.24.19.00.51;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Work in progress!
+@
+
+
+1.2
+log
+@Added a time stamp array.
+@
+text
+@#ifndef smc_data_defs
+#define smc_data_defs
+/**********************************************************************/
+/*File:           SMC_Data.h                                          */
+/*Author:         Mark C van der Pol                                  */
+/*Organisation:   Technology Group, Time Warner Interactive.          */
+/*Contents:       Data definitions for the SMC Network driver.        */
+/*                                                                    */
+/*(C) Copyright Time Warner Interactive 1995                          */
+/*                                                                    */
+/**********************************************************************/
+
+#ifndef __U32_TYPE_DEFINED
+#include <config.h>
+#endif
+#include <net_data.h>
+
+/* This structure holds register values, and other SMC internal detials. */
+struct SMC_Chip_Control {
+    U32     int_posted;     /* Number of interrupts detected                 */
+                            /* This counter is bumped for every interupt     */
+                            /* seen by the interrupt vector handler.(LISR)   */
+    U32     int_handled;    /* Number of interrupts handled.                 */
+                            /* This counter is bumped for every interupt     */
+                            /* seen by the interrupt handler.(HISR)          */
+    U32     int_cleared;    /* Number of interrupts handled                  */
+                            /* The High Level Interrupt Service bumps this   */
+                            /* when it has complted processing. These two    */
+                            /* values should only be out of sync during HISR */
+                            /* processing, by at most 2.                     */
+    U32     int_sem;        /* Non-zero if we are handling an interrupt      */
+
+    U16     curr_bank;      /* The currently selected bank.             */
+    U16     last_bank;      /* The previous bank selected.              */
+    U16     curr_pointer;   /* The current pointer register.            */
+    U16     RX_control;     /* Value of desired RX control register.    */
+    U16     TX_control;     /* Value of desired TX control register.    */
+    U16     Configuration;  /* Value of desired Configuration register  */
+    U16     Mode;  	    /* Value of desired Mode control register   */
+
+    U8      old_int_mask;   /* The previous interrupt mask.             */
+    U8      Int_Mask;       /* The current interrupt mask.              */
+    U16     last_ISR;       /* The previous interrupt status.           */
+    U16     last_EPHSR;     /* The previous Ethernet Physical Handler   */
+    U32     opens;          /* The number of network opens requested    */
+    U32     closes;         /* The number of closes performed           */
+    U32     rbusys;         /* The count of itterations in busy loops   */
+    U32     tbusys;
+    U32     drv_errs;       /* Count of inconsistencies found           */
+    U32     drv_rx_errs;    /* Count of inconsistencies found           */
+    U32     drv_tx_errs;    /* Count of inconsistencies found           */
+    U32     int_errs;       /* Count of interrupt errors found          */
+} ;
+
+struct SMC_Packet_Stats {
+   U32    txin;        /* The number of packets passed to the driver. This */
+                       /* is probably close to the number of times         */
+                       /* Net_Send_Packet has been called.                 */
+   U32    txqd;        /* The number of packets queued onto the TX FIFO    */
+   U32    txpnd;       /* Number of packets pending OFFCHIP, in tx_queue   */
+   U32    txerrs;      /* TX Failures of some sort.                        */
+   U32    alcreq;      /* Alloc requests that were not immediatly satisfied*/
+   U32    ints;        /* The number of interrupts handled. This should    */
+                       /* be the sum of the following 4 counters.          */
+   U32    rxints;      /* The number of receive interrupts. Not necessarily*/
+                       /* the same as the number of RX Packets, as         */
+                       /* multiple packets can be handled in a single      */
+                       /* RX Int.                                          */
+   U32    txints;      /* Number of TX interrupts. In this application of  */
+                       /* the SMC91C92, this is the approximately the      */
+                       /* number of times the TXFIFO emptied.              */
+                       /* Definitely not the same as the number of packets */
+                       /* TX d, as packets are chained automatically, and  */
+                       /* only when the TX FIFO is emtied does an interrupt*/
+                       /* get generated.                                   */
+   U32    alcints;     /* Allocate interrupt counter.                      */
+   U32    ephints;     /* EPH interrupts. Ethernet Protocol Error          */
+                       /* occurrences. This should be approximately        */
+                       /* the sum of the error statistics totals.          */
+   U32    filtcalls;   /* Number of filter up-calls made.                  */
+   U32    recvups;     /* Received packets actually passed to upper        */
+                       /* layers.                                          */
+   U32    recvs;       /* Received packet totals, excluding broadcast      */
+                       /* or multicasts.                                   */
+   U32    bcasts;      /* Received broadcasts.                             */
+   U32    mcasts;      /* Received multicasts.                             */
+} ;
+#define SMC_Stats_Inc(nd,var) (++smc_data[SMC_IDX_FROM_ND(nd)].p_stats. ## var )
+
+struct SMC_Error_Stats {
+    U32    txunrn;    /* Occurrences of transmit underrun.              */
+    U32    sqet;      /* Number of SQE errors encountered.              */
+    U32    lostcarr;  /* Lost Carrier instances.                        */
+    U32    latecoll;  /* Number of late collisions detected.            */
+    U32    coll16;    /* Number of times that 16 attempts were made     */
+                      /* on a TX                                        */
+                      /* The following 4 are non-fatal errors. In fact, */
+                      /* depending on the chip version, may even be un- */
+                      /* available, or unreliable...                    */
+                      /* In autorelease mode, chip posts an int. when-  */
+                      /* ever 4 bit internal counters roll over. If not */
+                      /* in that mode, the Tx complete int.  counts 'm  */
+    U32    snglcoll;  /* Number of single collisions detected.          */
+    U32    multcoll;  /* Number of multiple collisions detected.        */
+    U32    tx_defr;   /* Tx deferreds - carrier in 1st 6.4uS in ifg     */
+    U32    exc_defr;  /* Excessive deferral. Cable busy _way_ too long  */
+
+                      /* The receive error statistics.                  */
+    U32    dropped;   /* Packets dropped for some reason or other -     */
+    U32    rx_nomem;  /* - memory shortage                              */
+    U32    rx_jammed; /* - way too long a packet                        */
+    U32    rx_discrd; /* - we weren't interested (early Rx-on '94 only) */
+    U32    rx_noresrc;/* - driver had no resource to cope.              */
+    U32    algn_err;  /* Received packets with allignment error.        */
+    U32    bad_crc;   /* Rx pkt with bad CRC                            */
+    U32    too_long;  /* Rx pkt longer than 1518 bytes.                 */
+    U32    too_short; /* Rx pkt less than 64 bytes on the wire          */
+} ;
+
+struct SMC_Size_Stats {
+    U32     pkt_64to128;
+    U32     pkt_128to256;
+    U32     pkt_256to512;
+    U32     pkt_512to768;
+    U32     pkt_768to1024;
+    U32     pkt_1024to1280;
+    U32     pkt_1280to1536;
+} ;
+
+struct SMC_Signature_Control {
+    U16     sig_low;       /* The lowest recorded signature             */
+    U16     sig_high;      /* The end of the highest recorded signature */
+    U16     sig_mode;      /* One of three states -                     */
+                           /*  - copy_all      copies packet into local */
+                           /*                  buffers, then uses copy  */
+                           /*  - copy_sigs     copies enough to cover   */
+                           /*                  sigs into local buffer   */
+                           /*  - copy_none     leaves all on chip, move */
+                           /*                  of when needed           */
+                           /* This allows for tuning to get the best    */
+                           /* performance trade-offs. The mode will be  */
+                           /* re-detirmined every time a signature is   */
+                           /* added/removed/changed.                    */
+} ;
+#define SMC_SIG_COPY_ALL  (1)
+#define SMC_SIG_COPY_SIGS (2)
+#define SMC_SIG_COPY_NONE (3)
+#define SMC_SIG_HEURISTIC (1)
+
+/****************************************************************************/
+/*                                                                          */
+/* This structure exists for each SMC chip supported on the system.         */
+/* It references global data needed by the chip driver, and individual      */
+/* network descriptors                                                      */
+/* for each of the users of the driver.                                     */
+/*                                                                          */
+/****************************************************************************/
+
+typedef struct SMC_CHIP_DATA {
+   U32         port;               /* The port number for this SMC chip    */
+   U32         intrpt;             /* The interrupt line for this SMC Chip */
+   U8          name[8];            /* The assigned name for this SMC Chip  */
+   U16         status;             /* Current operating condition of chip  */
+   U16         mode;               /* Current operating mode of the chip   */
+   U16         chip_vers;          /* Version of the SMC chip              */
+   netadd      my_nid;             /* This SMC's ethernet address          */
+   packet_number rx_pno;           /* Current or last inbound  pkt num.    */
+   packet_number tx_pno;           /* Current or last outbound pkt num.    */
+
+   struct      SMC_Chip_Control control; /* Structure for chip registers.  */
+   struct      SMC_Packet_Stats p_stats; /* Structure for the packet stats.*/
+   struct      SMC_Size_Stats s_stats;   /* Structure of the size histogram*/
+   struct      SMC_Error_Stats e_stats;  /* Structure for the error stats. */
+   struct      SMC_Signature_Control sig_ctl; /* control over sigs, etc    */
+
+   U32         nd_count;         /* Number of network descriptors defined. */
+   Net_Desc    *descriptors;     /* Pointer to array of descriptors.       */
+   U8	       mc[16];
+} SMC_Data ;
+
+extern SMC_Data smc_data[];               /* The main SMC data structure */
+
+#define N_PKTS 4
+struct pkt_ctl {
+ U32 qued;
+ U32 sent;
+ U32 fram;
+ U8  pktn;
+};
+extern struct pkt_ctl pn_array[];
+
+#if INCLUDE_TS_ARRAY
+# define N_TS 200
+struct time_stamp {
+ float t;
+ U16 isr;
+ char qs;
+};
+extern struct time_stamp ts_array[];
+extern U32 ts_aix;
+#endif /* INCLUDE_TS_ARRAY */
+
+#define SMCOK_FUNCTIONAL 	(0x0001)
+#define SMCERR_NO_SMC 		(0x0100)
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d192 11
+@

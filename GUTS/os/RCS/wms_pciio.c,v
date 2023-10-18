@@ -1,0 +1,182 @@
+head	1.4;
+access;
+symbols
+	RUSH_ROCK_1_0:1.4
+	RUSH_ROCK_1_0epst:1.4
+	MACE_1_0e:1.1
+	MACE_1_0d:1.1
+	AREA_52_00:1.3
+	MACE_1_0a:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	97.08.01.03.28.03;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.05.28.21.59.45;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.05.17.01.55.51;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.04.09.00.24.52;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@WMS IOASIC and Galileo code
+@
+
+
+1.4
+log
+@Added use of VIRT_TO_PHYS macro.
+@
+text
+@#include <config.h>
+#include <wms_proto.h>
+
+int get_device_number(int device)
+{
+    int	start, end;
+    int	id;
+
+#if HOST_BOARD == CHAMELEON
+    start = CHAM_PCICFG_SLOT0_V;
+    end = CHAM_PCICFG_SLOT2_V;
+#else
+    start = 6;
+    end = 11;
+#endif
+    for(; start <= end; ++start) {
+
+		id = get_pci_config_reg(start, 0);
+	if ((id & 0xffff) == device) return start;
+    }
+    return -1;
+}
+
+int get_sst_device_number(void)
+{
+    return get_device_number(0x121A);
+}
+
+void *get_sst_addr(void)
+{
+	return (void*)SST_BASE;
+}
+
+#ifndef VIRT_TO_PHYS
+# define VIRT_TO_PHYS K1_TO_PHYS
+#endif
+
+void *pciMapCardMulti(int vendorId, int device_id, int memsize, int *slot, int bdnum)
+{
+	void	*addr;
+	int	slot_num;
+
+	if(bdnum)
+	{
+		return((void *)0);
+	}
+	slot_num = get_sst_device_number();
+	if(slot_num >= 0)
+	{
+		addr = get_sst_addr();
+		get_pci_config_reg(slot_num, 4);
+		put_pci_config_reg(slot_num, 4, VIRT_TO_PHYS(addr) );
+	}
+	else
+	{
+		addr = (void *)0;
+		slot_num = 0;
+	}
+	*slot = slot_num;
+	return(get_sst_addr());
+}
+@
+
+
+1.3
+log
+@Added a general get_device_number().
+@
+text
+@d34 4
+d52 1
+a52 1
+		put_pci_config_reg(slot_num, 4, ((int)addr & 0x1fffffff));
+@
+
+
+1.2
+log
+@Added Chameleon protections.
+@
+text
+@d4 1
+a4 1
+int get_sst_device_number(void)
+d6 2
+a7 2
+	int	start, end;
+	int	id;
+d10 2
+a11 2
+    	start = 3;
+    	end = 5;
+d13 2
+a14 2
+	start = 6;
+	end = 11;
+d16 2
+a17 2
+	for(; start < end; start++)
+	{
+d19 8
+a26 6
+		if((id & 0xffff) == 0x121A)
+		{
+			return start;
+		}
+	}
+	return -1;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 2
+a2 1
+#include	<nsc_gt64010.h>
+d6 1
+a6 1
+	int	i;
+d9 8
+a16 1
+	for(i = 6; i < 11; i++)
+d18 1
+a18 1
+		id = get_pci_config_reg(i, 0);
+d21 1
+a21 1
+			return(i);
+d24 1
+a24 1
+	return(-1);
+d29 1
+a29 1
+	return((void *)0xa8000000);
+@

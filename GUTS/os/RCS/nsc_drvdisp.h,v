@@ -1,0 +1,49 @@
+head	1.1;
+access;
+symbols
+	RUSH_ROCK_1_0:1.1
+	RUSH_ROCK_1_0epst:1.1
+	MACE_1_0e:1.1
+	MACE_1_0d:1.1
+	RUSH_1_06A:1.1
+	AREA_52_00:1.1
+	MACE_1_0a:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	96.05.07.00.08.36;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Phoenix NSC IDE chip definitions
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/****************************************************************************
+    Copyright (C) 1995 National Semiconductor Corp.  All Rights Reserved
+*****************************************************************************
+*
+*   File:               DRV_DISP.H
+*
+*   Purpose:            Definition of display output string routine.
+*
+*   Update History:      2/06/95 GDV Created
+*
+****************************************************************************/
+
+#ifndef DRV_DISP_H
+#define DRV_DISP_H
+
+typedef void (* DRV_DispStr_Fun)(char * outstr);    /* display output routine */
+
+#endif
+@

@@ -1,0 +1,503 @@
+head	1.8;
+access;
+symbols
+	CJ_206:1.8
+	CJ2_05:1.8
+	CJ2_04:1.8;
+locks; strict;
+comment	@;; @;
+
+
+1.8
+date	95.12.08.23.04.56;	author birmingham;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.07.20.18.57.23;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.07.17.22.45.51;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.06.23.20.58.13;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.06.14.01.47.35;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.05.08.22.06.24;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.05.02.20.17.07;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.04.27.23.21.31;	author birmingham;	state Exp;
+branches;
+next	;
+
+
+desc
+@cojag-specific definitions for inclusion in config.mac, to
+produce config.h
+@
+
+
+1.8
+log
+@Provide default 'zero' value for GUN_CNT.
+@
+text
+@;
+;	cojag.mac
+;
+;	The language-independant file which is included in config.mac for
+;	CoJag (Coin Operated Jaguar) games. config.mac is the file from
+;	which config.i and config.h are	automatically derived. This is to
+;	assure agreement between assembly and C files.
+;
+;	Traditionally, config.mac was a single file describing a "hardware"
+;	for the purpose of configuring GUTS (Game Utility and Test Software.)
+;	With the advent of Xbus, a game may "mix and match" a variety of
+;	different boards, so config.mac now contains ".include" directives
+;	for the various pieces. This file is one of those pieces. It is
+;	intended to be included _after_ the host board has been selected,
+;	because the EC020 has a fairly strange Xbus decode map.
+;
+;	Project:	CoJag
+;	Date:		February 1995
+;	Team:		Mike Albaugh, Robert Birmingham
+;
+;
+.if not_defined,CORP_JAG
+	HEX_CONST CORP_JAG	0
+.endc
+	HEX_CONST HAS_EXT_SND	0		< has seperate sound processor>
+	HEX_CONST HAS_CAGE	0		< has a CAGE sound bd	>
+	HEX_CONST HAS_GAME_RPM	0		< RPM linked w/ game?	>
+; Jaguar can be setup to provide a 4MS IRQ
+	HEX_CONST HAS_4MSINT	1		< 4 millisecond interrupt >
+	HEX_CONST HAS_SMC_COM	0		< has Don's SMC com bd	>
+	HEX_CONST COIN_DOORS	1		< # of coin doors(2 mechs per)	>
+; Charlie Grisafi wants the three-taps timeout much shorter
+	HEX_CONST VCR_HOLD_TIME 20	< Hold Post-Mortem dump twenty seconds>
+; We need a very special rain-dance to auto-detect the difference between REV 1 and REV 2
+ .if	eq,OUTPUT_LANG-LANG_C
+extern void jag_init(int);
+#define HDW_INIT(cold) jag_init(cold)
+ .endc
+;
+REM <	Game config (PBASE) structure >
+	STR_START	pconfigb 
+	STR_FPTR	p_reset	void	1	< Points to code >
+	STR_ELT		p_optmenu <const unsigned char *> 1 < game option menu >
+	STR_ELT		p_coinmenu <const unsigned char *> 1 < coin opt menu >
+	STR_ELT		p_linktime <const char *> 1 < Main program link time >
+	STR_ELT		p_trapmode char	1	< trap type 0:STOP +:68K -:68010 >
+	STR_ELT		p_debug_options char 1	< Normally 0>
+	.if df,GAME_SPECIFIC
+	STR_FPTR	p_pf_draw int	1	< Points to code >
+	.endc
+	.if df,COJAG_GAME
+	STR_ELT		p_oblist <void *> 1 <game-allocated object list memory>
+	STR_ELT		p_oblen <unsigned long> 1 <length in bytes of above>
+	STR_ELT		p_audinit <void *> 1 <game-defined audio list pointer>
+	.endc
+;
+	STR_END		pconfigb
+;
+	STR_START	pconfigp
+	STR_ELT		p_validate long 1	< validation word	>
+	STR_PTR		p_configb <pconfigb> 1	< configuration pointer	>
+	STR_END		pconfigp
+;
+	STR_START	phrase
+	STR_ELT		hi32 <unsigned long> 1
+	STR_ELT		lo32 <unsigned long> 1
+	STR_END		phrase
+;
+	TYPE	PHRASE <struct phrase> 8
+;
+	HEX_CONST PB_VALID 0xDEADBEEF		<value to validate PTR	>
+;
+
+REM <		HARDWARE CONFIGURATION>
+ .if	eq,COJAG_GAME-CORP_JAG
+; Original JAG
+	HEX_CONST VIS_H_PIX	320.	< horizontal screen resolution	>
+	HEX_CONST VIS_V_PIX	200.	< vertical screen resolution	>
+ .iff
+; COJAG with Brian's latest timing
+	HEX_CONST VIS_H_PIX	336.	< horizontal screen resolution	>
+	HEX_CONST VIS_V_PIX	240.	< vertical screen resolution	>
+ .endc
+;
+REM <	Color pair constants>
+; >>-> Set appropriately for your game. values below (0x400, 0x10, 1) are for
+; Jaguar Text is drawn in a CRY Bitmap. There are no RED, GRN, BLU per se
+	HEX_CONST WHT_FUL	0x88FF
+	HEX_CONST SLT_FUL	0x885f
+	HEX_CONST GRY_FUL	0x887f
+	HEX_CONST GRY_BAK	(GRY_FUL<<16.)
+	HEX_CONST YEL_MSK	0xFFC0
+	HEX_CONST RED_MSK	0xF0FF
+	HEX_CONST CYN_MSK	0x48ff
+	HEX_CONST GRN_MSK	0x5f88
+	HEX_CONST GRY_SLT	<GRY_BAK + SLT_FUL>
+	HEX_CONST GRY_WHT	<GRY_BAK + WHT_FUL>
+	HEX_CONST GRY_YEL 	<GRY_BAK + YEL_MSK>
+	HEX_CONST GRY_RED	<GRY_BAK + RED_MSK>
+	HEX_CONST GRY_GRN	<GRY_BAK + GRN_MSK>
+	HEX_CONST GRY_CYN	<GRY_BAK + CYN_MSK>
+;
+; NOTE: much of the code that uses the NXT_ROW or NXT_COL relies on the fact
+;	that the step-size is given in BYTES and the data size is WORDS of
+;	exactly two bytes.  This is done because pointer arithmetic is scaled
+;	in C by the data size but isn't scaled at all in the assembled modules.
+;       We should examine the uses of these constants with an eye to either
+;	having them generated differently by MACPP or having a scale factor
+;	explicitly declared.  We might also explictly define an ORIENTATION
+;	(vertical or horizontal).  For now, note that the orientation is
+;	VERTICAL (sequential addresses display vertically) if AN_NEXT_ROW
+;	is equal to "sizeof(some-data-pointer)".
+;
+REM <	Alpha size, count, and stamp constants>
+	HEX_CONST AN_BIT_DEPTH	2.
+	HEX_CONST AN_STMP_CNT	1024.	< AN total stamps	>
+	HEX_CONST AN_PALS	8.
+;	HEX_CONST AN_PAL_SEP	(1<<AN_BIT_DEPTH)
+; >>-> GAME SPECIFIC, below is COJAG std res
+	HEX_CONST AN_STMP_WID	8
+	HEX_CONST AN_STMP_HT	8
+	HEX_CONST AN_TOT_COL	(VIS_H_PIX/AN_STMP_WID) < AN total stamps horiz.	>
+	HEX_CONST AN_TOT_ROW	(VIS_V_PIX/AN_STMP_HT) < AN total stamps vert.		>
+	HEX_CONST AN_VIS_COL	AN_TOT_COL < AN visible stamps horiz.	>
+	HEX_CONST AN_VIS_ROW	AN_TOT_ROW < AN visible stamps vert.	>
+	HEX_CONST AN_TOT_SIZ	<AN_TOT_COL * AN_TOT_ROW>
+	HEX_CONST AN_NXT_COL	(AN_STMP_WID*2)	< AN offset to next horz. stamp (bytes)	>
+	HEX_CONST AN_NXT_ROW	(AN_STMP_HT*AN_TOT_COL*AN_NXT_COL) < AN offset to next vert. stamp (bytes)	>
+	HEX_CONST AN_RC_BUMP	((AN_NXT_ROW<<16.)+AN_NXT_COL)	< ROW-COLUMN BUMP CONST	>
+	HEX_CONST AN_BLANK	0x00	< AN stamp # completely empty	>
+	HEX_CONST AN_A_STMP	0x47	< code for 'A' stamp		>
+	HEX_CONST AN_SQUARE	0x3	< AN stamp # completely filled	>
+	HEX_CONST AN_DOT	0x11D	< Used for joystick display	>
+	HEX_CONST AN_BALL	0x11E	< Used for joystick display	>
+	HEX_CONST AN_BORDER	AN_SQUARE
+	HEX_CONST AN_VOL_BAR	0x113	< AN stamp for volume stamp	>
+;
+	HEX_CONST BGBIT		0x8000
+	HEX_CONST AN_PAL_MSK	0x7000
+	HEX_CONST AN_PAL_SHF	0xC
+	HEX_CONST AN_NXT_PAL	0x1000
+	HEX_CONST AN_PAL0	0x0000
+	HEX_CONST AN_PAL0B	<AN_PAL0 | BGBIT>
+	HEX_CONST AN_PAL1	<AN_PAL0 + AN_NXT_PAL>
+	HEX_CONST AN_PAL1B	<AN_PAL1 | BGBIT>
+	HEX_CONST AN_PAL2	<AN_PAL1 + AN_NXT_PAL>
+	HEX_CONST AN_PAL2B	<AN_PAL2 | BGBIT>
+	HEX_CONST AN_PAL3	<AN_PAL2 + AN_NXT_PAL>
+	HEX_CONST AN_PAL3B	<AN_PAL3 | BGBIT>
+	HEX_CONST AN_PAL4	<AN_PAL3 + AN_NXT_PAL>
+	HEX_CONST AN_PAL4B	<AN_PAL4 | BGBIT>
+	HEX_CONST AN_PAL5	<AN_PAL4 + AN_NXT_PAL>
+	HEX_CONST AN_PAL5B	<AN_PAL5 | BGBIT>
+	HEX_CONST AN_PAL6	<AN_PAL5 + AN_NXT_PAL>
+	HEX_CONST AN_PAL6B	<AN_PAL6 | BGBIT>
+	HEX_CONST AN_PAL7	<AN_PAL6 + AN_NXT_PAL>
+	HEX_CONST AN_PAL7B	<AN_PAL7 | BGBIT>
+	HEX_CONST GRY_PAL	AN_PAL0		< GREY is palette 0	>
+	HEX_CONST GRY_PALB	AN_PAL0B
+	HEX_CONST WHT_PAL	AN_PAL1		< WHITE is palette 1	>
+	HEX_CONST WHT_PALB	AN_PAL1B
+	HEX_CONST YEL_PAL	AN_PAL2		< YELLOW is palette 2	>
+	HEX_CONST YEL_PALB	AN_PAL2B
+	HEX_CONST RED_PAL	AN_PAL3		< RED is palette 3	>
+	HEX_CONST RED_PALB	AN_PAL3B
+	HEX_CONST GRN_PAL	AN_PAL4		< GREEN is palette 4	>
+	HEX_CONST GRN_PALB	AN_PAL4B
+	HEX_CONST CYN_PAL	AN_PAL5		< CYAN is palette 5	>
+	HEX_CONST CYN_PALB	AN_PAL5B
+;
+	HEX_CONST TITLE_PAL	RED_PALB
+	HEX_CONST INSTR_PAL	GRN_PAL
+	HEX_CONST BORDER_PAL	RED_PAL
+	HEX_CONST VERSION_PAL	CYN_PALB
+	HEX_CONST MHILITE_PAL	YEL_PALB
+	HEX_CONST MNORMAL_PAL	GRY_PAL
+	HEX_CONST ERROR_PAL	RED_PALB
+;
+REMB
+REMM <	Playfield size, count, and stamp constants>
+REMM <  Jaguar has no "playfield" per se>
+REME
+	HEX_CONST PF_CNT	0	< Number of playfields		>
+;
+REM <	Hardware I/O>
+; >>-->> COJAG inputs are via GPIO (Jerry?) GPIO3 is for "Status",
+;	while GPIO5 is for the JAMMA connector
+ .if	eq,COJAG_GAME-CORP_JAG
+	HEX_CONST	JERRY_BASE 0xF10000 <Jerry's internal register base>
+ .iff
+	HEX_CONST	JERRY_BASE XBUS_SLOT2+0xF10000 <Jerry's first address>
+ .endc
+	VAR	INPUTS	VU32	JERRY_BASE+0x7000 < SWITCH INPUTS	>
+	VAR	JAMMA	VU32	JERRY_BASE+0x7C00 < JAMMA connector	>	
+	VAR	DIAG	VU32	INPUTS	< Diagnostic switches	>
+; >>-> This May change to use the switch inputs on the EC020x32 board
+	VAR	VBLANK	VU32	DIAG	< VBLANK SWITCH ADDR	>
+	HEX_CONST B_VBL		7	< VBLANK SWITCH BIT	>
+; >>-> If you are just bringing up hardware (e.g. Zoid) and do not have
+;	a selftest switch, don't define its location and selftest.c will
+;	cope somehow :-)
+	VAR	TEST	VU16	DIAG	< SELFTEST SWITCH ADDR	>
+	HEX_CONST B_TEST	6	< SELFTEST SWITCH BIT	>
+;
+	VAR	CN_STATUS VU16	(INPUTS+SHORT0_OFFS)	< Coin SWITCHES ADDR	>
+	HEX_CONST BC_AUX_RGT	3	< AUX RIGHT Coin switch	>
+	HEX_CONST BC_AUX_LFT	2	< AUX LEFT Coin switch	>
+	HEX_CONST B_COINR	1	< COIN LEFT>
+	HEX_CONST B_COINL	0	< COIN RIGHT >
+;
+	VAR	LATCH	VU16	(JERRY_BASE+0x7800+SHORT0_OFFS) < CIRCUIT CONTROL REG >
+;	HEX_CONST LM_VCR_REC	0x2000	< start/stop vcr recording	>
+REM < Following values valid for REV 1 (NOT for REV 2)>
+	HEX_CONST LM_EMC_R	0x0002	< click COIN CTR 2	>
+	HEX_CONST LM_EMC_L	0x0001	< click COIN CTR 1	>
+;	HEX_CONST LM_EMC_R	0x0020	< click COIN CTR 2	>
+;	HEX_CONST LM_EMC_L	0x0010	< click COIN CTR 1	>
+;	HEX_CONST LM_MUTE	0x0020	< MUTE Audio if 1	>
+;
+	HEX_CONST VCR_RECORD	-1	< turn on vcr RECORD		>
+	HEX_CONST VCR_STOP	0	< STOP vcr			>
+;
+;
+; COJAG Interrup registers, renamed from "Corp standard" because of conflict
+; with GUTS interrupt vectors.
+ .if	eq,COJAG_GAME-CORP_JAG
+	HEX_CONST	TOM_BASE 0xF00000 <TOM's internal register base>
+	HEX_CONST	MEMCON_VAL 0x186135CC
+ .iff
+	HEX_CONST	TOM_BASE XBUS_SLOT2+0xF00000 <TOM's internal register base>
+	VAR		MEMCON VU32 TOM_BASE <Memory Config Register>
+	HEX_CONST	MEMCON_VAL_1 (0x587D35CC)
+	HEX_CONST	MEMCON_VAL_2 (0x587D35DD)
+	VAR		COJAG_2_CF_REG VU8 XBUS_SLOT3+BYTE0_OFFS
+ .endc
+	HEX_CONST	VIDEO_MODE_CRY 0x281
+	HEX_CONST	VIDEO_MODE_RBG5 0x287
+	VAR		TOM_INT1 VU16 TOM_BASE+0xE0
+	VAR		TOM_INT2 VU16 TOM_BASE+0xE2
+	DEC_CONST TEST_DWELL	<15.*60.> < How long to wait for NEXT in P.O.R>
+	HEX_CONST WDI_MASK	0x3FF	< longwords to try to clear btw wdogs>
+;
+REM <	SELFTEST switch definitions coming OUT of ctl_read_sw()>
+	HEX_CONST J1_UP		0x80000000
+	HEX_CONST J1_DOWN	0x40000000
+	HEX_CONST J1_LEFT	0x20000000
+	HEX_CONST J1_RIGHT	0x10000000
+	HEX_CONST J1_B		0x08000000
+	HEX_CONST J1_A		0x04000000
+	HEX_CONST J1_FIRE	0x02000000
+	HEX_CONST J1_START	0x01000000
+	HEX_CONST J2_UP		0x8000
+	HEX_CONST J2_DOWN	0x4000
+	HEX_CONST J2_LEFT	0x2000
+	HEX_CONST J2_RIGHT	0x1000
+	HEX_CONST J2_B		0x0800
+	HEX_CONST J2_A		0x0400
+	HEX_CONST J2_FIRE	0x0200
+	HEX_CONST J2_START	0x0100
+ .if	ne,(COJAG_GAME&COJAG_AREA51)
+	HEX_CONST GUN_UP	0x80
+	HEX_CONST GUN_DOWN	0x40
+	HEX_CONST GUN_LEFT	0x20
+	HEX_CONST GUN_RIGHT	0x10
+ .iff
+	HEX_CONST GUN_UP	0x0000
+	HEX_CONST GUN_DOWN	0x0000
+	HEX_CONST GUN_LEFT	0x0000
+	HEX_CONST GUN_RIGHT	0x0000
+ .endc
+	HEX_CONST J_UP		<J1_UP | J2_UP | GUN_UP>
+	HEX_CONST J_DOWN	<J1_DOWN | J2_DOWN | GUN_DOWN>
+REM <	J_LEFT/RIGHT, JOY_ defs moved below so the can use SW_ defs	>
+;
+	HEX_CONST J1_VERT	<J1_UP | J1_DOWN>
+	HEX_CONST J1_BITS	<J1_UP | J1_DOWN | J1_LEFT | J1_RIGHT>
+	HEX_CONST J2_BITS	<J2_UP | J2_DOWN | J2_LEFT | J2_RIGHT>
+;
+REM <	the switches let you do s/t options w/o L/R on stix	>
+	HEX_CONST J_LEFT	<J1_LEFT | J2_LEFT | GUN_LEFT>
+	HEX_CONST J_RIGHT	<J1_RIGHT | J2_RIGHT | GUN_RIGHT>
+	HEX_CONST JOY_BITS	<J_UP | J_DOWN | J_LEFT | J_RIGHT>
+	HEX_CONST JOY_VERT	<J_UP | J_DOWN>
+;
+	HEX_CONST SW_NEXT	J1_START
+ .if	ne,COJAG_GAME&COJAG_AREA51
+	HEX_CONST SW_ACTION	J2_START
+ .iff
+	HEX_CONST SW_ACTION	J1_FIRE
+ .endc
+	HEX_CONST SW_EXTRA	J1_A
+;
+	HEX_CONST JOY_ALL	<JOY_BITS | SW_NEXT | SW_ACTION>
+	HEX_CONST SW_ALL	<SW_ACTION | SW_NEXT | SW_EXTRA>
+;
+REMB
+REMM <	Gun chip, which is included on Cojag REV2 hardware, but comes>
+REMM <	via XIO board on REV1.>
+REME
+	HEX_CONST XIO_ADDR (XBUS_SLOT5)		< XIO board on slot 5 >
+ .if	ne,COJAG_GAME&COJAG_AREA51
+	HEX_CONST GUN_CHIP1 (XIO_ADDR+0x380)	< Rev 1 GUN chip on XIO >
+	HEX_CONST GUN_CHIP2 (XBUS_SLOT2+0xF16000) < Rev 2 GUN chip on CoJag >
+	DEC_CONST GUN_CNT 2			< Default two guns (one chip)>
+ .iff
+	DEC_CONST GUN_CNT 0
+ .endc
+REM <	Color RAM>
+	ARRAY	COLRAM,VU16, TOM_BASE+0x400,<0x200>	< In Tom, 16-Bit only >
+;
+REM <	Video RAM>
+; Under construction
+REM <	MESSAGE ROUTINE CONFIGURATION>
+	HEX_CONST MAX_MESS	0	< maximum # of special message types	>
+	HEX_CONST BIG_CHAR	0x0080	< BIG character bit offset		>
+	HEX_CONST COLMSK	<BGBIT | AN_PAL_MSK>	< palette mask+bgbit	>
+	HEX_CONST SETMSK	0x0003	< character set mask	>
+	HEX_CONST AN_SET0	0x0000		
+	HEX_CONST AN_SET1	0x0001
+	HEX_CONST AN_SET2	0x0002
+	HEX_CONST AN_BIG_SET	0x0003
+;	HEX_CONST AN_BIG_SET	0x0004 < Cannot match, No Big alphas yet>
+;
+REM < First cut sound commands >
+        HEX_CONST MIN_VOLUME    0       < minimum volume level          >
+        HEX_CONST DEF_VOLUME    160     < default volume                >
+        HEX_CONST MAX_VOLUME    255     < maximum volume level          >
+        HEX_CONST INC_VOLUME    8       < increment for volume level    >
+        HEX_CONST ST_S_STOP     0x8000  < Stop all sounds               >
+        HEX_CONST ST_S_SOFF     0x8001  < Silent                        >
+        HEX_CONST ST_S_SON      0x8002  < Noisy                         >
+        HEX_CONST ST_S_AUDTST   0x8003  < self test music               >
+        HEX_CONST ST_E_SMAX     0x8004  < Request number of sounds      >
+        HEX_CONST ST_E_STAT     0x8005  < Request Status                >
+        HEX_CONST ST_E_DVCEXC   0x8006  < Set volume                    >
+        HEX_CONST ST_E_DVCRET   0x8007  < Return volume			>
+        HEX_CONST ST_E_MOSVER   0x8008  < Request MOS version request   >
+        HEX_CONST ST_E_PRJVER   0x8009  < Request Project audio version >
+        HEX_CONST ST_E_ERRORS   0x800A  < Request number of sound errors>
+        HEX_CONST ST_S_VMUSIC   0x8003  < volume adjust music     	>
+REM <			EOF				>
+@
+
+
+1.7
+log
+@Defined CORP_JAG to 0 if it wasn't already defined
+@
+text
+@d301 1
+d304 4
+@
+
+
+1.6
+log
+@Changed Volume bar stamp (AN_VOL_BAR) back to small square
+@
+text
+@d22 3
+@
+
+
+1.5
+log
+@added COJAG_ qualifier to game-name, e.g. COJAG_AREA51
+@
+text
+@d133 1
+a133 1
+	HEX_CONST AN_VOL_BAR	0x11E	< AN stamp for volume stamp	>
+@
+
+
+1.4
+log
+@added typedef for PHRASE, and constants for VIDEO_MODE_*, to
+allow access by programs which do not want _all_ the corp defs.
+@
+text
+@d257 1
+a257 1
+ .if	ne,(COJAG_GAME&AREA51)
+d283 1
+a283 1
+ .if	ne,COJAG_GAME&AREA51
+@
+
+
+1.3
+log
+@added control bits for fake joystick fron guns. Conditional on Area51
+@
+text
+@d61 7
+d233 2
+@
+
+
+1.2
+log
+@re-twisted coin inputs, shortened VCR_HOLD_TIME, documented
+that we have no idea where the REV 2 coin counter drivers
+are located. Added definition of HDW_INIT for jag_init()
+startup hook.
+@
+text
+@d248 13
+a260 2
+	HEX_CONST J_UP		<J1_UP | J2_UP>
+	HEX_CONST J_DOWN	<J1_DOWN | J2_DOWN>
+d268 2
+a269 2
+	HEX_CONST J_LEFT	<J1_LEFT | J2_LEFT>
+	HEX_CONST J_RIGHT	<J1_RIGHT | J2_RIGHT>
+d274 3
+d278 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d28 8
+a35 1
+	HEX_CONST COIN_DOORS	0		< # of coin doors(2 mechs per)	>
+d162 1
+a162 1
+	HEX_CONST INSTR_PAL	GRN_PALB
+d196 4
+a199 4
+	HEX_CONST BC_AUX_LFT	3	< AUX LEFT Coin switch	>
+	HEX_CONST BC_AUX_RGT	2	< AUX RIGHT Coin switch	>
+	HEX_CONST B_COINL	1	< COIN LEFT>
+	HEX_CONST B_COINR	0	< COIN RIGHT >
+d203 1
+a203 1
+REM < Following values valid for REV 1>
+@

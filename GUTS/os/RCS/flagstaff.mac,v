@@ -1,0 +1,656 @@
+head	1.7;
+access;
+symbols
+	RUSH_ROCK_1_0:1.7
+	RUSH_ROCK_1_0epst:1.7
+	RUSH_ROCK_1_0boot:1.7
+	RUSH_1_06A:1.6;
+locks; strict;
+comment	@;; @;
+
+
+1.7
+date	97.07.21.18.08.44;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.09.18.01.20.29;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.08.25.15.47.04;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.08.18.21.16.02;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.08.07.22.49.40;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.08.07.00.33.39;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.08.05.16.32.09;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Flagstaff host board description file.
+@
+
+
+1.7
+log
+@Added WHICH_IOASIC switch code.
+@
+text
+@.if ndf, _FLAGSTAFF_MAC_
+_FLAGSTAFF_MAC_ == 0
+.if ndf, _CONSTANTS_MAC_
+  .warn ;You should .include constants.mac before including flagstaff.mac
+  .include constants.mac
+.endc
+.if ndf, _PPTYPES_MAC_
+  .warn ;You should .include types.mac before including flagstaff.mac
+  .include pptypes.mac
+.endc
+;
+.if ndf,HOST_BOARD
+	HEX_CONST HOST_BOARD	FLAGSTAFF
+.endc
+.if ndf,NUCLEUS_OS
+	HEX_CONST NUCLEUS_OS	0
+.endc
+.if ndf,PROCESSOR
+	HEX_CONST PROCESSOR	MIPS5000L
+.endc
+;
+REM <	WMS Flagstaff board specific definitions>
+;
+; Little-Endian Byte offset is (bit offset)>>3
+	HEX_CONST WORD0_OFFS 0
+	HEX_CONST WORD32_OFFS 4
+	HEX_CONST SHORT0_OFFS 0
+	HEX_CONST SHORT16_OFFS 2
+	HEX_CONST BYTE0_OFFS 0
+	HEX_CONST BYTE8_OFFS 1
+	HEX_CONST BYTE16_OFFS 2
+	HEX_CONST BYTE24_OFFS 3
+; Little-Endian Byte offset (in 64 bit address space) is (bit offset)>>3
+	HEX_CONST HWORD0_OFFS 0
+	HEX_CONST HWORD32_OFFS 4
+	HEX_CONST HSHORT0_OFFS 0
+	HEX_CONST HSHORT16_OFFS 2
+	HEX_CONST HSHORT32_OFFS 4
+	HEX_CONST HSHORT48_OFFS 6
+	HEX_CONST HBYTE0_OFFS 0
+	HEX_CONST HBYTE8_OFFS 1
+	HEX_CONST HBYTE16_OFFS 2
+	HEX_CONST HBYTE24_OFFS 3
+	HEX_CONST HBYTE32_OFFS 4
+	HEX_CONST HBYTE40_OFFS 5
+	HEX_CONST HBYTE48_OFFS 6
+	HEX_CONST HBYTE56_OFFS 7
+REMB
+REMM <The R4k virtual memory map appears as the	following:		>
+REME
+;  
+	HEX_CONST MEM_KUSEG	0x00000000 < -0x7FFFFFFF (  2GB, mapped, cached)	>
+	HEX_CONST MEM_KSEG0	0x80000000 < -0x9FFFFFFF phys 00000000-1FFFFFFF (512MB, unmapped, cached)	>
+	HEX_CONST MEM_KSEG1	0xA0000000 < -0xBFFFFFFF phys 00000000-1FFFFFFF (512MB, unmapped, uncached)	>
+	HEX_CONST MEM_KSSEG	0xC0000000 < -0xDFFFFFFF (512MB, mapped)		>
+	HEX_CONST MEM_KSEG3	0xE0000000 < -0xFFFFFFFF (512MB, mapped)		>
+;
+	HEX_CONST DRAM_BASE	0x80000000 < DRAM phys 0x00000000-0x007FFFFF >
+	HEX_CONST DRAM_BASEnc	0xA0000000 < DRAM phys 0x00000000-0x007FFFFF (uncached) >
+.if not_defined, DRAM_BANK_SIZE
+	HEX_CONST DRAM_BANK_SIZE 0x00800000 < Defaults to 8MB per bank >
+.endc
+.if not_defined, DRAM_BANKS
+	DEC_CONST DRAM_BANKS	1	   < Defaults to 1 bank of DRAM >
+.endc
+.if not_defined, DRAM_SIZE
+	HEX_CONST DRAM_SIZE	DRAM_BANKS*DRAM_BANK_SIZE < DRAM size >
+.endc
+	HEX_CONST PCI_MEM_BASE	0xA8000000 < -0x29FFFFFF PCI Memory bus (uncached) >
+	HEX_CONST PCI_IO_BASE	0xAA000000 < -0x2BFFFFFF PCI I/O bus (uncached) >
+	HEX_CONST GALILEO_BOOT_BASE 0xB4000000 < -0xB40FFFFF GALILEO registers right after reset >
+	HEX_CONST GALILEO_BASE	0xAC000000 < -0x2C0FFFFF GALILEO registers (uncached) >
+	HEX_CONST GALILEO_CS0	0xB0000000 < -0x31FFFFFF CS0, debug connector, (uncached) >
+	HEX_CONST GALILEO_CS1	0xB2000000 < -0x32FFFFFF CS1, debug connector, (uncached) >
+	HEX_CONST AUDIO_FIFO	0xB3000000 < -0x33FFFFFF CS1, audio FIFO's, (uncached) >
+	HEX_CONST GALILEO_CS2	0xB4000000 < -0x35FFFFFF CS2, A/D convertor (uncached) >
+	HEX_CONST A_TO_D	GALILEO_CS2 < bits  7:0 (rw) = A/D converter >
+	HEX_CONST GALILEO_CS3	0xB6000000 < -0x37FFFFFF CS3, Motherboard I/O and registers >
+	HEX_CONST OBIO_BASE	GALILEO_CS3 <            On board I/O base (uncached) >
+	HEX_CONST PROM_BASEnc	0xBFC00000 < -0xBFFFFFFF PROM phys (uncached) >
+	HEX_CONST PROM_BASE	0x9FC00000 < -0x9FFFFFFF PROM phys (cached) >
+	HEX_CONST CACHE_MEM_BASE DRAM_BASE+0x00000000
+;
+	HEX_CONST IOASIC_BASE	OBIO_BASE+0x00000000
+	HEX_CONST BUS_SCALE	4
+.if not_defined, WHICH_IOASIC
+	.include ioasic.mac
+.iff
+   .macro which_ioasic val
+	.include ioasic'val'.mac
+   .endm
+	which_ioasic \WHICH_IOASIC
+.endc
+;
+.if not_defined, NO_CAGE
+	NO_CAGE == 0
+.endc
+.if true, NO_CAGE == 0
+	VAR	SND_I	VU32	IO_SND2H_DTA		< CAGE READ PORT 	>
+	VAR	SND_O	VU32	IO_H2SND_DTA		< CAGE WRITE PORT	>
+	VAR	SND_CTL	VU32	IO_H2SND_CTL		< CAGE BUFFER CONTROL	>
+	VAR	SND_STS	VU32	IO_SND_STS		< CAGE BUFFER STATUS	>
+	VAR	SND_IRQ	VU32	IO_MAIN_CTL		< CAGE IRQ CONTROL	>
+;
+	HEX_CONST MIN_VOLUME	0       		< minimum volume level          >
+  .if not_defined, DEF_VOLUME
+	HEX_CONST DEF_VOLUME	160     		< default volume                >
+  .endc
+	HEX_CONST MAX_VOLUME	255     		< maximum volume level          >
+	HEX_CONST INC_VOLUME	8       		< increment for volume level    >
+	HEX_CONST ST_S_STOP	0x8000  		< Stop all sounds               >
+	HEX_CONST ST_S_SOFF	0x8001  		< Silent                        >
+	HEX_CONST ST_S_SON	0x8002  		< Noisy                         >
+	HEX_CONST ST_S_AUDTST	0x8003  		< self test music               >
+	HEX_CONST ST_E_SMAX	0x8004  		< Request number of sounds      >
+	HEX_CONST ST_E_STAT	0x8005  		< Request Status                >
+	HEX_CONST ST_E_DVCEXC	0x8006  		< Set volume                    >
+	HEX_CONST ST_E_DVCRET	0x8007  		< Return volume			>
+	HEX_CONST ST_E_MOSVER	0x8008  		< Request MOS version request   >
+	HEX_CONST ST_E_PRJVER	0x8009  		< Request Project audio version >
+	HEX_CONST ST_E_ERRORS	0x800A  		< Request number of sound errors>
+	HEX_CONST ST_S_VMUSIC	0x8003  		< volume adjust music     	>
+	HEX_CONST B_HIFULL	TRUE    		< AUDIO PORTS BUSY == 1         >
+	HEX_CONST B_IFULL	B_IO_SND_STS_DATA_FROM	< AUDIO INPUT                   >
+	HEX_CONST B_OFULL	B_IO_SND_STS_DATA_TO	< AUDIO OUTPUT                  >
+	HEX_CONST B_RESET	0			< AUDIO RESET == 0              >
+	SND_INT_MASK == (IO_MAIN_FIFO_EMPTY|IO_MAIN_FIFO_HALF|IO_MAIN_FIFO_FULL)
+	SND_INT_MASK == SND_INT_MASK | (IO_MAIN_STH_DATA_FULL|IO_MAIN_HTS_DATA_EMPTY)
+	HEX_CONST SND_IMASK	(SND_INT_MASK)
+.endc
+;
+	HEX_CONST IO_GP_OUTPUTS	IO_MIC2H_DTA		< 12 TTL general purpose outputs >
+;
+	HEX_CONST BRAM_BASE	OBIO_BASE+0x00100000	< bits  7:0 (rw) = NVRAM bytes >
+.if not_defined,BRAM_SIZE
+	HEX_CONST BRAM_SIZE	(8192*4*4)   		< BRAM size (32k words)					>
+.endc
+	HEX_CONST SPARE_EXP_CS	 OBIO_BASE+0x00200000	< Spare CS, run to expansion connector >
+	HEX_CONST SPARE_FAST_CS0 OBIO_BASE+0x00300000	< Spare CS, not used >
+	HEX_CONST SPARE_FAST_CS1 OBIO_BASE+0x00400000	< Spare CS, not used >
+	HEX_CONST SPARE_FAST_CS2 OBIO_BASE+0x00500000	< Spare CS, not used >
+	HEX_CONST SPARE_GPIO	 OBIO_BASE+0x00600000	< Spare GPIO, run to expansion connector >
+	HEX_CONST ENET_BASE	OBIO_BASE+0x00C00000
+	HEX_CONST ENET_REG_0	ENET_BASE+0x00		< bits 15:0 (rw) = SMC 91C94 register 0 >
+	HEX_CONST ENET_REG_2	ENET_BASE+0x04		< bits 15:0 (ro) = SMC 91C94 register 2 >
+	HEX_CONST ENET_REG_4	ENET_BASE+0x08		< bits 15:0 (ro) = SMC 91C94 register 4 >
+	HEX_CONST ENET_REG_6	ENET_BASE+0x0C		< bits 15:0 (ro) = SMC 91C94 register 6 >
+	HEX_CONST ENET_REG_8	ENET_BASE+0x10		< bits 15:0 (rw) = SMC 91C94 register 8 >
+	HEX_CONST ENET_REG_A	ENET_BASE+0x14		< bits 15:0 (wo) = SMC 91C94 register 10 >
+	HEX_CONST ENET_REG_C	ENET_BASE+0x18		< bits 15:0 (wo) = SMC 91C94 register 12 >
+	HEX_CONST ENET_REG_E	ENET_BASE+0x1C		< bits 15:0 (wo) = SMC 91C94 register 14 >
+	HEX_CONST BRAM_UNLK	OBIO_BASE+0x01000000	< bits  x:x (wo) = BRAM unlock >
+	HEX_CONST WATCHDOG	OBIO_BASE+0x01100000	< bits  x:x (wo) = Watch dog timer > 
+	HEX_CONST INTCTL_NMI	OBIO_BASE+0x01200000	< bits  3:0 (rw) = NMI select/enable register >
+	HEX_CONST INTCTL_IE	OBIO_BASE+0x01300000	< bits 15:0 (rw) = Interrupt enable register >
+	HEX_CONST INTCTL_MAPA	OBIO_BASE+0x01400000	< bits 15:0 (rw) = Interrupt Map register >
+	HEX_CONST INTCTL_CAUSE	OBIO_BASE+0x01500000	< bits 15:0 (ro) = Interrupt cause register >
+	HEX_CONST INTCTL_STS	OBIO_BASE+0x01600000	< bits 15:0 (rw) = Interrupt status >
+	HEX_CONST GP_STS	OBIO_BASE+0x01600000	< bits 15:0 (rw) = General purpose status >
+	DEC_CONST B_GPSTS_EXP	0			< Expansion bus interrupt >
+	DEC_CONST B_GPSTS_ETH	1			< Ethernet interrupt >
+	DEC_CONST B_GPSTS_WD1	2			< Widget board interrupt 1 >
+	DEC_CONST B_GPSTS_PCI	3			< PCI slot interrupt >
+	DEC_CONST B_GPSTS_AD	4			< A/D interrupt >
+	DEC_CONST B_GPSTS_WD2	5			< Widget board interrupt 2 >
+	DEC_CONST B_GPSTS_DBG	6			< Debug switch interrupt >
+	DEC_CONST B_GPSTS_VSYZL	7			< Latched Vsync interrupt >
+	DEC_CONST B_GPSTS_VSY	8			< VSYNC input pin >
+	DEC_CONST B_GPSTS_BLOW	9			< Battery low indication (1=low) >
+	DEC_CONST B_GPSTS_WDOG	10			< WDOG timeout occured >
+	DEC_CONST B_GPSTS_AUX	11			< Aux output latch bit >
+	DEC_CONST B_GPSTS_NMI	12			< NMI input >
+	HEX_CONST INTCTL_VSY_ACK OBIO_BASE+0x01700000	< bits  x:x (wo) = ACK Vsync interrupt >
+.if true, OUTPUT_LANG == LANG_C
+#define SST_VSYNC_ACK() (*(VU32*)INTCTL_VSY_ACK = 0)
+.endc
+	HEX_CONST ARB_CTL	OBIO_BASE+0x01800000	< bits  2:0 (rw) = ARB control + 2 spare >
+	HEX_CONST B_ARB_PARK	0			<	bit 0 = 0=park on PCI, 1=Round robin >
+	HEX_CONST B_ARB_TP0	1			<	bit 1 = test point >
+	HEX_CONST B_ARB_TP1	2			<	bit 2 = test point >
+	HEX_CONST LED_OUT	OBIO_BASE+0x01900000	< bits  2:0 (rw) = LED control >
+	HEX_CONST B_LED_RED	0			< 	bit 0 = red >
+	HEX_CONST B_LED_YEL	1			<	bit 1 = yellow >
+	HEX_CONST B_LED_GRN	2			<	bit 2 = green >
+	HEX_CONST RESET_CTL	OBIO_BASE+0x01F00000	< bits  6:0 (rw) = Reset bits >
+	HEX_CONST B_RESET_EXP	 0			<	bit 0 = Expansion slot reset >
+	HEX_CONST B_RESET_IOASIC 1			<	bit 1 = IOASIC reset >
+	HEX_CONST B_RESET_IDE	 2			<	bit 2 = PCI bus and IDE reset >
+	HEX_CONST B_RESET_3DFX	 3			<	bit 3 = 3DFX subsystem reset >
+	HEX_CONST B_RESET_ENET	 4			<	bit 4 = Ethernet (SMC) reset >
+	HEX_CONST B_RESET_WIDGET 5			<	bit 5 = Widget board reset (spare) >
+;
+	.include galileo.mac			; Get galileo defines
+;
+	DEC_CONST SWINT0_LVL	0		< Software interrupt 0 >
+	DEC_CONST SWINT1_LVL	1		< Software interrupt 1 >
+	DEC_CONST INT0_LVL	2		< Galileo system interrupt >
+	DEC_CONST INT1_LVL	3		< I/O Asic interrupt >
+	DEC_CONST INT2_LVL	4		< IDE interrupt >
+	DEC_CONST INT3_LVL	5		< Interrupt Control PLD >
+	DEC_CONST INT4_LVL	6		< Interrupt Control PLD >
+	DEC_CONST INT5_LVL	7		< Interrupt Control PLD >
+	IOA == 1				;Enable I/O ASIC vectors
+	DEC_CONST IOA_LVL	INT1_LVL	< IOASIC is connected to Int 1 >
+	DEC_CONST IOASIC_LVL	INT1_LVL	< IOASIC is connected to Int 1 >
+	IDE == 1				; Enable IDE vectors
+	DEC_CONST IDE_LVL	INT2_LVL	< IDE is connected here >
+;
+; macro ASNF - assign Flagstaff interrupt
+;
+; usage:  ASNF sym, val, bit
+;
+;	sym - symbol used by VDF in phx_vecs.mac, derived from the
+;	      descriptions given in the Flagstaff Development System
+;	      Programmers Guide.
+;
+;	val - CPU interrupt pin, set in config.mac by the user to
+;	      map and/or enable the specific interrupt as follows...
+;
+;	      XS0_ASN == 2  Assigns and maps Flagstaff Expansion Slot 0
+;			    interrupt to CPU interrupt level 2.
+;	      XS1_ASN == 3  Assigns and maps Flagstaff Expansion Slot 1
+;			    interrupt to CPU interrupt level 3.
+;
+;	      The valid CPU interrupt levels are 5, 6 and 7 for Flagstaff.
+;
+;	bit - bit number in registers INTCTL_IE, INTCTL_CAUSE and INTCTL_STS.
+;
+;
+; synopsis:  Validates the parameter val, and sets sym to true or false to be
+;	     used by macro VDF in phx_vecs.mac
+;	     If true, defines sym_LVL to equal INTval_LVL, and "validates" the
+;	     bit assignment.  The bit values below are valid according to the
+;	     documentation available 5/14/96.  Defines B_PIC_sym and sym_NOTES
+;	     to be used by the interrupt installer unless sym_NOTES is defined
+;	     previously in config.mac.  Accumulates the appropriate bits for
+;	     defining the constants INTCTL_MAP_INIT and PHOENIX_INTCTL_MASK.
+;
+	.macro ASNF sym, val, bit
+	...0 == 0
+	.if identical,<val>,<3>
+	 ...0 == 1
+	 ...P == 1
+	.endc
+	.if identical,<val>,<4>
+	 ...0 == 1
+	 ...P == 2
+	.endc
+	.if identical,<val>,<5>
+	 ...0 == 1
+	 ...P == 3
+	.endc
+	sym == ...0
+	.if true, ...0
+	 HEX_CONST sym'_LVL INT'val'_LVL
+	.iff
+	 .iif b,val,.mexit 2
+	 .iif identical,<val>,<NULL>,.mexit 2
+	 .error ; macro ASN - parameter val out of range (can only be 3, 4 or 5)
+	.endc
+	.iif b,<bit>,.error ; macro ASN - parameter 'bit' missing
+	.iif lt,bit,.error ; macro ASN - parameter bit out of range
+	.iif true, bit > 7,.error ; macro ASN - parameter bit out of range (must be < 8)
+	DEC_CONST B_PIC_'sym	('bit')	< Flagstaff Interrupt Control >
+	.iif ndf,sym'_NOTES,HEX_CONST sym'_NOTES (1<<bit)
+	...C == ...C + ( 1 << bit )
+	...A == ...A + ( ...P << ( 2 * (bit) ) )
+	..AA == 1
+	.mexit 2
+	.endm
+;
+;
+; macro ASNG - assign Galileo interrupt
+;
+; usage:  ASNG sym, val, bit
+;
+;	sym - symbol used by VDF in phx_vecs.mac, derived from the
+;	      descriptions given in the GT-64010 Data Sheet.
+;
+;	val - CPU interrupt pin, set in config.mac by the user to
+;	      map and/or enable the specific interrupt as follows...
+;
+;	      PC0_ASN == 0  Enables the Galileo interrupt from the PCI to
+;			    the CPU in Galileo cause register bit 26.
+;
+;	      The only valid CPU interrupt pin is 0 for the Galileo.
+;
+;	bit - bit number in registers GALILEO_INT_CAUSE and GALILEO_CPU_I_ENA.
+;
+;
+; synopsis:  Validates the parameter val, and sets sym to true or false to be
+;	     used by macro VDF in phx_vecs.mac
+;	     If true, defines sym_LVL to equal INTval_LVL, and "validates" the
+;	     bit assignment.  The bit values below are valid according to the
+;	     documentation available 4/14/96.  Defines B_GIC_sym and sym_NOTES
+;	     to be used by the interrupt installer unless sym_NOTES is defined
+;	     previously in config.mac.  Accumulates the appropriate bits for
+;	     defining the constant GALILEO_INTCTL_MASK.
+;
+	.macro ASNG sym, val, bit
+	...0 == 0
+	.iif identical,<val>,<0>,...0 == 1
+	sym == ...0
+	.if true, ...0
+	 HEX_CONST sym'_LVL INT'val'_LVL
+	.iff
+	 .iif b,val,.mexit 2
+	 .iif identical,<val>,<NULL>,.mexit 2
+	 .error ; macro ASN - parameter val out of range
+	.endc
+	.iif b,<bit>,.error ; macro ASN - parameter 'bit' missing
+	.iif le,bit,.error ; macro ASN - parameter bit out of range
+	.iif gt,bit-29,.error ; macro ASN - parameter bit out of range
+	DEC_CONST B_GIC_'sym	('bit')	< Galileo Interrupt Control >
+	.iif ndf,sym'_NOTES,HEX_CONST sym'_NOTES (1<<bit)
+	...D == ...D + ( 1 << bit )
+	.iif ne,GALILEO_CPU_INT_m&...D,.error ; macro ASN - parameter bit out of range
+	.mexit 2
+	.endm
+;
+;
+; macro ASNGM - assign Galileo interrupt mask
+;
+; usage:  ASNGM sym, val, mask
+;
+;	sym - symbol used by VDF in phx_vecs.mac, derived from the
+;	      descriptions given in the GT-64010 Data Sheet.
+;
+;	val - CPU interrupt pin, set in config.mac by the user to
+;	      map and/or enable the specific interrupt as follows...
+;
+;	      PC0_ASN == 0  Enables the Galileo interrupt from the PCI to
+;			    the CPU in Galileo cause register bit 26.
+;
+;	      The only valid CPU interrupt pin is 0 for the Galileo.
+;
+;	mask - bit mask in registers GALILEO_INT_CAUSE and GALILEO_CPU_I_ENA.
+;
+; synopsis:  Validates the parameter val, and sets sym to true or false to be
+;	     used by macro VDF in phx_vecs.mac
+;	     If true, defines sym_LVL to equal INTval_LVL, and "validates" the
+;	     mask.  The mask values below are valid according to the
+;	     documentation available 4/14/96.  Defines sym_NOTES
+;	     to be used by the interrupt installer unless sym_NOTES is defined
+;	     previously in config.mac.  Accumulates the appropriate bits for
+;	     defining the constant GALILEO_INTCTL_MASK.
+;
+	.macro ASNGM sym, val, mask
+	...0 == 0
+	.iif identical,<val>,<0>,...0 == 1
+	sym == ...0
+	.if true, ...0
+	 HEX_CONST sym'_LVL INT'val'_LVL
+	.iff
+	 .iif b,val,.mexit 2
+	 .iif identical,<val>,<NULL>,.mexit 2
+	 .error ; macro ASN - parameter val out of range
+	.endc
+	.iif b,<mask>,.error ; macro ASN - parameter 'mask' missing
+	.iif ndf,sym'_NOTES,HEX_CONST sym'_NOTES (mask)
+	...D == ...D | ( mask )
+	.iif ne,GALILEO_CPU_INT_m&...D,.error ; macro ASN - parameter mask out of range
+	.mexit 2
+	.endm
+;
+;
+; macro ASNL - assign Logical interrupt level
+;
+; usage:  ASNL sym, val
+;
+;	sym - symbol used by GUTS which needs to be connected to a
+;	      Flagstaff or a Galileo interrupt.  The symbol XBUS is
+;	      defined below and assigned to the Expansion Slot Dave
+;	      is currently using.
+;
+;	val - previously defined symbol used by VDF in phx_vecs.mac,
+;	      used here to make the logical connection by equating
+;	      sym to val, and by equating sym_LVL to val_LVL if val
+;	      is true.
+;
+;
+	.macro ASNL sym, val
+	.if df,val
+	 sym == val
+	 .iif ne,val,HEX_CONST sym'_LVL INT'val'_LVL
+	.endc
+	.mexit 2
+	.endm
+;
+;
+; macro ASN - assign Flagstaff, Galileo, or Logical interrupt
+;
+; usage:  ASN sym, val, typ, bit
+;
+;	sym - symbol used by VDF in phx_vecs.mac, derived from the
+;	      descriptions given in the Flagstaff Development System
+;	      Programmers Guide and the GT-64010 Data Sheet.
+;
+;	val - CPU interrupt pin, set in config.mac by the user to
+;	      map and/or enable the specific interrupt as follows...
+;
+;	      PC0_ASN == 0  Enables the Galileo interrupt from the PCI to
+;			    the CPU in Galileo cause register bit 26.
+;			    The only valid CPU interrupt pin is 0 for the
+;			    Galileo.
+;	      XS0_ASN == 2  Assigns and maps Flagstaff Expansion Slot 0
+;			    interrupt to CPU interrupt pin 2.
+;	      XS1_ASN == 3  Assigns and maps Flagstaff Expansion Slot 1
+;			    interrupt to CPU interrupt pin 3.
+;
+;	typ - F or f for Flagstaff; G or g for Galileo; L or l for Logical.
+;
+;	bit - bit number in the appropriate cause, enable, or status register.
+;	      This field is not used if typ is L or l.
+;
+	.macro ASN sym, val, typ, bit
+	.if ndf,val
+	 .define num NULL
+	.iff
+	 .define num \val
+	 ...I == val
+	.endc
+	.iif identical,<typ>,<F>,ASNF sym, num, bit
+	.iif identical,<typ>,<f>,ASNF sym, num, bit
+	.iif identical,<typ>,<G>,ASNG sym, num, bit
+	.iif identical,<typ>,<g>,ASNG sym, num, bit
+	.iif identical,<typ>,<M>,ASNGM sym, num, bit
+	.iif identical,<typ>,<m>,ASNGM sym, num, bit
+	.iif identical,<typ>,<L>,ASNL sym, val
+	.iif identical,<typ>,<l>,ASNL sym, val
+	.error ; macro ASN - bad parameter 'typ'
+	.endm
+;
+; Symbols set by the ASN macros to indicate usage - see below.
+;
+	...A == 0
+	..AA == 0
+	...B == 0
+	..BB == 0
+	...C == 0
+	...D == 0
+	...I == -1
+;
+	ASN EXP, EXP_ASN, F,  0 ; Expansion Slot interrupt
+	ASN ETH, ETH_ASN, F,  1 ; Ethernet interrupt
+	ASN WD1, WD1_ASN, F,  2 ; Widget board interrupt 1
+	ASN PCI, PCI_ASN, F,  3 ; PCI slot interrupt
+	ASN ADC, ADC_ASN, F,  4 ; A/D Converter interrupt
+	ASN WD2, WD2_ASN, F,  5 ; Widget board interrupt 1
+	ASN DBG, DBG_ASN, F,  6 ; Debug switch interrupt
+	ASN VSY, VSY_ASN, F,  7 ; VSYNC interrupt
+;
+	ASN GAL, GAL_ASN, M, 0x001FF000 ; Any Galileo Error
+	ASN MOE, MOE_ASN, G,  1 ; Galileo MemOut
+	ASN DOE, DOE_ASN, G,  2 ; Galileo DMAOut
+	ASN COE, COE_ASN, G,  3 ; Galileo CPUOut
+	ASN DM0, DM0_ASN, G,  4 ; Galileo DMA0Comp
+	ASN DM1, DM1_ASN, G,  5 ; Galileo DMA1Comp
+	ASN DM2, DM2_ASN, G,  6 ; Galileo DMA2Comp
+	ASN DM3, DM3_ASN, G,  7 ; Galileo DMA3Comp
+	ASN TM0, TM0_ASN, G,  8 ; Galileo T0Exp
+	ASN TM1, TM1_ASN, G,  9 ; Galileo T1Exp
+	ASN TM2, TM2_ASN, G, 10 ; Galileo T2Exp
+	ASN TM3, TM3_ASN, G, 11 ; Galileo T3Exp
+	ASN MRE, MRE_ASN, G, 12 ; Galileo MasRdErr
+	ASN SWE, SWE_ASN, G, 13 ; Galileo SlvWrErr
+	ASN MWE, MWE_ASN, G, 14 ; Galileo MasWrErr
+	ASN SRE, SRE_ASN, G, 15 ; Galileo SlvRdErr
+	ASN AEP, AEP_ASN, G, 16 ; Galileo AddrErr
+	ASN MEP, MEP_ASN, G, 17 ; Galileo MemErr
+	ASN MAS, MAS_ASN, G, 18 ; Galileo MasAbort
+	ASN TAR, TAR_ASN, G, 19 ; Galileo TarAbort
+	ASN RTY, RTY_ASN, G, 20 ; Galileo RetryCtr
+	ASN PC0, PC0_ASN, G, 26 ; Galileo PCI Interrupt
+	ASN PC1, PC1_ASN, G, 27 ; Galileo PCI Interrupt
+	ASN PC2, PC2_ASN, G, 28 ; Galileo PCI Interrupt
+	ASN PC3, PC3_ASN, G, 29 ; Galileo PCI Interrupt
+;
+; Make definitions according to usage.
+;
+.iif true,..AA,HEX_CONST INTCTL_MAPA_INIT ...A	< Flagstaff Interrupt Map Register >
+.iif ne,...C,HEX_CONST PHOENIX_INTCTL_MASK ...C	< Flagstaff Interrupt Control >
+.iif ne,...D,HEX_CONST GALILEO_INTCTL_MASK ...D	< Galileo Interrupt Control >
+.iif true,...I >= 0,DEC_CONST GALILEO_LVL ...I	< Galileo Error interrupt level >
+;
+	HEX_CONST INTS_ON	0xFF01		< Enable all interrupts >
+	HEX_CONST INTS_OFF	(INTS_ON&~1)	< Disable all interrupts >
+;
+	STR_START diag_params
+	STR_ELT	  actual_msb	U32  1	<Actual data read from mem (upper 32 bits)>
+	STR_ELT	  actual_lsb	U32  1	<Actual data read from mem (lower 32 bits)>
+	STR_ELT	  expected_msb	U32  1  <Expected data (upper 32 bits)>
+	STR_ELT	  expected_lsb	U32  1	<Expected data (Lower 32 bits)>
+	STR_ELT	  bad_address	U32  1  <Failing address>
+	STR_ELT	  subtest	U32  1	<Subtest number>
+	STR_END	  diag_params
+;
+.if true, OUTPUT_LANG == LANG_C
+#define WDOG *(VU32 *)WATCHDOG
+.endc
+REM <	Work RAM>
+	ARRAY	WRAM,	U32, 	DRAM_BASE, DRAM_SIZE < Working RAM	>
+REM <	EEPROM>
+  .ifndf EEPROM_SIZE
+	EEPROM_SIZE == BRAM_SIZE ; Guaranteed minimum
+  .endc
+	ARRAY	EEPROM	U8	BRAM_BASE		EEPROM_SIZE < EEPROM 		>
+REM <	BRAM>
+	ADDR	BRAM 	U8	BRAM_BASE		< BRAM	(non-cached)	>
+	VAR	UNLK_EP VU32	BRAM_UNLK		< BRAM unlock >
+;
+	.include idt.mac
+.endc 		;_FLAGSTAFF_MAC_
+
+@
+
+
+1.6
+log
+@Added a NO_CAGE variable so this file can be used with SA-1.
+@
+text
+@d86 1
+d88 6
+@
+
+
+1.5
+log
+@Added IO_GP_OUTPUTS; changed BRAM_SIZE to (8192*4*4) 32k words.
+@
+text
+@d88 4
+d123 1
+@
+
+
+1.4
+log
+@Added definitions for CAGE.
+Generate _LVL symbols using HEX_CONST now.
+@
+text
+@d120 1
+d124 1
+a124 1
+	HEX_CONST BRAM_SIZE	(8192*4)   		< BRAM size (8k words)					>
+@
+
+
+1.3
+log
+@Changed NSS to ETH.
+@
+text
+@d88 31
+d120 1
+d242 1
+a242 1
+	 sym'_LVL == INT'val'_LVL
+d292 1
+a292 1
+	 sym'_LVL == INT'val'_LVL
+d340 1
+a340 1
+	 sym'_LVL == INT'val'_LVL
+d372 1
+a372 1
+	 .iif ne,val,sym'_LVL == val'_LVL
+@
+
+
+1.2
+log
+@Added definitions for GP_STS register.
+@
+text
+@d61 1
+a61 1
+	HEX_CONST DRAM_BANK_SIZE 0x00200000 < Defaults to 2MB per bank >
+d64 1
+a64 1
+	DEC_CONST DRAM_BANKS	2	   < Defaults to 2 banks of DRAM >
+d116 1
+a116 1
+	DEC_CONST B_GPSTS_NSS	1			< NSS interrupt >
+d400 1
+a400 1
+	ASN NSS, NSS_ASN, F,  1 ; NSS/Hi-Link interrupt
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d114 14
+@

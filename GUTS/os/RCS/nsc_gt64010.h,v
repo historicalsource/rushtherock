@@ -1,0 +1,491 @@
+head	1.2;
+access;
+symbols
+	RUSH_ROCK_1_0:1.2
+	RUSH_ROCK_1_0epst:1.2
+	MACE_1_0e:1.1
+	MACE_1_0d:1.1
+	RUSH_1_06A:1.1
+	AREA_52_00:1.2
+	MACE_1_0a:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	97.05.28.21.57.39;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.05.07.00.08.36;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Phoenix NSC IDE chip definitions
+@
+
+
+1.2
+log
+@Allowed for the NSC chip to be at floating locations.
+@
+text
+@/* 	$Id: nsc_gt64010.h,v 1.1 1996/05/07 00:08:36 shepperd Exp shepperd $	 */
+/****************************************************************************/
+/*                                                                          */
+/* gt64010.h - Header file for GT-64010 stuff                               */
+/*                                                                          */
+/* Written by:  Jason Skiles, Michael J. Lynch                              */
+/* Version:     1.00                                                        */
+/* Date:        10/27/95                                                    */
+/*                                                                          */
+/* Copyright (c) 1995 by Williams Electronics Games Inc.                    */
+/* All Rights Reserved                                                      */
+/*                                                                          */
+/* Use, duplication, or disclosure is strictly forbidden unless approved    */
+/* in writing by Williams Electronics Games Inc.                            */
+/*                                                                          */
+/****************************************************************************/
+
+
+
+
+/****************************************************************************/
+/* STRUCTURE DEFINITIONS                                                    */
+/****************************************************************************/
+
+/* PCI CONFIGURATION REGISTER 0 */
+typedef union pci_config_reg0
+{
+	unsigned data;
+	struct
+	{
+#ifdef BIG_ENDIAN
+		unsigned device_id : 16;	/* 31 - 16 */
+		unsigned vendor_id : 16;	/* 15 - 0 */
+#else
+		unsigned vendor_id : 16;	/* 15 - 0 */
+		unsigned device_id : 16;	/* 31 - 16 */
+#endif /* BIG_ENDIAN */
+	} d;
+} T_pci_config_reg0;
+
+
+/* GT64010 PCI CONFIGURATION REGISTER 1 */
+typedef union gt64010_pci_config_reg1
+{
+	unsigned data;
+	struct
+	{
+#ifdef BIG_ENDIAN
+		unsigned det_par_err : 1;	/* 31 */
+		unsigned sys_err : 1;		/* 30 */
+		unsigned mas_abort : 1;		/* 29 */
+		unsigned tar_abort : 1;		/* 28 */
+		unsigned dev_sel_time : 3;	/* 27 - 25 */
+		unsigned data_par_det : 1;	/* 24 */
+		unsigned tar_fast_bb : 1;	/* 23 */
+		unsigned not_used : 7;		/* 22 - 16 */
+		unsigned not_used2 : 7;		/* 15 - 9 */
+		unsigned s_err_en : 1;		/* 8 */
+		unsigned not_used3 : 1;		/* 7 */
+		unsigned p_err_en : 1;		/* 6 */
+		unsigned not_used4 : 1;		/* 5 */
+		unsigned mem_wr_inv : 1;	/* 4 */
+		unsigned not_used5 : 1;		/* 3 */
+		unsigned mas_en : 1;		/* 2 */
+		unsigned mem_en : 1;		/* 1 */
+		unsigned io_en : 1;		/* 0 */
+#else
+		unsigned io_en : 1;		/* 0 */
+		unsigned mem_en : 1;		/* 1 */
+		unsigned mas_en : 1;		/* 2 */
+		unsigned not_used5 : 1;		/* 3 */
+		unsigned mem_wr_inv : 1;	/* 4 */
+		unsigned not_used4 : 1;		/* 5 */
+		unsigned p_err_en : 1;		/* 6 */
+		unsigned not_used3 : 1;		/* 7 */
+		unsigned s_err_en : 1;		/* 8 */
+		unsigned not_used2 : 7;		/* 15 - 9 */
+		unsigned not_used : 7;		/* 22 - 16 */
+		unsigned tar_fast_bb : 1;	/* 23 */
+		unsigned data_par_det : 1;	/* 24 */
+		unsigned dev_sel_time : 3;	/* 27 - 25 */
+		unsigned tar_abort : 1;		/* 28 */
+		unsigned mas_abort : 1;		/* 29 */
+		unsigned sys_err : 1;		/* 30 */
+		unsigned det_par_err : 1;	/* 31 */
+#endif /* BIG_ENDIAN */
+	} d;
+} T_gt64010_pci_config_reg1;
+
+
+/* PCI CONFIGURATION REGISTER 2 */
+typedef union pci_config_reg2
+{
+	unsigned data;
+	struct
+	{
+#ifdef BIG_ENDIAN
+		unsigned base_class : 8;	/* 31 - 24 */
+		unsigned sub_class : 8;		/* 23 - 16 */
+		unsigned device_class : 8;	/* 15 -8 */
+		unsigned revision_id : 8;	/* 7 - 0 */
+#else
+		unsigned revision_id : 8;	/* 7 - 0 */
+		unsigned device_class : 8;	/* 15 -8 */
+		unsigned sub_class : 8;		/* 23 - 16 */
+		unsigned base_class : 8;	/* 31 - 24 */
+#endif /* BIG_ENDIAN */
+	} d;
+} T_pci_config_reg2;
+
+
+/* PCI CONFIGURATION REGISTER 3 */
+typedef union pci_config_reg3
+{
+	unsigned data;
+	struct
+	{
+#ifdef BIG_ENDIAN
+		unsigned BIST : 8;		/* 31 - 24 */
+		unsigned header_type : 8;	/* 23 - 16 */
+		unsigned latency_timer : 8;	/* 15 - 8 */
+		unsigned cache_line_size : 8;	/* 7 - 0 */
+#else
+		unsigned cache_line_size : 8;	/* 7 - 0 */
+		unsigned latency_timer : 8;	/* 15 - 8 */
+		unsigned header_type : 8;	/* 23 - 16 */
+		unsigned BIST : 8;		/* 31 - 24 */
+#endif /* BIG_ENDIAN */
+	} d;
+} T_pci_config_reg3;
+
+
+/* PCI CONFIGURATION REGISTER 15 */
+typedef union pci_config_reg15
+{
+	unsigned data;
+	struct
+	{
+#ifdef BIG_ENDIAN
+		unsigned maximum_latency : 8 ;	/* 31 - 24 */
+		unsigned minimum_grant : 8;	/* 23 - 16 */
+		unsigned interrupt_pin : 8;	/* 15 - 8 */
+		unsigned interrupt_line : 8;	/* 7 - 0 */
+#else
+		unsigned interrupt_line : 8;	/* 7 - 0 */
+		unsigned interrupt_pin : 8;	/* 15 - 8 */
+		unsigned minimum_grant : 8;	/* 23 - 16 */
+		unsigned maximum_latency : 8 ;	/* 31 - 24 */
+#endif /* BIG_ENDIAN */
+	} d;
+} T_pci_config_reg15;
+
+
+/* PCI CONFIGURATION REGISTERS */
+typedef struct gt64010_pci_configuration_regs
+{
+	T_pci_config_reg0		reg0;
+	T_gt64010_pci_config_reg1	reg1;
+	T_pci_config_reg2		reg2;
+	T_pci_config_reg3		reg3;
+	unsigned			reg4;
+	unsigned			reg5;
+	unsigned			reg6;
+	unsigned			reg7;
+	unsigned			reg8;
+	unsigned			reg9;
+	unsigned			reserved_regs[5];
+	T_pci_config_reg15		reg15;
+} T_gt64010_pci_configuration_regs;
+	
+
+/* GT64010 PCI INTERNAL CONFIG ADDR REGISTER */
+typedef union pci_internal_config_addr_data
+{
+	unsigned	data;
+	struct
+	{
+#ifdef BIG_ENDIAN
+	  	unsigned	access_ctrl : 1;	/* 31 */
+		unsigned	reserved : 7;		/* 30 - 24 */
+		unsigned	bus_num : 8;		/* 23 - 16 */
+		unsigned	dev_num : 5;		/* 15 - 11 */
+		unsigned	func_num : 3;		/* 10 - 8 */
+		unsigned	reg_num : 6;		/* 7 - 2 */
+		unsigned	unused : 2;		/* 1 - 0 */
+#else	  
+		unsigned	unused : 2;		/* 1 - 0 */
+		unsigned	reg_num : 6;		/* 7 - 2 */
+		unsigned	func_num : 3;		/* 10 - 8 */
+		unsigned	dev_num : 5;		/* 15 - 11 */
+		unsigned	bus_num : 8;		/* 23 - 16 */
+		unsigned	reserved : 7;		/* 30 - 24 */
+		unsigned	access_ctrl : 1;	/* 31 */
+#endif /* BIG_ENDIAN */
+	} d;
+} T_pci_internal_config_addr_data;
+
+/* GT64010 DMA CHANNEL CONTROL REGISTER DATA DEFINITION */
+typedef union dma_control
+{
+	unsigned data;
+	struct
+	{
+#ifdef BIG_ENDIAN
+		unsigned not_used : 17;			/* 31 - 15 */
+		unsigned status : 1;			/* 14 */
+		unsigned fetch_next_record : 1;		/* 13 */
+		unsigned enable : 1;			/* 12 */
+		unsigned transfer_mode : 1;		/* 11 */
+		unsigned interrupt_mode : 1;		/* 10 */
+		unsigned chained_mode : 1;		/* 9 */
+		unsigned transfer_limit : 3;		/* 8 - 6 */
+		unsigned dest_direction : 2;		/* 5 - 4 */
+		unsigned src_direction : 2;		/* 3 - 2 */
+		unsigned reserved : 2;			/* 1 - 0 */
+#else
+		unsigned reserved : 2;			/* 1 - 0 */
+		unsigned src_direction : 2;		/* 3 - 2 */
+		unsigned dest_direction : 2;		/* 5 - 4 */
+		unsigned transfer_limit : 3;		/* 8 - 6 */
+		unsigned chained_mode : 1;		/* 9 */
+		unsigned interrupt_mode : 1;		/* 10 */
+		unsigned transfer_mode : 1;		/* 11 */
+		unsigned enable : 1;			/* 12 */
+		unsigned fetch_next_record : 1;		/* 13 */
+		unsigned status : 1;			/* 14 */
+		unsigned not_used : 17;			/* 31 - 15 */
+#endif /* BIG_ENDIAN */
+	} d;
+} T_dma_control;
+
+#define	DMA_ACTIVE			1
+#define	DMA_NOT_ACTIVE			0
+#define	DMA_FORCE_FETCH_NEXT		1
+#define	DMA_TRANSFER_MODE_DEMAND	0
+#define	DMA_TRANSFER_MODE_BLOCK		1
+#define	DMA_INT_TERMINAL_COUNT		0
+#define	DMA_INT_CHAIN_END		1
+#define	DMA_CHAINED_MODE		0
+#define	DMA_NON_CHAINED_MODE		1
+#define	DMA_TRANSFER_LIMIT_4		0
+#define	DMA_TRANSFER_LIMIT_8		1
+#define	DMA_TRANSFER_LIMIT_16		3
+#define	DMA_TRANSFER_LIMIT_32		7
+#define	DMA_DEST_INCREMENT		0
+#define	DMA_DEST_DECREMENT		1
+#define	DMA_DEST_HOLD			2
+#define	DMA_SRC_INCREMENT		0
+#define	DMA_SRC_DECREMENT		1
+#define	DMA_SRC_HOLD			2
+
+
+
+/* GT64010 DMA ARBITER REGISTER DATA */
+typedef union dma_arbiter
+{
+	unsigned data;
+	struct
+	{
+#ifdef BIG_ENDIAN
+		unsigned reserved : 25;			/* 31 - 7 */
+		unsigned priority_option : 1;		/* 6 */
+		unsigned group_priority : 2;		/* 5 - 4 */
+		unsigned channel_3_2_priority : 2;	/* 3 - 2 */
+		unsigned channel_1_0_priority : 2;	/* 1 - 0 */
+#else
+		unsigned channel_1_0_priority : 2;	/* 1 - 0 */
+		unsigned channel_3_2_priority : 2;	/* 3 - 2 */
+		unsigned group_priority : 2;		/* 5 - 4 */
+		unsigned priority_option : 1;		/* 6 */
+		unsigned reserved : 25;			/* 31 - 7 */
+#endif /* BIG_ENDIAN */
+	} d;
+} T_dma_arbiter;
+
+
+#define	ROUND_ROBIN		0
+#define	CHANNEL_1_PRIORITY	1
+#define	CHANNEL_0_PRIORITY	2
+#define	CHANNEL_3_PRIORITY	CHANNEL_1_PRIORITY
+#define	CHANNEL_2_PRIORITY	CHANNEL_0_PRIORITY
+#define	GROUP_23_PRIORITY	1
+#define	GROUP_01_PRIORITY	2
+#define	GROUP_01_
+#define	RELINQUISH		0
+#define	GRANT			1
+
+
+/* GT64010 TIMER/COUNTER CONTROL REGISTER DATA */
+typedef union timer_counter_control
+{
+	unsigned data;
+	struct
+	{
+#ifdef BIG_ENDIAN
+		unsigned reserved : 24;		/* 31 - 8 */
+		unsigned tc3_type : 1;		/* 7 */
+		unsigned tc3_enable : 1;	/* 6 */
+		unsigned tc2_type : 1;		/* 5 */
+		unsigned tc2_enable : 1;	/* 4 */
+		unsigned tc1_type : 1;		/* 3 */
+		unsigned tc1_enable : 1;	/* 2 */
+		unsigned tc0_type : 1;		/* 1 */
+		unsigned tc0_enable : 1;	/* 0 */
+#else
+		unsigned tc0_enable : 1;	/* 0 */
+		unsigned tc0_type : 1;		/* 1 */
+		unsigned tc1_enable : 1;	/* 2 */
+		unsigned tc1_type : 1;		/* 3 */
+		unsigned tc2_enable : 1;	/* 4 */
+		unsigned tc2_type : 1;		/* 5 */
+		unsigned tc3_enable : 1;	/* 6 */
+		unsigned tc3_type : 1;		/* 7 */
+		unsigned reserved : 24;		/* 31 - 8 */
+#endif /* BIG_ENDIAN */
+	} d;
+} T_timer_counter_control;
+
+#define	TIMER_TYPE_COUNTER	0
+#define	TIMER_TYPE_TIMER	1
+#define TIMER_MAX_COUNT		0x00ffffff
+
+
+/****************************************************************************/
+/* ASSORTED DEFINITIONS                                                     */
+/****************************************************************************/
+#if 0
+#define GTREG(X) (((X)&0xff)<<24)+(((X)&0xff00)<<8)+(((X)&0xff0000)>>8)+(((X)&0xff000000)>>24)
+#else
+#define	GTREG(X)	(X)
+#endif
+#define	ENABLE		1
+#define	DISABLE		0
+#define	ALLOW_ACCESS	1
+#define	RESET		0
+#define	ACTIVE		1
+#define	NOT_ACTIVE	0
+
+
+/****************************************************************************/
+/* BASE ADDRESS FOR GT64010 DEVICE                                          */
+/****************************************************************************/
+#define	GT_64010_BASE	0xac000000
+
+/****************************************************************************/
+/* ASSORTED GT64010 REGISTERS                                               */
+/****************************************************************************/
+#define	GT_PCI_INTERNAL_COMMAND_REG		(GT_64010_BASE+0x0c00)
+#define	GT_PCI_INTERNAL_CONFIG_ADDRESS_REG	(GT_64010_BASE+0x0cf8)
+#define	GT_PCI_INTERNAL_CONFIG_DATA_REG		(GT_64010_BASE+0x0cfc)
+
+#define GT_INT_CAUSE_REG			(GT_64010_BASE+0x0c18)
+#define GT_INT_CPU_MASK_REG			(GT_64010_BASE+0x0c1c)
+#define GT_INT_PCI_MASK_REG			(GT_64010_BASE+0x0c24)
+
+#define	GT_TIMER_COUNTER_CONTROL_REG		(GT_64010_BASE+0x0864)
+#define	GT_TIMER_COUNTER_0_REG			(GT_64010_BASE+0x0850)
+#define	GT_TIMER_COUNTER_1_REG			(GT_64010_BASE+0x0854)
+#define	GT_TIMER_COUNTER_2_REG			(GT_64010_BASE+0x0858)
+#define	GT_TIMER_COUNTER_3_REG			(GT_64010_BASE+0x085c)
+
+#define	GT_DMA_ARBITER_REG			(GT_64010_BASE+0x0860)
+#define	GT_DMA_CHANNEL_0_CONTROL_REG		(GT_64010_BASE+0x0840)
+#define	GT_DMA_CHANNEL_1_CONTROL_REG		(GT_64010_BASE+0x0844)
+#define	GT_DMA_CHANNEL_2_CONTROL_REG		(GT_64010_BASE+0x0848)
+#define	GT_DMA_CHANNEL_3_CONTROL_REG		(GT_64010_BASE+0x084c)
+#define	GT_DMA_CHANNEL_0_BYTE_COUNT_REG		(GT_64010_BASE+0x0800)
+#define	GT_DMA_CHANNEL_1_BYTE_COUNT_REG		(GT_64010_BASE+0x0804)
+#define	GT_DMA_CHANNEL_2_BYTE_COUNT_REG		(GT_64010_BASE+0x0808)
+#define	GT_DMA_CHANNEL_3_BYTE_COUNT_REG		(GT_64010_BASE+0x080c)
+#define	GT_DMA_CHANNEL_0_SRC_ADDRESS_REG	(GT_64010_BASE+0x0810)
+#define	GT_DMA_CHANNEL_1_SRC_ADDRESS_REG	(GT_64010_BASE+0x0814)
+#define	GT_DMA_CHANNEL_2_SRC_ADDRESS_REG	(GT_64010_BASE+0x0818)
+#define	GT_DMA_CHANNEL_3_SRC_ADDRESS_REG	(GT_64010_BASE+0x081c)
+#define	GT_DMA_CHANNEL_0_DEST_ADDRESS_REG	(GT_64010_BASE+0x0820)
+#define	GT_DMA_CHANNEL_1_DEST_ADDRESS_REG	(GT_64010_BASE+0x0824)
+#define	GT_DMA_CHANNEL_2_DEST_ADDRESS_REG	(GT_64010_BASE+0x0828)
+#define	GT_DMA_CHANNEL_3_DEST_ADDRESS_REG	(GT_64010_BASE+0x082c)
+#define	GT_DMA_CHANNEL_0_NEXT_RECORD_REG	(GT_64010_BASE+0x0830)
+#define	GT_DMA_CHANNEL_1_NEXT_RECORD_REG	(GT_64010_BASE+0x0834)
+#define	GT_DMA_CHANNEL_2_NEXT_RECORD_REG	(GT_64010_BASE+0x0838)
+#define	GT_DMA_CHANNEL_3_NEXT_RECORD_REG	(GT_64010_BASE+0x083c)
+
+
+/****************************************************************************/
+/* BASE ADDRESS FOR PCI MEMORY AND I/O                                      */
+/****************************************************************************/
+#define	GT_PCI_IO_BASE		0xa8000000
+#define	GT_PCI_MEMORY_BASE	0xaa000000
+
+
+/****************************************************************************/
+/* FUNCTION PROTOTYPES                                                      */
+/****************************************************************************/
+int get_pci_config_reg(int dev_num, int reg_num);
+void put_pci_config_reg(int dev_num, int reg_num, int data);
+void gt64010_init(void);
+void get_pci_slot_configuration_info(int *to, int dev_num);
+void disable_dma(int channel);
+
+
+/****************************************************************************/
+/* DEVICE NUMBERS                                                           */
+/****************************************************************************/
+#define	GT64010_DEVICE_NUMBER		0
+#if NSC415_MOVEABLE
+extern int PC87415_DEVICE_NUMBER;
+#else
+#define PC87415_DEVICE_NUMBER           9	/* PCI device number on Phoenix */
+#endif
+#define PCI_SLOT_2_DEVICE_NUMBER	8
+#define PCI_SLOT_1_DEVICE_NUMBER	7
+#define PCI_SLOT_0_DEVICE_NUMBER	6
+#define	GLINT300SX_DEVICE_NUMBER	PCI_SLOT_2_DEVICE_NUMBER
+
+
+/****************************************************************************/
+/* GT64010 VERSION NUMBER                                                   */
+/****************************************************************************/
+#define	GT64010_REV	1
+
+
+/****************************************************************************/
+/* PCI CONFIGURATION REGISTER DEFINITIONS                                   */
+/****************************************************************************/
+#define	PCI_CONFIG_REG0		0	
+#define	PCI_CONFIG_REG1		1	
+#define	PCI_CONFIG_REG2		2	
+#define	PCI_CONFIG_REG3		3	
+#define	PCI_CONFIG_REG4		4	
+#define	PCI_CONFIG_REG5		5	
+#define	PCI_CONFIG_REG6		6	
+#define	PCI_CONFIG_REG7		7	
+#define	PCI_CONFIG_REG8		8	
+#define	PCI_CONFIG_REG9		9	
+#define	PCI_CONFIG_REG10	10
+#define	PCI_CONFIG_REG11	11
+#define	PCI_CONFIG_REG12	12
+#define	PCI_CONFIG_REG13	13
+#define	PCI_CONFIG_REG14	14
+#define	PCI_CONFIG_REG15	15
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+/* 	$Id: gt64010.h,v 1.3 1996/01/16 17:10:53 adyer Exp adyer $	 */
+d406 5
+a410 1
+#define PC87415_DEVICE_NUMBER		9
+@

@@ -1,0 +1,146 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	94.12.16.18.17.30;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@unsigned long to decimal string. 68K assembly version. Probably obsolete soon
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@		INCLUDE	'config.i'
+*
+* ultodec: convert a long to a string in radix 10.
+*
+* CALL:
+* __ultodec(num,buffer)
+*	unsigned long num; char *buffer;
+*
+* The routine will convert the number in num to a decimal string. The
+* buffer is assumed to be large enough to contain the largest number
+* (10 digits + terminating 0)
+*
+ZERO	SET	$30		; Ascii zero character
+BUFFER	SET	12
+NUM	SET	8
+	SECTION	9
+powtab: DC.L	4000000000
+	DC.L	800000000
+	DC.L	80000000
+	DC.L	8000000
+	DC.L	800000
+	DC.L	80000
+ IFEQ (PROCESSOR-M68EC020)
+	DC.L	8000,800,80,-1
+ ENDC
+ IFNE (PROCESSOR-M68EC020)
+	DC.W	-1,8000,800,80,-1
+ ENDC
+	XDEF	__ultodec
+__ultodec:
+	LINK	A6,#-10			; Leave room for a buffer
+	MOVE.L	SP,A1			; Point A1 at it
+	MOVE.L	D2,-(SP)		; Save D2
+	LEA	powtab(PC),A0
+	MOVE.L	NUM(A6),D1
+	MOVE.L	(A0)+,D2		; Get highest power of ten that fits
+	MOVEQ.L	#0,D0			; clear digit holder
+	BRA.S	.CD21			; Jump in at bit 4 for top digit
+* loop across bits in a digit, using long subtracts as long as we need to
+* This inner loop is unrolled to save another loop counter and because an
+* immediate ADDQ.B is _much_ faster than shifting a bit-value right and adding
+* Also, the pre-cmp doesn't cost as much as the branches needed to do a
+* non-resoring divide, and the same as the ADD needed for restoring.
+.CD00:	CMP.L	D2,D1
+	BCS.S	.CD20
+	SUB.L	D2,D1
+	ADD.B	#8,D0
+.CD20:	LSR.L	#1,D2
+.CD21:	CMP.L	D2,D1
+	BCS.S	.CD22
+	SUB.L	D2,D1
+	ADD.B	#4,D0
+.CD22:	LSR.L	#1,D2
+	CMP.L	D2,D1
+	BCS.S	.CD24
+	SUB.L	D2,D1
+	ADD.B	#2,D0
+.CD24:	LSR.L	#1,D2
+	CMP.L	D2,D1
+	BCS.S	.CD26
+	SUB.L	D2,D1
+	ADD.B	#1,D0
+.CD26:	MOVE.B	D0,(A1)+
+	MOVEQ.L	#0,D0
+	MOVE.L	(A0)+,D2	; Get next 8En
+	BPL.S	.CD00
+ IFNE (PROCESSOR-M68EC020)
+* we fall through when the power table switches from longs to words.
+* doing this in word saves 16-24 cycles per each of the last three digits
+* If space is more important, delete the following section and make powtab
+* all longs.
+	MOVE.W	-2(A0),D2	; Get the real (word) value
+* Now use word subtracts.
+.CD30:	CMP.W	D2,D1
+	BCS.S	.CD31
+	SUB.W	D2,D1
+	ADD.B	#8,D0
+.CD31:	LSR.W	#1,D2
+	CMP.W	D2,D1
+	BCS.S	.CD32
+	SUB.W	D2,D1
+	ADD.B	#4,D0
+.CD32:	LSR.W	#1,D2
+	CMP.W	D2,D1
+	BCS.S	.CD34
+	SUB.W	D2,D1
+	ADD.B	#2,D0
+.CD34:	LSR.W	#1,D2
+	CMP.W	D2,D1
+	BCS.S	.CD36
+	SUB.W	D2,D1
+	ADD.B	#1,D0
+.CD36:	MOVE.B	D0,(A1)+
+	MOVEQ.L	#0,D0
+	MOVE.W	(A0)+,D2
+	BPL.S	.CD30
+* End of optional word section. We have the last digit left in D1.
+ ENDC
+	MOVE.B	D1,(A1)
+* Now, we have a string of proto-digits in the buffer, with A1 pointing
+* At the least significant digit. Scan for MSD by starting at beginning
+* of buffer.
+	LEA	-9(A1),A1
+	MOVE.L	BUFFER(A6),A0
+	MOVEQ.L	#9,D1
+.CD40:	MOVE.B	(A1)+,D0
+	DBNE	D1,.CD40
+* We have the MSD in D0, with A1 pointing to the next digit. If the MSD is
+* zero, just store it.
+	BNE.S	.CD50
+	MOVE.B	#ZERO,(A0)+
+	BRA.S	.CD60
+.CD50:	ADD.B	#ZERO,D0
+	MOVE.B	D0,(A0)+
+	MOVE.B	(A1)+,D0
+	DBF	D1,.CD50
+.CD60:	CLR.B	(A0)
+	MOVE.L	(SP)+,D2
+	MOVE.L	A0,D0
+	SUB.L	BUFFER(A6),D0
+	UNLK	A6
+	RTS
+@

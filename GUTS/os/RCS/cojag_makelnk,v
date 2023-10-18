@@ -1,0 +1,112 @@
+head	1.1;
+access;
+symbols
+	CJ_206:1.1
+	CJ2_05:1.1
+	CJ2_04:1.1;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	96.08.30.00.46.39;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@shell script to write the boilerplate for a CoJag GUTS os.lnk.
+This replaces os_*_magic, to allow tweaking the tweakable bits
+from the Makefile. Of course, if we had a non-lame linker, we
+could tweak them from config.mac :-(
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#!/bin/sh
+
+TARGET=$1
+PROG=$2
+PLEN=$3
+RAM=$4
+RLEN=$5
+OSRLEN=$6
+ROMDATA=$7
+cat > ${TARGET} <<EOF
+
+MEMORY {
+	junk : ORIGIN = 0x00000000,  LENGTH = 0
+	prog : ORIGIN = ${PROG},  LENGTH = ${PLEN}
+	ram  : ORIGIN = ${RAM} + 0x80,   LENGTH = ${OSRLEN} - 0x80
+}
+
+INIT_SP 	= ${RAM} + ${RLEN} - 4;
+STACK_INIT 	= ${RAM} + ${RLEN} - 4;
+EEPROM  	= 0xB8000003;
+PBASE   	= ${PROG} + ${PLEN};
+
+WRAM		= ${RAM};
+RAMVBR		= ${RAM};
+
+SECTIONS {
+	BSS  (NOLOAD) : {
+		bss_start = .;
+		*(fbss) *(.bss) *(bss) *(BSS) *(COMMON) *(.scommon)
+		. = (. + 7) & -8;
+		bss_end = .;
+		end_static = .;
+	} >ram
+
+	TEXT : {
+		text_start = .;
+		*(first)
+		*(.text)
+		*(TEXT)
+		*(.rdata)
+		GPU_ROM = .;
+		gpu_int1 = .;
+		*(GPU_CODE)
+		*(gpudisp)
+/* For reasons known only to Chuck Peplinski, the DSP code is
+ * aligned on a 16-byte boundary. So we have to defend ourselves...
+ */
+		. = (. + 0xF) & -0x10;
+		DSP_ROM = .;
+		*(DSP_CODE)
+		ram_test_table = .;
+		LONG(bss_start + PM_SIZE);
+		LONG(STACK_INIT);
+		LONG(0);
+		text_end = .;
+	} >prog
+
+	DATA : {
+		*(.data)
+		*(data)
+		*(DATA)
+	} >junk
+
+	sbss_start = pm_end;
+	sbss_size = (bss_end - sbss_start + 3) / 4;
+	bss_size = (bss_end - bss_start + 3) / 4;
+}	
+
+stub_start = begin;
+
+pktInit    = ${PROG} + 0x20;
+pktPoll    = ${PROG} + 0x24;
+pktQueRecv = ${PROG} + 0x28;
+pktQueSend = ${PROG} + 0x2C;
+
+ROM_DATA_ADDRESS = ${ROMDATA};
+
+UNLK_EP = 0xB6000000;
+ENTRY (startup)
+SEARCH_DIR ( . )
+EOF
+
+@

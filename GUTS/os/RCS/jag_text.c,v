@@ -1,0 +1,1875 @@
+head	1.16;
+access;
+symbols
+	CJ_206:1.13
+	CJ2_05:1.13
+	CJ2_04:1.13
+	CJ2_03:1.8;
+locks; strict;
+comment	@ * @;
+
+
+1.16
+date	97.07.01.22.31.02;	author albaugh;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	97.01.28.01.31.21;	author albaugh;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.12.02.22.32.28;	author albaugh;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.07.19.18.20.20;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.06.27.19.58.55;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.05.30.23.53.58;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.05.08.21.33.34;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.05.02.17.05.55;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.09.19.15.57.13;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.08.23.21.57.43;	author birmingham;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.06.09.00.25.51;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.05.12.22.27.24;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.05.10.00.42.45;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.05.08.21.12.48;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.04.11.23.51.27;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.28.39;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@GUTS "standard" text output for CoJag (Coin Operated Jaguar).
+@
+
+
+1.16
+log
+@Added RCS ID string
+@
+text
+@/************************************************************************
+* STRLIB.C | String Function Library | Author: Robert M. Birmingham     *
+* ===================================================================== *
+* This module contains functions to manipulate ASCIIZ strings.          *
+* ===================================================================== *
+* Copyright 1994, Atari Games.                                          *
+************************************************************************/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <os_proto.h>
+#include <st_proto.h>
+#include <string.h>
+#include <oblist.h>
+#if COJAG_GAME == CORP_JAG
+#undef COJAG
+#else
+#define COJAG (1)
+#endif
+
+#if (COJAG_GAME & COJAG_NUVID)
+extern int jag_interlace;
+#endif
+
+static U16 an_pal[(AN_PAL_MSK>>AN_PAL_SHF)+1][1<<AN_BIT_DEPTH];
+
+static void stamp2( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors);
+static void stamp4( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors);
+static void stamp16( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors);
+#if DRSHBIT
+static void stamp2d( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors);
+static void stamp4d( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors);
+static void stamp16d( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors);
+#else
+#define stamp2d (0)
+#define stamp4d (0)
+#define stamp16d (0)
+#endif
+
+static void (* const drawrtns[10])( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors) =
+{
+    0,0,	/* Placeholders for stamp1, stamp1d */
+    stamp2,
+    stamp2d,
+    stamp4,
+    stamp4d,
+    0,0,	/* Placeholders for stamp8, stamp8d */
+    stamp16,
+    stamp16d,
+};
+
+#define N_DRAWS n_elts(drawrtns)
+
+static int old_col,old_row;
+/*		txt_setpos()
+ *	Used to save/restore the "cursor position" for
+ *	text output (used by txt_c*(), or txt_*() with row < 0)
+ *	Takes a "magic cookie" of zero (default postion) or
+ *	the value returned by a previous call. Returns a
+ *	"magic cookie" encoding the current position.
+ */
+U32 txt_setpos(U32 new)
+{
+    U32 prev;
+    int old_ipl;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    prev = (old_row << 16)|(old_col & 0xFFFF);
+    old_col = (new & 0xFFFF);
+    old_row = (new >> 16);
+    prc_set_ipl(old_ipl);
+    return prev;
+}
+
+extern unsigned short an_stamps[];
+extern unsigned short an_mod_a,an_blk_a,an_norm_a;
+#define AN_BLK_OFFS ((&an_blk_a-&an_norm_a)>>3)
+#define AN_MOD_OFFS ((&an_mod_a-&an_norm_a)>>3)
+
+#define AN_STAMPS an_stamps
+struct bigchar {
+    unsigned char tl,bl,tr,br;
+};
+
+#include <txt_tab.h>
+
+const int BIG_OFFSET = 0xA6;
+/*		txt_str(col,row,txt,pal)			(text.c)
+ *	Position "cursor" and output string. Sets internal variables
+ *	<col>,<row> to position after output, and returns number of
+ *	characters output.
+ *	If <row> == -1, continue at stored row and column. If <col> = -1,
+ *	center text on specified row.
+ *	Returns: width of output.
+ */
+
+int txt_str( col, row, txtptr, color )
+int col;
+int row;
+const char *txtptr;
+int color;
+{
+    U32 x, y;
+    const char *txtbase = txtptr;
+    U16 *scrptr;
+    U16 *stamps,*colptr,colors[1<<AN_BIT_DEPTH];
+    m_int width,stamp;
+    int	offset,font_offs;
+    void (*strfunc)( U16 *, U32, const U16 *, U16 *);
+    void (*bstrfunc)( U16 *, U32, const U16 *, U16 *);
+
+    OBJECT *tscreen;
+    int stride,nxt_col;
+    int depth;
+
+    if ( row < 0 ) {
+	col = old_col;	
+	row = old_row;
+    }
+    old_row = row;			/* we do not wrap to lower rows */
+    tscreen = vid_setscr(0);
+    if ( !tscreen ) return 0;
+
+    /* Change BIG characters from being located by their
+     * Upper-left stamp to being located by their lower-left
+     * stamp. This matches Zoid/Phoenix, ... and allows
+     * mixing BIG and small characters on the same baseline.
+     */
+    if ( (color & SETMSK) == AN_BIG_SET && row > 0 ) --row;
+
+    width = ob_get_pixw(tscreen);	/* In pixels */
+    depth = ob_get_pixdepth(tscreen);	/* 2^^depth == bits per pixel */
+
+    if ( depth >= (N_DRAWS>>1) ) return 0;
+
+    if (col < 0 ) {
+	/* wants to center */
+	col = ((width>>3)+1-txt_width(txtptr,color)) >> 1;
+	if ( col < 0 ) col = 0;
+    }
+    old_col = col;
+
+    /* scrptr is a U16 pointer because 2-bits per pixel is the
+     * lowest resolution we support, and stamps are 8 pixels
+     * wide, hence the "stamp boundary" must always be a 16-bit
+     * boundary. Remembering this will help a _great_ deal in
+     * following the code below. Support for proportional fonts
+     * will complicate so much existing code that I (MEA) am
+     * not at this time going to slow down all text output to
+     * accomodate it.
+     */
+
+    /* Calculate x coordinate by "hand-cancelling" the 8(pixels per stamp)
+     * and the (1<<(depth-1))/8 for U16s per stamp.
+     */
+    x = (U32)(col << (depth-1));           /* convert cell column into screen x U16 offset */
+
+    /* y coordinate must take object dwidth, not pixw, into account.
+     */
+    stride = ob_get_dwidth(tscreen)*(sizeof(PHRASE))/sizeof(U16);
+#if (COJAG_GAME & COJAG_NUVID)
+    if ( jag_interlace ) {
+	/* Interlaced objects on the "Pretty Video" simulator
+	 * have iwidth == (dwidth/2). To avoid hassles with
+	 * other obscure uses of iwidth != dwidth, we do this only
+	 * on NUVID, and only if interlaced.
+	 */
+	stride = ob_get_iwidth(tscreen)*(sizeof(PHRASE))/sizeof(U16);
+    }
+#endif
+    y = (U32)(row * AN_STMP_HT) * stride;  /* convert cell row into screen y U16 offset */
+
+    /* calculate the starting screen memory address for the text */
+    scrptr = (U16 *)ob_get_img(tscreen) + x + y;
+    nxt_col = AN_STMP_WID>>(4-depth);
+    if ( depth > 3 ) {
+	colptr = an_pal[(color&AN_PAL_MSK)>>AN_PAL_SHF];
+	if ( (color & BGBIT) == 0 ) {
+	    memcpy(colors,colptr,sizeof(colors));
+	    colors[0] = 0;
+	    colptr = colors;
+	}
+    } else {
+	int palnum = (color&AN_PAL_MSK)>>AN_PAL_SHF;
+	colptr = colors;
+	colptr[0] = (color & BGBIT) ? 2 : 0;
+	colptr[1] = 1;
+	colptr[2] = (palnum<<1)+2;
+	colptr[3] = (palnum<<1)+3;
+    }
+    bstrfunc = drawrtns[depth<<1];
+    if ( !bstrfunc ) return 0;
+    strfunc = bstrfunc;
+#if DRSHBIT
+    if ( color & DRSHBIT ) {
+	strfunc = drawrtns[(depth<<1)+1];
+	if ( !strfunc ) strfunc = bstrfunc;
+    }
+#endif
+    if ( (color & SETMSK) == AN_BIG_SET ) {
+	/* big characters, for now we use the un-reduced but possibly-slim
+	 * SYSTEM I character set.
+	 */
+	int tc;		/* translated character */
+	width = 0;
+	while ( (stamp = *txtptr) != '\0' ) {
+	    tc = trantab[stamp];
+	    if ( tc < 0 ) {
+		/* NEW: Treat characters for which no
+		 * BIG graphics exist as regular ascii
+		 * in default font.
+		 */
+		width += 1;
+		stamps = AN_STAMPS;	/* stamp 0 is blank */
+		strfunc( scrptr, stride, stamps, colptr);
+		scrptr += stride*AN_STMP_HT; /* next stamp _down_ */
+		stamp += (AN_A_STMP-'A');
+		stamps = AN_STAMPS+(stamp<<3);
+		strfunc( scrptr, stride, stamps, colptr);
+		scrptr += nxt_col-(stride*AN_STMP_HT); /* Up and to right */
+		++txtptr;
+		continue;
+	    }
+	    stamps = AN_STAMPS+((BTABLE[tc].tl+BIG_OFFSET)<<3);
+	    bstrfunc( scrptr, stride, stamps, colptr);
+	    scrptr += stride*AN_STMP_HT; /* next stamp _down_ */
+	    stamps = AN_STAMPS+((BTABLE[tc].bl+BIG_OFFSET)<<3);
+	    bstrfunc( scrptr, stride, stamps, colptr);
+	    scrptr += nxt_col-(stride*AN_STMP_HT); /* Up and to right */
+
+	    width += 1;
+	    ++txtptr;
+	    if ( BTABLE[tc].tr == 0 ) continue;
+	    stamps = AN_STAMPS+((BTABLE[tc].tr+BIG_OFFSET)<<3);
+	    bstrfunc( scrptr, stride, stamps, colptr);
+	    scrptr += stride*AN_STMP_HT; /* next stamp _down_ */
+	    stamps = AN_STAMPS+((BTABLE[tc].br+BIG_OFFSET)<<3);
+	    bstrfunc( scrptr, stride, stamps, colptr);
+	    scrptr += nxt_col-(stride*AN_STMP_HT); /* Up and to right */
+	    width += 1;
+	}
+	old_col += width;
+	return width;
+    }
+    offset = AN_A_STMP-'A';
+    font_offs = 0;
+    if ( (color & SETMSK) == AN_SET1 ) font_offs = AN_BLK_OFFS;
+    if ( (color & SETMSK) == AN_SET2 ) font_offs = AN_MOD_OFFS;
+    /* print characters until NULL terminator is reached */
+    while( (stamp = *txtptr) != '\0' ) {
+	if ( stamp == ' ') stamp = 0;
+	else {
+	    if ( stamp >= 'A' && stamp <= 'Z' ) stamp += font_offs;
+	    stamp += offset;
+	}
+	stamps = AN_STAMPS+(stamp<<3);
+	strfunc( scrptr, stride, stamps, colptr);
+	scrptr += nxt_col; /* next stamp right */
+	txtptr++;
+   }
+
+    width = txtptr - txtbase;
+    old_col = col + width;
+    return width;
+
+}   /* End: txt_str() */
+
+
+void txt_stamp( col, row, stamp, color )
+int col,row,stamp,color;
+{
+    U32 x, y;
+    U16 *scrptr;
+    void (*strfunc)( U16 *, U32, const U16 *, U16 *);
+
+    U16 *stamps,*colptr,colors[1<<AN_BIT_DEPTH];
+    OBJECT *tscreen;
+    int stride,depth;
+
+    if ( row < 0 ) {
+	col = old_col;	
+	row = old_row;
+    }
+    tscreen = vid_setscr(0);
+    if ( !tscreen ) return;
+    stride = ob_get_pixw(tscreen);		/* In pixels */
+    depth = ob_get_pixdepth(tscreen);
+    if ( depth >= (N_DRAWS>>1) ) return;
+
+    strfunc = drawrtns[depth<<1];
+#if DRSHBIT
+    if ( color & DRSHBIT ) {
+        void (*tstrfunc)( U16 *, U32, const U16 *, U16 *);
+	tstrfunc = drawrtns[(depth<<1)+1];
+	if ( tstrfunc ) strfunc = tstrfunc;
+    }
+#endif
+    if ( !strfunc ) return;
+
+    if (col < 0 ) {
+	/* wants to center */
+	col = ((stride>>3)+1) >> 1;
+	if ( col < 0 ) col = 0;
+    }
+
+    /* Calculate x coordinate by "hand-cancelling" the 8(pixels per stamp)
+     * and the (1<<(depth-1))/8 for U16s per stamp.
+     */
+    x = (U32)(col << (depth-1));           /* convert cell column into screen x U16 offset */
+
+    /* y coordinate must take object dwidth, not pixw, into account.
+     */
+    stride = ob_get_dwidth(tscreen)*(sizeof(PHRASE))/sizeof(U16);
+#if (COJAG_GAME & COJAG_NUVID)
+    if ( jag_interlace ) {
+	/* Interlaced objects on the "Pretty Video" simulator
+	 * have iwidth == (dwidth/2). To avoid hassles with
+	 * other obscure uses of iwidth != dwidth, we do this only
+	 * on NUVID, and only if interlaced.
+	 */
+	stride = ob_get_iwidth(tscreen)*(sizeof(PHRASE))/sizeof(U16);
+    }
+#endif
+    y = (U32)(row * AN_STMP_HT) * stride;  /* convert cell row into screen y U16 offset */
+
+    /* calculate the starting screen memory address for the text */
+    scrptr = (U16 *)ob_get_img(tscreen) + x + y;
+
+    stamps = AN_STAMPS+(stamp<<3);
+    if ( depth > 3 ) {
+	colptr = an_pal[(color&AN_PAL_MSK)>>AN_PAL_SHF];
+	if ( (color & BGBIT) == 0 ) {
+	    memcpy(colors,colptr,sizeof(colors));
+	    colors[0] = 0;
+	    colptr = colors;
+	}
+    } else {
+	int palnum = (color&AN_PAL_MSK)>>AN_PAL_SHF;
+	colptr = colors;
+	colptr[0] = (color & BGBIT) ? 2 : 0;
+	colptr[1] = 1;
+	colptr[2] = (palnum<<1)+2;
+	colptr[3] = (palnum<<1)+3;
+    }
+    strfunc( scrptr, stride, stamps, colptr);
+}
+
+int
+txt_cstr(string,psmask)
+const char	*string;
+int	psmask;
+{
+    return txt_str(0,-1,string,psmask);
+}
+
+void
+txt_clr_wid(x,y,width)
+int x,y,width;
+{
+    U16 *scrptr,*lptr;
+    m_int v,h;
+    OBJECT *tscreen;
+    int stride,depth;
+
+    tscreen = vid_setscr(0);
+    if ( !tscreen ) return;
+    stride = ob_get_pixw(tscreen);	/* In pixels */
+    depth = ob_get_pixdepth(tscreen);
+
+    if ( x < 0 ) {
+	/* wants to center */
+	x = ((stride>>3)+1-width) >> 1;
+	if ( x < 0 ) {
+	    x = 0;
+	    width = (stride>>3);
+	}
+    }
+
+    if ( depth ) {
+	stride = ob_get_dwidth(tscreen)*(sizeof(PHRASE))/sizeof(U16);
+#if (COJAG_GAME & COJAG_NUVID)
+	if ( jag_interlace ) {
+	    /* Interlaced objects on the "Pretty Video" simulator
+	     * have iwidth == (dwidth/2). To avoid hassles with
+	     * other obscure uses of iwidth != dwidth, we do this only
+	     * on NUVID, and only if interlaced.
+	     */
+	    stride = ob_get_iwidth(tscreen)*(sizeof(PHRASE))/sizeof(U16);
+	}
+#endif
+	scrptr = (U16 *)ob_get_img(tscreen) + ((x<<(depth-1)) + (y<<3)*stride);
+	/* Width is in "stamps", convert to U16s by multiplying by 8 (AN_STMP_WID),
+	 * dividing by 8 (bits per U8), multiplying by (1<<depth) (bits per pixel)
+	 * and dividing by 2 (U8s per U16). _or_ by multiplying by (1<<(depth-1)),
+	 * as long as (depth-1) makes sense.
+	 */
+	width <<= (depth-1);
+	for ( v = 7 ; v >= 0 ; --v ) {
+	    lptr = scrptr;
+	    for ( h = width ; h ; --h ) {
+		*lptr++ = 0;
+	    }
+	    scrptr += stride;
+	}
+    } else {
+	/* depth == 0, single-bit deep characters, could be on byte
+	 * boundaries.
+	 */
+	U8 *bptr;
+	stride = (ob_get_dwidth(tscreen)*sizeof(PHRASE))/sizeof(U16);
+#if (COJAG_GAME & COJAG_NUVID)
+	if ( jag_interlace ) {
+	    /* Interlaced objects on the "Pretty Video" simulator
+	     * have iwidth == (dwidth/2). To avoid hassles with
+	     * other obscure uses of iwidth != dwidth, we do this only
+	     * on NUVID, and only if interlaced.
+	     */
+	    stride = ob_get_iwidth(tscreen)*(sizeof(PHRASE))/sizeof(U16);
+	}
+#endif
+	scrptr = (U16 *)ob_get_img(tscreen) + ((y<<3)*stride);
+	stride <<= 1;	/* Will be used with byte pointer */
+	bptr = (U8 *)scrptr + x;
+	for ( v = 7 ; v >= 0 ; --v ) {
+	    for ( h = width ; h ; --h ) {
+		*bptr++ = 0;
+	    }
+	    bptr += stride-width;
+	}
+    }
+}
+
+void
+txt_clr_str(x,y,string,pal)
+int x,y,pal;
+const char *string;
+{
+    int endy;
+    OBJECT *tscreen;
+    int height = txt_height(string,pal);
+    int width = txt_width(string,pal);
+    if ( x < 0 ) {
+	/* wants to center */
+	int stride;
+	tscreen = vid_setscr(0);
+	if ( !tscreen ) return;
+	stride = ob_get_pixw(tscreen)>>3;
+	x = (stride+1-width) >> 1;
+	if ( x < 0 ) {
+	    x = 0;
+	    width = stride;
+	}
+    }
+    for ( endy = y + height ; y < endy ; ++y ) {
+	txt_clr_wid(x,y,width);
+    }
+}
+
+int
+txt_width(text,set)
+const char *text;
+int set;
+{
+    int width = 0;
+    int letter;
+    const struct bigchar *bt = BTABLE;
+
+    if ( (set & SETMSK) != AN_BIG_SET ) width = strlen(text);
+    else while ( (letter = *text++) != '\0') {
+	if ( ( letter = trantab[letter] ) < 0 ) letter = trantab[' ']; 
+	width += 1 + (bt[letter].tr != 0);
+    }
+    return width;
+}
+
+int txt_height(txt,set)
+const char *txt;
+int set;
+{
+    if ( (set & SETMSK) == AN_BIG_SET ) return 2;
+    return 1;
+}
+
+int
+txt_decnum(col,row,val,wid,form,palset)
+int		col;	/* coord. of UL corner of first character of txt */
+int 		row;	/* (0,0) is upper left corner of screen		*/
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    char num[20];
+    utl_cdec(val,num,wid,form);
+    return txt_str(col,row,num,palset);    
+}
+
+void
+txt_cdecnum(val,wid,form,palset)
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    txt_decnum(0,-1,val,wid,form,palset);
+}
+
+int
+txt_hexnum(col,row,val,wid,form,palset)
+int		col;	/* coord. of UL corner of first character of txt */
+int 		row;	/* (0,0) is upper left corner of screen		*/
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    char num[20];
+    utl_chex(val,num,wid,form);
+    return txt_str(col,row,num,palset);
+}
+
+void
+txt_chexnum(val,wid,form,palset)
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    txt_hexnum(0,-1,val,wid,form,palset);
+}
+
+/* First-cut 2-bit Alpha screen, Ignores "palette" info, and only
+ * has "colors" parameter to allow use with function pointer.
+ */
+static void stamp2( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors)
+{
+    unsigned int scan;
+    int row;
+
+    for ( row = AN_STMP_HT ; --row >= 0 ; ) {
+	scan = *stamp++;
+	scan = ((scan & 0xCCCC)>>2)|((scan & 0x3333)<<2);
+	scan = ((scan & 0xF0F0)>>4)|((scan & 0x0F0F)<<4);
+	scan = ((scan & 0xFF00)>>8)|((scan & 0x00FF)<<8);
+	*scrptr = scan;
+	scrptr += stride;
+    }
+}
+
+#if DRSHBIT
+static void stamp2d( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors)
+{
+    unsigned int scan,above,curr,mask;
+    int row;
+
+    above = 0;
+    for ( row = AN_STMP_HT ; --row >= 0 ; ) {
+	curr = *stamp++;
+	/* Form mask with ones where the current line
+	 * has non-background. "01" is code for "outline"
+	 * color of font.
+	 */
+	mask = (curr | (curr>>1)) & 0x5555;
+
+	/* We will "inherit" Similar mask for line above.
+	 * combine the two to form word with "01" wherever
+	 * a non-zero pixel is above-left, or left
+	 * of the pixel "marked".
+	 */
+	above = ((above << 2)|(mask << 2));
+
+	/* "set" possibly-shadowed pixels to outline color */
+	scan = (above & ~mask);
+	above = mask;	/* "inherit" for next time */
+	mask |= (mask << 1);
+	scan |= (mask & curr);
+	scan = ((scan & 0xCCCC)>>2)|((scan & 0x3333)<<2);
+	scan = ((scan & 0xF0F0)>>4)|((scan & 0x0F0F)<<4);
+	scan = ((scan & 0xFF00)>>8)|((scan & 0x00FF)<<8);
+	*scrptr = scan;
+	scrptr += stride;
+    }
+}
+#endif
+
+/* First-cut 4-bit Alpha screen, _depends_ on setancolors() setting up
+ * an appropriate palette table
+ */
+static void stamp4( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors)
+{
+    U32 data,*dp = (U32 *)scrptr;
+    unsigned int scan;
+    int row;
+    U32 K3 = 3;		/* Because gcc can be _so_ lame */
+
+    for ( row = AN_STMP_HT ; --row >= 0 ; ) {
+	scan = *stamp++;
+	data = colors[scan&K3]<<28;
+	scan >>= 2;
+	data |= colors[scan&K3]<<24;
+	scan >>= 2;
+	data |= colors[scan&K3]<<20;
+	scan >>= 2;
+	data |= colors[scan&K3]<<16;
+	scan >>= 2;
+	data |= colors[scan&K3]<<12;
+	scan >>= 2;
+	data |= colors[scan&K3]<<8;
+	scan >>= 2;
+	data |= colors[scan&K3]<<4;
+	scan >>= 2;
+	*dp = (data|colors[scan&K3]);
+	dp = (U32 *) (scrptr += stride);
+    }
+}
+
+#if DRSHBIT
+static void stamp4d( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors)
+{
+    U32 data,*dp = (U32 *)scrptr;
+    unsigned int scan,above,curr,mask;
+    int row;
+    U32 K3 = 3;		/* Because gcc can be _so_ lame */
+
+    above = 0;
+    for ( row = AN_STMP_HT ; --row >= 0 ; ) {
+	curr = *stamp++;
+	/* Form mask with ones where the current line
+	 * has non-background. "01" is code for "outline"
+	 * color of font.
+	 */
+	mask = (curr | (curr>>1)) & 0x5555;
+
+	/* We will "inherit" Similar mask for line above.
+	 * combine the two to form word with "01" wherever
+	 * a non-zero pixel is above-left, or left
+	 * of the pixel "marked".
+	 */
+	above = ((above << 2)|(mask << 2));
+
+	/* "set" possibly-shadowed pixels to outline color */
+	scan = (above & ~mask);
+	above = mask;	/* "inherit" for next time */
+	mask |= (mask << 1);
+	scan |= (mask & curr);
+
+	data = colors[scan&K3]<<28;
+	scan >>= 2;
+	data |= colors[scan&K3]<<24;
+	scan >>= 2;
+	data |= colors[scan&K3]<<20;
+	scan >>= 2;
+	data |= colors[scan&K3]<<16;
+	scan >>= 2;
+	data |= colors[scan&K3]<<12;
+	scan >>= 2;
+	data |= colors[scan&K3]<<8;
+	scan >>= 2;
+	data |= colors[scan&K3]<<4;
+	scan >>= 2;
+	*dp = (data|colors[scan&K3]);
+	dp = (U32 *) (scrptr += stride);
+    }
+}
+#endif
+
+static void stamp16( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors)
+{
+    U32 data,*dp = (U32 *)scrptr;
+    unsigned int scan;
+    int row;
+    U32 K3 = 3;		/* Because gcc can be _so_ lame */
+
+    for ( row = AN_STMP_HT ; --row >= 0 ; ) {
+	scan = *stamp++;
+	data = colors[scan&K3];
+	scan >>= 2;
+	*dp++ = (data<<16)|colors[scan&K3];
+	scan >>= 2;
+	data = colors[scan&K3];
+	scan >>= 2;
+	*dp++ = (data<<16)|colors[scan&K3];
+	scan >>= 2;
+	data = colors[scan&K3];
+	scan >>= 2;
+	*dp++ = (data<<16)|colors[scan&K3];
+	scan >>= 2;
+	data = colors[scan&K3];
+	scan >>= 2;
+	*dp = (data<<16)|colors[scan&K3];
+	dp = (U32 *) (scrptr += stride);
+    }
+}
+
+#if DRSHBIT
+/*		stamp16d
+ *	Draw a stamp in 16-bit pixels, applying a drop-shadow as
+ *	we draw.
+ */
+static void stamp16d( U16 *scrptr, U32 stride, const U16 *stamp, U16 *colors)
+{
+    U32 data,*dp = (U32 *)scrptr;
+    unsigned int scan,above,curr,mask;
+    int row;
+    U32 K3 = 3;		/* Because gcc can be _so_ lame */
+
+    above = 0;
+    for ( row = AN_STMP_HT ; --row >= 0 ; ) {
+	curr = *stamp++;
+	/* Form mask with ones where the current line
+	 * has non-background. "01" is code for "outline"
+	 * color of font.
+	 */
+	mask = (curr | (curr>>1)) & 0x5555;
+
+	/* We will "inherit" Similar mask for line above.
+	 * combine the two to form word with "01" wherever
+	 * a non-zero pixel is above-left, or left
+	 * of the pixel "marked".
+	 */
+	above = ((above << 2)|(mask << 2));
+
+	/* "set" possibly-shadowed pixels to outline color */
+	scan = (above & ~mask);
+	above = mask;	/* "inherit" for next time */
+	mask |= (mask << 1);
+	scan |= (mask & curr);
+
+	data = colors[scan&K3];
+	scan >>= 2;
+	*dp++ = (data<<16)|colors[scan&K3];
+	scan >>= 2;
+	data = colors[scan&K3];
+	scan >>= 2;
+	*dp++ = (data<<16)|colors[scan&K3];
+	scan >>= 2;
+	data = colors[scan&K3];
+	scan >>= 2;
+	*dp++ = (data<<16)|colors[scan&K3];
+	scan >>= 2;
+	data = colors[scan&K3];
+	scan >>= 2;
+	*dp = (data<<16)|colors[scan&K3];
+	dp = (U32 *) (scrptr += stride);
+    }
+}
+#endif
+
+/*		SetANPal(f_and_b)
+ *	Sets one AlphaNumeric palette to have the colors specified
+ *	in f_and_b. The lower 16 bits of f_and_b specify the foreground
+ *	color (in game's coding) while the upper 16 bits specify the
+ *	background color. Since we have a 2-bit character set (Inherited
+ *	from System I) we synthesize an alias color "halfway between"
+ *	the two. We only use the CLUT capability of the	Jaguar for text
+ *	if the user has selected a bit-depth of < 16. One might do
+ *	this to save either DRAM or bandwidth (although it is not clear
+ *	whether the latter is actually saved). If we can afford it, we
+ *	do not want to waste CLUT space on text.
+ */
+
+extern int vid_set_vmode();
+#ifndef VMODE_MASK
+#define VMODE_MASK (6)
+#endif
+#ifndef M_VMODE_MIX
+#define M_VMODE_MIX (0x100)
+#endif
+
+void
+SetANPal( palette, colors)
+int palette;
+U32 colors;
+{
+    int fg,bg;
+    int alias,outline;
+    OBJECT *obptr;
+    int vmode;
+
+    bg = colors >> 16;
+    fg = (colors & 0xFFFF);
+
+    palette &= AN_PAL_MSK;
+    palette >>= AN_PAL_SHF;
+
+    /* Find out what video mode we are using. If RBG5 or either
+     * mix mode, we will use RBG for text. This alters the anti-alias
+     * calculation.
+     */
+    vmode = vid_set_vmode(0) & (VMODE_MASK|M_VMODE_MIX);
+
+   /* things get a little more complicated in the case where
+    * the game programmer could have selected switchable CRY/RBG5.
+    * In this mode, CRY colors _must_ have their LSB clear, while
+    * RBG5 colors must have it set. Zero, however, must stay zero.
+    */
+    if ( vmode == (VIDEO_MODE_CRY&VMODE_MASK) ) {
+	outline = 0xFF00;
+	alias = (((bg & 0xFF) + (fg & 0xFF))>>1) | (fg & 0xFF00);
+	bg &= 0xFFFE;
+	fg &= 0xFFFE;
+    } else {
+	outline = 0x843;
+#if (0)
+	/* Aliased between fg and bg */
+	alias = ( (bg & 0xF7BC) + (fg & 0xF7BC) ) >> 1;
+#else
+	/* Aliased between fg and black, because we get speckels
+	 * in BIG set on grey background if we don't.
+	 */
+	alias = (( fg & 0xF7BC ) >> 1) | 1;
+#endif
+	if ( bg ) bg |= 1;
+	if ( fg ) fg |= 1;
+    }
+    an_pal[palette][0] = bg;
+    an_pal[palette][1] = outline;
+    an_pal[palette][2] = alias;
+    an_pal[palette][3] = fg;
+    obptr = vid_setscr(0);
+    if ( !obptr ) return;
+    if ( ob_get_pixdepth(obptr) == 2 ) {
+	VU16 *colram = (VU16 *)COLRAM_ADDR;
+	/* 4-bit CLUT-mapped alphas, find the range of CLUT entries
+	 * the alpha-screen uses. Remember, the palnum is _seven_
+	 * bits, shifted down
+	*/
+	colram += ((ob_get_palnum(obptr)&0x78)<<1);
+	colram[0] = 0;
+	colram[2] = bg;
+	colram[1] = outline;
+	colram[(palette<<1)+2] = alias;
+	colram[(palette<<1)+3] = fg;
+    }
+}
+
+#define	CBAR_BLACK	0x0000
+#define CBAR_RED	0xF800
+#define CBAR_BLUE	0x07c0
+#define CBAR_YELLOW	0xF038
+#define CBAR_SLATE	0x6318
+#define CBAR_WHITE	0xE738
+#define CBAR_GRAY	(CBAR_WHITE-(CBAR_SLATE>>1))
+#define CBAR_GREEN	0x003f
+#define CBAR_ORANGE	0xF020
+#define	CBAR_BROWN	0x7110
+#define	CBAR_PURPLE	(CBAR_RED-(CBAR_RED>>2)+CBAR_BLUE-(CBAR_BLUE>>2))
+
+#define SLT_BKG (SLT_FUL<<16)
+
+void
+setancolors()
+{
+    int vmode;
+    /* Find out what video mode we are using. If RBG5 or either
+     * mix mode, we will use RBG for text. This alters the anti-alias
+     * calculation.
+     */
+    vmode = vid_set_vmode(0) & (VMODE_MASK|M_VMODE_MIX);
+    if ( vmode == (VIDEO_MODE_CRY&VMODE_MASK) ) {
+	SetANPal(GRY_PAL,SLT_BKG|GRY_FUL);
+	SetANPal(WHT_PAL,SLT_BKG|WHT_FUL);
+	SetANPal(YEL_PAL,SLT_BKG|YEL_MSK);
+	SetANPal(RED_PAL,SLT_BKG|RED_MSK);
+	SetANPal(GRN_PAL,SLT_BKG|GRN_MSK);
+	SetANPal(CYN_PAL,SLT_BKG|CYN_MSK);
+#ifdef BLU_PAL
+	SetANPal(BLU_PAL,SLT_BKG|BLU_MSK);
+#endif
+    } else {
+	SetANPal(GRY_PAL,(CBAR_SLATE<<16)|CBAR_GRAY);
+	SetANPal(WHT_PAL,(CBAR_SLATE<<16)|CBAR_WHITE);
+	SetANPal(YEL_PAL,(CBAR_SLATE<<16)|CBAR_YELLOW);
+	SetANPal(RED_PAL,(CBAR_SLATE<<16)|CBAR_RED);
+	SetANPal(GRN_PAL,(CBAR_SLATE<<16)|CBAR_GREEN);
+	SetANPal(CYN_PAL,(CBAR_SLATE<<16)|CBAR_GREEN|CBAR_BLUE);
+#ifdef BLU_PAL
+	SetANPal(BLU_PAL,(CBAR_SLATE<<16)|CBAR_BLUE);
+#endif
+#ifdef VIO_PAL
+	SetANPal(VIO_PAL,(CBAR_SLATE<<16)|CBAR_PURPLE);
+#endif
+    }
+}
+
+/*********************************************************************************
+*
+*	Shim to use new txt_str() as a replacement for ob_text()
+*
+*********************************************************************************/
+
+/*
+** **********************************************
+** ob_text():
+** Temporary (i.e. non-GUTS) function to print
+** a NULL terminated ASCII text string to a
+** previously setup object.
+** ==============================================
+** Usage:
+**   ob_text( col, row, txt, color );
+**
+**   int col:        char. cell x position
+**   int row:        char. cell y position
+**   const U8 *txt:  ptr to text string to print.
+**   int color:      color to print text in.
+**
+** Returns:
+**   (int)length of output string.
+** **********************************************
+*/
+
+#define KLUGE_PAL (AN_PAL_MSK>>AN_PAL_SHF)
+
+int ob_text( object, col, row, txtptr, color )
+OBJECT *object;
+int col;
+int row;
+const U8 *txtptr;
+int color;
+{
+    int width;
+    OBJECT *prev_obj;
+    U32 prev_pos;
+    int col_idx;
+
+    prev_pos = txt_setpos(0);
+    prev_obj = vid_setscr(object);
+
+    for ( col_idx = 0 ; col_idx < KLUGE_PAL ; ++col_idx ) {
+	if ( color == an_pal[col_idx][3] ) break;
+    }
+
+    if ( col_idx == KLUGE_PAL ) {
+	/* We do not match any existing palette, clobber
+	 * the last one, as it is rarely used.
+	 */
+	an_pal[col_idx][3] = color;
+    }
+
+    width = txt_str(col, row, (const char *)txtptr, col_idx<<AN_PAL_SHF);
+
+    vid_setscr(prev_obj);
+    txt_setpos(prev_pos);
+    return(width);
+}
+@
+
+
+1.15
+log
+@Shifted reference point for BIG text, to agree with 3D
+systems. Also allows easier mix of BIG and regular text.
+@
+text
+@d8 3
+@
+
+
+1.14
+log
+@Fixed problem of looking for _exactly_ COJAG_NUVID, rather
+than _at_least_ COJAG_NUVID.
+@
+text
+@d134 7
+@
+
+
+1.13
+log
+@Added provision for interlaced text object, conditional on
+(COJAG_GAME == COJAG_NUVID). This is for the "Pretty Video"
+simulation.
+@
+text
+@d31 1
+a31 1
+#if (COJAG_GAME == COJAG_NUVID)
+d164 1
+a164 1
+#if (COJAG_GAME == COJAG_NUVID)
+d317 1
+a317 1
+#if (COJAG_GAME == COJAG_NUVID)
+d384 1
+a384 1
+#if (COJAG_GAME == COJAG_NUVID)
+d414 1
+a414 1
+#if (COJAG_GAME == COJAG_NUVID)
+@
+
+
+1.12
+log
+@added two-bit text output, which uncovered some phrase-
+alignment problems, which were fixed, for now. We will
+run into more problems if we ever try to support 1-bit
+text. Default to RBG5 text colors if VIDEO_MODE is anything
+but straight VIDEO_MODE_CRY.
+@
+text
+@d31 4
+d164 10
+d317 10
+d384 10
+d414 10
+@
+
+
+1.11
+log
+@Added 4-bit stamp-drawing routines, including changes to
+palette handling (SetANPal). Changed BIG_SET behavior on
+un-defined characters to match Zoid and Phoenix (not tested)
+@
+text
+@d33 1
+d37 1
+d41 1
+d49 2
+a50 1
+    0,0,	/* Placeholders for stamp2, stamp2d */
+d130 1
+a130 1
+    stride = ob_get_pixw(tscreen);	/* In pixels */
+d137 1
+a137 1
+	col = ((stride>>3)+1-txt_width(txtptr,color)) >> 1;
+d142 16
+a157 7
+#ifdef BPPIXEL
+    x = (U32)(col << 3) * BPPIXEL;            /* convert cell column into screen x offset */
+    y = (U32)(row << 3) * stride * BPPIXEL;  /* convert cell row into screen y offset */
+#else
+    /* Hack above "knows" that stamps are 8 pixels wide. We keep "knowing"
+     * it to avoid a multiply, and hand-cancel the <<3 for pixels_per_stamp
+     * and the (1<<depth)-8 for _bytes_ per stamp.
+d159 2
+a160 3
+    x = (U32)(col << depth);            /* convert cell column into screen x byte offset */
+    y = (U32)(row << depth) * stride;  /* convert cell row into screen y byte offset */
+#endif
+d163 2
+a164 2
+    scrptr = (U16 *)((U8 *)(ob_get_img(tscreen)) + x + y);
+    nxt_col = AN_STMP_WID;
+a178 6
+	/* Stride is expressed in pixels, scrptr in U16s. To convert, mult by (1<<depth),
+	 * and divide by 16. In practice, this means to divide by (16/(1<<depth)),
+	 * or in other words, to shift _right_ by (4-depth)
+	 */
+	stride >>= (4-depth);
+	nxt_col = AN_STMP_WID>>(4-depth);
+d182 1
+d187 1
+a187 3
+    } else strfunc = bstrfunc;
+#else
+    strfunc = bstrfunc;
+a197 15
+#if (0)
+		/* We used to translate any un-recognized BIG
+		 * character as a space.
+		 */
+		int pixcnt;
+		int fill = colptr[0];
+		width += 2;
+		for ( row = (2*AN_STMP_HT)-1 ; row >= 0 ; --row ) {
+		    for ( pixcnt = (2*AN_STMP_WID)-1 ; pixcnt >= 0 ; --pixcnt) {
+			*scrptr++ = fill;
+		    }
+		    scrptr += (stride)-(2*AN_STMP_WID);
+		}
+		scrptr += ((2*AN_STMP_WID)-(stride*2*AN_STMP_HT));
+#else
+a209 1
+#endif
+d279 1
+d282 4
+a285 5
+	strfunc = drawrtns[(depth<<1)+1];
+	if ( !strfunc ) strfunc = drawrtns[depth<<1];
+    } else strfunc = drawrtns[depth<<1];
+#else
+    strfunc = drawrtns[depth<<1];
+d295 6
+a300 7
+#ifdef BPPIXEL
+    x = (U32)(col << 3) * BPPIXEL;            /* convert cell column into screen x offset */
+    y = (U32)(row << 3) * stride * BPPIXEL;  /* convert cell row into screen y offset */
+#else
+    /* Hack above "knows" that stamps are 8 pixels wide. We keep "knowing"
+     * it to avoid a multiply, and hand-cancel the <<3 for pixels_per_stamp
+     * and the (1<<depth)-8 for _bytes_ per stamp.
+d302 2
+a303 3
+    x = (U32)(col << depth);            /* convert cell column into screen x byte offset */
+    y = (U32)(row << depth) * stride;  /* convert cell row into screen y byte offset */
+#endif
+d306 2
+a307 1
+    scrptr = (U16 *)((U8 *)(ob_get_img(tscreen)) + x + y);
+a322 5
+	/* Stride is expressed in pixels, scrptr in U16s. To convert, mult by (1<<depth),
+	 * and divide by 16. In practice, this means to divide by (16/(1<<depth)),
+	 * or in other words, to shift _right_ by (4-depth)
+	 */
+	stride >>= (4-depth);
+d357 1
+a357 13
+#ifdef BPPIXEL
+    width *= ((BPPIXEL*AN_STMP_WID)/sizeof(*scrptr));
+    scrptr = (U16 *)((U8 *)(ob_get_img(tscreen)) + (x<<3)*BPPIXEL + (y<<3)*stride*BPPIXEL);
+    stride *= (BPPIXEL/sizeof(*scrptr));
+    for ( v = 7 ; v >= 0 ; --v ) {
+	lptr = scrptr;
+	for ( h = width ; h ; --h ) {
+	    *lptr++ = 0;
+	}
+	scrptr += stride;
+    }
+#else
+    scrptr = (U16 *)((U8 *)(ob_get_img(tscreen)) + (x<<depth) + (y<<depth)*stride);
+d359 2
+a366 5
+	/* Stride is expressed in pixels. To convert to U16s, mult by (1<<depth),
+	 * and divide by 16. In practice, this means to divide by (16/(1<<depth)),
+	 * or in other words, to shift _right_ by (4-depth)
+	 */
+	stride >>= (4-depth);
+d378 5
+a382 2
+	U8 *bptr = (U8 *)scrptr;
+	stride >>= 3;
+a389 1
+#endif
+d511 54
+d595 1
+d732 7
+a738 5
+ *	background color. If we ever get more than 1 bit deep text on
+ *	Jaguar, an alias color will be synthesized "halfway between"
+ *	the two. We are not actually using the CLUT capability of the
+ *	Jaguar for text, as we have a CRY bitmap to draw into and do
+ *	not want to waste CLUT space on text.
+d745 3
+d757 1
+d765 6
+d776 1
+a776 1
+    if ( (vid_set_vmode(0)&VMODE_MASK) == (VIDEO_MODE_CRY&VMODE_MASK) ) {
+d828 2
+d833 13
+a845 9
+    int mode;
+    mode = vid_set_vmode(0);
+    if ( (mode&VMODE_MASK) == (VIDEO_MODE_CRY&VMODE_MASK) ) {
+	SetANPal(GRY_PAL,GRY_SLT);
+	SetANPal(WHT_PAL,GRY_WHT);
+	SetANPal(YEL_PAL,GRY_YEL);
+	SetANPal(RED_PAL,GRY_RED);
+	SetANPal(GRN_PAL,GRY_GRN);
+	SetANPal(CYN_PAL,GRY_CYN);
+d847 1
+a847 1
+	SetANPal(BLU_PAL,GRY_BLU);
+@
+
+
+1.10
+log
+@Removed some more obsolete stuff. Added "shim" to provide
+ob_text() functionality via new txt_str et al. Added
+(optional) Drop-shadow as part of "palette" selection.
+@
+text
+@a29 3
+#ifndef BPPIXEL
+#define BPPIXEL (2)
+#endif
+d33 1
+d36 1
+d38 3
+d43 13
+d109 1
+a109 1
+    m_int width,stamp,pixcnt;
+d115 2
+a116 1
+    int stride;
+d126 4
+a129 1
+    stride = ob_get_pixw(tscreen);
+d138 1
+d141 8
+d152 24
+a175 6
+    colptr = an_pal[(color&AN_PAL_MSK)>>AN_PAL_SHF];
+    memcpy(colors,colptr,sizeof(colors));
+    if ( (color & BGBIT) == 0 ) colors[0] = 0;
+
+    bstrfunc = stamp16;
+    strfunc = stamp16;
+d177 6
+a182 1
+    if ( color & DRSHBIT ) strfunc = stamp16d;
+d193 6
+a198 1
+		int fill = colors[0];
+d206 15
+a221 1
+		scrptr += ((2*AN_STMP_WID)-(stride*2*AN_STMP_HT));
+d225 1
+a225 1
+	    bstrfunc( scrptr, stride, stamps, colors);
+d228 2
+a229 2
+	    bstrfunc( scrptr, stride, stamps, colors);
+	    scrptr += AN_STMP_WID-(stride*AN_STMP_HT); /* Up and to right */
+d235 1
+a235 1
+	    bstrfunc( scrptr, stride, stamps, colors);
+d238 2
+a239 2
+	    bstrfunc( scrptr, stride, stamps, colors);
+	    scrptr += AN_STMP_WID-(stride*AN_STMP_HT); /* Up and to right */
+d257 2
+a258 2
+	strfunc( scrptr, stride, stamps, colors);
+	scrptr += AN_STMP_WID; /* next stamp right */
+d278 1
+a278 1
+    int stride;
+d286 11
+a296 4
+    stride = ob_get_pixw(tscreen);
+    strfunc = stamp16;
+#ifdef DRSHBIT
+    if ( color & DRSHBIT ) strfunc = stamp16d;
+d298 2
+d306 1
+d309 8
+d321 21
+a341 5
+    colptr = an_pal[(color&AN_PAL_MSK)>>AN_PAL_SHF];
+    memcpy(colors,colptr,sizeof(colors));
+    if ( (color & BGBIT) == 0 ) colors[0] = 0;
+
+    strfunc( scrptr, stride, stamps, colors);
+d359 1
+a359 1
+    int stride;
+d363 2
+a364 1
+    stride = ob_get_pixw(tscreen);
+d374 1
+d385 35
+d541 80
+d725 2
+a726 1
+    int alias;
+a738 1
+#if AN_BIT_DEPTH > 1
+d740 1
+a740 1
+	an_pal[palette][1] = 0xFF00;
+d742 2
+a743 6
+	an_pal[palette][2] = alias & 0xfffe;
+
+
+       an_pal[palette][0] = bg & 0xfffe;
+       an_pal[palette][(1<<AN_BIT_DEPTH)-1] = fg & 0xfffe;
+
+d745 1
+a745 1
+	an_pal[palette][1] = 0x843;
+d748 1
+a748 1
+	an_pal[palette][2] = ( (bg & 0xF7BC) + (fg & 0xF7BC) ) >> 1;
+d753 1
+a753 1
+	an_pal[palette][2] = (( fg & 0xF7BC ) >> 1) | 1;
+d755 21
+a775 10
+
+       if( bg )
+       {
+	   an_pal[palette][0] = bg | 0x0001;
+       }
+
+       if( fg )
+       {
+	   an_pal[palette][(1<<AN_BIT_DEPTH)-1] = fg | 0x0001;
+       }
+a776 2
+#endif
+
+d783 1
+a783 1
+#define CBAR_GRAY	0x6318
+d785 1
+a785 1
+#define CBAR_SLATE	(CBAR_WHITE-(CBAR_GRAY>>1))
+d815 3
+@
+
+
+1.9
+log
+@Sped up 16-bit stamp output. Deleted previously #if 0'ed
+chrout(). Start of "arbitrary object" text output, now
+calls vid_setscr() instaed of side-door hack to get screen.
+Now checks object parameters instead of #define for text
+screen size. Masks VMODE when determining CRY vs RBG5.
+Added txt_setpos() (where had it gone?) to make hacks
+like the "WAITING FOR EEPROM" hack that DMS added to
+jag_vid.c a _little_ less hackish :-)
+@
+text
+@d36 3
+a38 49
+/*
+** **********************************************
+** txt_str():
+** Temporary (i.e. non-GUTS) function to print
+** a NULL terminated ASCII text string to a
+** previously setup frame buffer.
+** ==============================================
+** Usage:
+**   txt_str( col, row, txt, color );
+**
+**   int col:        char. cell x position
+**   int row:        char. cell y position
+**   const U8 *txt:  ptr to text string to print.
+**   int color:      color to print text in.
+**
+** Returns:
+**   (int)length of output string.
+** **********************************************
+*/
+
+#if (0)
+#define stampout(scrptr,colors,scan,pixcnt) \
+   do {								\
+    for ( pixcnt = AN_STMP_WID-1 ; pixcnt >= 0 ; --pixcnt ) {	\
+	*scrptr++ = colors[scan&3];				\
+	scan >>= 2; 						\
+    }								\
+} while (0)
+#else
+#define stampout(scrptr,colors,scan,pixcnt) \
+   do {					\
+    U32 data,*dp = (U32*)scrptr;	\
+    data = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *dp++ = (data<<16)|colors[scan&K3];	\
+    scan >>= 2; 			\
+    data = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *dp++ = (data<<16)|colors[scan&K3];	\
+    scan >>= 2; 			\
+    data = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *dp++ = (data<<16)|colors[scan&K3];	\
+    scan >>= 2; 			\
+    data = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *dp = (data<<16)|colors[scan&K3];	\
+    scrptr += 8; 			\
+} while (0)
+d75 8
+d95 4
+a98 2
+    int	scan,offset,font_offs;
+    int	K3 = 3;
+d109 1
+d128 5
+d155 2
+a156 5
+	    for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+		scan = *stamps++;
+		stampout(scrptr,colors,scan,pixcnt);
+		scrptr += (stride)-AN_STMP_WID;  /* update dest. ptr into screen memory */
+	    }
+d158 3
+a160 5
+	    for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+		scan = *stamps++;
+		stampout(scrptr,colors,scan,pixcnt);
+		scrptr += stride-AN_STMP_WID;  /* update dest. ptr into screen memory */
+	    }
+a161 1
+	    scrptr += (AN_STMP_WID-(stride*2*AN_STMP_HT));
+d165 2
+a166 5
+	    for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+		scan = *stamps++;
+		stampout(scrptr,colors,scan,pixcnt);
+		scrptr += stride-AN_STMP_WID;  /* update dest. ptr into screen memory */
+	    }
+d168 2
+a169 5
+	    for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+		scan = *stamps++;
+		stampout(scrptr,colors,scan,pixcnt);
+		scrptr += stride-AN_STMP_WID;  /* update dest. ptr into screen memory */
+	    }
+a170 1
+	    scrptr += (AN_STMP_WID-(stride*2*AN_STMP_HT));
+d187 2
+a188 5
+	for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+	    scan = *stamps++;
+	    stampout(scrptr,colors,scan,pixcnt);
+	    scrptr += stride-AN_STMP_WID;  /* update dest. ptr into screen memory */
+	}
+a189 1
+	scrptr += (AN_STMP_WID-(stride*AN_STMP_HT));
+d204 2
+a205 1
+    unsigned int scan;
+d217 4
+a220 1
+
+d237 1
+a237 8
+    for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+	scan = *stamps++;
+	for ( col = AN_STMP_WID-1 ; col >= 0 ; --col ) {
+	    *scrptr++ = colors[scan&3];
+	    scan >>= 2; 
+	}
+	scrptr += stride-AN_STMP_WID;  /* update dest. ptr into screen memory */
+    }
+d400 82
+a556 4
+#if (0)
+#define CBAR_GRAY	0x7314
+#define CBAR_WHITE	0xf738
+#else
+a558 1
+#endif
+d593 60
+@
+
+
+1.8
+log
+@added setup for BLU_PAL, if it is defined.
+@
+text
+@d24 1
+a32 1
+#define SCREENW (AN_VIS_COL<<3)
+a33 2
+void chrout( U16 *scrptr, const char *chrptr, int color );
+
+d67 2
+a68 3
+    *scrptr++ = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *scrptr++ = colors[scan&K3];		\
+d70 1
+a70 1
+    *scrptr++ = colors[scan&K3];		\
+d72 1
+a72 1
+    *scrptr++ = colors[scan&K3];		\
+d74 1
+a74 1
+    *scrptr++ = colors[scan&K3];		\
+d76 1
+a76 1
+    *scrptr++ = colors[scan&K3];		\
+d78 1
+a78 1
+    *scrptr++ = colors[scan&K3];		\
+d80 1
+a80 1
+    *scrptr++ = colors[scan&K3];		\
+d82 2
+d88 20
+d135 2
+d143 4
+d149 1
+a149 1
+	col = (AN_VIS_COL+1-txt_width(txtptr,color)) >> 1;
+d155 1
+a155 1
+    y = (U32)(row << 3) * (AN_VIS_COL<<3) * BPPIXEL;  /* convert cell row into screen y offset */
+d158 1
+a158 1
+    scrptr = (U16 *)((U8 *)(*draw_pt) + x + y);
+d178 1
+a178 1
+		    scrptr += (AN_VIS_COL<<3)-(2*AN_STMP_WID);
+d181 1
+a181 1
+		scrptr += ((2*AN_STMP_WID)-(SCREENW*2*AN_STMP_HT));
+d188 1
+a188 1
+		scrptr += (AN_VIS_COL<<3)-AN_STMP_WID;  /* update dest. ptr into screen memory */
+d194 1
+a194 1
+		scrptr += SCREENW-AN_STMP_WID;  /* update dest. ptr into screen memory */
+d197 1
+a197 1
+	    scrptr += (AN_STMP_WID-(SCREENW*2*AN_STMP_HT));
+d204 1
+a204 1
+		scrptr += SCREENW-AN_STMP_WID;  /* update dest. ptr into screen memory */
+d210 1
+a210 1
+		scrptr += SCREENW-AN_STMP_WID;  /* update dest. ptr into screen memory */
+d213 1
+a213 1
+	    scrptr += (AN_STMP_WID-(SCREENW*2*AN_STMP_HT));
+d233 1
+a233 1
+	    scrptr += SCREENW-AN_STMP_WID;  /* update dest. ptr into screen memory */
+d236 1
+a236 1
+	scrptr += (AN_STMP_WID-(SCREENW*AN_STMP_HT));
+a245 59
+/*
+** **********************************************
+** chrout():
+** Print an ASCII character using the specified
+** text color and positioned at the destination
+** screen memory address passed.
+** ==============================================
+** Usage:
+**   chrout( dptr, chr, color );
+**
+**   U16 *scrptr: ptr to dest. screen location
+**   U8 *chrptr:  ptr to ASCII character to print
+**   int color:   color to print character in
+**
+** Returns:
+**   Nothing.
+** **********************************************
+*/
+#if (0)
+void chrout( scrptr, chrptr, color )
+U16 *scrptr;
+const char *chrptr;
+int color;
+{
+    extern U8 font8x8[];
+    U8 fontdata;
+    U8 *fontptr;
+    U16 i, j;
+    U16 *tmpptr;
+    U16 fg,bg,*colptr;
+
+    /* calculate the starting address of the character in the font image */
+    fontptr = font8x8 + *chrptr;
+    colptr = an_pal[(color&AN_PAL_MSK)>>AN_PAL_SHF];
+    fg = colptr[(1<<AN_BIT_DEPTH)-1];
+    bg = 0;
+    if ( color & BGBIT ) bg = colptr[0];
+
+    /* print 8 lines of character data */
+    for( i = 0; i < 8; i++ )
+         {
+         fontdata = *fontptr;  /* get character data for current line */
+         tmpptr = scrptr;      /* make temp. copy of destination ptr */
+
+         /* expand 8 bits of character data into CRY data for screen mem. */
+         for( j = 0; j < 8; j++ )
+              {
+              *tmpptr = (U16)((fontdata & 0x80) ? fg : bg);
+              fontdata <<= 1;
+              tmpptr++;
+              }
+
+         fontptr += 256;     /* update source ptr into font data */
+         scrptr += SCREENW;  /* update dest. ptr into screen memory */
+         }
+
+}   /* End: chrout() */
+#endif
+
+d253 2
+d260 4
+d266 1
+a266 1
+	col = (AN_VIS_COL+1) >> 1;
+d271 1
+a271 1
+    y = (U32)(row << 3) * SCREENW * BPPIXEL;  /* convert cell row into screen y offset */
+d274 1
+a274 1
+    scrptr = (U16 *)((U8 *)(*draw_pt) + x + y);
+d286 1
+a286 1
+	scrptr += SCREENW-AN_STMP_WID;  /* update dest. ptr into screen memory */
+d304 6
+d313 1
+a313 1
+	x = (AN_VIS_COL+1-width) >> 1;
+d316 1
+a316 1
+	    width = AN_VIS_COL;
+d320 2
+a321 1
+    scrptr = (U16 *)((U8 *)(*draw_pt) + (x<<3)*BPPIXEL + (y<<3)*VIS_H_PIX*BPPIXEL);
+d327 1
+a327 1
+	scrptr += VIS_H_PIX*(BPPIXEL/sizeof(*scrptr));
+d337 1
+d342 5
+a346 1
+	x = (AN_VIS_COL+1-width) >> 1;
+d349 1
+a349 1
+	    width = AN_VIS_COL;
+d462 3
+d486 1
+a486 1
+    if ( vid_set_vmode(0) == VIDEO_MODE_CRY ) {
+d502 1
+a502 1
+	 * in BIG set on greay background if we don't.
+d543 1
+a543 1
+    if ( mode == VIDEO_MODE_CRY ) {
+@
+
+
+1.7
+log
+@Added hack for CRY/RGB dynamic switching.
+@
+text
+@d563 3
+d573 3
+@
+
+
+1.6
+log
+@added kluge for MIPS or 68k style includes (jag_defs)
+@
+text
+@d485 1
+d493 5
+a497 2
+    an_pal[palette][0] = bg;
+    an_pal[palette][(1<<AN_BIT_DEPTH)-1] = fg;
+d501 7
+a507 1
+	an_pal[palette][2] = (((bg & 0xFF) + (fg & 0xFF))>>1) | (fg & 0xFF00);
+d509 1
+a509 1
+	an_pal[palette][1] = 0x842;
+d517 1
+a517 1
+	an_pal[palette][2] = ( fg & 0xF7BC ) >> 1;
+d519 10
+@
+
+
+1.5
+log
+@fixed "cursor remembering" for AN_BIG_SET text. Also
+fixed background (or not) for txt_stamp().
+@
+text
+@d8 9
+a16 1
+
+d18 3
+a23 1
+#include <jag_defs.h>
+@
+
+
+1.4
+log
+@ added BLOCK and MOD character sets.
+@
+text
+@d117 1
+d276 1
+a276 1
+    U16 *stamps,*colptr;
+d295 2
+d301 1
+a301 1
+	    *scrptr++ = colptr[scan&3];
+@
+
+
+1.3
+log
+@First cut at mode-sensitive colors for alphanumerics
+@
+text
+@d80 4
+d104 1
+a104 1
+    int	scan,offset;
+d183 3
+a185 1
+
+d189 4
+a192 1
+	else stamp += offset;
+@
+
+
+1.2
+log
+@hack in vicinity os AN_STAMPS, to allow use of brain-dead
+assembler.
+@
+text
+@d13 1
+d454 3
+d473 13
+a485 2
+    an_pal[palette][1] = 0xFF00;
+    an_pal[palette][2] = (((bg & 0xFF) + (fg & 0xFF))>>1) | (fg & 0xFF00);
+d487 2
+d491 40
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d78 2
+a79 1
+extern unsigned short AN_STAMPS[];
+@

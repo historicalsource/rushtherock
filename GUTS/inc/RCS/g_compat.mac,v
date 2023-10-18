@@ -1,0 +1,86 @@
+head	1.1;
+access;
+symbols
+	CJ_206:1.1
+	CJ2_05:1.1
+	CJ2_04:1.1;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	94.12.12.18.53.29;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@variant of compat.mac for usr with mactj for GPU (and DSP) code.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@	.ENABL	DOLLAR_HEX
+	.ENABL	dot_local
+	.MACRO SECTION NUMBER
+	.psect $$seg'NUMBER,SEGMENT=1,DATA=1
+	.ENDM
+	.MACRO .text
+	.psect text,SEGMENT=3,DATA=1
+	.ENDM
+	.MACRO .data
+	.psect data,SEGMENT=3,DATA=1
+	.ENDM
+	.MACRO .bss
+	.psect bss,SEGMENT=3,DATA=1
+	.ENDM
+	.DEFINE PAGE .page
+	.DEFINE page .page
+	.DEFINE END .END
+	.DEFINE TTL .title
+	.radix	10.
+	.DEFINE EQU :=
+	.DEFINE equ :=
+	.DEFINE .equ :=
+	.DEFINE .equr := %
+	.DEFINE REGEQU := %
+	.DEFINE EQUR := %
+	.DEFINE SET =
+	.DEFINE xdef .globl
+	.DEFINE xref .globl
+	.DEFINE .extern .globl
+	.DEFINE xrefs .globs
+	.DEFINE EVEN .align 1
+	.DEFINE IF_GE .if ge,
+	.DEFINE IFNE .if ne,
+	.DEFINE IFEQ .if eq,
+	.DEFINE IFNDEF .if ndf,
+	.DEFINE ENDC .endc
+	.DEFINE ifne .if ne,
+	.DEFINE ifeq .if eq,
+	.DEFINE endc .endc
+	.ccdef	T,0
+	.ccdef	HI,5
+	.ccdef	SP,$15	; Strictly Positive
+	.macro	.phrase
+	.align	3
+	.endm
+	.macro	ORG val
+	.psect .ABS.
+	.=	val
+	.endm
+	.macro	__include file
+	.include file
+	.endm
+	.macro	include file
+	__include ^'file
+	.endm
+MACRO_STYLE	= 1
+	.dsabl	GBL
+	.text
+
+@

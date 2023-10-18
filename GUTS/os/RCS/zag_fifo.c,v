@@ -1,0 +1,883 @@
+head	1.13;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.13
+date	96.03.29.03.51.46;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.03.28.22.55.46;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.03.16.02.38.11;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.02.08.20.46.28;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.02.05.23.09.41;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.02.05.22.38.33;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.01.31.21.31.15;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.01.18.06.11.15;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.01.02.21.37.01;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.12.22.22.47.50;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.12.10.00.04.11;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.12.06.18.32.42;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.12.03.02.06.27;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@ZAG FIFO test routine(s).
+@
+
+
+1.13
+log
+@Fixed bug in ZAG/ZMATH autodetect and counter bit positioning.
+.\
+@
+text
+@#include <config.h>
+#include <zmbdiags.h>
+#include <string.h>
+
+#define DELAY 5		/* microsecs to pause between transactions */
+
+extern int lcl_set_latch(int);
+extern int prc_get_ipl(void);
+extern int prc_set_ipl(int);
+extern int prc_get_cause(void);
+extern void prc_delay(int);
+extern void wait_n_usecs(int);
+
+#define TEST_FIFO_FAILURE	0
+
+#if DIAG_MODE || HOST_BOARD == MB4600 || HOST_IS_MATHBOX
+
+# if TEST_FIFO_FAILURE
+# define TEST_FAILURE (zfifo->flags&zfifo->actions)
+# else
+# define TEST_FAILURE 0
+# endif
+
+static U32 reset() {
+    lcl_set_latch((bitshd|CTS_FIFO_ENAB)&~CTS_FIFO_RST);	/* reset the FIFO */
+    lcl_set_latch(bitshd|(CTS_FIFO_RST|CTS_FIFO_FULLINT|CTS_FIFO_MTINT|CTS_FIFO_ENAB));
+#if ZAG_VERSION > 0
+    if (((*(VU32 *)(CTRL_BASE+4))&0x00B3) == 0xA3) return 1;
+#endif
+    return 0;
+}
+
+static int report_error(ZagSAfifo *zfifo, U32 addr, U32 expected, U32 actual) {
+    zfifo->failed = addr;
+    zfifo->expected = expected;
+    zfifo->actual = actual;
+    zfifo->hdr.status = 1;
+    reset();
+    return 1;
+}
+
+# if !TINY_MODE
+#  define TELL_EM(what) do { zfifo->subtest = what; if (callback) callback(zfifo); \
+    		zfifo->actions |= 1<<what; } while (0)
+#  define SAY_OK(what) do { if (callback) { zfifo->subtest = what; callback(zfifo); }} while (0)
+# else
+#  define TELL_EM(what) do { zfifo->subtest = what; zfifo->actions |= 1<<what; } while (0)
+#  define SAY_OK(what) 
+# endif
+#endif
+
+int zag_test_fifo(ZagSAfifo *zfifo, void (*callback)(ZagSAfifo *arg)) {
+#if DIAG_MODE || HOST_BOARD == MB4600 || HOST_IS_MATHBOX
+    VU32 *tbus = (VU32*)TBUS_BASE;
+    VU32 *ctrl = (VU32*)(CTRL_BASE+4);
+    U32 t;
+    int ii, jj, high, low, oldipl, is_asic=0;
+# if TEST_FIFO_FAILURE
+    static int fail_mask;
+    if (fail_mask == 0) fail_mask = 1<<ZagFIFOinit;
+    if (fail_mask == (1<<ZagFIFOannounce)) fail_mask += fail_mask;
+    zfifo->flags = fail_mask;
+    fail_mask += fail_mask;
+    if (fail_mask > (1<<ZagFIFOmax)) fail_mask = 0;
+# endif
+    zfifo->hdr.status = 0;		/* assume success */
+    zfifo->sequence = 1;		/* start numbering tests at 1 */
+    oldipl = prc_get_ipl();
+    prc_set_ipl(oldipl&~((0x100<<FIFO_EMPTY_LVL)|(0x100<<FIFO_FULL_LVL)));
+    TELL_EM(ZagFIFOinit);
+    is_asic = reset();
+    t = prc_get_cause();
+    if (TEST_FAILURE || (t&((0x100<<FIFO_EMPTY_LVL)|(0x100<<FIFO_FULL_LVL))) != (0x100<<FIFO_EMPTY_LVL)) {
+	zfifo->expected = 1;
+	zfifo->actual = ((t&(0x100<<FIFO_EMPTY_LVL)) ? 1:0) |
+		        ((t&(0x100<<FIFO_FULL_LVL)) ? 2:0);
+	zfifo->hdr.status = 1;
+	return 1;
+    } else {
+	SAY_OK(ZagFIFOok);
+    }
+    TELL_EM(ZagFIFOicounter);
+    t = (is_asic ? (*ctrl >> 8) : *ctrl) & 0x3F;
+    if (TEST_FAILURE || (t != 0)) {
+	zfifo->expected = 0;
+	zfifo->actual = t;
+	zfifo->hdr.status = 1;
+	return 1;
+    }
+    SAY_OK(ZagFIFOok);
+    TELL_EM(ZagFIFOcounter);
+    high = 0;
+    low = -1;
+    for (ii=1; ii <= 128*1024; ++ii) {
+	t = prc_get_cause();
+	if ((t&(0x100<<FIFO_EMPTY_LVL)) != 0) low = ii-1;
+	*tbus = 0;
+	t = *ctrl;		/* flush the write buffer */
+	wait_n_usecs(DELAY);
+	t = (is_asic ? (*ctrl >> 8) : *ctrl) & 0x3F;	/* get counter */
+	if ((ii==1 && TEST_FAILURE) || ((ii > 15 && (t&0x30) == 0) || (t&0xF) != (ii&0xF))) {
+	    zfifo->expected = ii;
+	    zfifo->actual = t;
+	    zfifo->hdr.status = 1;
+	    return 1;
+	}
+	t = prc_get_cause();
+	if (high == 0 && (t&(0x100<<FIFO_FULL_LVL)) != 0) {
+	    high = ii;
+	    break;
+	}
+    }
+    SAY_OK(ZagFIFOok);
+    TELL_EM(ZagFIFOfull);
+    if (TEST_FAILURE || (high == 0)) {
+	zfifo->expected = 1;
+	zfifo->actual = 0;
+	zfifo->hdr.status = 1;
+	return 1;
+    }
+    SAY_OK(ZagFIFOok);
+    zfifo->size = (ii+1023)&-1024;
+    zfifo->highwater = high;
+    zfifo->lowater = low;
+    TELL_EM(ZagFIFOannounce);
+    reset();
+    TELL_EM(ZagFIFO132);
+    for (ii=1; ii; ii += ii) {
+	*tbus = ii;
+    }
+    t = *ctrl;				/* flush the write buffer */
+    wait_n_usecs(DELAY);		/* give it time to work */
+    for (jj=0, ii=1; ii; ++jj, ii += ii) {
+	t = *tbus;		/* read the bit */
+	if ((ii == 0 && TEST_FAILURE) || (t != ii)) {
+	    return report_error(zfifo, jj, ii, t);
+	}
+    }
+    SAY_OK(ZagFIFOok);
+    reset();
+    TELL_EM(ZagFIFOaddress);
+    for (ii=0; ii < high; ++ii) {
+	*tbus = ii;
+    }
+    t = *ctrl;				/* flush the write buffer */
+    wait_n_usecs(DELAY*10);		/* give it time to work */
+    for (ii=0; ii < high; ++ii) {
+	t = *tbus;			/* read the bit */
+	if ((ii==0 && TEST_FAILURE) || (t != ii)) {
+	    return report_error(zfifo, ii, ii, t);
+	}
+    }
+    SAY_OK(ZagFIFOok);
+    reset();
+    TELL_EM(ZagFIFOnotaddress);
+    for (ii=0; ii < high; ++ii) {
+	*tbus = ~ii;
+    }
+    t = *ctrl;				/* flush the write buffer */
+    wait_n_usecs(DELAY);		/* give it time to work */
+    for (ii=0; ii < high; ++ii) {
+	t = *tbus;			/* read the bit */
+	if ((ii==0 && TEST_FAILURE) || (t != ~ii)) {
+	    return report_error(zfifo, ii, ~ii, t);
+	}
+    }
+    SAY_OK(ZagFIFOok);
+    reset();
+    TELL_EM(ZagFIFOones);
+    for (ii=0; ii < high; ++ii) {
+	*tbus = 0xFFFFFFFF;
+    }
+    t = *ctrl;				/* flush the write buffer */
+    wait_n_usecs(DELAY);		/* give it time to work */
+    for (ii=0; ii < high; ++ii) {
+	t = *tbus;		/* read the bit */
+	if ((ii==0 && TEST_FAILURE) || (t != 0xFFFFFFFF)) {
+	    return report_error(zfifo, ii, 0xFFFFFFFF, t);
+	}
+    }
+    SAY_OK(ZagFIFOok);
+    reset();
+    TELL_EM(ZagFIFOzeros);
+    for (ii=0; ii < high; ++ii) {
+	*tbus = 0;
+    }
+    t = *ctrl;				/* flush the write buffer */
+    wait_n_usecs(DELAY);		/* give it time to work */
+    for (ii=0; ii < high; ++ii) {
+	t = *tbus;			/* read the bit */
+	if ((ii==0 && TEST_FAILURE) || (t != 0)) {
+	    return report_error(zfifo, ii, 0, t);
+	}
+    }
+    SAY_OK(ZagFIFOok);
+    reset();
+    prc_set_ipl(oldipl);		/* reenable FIFO interrupts */
+    zfifo->hdr.status = 0;		/* it's ok */
+    zfifo->subtest = ZagFIFOok;		/* done with all tests and its ok */
+#else
+    int ii, actions, st;
+    ZagSAfifo lcl;
+# if TEST_FIFO_FAILURE
+    static int fail_mask;
+    if (fail_mask == 0) fail_mask = 1<<ZagFIFOinit;
+    if (fail_mask == (1<<ZagFIFOannounce)) fail_mask += fail_mask;
+    zfifo->flags = fail_mask;
+    fail_mask += fail_mask;
+    if (fail_mask > (1<<ZagFIFOmax)) fail_mask = 0;
+# endif
+    zfifo->subtest = 0;
+    zfifo->actions = 0;
+    zfifo->sequence = 1;
+    zfifo->hdr.command = ZMBSA_TEST_FIFO;
+    zfifo->hdr.status = 0;
+    zfifo->hdr.sentinel = ZMBSA_SENTINEL_GO;
+    memset((char *)&lcl, 0, sizeof(ZagSAfifo));
+    lcl.row = zfifo->row;
+    lcl.sequence = 1;
+    actions = ZagFIFOinit;
+    for (ii=0; ii<60*10; ++ii) {
+	prc_delay(0);
+	if (actions < ZagFIFOmax) {
+	    st = zfifo->actions;
+	    if ((st&(1<<actions))) {
+		lcl.size = zfifo->size;
+		lcl.highwater = zfifo->highwater;
+		lcl.lowater = zfifo->lowater;
+		lcl.hdr.status = 0;
+		if (actions > 1 && actions != ZagFIFOannounce+1) {
+		    lcl.subtest = ZagFIFOok;
+		    callback(&lcl);
+		}
+		lcl.subtest = actions;
+		callback(&lcl);
+		++actions;
+		if (actions > ZagFIFOmax) break;
+		continue;
+	    }
+	}
+	if (zfifo->hdr.sentinel == ZMBSA_SENTINEL_IDLE) break;
+    }	
+    zfifo->row = lcl.row;
+    zfifo->sequence = lcl.sequence;
+    if (zfifo->hdr.sentinel != ZMBSA_SENTINEL_IDLE) return 2;
+    if (zfifo->hdr.status == 0) {
+	zfifo->subtest = ZagFIFOok;
+    }
+    callback(zfifo);
+#endif
+    return zfifo->hdr.status;
+}
+@
+
+
+1.12
+log
+@Added ASIC flavor support.
+@
+text
+@d28 1
+a28 1
+    if (((*(VU32 *)(CTRL_BASE+4))&0x00B3) == 0xA0) return 1;
+d83 1
+a83 1
+    t = (is_asic ? (*ctrl >>= 8) : *ctrl) & 0x3F;
+d100 1
+a100 1
+	t = (is_asic ? (*ctrl >>= 8) : *ctrl) & 0x3F;	/* get counter */
+@
+
+
+1.11
+log
+@Changed the delay from 2 to 5 usecs.
+@
+text
+@d24 1
+a24 1
+static void reset() {
+d27 4
+d57 1
+a57 1
+    int ii, jj, high, low, oldipl;
+a65 1
+
+d71 1
+a71 1
+    reset();
+d83 1
+a83 1
+    t = *ctrl & 0x3F;
+d100 1
+a100 1
+	t = *ctrl&0x3F;		/* get counter bits */
+@
+
+
+1.10
+log
+@Added DIAG_MODE conditionals.
+@
+text
+@d5 1
+a5 1
+#define DELAY 2		/* microsecs to pause between transactions */
+@
+
+
+1.9
+log
+@Fixed it so it would report "ok" after test 2 and 3
+@
+text
+@d16 1
+a16 1
+#if HOST_BOARD == MB4600 || HOST_IS_MATHBOX
+d49 1
+a49 1
+#if HOST_BOARD == MB4600 || HOST_IS_MATHBOX
+d54 8
+@
+
+
+1.8
+log
+@Made local and proxy test work correctly.
+@
+text
+@d79 1
+d102 1
+a108 2
+    } else {
+	SAY_OK(ZagFIFOok);
+d110 1
+@
+
+
+1.7
+log
+@At exit, put the IPL back to what it was at entry.
+@
+text
+@a1 2
+#include <os_root.h>
+#include <nsprintf.h>
+d3 1
+d7 17
+d29 8
+a36 11
+#ifdef MNORMAL_PAL
+# define NORM_COLOR	MNORMAL_PAL
+#else
+# define NORM_COLOR	0
+#endif
+
+#ifdef GRN_PAL
+# define GOOD_COLOR	GRN_PAL
+#else
+# define GOOD_COLOR	0
+#endif
+d38 8
+a45 4
+#ifdef RED_PAL
+# define BAD_COLOR	RED_PAL
+#else
+# define BAD_COLOR	0
+d48 2
+a49 21
+static int report_error(
+    	void (*output)(int col, int row, const char *str, int color),	/* output routine */
+    	U32 addr,		/* failing address */
+    	U32 expect,		/* expected value */
+    	U32 found,		/* found value */
+    	int firstcol,		/* col to emit "nfg" message */
+    	int col,		/* col to emit the failure message */
+    	int row			/* row to emit the first message */
+    ) {
+    char emsg[132];
+
+    output(firstcol, row++, "nfg", BAD_COLOR);
+    nisprintf(emsg, sizeof(emsg), "At location 0x%05X, expected %08lX", addr, expect);
+    output(col, row++, emsg, NORM_COLOR);
+    nisprintf(emsg, sizeof(emsg), "                     found    %08lX", found);
+    output(col, row++, emsg, NORM_COLOR);
+    return 1;
+}
+    
+int zag_test_fifo(void (*output)(int col, int row, const char *str, int color), int colinc, int rowinc) {
+    char emsg[132];
+d53 1
+a53 1
+    int ii, jj, size, high, low, oldipl, row, col, len, tstnum=0;
+d55 2
+a56 2
+    row = 0;
+    col = 0;
+d59 1
+a59 2
+    len = nisprintf(emsg, sizeof(emsg), "Test %d: check reset conditions ...", tstnum++);
+    output(col, row, emsg, NORM_COLOR);
+d62 6
+a67 16
+    if ((t&((0x100<<FIFO_EMPTY_LVL)|(0x100<<FIFO_FULL_LVL))) != (0x100<<FIFO_EMPTY_LVL)) {
+	output(col+len, row, "nfg", BAD_COLOR);
+	row += rowinc;
+	len = nisprintf(emsg, sizeof(emsg), "Found FIFO empty %sasserted, FIFO full %sasserted",
+		    (t&(0x100<<FIFO_EMPTY_LVL)) ? "":"de-",
+		    (t&(0x100<<FIFO_FULL_LVL)) ? "":"de-");
+	output(col+colinc, row, emsg, BAD_COLOR);
+	row += rowinc;
+        if ((t&(0x100<<FIFO_EMPTY_LVL)) == 0) {
+	    output(col+colinc, row, "Expected FIFO empty to be asserted", BAD_COLOR);
+	    row += rowinc;
+	}
+	if ((t&(0x100<<FIFO_FULL_LVL)) != 0) {
+	    output(col+colinc, row, "Expected FIFO full to be de-asserted", BAD_COLOR);
+	    row += rowinc;
+	}
+d69 1
+a69 2
+	output(col+len, row, "ok", GOOD_COLOR);
+	row += rowinc;
+d71 1
+a71 2
+    len = nisprintf(emsg, sizeof(emsg), "Test %d: check counter bits ...", tstnum++);
+    output(col, row, emsg, NORM_COLOR);
+d73 4
+a76 6
+    if (t != 0) {
+	output(col+len, row, "nfg", BAD_COLOR);
+	row += rowinc;
+	nisprintf(emsg, sizeof(emsg), "After reset, found 0x%02X, expected 0x00", t);
+	output(col+colinc, row, emsg, BAD_COLOR);
+	row += rowinc;
+d79 1
+d89 4
+a92 9
+	if ((ii > 15 && (t&0x30) == 0) || (t&0xF) != (ii&0xF)) {
+	    output(col+len, row, "nfg", BAD_COLOR);
+	    row += rowinc;
+	    nisprintf(emsg, sizeof(emsg), "after %d stores, counter was 0x%02X, expected 0x*%X",
+	    	ii, t, ii&0xF);
+	    output(col+colinc, row, emsg, BAD_COLOR);
+	    row += rowinc;
+	    output(col+colinc, row, "where '*' can be a 1, 2 or 3", BAD_COLOR);
+	    row += rowinc;
+d101 6
+a106 5
+    if (high == 0) {
+	output(col+len, row, "nfg", BAD_COLOR);
+	row += rowinc;
+	output(col+colinc, row, "FIFO Full bit not asserted after 128k writes", BAD_COLOR);
+	row += rowinc;
+d108 1
+a108 2
+	output(col+len, row, "ok", GOOD_COLOR);
+	row += rowinc;
+d110 4
+a113 5
+    size = (ii+1023)&-1024;
+    nisprintf(emsg, sizeof(emsg), "Size=0x%X(%dk), hiwater=0x%X, lowwater=0x%X",
+    	size, size/1024, high, low);
+    output(col+colinc, row, emsg, NORM_COLOR);
+    row += rowinc;
+d115 1
+a115 2
+    len = nisprintf(emsg, sizeof(emsg), "Test %d: walk a 1 through the first 32 locations ...", tstnum++);
+    output(col, row, emsg, NORM_COLOR);
+d123 2
+a124 2
+	if (t != ii) {
+	    return report_error(output, jj, ii, t, col+len, col+colinc, row);
+d127 1
+a127 2
+    output(col+len, row, "ok", GOOD_COLOR);
+    row += rowinc;
+d129 1
+a129 2
+    len = nisprintf(emsg, sizeof(emsg), "Test %d: write address into location ...", tstnum++);
+    output(col, row, emsg, NORM_COLOR);
+d137 2
+a138 2
+	if (t != ii) {
+	    return report_error(output, ii, ii, t, col+len, col+colinc, row);
+d141 1
+a141 2
+    output(col+len, row, "ok", GOOD_COLOR);
+    row += rowinc;
+d143 1
+a143 2
+    len = nisprintf(emsg, sizeof(emsg), "Test %d: write compliment of address into location ...", tstnum++);
+    output(col, row, emsg, NORM_COLOR);
+d151 2
+a152 3
+	if (t != ~ii) {
+	    return report_error(output, ii, ~ii, t, col+len, col+colinc, row);
+	    return 1;
+d155 1
+a155 2
+    output(col+len, row, "ok", GOOD_COLOR);
+    row += rowinc;
+d157 1
+a157 2
+    len = nisprintf(emsg, sizeof(emsg), "Test %d: fill FIFO with all 1's ...", tstnum++);
+    output(col, row, emsg, NORM_COLOR);
+d165 2
+a166 2
+	if (t != 0xFFFFFFFF) {
+	    return report_error(output, ii, 0xFFFFFFFF, t, col+len, col+colinc, row);
+d169 1
+a169 2
+    output(col+len, row, "ok", GOOD_COLOR);
+    row += rowinc;
+d171 1
+a171 2
+    len = nisprintf(emsg, sizeof(emsg), "Test %d: fill FIFO with 0's ...", tstnum++);
+    output(col, row, emsg, NORM_COLOR);
+d179 2
+a180 2
+	if (t != 0) {
+	    return report_error(output, ii, 0, t, col+len, col+colinc, row);
+d183 1
+a183 2
+    output(col+len, row, "ok", GOOD_COLOR);
+    row += rowinc;
+d186 54
+a239 1
+    return 0;
+@
+
+
+1.6
+log
+@Added a color parameter to the output routine.
+@
+text
+@d218 1
+@
+
+
+1.5
+log
+@Made it check all the way to 128k rather than 128k-1.
+Added a rowinc to the function parameter list.
+@
+text
+@d13 18
+d32 1
+a32 1
+    	void (*output)(int col, int row, const char *str),	/* output routine */
+d41 2
+a42 1
+    output(firstcol, row++, "nfg");
+d44 1
+a44 1
+    output(col, row++, emsg);
+d46 1
+a46 1
+    output(col, row++, emsg);
+d50 1
+a50 1
+int zag_test_fifo(void (*output)(int col, int row, const char *str), int colinc, int rowinc) {
+d62 1
+a62 1
+    output(col, row, emsg);
+d66 1
+a66 1
+	output(col+len, row, "nfg");
+d71 1
+a71 1
+	output(col+colinc, row, emsg);
+d74 1
+a74 1
+	    output(col+colinc, row, "Expected FIFO empty to be asserted");
+d78 1
+a78 1
+	    output(col+colinc, row, "Expected FIFO full to be de-asserted");
+d82 1
+a82 1
+	output(col+len, row, "ok");
+d86 1
+a86 1
+    output(col, row, emsg);
+d89 1
+a89 1
+	output(col+len, row, "nfg");
+d92 1
+a92 1
+	output(col+colinc, row, emsg);
+d106 1
+a106 1
+	    output(col+len, row, "nfg");
+d110 1
+a110 1
+	    output(col+colinc, row, emsg);
+d112 1
+a112 1
+	    output(col+colinc, row, "where '*' can be a 1, 2 or 3");
+d123 1
+a123 1
+	output(col+len, row, "nfg");
+d125 1
+a125 1
+	output(col+colinc, row, "FIFO Full bit not asserted after 128k writes");
+d128 1
+a128 1
+	output(col+len, row, "ok");
+d134 1
+a134 1
+    output(col+colinc, row, emsg);
+d138 1
+a138 1
+    output(col, row, emsg);
+d150 1
+a150 1
+    output(col+len, row, "ok");
+d154 1
+a154 1
+    output(col, row, emsg);
+d166 1
+a166 1
+    output(col+len, row, "ok");
+d170 1
+a170 1
+    output(col, row, emsg);
+d183 1
+a183 1
+    output(col+len, row, "ok");
+d187 1
+a187 1
+    output(col, row, emsg);
+d199 1
+a199 1
+    output(col+len, row, "ok");
+d203 1
+a203 1
+    output(col, row, emsg);
+d215 1
+a215 1
+    output(col+len, row, "ok");
+@
+
+
+1.4
+log
+@Fixed the error display slightly.
+@
+text
+@d31 1
+a31 1
+int zag_test_fifo(void (*output)(int col, int row, const char *str), int colinc) {
+d47 2
+a48 1
+	output(col+len, row++, "nfg");
+d52 2
+a53 1
+	output(col+colinc, row++, emsg);
+d55 2
+a56 1
+	    output(col+colinc, row++, "Expected FIFO empty to be asserted");
+d59 2
+a60 1
+	    output(col+colinc, row++, "Expected FIFO full to be de-asserted");
+d63 2
+a64 1
+	output(col+len, row++, "ok");
+d70 2
+a71 1
+	output(col+len, row++, "nfg");
+d73 2
+a74 1
+	output(col+colinc, row++, emsg);
+d79 1
+a79 1
+    for (ii=1; ii < 128*1024; ++ii) {
+d87 2
+a88 1
+	    output(col+len, row++, "nfg");
+d91 4
+a94 2
+	    output(col+colinc, row++, emsg);
+	    output(col+colinc, row++, "where '*' can be a 1, 2 or 3");
+d103 9
+a112 1
+    output(col+len, row++, "ok");
+d115 2
+a116 1
+    output(col+colinc, row++, emsg);
+d131 2
+a132 1
+    output(col+len, row++, "ok");
+d147 2
+a148 1
+    output(col+len, row++, "ok");
+d164 2
+a165 1
+    output(col+len, row++, "ok");
+d180 2
+a181 1
+    output(col+len, row++, "ok");
+d196 2
+a197 1
+    output(col+len, row++, "ok");
+@
+
+
+1.3
+log
+@Renamed os_rootr4k.h to os_root.h
+@
+text
+@d24 1
+a24 1
+    nisprintf(emsg, sizeof(emsg), "At location 0x02X, expected %08lX", addr, expect);
+d26 1
+a26 1
+    nisprintf(emsg, sizeof(emsg), "                   found    %08lX", found);
+@
+
+
+1.2
+log
+@Changed text of some messages.
+@
+text
+@d2 1
+a2 1
+#include <os_rootr4k.h>
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d4 1
+d13 9
+a21 1
+int zag_test_fifo(void (*output)(int col, int row, const char *str)) {
+d23 10
+d39 1
+a39 1
+    col = 1;
+a41 2
+    output(col, row++, "Testing FIFO ...");
+    col += 4;
+d48 1
+a48 1
+	len = nisprintf(emsg, sizeof(emsg), "FIFO empty %sasserted, FIFO full %sasserted",
+d51 7
+a57 1
+	output(col+4, row++, emsg);
+d67 1
+a67 1
+	output(col+4, row++, emsg);
+d83 2
+a84 2
+	    output(col+4, row++, emsg);
+	    output(col+4, row++, "where '*' can be a 1, 2 or 3");
+d97 1
+a97 1
+    output(col+4, row++, emsg);
+d109 1
+a109 5
+	    output(col+len, row++, "nfg");
+	    nisprintf(emsg, sizeof(emsg), "At location 0x02X, expected to read %08lX, found %08lX",
+	    	jj, ii, t);
+	    output(col+4, row++, emsg);
+	    return 1;
+d124 1
+a124 5
+	    output(col+len, row++, "nfg");
+	    nisprintf(emsg, sizeof(emsg), "At location 0x%06X, expected to read %08lX, found %08lX",
+	    	ii, ii, t);
+	    output(col+4, row++, emsg);
+	    return 1;
+d139 1
+a139 4
+	    output(col+len, row++, "nfg");
+	    nisprintf(emsg, sizeof(emsg), "At location 0x%06X, expected to read %08lX, found %08lX",
+	    	ii, ~ii, t);
+	    output(col+4, row++, emsg);
+d155 1
+a155 5
+	    output(col+len, row++, "nfg");
+	    nisprintf(emsg, sizeof(emsg), "At location 0x%02X, expected to read %08lX, found %08lX",
+	    	jj, 0xFFFFFFFF, t);
+	    output(col+4, row++, emsg);
+	    return 1;
+d170 1
+a170 5
+	    output(col+len, row++, "nfg");
+	    nisprintf(emsg, sizeof(emsg), "At location 0x%06X, expected to read %08lX, found %08lX",
+	    	ii, 0, t);
+	    output(col+4, row++, emsg);
+	    return 1;
+@

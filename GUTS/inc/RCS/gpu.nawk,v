@@ -1,0 +1,33 @@
+head	1.1;
+access;
+symbols
+	CJ_206:1.1
+	CJ2_05:1.1
+	CJ2_04:1.1;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	95.06.26.23.42.02;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@nawk script used to extract symbols from GPU/DSP code
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@{
+	if (substr($2, 1, 1) == "_") {
+		$2 = substr($2, 2, length($2)-1);
+	}
+	printf "\t.globl %s\n%s = 0x%s\n", $2, $2, $1;
+}
+@

@@ -1,0 +1,120 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	96.07.17.03.21.29;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Makes a quick and dirty boot rom.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+
+U32 ctl_read_sw(U32 mask) { return 0; }
+U32 ctl_read_debug(U32 mask) { return 0; }
+U32 ctl_upd_sw(void) { return 0; }
+void prc_delay(int amt) { return; }
+void prc_delay0(void) { return; }
+U32 prc_delay_options(U32 opt) { return 0; }
+int prc_mod_latch(int ch) { return 0; }
+void prc_reboot(void) { while (1) { ; } }
+int txt_height(const char *msg, int set) { return 0; }
+int txt_width(const char *msg, int set) { return 0; }
+void txt_stamp(int col, int row, const int stamp, int pal) { return; }
+int txt_str(int col, int row, const char *msg, int pal) { return 0; }
+void txt_clr_str(int col, int row, const char *msg, int pal) { return; }
+void txt_clr_wid(int col, int row, int wid) { return; }
+int txt_cstr(const char *msg, int pal) { return 0; }
+int txt_decnum(int col, int row, U32 val, int wid, int form, int pal) { return 0; }
+int txt_hexnum(int col, int row, U32 val, int wid, int form, int pal) { return 0; }
+void txt_cdecnum(U32 val, int wid, int form, int pal) { return; }
+void txt_chexnum(U32 val, int wid, int form, int pal) { return; }
+U32 txt_setpos(U32 cookie) { return 0; }
+void vid_clear(void) { return; }
+int vid_fields(int new) { return 0; }
+void vid_init(void) { return; }
+U32 DoOptions(const unsigned char *menu, U32 curr, U32 bail) { return 0; }
+U32 factory_settings(const unsigned char *menu) { return 0; }
+void ExitInst(int pal) { return; }
+void SetANPal(int pal, U32 color) { return; }
+void setancolors(void) { return; }
+int st_frame(const struct menu_d *menu, int pal, int instr, int opt) { return 0; }
+int st_insn(int row, const char *act, const char *swt, int pal) { return 0; }
+int st_menu(const struct menu_d *menu, int size, int pal, int opt) { return 0; }
+void st_vblank(void) { return; }
+U32 *exception_handler(U32 *regs) { return regs; }
+
+VU32 eer_rtc;
+U32 ForceMoleToStop;
+void grBufferSwap(int val) { return; }
+void grBufferClear(void) { return; }
+void WaitForMole(void) { return; }
+void RestartMole(void) { return; }
+void sst_text2fb(int val) { return; }
+int pm_validate(void) { return 0; }
+
+extern U32 bss_end[];
+extern void boot_from_disk(U8*);
+extern void HDStart(void);
+extern int RdFile(const char *dir, const char *file, U32 max_len, U32 * dest);
+extern void gt64010_init(void);
+extern void wait_n_usecs(int);
+
+static void hdw_init(int coldflag) {
+    int ii;
+
+    wait_n_usecs(1000);
+
+    gt64010_init();                     /* init the PCI part of the Galileo */
+
+    *(VU32*)GALILEO_PCI_RETRY = 0xFF070F;	/* see what this does */
+
+/* Clipped from WMS's stdio.c */
+/* Make sure the PCI Endianess is is LITTLE */
+
+    ii = 10000;
+    do {
+        *(VU32*)GALILEO_PCI_CMD = 1;
+    } while ( !( (*(VU32 *)GALILEO_PCI_CMD) & 1) && --ii);
+
+    if (!ii) {
+	__asm__("BREAK");
+    }
+
+    *(VU32*)GALILEO_INT_CAUSE = 0;	/* clear any stuck interrupt causes */
+
+}
+
+void BootUp(void) {
+    int len;
+
+    /* Un-reset everything */
+    *(VU32*)RESET_CTL = (1<<B_RESET_EXP)|(1<<B_RESET_IOASIC)|(1<<B_RESET_IDE)|
+    			(1<<B_RESET_3DFX)|(1<<B_RESET_NSS)|(1<<B_RESET_WIDGET);
+
+    hdw_init(0);
+
+    HDStart();
+    len = (U32)(((U32)&len-3172) - (U32)bss_end);
+    RdFile("0:/CODE", "vmunix", len, bss_end);
+    boot_from_disk((U8*)bss_end);
+
+    return;
+}
+
+@

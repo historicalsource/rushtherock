@@ -1,0 +1,163 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	94.12.16.21.13.39;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@left-over System I configuartion hacks
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@*
+*	MACRO Definitions used by OS, in selftest, memory tests
+*
+*	Both Motorola and MAC68K style macros are supported
+*
+*
+*	Motorola style MACROS...
+*
+ IFNDEF MACRO_STYLE
+MACRO_STYLE EQU MACROS_MOTO
+ ENDC
+ IFEQ MACRO_STYLE-MACROS_MOTO
+
+WATCHDOG	MACRO
+		MOVE.W	D0,WDOG		;The way God intended watchdog to work
+		ENDM
+
+IFNEXT	MACRO
+	BTST	#B_START,START	;If start is pressed, branch
+	BEQ	\1
+	ENDM
+
+NOTNEXT	MACRO
+	BTST	#B_START,START	;If start is NOT pressed, branch
+	BNE	\1
+	ENDM
+
+IFTEST	MACRO
+	BTST	#B_TEST,TEST		;If test switch is on, branch
+	BEQ	\1
+	ENDM
+
+NOTTEST	MACRO
+	BTST	#B_TEST,TEST		;If test switch is NOT on, branch
+	BNE	\1
+	ENDM
+
+WFVBL	MACRO
+\@@	BTST	#B_VBL,VBLANK
+	BEQ.S	\@@
+	ENDM
+
+WFNVBL	MACRO
+\@@	BTST	#B_VBL,VBLANK
+	BNE.S	\@@
+	ENDM
+
+CALL4	MACRO
+	LEA	\@@(PC),A4
+	BRA	\1
+\@@
+	ENDM
+
+RET4	MACRO
+	JMP	(A4)
+	ENDM
+
+CALL6	MACRO
+	LEA	\@@(PC),A6
+	BRA	\1
+\@@
+	ENDM
+
+RET6	MACRO
+	JMP	(A6)
+	ENDM
+
+* RERROR now just returns to caller of subtest ([FQ]_RAM_TEST), leaving regs alone
+RERROR	MACRO
+	JMP	(A4)
+	ENDM
+
+ ENDC
+*
+*	MAC68k style MACROS...
+*
+ IFEQ MACRO_STYLE-MACROS_MAC68K
+
+	.MACRO	WATCHDOG
+	MOVE.W	D0,WDOG		;The way God intended watchdog to work
+	.ENDM
+
+	.MACRO	IFNEXT tgt
+	BTST	#B_START,START	;If start is pressed, branch
+	BEQ	tgt
+	.ENDM
+
+	.MACRO	NOTNEXT tgt
+	BTST	#B_START,START	;If start is NOT pressed, branch
+	BNE	tgt
+	.ENDM
+
+	.MACRO	IFTEST tgt
+	BTST	#B_TEST,TEST		;If test switch is on, branch
+	BEQ	tgt
+	.ENDM
+
+	.MACRO	NOTTEST tgt
+	BTST	#B_TEST,TEST		;If test switch is NOT on, branch
+	BNE	tgt
+	.ENDM
+
+	.MACRO	WFVBL ?lp
+lp:	WATCHDOG
+	BTST	#B_VBL,VBLANK
+	BEQ.S	lp
+	.ENDM
+
+	.MACRO	WFNVBL ?lp
+lp:	WATCHDOG
+	BTST	#B_VBL,VBLANK
+	BNE.S	lp
+	.ENDM
+
+	.MACRO	CALL4 tgt ?rr
+	LEA	rr(PC),A4
+	BRA	tgt
+rr:
+	.ENDM
+	.MACRO	RET4
+	JMP	(A4)
+	.ENDM
+
+	.MACRO	CALL6 tgt ?rr
+	LEA	rr(PC),A6
+	BRA	tgt
+rr:
+	.ENDM
+
+	.MACRO	RET6
+	JMP	(A6)
+	.ENDM
+
+* RERROR now just returns to caller of subtest ([FQ]_RAM_TEST), leaving regs alone
+	.MACRO	RERROR
+	JMP	(A4)
+	.ENDM
+
+ ENDC
+@

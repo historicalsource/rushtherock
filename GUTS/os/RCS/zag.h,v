@@ -1,0 +1,125 @@
+head	1.4;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	96.03.06.00.49.26;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.03.05.22.19.53;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.03.05.00.46.45;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.02.06.22.18.07;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Some definitions used by zag_test.c and zag_tbus.c
+@
+
+
+1.4
+log
+@Fixed typo in !HOST_IS_MATHBOX version.
+@
+text
+@#ifndef _ZAG_H_
+# define _ZAG_H_
+
+/* The following are the starting bit positions in the ZAG_OPT eerom record. */
+/* Each are two bits wide.						     */
+
+#define ZAG_OPTS_NONE		0
+#define ZAG_OPTS_2MB		1
+#define ZAG_OPTS_4MB		2
+#define ZAG_OPTS_Autosize	3
+#define ZAG_OPTS_MASK		3
+
+#define ZAG_OPTS_HOST		1
+#define ZAG_OPTS_ZMB		2
+
+#define ZAG_B_OPTS_DRAM		0x00	/* DRAM size (0=none, 1=2MB, 2=4MB, 3=autosize */
+#define ZAG_B_OPTS_ODRAM	0x02	/* Object DRAM size (0=none, 1=2MB, 2=4MB, 3=autosize */
+#define ZAG_B_OPTS_RR		0x04	/* RamRom size (0=none, 1=4MB, 2=8MB, 3=autosize */
+#define ZAG_B_OPTS_PDRAM	0x06	/* Proxy DRAM size (0=none, 1=2MB, 2=4MB, 3=autosize */
+#define ZAG_B_OPTS_PODRAM	0x08	/* Proxy Object DRAM size (0=none, 1=2MB, 2=4MB, 3=autosize */
+#define ZAG_B_OPTS_PRR		0x0A	/* Proxy RamROM size (0=none, 1=2MB, 2=4MB, 3=autosize */
+#define ZAG_B_OPTS_TEXT		0x0C	/* text display (0=none, 1=HOST, 2=Traps) */
+#define ZAG_B_OPTS_TESTALP	0x0E	/* test alphanumerics */
+#define ZAG_B_OPTS_CRC		0x0F	/* check CRC on selected frames in auto test */
+
+#if HOST_BOARD == HCR4K
+# define ZAG_LCL_OPTIONS	(\
+    (ZAG_OPTS_4MB<<ZAG_B_OPTS_DRAM)|\
+    (ZAG_OPTS_NONE<<ZAG_B_OPTS_ODRAM)|\
+    (ZAG_OPTS_2MB<<ZAG_B_OPTS_RR))
+#else
+# define ZAG_LCL_OPTIONS 0
+#endif
+
+#if !HOST_IS_MATHBOX
+# define ZAG_MB_OPTIONS	(\
+    (ZAG_OPTS_4MB<<ZAG_B_OPTS_PDRAM)|\
+    (ZAG_OPTS_NONE<<ZAG_B_OPTS_PODRAM))
+#else
+# define ZAG_MB_OPTIONS	0
+#endif
+
+#define ZAG_TXT_OPTIONS (ZAG_OPTS_ZMB<<ZAG_B_OPTS_TEXT)
+
+#ifndef ZAG_DEFAULT_OPTIONS
+# define ZAG_DEFAULT_OPTIONS (ZAG_TXT_OPTIONS|ZAG_LCL_OPTIONS|ZAG_MB_OPTIONS|(1<<ZAG_B_OPTS_CRC))
+#endif
+
+#endif
+
+@
+
+
+1.3
+log
+@Added CRC options.
+@
+text
+@d38 1
+a38 1
+    (ZAG_OPTS_NONE<<ZAG_B_OPTS_PODRAM)
+@
+
+
+1.2
+log
+@Added a couple new options.
+@
+text
+@d24 1
+d46 1
+a46 1
+# define ZAG_DEFAULT_OPTIONS (ZAG_TXT_OPTIONS|ZAG_LCL_OPTIONS|ZAG_MB_OPTIONS)
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d23 1
+d37 1
+a37 2
+    (ZAG_OPTS_NONE<<ZAG_B_OPTS_PODRAM)|\
+    (ZAG_OPTS_2MB<<ZAG_B_OPTS_PRR))
+@

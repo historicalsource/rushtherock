@@ -1,0 +1,3434 @@
+head	1.39;
+access;
+symbols
+	RUSH_ROCK_1_0:1.31
+	RUSH_ROCK_1_0epst:1.31
+	MACE_1_0e:1.22
+	MACE_1_0d:1.22
+	RUSH_1_06A:1.22
+	AREA_52_00:1.22
+	MACE_1_0a:1.22;
+locks; strict;
+comment	@ * @;
+
+
+1.39
+date	97.11.27.04.24.50;	author shepperd;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	97.11.25.21.32.09;	author shepperd;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	97.11.02.03.04.57;	author forrest;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	97.11.02.01.20.38;	author forrest;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	97.11.01.22.49.16;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	97.10.30.21.55.20;	author shepperd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	97.10.30.21.39.58;	author shepperd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	97.10.24.02.38.28;	author forrest;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	97.10.01.02.19.48;	author forrest;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	97.09.27.00.38.02;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	97.09.23.00.11.26;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	97.08.12.22.18.18;	author forrest;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	97.08.07.19.10.19;	author forrest;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	97.08.06.03.23.12;	author forrest;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	97.07.21.17.04.56;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	97.07.20.01.55.50;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	97.07.15.01.37.06;	author forrest;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	97.03.28.02.12.53;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	97.03.26.01.17.10;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	97.01.25.03.50.31;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	97.01.06.20.08.52;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.01.02.23.28.20;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.11.26.01.40.57;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.11.26.01.33.40;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.11.22.01.45.08;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.11.20.00.18.48;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.11.19.23.28.45;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.11.18.23.15.45;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.11.12.19.14.08;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.11.12.18.44.22;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.11.06.05.35.36;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.10.30.05.22.12;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.10.29.18.27.02;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.10.26.19.13.20;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.10.26.17.48.53;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.10.08.02.02.17;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.10.07.16.47.54;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.10.01.20.04.45;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.10.01.18.12.16;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@First cut at game QIO subsystem.
+@
+
+
+1.39
+log
+@Added a QIO_FIN_SHIM() macro at the end of every
+qio call so qio's can be used in synchronous mode.
+The macro defaults to a nothing statement.
+@
+text
+@/*
+ * $Id: qio.c,v 1.38 1997/11/25 21:32:09 shepperd Exp shepperd $
+ *
+ *		Copyright 1996,1997 Atari Games, Corp.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include "config.h"
+#include "os_proto.h"
+#include "phx_proto.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#define QIO_LOCAL_DEFINES 1
+#include "qio.h"
+
+#ifndef QIO_FIN_SHIM
+# define QIO_FIN_SHIM() do { ; } while (0)
+#endif
+
+#if defined(__GNUC__) && __GNUC__
+#ifndef inline
+# define inline __inline__
+#endif
+#else
+# define inline 
+#endif
+
+#ifndef n_elts
+# define n_elts(x) (sizeof(x)/sizeof(x[0]))
+#endif
+
+#ifndef QIO_GENERATION_MASK
+# define QIO_GENERATION_MASK (0xFFFF)	/* libc uses short to hold fd's, so we mask our use of it */
+#endif
+
+static U32 inx_mask;
+    
+#if HOST_BOARD
+
+#else		/* HOST_BOARD */
+
+#include <stdio.h>
+#include <time.h>
+#include <assert.h>
+#include <sys/stat.h>
+
+#endif		/* HOST_BOARD */
+
+static QioFile files[QIO_MAX_FILES];	/* A file descriptor indexes to one of these */
+static QioFile *files_freelist;
+
+static const QioDevice *device_table[QIO_MAX_DEVICES]; /* array of devices */
+static int num_devices;			/* number of entries in device_table */
+
+/************************************************************
+ * qio_complete - call user's completion routine.
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *
+ * At exit:
+ *	returns nothing. May have queued the user's completion
+ *	routine on the AST queue.
+ */
+void qio_complete(QioIOQ *ioq) {
+    int sts;
+    if (ioq->complete) {
+#if 0
+	if (prc_get_astlvl() >= 0) {	/* if we're already at AST level ... */
+	    ioq->complete(ioq);		/* just call the user's code immediately */
+	    return;			/* and we're done */
+	}
+#endif
+	ioq->aq.action = ioq->complete;	/* else we need to queue it up */
+	ioq->aq.param = (void *)ioq;
+	sts = prc_q_ast(QIO_ASTLVL, &ioq->aq);
+	if (!ioq->iostatus && sts) ioq->iostatus = sts;	/* couldn't queue it for some reason */
+    }
+    return;
+}
+
+static int null_readwpos(QioIOQ *ioq, off_t where, void *buf, long len) {
+    ioq->iostatus = QIO_EOF;
+    ioq->iocount = 0;
+    qio_complete(ioq);
+    return 0;
+}
+
+static int null_read(QioIOQ *ioq, void *buf, long len) {
+    return null_readwpos(ioq, 0, buf, len);
+}
+
+static int null_writewpos(QioIOQ *ioq, off_t where, const void *buf, long len) {
+    ioq->iostatus = FSYS_IO_SUCC|SEVERITY_INFO;
+    ioq->iocount = len;
+    qio_complete(ioq);
+    return 0;
+}
+
+static int null_write(QioIOQ *ioq, const void *buf, long len) {
+    return null_writewpos(ioq, 0, buf, len);
+}
+
+static int null_lseek(QioIOQ *ioq, off_t where, int whence) {
+    ioq->iostatus = FSYS_IO_SUCC|SEVERITY_INFO;
+    ioq->iocount = 0;
+    qio_complete(ioq);
+    return 0;
+}
+
+static int null_open(QioIOQ *ioq, const char *path) {
+    QioFile *file;
+    ioq->iostatus = FSYS_IO_SUCC|SEVERITY_INFO;
+    file = qio_fd2file(ioq->file);
+    file->private = 0;
+    file->pos = 0;
+    file->size = 0;
+    file->flags = 0;
+    file->next = 0;
+    ioq->iostatus = QIO_SUCC|SEVERITY_INFO;
+    qio_complete(ioq);
+    return 0;
+}
+
+static int null_fstat( QioIOQ *ioq, struct stat *stat ) {
+    ioq->iostatus = QIO_SUCC|SEVERITY_INFO;
+    ioq->iocount = 0;
+    stat->st_mode = S_IFCHR;
+    stat->st_size = 0;
+#if !WATCOM_LIBC
+    stat->st_blksize = 0;
+    stat->st_blocks = 0;
+#endif
+    qio_complete(ioq);
+    return 0;
+}
+
+static const QioFileOps null_fops = {
+    null_lseek,	/* a dummy lseek is allowed but it doesn't do anything */
+    null_read, 	/* FYI: read always returns EOF */
+    null_write,	/* FYI: writes always succeed without error */
+    0, 		/* ioctl not allowed on null device */
+    null_open,	/* use open on null device */
+    0,		/* use default close on null device */
+    0,		/* delete not allowed */
+    0,		/* fsync not allowed on null device */
+    0,		/* mkdir not allowed */
+    0,		/* rmdir not allowed */
+    0,		/* rename not allowed */
+    0,		/* truncate not allowed */
+    0,		/* statfs not allowed */
+    null_fstat,	/* fstat allowed */
+    0,		/* nothing to cancel on this device */
+    0,		/* cannot be a tty */
+    null_readwpos, /* read with built-in lseek */
+    null_writewpos /* write with built-in lseek */
+};
+
+static const QioDevice null_dvc = {
+    "null",				/* device name */
+    4,					/* length of name */
+    &null_fops,				/* list of operations allowed on this device */
+    0,					/* no mutex required for null device */
+    0,					/* unit 0 */
+};
+
+/************************************************************
+ * qio_fd2file - convert fd to pointer to QioFile
+ * 
+ * At entry:
+ *	fd - file descriptor
+ *
+ * At exit:
+ *	returns pointer to QioFile or 0 if error
+ */
+QioFile *qio_fd2file( int fd ) {
+    QioFile *file = files + ( fd & inx_mask );
+    if (file >= (files + n_elts(files))) return 0;
+    if ( file->gen == ( fd & ~inx_mask & QIO_GENERATION_MASK ) ) return file;
+    return 0;
+}
+
+/************************************************************
+ * qio_file2fd - convert pointer to QioFile to fd
+ * 
+ * At entry:
+ *	file - pointer to QioFile struct
+ *
+ * At exit:
+ *	returns fd or -1 if error
+ */
+int qio_file2fd( QioFile *file ) {
+    if (!file || file < files || file >= (files + n_elts(files))) return -1;
+    return (file - files) | file->gen;
+}
+
+/************************************************************
+ * qio_install_dvc - Add a new device to the device table
+ * 
+ * At entry:
+ *	dvc - pointer to new device 
+ *
+ * At exit:
+ *	device number installed or negative if failed to install
+ *	because no room or already installed.
+ */
+int qio_install_dvc(const QioDevice *dvc) {
+    const QioDevice **dp, *d, *sts;
+    int ii, oldipl;
+
+    dp = device_table;
+    sts = 0;
+    oldipl = prc_set_ipl(INTS_OFF);
+    for (ii=0; ii < num_devices; ++ii) {
+	d = *dp++;
+	if (strcmp(d->name, dvc->name) == 0) {
+	    prc_set_ipl(oldipl);
+	    return -QIO_ALREADY_INST;	/* already in the table */
+	}
+    }
+    if (num_devices >= QIO_MAX_DEVICES) {
+	prc_set_ipl(oldipl);
+	return -QIO_TOO_MANY_DVCS;
+    }
+    *dp = dvc;
+    ++num_devices;
+    prc_set_ipl(oldipl);
+    return ii;
+}
+
+#ifndef QIO_IOQ_BATCH
+# define QIO_IOQ_BATCH	16
+#endif
+
+static QioIOQ *ioq_pool_head;
+#if defined(DEBUG_MALLOC) && DEBUG_MALLOC
+static int num_ioqs;
+#endif
+
+QioIOQ *qio_getioq_ptr(QioIOQ **head, int size) {
+    int oldipl, ii;
+    QioIOQ *q;
+
+    oldipl = prc_set_ipl(INTS_OFF); /* this cannot be interrupted */
+    q = *head;			/* get next item */
+    if (!q) {			/* need to get more ioq's */
+	QioIOQ *new;
+	prc_set_ipl(oldipl);	/* interrupts are ok now */
+	new = QIOcalloc(QIO_IOQ_BATCH, size);
+	if (!new) {
+	    return 0;		/* no more */
+	}
+	for (q=new, ii=0; ii < QIO_IOQ_BATCH-1; ++ii) {
+	    QioIOQ *prev;
+	    q->owner = head;
+	    prev = q;
+	    q = (QioIOQ *)((char *)q + size);
+	    prev->next = q;
+	}
+	q->owner = head;
+	prc_set_ipl(INTS_OFF);	/* interrupts not allowed for the following */
+	q->next = *head;
+	q = new;
+    }
+    *head = q->next;
+    prc_set_ipl(oldipl);	/* interrupts ok again */
+    memset((void *)q, 0, size);	/* zap everything in ioq */
+    q->owner = head;		/* reset the owner field */
+    q->file = -1;		/* assume FD is nfg */
+    return q;
+}
+
+/************************************************************
+ * qio_getioq - Get a QioIOQ from the system's QIO queue pool
+ * 
+ * At entry:
+ *	no requirements
+ *
+ * At exit:
+ *	returns pointer to queue or 0 if none available.
+ */
+QioIOQ *qio_getioq(void) {
+#if defined(DEBUG_MALLOC) && DEBUG_MALLOC
+    ++num_ioqs;
+#endif
+    return qio_getioq_ptr(&ioq_pool_head, sizeof(QioIOQ));
+}
+
+int qio_freeioq_ptr(QioIOQ *que, QioIOQ **head) {
+    int oldipl;
+
+    if (!que || !head) return 1;
+    if (que->owner != head) return 1;
+    que->head = head;
+    oldipl = prc_set_ipl(INTS_OFF); /* this cannot be interrupted */
+    que->next = *head;
+    *head = que;
+    prc_set_ipl(oldipl);
+    return 0;
+}
+
+/************************************************************
+ * qio_freeioq - Free a QioIOQ as obtained from a previous
+ * call to qio_getioq().
+ * 
+ * At entry:
+ *	que - pointer to queue element to put back in pool.
+ *
+ * At exit:
+ *	0 if success or 1 if queue didn't belong to pool.
+ */
+int qio_freeioq(QioIOQ *que) {
+#if defined(DEBUG_MALLOC) && DEBUG_MALLOC
+    --num_ioqs;
+#endif
+    return qio_freeioq_ptr(que, &ioq_pool_head);
+}
+
+/************************************************************
+ * qio_getfile - Get a free QioFile from the system's pool
+ * 
+ * At entry:
+ *	No requirements.
+ *
+ * At exit:
+ *	returns pointer to QioFile or 0 if none available.
+ */
+static QioFile *qio_getfile(void) {
+    int oldipl;
+    QioFile *f;
+
+    oldipl = prc_set_ipl(INTS_OFF); /* this cannot be interrupted */
+    f = files_freelist;		/* get next item */
+    if (f) {
+	files_freelist = f->next;
+	f->next = 0;		/* take this guy from queue */
+    }
+    prc_set_ipl(oldipl);
+    return f;
+}
+
+/************************************************************
+ * qio_freefile - Put an unused QioFile back into the system's pool
+ * 
+ * At entry:
+ *	file - pointer to QioFile which to free
+ *
+ * At exit:
+ *	returns 0 if success or 1 if failure.
+ */
+int qio_freefile(QioFile *file) {
+    int oldipl, pos, cnt;
+    QioFile **prev, *f;
+
+    if (file < files || file > files+QIO_MAX_FILES) return 1;
+    if (file->next) return 1;
+    file->gen = (file->gen + 1 + inx_mask) & QIO_GENERATION_MASK;
+    prev = &files_freelist;
+    pos = file - files;
+    oldipl = prc_set_ipl(INTS_OFF); /* this should not be interrupted */
+    cnt = 0;
+    while ((f = *prev)) {
+	if (f-files > pos) {
+	    file->next = f;
+	    *prev = file;
+	    prc_set_ipl(oldipl);
+	    return 0;
+	}
+	if (++cnt >= QIO_MAX_FILES) {	/* prevent runaway loops with ints off */
+	    prc_set_ipl(oldipl);
+	    return 1;
+	}
+	prev = &f->next;
+    }
+    *prev = file;
+    prc_set_ipl(oldipl);
+    return 0;
+}
+
+/***********************************************************************
+ * qio_init - Initialize the QIO data structs. To be called once during
+ * boot sequence.
+ * 
+ * At entry:
+ *	No requirements.
+ *
+ * At exit:
+ *	Returns 0 for success or QIO_xxx if error.
+ */
+int qio_init(void) {
+    int ii;
+    QioFile *file;
+    QioIOQ *ioq;
+
+    inx_mask = -1;
+    while ( inx_mask & QIO_MAX_FILES ) inx_mask <<= 1;
+    inx_mask = ~inx_mask;
+
+    files_freelist = file = files;
+    for (ii=0; ii < QIO_MAX_FILES-1; ++ii, ++file) file->next = file+1;
+
+    qio_install_dvc(&null_dvc);		/* install the null device */
+    ioq = qio_getioq();
+    ioq->complete = 0;		/* no completion required for this */
+    ioq->timeout = 0;		/* no timeout required either */
+    qio_open(ioq, "/null", O_RDONLY);	/* stdin to FD 0 */
+    qio_open(ioq, "/null", O_WRONLY);	/* stdout to FD 1 */
+    qio_open(ioq, "/null", O_WRONLY);	/* stderr to FD 2 */
+    qio_freeioq(ioq);
+    return 0;
+}
+
+/************************************************************
+ * qio_lookupdvc - Get a pointer to device
+ * 
+ * At entry:
+ *	name - pointer to null terminated string with device name
+ *
+ * At exit:
+ *	Returns pointer to QioDevice if one is found or 0 if not.
+ */
+
+const QioDevice *qio_lookupdvc(const char *name) {
+    int ii, len;
+    const QioDevice **dvc, *d;
+
+    if (name && *name == QIO_FNAME_SEPARATOR) {
+	++name;
+	len = strlen(name);
+	dvc = device_table;
+	for (ii=0; ii < QIO_MAX_DEVICES; ++ii) {
+	    d = *dvc++;
+	    if (!d) continue;
+	    if (len < d->name_len) continue;
+	    if (strncmp(name, d->name, d->name_len) == 0) {
+		if (len > d->name_len && name[d->name_len] != QIO_FNAME_SEPARATOR) continue;
+		return d;
+	    }
+	}
+    }
+    return 0;
+}
+
+/************************************************************
+ * qio_fstat - stat a file or device
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct (ioq->file must be open)
+ *	stat - pointer to struct stat into which the stats are to
+ *		be placed.
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when stat completes.
+ *	non-zero if unable to queue the stat and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_fstat(QioIOQ *ioq, struct stat *stat) {
+    const QioDevice *dvc;
+    QioFile *file;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;		/* must have an ioq ptr */
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    if (!stat) return (ioq->iostatus = QIO_INVARG); /* must have a param */
+    memset((void *)stat, 0, sizeof(struct stat));
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    dvc = file->dvc;
+    if (!dvc->fio_ops->fstat) return (ioq->iostatus = QIO_NOTSUPP);
+    ioq->iostatus = 0;
+    sts = (dvc->fio_ops->fstat)(ioq, stat);
+    QIO_FIN_SHIM();				/* allow for I/O shim */
+    return sts;
+}
+
+/****************************************************************
+ * qio_readwpos - read bytes from file after positioning to where
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	where - position of place in file to begin reading
+ *	buf - pointer to buffer into which to read
+ *	len - number of bytes to read
+ * 
+ * This function is equivalent to a
+ *	qio_lseek(ioq, where, SEEK_SET) followed by a
+ *	qio_read(ioq, buf, len);
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	returns 0 if success or non-zero if error
+ */
+int qio_readwpos(QioIOQ *ioq, off_t where, void *buf, long len) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    if (!buf) return (ioq->iostatus = QIO_INVARG);
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    if (!(file->mode&_FREAD)) return (ioq->iostatus = QIO_NOT_ORD); /* not open for read */
+    ops = file->dvc->fio_ops;
+    if (!ops->readwpos) return (ioq->iostatus = QIO_NOTSUPP);
+    ioq->iostatus = 0;				/* assume we're to queue */
+    sts = (ops->readwpos)(ioq, where, buf, len);
+    QIO_FIN_SHIM();				/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_read - read bytes from file
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	buf - pointer to buffer into which to read
+ *	len - number of bytes to read
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when read completes.
+ *	non-zero if unable to queue the read and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_read(QioIOQ *ioq, void *buf, long len) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    if (!buf) return (ioq->iostatus = QIO_INVARG);
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    if (!(file->mode&_FREAD)) return (ioq->iostatus = QIO_NOT_ORD); /* not open for read */
+    ops = file->dvc->fio_ops;
+    if (!ops->read) return (ioq->iostatus = QIO_NOTSUPP);
+    ioq->iostatus = 0;		/* assume we're to queue */
+    sts = (ops->read)(ioq, buf, len);
+    QIO_FIN_SHIM();				/* allow for I/O shim */
+    return sts;
+}
+
+/****************************************************************
+ * qio_writewpos - write bytes to file after position to 'where'
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	where - position in file/device to start writing
+ *	buf - pointer to buffer which to write
+ *	len - number of bytes to write
+ * 
+ * This function is equivalent to a
+ *	qio_lseek(ioq, where, SEEK_SET) followed by a
+ *	qio_write(ioq, buf, len);
+ *
+ * NOTE: the following members in the ioq must have already been
+ *	set before calling this function:
+ *	ioq->file - must be a valid file descriptor
+ *	ioq->complete - if completion required else 0
+ *	ioq->user (and/or ioq->user2) - if ioq->complete also set
+ *	ioq->timeout - if a timeout (in microseconds) is desired else 0
+ *	(other members are don't cares).
+ *
+ * At exit:
+ *	returns 0 if success or non-zero if error
+ */
+int qio_writewpos(QioIOQ *ioq, off_t where, const void *buf, long len) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    if (!buf) return (ioq->iostatus = QIO_INVARG);
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    if (!(file->mode&_FWRITE)) return (ioq->iostatus = QIO_NOT_OWR); /* not open for write */
+    ops = file->dvc->fio_ops;
+    if (!ops->writewpos) return (ioq->iostatus = QIO_NOTSUPP);
+    ioq->iostatus = 0;
+    sts = (ops->writewpos)(ioq, where, buf, len);
+    QIO_FIN_SHIM();				/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_write - write bytes to file
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	buf - pointer to buffer which to write
+ *	len - number of bytes to write
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when read completes.
+ *	non-zero if unable to queue the read and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_write(QioIOQ *ioq, const void *buf, long len) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    if (!buf) return (ioq->iostatus = QIO_INVARG);
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    if (!(file->mode&_FWRITE)) return (ioq->iostatus = QIO_NOT_OWR); /* not open for write */
+    ops = file->dvc->fio_ops;
+    if (!ops->write) return (ioq->iostatus = QIO_NOTSUPP);
+    ioq->iostatus = 0;
+    sts = (ops->write)(ioq, buf, len);
+    QIO_FIN_SHIM();				/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_open - Open a device or file
+ * 
+ * At entry:
+ *	que - a pointer to a QioIOQ struct
+ *	path - pointer to a null terminated string with dvc/path/name.
+ *	mode - the logical 'or' of one or more of the O_xxx flags found
+ *		in fcntl.h
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when open completes.
+ *	non-zero if unable to queue the open and completion routne
+ *	will _not_ be called in that case.
+ *	The file member of ioq will contain the FD of the newly
+ *	opened file or -1 if the open failed.
+ */
+int qio_open(QioIOQ *ioq, const char *path, int mode) {
+    const QioFileOps *fops;
+    const QioDevice *dvc;
+    QioFile *file;
+    int fake = 0, sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->file = -1;			/* assume failure */
+    ioq->iocount = 0;			/* just on general principle */
+    if (!path) return (ioq->iostatus = QIO_INVARG);
+    dvc = qio_lookupdvc(path);
+    if (!dvc) {				/* name not in device table */
+	dvc = qio_lookupdvc("/d0");	/* assume open to filesystem on drive 0 */
+	fake = 1;
+    }
+    if (!dvc) return (ioq->iostatus = QIO_NSD);
+    fake = fake ? 0 : dvc->name_len + 1;
+    fops = dvc->fio_ops;
+    if (!fops || !fops->open) return (ioq->iostatus = QIO_NOTSUPP);
+    file = qio_getfile();		/* get a free file */
+    if (!file) return (ioq->iostatus = QIO_NOFILE); /* ran out of files */
+    file->private = 0;			/* no special */
+    file->dvc = dvc;			/* remember which device we're talking to */
+    file->mode = mode+1;		/* remember I/O mode */
+    ioq->file = qio_file2fd(file);
+    ioq->iostatus = 0;
+    sts = (fops->open)(ioq, path+fake);
+    QIO_FIN_SHIM();				/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_delete - delete a file
+ * 
+ * At entry:
+ *	que - a pointer to a QioIOQ struct
+ *	path - pointer to a null terminated string with dvc/path/name.
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when open completes.
+ *	non-zero if unable to queue the open and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_delete(QioIOQ *ioq, const char *path) {
+    const QioFileOps *fops;
+    const QioDevice *dvc;
+    QioFile *file;
+    int fake = 0, sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->file = -1;			/* assume failure */
+    ioq->iocount = 0;			/* just on general principle */
+    if (!path) return (ioq->iostatus = QIO_INVARG);
+    dvc = qio_lookupdvc(path);
+    if (!dvc) {				/* name not in device table */
+	dvc = qio_lookupdvc("/d0");	/* assume open to filesystem on drive 0 */
+	fake = 1;
+    }
+    if (!dvc) return (ioq->iostatus = QIO_NSD);
+    fake = fake ? 0 : dvc->name_len + 1;
+    fops = dvc->fio_ops;
+    if (!fops || !fops->delete) return (ioq->iostatus = QIO_NOTSUPP);
+    file = qio_getfile();		/* get a free file */
+    if (!file) return (ioq->iostatus = QIO_NOFILE); /* ran out of files */
+    file->private = 0;			/* no special */
+    file->dvc = dvc;			/* remember which device we're talking to */
+    ioq->file = qio_file2fd(file);
+    ioq->iostatus = 0;
+    sts = (fops->delete)(ioq, path+fake);
+    QIO_FIN_SHIM();				/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_rename - rename a file
+ * 
+ * At entry:
+ *	que - a pointer to a QioIOQ struct
+ *	source - pointer to a null terminated string with src dvc/path/name.
+ *	dest - pointer to a null terminated string with dst dvc/path/name.
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when open completes.
+ *	non-zero if unable to queue the open and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_rename(QioIOQ *ioq, const char *source, const char *dest) {
+    const QioFileOps *fops;
+    const QioDevice *dvcs, *dvcd;
+    QioFile *file;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->file = -1;			/* assume failure */
+    ioq->iocount = 0;			/* just on general principle */
+    if (!source || !*source || !dest || !*dest) return (ioq->iostatus = QIO_INVARG);
+    dvcs = qio_lookupdvc(source);
+    if (!dvcs) return (ioq->iostatus = QIO_NSD);
+    dvcd = qio_lookupdvc(dest);
+    if (!dvcd) return (ioq->iostatus = QIO_NSD);
+    if (dvcs != dvcd) return (ioq->iostatus = QIO_NOTSAMEDVC);
+    fops = dvcs->fio_ops;
+    if (!fops || !fops->rename) return (ioq->iostatus = QIO_NOTSUPP);
+    file = qio_getfile();		/* get a free file */
+    if (!file) return (ioq->iostatus = QIO_NOFILE); /* ran out of files */
+    file->private = 0;			/* no special */
+    file->dvc = dvcs;			/* remember which device we're talking to */
+    ioq->file = qio_file2fd(file);
+    ioq->iostatus = 0;
+    sts = (fops->rename)(ioq, source+dvcs->name_len+1, dest+dvcs->name_len+1);
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_openspc - Open a device or file with special parameters
+ * 
+ * At entry:
+ *	que - a pointer to a QioIOQ struct
+ *	spc - pointer to a QioOpenSpc struct which may be defined
+ *		differently depending on the device which is being opened.
+ *		The first two members of the struct _MUST_ be path and
+ *		mode respectively.
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when open completes.
+ *	non-zero if unable to queue the open and completion routne
+ *	will _not_ be called in that case.
+ *	The file member of ioq will contain the FD of the newly
+ *	opened file or -1 if the open failed.
+ */
+int qio_openspc(QioIOQ *ioq, QioOpenSpc *spc) {
+    const QioFileOps *fops;
+    const char *path;
+    const QioDevice *dvc;
+    QioFile *file;
+    int fake = 0, sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->file = -1;			/* assume failure */
+    ioq->iocount = 0;			/* general principle */
+    if (!spc) return (ioq->iostatus = QIO_INVARG);
+    path = spc->path;
+    if (!path) return (ioq->iostatus = QIO_INVARG);
+    dvc = qio_lookupdvc(path);
+    if (!dvc) {				/* name not in device table */
+	dvc = qio_lookupdvc("/d0");	/* assume open to filesystem on drive 0 */
+	fake = 1;
+    }
+    if (!dvc) return (ioq->iostatus = QIO_NSD);
+    fake = fake ? 0 : dvc->name_len + 1;
+    fops = dvc->fio_ops;
+    if (!fops || !fops->open) return (ioq->iostatus = QIO_NOTSUPP);
+    file = qio_getfile();		/* get a free file */
+    if (!file) return (ioq->iostatus = QIO_NOFILE); /* ran out of files */
+    file->private = spc;		/* remember ptr to user's special if any */
+    file->dvc = dvc;			/* remember which device we're talking to */
+    file->mode = spc->mode+1;
+    ioq->file = qio_file2fd(file);
+    ioq->iostatus = 0;
+    sts = (fops->open)(ioq, path+fake);
+    QIO_FIN_SHIM();				/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_ioctl - issue an ioctl to specified file
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	cmd - command argument
+ *	arg - argument defined by command and device
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when close completes.
+ *	non-zero if unable to queue the close and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_ioctl(QioIOQ *ioq, unsigned int cmd, void *arg) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    ops = file->dvc->fio_ops;
+    ioq->iostatus = 0;
+    if (!ops->ioctl) return (ioq->iostatus = QIO_NOTSUPP);
+    sts = (ops->ioctl)(ioq, cmd, arg); /* call driver's ioctl routine */
+    QIO_FIN_SHIM();				/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_close - close a file
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when close completes.
+ *	non-zero if unable to queue the close and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_close(QioIOQ *ioq) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    ops = file->dvc->fio_ops;
+    ioq->iostatus = 0;
+    if (ops->close) {
+	sts = (ops->close)(ioq); /* call driver's close routine */
+	QIO_FIN_SHIM();		/* allow for I/O shim */
+	return sts;
+    }
+    file->dvc = 0;		/* use the default close */
+    ioq->file = -1;		/* tell 'em fd is no good anymore */
+    qio_freefile(file);	/* put file back on freelist */
+    ioq->iostatus = QIO_SUCC|SEVERITY_INFO;
+    qio_complete(ioq);	/* call his completion routine */
+    QIO_FIN_SHIM();	/* allow for I/O shim */
+    return 0;
+}
+
+/************************************************************
+ * qio_isatty - check if device is a tty
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when close completes.
+ *	non-zero if unable to queue the close and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_isatty(QioIOQ *ioq) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    ops = file->dvc->fio_ops;
+    ioq->iostatus = 0;
+    if (!ops->isatty) return (ioq->iostatus = QIO_NOTSUPP);
+    sts = (ops->isatty)(ioq);		/* call driver's isatty routine */
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_lseek - seek a file to a specific position
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	where - new position
+ *	whence - one of SEEK_SET, SEEK_END or SEEK_CUR (as defined
+ *		in <unistd.h>
+ *
+ * At exit:
+ *	0 if successfully queued, although it normally does not
+ *	require that any queuing take place. iostatus contains
+ *	error code if any and iocount contains the new position.
+ */
+int qio_lseek(QioIOQ *ioq, off_t where, int whence ) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    ops = file->dvc->fio_ops;
+    ioq->iostatus = 0;
+    if (!ops->lseek) return QIO_NOTSUPP;	/* function is not supported by that driver */
+    sts = (ops->lseek)(ioq, where, whence);	/* call driver's close routine */
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;    
+}
+
+/************************************************************
+ * qio_mkdir - make a directory 
+ * 
+ * At entry:
+ *	que - a pointer to a QioIOQ struct
+ *	arg - pointer to null terminated string with dvc/path/dirname
+ *	mode - not used at this time.
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when open completes.
+ *	non-zero if unable to queue the open and completion routne
+ *	will _not_ be called in that case.
+ *	The file member of ioq will be set to -1 in any case.
+ */
+int qio_mkdir(QioIOQ *ioq, const char *name, int mode) {
+    const QioFileOps *fops;
+    const QioDevice *dvc;
+    QioFile *file;
+    int fake = 0, sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->file = -1;			/* assume failure */
+    ioq->iocount = 0;
+    if (!name || *name == 0) return (ioq->iostatus = QIO_INVARG);
+    dvc = qio_lookupdvc(name);
+    if (!dvc) {				/* name not in device table */
+	dvc = qio_lookupdvc("/d0");	/* try filesystem on drive 0 */
+	fake = 1;
+    }
+    if (!dvc) return (ioq->iostatus = QIO_NSD);
+    fake = fake ? 0 : dvc->name_len + 1;
+    fops = dvc->fio_ops;
+    if (!fops || !fops->mkdir) return (ioq->iostatus = QIO_NOTSUPP);
+    file = qio_getfile();		/* get a free file */
+    if (!file) return (ioq->iostatus = QIO_NOFILE); /* ran out of files */
+    file->dvc = dvc;			/* remember which device we're talking to */
+    ioq->file = qio_file2fd(file);
+    ioq->iostatus = 0;
+    sts = (fops->mkdir)(ioq, name+fake, mode);
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;    
+}
+
+/************************************************************
+ * qio_fsync - sync a filesystem
+ * 
+ * At entry:
+ *	que - a pointer to a QioIOQ struct
+ *	arg - pointer to null terminated string with dvc/path/dirname
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when fsync completes.
+ *	non-zero if unable to queue the fsync open and completion routne
+ *	will _not_ be called in that case.
+ *	The file member of ioq will be set to -1 in any case.
+ */
+int qio_fsync(QioIOQ *ioq, const char *name) {
+    const QioFileOps *fops;
+    const QioDevice *dvc;
+    QioFile *file;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->file = -1;			/* assume failure */
+    ioq->iocount = 0;
+    if (!name || *name == 0) return (ioq->iostatus = QIO_INVARG);
+    dvc = qio_lookupdvc(name);
+    if (!dvc) {				/* name not in device table */
+	dvc = qio_lookupdvc("/d0");	/* try filesystem on drive 0 */
+    }
+    if (!dvc) return (ioq->iostatus = QIO_NSD);
+    fops = dvc->fio_ops;
+    if (!fops || !fops->fsync) return (ioq->iostatus = QIO_NOTSUPP);
+    file = qio_getfile();		/* get a free file */
+    if (!file) return (ioq->iostatus = QIO_NOFILE); /* ran out of file descriptors */
+    file->dvc = dvc;			/* remember which device we're talking to */
+    ioq->file = qio_file2fd(file);
+    ioq->iostatus = 0;
+    sts = (fops->fsync)(ioq);
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_opendir - Open a directory 
+ * 
+ * At entry:
+ *	que - a pointer to a QioIOQ struct
+ *	dirp - pointer to pointer to type DIR (as defined in fsys.h for fsys directories)
+ *	path - pointer to a null terminated string with dvc/path/name.
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when open completes.
+ *	non-zero if unable to queue the open and completion routne
+ *	will _not_ be called in that case.
+ *	A pointer to a kernel provided struct (DIR in the case of fsys files)
+ *	will have been placed into the location pointed to by the dirp parameter
+ *	or 0 if an error prevented the open.
+ */
+int qio_opendir(QioIOQ *ioq, void **dirp, const char *path) {
+    const QioFileOps *fops;
+    const QioDevice *dvc;
+    int fake = 0, sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;			/* just on general principle */
+    if (!dirp) return (ioq->iostatus = QIO_INVARG);
+    *dirp = 0;				/* assume failure */
+    if (!path) return (ioq->iostatus = QIO_INVARG);
+    dvc = qio_lookupdvc(path);
+    if (!dvc) {				/* name not in device table */
+	dvc = qio_lookupdvc("/d0");	/* assume open to filesystem on drive 0 */
+	fake = 1;
+    }
+    if (!dvc) return (ioq->iostatus = QIO_NSD);
+    fake = fake ? 0 : dvc->name_len + 1;
+    fops = dvc->fio_ops;
+    if (!fops || !fops->opendir) return (ioq->iostatus = QIO_NOTSUPP);
+    ioq->iostatus = 0;
+    ioq->private = (void *)dvc;
+    sts = (fops->opendir)(ioq, dirp, path+fake);
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_readdir - read a directory entry.
+ * 
+ * At entry:
+ *	que - a pointer to a QioIOQ struct
+ *	dirp - pointer to pointer to type DIR (as defined in fsys.h for fsys directories)
+ *	path - pointer to a type 'struct direct' into which the results will be placed.
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when open completes.
+ *	non-zero if unable to queue the open and completion routne
+ *	will _not_ be called in that case.
+ */
+int qio_readdir(QioIOQ *ioq, void *dirp, void *direct) {
+    const QioDevice *dvc;
+    const QioFileOps *fops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;			/* just on general principle */
+    if (!dirp) return (ioq->iostatus = QIO_INVARG);
+    if (!(dvc=(const QioDevice *)ioq->private)) return (ioq->iostatus = QIO_NOTOPEN);
+    fops = dvc->fio_ops;
+    if (!fops || !fops->readdir) return (ioq->iostatus = QIO_NOTSUPP);
+    sts = fops->readdir(ioq, dirp, direct);
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;
+}
+
+int qio_rewdir(QioIOQ *ioq, void *dirp) {
+    const QioDevice *dvc;
+    const QioFileOps *fops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    if (!dirp) return (ioq->iostatus = QIO_INVARG);
+    if (!(dvc = (const QioDevice *)ioq->private)) return (ioq->iostatus = QIO_NOTOPEN);
+    fops = dvc->fio_ops;
+    if (!fops || !fops->rewdir) return (ioq->iostatus = QIO_NOTSUPP);
+    sts = fops->rewdir(ioq, dirp);
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;
+}
+
+int qio_closedir(QioIOQ *ioq, void *dirp) {
+    const QioDevice *dvc;
+    const QioFileOps *fops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;			/* just on general principle */
+    if (!dirp) return (ioq->iostatus = QIO_INVARG);
+    if (!(dvc = (const QioDevice *)ioq->private)) return (ioq->iostatus = QIO_NOTOPEN);
+    fops = dvc->fio_ops;
+    if (!fops || !fops->closedir) return (ioq->iostatus = QIO_NOTSUPP);
+    sts = fops->closedir(ioq, dirp);
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;
+}
+
+int qio_seekdir(QioIOQ *ioq, void *dirp, long loc) {
+    if (!ioq) return QIO_INVARG;
+    if (!dirp) return (ioq->iostatus = QIO_INVARG);
+    return (ioq->iostatus = QIO_NOTSUPP);
+}
+
+int qio_telldir(QioIOQ *ioq, void *dirp) {
+    if (!ioq) return QIO_INVARG;
+    if (!dirp) return (ioq->iostatus = QIO_INVARG);
+    return (ioq->iostatus = QIO_NOTSUPP);
+}
+
+/************************************************************
+ * qio_getmutex - get mutex and switch to AST level.
+ * 
+ * At entry:
+ *	mutex - pointer to mutex struct
+ *	func - ptr to AST function
+ *	arg - argument to pa
+ *
+ * At exit:
+ *	returns 0 if success or one of QIO_MUTEX_xxx if not.
+ *
+ * The function is queued at the specified AST level. If the mutex is
+ * busy, the function is put on a wait queue and will be queued
+ * when the mutex is free'd.
+ */
+int qio_getmutex(QioMutex *mutex, void (*func)(QioIOQ *), QioIOQ *ioq) {
+    int oldipl, sts;
+    struct act_q *q;
+        
+    if (!mutex || !func || !ioq) return QIO_MUTEX_INVARG;
+    q = &ioq->aq;
+    q->que = q->next = 0;		/* ready this for execution */
+    q->action = func;			/* remember caller's function */
+    q->param = (void *)ioq;		/* and ptr to QioIOQ */
+    oldipl = prc_set_ipl(INTS_OFF);	/* stop all activity */
+    if (!mutex->current) {		/* if the mutex is available */
+	mutex->current = q;		/* claim the mutex */
+	sts = prc_q_ast(QIO_ASTLVL, q);	/* queue his function at AST level */
+	if (sts) {
+	    mutex->current = 0;		/* and not busy */
+	    prc_set_ipl(oldipl);	/* interrupts ok now */
+	    return QIO_MUTEX_FATAL;	/* couldn't queue AST for some reason */
+	}
+	prc_set_ipl(oldipl);
+	QIO_FIN_SHIM();			/* flush que if necessary */
+	return 0;			/* success */
+    }
+    if (mutex->current->param == (void *)ioq) {
+	prc_set_ipl(oldipl);
+	return QIO_MUTEX_NESTED;	/* cannot claim mutex with identical parameter */
+    }
+    if (mutex->tail) {			/* if there is a tail pointer */
+	mutex->tail->next = q;		/* put the new guy at the end of waiting list */
+    } else {
+	mutex->waiting = q;		/* else first is also the last */
+    }
+    mutex->tail = q;			/* new guy becomes the new tail */
+    q->que = (struct act_q *)&mutex->waiting;	/* this is the head of this queue */
+    prc_set_ipl(oldipl);		/* interrupts ok now */
+    return 0;				/* success */    
+}
+
+/************************************************************
+ * qio_freemutex - free a previously claimed volume mutex.
+ * 
+ * At entry:
+ *	mutex - pointer to mutex struct
+ *	valid - pointer to QioIOQ that was passed to the getmutex
+ *		function. (this parameter is used just to validate that
+ *		the 'free' is being done by the same I/O that
+ *		claimed the mutex).
+ *
+ * At exit:
+ *	returns 0 if success or one of QIO_MUTEX_xxx if error.
+ */
+int qio_freemutex(QioMutex *mutex, QioIOQ *ioq) {
+    int oldipl, sts;
+    struct act_q *q;
+
+    if (!mutex) return QIO_MUTEX_INVARG;		/* no mutex pointer */
+    if (!(q=mutex->current)) return QIO_MUTEX_NONE;	/* no mutex claimed */
+    if (q->param != (void *)ioq) return QIO_MUTEX_NOTOWN; /* mutex claimed by someone else */
+    oldipl = prc_set_ipl(INTS_OFF);	/* can't have interrupts for the following */
+    q = mutex->waiting;			/* pluck the next guy off the waiting list */
+    mutex->current = q;			/* make it current */
+    if (!q) {				/* if nobody is waiting */
+	mutex->tail = 0;		/* call me paranoid */
+	prc_set_ipl(oldipl);		/* interrupts ok now */
+	return 0;			/* success */
+    }
+    if (!(mutex->waiting = q->next)) {	/* next guy in list is first one waiting */
+	mutex->tail = 0;		/* if we took the last one, then we also took the tail */
+    }
+    prc_set_ipl(oldipl);		/* interrupts ok now */
+    q->que = q->next = 0;		/* ready the queue for execution */
+    sts = prc_q_ast(QIO_ASTLVL, q);	/* jump to ast level */
+    if (sts) return QIO_MUTEX_FATAL;	/* I do not believe it is possible for prc_q_ast to fail */
+    QIO_FIN_SHIM();			/* flush queue if necessary */
+    return 0;
+}
+
+/************************************************************
+ * qio_cancel - cancel a pending qio
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when cancel completes.
+ *	Non-zero if unable to queue the cancel; completion routine
+ *	will _not_ be called in that case.
+ */
+int qio_cancel(QioIOQ *ioq) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    ops = file->dvc->fio_ops;
+    ioq->iostatus = 0;
+    if (!ops->cancel) return (ioq->iostatus = QIO_NOTSUPP);
+    sts = (ops->cancel)(ioq); 		/* call driver's cancel routine */
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_ioq_enq - used by qio_cleanup below
+ */
+static inline void qio_ioq_enq( QioIOQ **head, QioIOQ **tail, QioIOQ *new )
+{
+ new->aq.next = 0;
+ new->aq.que = (struct act_q *)head;	/* point back to head */
+
+ if ( *tail )				/* list has members */
+ {
+  (*tail)->aq.next = (struct act_q *)new;
+  *tail = new;
+ }
+ else *head = *tail = new;
+}
+/*
+ * qio_cleanup - remove QioIOQ structures associated with "file"
+ *		 from mutex waiting list specified by "pqm", and
+ *		 complete them with "status".
+ * 
+ * At entry:
+ *	pqm    - pointer to QioMutex structure
+ *	file   - file id to match during search
+ *	status - completion iostatus
+ *
+ * At exit:
+ *	Non-zero if QioIOQ structure on mutex.current is associated
+ *	with "file" -- pointer to QioIOQ but mutex is not released.
+ *	Zero if QioIOQ structure on mutex.current is not associated
+ *	with "file"
+ *
+ *	Used in qio_eth.c by eth_cancel_ast.
+ */
+QioIOQ *qio_cleanup( QioMutex *pqm, int file, long status )
+{
+ int old_ipl = prc_set_ipl(INTS_OFF);
+ struct act_q **head = &pqm->waiting;
+ QioIOQ *ph = 0;
+ QioIOQ *pt = 0;
+ QioIOQ *pioq;
+
+ pqm->tail = 0;
+/*
+ * Remove any QioIOQ associated with this file and place
+ * it on a temporary list while interrupts are disabled.
+ */
+ while ( *head )
+ {
+  pioq = (QioIOQ *)(*head)->param;
+  if ( pioq->file == file )
+  {
+   *head = (*head)->next;
+   qio_ioq_enq( &ph, &pt, pioq );
+  }
+  else
+  {
+   pqm->tail = *head;
+   head = &(*head)->next;
+  }
+ }
+ prc_set_ipl(old_ipl);
+/*
+ * Process any QioIOQ on the temporary
+ * list while interrupts are enabled.
+ */
+ while ( ( pioq = ph ) )
+ {
+  ph = (QioIOQ *)pioq->aq.next;
+  pioq->aq.next = 0;
+  pioq->aq.que = 0;
+  pioq->iostatus = status;
+  qio_complete(pioq);
+ }
+ if ( pqm->current )
+ {
+  pioq = (QioIOQ *)pqm->current->param;
+  if ( pioq->file == file ) return pioq;
+ }
+ return 0;
+}
+
+/************************************************************
+ * qio_readv - read input to scattered buffers
+ *
+ * At entry:
+ *	ioq    - pointer to QioIOQ struct
+ *	iov    - pointer to array of IOVect struct
+ *	iovcnt - number of IOVect struct in array
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when readv completes.
+ *	Non-zero if unable to queue the readv; completion routine
+ *	will _not_ be called in that case.
+ */
+
+int qio_readv(QioIOQ *ioq, const IOVect *iov, long iovcnt) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    if (!iov || !iovcnt) return (ioq->iostatus = QIO_INVARG);
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    if (!(file->mode&_FREAD)) return (ioq->iostatus = QIO_NOT_ORD); /* not open for read */
+    ops = file->dvc->fio_ops;
+    if (!ops->readv) return (ioq->iostatus = QIO_NOTSUPP);
+    ioq->iostatus = 0;		/* assume we're to queue */
+    sts = (ops->readv)(ioq, iov, iovcnt);
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;
+}
+
+/************************************************************
+ * qio_writev - write output from scattered buffers
+ *
+ * At entry:
+ *	ioq    - pointer to QioIOQ struct
+ *	iov    - pointer to array of IOVect struct
+ *	iovcnt - number of IOVect struct in array
+ *
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when writev completes.
+ *	Non-zero if unable to queue the writev; completion routine
+ *	will _not_ be called in that case.
+ */
+
+int qio_writev(QioIOQ *ioq, const IOVect *iov, long iovcnt) {
+    QioFile *file;
+    const QioFileOps *ops;
+    int sts;
+
+    if (!ioq) return QIO_INVARG;
+    if (ioq->aq.que) return QIO_IOQBUSY;	/* ioq already in use */
+    ioq->iocount = 0;
+    if (!iov || !iovcnt) return (ioq->iostatus = QIO_INVARG);
+    file = qio_fd2file(ioq->file);
+    if (!file || !file->dvc) return (ioq->iostatus = QIO_NOTOPEN);
+    if (!(file->mode&_FWRITE)) return (ioq->iostatus = QIO_NOT_OWR); /* not open for write */
+    ops = file->dvc->fio_ops;
+    if (!ops->writev) return (ioq->iostatus = QIO_NOTSUPP);
+    ioq->iostatus = 0;
+    sts = (ops->writev)(ioq, iov, iovcnt);
+    QIO_FIN_SHIM();			/* allow for I/O shim */
+    return sts;
+}
+
+#if !defined(QIO_NOSTDIO_SHIMS) || !QIO_NOSTDIO_SHIMS
+/*************************************************************
+ * The following functions are UNIX(tm) shims for the functions
+ * found in stdio (libc). See the man pages for details about
+ * these commands. Errors are reported as -QIO_xxx errors
+ * in addition to the value placed in errno.
+ *
+ * NOTE: Being shims doing blocking wait-mode I/O, they cannot
+ * be called at ASTLVL.
+ */
+
+int stat(const char *name, struct stat *stat) {
+    QioIOQ *ioq;
+    int sts;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    if (!name || !stat) {
+	errno = QIO_INVARG;
+	return -QIO_INVARG;
+    }
+    memset((void *)stat, 0, sizeof(struct stat));
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    sts = qio_open(ioq, (void *)name, O_RDONLY);
+    while (!sts) { sts = ioq->iostatus; }
+    if (!QIO_ERR_CODE(sts)) {
+	qio_fstat(ioq, stat);
+	while (!(sts=ioq->iostatus)) { ; }
+    }
+    sts = qio_close(ioq);
+    while (!sts) { sts = ioq->iostatus; }
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return 0;
+}
+
+int unlink(const char *name) {
+    QioIOQ *ioq;
+    int sts;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    if (!name || !*name) {
+	errno = QIO_INVARG;
+	return -QIO_INVARG;
+    }
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    sts = qio_delete(ioq, name);
+    while (!sts) { sts = ioq->iostatus; }
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return 0;
+}
+
+int rename(const char *source, const char *dest) {
+    QioIOQ *ioq;
+    int sts;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    if (!source || !*source || !dest || !*dest) {
+	errno = QIO_INVARG;
+	return -QIO_INVARG;
+    }
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    sts = qio_rename(ioq, source, dest);
+    while (!sts) { sts = ioq->iostatus; }
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return 0;
+}
+
+int open(const char *name, int mode, ...) {
+    QioIOQ *ioq;
+    int sts, fd;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    if (!name) {
+	errno = QIO_INVARG;
+	return -QIO_INVARG;
+    }
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    sts = qio_open(ioq, (void *)name, mode);
+    while (!sts) { sts = ioq->iostatus; }	/* wait for complete */
+    fd = ioq->file;			/* save assigned fd */
+    qio_freeioq(ioq);    		/* done with ioq */
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	fd = -sts;
+    }
+    return fd;
+}
+
+int close(int fd) {
+    QioIOQ *ioq;
+    int sts;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    ioq->file = fd;
+    sts = qio_close(ioq);
+    while (!sts) { sts = ioq->iostatus; }
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return 0;
+}
+
+off_t lseek(int fd, off_t off, int wh) {
+    QioIOQ *ioq;
+    int sts;
+    off_t new;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    ioq->file = fd;
+    sts = qio_lseek(ioq, off, wh);
+    while (!sts) { sts = ioq->iostatus; }
+    new = ioq->iocount;
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return new;
+}
+
+int read(int fd, void *buf, int len) {
+    QioIOQ *ioq;
+    int sts, val;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    ioq->file = fd;
+    sts = qio_read(ioq, buf, len);
+    while (!sts) { sts = ioq->iostatus; }
+    val = ioq->iocount;
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return val;
+}
+
+int write(int fd, const void *buf, int len) {
+    QioIOQ *ioq;
+    int sts, val;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    ioq->file = fd;
+    sts = qio_write(ioq, buf, len);
+    while (!sts) { sts = ioq->iostatus; }
+    val = ioq->iocount;
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return val;
+}
+
+int ioctl(int fd, unsigned int cmd, unsigned long arg) {
+    QioIOQ *ioq;
+    int sts, val;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    ioq->file = fd;
+    sts = qio_ioctl(ioq, cmd, (void *)arg);
+    while (!sts) { sts = ioq->iostatus; }
+    val = ioq->iocount;
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return val;
+}
+
+int fstat(int fd, struct stat *stat) {
+    QioIOQ *ioq;
+    int sts;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    if (!stat) {
+	errno = QIO_INVARG;
+	return -QIO_INVARG;
+    }
+    memset((void *)stat, 0, sizeof(struct stat));
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    ioq->file = fd;
+    sts = qio_fstat(ioq, stat);
+    while (!sts) { sts = ioq->iostatus; }
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return 0;
+}
+
+int isatty(int fd) {
+    QioIOQ *ioq;
+    int sts;
+
+    if (prc_get_astlvl() >= 0) return 0;
+    ioq = qio_getioq();
+    if (!ioq) return 0;
+    ioq->file = fd;
+    sts = qio_isatty(ioq);
+    while (!sts) { sts = ioq->iostatus; }
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) return 0;
+    return 1;
+}
+
+int readv(int fd, const void *iov, int iovcnt) {
+    QioIOQ *ioq;
+    int sts, val;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    ioq->file = fd;
+    sts = qio_readv(ioq, iov, iovcnt);
+    while (!sts) { sts = ioq->iostatus; }
+    val = ioq->iocount;
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return val;
+}
+
+int writev(int fd, const void *iov, int iovcnt) {
+    QioIOQ *ioq;
+    int sts, val;
+
+    if (prc_get_astlvl() >= 0) {
+	errno = QIO_BADLVL;
+	return -QIO_BADLVL;
+    }
+    ioq = qio_getioq();
+    if (!ioq) {
+	errno = QIO_NOIOQ;
+	return -QIO_NOIOQ;
+    }
+    ioq->file = fd;
+    sts = qio_writev(ioq, iov, iovcnt);
+    while (!sts) { sts = ioq->iostatus; }
+    val = ioq->iocount;
+    qio_freeioq(ioq);
+    if (QIO_ERR_CODE(sts)) {
+	errno = sts;
+	return -sts;
+    }
+    return val;
+}
+#endif				/* !QIO_NOSTDIO_SHIMS */
+@
+
+
+1.38
+log
+@Protected the stdio shims with !QIO_NOSTDIO_SHIMS.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.37 1997/11/02 03:04:57 forrest Exp shepperd $
+d21 4
+d466 1
+d478 3
+a480 1
+    return (dvc->fio_ops->fstat)(ioq, stat);
+d510 1
+d522 3
+a524 1
+    return (ops->readwpos)(ioq, where, buf, len);
+d544 1
+d556 3
+a558 1
+    return (ops->read)(ioq, buf, len);
+d588 1
+d600 3
+a602 1
+    return (ops->writewpos)(ioq, where, buf, len);
+d622 1
+d634 3
+a636 1
+    return (ops->write)(ioq, buf, len);
+d660 1
+a660 1
+    int fake = 0;
+d683 3
+a685 1
+    return (fops->open)(ioq, path+fake);
+d705 1
+a705 1
+    int fake = 0;
+d727 3
+a729 1
+    return (fops->delete)(ioq, path+fake);
+d750 1
+d770 3
+a772 1
+    return (fops->rename)(ioq, source+dvcs->name_len+1, dest+dvcs->name_len+1);
+d798 1
+a798 1
+    int fake = 0;
+d823 3
+a825 1
+    return (fops->open)(ioq, path+fake);
+d845 1
+d855 3
+a857 1
+    return (ops->ioctl)(ioq, cmd, arg); /* call driver's ioctl routine */
+d875 1
+d884 5
+a888 1
+    if (ops->close) return (ops->close)(ioq); /* call driver's close routine */
+d894 1
+d913 1
+d922 4
+a925 2
+    if (ops->isatty) return (ops->isatty)(ioq); /* call driver's isatty routine */
+    return (ioq->iostatus = QIO_NOTSUPP);
+d945 1
+d954 4
+a957 2
+    if (ops->lseek) return (ops->lseek)(ioq, where, whence); /* call driver's close routine */
+    return QIO_NOTSUPP;		/* function is not supported by that driver */
+d979 1
+a979 1
+    int fake = 0;
+d1000 3
+a1002 1
+    return (fops->mkdir)(ioq, name+fake, mode);
+d1023 1
+d1042 3
+a1044 1
+    return (fops->fsync)(ioq);
+d1067 1
+a1067 1
+    int fake = 0;
+d1086 3
+a1088 1
+    return (fops->opendir)(ioq, dirp, path+fake);
+d1108 2
+d1117 3
+a1119 1
+    return fops->readdir(ioq, dirp, direct);
+d1125 2
+d1133 3
+a1135 1
+    return fops->rewdir(ioq, dirp);
+d1141 1
+d1150 3
+a1152 1
+    return fops->closedir(ioq, dirp);
+a1193 7
+#if 0
+	if (prc_get_astlvl() >= 0) {	/* if we are already at AST level, just do it ... */
+	    prc_set_ipl(oldipl);	/* interrupts ok now */
+	    func(ioq);			/* call his function immediately */
+	    return 0;			/* this cannot fail */
+	}
+#endif
+d1201 1
+d1254 1
+d1273 1
+d1282 4
+a1285 2
+    if (ops->cancel) return (ops->cancel)(ioq); /* call driver's cancel routine */
+    return (ioq->iostatus = QIO_NOTSUPP);
+d1387 1
+d1399 3
+a1401 1
+    return (ops->readv)(ioq, iov, iovcnt);
+d1422 1
+d1434 3
+a1436 1
+    return (ops->writev)(ioq, iov, iovcnt);
+@
+
+
+1.37
+log
+@Added parameter check of iovcnt to qio_readv and qio_writev.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.36 1997/11/02 01:20:38 forrest Exp forrest $
+d1374 1
+a1374 1
+
+d1719 1
+@
+
+
+1.36
+log
+@Added functions qio_readv, qio_writev, readv and writev.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.35 1997/11/01 22:49:16 shepperd Exp forrest $
+d1332 1
+a1332 1
+    if (!iov) return (ioq->iostatus = QIO_INVARG);
+d1364 1
+a1364 1
+    if (!iov) return (ioq->iostatus = QIO_INVARG);
+@
+
+
+1.35
+log
+@Fixed Watcom C compiler warnings.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.34 1997/10/30 21:55:20 shepperd Exp shepperd $
+a1228 1
+
+d1310 50
+d1361 12
+d1374 1
+d1670 49
+@
+
+
+1.34
+log
+@Finished changing the types for read/write
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.33 1997/10/30 21:39:58 shepperd Exp shepperd $
+d21 1
+a21 1
+#if __GNUC__
+d237 1
+a237 1
+#if DEBUG_MALLOC
+d284 1
+a284 1
+#if DEBUG_MALLOC
+d314 1
+a314 1
+#if DEBUG_MALLOC
+@
+
+
+1.33
+log
+@Changed size_t to off_t for positions and sizes. Changed
+length field from int to long on read/write.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.32 1997/10/24 02:38:28 forrest Exp shepperd $
+d83 1
+a83 1
+static int null_readwpos(QioIOQ *ioq, off_t where, void *buf, int len) {
+d90 1
+a90 1
+static int null_read(QioIOQ *ioq, void *buf, int len) {
+d94 1
+a94 1
+static int null_writewpos(QioIOQ *ioq, off_t where, const void *buf, int len) {
+d101 1
+a101 1
+static int null_write(QioIOQ *ioq, const void *buf, int len) {
+d500 1
+a500 1
+int qio_readwpos(QioIOQ *ioq, off_t where, void *buf, int len) {
+d531 1
+a531 1
+int qio_read(QioIOQ *ioq, void *buf, int len) {
+d572 1
+a572 1
+int qio_writewpos(QioIOQ *ioq, off_t where, const void *buf, int len) {
+d603 1
+a603 1
+int qio_write(QioIOQ *ioq, const void *buf, int len) {
+@
+
+
+1.32
+log
+@Fixed a bug in qio_cleanup.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.31 1997/10/01 02:19:48 forrest Exp forrest $
+d21 1
+d25 3
+d37 2
+a40 2
+static U32 inx_mask;
+    
+a47 3
+# define FREAD	0x0001
+# define FWRITE	0x0002
+
+d83 1
+a83 1
+static int null_readwpos(QioIOQ *ioq, size_t where, void *buf, int len) {
+d94 1
+a94 1
+static int null_writewpos(QioIOQ *ioq, size_t where, const void *buf, int len) {
+d105 1
+a105 1
+static int null_lseek(QioIOQ *ioq, size_t where, int whence) {
+d131 1
+d134 1
+d500 1
+a500 1
+int qio_readwpos(QioIOQ *ioq, size_t where, void *buf, int len) {
+d572 1
+a572 1
+int qio_writewpos(QioIOQ *ioq, size_t where, const void *buf, int len) {
+d902 1
+a902 1
+int qio_lseek(QioIOQ *ioq, size_t where, int whence ) {
+d1133 1
+d1139 1
+d1263 1
+a1263 1
+QioIOQ *qio_cleanup( QioMutex *pqm, int file, size_t status )
+@
+
+
+1.31
+log
+@Added qio_cleanup function.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.30 1997/09/27 00:38:02 shepperd Exp forrest $
+d1298 5
+a1302 2
+ pioq = (QioIOQ *)pqm->current->param;
+ if ( pioq->file == file ) return pioq;
+@
+
+
+1.30
+log
+@Now stores owner in last element of newly allocated ioq
+list.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.29 1997/09/23 00:11:26 shepperd Exp shepperd $
+d21 4
+d1223 81
+@
+
+
+1.29
+log
+@Moved sbrk and reent handling routines to mallocr.c.
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.28 1997/08/12 22:18:18 forrest Exp shepperd $
+a249 1
+	    q->head = head;
+d254 1
+@
+
+
+1.28
+log
+@Revert to 1.26
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.26 1997/08/06 03:23:12 forrest Exp $
+a29 1
+struct _reent qio_reent;
+a30 4
+static unsigned char qio_memory[QIO_POOL_SIZE];
+static unsigned char *brk_value;
+int qio_free_size;
+static int inited;
+a32 63
+/************************************************************
+ * qio_get_pool_size - returns qio_free_size
+ *      
+ * At entry:
+ *      ptr - pointer to struct _reent
+ * At exit:
+ *      'amt' bytes remaining in free pool
+ */
+int qio_get_pool_size (struct _reent *ptr) {
+    return qio_free_size;
+}
+
+/************************************************************
+ * qio_reset_free_pool - reset the free pool size to its max.
+ *
+ * At entry:
+ *      ptr - pointer to struct _reent
+ * At exit:
+ *      'amt' bytes remaining in free pool
+ */
+int qio_reset_free_pool (struct _reent *ptr) {
+    inited = 0;
+    return sizeof(qio_memory);
+}    
+
+/************************************************************
+ * qio_sbrk - allows use of GNU's malloc() and company
+ * to dole out sections from a predefined array (qio_memory).
+ * This function is the underlying support function required
+ * and used by _malloc_r() and company (the re-enterant equivalent
+ * functions to malloc(), etc). Although qio_sbrk could be used directly
+ * by any local function, it it reserved for use by the libc
+ * functions. The re-enterant functions actually call _sbrk_r()
+ * which notices that the 'ptr' argument == qio_reent and,
+ * in turn, calls this function. _sbrk_r() is a function
+ * found in phx_stubs.c.
+ *
+ * At entry:
+ *	ptr - pointer to struct _reent
+ *	amt - amount to increase(decrease) allocated area
+ * At exit:
+ *	'amt' bytes removed from allocation pool
+ *	returns pointer to newly allocated area or
+ *	0 if there is not enough memory to satisfy the
+ *	request.
+ */
+void *qio_sbrk (struct _reent *ptr, size_t amt) {
+    void *old;
+    if (!inited) {
+	brk_value = qio_memory;
+        qio_free_size = sizeof(qio_memory);
+        inited = 1;
+    }
+    if (amt > qio_free_size || qio_free_size+amt < qio_free_size) {
+	ptr->_errno = ENOMEM;
+        return (void *)-1;
+    }
+    old = (void *)brk_value;
+    brk_value += amt;
+    qio_free_size -= amt;
+    return old;
+}
+
+@
+
+
+1.27
+log
+@Revert to r1.25
+@
+text
+@d2 1
+a2 1
+ * $Id: qio.c,v 1.25 1997/07/21 17:04:56 shepperd Exp $
+a441 2
+static struct act_q mutexes;	/* beginning of list of mutex elements */
+
+a455 1
+    struct act_q *mutex;
+a460 7
+    mutex = mutexes.next = QIOcalloc(QIO_MUTEXES, sizeof(struct act_q));
+    if (!mutex) return QIO_NOMEM;	/* this is trouble */
+    for (ii=0; ii < QIO_MUTEXES-1; ++ii, ++mutex) {
+	mutex->que = &mutexes;		/* point to queue head */
+	mutex->next = mutex+1;		/* point to next */
+    }
+
+d1186 5
+a1190 1
+    if (!mutex || !func) return QIO_MUTEX_INVARG;
+a1192 6
+	q = mutexes.next;		/* get next available mutex */
+	if (!q) {			/* this is trouble */
+	    prc_set_ipl(oldipl);	/* interrupts ok now */
+	    return QIO_MUTEX_NOMUTEX;	/* pool is exhausted */
+	}
+	mutexes.next = q->next;		/* pluck item from freelist */
+a1193 4
+	prc_set_ipl(oldipl);		/* interrupts ok now */
+	q->next = q->que = 0;
+	q->action = (void (*)(void *))func; /* note who we are to call */
+	q->param = (void *)ioq;		/* and ptr to the QioIOQ */
+d1195 1
+a1200 4
+	    prc_set_ipl(INTS_OFF);	/* put the mutex back on the free list */
+	    q->que = &mutexes;
+	    q->next = mutexes.next;
+	    mutexes.next = q;
+d1205 1
+a1211 9
+    q = mutexes.next;			/* pluck a mutex from the freelist */
+    if (!q) {				/* this is trouble */
+	prc_set_ipl(oldipl);		/* interrupts ok now */
+	return QIO_MUTEX_NOMUTEX;	/* pool is exhausted */
+    }
+    mutexes.next = q->next;
+    q->que = q->next = 0;		/* ready this for execution */
+    q->action = func;			/* remember caller's function */
+    q->param = (void *)ioq;		/* and ptr to QioIOQ */
+d1218 1
+a1242 1
+    q->que = &mutexes;
+a1243 2
+    q->next = mutexes.next;		/* put old current back on freelist */
+    mutexes.next = q;
+@
+
+
+1.26
+log
+@Removed mutexes, the list of mutex elements.
+The aq field in QioIOQ is now used.
+Modified qio_init, qio_getmutex and qio_freemutex.
+@
+text
+@d442 2
+d458 1
+d464 7
+d1196 1
+a1196 5
+    if (!mutex || !func || !ioq) return QIO_MUTEX_INVARG;
+    q = &ioq->aq;
+    q->que = q->next = 0;		/* ready this for execution */
+    q->action = func;			/* remember caller's function */
+    q->param = (void *)ioq;		/* and ptr to QioIOQ */
+d1199 6
+d1206 4
+a1210 1
+	    prc_set_ipl(oldipl);	/* interrupts ok now */
+d1216 4
+a1223 1
+	prc_set_ipl(oldipl);
+d1230 9
+a1244 1
+    q->que = (struct act_q *)&mutex->waiting;	/* this is the head of this queue */
+d1269 1
+d1271 2
+@
+
+
+1.25
+log
+@Added a QIO_GENERATION_MASK cpp variable to set the FD mask.
+Defaults to 0xFFFF so libc's shorts can be used to hold the fd.
+Fixed fd2file and freefile to use this new mask.
+Added a $Id$.
+@
+text
+@d2 1
+a2 1
+ * $Id$
+a441 2
+static struct act_q mutexes;	/* beginning of list of mutex elements */
+
+a455 1
+    struct act_q *mutex;
+a460 7
+    mutex = mutexes.next = QIOcalloc(QIO_MUTEXES, sizeof(struct act_q));
+    if (!mutex) return QIO_NOMEM;	/* this is trouble */
+    for (ii=0; ii < QIO_MUTEXES-1; ++ii, ++mutex) {
+	mutex->que = &mutexes;		/* point to queue head */
+	mutex->next = mutex+1;		/* point to next */
+    }
+
+d1186 5
+a1190 1
+    if (!mutex || !func) return QIO_MUTEX_INVARG;
+a1192 6
+	q = mutexes.next;		/* get next available mutex */
+	if (!q) {			/* this is trouble */
+	    prc_set_ipl(oldipl);	/* interrupts ok now */
+	    return QIO_MUTEX_NOMUTEX;	/* pool is exhausted */
+	}
+	mutexes.next = q->next;		/* pluck item from freelist */
+a1193 4
+	prc_set_ipl(oldipl);		/* interrupts ok now */
+	q->next = q->que = 0;
+	q->action = (void (*)(void *))func; /* note who we are to call */
+	q->param = (void *)ioq;		/* and ptr to the QioIOQ */
+d1195 1
+a1200 4
+	    prc_set_ipl(INTS_OFF);	/* put the mutex back on the free list */
+	    q->que = &mutexes;
+	    q->next = mutexes.next;
+	    mutexes.next = q;
+d1205 1
+a1211 9
+    q = mutexes.next;			/* pluck a mutex from the freelist */
+    if (!q) {				/* this is trouble */
+	prc_set_ipl(oldipl);		/* interrupts ok now */
+	return QIO_MUTEX_NOMUTEX;	/* pool is exhausted */
+    }
+    mutexes.next = q->next;
+    q->que = q->next = 0;		/* ready this for execution */
+    q->action = func;			/* remember caller's function */
+    q->param = (void *)ioq;		/* and ptr to QioIOQ */
+d1218 1
+a1242 1
+    q->que = &mutexes;
+a1243 2
+    q->next = mutexes.next;		/* put old current back on freelist */
+    mutexes.next = q;
+@
+
+
+1.24
+log
+@libc maintains FD's as shorts so I fixed the generation indexer
+to only keep track of 16 bits.
+@
+text
+@d2 1
+a2 1
+ *	qio.c
+d4 1
+a4 1
+ *		Copyright 1996 Atari Games, Corp.
+d25 4
+d241 1
+a241 1
+    if ( file->gen == ( fd & ~inx_mask ) ) return file;
+d419 1
+a419 1
+    file->gen = (file->gen + 1 + inx_mask)&0xFFFF;
+@
+
+
+1.23
+log
+@Added qio_cancel function.
+Added generation number to file descriptor.
+@
+text
+@d415 1
+a415 1
+    file->gen += 1 + inx_mask;
+@
+
+
+1.22
+log
+@Added a qio_ioctl() and ioctl() function.
+@
+text
+@d32 1
+d235 4
+a238 2
+    if (fd < 0 || fd >= n_elts(files)) return 0;
+    return files + fd;
+d252 1
+a252 1
+    return file - files;
+d415 1
+d456 4
+d1284 27
+@
+
+
+1.21
+log
+@Added reset_malloc() and heap_remaining() functions.
+Moved some primitives from phx_stubs.c to mallocr.c.
+@
+text
+@d860 29
+d1494 25
+@
+
+
+1.20
+log
+@qio_getmutex now only checks param instead of func and param
+for duplicate entry..
+@
+text
+@d34 25
+@
+
+
+1.19
+log
+@Fixed bug doing a lookup on non-existant device.
+@
+text
+@d1160 1
+a1160 2
+    if (mutex->current->action == (void (*)(void *))func && 
+	mutex->current->param == (void *)ioq) {
+d1162 1
+a1162 1
+	return QIO_MUTEX_NESTED;	/* should not claim mutex with identical parameters */
+@
+
+
+1.18
+log
+@Made all references to QioDevice const.
+@
+text
+@d468 1
+@
+
+
+1.17
+log
+@I made all the errno's extern in libc with the exception of
+the one that wasn't supposed to be. I mistakenly was thinking
+that I neede errno in here, but that is not true. I removed it
+again.
+@
+text
+@d86 1
+a86 1
+static QioDevice device_table[QIO_MAX_DEVICES]; /* array of devices */
+d234 2
+a235 2
+ *	pointer to entry in device table where device added
+ *	or 0 if failed because no room or already installed.
+d237 2
+a238 2
+QioDevice *qio_install_dvc(const QioDevice *dvc) {
+    QioDevice *d, *sts;
+d241 1
+a241 1
+    d = device_table;
+d244 2
+a245 1
+    for (ii=0; ii < num_devices; ++ii, ++d) {
+d247 2
+a248 1
+	    break;			/* already in the table */
+d251 3
+a253 7
+    if (ii >= num_devices) {
+	if (num_devices < QIO_MAX_DEVICES) {
+	    *d = *dvc;
+	    d->use = 0;
+	    ++num_devices;
+	    sts = d;
+	}
+d255 2
+d258 1
+a258 1
+    return sts;
+d458 1
+a458 1
+QioDevice *qio_lookupdvc(const char *name) {
+d460 1
+a460 1
+    QioDevice *dvc;
+d466 6
+a471 5
+	for (ii=0; ii < QIO_MAX_DEVICES; ++ii, ++dvc) {
+	    if (len < dvc->name_len) continue;
+	    if (strncmp(name, dvc->name, dvc->name_len) == 0) {
+		if (len > dvc->name_len && name[dvc->name_len] != QIO_FNAME_SEPARATOR) continue;
+		return dvc;
+d493 1
+a493 1
+    QioDevice *dvc;
+d672 1
+a672 1
+    QioDevice *dvc;
+d715 1
+a715 1
+    QioDevice *dvc;
+d758 1
+a758 1
+    QioDevice *dvcs, *dvcd;
+d803 1
+a803 1
+    QioDevice *dvc;
+d938 1
+a938 1
+    QioDevice *dvc;
+d980 1
+a980 1
+    QioDevice *dvc;
+d1022 1
+a1022 1
+    QioDevice *dvc;
+d1060 1
+a1060 1
+    QioDevice *dvc;
+d1066 1
+a1066 1
+    if (!(dvc=(QioDevice *)ioq->private)) return (ioq->iostatus = FSYS_IO_NOTOPEN);
+d1073 1
+a1073 1
+    QioDevice *dvc;
+d1078 1
+a1078 1
+    if (!(dvc = (QioDevice *)ioq->private)) return (ioq->iostatus = QIO_NOTOPEN);
+d1085 1
+a1085 1
+    QioDevice *dvc;
+d1092 1
+a1092 1
+    if (!(dvc = (QioDevice *)ioq->private)) return (ioq->iostatus = QIO_NOTOPEN);
+@
+
+
+1.16
+log
+@Moved errno from libc to here.
+@
+text
+@a1232 4
+#include <errno.h>
+
+int errno;
+
+@
+
+
+1.15
+log
+@Added qio_delete(), qio_rename(), rename() and unlink().
+@
+text
+@d1235 2
+@
+
+
+1.14
+log
+@Moved the contents of qio_errs.h into qio.h and removed all
+references to qio_errs.h.
+@
+text
+@d700 82
+d1260 54
+@
+
+
+1.13
+log
+@Added a qio_isatty function. Added fstat to null device
+and forced null device to use default close routine.
+@
+text
+@a19 1
+#include "qio_errs.h"
+@
+
+
+1.12
+log
+@Forced errors if writes to readonly file or read to writeonly file.
+@
+text
+@d160 7
+a166 2
+static int null_close(QioIOQ *ioq) {
+    ioq->iostatus = FSYS_IO_SUCC|SEVERITY_INFO;
+d177 1
+a177 1
+    null_close,	/* use close on null device */
+d185 1
+a185 1
+    0,		/* fstat not allowed */
+d784 27
+d1346 12
+a1357 1
+    return 0;				/* for the time being, we have no tty's */
+d1359 1
+@
+
+
+1.11
+log
+@Corrected install_dvc detecting an already installed device.
+@
+text
+@d538 1
+d569 1
+d610 1
+d641 1
+@
+
+
+1.10
+log
+@Unbelievable, but sbrk is supposed to return a -1 on error
+instead of 0.
+@
+text
+@d231 1
+a231 1
+ *	or 0 if failed for some reason.
+d245 1
+a245 1
+    if (!sts) {
+@
+
+
+1.9
+log
+@Added some debug code.
+@
+text
+@d17 1
+d63 2
+a64 1
+        return 0;
+@
+
+
+1.8
+log
+@Fixed stdio shims. fopen and fread seem to work now.
+@
+text
+@d260 3
+d307 3
+d337 3
+@
+
+
+1.7
+log
+@Added dirent functions. Fixed bug in qio_getioq_ptr.
+@
+text
+@d1111 1
+a1111 1
+    if (prc_get_astlvl()) {
+d1125 2
+a1126 2
+    qio_open(ioq, (void *)name, O_RDONLY);
+    while (!(sts=ioq->iostatus)) { ; }
+d1131 2
+a1132 2
+    qio_close(ioq);
+    while (!ioq->iostatus) { ; }
+d1145 1
+a1145 1
+    if (prc_get_astlvl()) {
+d1158 2
+a1159 2
+    qio_open(ioq, (void *)name, mode);
+    while (!(sts=ioq->iostatus)) { ; }	/* wait for complete */
+d1173 1
+a1173 1
+    if (prc_get_astlvl()) {
+d1183 2
+a1184 2
+    qio_close(ioq);
+    while (!(sts=ioq->iostatus)) { ; }
+d1198 1
+a1198 1
+    if (prc_get_astlvl()) {
+d1208 2
+a1209 2
+    qio_lseek(ioq, off, wh);
+    while (!(sts=ioq->iostatus)) { ; }
+d1223 1
+a1223 1
+    if (prc_get_astlvl()) {
+d1233 2
+a1234 2
+    qio_read(ioq, buf, len);
+    while (!(sts=ioq->iostatus)) { ; }
+d1248 1
+a1248 1
+    if (prc_get_astlvl()) {
+d1258 2
+a1259 2
+    qio_write(ioq, buf, len);
+    while (!(sts=ioq->iostatus)) { ; }
+d1273 1
+a1273 1
+    if (prc_get_astlvl()) {
+d1288 2
+a1289 2
+    qio_fstat(ioq, stat);
+    while (!(sts=ioq->iostatus)) { ; }
+@
+
+
+1.6
+log
+@Corrected compile time errors when FSYS_READ_ONLY is true.
+@
+text
+@a167 1
+    0,		/* readdir not allowed on null device */
+d275 1
+d278 3
+a280 2
+	    q->next = q+1;
+	    q = (QioIOQ *)((int)q + size);
+d872 107
+@
+
+
+1.5
+log
+@This version of qio and fsys stuff all works. It isn't done yet,
+but since it works, I checked in what there is so far.
+/
+@
+text
+@a16 3
+#if 0
+#include "fsys.h"
+#endif
+a27 4
+#if 1
+#undef QIO_POOL_SIZE
+#define QIO_POOL_SIZE	(400*1024)
+#endif
+@
+
+
+1.4
+log
+@Still under development. Not quite ready for primetime.
+@
+text
+@d31 4
+d37 1
+a37 1
+static int free_size;
+d65 1
+a65 1
+        free_size = sizeof(qio_memory);
+d68 1
+a68 1
+    if (amt > free_size || free_size+amt < free_size) {
+d73 1
+a73 1
+    free_size -= amt;
+a94 2
+static QioMutex *mutex_registry;	/* list of mutex heads */
+
+d108 1
+d113 1
+d122 1
+a122 1
+static int null_read(QioIOQ *ioq, void *buf, int len) {
+d129 5
+a133 1
+static int null_write(QioIOQ *ioq, const void *buf, int len) {
+d140 4
+d186 1
+d188 3
+a190 1
+    0		/* cannot be a tty */
+d269 1
+a269 10
+/************************************************************
+ * qio_getioq - Get a QioIOQ from the system's QIO queue pool
+ * 
+ * At entry:
+ *	no requirements
+ *
+ * At exit:
+ *	returns pointer to queue or 0 if none available.
+ */
+QioIOQ *qio_getioq(void) {
+d274 1
+a274 1
+    q = ioq_pool_head;		/* get next item */
+d278 1
+a278 1
+	new = QIOcalloc(QIO_IOQ_BATCH, sizeof(QioIOQ));
+d282 3
+a284 3
+	for (q=new, ii=0; ii < QIO_IOQ_BATCH-1; ++ii, ++q) {
+	    q->owner = &ioq_pool_head;
+	    q->head = &ioq_pool_head;
+d286 1
+d289 1
+a289 1
+	q->next = ioq_pool_head;
+d292 1
+a292 1
+    ioq_pool_head = q->next;
+d294 2
+a295 2
+    memset((void *)q, 0, sizeof(QioIOQ));	/* zap everything in ioq */
+    q->owner = &ioq_pool_head;	/* reset the owner field */
+d301 26
+d337 1
+a337 10
+    int oldipl;
+
+    if (!que) return 1;
+    if (que->owner != &ioq_pool_head) return 1;
+    que->head = &ioq_pool_head;
+    oldipl = prc_set_ipl(INTS_OFF); /* this cannot be interrupted */
+    que->next = ioq_pool_head;
+    ioq_pool_head = que;
+    prc_set_ipl(oldipl);
+    return 0;
+d499 40
+d569 40
+a900 8
+    if (!mutex->registry) {		/* if this mutex has not been registered */
+	if (!mutex_registry) {		/* if there is nobody in the list */
+	    mutex->registry = mutex;	/* point last guy to himself */
+	} else {
+	    mutex->registry = mutex_registry; /* new guy points to one at head of list */
+	}
+	mutex_registry = mutex;		/* new guy becomes the head of list */
+    }
+@
+
+
+1.3
+log
+@Still under development. Not ready for prime time.
+@
+text
+@d91 2
+d561 1
+d610 1
+d718 1
+d759 1
+d797 8
+d944 1
+a944 1
+int open(char *name, int mode, ...) {
+@
+
+
+1.2
+log
+@Corrected gcc complaints.
+@
+text
+@d17 1
+d19 1
+d57 1
+a57 1
+void *qio_sbrk (void *ptr, int amt) {
+d64 1
+a64 1
+    if (amt > free_size || free_size+amt < 0) {
+d104 6
+a109 2
+	ioq->aq.action = ioq->complete;
+	ioq->aq.param = (void *)ioq->param;
+d116 2
+a117 2
+static int null_read(QioIOQ *ioq, size_t where, char *buf, int len) {
+    ioq->iostatus = FSYS_IO_EOF;
+d123 1
+a123 1
+static int null_write(QioIOQ *ioq, size_t where, char *buf, int len) {
+d130 8
+a137 1
+static int null_open(QioIOQ *ioq, const char *path, int mode) {
+d141 1
+a141 1
+    file->mode = FREAD|FWRITE;
+d158 1
+a158 1
+    0,		/* lseek not allowed on null device */
+d171 3
+a173 1
+    0		/* statfs not allowed */
+a183 68
+#if NUM_HDRIVES
+extern int hd_lseek(QioIOQ *ioq, size_t pos, int whence);
+extern int hd_read(QioIOQ *ioq, size_t where, char *buf, int len);
+extern int hd_write(QioIOQ *ioq, size_t where, char *buf, int len);
+extern int hd_ioctl(QioIOQ *ioq, unsigned int cmd, unsigned long param);
+extern int hd_open(QioIOQ *ioq, const char *name, int flags);
+extern int hd_close(QioIOQ *ioq);
+extern int hd_fstat(QioIOQ *ioq, struct stat *stat);
+
+static QioMutex hd_mutex[(NUM_HDRIVES-1)/2+1];
+
+static const QioFileOps hd_fops = {
+    hd_lseek,	/* lseek allowed on disk */
+    hd_read, 	/* read allowed */
+    hd_write,	/* writes allowed */
+    0,		/* readdir not allowed on device */
+    hd_ioctl, 	/* ioctl may do something */
+    hd_open,	/* open does something */
+    hd_close,	/* close does something */
+    0,		/* delete not allowed */
+    0,		/* fsync not allowed */
+    0,		/* mkdir not allowed */
+    0,		/* rmdir not allowed */
+    0,		/* rename not allowed */
+    0,		/* truncate not allowed */
+    0,		/* statfs not allowed */
+    hd_fstat	/* fstat allowed */
+};
+
+static const QioDevice hd_dvc0 = {
+    "rd0",				/* device name */
+    3,					/* length of name */
+    &hd_fops,				/* list of file ops */
+    hd_mutex,				/* drives 0 & 1 share the same mutex */
+    0,					/* unit */
+};
+#endif
+
+#if NUM_HDRIVES > 1
+static const QioDevice hd_dvc1 = {
+    "rd1",				/* device name */
+    3,					/* length of name */
+    &hd_fops,				/* list of file ops */
+    hd_mutex,				/* drives 0 & 1 share the same mutex */
+    1,					/* unit */
+};
+#endif
+
+#if NUM_HDRIVES > 2
+static const QioDevice hd_dvc2 = {
+    "rd2",				/* device name */
+    3,					/* length of name */
+    &hd_fops,				/* list of file ops */
+    hd_mutex+1,				/* drives 2 & 3 share the same mutex */
+    2,					/* unit */
+};
+#endif
+
+#if NUM_HDRIVES > 3
+static const QioDevice hd_dvc3 = {
+    "rd3",				/* device name */
+    3,					/* length of name */
+    &hd_fops,				/* list of file ops */
+    hd_mutex+1,				/* drives 2 & 3 share the same mutex */
+    3,					/* unit */
+};
+#endif
+
+d268 4
+a271 2
+	ioq_pool_head = q = QIOcalloc(QIO_IOQ_BATCH, sizeof(QioIOQ));
+	if (!q) {
+d274 1
+a274 1
+	for (ii=0; ii < QIO_IOQ_BATCH-1; ++ii) {
+d279 3
+a281 1
+	q = ioq_pool_head;
+d284 1
+a284 1
+    prc_set_ipl(oldipl);
+d360 1
+d374 2
+d384 1
+a384 1
+ *	Returns 0.
+d390 8
+d400 1
+a400 1
+    for (ii=0; ii < QIO_MAX_FILES; ++ii, ++file) file->next = file+1;
+a402 12
+#if NUM_HDRIVES
+    qio_install_dvc(&hd_dvc0);
+#endif
+#if NUM_HDRIVES > 1
+    qio_install_dvc(&hd_dvc1);
+#endif
+#if NUM_HDRIVES > 2
+    qio_install_dvc(&hd_dvc2);
+#endif
+#if NUM_HDRIVES > 3
+    qio_install_dvc(&hd_dvc3);
+#endif
+a406 11
+#if 0
+# define DMP_IOSB(x, head) do {							\
+	char emsg[132];								\
+	io_errmsg(x->iostatus, emsg, sizeof(emsg));				\
+	printf("qio_open %s -> /null file=%d, count=%d, status %08X (%s)\n",	\
+		head, x->file, x->iocount, x->iostatus, emsg);			\
+	} while (0)
+#else
+# define DMP_IOSB(x, head) 
+#endif
+    DMP_IOSB(ioq, "stdin");
+a407 1
+    DMP_IOSB(ioq, "stdout");
+a408 1
+    DMP_IOSB(ioq, "stderr");
+d427 1
+a427 1
+    if (name && *name == FSYS_FNAME_SEPARATOR) {
+d434 1
+a434 1
+		if (len > dvc->name_len && name[dvc->name_len] != FSYS_FNAME_SEPARATOR) continue;
+d460 2
+a461 1
+    if (!ioq) return QIO_INVARG;
+d463 1
+a463 1
+    if (!stat) return (ioq->iostatus = QIO_INVARG);
+a477 1
+ *	where - byte address in file to read
+d487 1
+a487 1
+int qio_read(QioIOQ *ioq, size_t where, void *buf, int len) {
+d492 1
+d500 1
+a500 1
+    return (ops->read)(ioq, where, buf, len);
+a507 1
+ *	where - byte address in file to begin writing
+d517 1
+a517 1
+int qio_write(QioIOQ *ioq, size_t where, void *buf, int len) {
+d522 1
+d530 1
+a530 1
+    return (ops->write)(ioq, where, buf, len);
+d538 50
+a587 7
+ *	arg - if mode does not contain O_QIOSPC then this is a 
+ *		pointer to null terminated string with device/path/name.
+ *	       if mode has bit O_QIOSPC set, then this is a pointer
+ *    		to a QioSpc struct which has additional details about
+ *		the open and fields that will be set when the open
+ *		completes.
+ *	mode - one or more of the O_xxx flags found in fcntl.h
+d597 1
+a597 1
+int qio_open(QioIOQ *ioq, void *arg, int mode) {
+a601 1
+    char **spc;
+d605 1
+d607 3
+a609 9
+    if (!arg) return (ioq->iostatus = QIO_INVARG);
+    if ((mode&O_QIOSPC)) {
+	spc = (char **)arg;
+	path = *spc;
+	if (!path) return (ioq->iostatus = QIO_INVARG);
+    } else {
+	spc = 0;
+	path = (const char *)arg;
+    }
+d623 1
+d626 1
+a626 1
+    return (fops->open)(ioq, path+fake, mode);
+d646 1
+d662 29
+d712 1
+d752 1
+d785 2
+a786 2
+int qio_getmutex(QioMutex *mutex, void (*func)(void *), void *arg, int what) {
+    int oldipl, in, sts;
+d788 1
+a788 1
+    
+d791 14
+a804 5
+    if (!mutex->mutex) {		/* if the mutex is available */
+	mutex->mutex = 1;		/* claim it */
+	prc_set_ipl(oldipl);		/* restore activity */
+	if (what) {			/* if we're to execute the function */
+	    func(arg);			/* call his function immediately */
+d807 10
+a816 5
+	mutex->mw_free.action = func;	/* else queue the action */
+	mutex->mw_free.param = arg;
+	mutex->mw_free.que = mutex->mw_free.next = 0;
+	sts = prc_q_ast(QIO_ASTLVL, &mutex->mw_free); /* queue his function */
+	if (sts) return QIO_MUTEX_FATAL; /* couldn't queue AST for some reason */
+d819 2
+a820 3
+    in = mutex->mq_in + 1;		/* no mutex, queue the action */
+    if (in >= QIO_MUTEX_QUEUES) in = 0; /* wrap the queue pointer */
+    if (in == mutex->mq_out) {		/* if at the limit */
+d822 1
+a822 1
+	return QIO_MUTEX_FULL;		/* no more queues to use */
+d824 4
+a827 4
+    q = mutex->mq_q + in;		/* point to free queue */
+    if (q->action) {			/* uh oh, we're trying to use a busy entry */
+	prc_set_ipl(oldipl);
+	return QIO_MUTEX_FATAL;		/* fatal internal error */
+d829 2
+d832 8
+a839 3
+    q->param = arg;			/* and his parameter */
+    mutex->mq_in = in;			/* update the entry */
+    prc_set_ipl(oldipl);		/* restore interrupts again */
+d848 4
+d854 1
+a854 1
+ *	returns 0 if success or one of FSYS_MUTEX_xxx if error.
+d856 2
+a857 2
+int qio_freemutex(QioMutex *mutex) {
+    int out, oldipl, sts;
+d860 13
+a872 5
+    if (!mutex) return QIO_MUTEX_INVARG;
+    oldipl = prc_set_ipl(INTS_OFF);
+    if (!mutex->mutex) {		/* mutex not busy */
+	prc_set_ipl(oldipl);
+	return QIO_MUTEX_NOTBUSY;
+d874 2
+a875 5
+    out = mutex->mq_out;
+    if (out == mutex->mq_in) {		/* nobody's waiting for it */
+	mutex->mutex = 0;		/* free the mutex */
+	prc_set_ipl(oldipl);
+	return 0;
+d877 4
+a880 10
+    ++out;
+    if (out >= QIO_MUTEX_QUEUES) out = 0;
+    q = mutex->mq_q + out;
+    mutex->mq_out = out;
+    q->next = q->que = 0;		/* these have to be 0 for prc_add_q() to work */
+    mutex->mw_free = *q;		/* make a copy of the struct */
+    q->action = 0;			/* make this entry free again */
+    prc_set_ipl(oldipl);
+    sts = prc_q_ast(QIO_ASTLVL, &mutex->mw_free); /* jump to ast level */
+    if (sts) return QIO_MUTEX_FATAL;
+d884 5
+a888 9
+/************************************************************
+ * stat - stat a file or device
+ * 
+ * At entry:
+ *	ioq - pointer to QioIOQ struct
+ *	name - pointer to null terminated name of file or device
+ *	stat - pointer to struct stat into which the stats are to
+ *		be placed.
+ * NOTE: Cannot be called at ASTLVL
+d890 2
+a891 5
+ * At exit:
+ *	0 if function successfully queued and completion routine
+ *	will be called, if one is provided, when stat completes.
+ *	non-zero if unable to queue the stat and completion routne
+ *	will _not_ be called in that case.
+d893 3
+d900 8
+a907 2
+    if (prc_get_astlvl()) return -QIO_BADLVL;
+    if (!name || !stat) return -QIO_INVARG;
+d910 4
+a913 1
+    if (!ioq) return -QIO_NOIOQ;
+d923 161
+a1083 1
+    if (QIO_ERR_CODE(sts)) return -sts;
+d1085 4
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a55 1
+    U8 tmp;  
+a700 1
+    const char *path;
+d722 1
+a722 1
+    return (fops->mkdir)(ioq, path+fake, mode);
+@

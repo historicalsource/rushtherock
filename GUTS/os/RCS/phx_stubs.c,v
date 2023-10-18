@@ -1,0 +1,1932 @@
+head	1.52;
+access;
+symbols
+	RUSH_ROCK_1_0:1.52
+	RUSH_ROCK_1_0epst:1.52
+	MACE_1_0e:1.42
+	MACE_1_0d:1.42
+	RUSH_1_06A:1.36
+	AREA_52_00:1.46
+	MACE_1_0a:1.42;
+locks; strict;
+comment	@ * @;
+
+
+1.52
+date	97.10.02.22.03.19;	author shepperd;	state Exp;
+branches;
+next	1.51;
+
+1.51
+date	97.09.27.00.37.29;	author shepperd;	state Exp;
+branches;
+next	1.50;
+
+1.50
+date	97.09.23.00.10.20;	author shepperd;	state Exp;
+branches;
+next	1.49;
+
+1.49
+date	97.09.12.21.11.47;	author shepperd;	state Exp;
+branches;
+next	1.48;
+
+1.48
+date	97.08.01.23.36.59;	author albaugh;	state Exp;
+branches;
+next	1.47;
+
+1.47
+date	97.07.31.23.00.54;	author shepperd;	state Exp;
+branches;
+next	1.46;
+
+1.46
+date	97.07.10.18.15.51;	author shepperd;	state Exp;
+branches;
+next	1.45;
+
+1.45
+date	97.06.18.21.40.26;	author albaugh;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	97.05.23.03.20.44;	author shepperd;	state Exp;
+branches;
+next	1.43;
+
+1.43
+date	97.05.17.19.12.40;	author shepperd;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	97.04.22.18.37.46;	author shepperd;	state Exp;
+branches;
+next	1.41;
+
+1.41
+date	97.04.22.04.37.59;	author shepperd;	state Exp;
+branches;
+next	1.40;
+
+1.40
+date	97.04.06.01.04.43;	author shepperd;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	97.03.26.01.17.10;	author shepperd;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	97.03.06.19.56.57;	author shepperd;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	97.01.31.02.44.55;	author shepperd;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	96.12.12.03.54.17;	author shepperd;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	96.11.25.20.23.06;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	96.11.23.00.12.16;	author shepperd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	96.11.22.02.51.47;	author shepperd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	96.11.22.01.41.48;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	96.11.20.03.02.02;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	96.11.20.00.18.48;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	96.11.16.22.31.36;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	96.11.12.22.42.57;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.11.12.21.29.24;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.11.12.18.44.22;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.10.30.19.21.21;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.10.30.05.21.44;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.10.07.16.53.40;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.10.02.01.19.15;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.10.02.01.14.49;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.09.30.22.00.22;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.09.30.21.18.01;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.09.06.02.44.43;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.08.29.01.45.03;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.08.28.20.53.34;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.08.24.23.05.12;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.08.24.22.01.08;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.08.07.21.27.20;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.08.07.19.09.13;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.07.29.23.32.08;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.06.08.23.12.32;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.06.08.22.12.18;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.06.06.03.24.59;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.05.30.04.32.24;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.05.07.20.17.24;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.04.26.20.22.46;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.04.24.01.13.05;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.04.20.02.36.38;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.04.17.23.12.27;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.04.17.20.48.13;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Phoenix GUTS stubs.
+@
+
+
+1.52
+log
+@Added another BLAB after interrupt vectors set.
+@
+text
+@/* $Id: phx_stubs.c,v 1.51 1997/09/27 00:37:29 shepperd Exp shepperd $
+ *
+ *	This contains some interfaces to allow one to use an XBUSMON board
+ *	on the ROMBUS connector (or XBUS) of a Phoenix host so that the selftest
+ *	menu will appear on a (dumb) serial terminal instead of or in addition
+ *	to the normal video menu. It also optionally swaps the buttons to those
+ *	on the XBUSMON board so one can it to run the selftest diags on a system
+ *	with a broken UIO (or other misconfigured or broken I/O board).
+ *
+ *	I make no pretense that this code will be useful for anything other
+ *	than a Phoenix board at this time. Good luck making it work on a 68k or
+ *	R3K host for example (not impossible).
+ *
+ *		Copyright 1996 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#include <os_proto.h>
+#include <phx_proto.h>
+#include <stdarg.h>
+#include <math.h>
+#include <wms_proto.h>
+
+#if INCLUDE_QIO
+#include <stdio.h>
+#include <errno.h>
+#include <qio.h>
+#include <fsys.h>
+#endif
+
+extern int twi_vfprintf(int (*ortn)(void *, const char *, int), void *iop, int size, const char *fmt, va_list ap);
+
+#define BREAK() __asm__("BREAK")
+
+void breakpoint(void) {
+    __asm__("BREAK");
+}
+
+#if !NO_EXIT_FUNC
+void promexit(int arg) { while (1) BREAK(); }
+void exit(int arg) { while (1) BREAK(); }
+#endif
+
+#if !NO_MATHERR
+int matherr(struct exception *h) {
+    return 0;
+}
+#endif
+
+#if ANNOUNCE_BOOT_ACTIONS
+extern void shims_putc(char c);
+extern int shims_puts(const char *);
+extern int shims_putc_disable;
+
+static int wchrs(void *filler, const char *ptr, int len) {
+    static char last_c;
+    int olen = len;
+    char c;
+    if (shims_putc_disable) return 0;
+    while (len--) {
+	c = *ptr++;
+	if (c == '\n' && last_c != '\r') shims_putc('\r');
+	shims_putc(c);
+	last_c = c;
+    }
+    return olen;
+}
+#endif
+
+#if INCLUDE_QIO
+time_t time(time_t *ptr) {
+    if (ptr) *ptr = 0;
+    return 0;
+}
+#endif			/* INCLUDE_QIO */
+
+#if !INCLUDE_QIO
+
+int puts(const char *str) {
+# if ANNOUNCE_BOOT_ACTIONS
+    return shims_puts(str);
+# else
+    return 0;
+# endif
+}
+
+int printf(const char *fmt, ...)
+{
+# if ANNOUNCE_BOOT_ACTIONS
+    int ret;
+    va_list ap;
+
+    va_start(ap, fmt);
+
+    ret = twi_vfprintf(wchrs, 0, 0, fmt, ap);
+    va_end(ap);
+
+    return ret;
+# else
+    return 0;
+# endif
+}
+
+int fprintf(void *filler, const char *fmt, ...) {
+# if ANNOUNCE_BOOT_ACTIONS
+    int ret;
+    va_list ap;
+
+    va_start(ap, fmt);
+
+    ret = twi_vfprintf(wchrs, 0, 0, fmt, ap);
+    va_end(ap);
+
+    return ret;
+# else
+    return 0;
+# endif
+}
+#endif		/* !INCLUDE_QIO */
+
+int shims_printf(const char *fmt, ...)
+{
+#if ANNOUNCE_BOOT_ACTIONS
+    int ret;
+    va_list ap;
+
+    va_start(ap, fmt);
+
+    ret = twi_vfprintf(wchrs, 0, 0, fmt, ap);
+    va_end(ap);
+
+    return ret;
+#else
+    return 0;
+#endif
+}
+
+int shims_info(int indent, const char *fmt, ...)
+{
+#if ANNOUNCE_BOOT_ACTIONS
+# if 0			/* Glide is WAY too noisy with info enabled */
+    int ret;
+    va_list ap;
+
+    for (; indent > 0; --indent) {
+	shims_putc(' ');
+	shimc_putc(' ');
+    }
+
+    va_start(ap, fmt);
+
+    ret = twi_vfprintf(wchrs, 0, 0, fmt, ap);
+    va_end(ap);
+
+    return ret;
+# else
+    return 0;
+# endif
+#else
+    return 0;
+#endif
+}
+
+#if USE_XBUSMON_CTLMODLATCH
+static U32 cntr_bitshd;
+
+U32 ctl_mod_latch(int x) {
+    U32 old;
+    int oldipl = prc_set_ipl(INTS_OFF);
+    old = cntr_bitshd;
+    if (x < 0) {
+	cntr_bitshd &= x;
+    } else {
+	cntr_bitshd |= x;
+    }
+    prc_set_led(cntr_bitshd);
+    prc_set_ipl(oldipl);
+    return old;
+}
+#endif
+
+#define n_elts(x) (sizeof(x)/sizeof(x[0]))
+
+#ifndef BLAB
+# define BLAB(x) do { ; } while (0)
+#endif
+#ifndef BLABF
+# define BLABF(x) do { ; } while (0)
+# define NO_PCI_DUMP	1
+#endif
+
+#if GALILEO_BASE
+int GT64010rev;
+#endif
+
+#if !NO_PCI_DUMP
+static void dump_pci_devices(void) {
+    int ii;
+    int id;
+
+# if GALILEO_BASE
+    for (ii = 0; ii < 11; ii++) {
+	BLABF(("\nStubs: PCI device %2d has ID of ... ", ii));
+	id = get_pci_config_reg(ii, 0);
+	BLABF(("%04lX", id&0xFFFF));
+	if (ii==0) ii = 6-1;
+    }
+# else
+    for (ii = 0; ii < 6; ii++) {
+	BLABF(("\nStubs: PCI device %2d has ID of ... ", ii));
+	id = get_pci_config_reg(ii, 0);
+	BLABF(("%04lX", id&0xFFFF));
+    }
+# endif
+    return;
+}
+#endif
+
+#ifndef VIRT_TO_PHYS
+# define VIRT_TO_PHYS K1_TO_PHYS
+#endif
+
+void init_3dfx_pci(void) {
+    int id;
+
+/* Set PCI (sst1) memory response area to K0_TO_PHYS(SST_BASE) (physical) */
+/* First Turn on memory */
+
+    id = get_sst_device_number();
+
+    if (id > 0) {
+
+        put_pci_config_reg(id, 4, -1);
+        get_pci_config_reg(id, 4);
+        put_pci_config_reg(id, 4, VIRT_TO_PHYS(SST_BASE) );
+        get_pci_config_reg(id, 1);
+        put_pci_config_reg(id, 1, 2);
+        put_pci_config_reg(id, 4, VIRT_TO_PHYS(SST_BASE) );
+
+        prc_wait_n_usecs(1000);
+
+        put_pci_config_reg(id, 1, 2);
+
+        prc_wait_n_usecs(1000);
+
+        put_pci_config_reg(id, 4, VIRT_TO_PHYS(SST_BASE) );
+    } else {
+	__asm__("BREAK");
+    }
+}
+
+#if defined(SSEG_T)
+void walker_led(void) {
+    int ii = 0x1;
+    while (1) {
+	SSEG_T = ~ii;
+	prc_wait_n_usecs(100000);
+	ii = ii + ii;
+	if ((ii&0x40)) {
+	    ii = 0x01;
+	}
+    }
+}
+#endif
+
+/*	For historical reasons, prc_init_vecs() was called
+ *	individualy. In an attempt to move some host-board-
+ *	generic stuff out of config.mac and into host-board-
+ *	generic source, MEA calls it from here. We should
+ *	#include intvecs.h for the extern, but that would
+ *	break a bunch of pre-existing Makefiles.
+ */
+extern void prc_init_vecs(void);
+extern void malloc_init(void);
+
+void reent_init(void) {
+}
+
+void hdw_init(int coldflag) {
+    int oldtxt;
+
+    malloc_init();
+
+#if !BOOT_FROM_DISK && defined(WDOG) && !EPROM_ST && !NO_WDOG
+    WDOG = 0;
+#endif
+
+    prc_wait_n_usecs(1000);
+
+#if GALILEO_BASE
+    BLAB("Stubs: Set GALILEO's PCI registers...");
+    gt64010_init();                     /* init the PCI part of the Galileo */
+    
+    BLABF(("\nStubs: GALIILEO version %s", GT64010rev > 1 ? "2 (aka A)" : "1"));
+
+    *(VU32*)GALILEO_PCI_RETRY = 0xFF070F;	/* see what this does */
+
+/* Clipped from WMS's stdio.c */
+/* Make sure the PCI Endianess is is LITTLE */
+
+    {
+	int ii = 10000;
+	BLAB("\nStubs: Set GALILEO to little endian...");
+	do {
+	    *(VU32*)GALILEO_PCI_CMD = 1;
+	} while ( !( (*(VU32 *)GALILEO_PCI_CMD) & 1) && --ii);
+
+	if (!ii) {
+	    BLAB("Failed\n");
+	    __asm__("BREAK");
+	}
+    }
+    
+    BLAB("\nStubs: Turn on SERR bits...");
+    
+    *(VU32 *)(GALILEO_BASE+0xC28) = 0x3f;		/* enable SERR bits */
+    put_pci_config_reg(0, 1, 0x1FF);			/* enable all PCI operations */
+#endif
+
+#if !NO_PCI_DUMP
+    dump_pci_devices();
+#endif
+
+#if GALILEO_BASE
+    *(VU32*)GALILEO_INT_CAUSE = 0;	/* clear any stuck interrupt causes */
+#endif
+
+#if INCLUDE_QIO
+    qio_init();
+# if INCLUDE_FSYS
+    fsys_init();
+# endif
+#endif
+
+    oldtxt = txt_select(TXT_NONE);	/* no vid_init() yet, turn off text */
+
+#if HOST_BOARD == CHAMELEON
+    prc_set_count(0);
+    prc_set_compare(prc_get_count() + CPU_SPEED/2000);
+    prc_set_cause(0);
+#endif
+
+    prc_init_vecs();
+    BLAB("\nStubs: Finished setting interrupt vectors...");
+#if ANNOUNCE_BOOT_ACTIONS && !NO_TDFX_TESTS
+    if (!(*(VU32*)IO_DIPSW&(IO_DIPSW1|IO_DIPSW3))) {
+	extern void tdfx_cmd_loop(void);
+	eer_init();			/* need to init this for the ide/fsys code */
+	BLAB("\nStubs: Enabling interrupts...");
+	prc_set_ipl(INTS_ON);
+	BLAB("\r\n");
+	shims_putc_disable = 1;		/* turn off blab code */
+	tdfx_cmd_loop();
+	txt_select(oldtxt);		/* put it back */
+	shims_putc_disable = 0;		/* continue with startup blab */
+    }
+#endif
+}
+@
+
+
+1.51
+log
+@Added a reent_init() stub.
+Calls malloc_init() now instead of reent_init at hdw_init().
+@
+text
+@d1 1
+a1 1
+/* $Id: phx_stubs.c,v 1.50 1997/09/23 00:10:20 shepperd Exp shepperd $
+d347 1
+a347 1
+
+@
+
+
+1.50
+log
+@Moved sbrk to mallocr.c. Moved reent_init to mallocr.c
+Calls reent_init() at hdw_init() now instead of __main().
+@
+text
+@d1 1
+a1 1
+/* $Id: phx_stubs.c,v 1.49 1997/09/12 21:11:47 shepperd Exp shepperd $
+d277 1
+a277 1
+extern void reent_init(void);
+d279 3
+d285 1
+a285 1
+    reent_init();
+@
+
+
+1.49
+log
+@use INCLUDE_XINU to key on Xinu specific functions.
+_xinu_sbrk_r() now returns 0 to indicate the reent pointer
+is not in Xinu space. Moved xinu_reent to Xinu's kernel.c.
+@
+text
+@d1 1
+a1 1
+/* $Id: phx_stubs.c,v 1.48 1997/08/01 23:36:59 albaugh Exp shepperd $
+a28 1
+#include <reent.h>
+a73 26
+
+# if JUNK_POOL_SIZE
+extern void *_junk_sbrk_r(struct _reent *ptr, size_t amt);
+# endif
+
+# if INCLUDE_XINU
+extern void *_xinu_sbrk_r(struct _reent *ptr, size_t amt);
+# endif
+
+void *_sbrk_r(struct _reent *ptr, size_t amt) {
+    extern struct _reent qio_reent;
+    void *old;
+    if (ptr == &qio_reent) return qio_sbrk(ptr, amt);
+# if INCLUDE_XINU
+    old = _xinu_sbrk_r(ptr, amt);
+    if (old) return old;
+# endif
+# if JUNK_POOL_SIZE
+    old = _junk_sbrk_r(ptr, amt);
+# else
+    ptr->_errno = ENOMEM;
+    old = (void *)-1;
+# endif			/* JUNK_POOL_SIZE */
+    return old;
+}
+
+d277 1
+d281 2
+@
+
+
+1.48
+log
+@Added call to prc_init_vecs() in hdw_init(), as this
+really is part of hdw init.
+@
+text
+@d1 1
+a1 1
+/* $Id: phx_stubs.c,v 1.47 1997/07/31 23:00:54 shepperd Exp albaugh $
+d80 1
+a80 1
+# if XINU_POOL_SIZE
+a81 1
+extern struct _reent xinu_reent;
+d88 3
+a90 2
+# if XINU_POOL_SIZE
+    if (ptr == &xinu_reent) return _xinu_sbrk_r(ptr, amt);
+@
+
+
+1.47
+log
+@Added support for alternate W2 address space.
+@
+text
+@d1 1
+a1 1
+/* $Id: phx_stubs.c,v 1.46 1997/07/10 18:15:51 shepperd Exp shepperd $
+d296 9
+d367 2
+a371 1
+	extern void prc_init_vecs(void);
+a372 1
+	prc_init_vecs();
+@
+
+
+1.46
+log
+@Added $Id$.
+@
+text
+@d1 1
+a1 1
+/* $Id$
+d249 4
+d265 1
+a265 1
+        put_pci_config_reg(id, 4, K1_TO_PHYS(SST_BASE) );
+d268 1
+a268 1
+        put_pci_config_reg(id, 4, K1_TO_PHYS(SST_BASE) );
+d276 1
+a276 1
+        put_pci_config_reg(id, 4, K1_TO_PHYS(SST_BASE) );
+@
+
+
+1.45
+log
+@Remove vestige of when PIC-BAT-CLOCK Epoch stuff was in this file,
+rather than in Mace's gamedefs.c, where it belonged for a while...
+@
+text
+@d1 1
+a1 1
+/*		phx_stubs.c
+@
+
+
+1.44
+log
+@Allowed NO_MATHERR to turn off inclusion of matherr code.
+@
+text
+@a25 3
+#if SST_GAME & SST_MACE
+#include <pic_defs.h>
+#endif
+@
+
+
+1.43
+log
+@Added Chameleon support.
+@
+text
+@d51 1
+d55 1
+@
+
+
+1.42
+log
+@Moved datetime code to Mace's gamedefs where it belongs.
+@
+text
+@d223 1
+d225 1
+d232 1
+d239 7
+a251 1
+    BLAB("\nStubs: Configuring 3dfx's PCI addresses...");
+d253 1
+a253 1
+/* Set PCI (sst1) memory response area to 0x08000000 (physical) */
+d259 1
+d262 1
+a262 1
+        put_pci_config_reg(id, 4, 0x08000000);
+d265 1
+a265 1
+        put_pci_config_reg(id, 4, 0x08000000);
+d273 1
+a273 1
+        put_pci_config_reg(id, 4, 0x8000000);
+a274 1
+    	BLAB("Failed\n");
+d279 14
+a294 1
+    int ii;
+d302 1
+d313 11
+a323 9
+    BLAB("\nStubs: Set GALILEO to little endian...");
+    ii = 10000;
+    do {
+        *(VU32*)GALILEO_PCI_CMD = 1;
+    } while ( !( (*(VU32 *)GALILEO_PCI_CMD) & 1) && --ii);
+
+    if (!ii) {
+	BLAB("Failed\n");
+	__asm__("BREAK");
+d330 1
+d336 1
+d338 1
+d348 7
+@
+
+
+1.41
+log
+@Added epoch time support for Mace.
+@
+text
+@a334 44
+#if SST_GAME & SST_MACE
+    {
+	U8 date[8];
+	int ii, retry;
+	extern int pic_date_valid;
+	extern int mace_reset_rtc(void);
+
+	retry = 0;
+	do {
+	    for (ii=0; ii < 7; ++ii) {
+		if (ReadPICNVRAM(ii, date+ii)) break;
+	    }
+	    if (ii < 7) break;
+	    if ( ((date[SECONDS]&0x0F) <= 0x09) &&
+		 ((date[SECONDS]&0xF0) <= 0x50) &&
+		 ((date[MINUTES]&0x0F) <= 0x09) &&
+		 ((date[MINUTES]&0xF0) <= 0x50) &&
+		 ((date[HOURS]&0x0F) <= 0x09) &&
+		 ((date[HOURS]&0xF0) <= 0x20) &&
+		 ( date[HOURS]       <= 0x23) &&
+		 ( date[DAY_OF_WEEK] >= 0x01) &&
+		 ( date[DAY_OF_WEEK] <= 0x07) &&
+		 ((date[DAY_OF_MONTH]&0x0F) <= 0x09) &&
+		 ((date[DAY_OF_MONTH]&0xF0) <= 0x03) &&
+		 ( date[DAY_OF_MONTH] <= 0x31) &&
+		 ((date[MONTH]&0x0F) <= 0x09) &&
+		 ((date[MONTH]&0xF0) <= 0x01) &&
+		 ( date[MONTH] >= 0x01) &&
+		 ( date[MONTH] <= 0x12) &&
+		 ((date[YEAR]&0x0F) <= 0x09) &&
+		 ((date[YEAR]&0xF0) <= 0x90) &&
+		 ((date[YEAR] >= 0x96) || (date[YEAR] <= 0x25)) ) {
+		pic_date_valid = 1;
+		break;
+	    }
+	    if (retry) break;	/* already did this, skip it */
+	    retry = 1;
+	    if (mace_reset_rtc()) break;
+	} while (1);
+	if (!pic_date_valid) BLAB("\nStubs: **** ERROR **** \007 Unable to set RTC contents to epoch...");
+	else if (retry) BLAB("\nStubs: Set RTC to epoch...");
+	else BLAB("\nStubs: RTC contents ok...");
+    }		    
+#endif
+@
+
+
+1.40
+log
+@Added support for Xinu sbrk.
+@
+text
+@d26 3
+d334 44
+@
+
+
+1.39
+log
+@Added reset_malloc() and heap_remaining() functions.
+Moved some primitives from phx_stubs.c to mallocr.c.
+@
+text
+@d78 5
+d87 3
+@
+
+
+1.38
+log
+@Fixed SST reset code. One has to do more things if one
+hits the h/w reset bit.
+@
+text
+@d73 3
+a75 2
+# ifndef JUNK_POOL_SIZE
+#  define JUNK_POOL_SIZE	(64*1024)
+a76 10
+# if JUNK_POOL_SIZE
+#  if JUNK_POOL_SIZE > 0
+static U8 junk_memory[JUNK_POOL_SIZE];
+#  else
+extern U8 bss_end[];
+#  endif			/* JUNK_POOL_SIZE > 0 */
+static U8 *junk_brk_value;
+static int junk_free_size;
+static int junk_inited;
+# endif				/* JUNK_POOL_SIZE */
+d83 2
+a84 18
+    if (!junk_inited) {
+#  if JUNK_POOL_SIZE > 0
+	junk_brk_value = junk_memory;
+	junk_free_size = sizeof(junk_memory);
+#  else
+	junk_brk_value = bss_end;
+	junk_free_size = ((U8 *)&old - junk_brk_value) - 128*1024;
+#  endif
+	junk_inited = 1;
+    }
+    if (amt > junk_free_size || junk_free_size+amt < junk_free_size) {
+	ptr->_errno = ENOMEM;
+	return (void *)-1;
+    }
+    old = (void *)junk_brk_value;
+    junk_brk_value += amt;
+    junk_free_size -= amt;
+# else				/* JUNK_POOL_SIZE */
+@
+
+
+1.37
+log
+@Protected reference to WDOG with !EPROM_ST and !NO_WDOG.
+@
+text
+@d254 30
+d286 1
+a286 1
+    int ii, id;
+a322 27
+
+    BLAB("\nStubs: Configuring 3dfx's PCI addresses...");
+
+/* Set PCI (sst1) memory response area to 0x08000000 (physical) */
+/* First Turn on memory */
+
+    id = get_sst_device_number();
+
+    if (id > 0) {
+        put_pci_config_reg(id, 4, -1);
+        get_pci_config_reg(id, 4);
+        put_pci_config_reg(id, 4, 0x08000000);
+        get_pci_config_reg(id, 1);
+        put_pci_config_reg(id, 1, 2);
+        put_pci_config_reg(id, 4, 0x08000000);
+
+        prc_wait_n_usecs(1000);
+
+        put_pci_config_reg(id, 1, 2);
+
+        prc_wait_n_usecs(1000);
+
+        put_pci_config_reg(id, 4, 0x8000000);
+    } else {
+    	BLAB("Failed\n");
+	__asm__("BREAK");
+    }
+@
+
+
+1.36
+log
+@tdfx tests are ok on Phoenix-AD now.
+@
+text
+@d258 1
+a258 1
+#if !BOOT_FROM_DISK && defined(WDOG)
+@
+
+
+1.35
+log
+@Added #if conditional around reference to tdfx_cmd_loop call.
+@
+text
+@d331 1
+a331 1
+#if ANNOUNCE_BOOT_ACTIONS && (HOST_BOARD != PHOENIX_AD) && !NO_TDFX_TESTS
+@
+
+
+1.34
+log
+@Can't run tdfx tests on PHXAD since there ain't enough
+DRAM available.
+@
+text
+@d331 1
+a331 1
+#if ANNOUNCE_BOOT_ACTIONS && (HOST_BOARD != PHOENIX_AD)
+@
+
+
+1.33
+log
+@Corrected compile time warning if !ANNOUNCE_BOOT_ACTIONS.
+@
+text
+@d331 1
+a331 1
+#if ANNOUNCE_BOOT_ACTIONS
+@
+
+
+1.32
+log
+@exit functions can be omitted by defining NO_EXIT_FUNC.
+removed dead code. Replaced references to phx_putxxx with
+shims_putxxx(). Added a jump to tdfx_cmd_loop() if DIPSW 4
+and 2 are both on.
+@
+text
+@a55 1
+#endif
+a57 1
+#if ANNOUNCE_BOOT_ACTIONS
+d69 1
+a69 2
+#else
+    return 0;
+a70 1
+}
+@
+
+
+1.31
+log
+@If you set JUNK_POOL_SIZE negative, it will use from the end of
+bss to 128k below the stack pointer as the junk pool. Note that
+this will not work with Nucleus.
+@
+text
+@d43 1
+d46 1
+d52 19
+a70 3
+#if NO_FFUNCTS
+# define phx_puts(x) 
+# define phx_putc(x) 
+d72 3
+d85 1
+a85 1
+#  endif
+d89 1
+a89 1
+# endif
+d113 1
+a113 1
+# else
+d116 1
+a116 1
+# endif
+a118 1
+#endif
+d120 2
+a121 3
+#if 0
+int sscanf(const char *s, const char *format, ...) {
+    BREAK();
+d124 1
+d126 1
+a126 16
+int getch(void) {
+    return -1;
+}
+#endif
+
+#if ANNOUNCE_BOOT_ACTIONS
+extern void shims_putc(char c);
+extern int shims_puts(const char *);
+#endif
+
+int phx_putc(int c) {
+#if ANNOUNCE_BOOT_ACTIONS
+    shims_putc(c);
+#endif
+    return 1;
+}
+d129 1
+a129 1
+#if ANNOUNCE_BOOT_ACTIONS
+d131 1
+a131 1
+#else
+d133 1
+a133 1
+#endif
+d136 5
+a140 3
+int phx_puts(const char *msg) {
+    return puts(msg);
+}
+d142 1
+a142 12
+static int wchrs(void *filler, const char *ptr, int len) {
+    static char last_c;
+    int olen = len;
+    char c;
+    while (len--) {
+	c = *ptr++;
+	if (c == '\n' && last_c != '\r') phx_putc('\r');
+	phx_putc(c);
+	last_c = c;
+    }
+    return olen;
+}
+d144 2
+a145 10
+#if !INCLUDE_QIO
+int printf(const char *fmt, ...)
+{
+	int ret;
+	va_list ap;
+	
+	va_start(ap, fmt);
+	
+	ret = twi_vfprintf(wchrs, 0, 0, fmt, ap);
+	va_end(ap);
+d147 4
+a150 1
+	return ret;
+d154 3
+a156 7
+	int ret;
+	va_list ap;
+	
+	va_start(ap, fmt);
+	
+	ret = twi_vfprintf(wchrs, 0, 0, fmt, ap);
+	va_end(ap);
+d158 7
+a164 5
+	return ret;
+}
+#else
+time_t time(time_t *ptr) {
+    if (ptr) *ptr = 0;
+d166 1
+d168 1
+a168 1
+#endif
+d172 3
+a174 7
+	int ret;
+	va_list ap;
+	
+	va_start(ap, fmt);
+	
+	ret = twi_vfprintf(wchrs, 0, 0, fmt, ap);
+	va_end(ap);
+d176 9
+a184 1
+	return ret;
+d189 11
+a199 13
+#if 0
+	int ret;
+	va_list ap;
+	
+	for (; indent > 0; --indent) {
+	    phx_putc(' ');
+	    phx_putc(' ');
+	}
+
+	va_start(ap, fmt);
+	
+	ret = twi_vfprintf(wchrs, 0, 0, fmt, ap);
+	va_end(ap);
+d201 7
+a207 1
+	return ret;
+d209 1
+a209 1
+        return 0;
+a211 1
+#endif
+a230 37
+extern void cit_init(void);
+extern void cit_deinit(void);
+
+/*		putn_ams()
+*	Try to put "cnt" characters from *buffer to AMS fake console.
+*	Returns number of chars actually queued, which will always be
+*	"cnt", because right now this is always done "wait mode"
+*/
+
+int putn_ams(unsigned char *buff, int i_cnt) {
+    int ii;
+    for (ii=0; ii < i_cnt; ++ii) {
+	int c;
+	c = *buff++;
+#if 0
+	if (c == ' ') c = '.';
+	else if (c == '\033') c = '[';
+	else if (c == '\\') {
+	    phx_putc('\\');
+	} else if (c <= ' ' || c > '~') {
+	    phx_putc('\\');
+	    if (c == '\r') c = 'r';
+	    else if (c == '\n') c = 'n';
+	    else if (c == '\t') c = 't';
+	    else if (c == '\f') c = 'f';
+	    else {
+		phx_putc(((c>>6)&0x3) | '0');
+		phx_putc(((c>>3)&0x7) | '0');
+		c = (c&7) | '0';
+	    }
+	}
+#endif
+	phx_putc(c);
+    }
+    return i_cnt;
+}
+
+a232 60
+#define XBCOINL		0x00200
+#define XBCOINR		0x00100
+#define XBJ_UP		0x00080
+#define XBJ_DOWN	0x00040
+#define XBJ_LEFT	0x00020
+#define XBJ_RIGHT	0x00010
+#define XBNEXT		0x00008
+#define XBACTION	0x00004
+#define XBEXTRA		0x00002
+
+#define SWAP_CONTROLS	0x8000		/* swap normal controls with xbusmon board */
+#define USE_SERIAL	0x4000		/* use serial output for dbg_txt */
+#define NO_TEXT		0x2000		/* don't display any text on the video */
+#define XBHANDSHAKE	(XBJ_UP)
+#define SIGNATURE	(0xFF02&~(SWAP_CONTROLS|USE_SERIAL|NO_TEXT|XBHANDSHAKE))
+#define SW_MASK		(0xFFFF&~(SWAP_CONTROLS|USE_SERIAL|NO_TEXT|XBHANDSHAKE))
+
+#if defined(SERIAL_ADDRESS)
+static int using_alternate, serial_enabled;
+extern U32 (*read_raw_sw_vec)(int);
+#endif
+
+#if defined(SERIAL_ADDRESS)
+static U32 read_raw_switches(int which) {
+    U32 tmp, ans;
+    if (serial_enabled) {
+	tmp = ~*(VU32 *)SERIAL_ADDRESS;
+	if ((tmp&USE_SERIAL) && (serial_enabled&2) == 0) {
+	    cit_init();
+	    serial_enabled |= 2;
+	} else if ((tmp&USE_SERIAL) == 0 && (serial_enabled&2)) {
+	    cit_deinit();
+	    serial_enabled &= ~2;
+	}
+    }
+    if (!using_alternate) {
+#if defined(DIAG)
+	return which ? ~DIAG : (~INPUTS & 0xFFFF);
+#else
+        return (~INPUTS & 0xFFFF);
+#endif
+    } 
+    ans = 0;			/* assume no buttons pushed */
+    if (!which) {
+	tmp = ~*(VU32 *)SERIAL_ADDRESS;
+        ans = 1<<B_TEST;		/* selftest switch is always on */
+	if (tmp&XBJ_UP)    ans |= J_UP;
+	if (tmp&XBJ_DOWN)  ans |= J_DOWN;
+	if (tmp&XBJ_LEFT)  ans |= J_LEFT;
+	if (tmp&XBJ_RIGHT) ans |= J_RIGHT;
+	if (tmp&XBACTION)  ans |= SW_ACTION;
+	if (tmp&XBNEXT)    ans |= SW_NEXT;
+	if (tmp&XBEXTRA)   ans |= SW_EXTRA;
+	if (tmp&XBCOINL)   ans |= (1<<B_COINL)<<8;
+	if (tmp&XBCOINR)   ans |= (1<<B_COINR)<<8;
+    }
+    return ans;
+}
+#endif
+
+a333 4
+#if 0
+    cit_init();
+#endif
+
+d335 14
+a348 9
+#if 0
+#define VT100_ANSI	"\033<"		/* ansi mode */
+#define VT100_HOME	"\033[1;1H"	/* home curosr */
+#define VT100_CLS	"\033[2J"	/* clear to end of screen */
+#define VT100_NOATT	"\033[0m"	/* all attributes off */
+#define VT100_ASCII	"\033(B"	/* select the normal ASCII character set */
+#define INIT_STRING VT100_ANSI VT100_HOME VT100_CLS VT100_NOATT VT100_ASCII
+    putn_ams((unsigned char *)INIT_STRING, sizeof(INIT_STRING)-1);
+    txt_str(-1,AN_VIS_ROW/2,"Finished HDW_INIT\n",MNORMAL_PAL);
+@
+
+
+1.30
+log
+@Moved the contents of qio_errs.h into qio.h and removed all
+references to qio_errs.h.
+@
+text
+@d60 6
+a65 2
+static unsigned char junk_memory[JUNK_POOL_SIZE];
+static unsigned char *junk_brk_value;
+d76 1
+d79 4
+@
+
+
+1.29
+log
+@Added a printout of the Galileo PCI ID during the BLAB session.
+@
+text
+@d31 2
+a32 3
+#include "qio.h"
+#include "qio_errs.h"
+#include "fsys.h"
+@
+
+
+1.28
+log
+@Put in a PCI device ID dump during BLAB time (if any).
+@
+text
+@d340 1
+a340 1
+    for (ii = 6; ii < 11; ii++) {
+d344 1
+@
+
+
+1.27
+log
+@Added BLAB of Galileo version.
+@
+text
+@a327 1
+
+d330 1
+d335 14
+d384 4
+@
+
+
+1.26
+log
+@Unbelievable, but sbrk is supposed to return a -1 on error
+instead of 0.
+@
+text
+@a55 2
+#define BREAK() __asm__("BREAK")
+
+d326 5
+a330 1
+# define BLAB(x)
+d333 2
+d348 2
+@
+
+
+1.25
+log
+@Allowed for JUNK_POOL_SIZE to be 0.
+@
+text
+@d30 1
+d80 2
+a81 1
+	return 0;
+d87 2
+a88 1
+    old = 0;
+@
+
+
+1.24
+log
+@Added support for stdio in sbrk.
+@
+text
+@d58 4
+a61 3
+#ifndef JUNK_POOL_SIZE
+# define JUNK_POOL_SIZE	(64*1024)
+#endif
+d66 1
+d72 1
+d84 3
+@
+
+
+1.23
+log
+@Changed the order of the #include's for fsys and qio.
+@
+text
+@d58 8
+d67 7
+a73 3
+    {
+	extern struct _reent qio_reent;
+	if (ptr == &qio_reent) return qio_sbrk(ptr, amt);
+d75 7
+a81 1
+    return 0;
+@
+
+
+1.22
+log
+@Ok, so I got a conditional wrong. Sue me.
+@
+text
+@a29 1
+#include "fsys.h"
+d32 1
+@
+
+
+1.21
+log
+@Preparing to install the QIO and FSYS subsystems. Hopefully these
+changes didn't break anything.
+@
+text
+@d57 1
+a58 1
+#if INCLUDE_QIO
+a62 1
+#endif
+d65 1
+@
+
+
+1.20
+log
+@Removed the wait_forever() loop which is actually in phx_root.
+@
+text
+@d27 8
+d57 7
+a63 3
+#if 0
+char *malloc(int arg) {
+    BREAK();
+d67 1
+a67 5
+int _sbrk_r(void) {
+    BREAK();
+    return 0;
+}
+
+d115 1
+d140 6
+a180 1
+
+d366 7
+@
+
+
+1.19
+log
+@Enabled Galileo PCI error interrupts.
+@
+text
+@a368 5
+
+void wait_forever(void) {
+    prc_set_ipl(INTS_OFF);
+    while (1);
+}
+@
+
+
+1.18
+log
+@Kicked the WDOG in a few more places.
+@
+text
+@d319 5
+@
+
+
+1.17
+log
+@Moved the interrupt BLAB's to phx_vecs.mac.
+@
+text
+@d294 4
+@
+
+
+1.16
+log
+@Added some addition BLAB messages.
+@
+text
+@a358 14
+#if ANNOUNCE_BOOT_ACTIONS
+    if ((prc_get_cause()&0xFF00) != 0) {
+	int jj;
+	BLAB("\nstubs: WARNING the following interrupts should not be pending:");
+	for (jj=0; jj < 8; ++jj) {
+	    if (jj < 2) {
+		BLABF(("\n    CPU interrupt %d", jj));
+	    } else {
+		BLABF(("\n    CPU interrupt %d, external interrupt %d", jj, jj-2));
+	    }
+	}
+	BLAB("\n  The next step in the boot procedure will probably hang");
+    }
+#endif
+@
+
+
+1.15
+log
+@Changed the text in the BLAB statements slightly.
+@
+text
+@d359 14
+@
+
+
+1.14
+log
+@Added some boot up messages that are enabled with the definition
+of the cpp variable BLAB.
+@
+text
+@d72 1
+a72 1
+extern int shims_puts(char c);
+d95 1
+d97 7
+a103 1
+    while (len--) phx_putc(*ptr++);
+d117 11
+a127 1
+        if (fmt[strlen(fmt)-1] == '\n') phx_putc('\r');
+d132 2
+a133 1
+int fprintf(void *filler, const char *fmt, ...) {
+d142 18
+a159 1
+        if (fmt[strlen(fmt)-1] == '\n') phx_putc('\r');
+d162 3
+d166 1
+d296 1
+a296 1
+    BLAB("Set GALILEO's PCI registers...");
+d304 1
+a304 1
+    BLAB("\nSet GALILEO to little endian...");
+d315 1
+a315 1
+    BLAB("\nConfiguring 3dfx's PCI addresses...");
+@
+
+
+1.13
+log
+@Removed shims for malloc(), sbrk() and sscanf() since I found the
+places in glide that used them.
+@
+text
+@d70 5
+d76 2
+a77 2
+#if 0
+    UARTputchar(2, c);
+d83 5
+a87 8
+    int c, lastc=0;
+    const char *msg = str;
+    while ((c=*str++) != 0) {
+	lastc = c;
+	phx_putc(c);
+    }
+    if (lastc == '\n') phx_putc('\r');
+    return str-msg;
+d247 3
+a249 7
+static void wait_n_usecs(int n) {
+    U32 junk;
+    int ii;
+
+    for (ii=0; ii < 4*n; ++ii) junk = *(VU32*)RAMROM_BASE;
+    return;
+}
+d255 1
+a255 1
+    wait_n_usecs(1000);
+d257 1
+d259 1
+a259 1
+
+d265 1
+d272 1
+a272 1
+        phx_puts("PCI didn't want to change to little endian\r\n");
+d275 2
+d291 1
+a291 1
+        wait_n_usecs(1000);
+d295 1
+a295 1
+        wait_n_usecs(1000);
+d299 1
+a299 1
+        phx_puts("Couldn't find the sst on the PCI bus\r\n");
+d310 1
+d318 2
+a319 2
+    txt_str(-1,AN_VIS_ROW/2,"Getting to selftest\n",MNORMAL_PAL);
+    prc_set_ipl(INTS_ON);
+@
+
+
+1.12
+log
+@Added shims for sscanf, malloc and getch.
+@
+text
+@d49 1
+d55 1
+a55 1
+int sscanf(const char *s, const char *format, ...) {
+d60 1
+a60 1
+int _sbrk_r(void) {
+d65 5
+a85 4
+}
+
+int getch(void) {
+    return -1;
+@
+
+
+1.11
+log
+@Allowed to conditional out f functions.
+@
+text
+@d47 1
+a47 1
+char *malloc(int arg) { BREAK(); return 0;}
+d49 15
+d80 4
+@
+
+
+1.10
+log
+@Added support for Phoenix_ad and Flagstaff boards.
+@
+text
+@a34 1
+char *malloc(int arg) { BREAK(); return 0;}
+d42 7
+d105 1
+@
+
+
+1.9
+log
+@Replaced reference to absolute address with one referenced by
+the equiv #define'd value.
+@
+text
+@d240 2
+a241 2
+        *((volatile int *)GALILEO_PCI_CMD = 1;
+    } while ( !(*((volatile int *)GALILEO_PCI_CMD) & 1) && --ii);
+@
+
+
+1.8
+log
+@Reset any pending Galileo interrupts.
+@
+text
+@d240 2
+a241 2
+        *((volatile int *)0xac000c00) = 1;
+    } while ( !(*((volatile int *)0xac000c00) & 1) && --ii);
+@
+
+
+1.7
+log
+@Set the PCI retry counter to 0xFF instead of 0.
+@
+text
+@d273 2
+@
+
+
+1.6
+log
+@Removed all calls to UART code.
+@
+text
+@d233 2
+@
+
+
+1.5
+log
+@Removed call to breakpoint() and replaced with BREAK to preserve the ra register.
+@
+text
+@d43 7
+d52 1
+d55 1
+a55 1
+	UARTputchar(2, c);
+d57 6
+a62 2
+    if (lastc == '\n') UARTputchar(2, '\r');
+    return 0;
+d67 1
+a67 1
+    while (len--) UARTputchar(2, *ptr++);
+d81 1
+a81 1
+        if (fmt[strlen(fmt)-1] == '\n') UARTputchar(2, '\r');
+d95 1
+a95 1
+        if (fmt[strlen(fmt)-1] == '\n') UARTputchar(2, '\r');
+d136 1
+a136 1
+	    UARTputchar(2, '\\');
+d138 1
+a138 1
+	    UARTputchar(2, '\\');
+d144 2
+a145 2
+		UARTputchar(2, ((c>>6)&0x3) | '0');
+		UARTputchar(2, ((c>>3)&0x7) | '0');
+d150 1
+a150 1
+	UARTputchar(2, c);
+d242 2
+a243 2
+        UARTputs(2, "PCI didn't want to change to little endian\r\n");
+        breakpoint();
+d267 2
+a268 2
+        UARTputs(2, "Couldn't find the sst on the PCI bus\r\n");
+        breakpoint();
+@
+
+
+1.4
+log
+@Removed matherr
+@
+text
+@d29 2
+d35 3
+a37 3
+char *malloc(int arg) { breakpoint(); return 0;}
+void promexit(int arg) { while (1) breakpoint(); }
+void exit(int arg) { while (1) breakpoint(); }
+@
+
+
+1.3
+log
+@Misc fixes for Phoenix and SST.
+@
+text
+@a35 1
+void __matherror(void) { while (1) breakpoint(); }
+@
+
+
+1.2
+log
+@Moved some init code to sst_vid.c
+@
+text
+@d33 1
+a34 2
+char *malloc(int arg) { breakpoint(); return 0;}
+int puts(const char *str) { UARTputs(2, str); return 0; }
+d42 10
+d68 2
+d82 2
+a213 2
+    void (*func)(void);
+    struct ROM_VECTOR_STR *romv = (struct ROM_VECTOR_STR *)DRAM_BASEnc;
+a215 19
+    *(VU32*)IO_RESET = -1;      /* l=unleash the I/O ASIC */
+    *(VU32*)PCI_RESET = -1;     /* unleash the PCI */
+
+    func=(void (*)(void))romv->ROMV_STUB_INIT;
+
+    if (func) {
+        if (!romv->ROMV_STUB_FLAG) func();
+    }
+
+    UnLock();                   /* unlock the ASIC */
+
+    UARTInit(0, ASIC_UART_INIT);        /* init the UART's */
+    UARTInit(1, 0);
+    UARTInit(2, 0);
+
+    UARTputs(0, "This is UART 0. Messages appear on UART 2\r\n");
+    UARTputs(1, "This is UART 1. Messages appear on UART 2\r\n");
+    UARTputs(2, "This is UART 2\r\n");
+
+d258 1
+d260 1
+d271 1
+a271 4
+#if 0
+    txt_select(oldtxt);			/* restore video text */
+#endif
+    prc_set_ipl(0x8001);		/* only allow timer interrupts */
+a277 19
+
+#if !VIDEO_BOARD
+int vid_waitvb(int edge) {
+    VU32 *timr = (VU32*)GALILEO_TIMER0;
+    VU32 *ctl = (VU32*)GALILEO_TIMER_CTL;
+    VU32 *cause = (VU32 *)GALILEO_INT_CAUSE;
+    int ii;
+
+    *ctl &= ~3;			/* disable timer 0 */
+    *cause = -1&~GALILEO_INT_TIMER0_m;	/* clear any pending interrupts */
+    *timr = 16666667/20;	/* set counter to 16 milliseconds */
+    *ctl |= 3;			/* enable counter 0 */
+
+    for (ii=0; ii < 3*1000*25; ++ii) {	/* assume loop takes about 300ns each */
+	if ((*cause&GALILEO_INT_TIMER0_m)) break;
+    }
+    return 1;
+}
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d25 1
+a27 2
+extern int UARTputchar(int, int);
+extern int UARTputs(int, const char *);
+d191 8
+d201 29
+d231 35
+d267 2
+a268 1
+    oldtxt = txt_select(TXT_NONE);		/* no vid_init() yet, turn off text */
+@

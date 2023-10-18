@@ -1,0 +1,728 @@
+head	1.14;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.14
+date	95.10.31.21.35.12;	author albaugh;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.10.20.22.18.04;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.09.19.20.20.34;	author peplinski;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.08.18.20.32.27;	author peplinski;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.08.09.22.38.18;	author birmingham;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.08.09.01.40.46;	author birmingham;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.06.09.00.10.30;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.05.17.01.13.49;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.05.16.23.58.54;	author birmingham;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.04.25.20.34.09;	author birmingham;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.03.22.21.43.11;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.02.14.01.45.12;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.02.08.19.24.37;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.18.22.00;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Used to build jump-table for game to call GUTS routines.
+@
+
+
+1.14
+log
+@re-arranged jump vectors for ide_ routines, to use
+Robert Birmingham's newer ide2.c
+@
+text
+@	TTL	'Vectors into OS for GAME to use'
+*
+	INCLUDE	'config.i'
+ IFNDEF	MACRO_STYLE
+MACRO_STYLE EQU MACROS_MOTO
+ ENDC
+
+*
+* MAC68K style macros
+*
+*
+	.MACRO VJMP name	; VJMP is word-sized (name < 0x8000)
+	xdef	VECT_'name
+*	xrefs	name
+	xref	_'name
+VECT_'name:
+*	JMP	name		; JMP.W
+	JMP	_'name		; JMP.L
+	.ENDM
+
+	.MACRO	VPTR name
+	xref	_'name
+	xdef	V_'name
+V_'name:	DC.L	_'name		; Stores pointer to the variable
+	.ENDM
+*
+*
+*
+*
+*	Vectors into OS from game
+*
+*	SECTION	0
+	SECTION	1
+	xdef	VSTART
+VSTART:
+*
+*	OS utility vectors
+*
+	VJMP	stub_start	; For use with Corp's debug stub
+
+	VJMP	prc_reboot	; restart/switch
+	VJMP	prc_delay0	; Wait <=1 frames
+	VJMP	prc_delay	; Wait <=n frames
+	VJMP	prc_panic	; to dump to screen
+	VJMP	prc_set_ipl	; set new interrupt level, return old level
+	VJMP	prc_set_vec	; set an interrupt vector
+	VJMP	prc_q_action
+	VJMP	prc_mod_latch	; set or clear LATCH/shadow bits
+
+	VJMP	ctl_autorepeat	; set auto repeat values for ctl_read_sw()
+	VJMP	ctl_read_debug	; read debounced debug switches
+	VJMP	ctl_read_sw	; (MASK) return levels or edges(then cleared)
+	VJMP	ctl_rd_gun	; (which (0 or 1)) return packed gun status
+	VJMP	ctl_upd_sw	; setup/read self-test style switches(VBINT)
+
+*	VJMP	rand		; random number generator
+	VJMP	vcr		; start/stop vcr
+*
+*	MESSAGE routine vectors (xxxx_mess.asm)
+*
+* IFNE MAX_MESS
+  IFNE 0
+	VJMP	initmess	; Clear alpha screen, init timers etc.
+	VJMP	initmes2	; just init message control stuff, not screen
+	VJMP	imess		; Vblank routine to implement type et al
+	VJMP	write		; Write an MT message
+	VJMP	erase		; Erase an MT message
+	VJMP	blink		; Blink an MT message on the screen
+	VJMP	pulse		; Write an MT message, wait, then erase it
+	VJMP	bwrite		; Write an MT message in BIG characters
+	VJMP	berase		; Erase a BIG MT message
+	VJMP	cwrite		; Write one character at (x,y)
+	VJMP	pwrite		; Write ascii string at (x,y)
+	VJMP	pdec		; Write decimal number at (x,y)
+	VJMP	phex		; Write hex number at (x,y)
+	VJMP	pbwrite		; pwrite BIG
+	VJMP	pbdec		; pdec BIG
+	VJMP	pbhex		; phex BIG
+	VJMP	pmess		; pwrite with center x or continue from here
+	VJMP	pbmess		; pbwrite with center x or continue from here
+	VJMP	SetANPal	; set alpha palette from long (bg,fg) colors
+
+	VJMP	type		; type msg to screen
+*
+*	Some games may wish to include some of the vectors below
+*
+	VJMP	gwhere		; Get AN_RAM address for x,y position
+	VJMP	etype		; 'Slowly' erase an MT message
+	VJMP	hscroll		; Write an MT message that scrolls on horizontally
+	VJMP	vscroll		; Write an MT message that scrolls on vertically
+ ENDC
+
+*
+*	EEPROM statistics vectors
+*
+
+	VJMP	eer_incs		; increment specified stat
+	VJMP	eer_init		;Called at power-on to setup shadows
+	VJMP	eer_gets		;Get Statistic (or option)
+	VJMP	eer_puts		;Put/clear Statistic or option
+	VJMP	eer_hstr		;Read High Score Table
+	VJMP	eer_hstw		;Write High Score Table
+	VJMP	eer_rank		;Return Rank corresponding to score
+	VJMP	eer_bumph
+
+	VJMP	eer_play		;Start/Stop player timers
+	VJMP	eer_start		;Start Game and timers
+	VJMP	eer_stop		;Stop a player's timer, not game
+	VJMP	eer_end			;End of game, updates stats.
+
+	VJMP	eer_hwt			; does the writes necessary
+	VJMP	eer_busy		;EEROM write active
+
+	VJMP	eer_user_rd		; read in the user records
+	VJMP	eer_user_wrt		; write 'em out
+	VJMP	eer_user_free		; done with it
+
+	VJMP	eer_tally_hist		; Histogram call
+	VJMP	erc_vbex		; maintain eeprom & coin polling
+*
+*	COIN routine vectors
+*
+
+	VJMP	cn_init		; call AFTER eer_init (INTS ENABLED!)
+	VJMP	cn_discount	; returns 0 if no discount, else cost to cont.
+	VJMP	cn_price	;Report price of a game
+	VJMP	cn_chkcoin	; returns TRUE if enough coins
+	VJMP	cn_credits	; returns 32bits of- 31:16 Whole, 15:8/7:0 part for NEW Games
+	VJMP	cn_continues	; returns 32bits of- 31:16 Whole, 15:8/7:0 part for CONT Games
+	VJMP	cn_debit	; -- old, takes ONE credit (price of one game)
+	VJMP	cn_dbcoin	; subtracts a specified number of COINS
+	VJMP	cn_zap_bonus	; clears bonus accumulators (if used)
+	VJMP	cn_total_coins	; used by stats, returns total coins dropped
+	VJMP	cn_total_creds	; used by stats, returns coins/price
+	VJMP	cn_bong		; used to return NEW COINS dropped
+	VJMP	cn_next		; returns number of coins needed to first credit
+	VJMP	cn_coins	; returns number of coins in bucket
+
+*
+*	INTERNAL variable pointer vectors
+*
+	VPTR	eer_rtc		; VBINT running counter
+
+*
+* new-style text routines
+*
+
+	VJMP	txt_width
+	VJMP	txt_height
+	VJMP	txt_stamp
+	VJMP	txt_str
+	VJMP	txt_clr_str
+	VJMP	txt_clr_wid
+	VJMP	txt_cstr
+	VJMP	txt_decnum
+	VJMP	txt_cdecnum
+	VJMP	txt_hexnum
+	VJMP	txt_chexnum
+
+* and a couple of utilities useful in printing
+
+	VJMP	utl_cdec
+	VJMP	utl_chex
+
+* IFNE	HAS_SMC_COM
+ IFNE 0
+* SMC (ARCNet) routines
+	VJMP	COMSendPacket
+	VJMP	COMInit
+	VJMP	COMClearQueue
+ ENDC
+* IFNE POT_CNT
+ IFNE 0
+	VJMP	pot_raw
+	VJMP	pot_linear
+	VJMP	pot_parabolic
+	VJMP	pot_save
+	VJMP	pot_age
+ ENDC
+	VJMP	gun_vb
+	VJMP	gun_init
+
+	VJMP	vid_clear
+	VJMP	vid_init
+	VJMP	vid_set_vb
+	VJMP	vid_set_pal
+	VJMP	vid_setscr
+	VJMP	vid_set_vmode    
+
+	VJMP	tq_ins
+	VJMP	tq_del
+
+	VJMP	dram_alloc
+
+*	Chuck Peplinski's audio library...
+
+	VJMP	aud_put			; send sound
+	VJMP	aud_poll		; check up, maybe empty queue
+	VJMP	aud_init		; reset
+	VJMP	aud_setvol		; set volume
+	VJMP	aud_mput
+	VJMP	aud_q_get
+*	VJMP	aud_q_put		; send sound, if not put in queue
+
+V_aud_q_put:
+	NOP
+	MOVEQ.L	#0,D0
+	RTS
+
+	VJMP	strmInit
+	VJMP	strmStartStreaming
+	VJMP	strmCurrentBufferDonePlaying
+	VJMP	strmSwapBuffer
+	VJMP	strmSetupStreaming
+	VJMP	strmStop
+	VJMP	strmPause
+	VJMP	strmResume
+	VJMP	strmSetVolume
+	VJMP	strmGetSampleRate
+	VJMP	synPrintJVcb
+
+* Jaguar related services from Robert Birmingham...
+
+	VJMP	ob_add
+	VJMP	ob_del
+	VJMP	ob_build
+	VJMP	ob_clone
+	VJMP	ob_copy
+	VJMP	ob_reset
+	VJMP	ob_text
+	VJMP	ob_init
+	VJMP	ob_get_dpitch
+	VJMP	ob_get_dwidth
+	VJMP	ob_get_firstpix
+	VJMP	ob_get_flags
+	VJMP	ob_get_hscale
+	VJMP	ob_get_img
+	VJMP	ob_get_iwidth
+	VJMP	ob_get_palnum
+	VJMP	ob_get_pixdepth
+	VJMP	ob_get_pixh
+	VJMP	ob_get_pixw
+	VJMP	ob_get_xhotspot
+	VJMP	ob_get_yhotspot
+	VJMP	ob_get_priority
+	VJMP	ob_get_vscale
+	VJMP	ob_get_x
+	VJMP	ob_get_y
+	VJMP	ob_set_dpitch
+	VJMP	ob_set_dwidth
+	VJMP	ob_set_firstpix
+	VJMP	ob_set_flags
+	VJMP	ob_set_hscale
+	VJMP	ob_set_img
+	VJMP	ob_set_iwidth
+	VJMP	ob_set_mem
+	VJMP	ob_set_palnum
+	VJMP	ob_set_pixdepth
+	VJMP	ob_set_pixh
+	VJMP	ob_set_pixw
+	VJMP	ob_set_xhotspot
+	VJMP	ob_set_yhotspot
+	VJMP	ob_set_priority
+	VJMP	ob_set_vscale
+	VJMP	ob_set_x
+	VJMP	ob_set_y
+	VJMP	ob_set_mcliprect
+	VJMP	ob_get_mcliprect
+	VJMP	ob_set_mclipflag
+	VJMP	ob_get_mclipflag
+	VJMP	ob_mem_init
+	VJMP	ob_get_mem
+
+	VJMP	rst_copy
+	VJMP	rst_clear
+	VJMP	rst_set
+	VJMP	rst_size
+
+	VJMP	rect_set
+	VJMP	rect_clip
+	VJMP	rect_translate
+	VJMP	rect_intersect
+
+	VJMP	blit_clear
+	VJMP	blit_copy
+	VJMP	blit_pattern
+	VJMP	blit_status
+	VJMP	blit_wait
+
+	VJMP	decomp_init
+	VJMP	decomp_register
+	VJMP	decomp_unregister
+	VJMP	decomp_image
+
+*	VJMP	ide_enable_interrupts
+*	VJMP	ide_disable_interrupts
+*	VJMP	ide_send_command
+	VJMP	ide_identify
+	VJMP	ide_read_sectors
+	VJMP	ide_write_sectors
+	VJMP	ide_get_hdinfo
+*	VJMP	ide_wait_bsy
+	VJMP	ide_get_rdstatus
+	VJMP	ide_get_rpm
+*	VJMP	ide_verify_sector
+	VJMP	ide_calc_checksum
+*	VJMP	ide_hverify_sectors
+	VJMP	ide_reset
+	VJMP	ide_get_errstatus
+	VJMP	ide_gread_sectors
+	VJMP	ide_hread_sectors
+	VJMP	ide_check_devstat
+
+	VJMP	gpu_task_init
+	VJMP	gpu_load_task
+	VJMP	gpu_run_task
+	VJMP	gpu_push_stack
+	VJMP	gpu_set_bss
+	VJMP	gpu_get_bss
+	VJMP	gpu_task_complete
+
+* Temporary gun hardware trace dump
+	VJMP	gun_dump
+	VJMP	gun_retrigger
+*	VJMP	imGetLoadAddress
+*	VJMP	imLoadBankExternal
+*	VJMP	strmPlayRamSound
+*	VJMP	strmSoundFinished
+* Random number generator, per ANSI spec.
+	VJMP	rand
+	VJMP	srand
+@
+
+
+1.13
+log
+@Deleted MOS routines not implemented on 68k. Added rand() and srand()
+@
+text
+@d295 3
+a297 3
+	VJMP	ide_enable_interrupts
+	VJMP	ide_disable_interrupts
+	VJMP	ide_send_command
+d302 1
+a302 1
+	VJMP	ide_wait_bsy
+d305 1
+a305 1
+	VJMP	ide_verify_sector
+d307 1
+a307 1
+	VJMP	ide_hverify_sectors
+d310 1
+@
+
+
+1.12
+log
+@added some streaming audio protos.
+@
+text
+@d324 7
+a330 4
+	VJMP	imGetLoadAddress
+	VJMP	imLoadBankExternal
+	VJMP	strmPlayRamSound
+	VJMP	strmSoundFinished
+@
+
+
+1.11
+log
+@Removed ide_init().
+@
+text
+@d324 4
+@
+
+
+1.10
+log
+@Added new jump vector for the function: ide_reset().
+@
+text
+@d272 1
+a294 1
+	VJMP	ide_init
+d307 5
+a320 4
+	VJMP	ide_get_errstatus
+	VJMP	ide_hread_sectors
+	VJMP	ide_check_devstat
+
+a323 3
+	VJMP	ide_hverify_sectors
+	VJMP	ob_get_mem
+	VJMP	ide_reset
+@
+
+
+1.9
+log
+@Added entry for new ob_get_mem() function in OBLIST.C
+@
+text
+@d325 1
+@
+
+
+1.8
+log
+@added ide_hverify_sectors for authoring tool
+@
+text
+@d324 1
+@
+
+
+1.7
+log
+@added gun_dump() for debug, and gun_retrigger() for
+machine-gun effect (Area51)
+@
+text
+@d323 1
+@
+
+
+1.6
+log
+@vectors for GUTS 2.0 release, cleaned up order somewhat.
+@
+text
+@d320 3
+@
+
+
+1.5
+log
+@added new gpu calls, ide support, clipping, streaming audio
+@
+text
+@d40 1
+d46 4
+d55 1
+a55 1
+	VJMP	prc_mod_latch	; set or clear LATCH/shadow bits
+d92 1
+a93 13
+*	new (9/91) SOUND routine vectors
+*
+	VJMP	aud_put			; send sound
+*	VJMP	aud_q_put		; send sound, if not put in queue
+V_aud_q_put:
+	NOP
+	MOVEQ.L	#0,D0
+	RTS
+	VJMP	aud_poll		; check up, maybe empty queue
+	VJMP	aud_init		; reset
+	VJMP	aud_setvol		; set volume
+*	VJMP	aud_mput		; send sound with parameters
+*
+d96 1
+d123 1
+d129 1
+a129 1
+*	VJMP	cn_continues	; returns 32bits of- 31:16 Whole, 15:8/7:0 part for CONT Games
+d159 1
+d161 1
+d181 2
+d186 38
+d267 6
+a272 12
+	VJMP	dram_alloc
+	VJMP	vid_setscr
+	VJMP	vid_set_vmode    
+	VJMP	tq_ins
+	VJMP	tq_del
+	VJMP	prc_q_action
+* Jaguar related services from Robert Birmingham
+ IFNE 0
+	VJMP	gpu_load
+	VJMP	gpu_run
+	VJMP	gpu_wait
+ ENDC
+d277 1
+d281 2
+d288 1
+a292 26
+ IFNE 0
+        VJMP	gpu_push
+	VJMP	gpu_calc_stackptr
+ ENDC
+	VJMP	ob_mem_init
+	VJMP	rect_intersect
+	VJMP	ob_set_mcliprect
+	VJMP	ob_get_mcliprect
+	VJMP	ob_set_mclipflag
+	VJMP	ob_get_mclipflag
+	VJMP	aud_mput
+	VJMP	strmInit
+	VJMP	strmStartStreaming
+	VJMP	strmCurrentBufferDonePlaying
+	VJMP	strmSwapBuffer
+	VJMP	strmSetupStreaming
+	VJMP	strmStop
+	VJMP	strmPause
+	VJMP	strmResume
+	VJMP	strmSetVolume
+	VJMP	strmGetSampleRate
+	VJMP	aud_q_get
+	VJMP	synPrintJVcb
+	VJMP	prc_set_vec
+	VJMP	gun_init
+	VJMP	vid_set_pal
+a293 2
+* start of new additions by RMB
+
+d314 1
+d316 3
+a318 15
+* end of new additions by RMB
+
+ IFNE 0
+	VJMP	MoviePlayerInit
+	VJMP	MoviePlayer
+	VJMP	GetMovieMode
+	VJMP	SetMovieMode
+	VJMP	SetMoviePlayerPtrs
+	VJMP	StartMovie
+	VJMP	StopMovie
+	VJMP	ide_read_sectors
+	VJMP	gpuint_done
+ ENDC
+* Temporary home of cn_continues, until we re-sort everything
+	VJMP	cn_continues	; returns 32bits of- 31:16 Whole, 15:8/7:0 part for CONT Games
+@
+
+
+1.4
+log
+@Added rectangle intersection and master object clipping
+functions.
+@
+text
+@a6 12
+*
+* MOTOROLA style macros
+*
+ IFEQ MACRO_STYLE-MACROS_MOTO
+*
+VJMP	MACRO			; VJMP is word-sized (param < 0x8000)
+	xdef	_\1
+	xref	\1
+_\1:
+*	DC.W	$4EF8,\1	; force JMP.W
+	JMP	\1		; JMP.L
+	ENDM
+a7 5
+VPTR	MACRO
+	xref	\1
+	xdef	_\1
+_\1:	DC.L	\1		; Stores pointer to the variable
+	ENDM
+a8 3
+ ENDC
+
+*
+a10 1
+ IFEQ MACRO_STYLE-MACROS_MAC68K
+d13 1
+a13 1
+	xdef	_'name
+d15 2
+a16 2
+	xref	name
+_'name:
+d18 1
+a18 1
+	JMP	name		; JMP.L
+d22 3
+a24 3
+	xref	name
+	xdef	_'name
+_'name:	DC.L	name		; Stores pointer to the variable
+a26 1
+ ENDC
+d32 2
+a33 1
+	SECTION	0
+d56 2
+a57 1
+ IFNE MAX_MESS
+d91 5
+a95 1
+	VJMP	aud_q_put		; send sound, if not put in queue
+d168 2
+a169 1
+ IFNE	HAS_SMC_COM
+d175 2
+a176 1
+ IFNE POT_CNT
+d237 1
+d241 1
+d258 1
+d261 1
+d268 56
+@
+
+
+1.3
+log
+@changed old ob_xset_mem() vector (commented out) to
+ob_mem_init()
+@
+text
+@d273 5
+@
+
+
+1.2
+log
+@added gpu_push and gpu_calc_stackptr entries
+@
+text
+@d272 1
+a272 1
+*	VJMP	ob_xset_mem
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d270 3
+@

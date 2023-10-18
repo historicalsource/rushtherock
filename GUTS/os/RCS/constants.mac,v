@@ -1,0 +1,549 @@
+head	1.24;
+access;
+symbols
+	RUSH_ROCK_1_0:1.23
+	RUSH_ROCK_1_0epst:1.23
+	RUSH_ROCK_1_0boot:1.23
+	MACE_1_0e:1.23
+	MACE_1_0d:1.23
+	RUSH_1_06A:1.23
+	AREA_52_00:1.23
+	MACE_1_0a:1.21
+	CJ_206:1.14
+	CJ2_05:1.14
+	CJ2_04:1.13;
+locks; strict;
+comment	@;; @;
+
+
+1.24
+date	97.10.30.21.35.14;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	97.07.01.20.54.19;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	97.05.13.16.51.36;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	97.05.04.02.51.06;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	97.04.01.19.50.12;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	97.04.01.18.52.36;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.03.31.18.39.21;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	97.03.24.22.44.02;	author harper;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	97.03.06.22.12.54;	author albaugh;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	97.01.24.18.44.17;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.11.04.21.23.12;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.09.24.22.37.39;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.07.17.22.35.29;	author forrest;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.06.08.16.45.13;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.05.20.22.05.22;	author birmingham;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.04.24.20.26.10;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.04.17.20.45.26;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.04.03.23.40.11;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.03.26.21.29.08;	author forrest;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.12.11.23.04.23;	author birmingham;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.08.30.23.44.07;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.08.29.19.36.53;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.07.10.17.14.06;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.06.26.23.35.43;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@File containing constants required for use sources that need MACPP'ing.
+@
+
+
+1.24
+log
+@Added CX486, CYRIX_MGX, CYRIX_MGX_V and CYRIX_BLOODLUST.
+@
+text
+@; $Id: constants.mac,v 1.23 1997/07/01 20:54:19 shepperd Exp shepperd $
+;
+.if ndf, _CONSTANTS_MAC_
+_CONSTANTS_MAC_ == 0
+ .if ndf,LANG_C
+  .error ;You must .include def_pp.mac before .including constants.mac
+ .endc
+.if true, OUTPUT_LANG == LANG_C
+#if !defined(_CONSTANTS_H_)
+#define _CONSTANTS_H_
+.endc
+;
+; Available processors (set the variable PROCESSOR to one of these)
+;
+	HEX_CONST PROCESSOR_CLASS 0xFFFFFFF0
+	HEX_CONST M68000	0x01
+	HEX_CONST M68010	0x02
+	HEX_CONST M68EC020	0x03
+	HEX_CONST M68020	0x03
+	HEX_CONST ASAP		0x10
+	HEX_CONST MIPS3000	0x20		< MIPS 30x1 processor, big endian >
+	HEX_CONST MIPS30x1	0x21		< MIPS 30x1 processor, big endian >
+	HEX_CONST MIPS30x1L	0x22		< MIPS 30x1 processor, little endian >
+	HEX_CONST MIPS4000	0x30		< MIPS 4000 processor, big endian >
+	HEX_CONST MIPS4000L	0x31		< MIPS 4000 processor, little endian >
+	HEX_CONST MIPS4600	0x32		< MIPS 4600 processor, big endian >
+	HEX_CONST MIPS4600L	0x33		< MIPS 4600 processor, little endian >
+	HEX_CONST MIPS4650	0x34		< MIPS 4650 processor, big endian >
+	HEX_CONST MIPS4650L	0x35		< MIPS 4650 processor, little endian >
+	HEX_CONST MIPS4700	0x36		< MIPS 4700 processor, big endian >
+	HEX_CONST MIPS4700L	0x37		< MIPS 4700 processor, little endian >
+	HEX_CONST MIPS5000	0x38		< MIPS 5000 processor, big endian >
+	HEX_CONST MIPS5000L	0x39		< MIPS 5000 processor, little endian >
+	HEX_CONST MIPS4300	0x3A		< MIPS 4300 processor, big endian >
+	HEX_CONST MIPS4300L	0x3B		< MIPS 4300 processor, little endian >
+	HEX_CONST CX486		0x41		< Cyrix 486/pentium >
+;
+; Various host boards (set the variable HOST_BOARD to one of these)
+;
+	HEX_CONST HOST_BOARD_CLASS 0xFFFFFFF0
+	HEX_CONST EC020cojag	1*0x10		< McKee's low cost EC020 host board, CoJag version >
+	HEX_CONST EC020zoid10	2*0x10		< McKee's low cost EC020 host board, Zoid 10 version >
+	HEX_CONST EC020zoid20	3*0x10		< McKee's low cost EC020 host board, Zoid 20 version >
+	HEX_CONST MCUBE		4*0x10		< Mokris's 68k based host board >
+	HEX_CONST ASCLEAP	5*0x10		< The ASAP based ASCLEAP >
+	HEX_CONST LCR3K		6*0x10		< Low cost R3k host board >
+	HEX_CONST IDT3xEVAL	7*0x10		< IDT's 3000 eval board with XBUS adapter >
+	HEX_CONST IDT4xEVAL	8*0x10		< IDT's 4000 eval board with XBUS adapter >
+	HEX_CONST MB4600	9*0x10		< Senthil and Mark's 4600 MathBox board >
+	HEX_CONST HCR4K		10*0x10		< Senthil and Mark's 4600 Host board >
+	HEX_CONST PSX		11*0x10		< Sony PSX >
+	HEX_CONST PHOENIX	12*0x10+0	< WMS Host board >
+	HEX_CONST PHOENIX_AD	12*0x10+1	< WMS Phoenix-AD board (Hockey) board >
+	HEX_CONST FLAGSTAFF	12*0x10+2	< WMS Phoenix-Flagstaff (Rush) board >
+	HEX_CONST SEATTLE	12*0x10+3	< WMS Phoenix-Seattle (Mace/CSpeed/Genocide) board >
+	HEX_CONST VEGAS		12*0x10+4	< WMS Phoenix-Vegas (?) board >
+	HEX_CONST CHAMELEON	12*0x10+5	< WMS Chameleon board >
+	HEX_CONST CYRIX_MGX	13*0x10+0	< Cyrix Media/GX >
+;
+; Various video boards (set the variable VIDEO_BOARD to one of these)
+;
+	HEX_CONST ZOID10_V	1		< Zoid 10 stack		>
+	HEX_CONST ZOID20_V	2		< Zoid 20 stack 	>
+	HEX_CONST COJAG_V	3		< CoJag stack 		>
+	HEX_CONST GX1_V		4		< FSG42 board		>
+	HEX_CONST GX2_V		5		< GX2 board		>
+	HEX_CONST GT_V		6		< GT board		>
+	HEX_CONST SST_V		7		< 3DFX video board	>
+	HEX_CONST PSX_V		8		< Sony PSX >
+	HEX_CONST CYRIX_MGX_V	9		< Cyrix Media/GX >
+;
+; Various game id's (set the variable COJAG_GAME to one of these)
+;
+	HEX_CONST COJAG_PROTO	0x01		< Non-Game specific running on COJAG >
+	HEX_CONST COJAG_HERO	0x02		< Hero on COJAG >
+	HEX_CONST COJAG_AREA51	0x04		< Area 51 on COJAG >
+	HEX_CONST COJAG_RAGE	0x08		< RAGE 2 on COJAG >
+	HEX_CONST COJAG_FISH	0x10		< Tropical Fish on COJAG >
+;
+; Various game id's (set the variable ZOID_GAME to one of these)
+;
+	HEX_CONST ZOID_PROTO	0x01		< Non-Game specific running on ZOID >
+	HEX_CONST ZOID_HOCKEY	0x02		< Wayne Gretzky Hocky running on ZOID >
+	HEX_CONST ZOID_GAUNTLET	0x04		< 3D Gauntlet running on ZOID >
+	HEX_CONST ZOID20_DIAG	0x08		< Mike Albaugh developing ZOID 20 >
+	HEX_CONST ZOID_RUSH	0x10		< SF Rush running on ZOID >
+	HEX_CONST ZOID_MACE	0x20		< Mace running on ZOID >
+	HEX_CONST ZOID20_DMS	0x40		< Dave Shepperd test ZOID >
+;
+; Various game id's (set the variable SST_GAME to one of these)
+;
+	HEX_CONST SST_PROTO	0x01		< Non-Game specific running on 3DFX >
+	HEX_CONST SST_DMS	0x02		< Dave Shepperd test 3DFX >
+	HEX_CONST SST_RUSH	0x04		< RUSH 3DFX >
+	HEX_CONST SST_HOCKEY	0x08		< Hockey 3DFX >
+	HEX_CONST SST_MACE	0x10		< Mace 3DFX >
+	HEX_CONST SST_SPEED	0x20		< Speed 3DFX >
+	HEX_CONST SST_STAR	0x40		< Star (working title) 3DFX >
+	HEX_CONST SST_JUKO	0x80		< Juko Thread 3DFX >
+	HEX_CONST SST_GENO	0x100		< Genocide 3DFX >
+	HEX_CONST SST_GAUNTLET	0x200		< 3Dfx Gauntlet >
+	HEX_CONST SST_CRASH	0x400		< Crash (game) 3DFX >
+	HEX_CONST SST_AIRRACE	0x800		< AirRace 3DFX (Blueshift) >
+;
+; Various game id's (set the variable PSX_GAME to one of these)
+;
+	HEX_CONST PSX_PROTO	0x01		< Non-Game specific running on PSX >
+	HEX_CONST PSX_RAGE2	0x02		< Primal Rage II on PSX >
+;
+; Various game id's (set the variable CYRIX_GAME to one of these)
+;
+	HEX_CONST CYRIX_BLOODLUST 0x01		< Bloodlust >
+;
+	HEX_CONST TRUE	1
+	HEX_CONST FALSE	0
+;
+	HEX_CONST ABORT	0
+	HEX_CONST FAIL	-1
+;
+	HEX_CONST IDE_COJAG	0x01		< For IDE on COJAG boards >
+	HEX_CONST IDE_STREAM	0x02		< For IDE on STREAM boards >
+	HEX_CONST IDE_PCI	0x03		< For IDE on PCI bus >
+	HEX_CONST IDE_PSX	0x04		< For IDE on PSeXtra >
+;
+ .if ndf,ANSI_OK
+	HEX_CONST ANSI_OK	1
+ .endc
+.if true, OUTPUT_LANG == LANG_C
+#endif			/* _CONSTANTS_H_ */
+.endc
+.endc			; _CONSTANTS_MAC_
+@
+
+
+1.23
+log
+@Added a $Id$ to get file's version number.
+@
+text
+@d1 1
+a1 1
+; $Id$
+d36 1
+d58 1
+d70 1
+d110 4
+d123 1
+a123 1
+	HEX_CONST IDE_PSX	0x4		< For IDE on PSeXtra >
+@
+
+
+1.22
+log
+@Made HOST_BOARD definitions into an easily detected "class".
+@
+text
+@d1 2
+@
+
+
+1.21
+log
+@Added CPU type 4300, HOST_BOARD type CHAMELEON and game type AIRRACE.
+@
+text
+@d13 1
+d37 18
+a54 17
+	HEX_CONST EC020cojag	1		< McKee's low cost EC020 host board, CoJag version >
+	HEX_CONST EC020zoid10	2		< McKee's low cost EC020 host board, Zoid 10 version >
+	HEX_CONST EC020zoid20	3		< McKee's low cost EC020 host board, Zoid 20 version >
+	HEX_CONST MCUBE		4		< Mokris's 68k based host board >
+	HEX_CONST ASCLEAP	5		< The ASAP based ASCLEAP >
+	HEX_CONST LCR3K		6		< Low cost R3k host board >
+	HEX_CONST IDT3xEVAL	7		< IDT's 3000 eval board with XBUS adapter >
+	HEX_CONST IDT4xEVAL	8		< IDT's 4000 eval board with XBUS adapter >
+	HEX_CONST MB4600	9		< Senthil and Mark's 4600 MathBox board >
+	HEX_CONST HCR4K		10		< Senthil and Mark's 4600 Host board >
+	HEX_CONST PHOENIX	11		< WMS Host board >
+	HEX_CONST PSX		12		< Sony PSX >
+	HEX_CONST PHOENIX_AD	13		< WMS Phoenix-AD board (Hockey/Mac) board >
+	HEX_CONST FLAGSTAFF	14		< WMS Phoenix-Flagstaff (Rush) board >
+	HEX_CONST SEATTLE	15		< WMS Phoenix-Seattle (Mace) board >
+	HEX_CONST VEGAS		16		< WMS Phoenix-Vegas (?) board >
+	HEX_CONST CHAMELEON	17		< WMS Chameleon board >
+@
+
+
+1.20
+log
+@Renamed SST_SPRINT to SST_CRASH
+@
+text
+@d31 2
+d52 1
+d96 1
+@
+
+
+1.19
+log
+@Added SST_SPRINT.
+@
+text
+@d92 1
+a92 1
+	HEX_CONST SST_SPRINT	0x400		< Sprint 3DFX >
+@
+
+
+1.18
+log
+@Added SST_GAUNTLET
+@
+text
+@d92 1
+@
+
+
+1.17
+log
+@Added Genocide def: SST_GENO
+@
+text
+@d91 1
+@
+
+
+1.16
+log
+@Added separate game def (SST_JUKO) for Juko Thread.
+@
+text
+@d90 1
+@
+
+
+1.15
+log
+@Added SST_STAR.
+@
+text
+@d89 1
+@
+
+
+1.14
+log
+@Added support and detection for SEATTLE and VEGAS host boards.
+@
+text
+@d88 1
+@
+
+
+1.13
+log
+@Reconcile with PSX branch
+@
+text
+@d48 2
+@
+
+
+1.12
+log
+@Added new game definition, SST_SPEED.
+@
+text
+@d89 2
+a90 1
+	HEX_CONST PSX_PROTO	0x01		< Non-Game specific running on ZOID >
+@
+
+
+1.11
+log
+@Added PHOENIX_AD and FLAGSTAFF boards.
+@
+text
+@d85 1
+@
+
+
+1.10
+log
+@added PSX constants
+@
+text
+@d46 2
+@
+
+
+1.9
+log
+@Added IDE_PCI definition
+@
+text
+@d45 1
+d56 1
+d84 4
+d97 1
+@
+
+
+1.8
+log
+@Renamed THREEDFX to SST since that is what it is called
+in its doc sets.
+@
+text
+@d90 1
+@
+
+
+1.7
+log
+@Added constants for 3dfx video and Phoenix host board.
+@
+text
+@d54 1
+a54 1
+	HEX_CONST THREEDFX_V	7		< 3DFX video board	>
+d74 1
+a74 1
+; Various game id's (set the variable THREEDFX_GAME to one of these)
+d76 5
+a80 5
+	HEX_CONST THREEDFX_PROTO  0x01		< Non-Game specific running on 3DFX >
+	HEX_CONST THREEDFX_DMS    0x02		< Dave Shepperd test 3DFX >
+	HEX_CONST THREEDFX_RUSH	  0x04		< RUSH 3DFX >
+	HEX_CONST THREEDFX_HOCKEY 0x08		< Hockey 3DFX >
+	HEX_CONST THREEDFX_MACE	  0x10		< Mace 3DFX >
+@
+
+
+1.6
+log
+@Added ZOID20_DMS definition.
+@
+text
+@d29 2
+d44 1
+d54 1
+d68 1
+a68 1
+	HEX_CONST ZOID_GAUNTLET	0x04		< #D Gauntlet running on ZOID >
+d73 8
+@
+
+
+1.5
+log
+@Adde IDE_xxx constants
+@
+text
+@d68 1
+@
+
+
+1.4
+log
+@Added ZOID_MACE definition.
+@
+text
+@d75 3
+@
+
+
+1.3
+log
+@Added ZOID game definitions.
+@
+text
+@d67 1
+@
+
+
+1.2
+log
+@Added COJAG_ in to the game names to prevent name collisions
+@
+text
+@d60 8
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d55 4
+a58 4
+	HEX_CONST HERO		0x02		< Hero on COJAG >
+	HEX_CONST AREA51	0x04		< Area 51 on COJAG >
+	HEX_CONST RAGE		0x08		< RAGE 2 on COJAG >
+	HEX_CONST FISH		0x10		< Tropical Fish on COJAG >
+@

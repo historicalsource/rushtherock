@@ -1,0 +1,62 @@
+head	1.1;
+access;
+symbols
+	RUSH_ROCK_1_0:1.1
+	RUSH_ROCK_1_0epst:1.1
+	MACE_1_0e:1.1
+	MACE_1_0d:1.1
+	RUSH_1_06A:1.1
+	AREA_52_00:1.1
+	MACE_1_0a:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	96.09.22.01.32.57;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Some definitions used by phx_rtc.c and picfuncs.c
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/*
+ * Result codes from PIC functions.
+ */
+
+#define SUCCESS	0x00
+#define FAILURE	0x80
+
+/*
+ * The offsets to the BCD data are as follows:
+ *
+ *  Offset      Meaning         Range
+ *    0         Second          00-59
+ *    1         Minute          00-59
+ *    2         Hour            00-23
+ *    3         Day Of Week     01-07
+ *    4         Day Of Month    01-31
+ *    5         Month           01-12
+ *    6         Year            00-99
+ *
+ */
+
+#define SECONDS         0
+#define MINUTES         1
+#define HOURS           2
+#define DAY_OF_WEEK     3
+#define DAY_OF_MONTH    4
+#define MONTH           5
+#define YEAR            6
+
+
+#define SERIAL_NUMBER_SIZE 16
+@

@@ -1,0 +1,641 @@
+head	1.6;
+access;
+symbols
+	CJ_206:1.6
+	CJ2_05:1.6
+	CJ2_04:1.5
+	CJ2_03:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.6
+date	96.10.24.17.21.23;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.06.12.23.19.19;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.06.12.19.08.45;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.02.01.18.40.45;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.08.01.19.59.11;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.05.26.22.21.19;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Cojag version of gel_coin.c, plus some enhancements. The main
+CoJag-specific feature of this file is the need to handle dynamic
+location of coin-counter drivers
+@
+
+
+1.6
+log
+@make counter_on() and counter_off() use prc_mod_config(),
+to properly shadow vcr and audio-volume bits. Requires
+jag_init.c rev 1.9 or later.
+@
+text
+@/*	cj_coin.c
+ *		Copyright 1988-1994 ATARI GAMES.
+ *	Unauthorized reproduction, adaptation, distribution, performance or
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited
+ */
+
+/* INSTRUCTIONS:	look for the symbol	>>-->
+ *		to find out where to customize for your use
+ */
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+
+/* Revised:
+*	15-NOV-84 to reflect actual switch positions (aux,left,right)
+*	14-FEB-85 to handle partial credits from bonus coins
+*	26-MAR-85 for DND hardware (four mechs, equal value, separate counts
+*	18-JUN-87 for generic U.S. removed many hardware dependencies
+*	07-DEC-87 moved coinmenu[] into this file.
+*		  converted from separate to common coin chutes.
+*	09-MAR-88 Revised comments to agree with hardware move from
+*		  two center to two rightmost mechs
+*	08-FEB-91 using the whole new scheme
+*	23-JUN-92 as part of the reorganization of the OS
+*	27-AUG-93 as part of CAGE - moving coin stuff to host. (Ed Logg)
+*	27-JAN-94 split back into coin94.c (generic coin stuff) and
+*		  gel_coin.c (George Edward Logg)
+*	 1-MAY-95 Revised mecho[] array to allow better tracking of changes
+*		  in coin switch positions. After 22 years in business, Atari
+*		  (TWI) engineers still can't tell left from right, but this
+*		  change makes it easier to change the definitions in one place
+*		  The definitions:
+*		  BC_AUX_LFT	( AUX LEFT )
+*		  BC_AUX_RGT	( AUX RIGHT )
+*		  B_COINL 	( LEFT COIN )
+*		  B_COINR 	( RIGHT COIN )
+*		  from config.mac (via config,h) are now used directly.
+*		  This has the unfortunate side-effect of "freezing" the
+*		  mapping (0 == left, 1 == right, 2 == AUX) into code.
+*		  Too bad.
+*/
+/*		CoJag COIN reading. This file was named xh_coin.c, for
+ *		eXperimental Host COIN reading.
+ *	But few of the experiments concluded in time for inclusion in
+ *	the CoJag GUTS release 2.01. The major difference between this
+ *	file and gel_coin.c is that we needed to use the auto-detect of
+ *	hardware revision number to select which output bits to drive
+ *	for the coin counters. As this cock-up in (hopefully) unlikely
+ *	to recur in non-CoJag hardware, I (MEA) have re-named this file
+ *	to cj_coin.c.
+ *
+ *	Derived from gel_coin.c, whose header comment said:
+ */
+/*	This file contains the code specific to the host-based coin
+*	validation from BOUNTY, originally written by Ed Logg. Ed had
+*	merged coin.c and coin91.c into one file to get around debugger
+*	problems with code in #included files. I have re-split the files,
+*	but created a more well-defined interface between validation and
+*	accounting, in the form of cn_add_coin() in coin94.c, which see.
+*/
+
+/* >>-->
+*	With a 4ms IRQ the routine cn_irq should be called.
+*	See coin.h for definitions to twiddle.
+*/
+#include <coin.h>
+
+static const char mechno[] = {
+#ifdef B_COINL
+    B_COINL,
+#else
+    -1,
+#endif
+#ifdef B_COINR
+    B_COINR,
+#else
+    -1,
+#endif
+#ifdef BC_AUX_LFT
+    BC_AUX_LFT,
+#else
+    -1,
+#endif
+#ifdef BC_AUX_RGT
+    BC_AUX_RGT
+#else
+    -1
+#endif
+};
+
+/*
+* >>--> NOW setup the electric mech control macros <<<<<
+*
+*	You must #define COUNTER_ON,COUNTER_OFF if we want 680x0
+*	to run EMCounters (see COIN91)
+*
+***  EXAMPLE: Define this way for two mechs:
+*
+*	COUNTER_ON(x)	prc_mod_latch(x < 2 ? LM_CNT_RGT : LM_CNT_LFT);
+*	COUNTER_OFF(x)	prc_mod_latch(x < 2 ? ~LM_CNT_RGT : ~LM_CNT_LFT);
+*
+*  The following alternative uses an array of BIT MASKS that will be
+*   set/cleared into the latch word.  The values in the array come
+*   from definitions in CONFIG.MAC.  NOTE that the fourth 'coin counter'
+*   actually is the CARD VENDOR in this example.
+*
+*	The indices of EMC_MAP correspond to the VALUES of the switch
+*	#DEFINEitions.  For example, if LFT_M is defined as (0) then
+*	the first (zeroth) entry in EMC_MAP defines the bit to click
+*	for his mech.  If you DON'T redefine the values for LFT_M or
+*	RGT_M (which you SHOULDN'T do anyway!) then you'll be fine.
+*/
+#ifndef LM_EMC_L
+#define LM_EMC_L (0)
+#endif
+#ifndef LM_EMC_R
+#define LM_EMC_R (0)
+#endif
+
+static const unsigned short emc_map[] = {
+    LM_EMC_L,
+#ifdef LM_EMC_LC
+    LM_EMC_LC,		/* Left-Center is next if we have it */
+#endif
+#ifdef LM_EMC_RC
+    LM_EMC_RC,		/* Right-Center is next if we have it */
+#endif
+    LM_EMC_R,		/* Right is last used counter */
+    0,0			/* Two zeroes for insurance */
+};
+
+
+#ifdef COJAG_GAME
+extern int cojag_rev;
+/* The following thoroughgoing botch is neccesitated by yet another case
+ * of the hardware designer changing the bit definitions for no good reason,
+ * _AND_ requiring auto-detect and dynamic re-configuration for the two (so
+ * far) hardware revisions.
+ */
+#ifdef CM_EMC_L
+
+/*
+ * Extended again to handle two _more_ possibilities. I threw in the towel
+ * and made them subroutines. (MEA 11JUN96)
+ */
+/* Rev 4 (Silencer) moves EM counters again, this time to
+ * COJAG_2_CF_REG bits.
+ */ 
+static const unsigned char emc_map4[] = {
+    CM_EMC_L,
+#ifdef CM_EMC_LC
+    CM_EMC_LC,		/* Left-Center is next if we have it */
+#endif
+#ifdef CM_EMC_RC
+    CM_EMC_RC,		/* Right-Center is next if we have it */
+#endif
+    CM_EMC_R,		/* Right is last used counter */
+    0,0			/* Two zeroes for insurance */
+};
+
+static void counter_on(i)
+int i;
+{
+    if ( cojag_rev < 4 ) {
+	/* Up to Silencer, Coin counters were on the
+	 * write-only latch that prc_mod_latch()
+	 * diddles. Precisly _where_ could vary.
+	 */
+	int bit = emc_map[i];
+	if ( cojag_rev > 1 ) bit <<= 4;
+	prc_mod_latch(bit);
+    } else {
+	/* Silencer moves them to the read-write latch
+	 * at COJAG_2_CF_REG (I think, Brian says
+	 * "XBUS_SLOt3+B70000" in his memo, but says
+	 * COJAG_2_CF_REG in person. Since the former
+	 * not a valid address, I'll go with the latter.
+	 *
+	 * As of 24OCT96, MEA adds prc_mod_config() to
+	 * jag_init.c, so the vcr control can be more-or-less
+	 * properly shadowed, and the inverted CM_VOLCTRL_DATA
+	 * line properly handled.
+	 */
+	extern int prc_mod_config(int);
+	prc_mod_config(emc_map4[i]);
+    }
+}
+
+static void counter_off(i)
+int i;
+{
+    if ( cojag_rev < 4 ) {
+	/* Up to Silencer, Coin counters were on the
+	 * write-only latch that prc_mod_latch()
+	 * diddles. Precisly _where_ could vary.
+	 */
+	int bit = emc_map[i];
+	if ( cojag_rev > 1 ) bit <<= 4;
+	prc_mod_latch(~bit);
+    } else {
+	/* Silencer moves them to the read-write latch
+	 * at COJAG_2_CF_REG (I think, Brian says
+	 * "XBUS_SLOt3+B70000" in his memo, but says
+	 * COJAG_2_CF_REG in person. Since the former
+	 * not a valid address, I'll go with the latter.
+	 *
+	 * As of 24OCT96, MEA adds prc_mod_config() to
+	 * jag_init.c, so the vcr control can be more-or-less
+	 * properly shadowed, and the inverted CM_VOLCTRL_DATA
+	 * line properly handled.
+	 */
+	extern int prc_mod_config(int);
+	prc_mod_config(~emc_map4[i]);
+    }
+}
+#define COUNTER_ON(i) counter_on(i)
+#define COUNTER_OFF(i) counter_off(i)
+#else /* COJAG, but not CM_EMC_L, so not above REV 2 */
+#define COUNTER_ON(i) \
+  prc_mod_latch( (emc_map[i]<<((cojag_rev-1)<<2)) ) /* turn on Electro-mech */
+#define COUNTER_OFF(i) \
+  prc_mod_latch( ~(emc_map[i]<<((cojag_rev-1)<<2)) ) /* turn off Electro-mech */
+#endif /* def'd CM_EMC_L */
+#else /* Not CoJag */
+#define COUNTER_ON(i) prc_mod_latch(emc_map[i])	/* turn on Electro-mech */
+#define COUNTER_OFF(i) prc_mod_latch(~emc_map[i]) /* turn off Eectro-mech */
+#endif /* def'd COJAG_GAME */
+
+#ifndef __STDC__
+#define const
+#define volatile
+#endif
+
+
+/* 	The following is used to determine what number of "fabricated" credits
+*	should be alledged if the game is set in free-play. In general, it
+*	should match the amount needed to start all players.
+*/
+#ifndef MAX_NEEDED_CREDS
+#define MAX_NEEDED_CREDS (4)
+#endif
+
+/*	While keyed on EER_CNOPT, this also serves to get EER_CC0.
+*/
+#ifndef EER_CNOPT
+#include <eer_defs.h>
+#endif
+
+/* 	The following limit was 25, but bumping to 30 used to leave room for
+*	a $5 bill even with most generous bonus adder. Now if some bozo sets
+*	bonus adder at "four gives 3" and dollar mech at 8, a five will be
+* 	worth 70, which is close enough to infinite for most operators!
+*/
+#ifndef MAXCOINS
+#define MAXCOINS 30
+#endif
+
+/*	cn_credit() returns whole credits and partial credits.
+*	The following #define determines whether or not to reduce
+*	the partial credit fraction. (e.g. 4/8->1/2)
+*/
+#ifndef CREDS_REDUCE
+#define	CREDS_REDUCE	1	/* reduce partial credit fractions	*/
+#endif
+
+/*	These are used to read coin inputs every 4mSec, and uses the basic 
+*	validation of coin pulses. The criteria are the same as the 6502
+*  	coin routine.  A valid coin is a 16-800 mSec contact closure preceded
+*  	and followed by at least 33 mSec of contact open. Bounce at the edges
+*  	of these periods is ignored, but the 16mSec minimum must be 4 solid 
+*	samples.
+*/
+#define ON_MAX		200		/* samples @@ 4mSec = 800 mSec */
+#define	ON_MIN		4		/* samples @@ 4mSec = 16 mSec */
+#define	OFF_MIN		8		/* samples @@ 4mSec = 33 mSec */
+
+#ifdef COUNTER_ON
+/*	Each byte of cctim is conceptually two nybbles. The upper contains 
+*	a "pulse timer" that counts from Fx to 0x, turning the corresponding 
+*	counter on for Fx-8x and off for 7x to 0x. The bottom nybble contains 
+*	up to 15 "queued" pulses.  There is no check for overflow.
+*/
+
+static unsigned char cctim[4];
+
+/*		cn_coin_counters(), cn_emc_drive()
+*	The following stuff added to deal with "host"-driven electromechanical
+*	counters. This was first done on BATMAN. The user needs to define
+*	two macros: COUNTER_ON and COUNTER_OFF that do the appropriate
+*	magic to turn the specified counter on or off respectively. The
+*	array cctim contains "timers" for up to four mechs. Any
+*	mapping from mech number to electro-mechanical counter is up to
+*	the aforemention macros. 
+*
+*	This routine must be called every 16ms.  
+*
+*	Coin counts may be lost if the number of coins exceeds 16 while the
+*	counter is busy counting earlier counts.
+*
+*	The first name (cn_coin_counters()) is retained as a "stub" for
+*	harmless operation with games which insist on calling it directly.
+*	The new name (cn_emc_drive()) is the actual routine, and should
+*	only be called from erc_vbex() or cn_irq() (but not both) at the
+*	correct interval (16 milliseconds).
+*/
+void cn_coin_counters() { return; }
+static void
+cn_emc_drive()
+{
+    int i,timeval,pending;
+
+    pending = -1;
+
+    for ( i = 0 ; i < 4 ; ++i ) 
+    {
+	if ( (timeval = cctim[i]) != 0 ) 
+	{
+	    pending = i;
+	    if ( (timeval -= 0x10) < 0 ) continue;
+	    cctim[i] = timeval;
+	    if ( (timeval & 0xF0) == 0x70 ) COUNTER_OFF(i);
+	    return;
+	}
+    }
+    if ( pending >= 0 ) 
+    {
+	/* no running timer, but we have (at least) one pending.
+	*  decrement both nybbles to start timer
+	*/
+	cctim[pending] += 0xEF;
+	COUNTER_ON(pending);
+    }
+    return;
+}
+
+/* 		cn_click_counter()
+*	This routine "queues" a pulse to drive an electro-mechanical coin
+*	counter.
+*/
+void 
+cn_click_counter
+PARMS((
+    unsigned int counter_num
+))
+{
+    if ( counter_num >= sizeof(cctim)/sizeof(cctim[0]) ) return;
+    if((cctim[counter_num] & 0xF) != 0xF)
+	++cctim[counter_num];	/* Trigger a pulse on a coin-mech line	*/
+}
+
+/* 		cn_click_vendor()
+*	This routine drives a coin counter like vendor as defined by the 
+*	definition VEND_M if there is one.
+*/
+#ifdef	VEND_M
+void 
+cn_click_vendor()
+{
+    cn_click_counter(VEND_M);
+}
+#endif	/* def VEND_M */
+#else
+void cn_coin_counters() { return;}
+
+/* 		cn_click_counter()
+*	This routine "queues" a pulse to drive an electro-mechanical coin
+*	counter.
+*/
+void 
+cn_click_counter
+PARMS((
+    unsigned int counter_num
+)){;}
+#endif
+
+
+/*		erc_vbex()
+ *	A "compatibility hack". This is the only routine that should be
+ *	called from the game Vblank routine. For the case of host-read
+ *	coind switches and host-driven coin counters, we just run the
+ *	electro-mechanical coin-counter drivers and do the EEPROM stuff.
+ *	This actually should be part of cn_irq() (4millisecond IRQ)
+ *	processing, but politics intrudes...
+ */
+
+/* !!! */
+void erc_vbex ()
+{
+#if (0)
+	cn_emc_drive();
+#endif
+}
+
+
+/*		cn_irq()
+*
+*	This routine looks at the coin inputs every 4mSec, and does the
+*  	basic validation of coin pulses. The criteria are the same as the 6502
+*  	coin routine.  A valid coin is a 16-800 mSec contact closure preceded
+*  	and followed by at least 33 mSec of contact open. Bounce at the edges
+*  	of these periods is ignored, but the 16mSec minimum must be 4 solid 
+*	samples.  This routine replaces the assembly program and cn_cvt_crdt().
+*
+*	cn_add_coin() will ignore input if cn_init() has not been run
+*	(inited == 0)
+*/
+
+static int divsor;
+
+void
+cn_irq()
+{
+#ifdef CN_STATUS
+    short i,m,coins;
+    static unsigned char cnon[8];
+    static unsigned char cnoff[8];
+
+    coins = CN_STATUS;
+
+    for ( i = 0; i < sizeof(mechno); ++i ) 
+    {
+	if ( (m = mechno[i]) < 0 ) continue; /* not real mech */
+	
+	if ( (coins&(1<<m)) == 0)	/* coin present */
+	{
+	    cnoff[i] = 0;		/* clear off counter */
+	    if (cnon[i] != 0)		/* decrement on counter */
+		--cnon[i];
+	}
+	else 				/* coin absent */
+	{
+	    cnoff[i] += 1;	    	/* increase off counter */
+	    if (cnon[i] >= (ON_MAX-ON_MIN) /* not on long enough */
+	    || cnon[i] == 0)		/* or on too long */
+	    {
+		cnon[i] = ON_MAX;	/* restart coin check */
+	    }
+	    else if (cnoff[i] >= OFF_MIN) /* off long enough */
+	    {
+		/* a valid coin is detected */
+		cn_add_coin((i > 1) ? 2 : i);	/* add a coin */
+		cnon[i] = ON_MAX;	/* start next coin */
+	    }		
+	}
+    }
+#endif
+    if ( (++divsor & 3) == 0 ) cn_emc_drive();
+}
+
+
+/*		cn_total_coins()
+*	Returns total _value_ of coins recorded in EEPROM. This _assumes_
+*	that the mech-multipliers have not been changed since the stats
+*	were cleared.
+*/
+unsigned long cn_total_coins()
+{
+    unsigned long coins,value;
+    unsigned short m;
+    short i;
+    int mech;
+    int mode;
+
+    mode = eer_gets(EER_CNOPT);
+    if ( mode < 0 ) return -1;
+
+    coins = 0;
+
+    /* Various other parts of coin94.c and this file "know
+     * in their bones" that there are exactly 3 "buckets"
+     * in EEPROM where coins can fall. Given that, the
+     * for loop below:
+     */
+#if (0)
+    for (i = sizeof(mechno)-1 ; i >= 0 ; --i) 
+#else
+     /* is being kluged to: */
+    for (i = 2 ; i >= 0 ; --i) 
+
+    /* until we can get some stability and hence
+     * generality in the coin policies... (MEA 23JAN96)
+     */
+#endif
+    {
+	if ( (mech = mechno[i]) < 0 ) continue;
+	if ( i == 1 ) {
+	    value = eer_gets(EER_CC1);
+	    m = cmode_rmul(mode) + 1;	/* m = 1-8 */
+	} else if ( i == 0 ) {
+	    m = cmode_lmul(mode) + 1;	/* m = 1-8 */
+	    value = eer_gets(EER_CC0);
+	} else {
+	    value = eer_gets(EER_CCX);
+	    m = 1;
+	}
+	coins += (value*m);
+    }
+    return coins;
+}
+@
+
+
+1.5
+log
+@Fixed transition problem of cj_coin.c (UniJag-aware) compile
+with pre-UniJag config.h
+@
+text
+@a164 2
+    int old_ipl;
+
+d179 5
+d185 2
+a186 3
+	old_ipl = prc_set_ipl(INTS_OFF);
+	COJAG_2_CF_REG |= emc_map4[i];
+	prc_set_ipl(old_ipl);
+a192 2
+    int old_ipl;
+
+d207 5
+d213 2
+a214 3
+	old_ipl = prc_set_ipl(INTS_OFF);
+	COJAG_2_CF_REG &= ~emc_map4[i];
+	prc_set_ipl(old_ipl);
+@
+
+
+1.4
+log
+@Set up for Rev 3 (Freeze) and 4 (Silencer) uni-board CoJag.
+@
+text
+@d135 1
+a161 1
+extern int cojag_rev;
+@
+
+
+1.3
+log
+@kluged loop to "know" that aux-coins go into one "bucket"
+This allows (some) use of four-slot doors without double-
+counting aux coins. A better solution would be to assign
+the extra mechs to "real" inputs, but it would be even
+_better_ to hook up the JAMMA specified inputs :-)
+@
+text
+@d133 1
+d140 21
+d162 54
+d220 2
+a221 1
+#else
+d224 1
+a224 1
+#endif
+@
+
+
+1.2
+log
+@allow building with no actual coin switches, for merged
+Zoid/Zover (modified CoJag) GUTS
+@
+text
+@d389 6
+d396 8
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a195 2
+static unsigned char cnon[8];
+static unsigned char cnoff[8];
+d333 1
+d335 2
+d366 1
+@

@@ -1,0 +1,1642 @@
+head	1.30;
+access;
+symbols
+	RUSH_ROCK_1_0:1.30
+	RUSH_ROCK_1_0epst:1.30
+	RUSH_ROCK_1_0boot:1.30
+	MACE_1_0e:1.30
+	MACE_1_0d:1.30
+	RUSH_1_06A:1.24
+	AREA_52_00:1.30
+	MACE_1_0a:1.27
+	CJ_206:1.24
+	CJ2_05:1.24
+	CJ2_04:1.22;
+locks; strict;
+comment	@;; @;
+
+
+1.30
+date	97.07.01.20.54.19;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	97.05.28.21.58.39;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	97.05.13.16.54.17;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	97.04.19.23.22.17;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	97.02.20.18.37.28;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	97.01.23.22.37.00;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.11.04.21.23.12;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.10.09.20.10.18;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.06.08.16.50.48;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.05.06.18.59.30;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.05.02.01.36.14;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.04.13.03.31.19;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.04.13.02.59.46;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.04.10.00.02.54;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.04.06.18.57.24;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	95.12.15.02.06.45;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	95.12.09.03.33.58;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.11.10.23.33.19;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.11.10.18.44.24;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.11.10.03.02.08;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.10.31.02.25.33;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.10.25.01.20.40;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.10.25.01.15.04;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.10.19.20.41.04;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.09.01.16.51.37;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.08.08.21.42.55;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.08.08.18.38.16;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.07.14.00.34.13;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.07.10.18.38.06;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.06.26.23.38.16;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@MACPP constants, macros and .defines defining the IDT 3000 and 4000 processors
+@
+
+
+1.30
+log
+@Added a $Id$ to get file's version number.
+@
+text
+@; $Id$
+;
+.if ndf, _CONSTANTS_MAC_
+  .warn ;You should .include constants.mac before including lcr3k.mac
+  .include constants.mac
+.endc
+.if ndf, _PPTYPES_MAC_
+  .warn ;You should .include types.mac before including lcr3k.mac
+  .include pptypes.mac
+.endc
+;
+.if ndf,PROCESSOR
+  .warn ;You need to define PROCESSOR before including idt.mac
+	HEX_CONST PROCESSOR	0
+.endc
+;
+HB_PHOENIX == 0
+.iif true, ((HOST_BOARD&HOST_BOARD_CLASS) == PHOENIX), HB_PHOENIX == 1
+;
+REMB
+REMM ** Exception Vectors
+REME
+;
+.if true, (PROCESSOR&-16) == MIPS3000
+	HEX_CONST RST_VEC	(MEM_KSEG1|0x1fc00000+0x000)	< reset and NMI vector >
+	HEX_CONST TLB_VEC	(MEM_KSEG1|0x1fc00000+0x100)	< tlb refill vector >
+	HEX_CONST EXCEPT_VEC	(MEM_KSEG1|0x1fc00000+0x180)	< Normal exception vector >
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+	HEX_CONST RST_VEC	(MEM_KSEG1|0x1fc00000+0x000)	< reset and NMI vector >
+	HEX_CONST TLB_VEC	(MEM_KSEG1|0x1fc00200+0x000)	< tlb refill vector >
+	HEX_CONST XTLB_VEC	(MEM_KSEG1|0x1fc00200+0x080)	< XTLB refill vevtor (64 bit) >
+	HEX_CONST CACHE_VEC	(MEM_KSEG1|0x1fc00200+0x100)	< CACHE Error vector >
+	HEX_CONST EXCEPT_VEC	(MEM_KSEG1|0x1fc00200+0x180)	< Normal exception vector >
+.endc
+;
+; Translated from IDT's idtcpu.h
+;
+REMB <** >
+REMM <** memory configuration and mapping >
+REME <** >
+;
+	HEX_CONST	K0BASE	0x80000000
+	HEX_CONST	K0SIZE	0x20000000
+	HEX_CONST	K1BASE	0xa0000000
+	HEX_CONST	K1SIZE	0x20000000
+	HEX_CONST	K2BASE	0xc0000000
+	HEX_CONST	K2SIZE	0x20000000
+.if true, (PROCESSOR&-16) == MIPS4000
+	HEX_CONST	KSBASE	0xe0000000
+	HEX_CONST	KSSIZE	0x20000000
+.endc
+;
+	HEX_CONST	KUBASE	0
+	HEX_CONST	KUSIZE	0x80000000
+;
+REMB <** >
+REMM <** Exception Vectors>
+REME <** >
+.if true, (PROCESSOR&-16) == MIPS3000
+	HEX_CONST	UT_VEC	K0BASE			< utlbmiss vector >
+	HEX_CONST	E_VEC	(K0BASE+0x80)		< exception vevtor >
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+	HEX_CONST	T_VEC	(K0BASE+0x000)		< tlbmiss vector >
+	HEX_CONST	X_VEC	(K0BASE+0x080)		< xtlbmiss vector >
+	HEX_CONST	C_VEC	(K0BASE+0x100)		< cache error vector >
+	HEX_CONST	E_VEC	(K0BASE+0x180)		< exception vector >
+.endc
+	HEX_CONST	R_VEC	(K1BASE+0x1fc00000)	< reset vector >
+;
+REMB <** >
+REMM <** Address conversion macros >
+REME <** >
+.if true, OUTPUT_LANG == LANG_C
+#define 	CAST(as) (as)
+#define	K0_TO_K1(x)	(CAST(unsigned)(x)|0xA0000000)	/* kseg0 to kseg1 */
+#define	K1_TO_K0(x)	(CAST(unsigned)(x)&0x9FFFFFFF)	/* kseg1 to kseg0 */
+#define	K0_TO_PHYS(x)	(CAST(unsigned)(x)&0x1FFFFFFF)	/* kseg0 to physical */
+#define	K1_TO_PHYS(x)	(CAST(unsigned)(x)&0x1FFFFFFF)	/* kseg1 to physical */
+#define	PHYS_TO_K0(x)	(CAST(unsigned)(x)|0x80000000)	/* physical to kseg0 */
+#define	PHYS_TO_K1(x)	(CAST(unsigned)(x)|0xA0000000)	/* physical to kseg1 */
+.endc
+;
+.if true, (PROCESSOR&-16) == MIPS3000
+REMB
+REMM **	Cache size constants
+REME
+;
+	HEX_CONST MIN_CACHE_SIZE	0x00200		< 2*256      512  >
+	HEX_CONST MAX_CACHE_SIZE	0x40000		< 256*1024   256k >	
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+REMB <** >
+REMM <** Cache size constants >
+REME <** >
+	HEX_CONST	MINCACHE	0x800		< 2*1024     2k   >
+	HEX_CONST	MAXCACHE	0x40000		< 256*1024   256k >	
+.endc
+;
+.if true, (PROCESSOR&-16) == MIPS3000
+REMB
+REMM < see the IDT/c 4.1.1 User's Manual Table 6.9 Coprocessor 0 Regs >
+REME
+	REG_CONST C0_BUSCTRL		$2		< bus control >
+	DEC_CONST    C0_BUSC_LOCK_v	(31)	< lock the register      (1) >
+	DEC_CONST    C0_BUSC_MEM_v	(26)	< Memstrobe control bits (2) >
+	DEC_CONST    C0_BUSC_ED_v	(24)	< ExtDataEn control bits (2) >
+	DEC_CONST    C0_BUSC_IO_v	(22)	< IOstrobe control bits  (2) >
+	DEC_CONST    C0_BUSC_BE16_v	(21)	< BE16(1:0) control bit  (1) >
+	DEC_CONST    C0_BUSC_BE_v	(19)	< BE(3:0) control bit    (1) >
+	DEC_CONST    C0_BUSC_BTA_v	(14)	< BTA Bus turn around time (2) >
+	DEC_CONST    C0_BUSC_DMA_v	(13)	< DMA protocol control   (1) >
+	DEC_CONST    C0_BUSC_TC_v	(12)	< TC negation control    (1) >
+	DEC_CONST    C0_BUSC_BR_v	(11)	< SBrCond(3:2) control   (1) >
+.TEMP == ((1<<29)|(1<<20)|(1<<16)|(1<<8))
+	HEX_CONST    C0_BUSC_DEFAULT	.TEMP
+	REG_CONST C0_CONFIG		$3	< cache config >
+	DEC_CONST    C0_CONF_LOCK_v	(31)	< lock the register 	(1) >
+	DEC_CONST    C0_CONF_SLOWB_v	(30)	< slow bus (3081) 	(1) >
+	DEC_CONST    C0_CONF_DBLOCK_v	(29)	< DBLOCK refill size (1 or 4 words/miss) >
+	DEC_CONST    C0_CONF_FPINT_v	(26)	< FPInt pin (3081)	(3) >
+	DEC_CONST    C0_CONF_HALT_v	(25)	< HALT the CPU (3081)	(1) >
+	DEC_CONST    C0_CONF_RF_v	(24)	< Reduced freq (3081)	(1) >
+	DEC_CONST    C0_CONF_ALTC_c	(23)	< Make I and D caches 8k each (3081) (1) >
+	DEC_CONST    C0_CONF_FDM_v	(19)	< Force D-cache miss >
+.TEMP == (1<<30)
+	HEX_CONST    C0_CONF_DEFAULT_3041 .TEMP	< bits that must be set in config register >
+.if not_defined, C0_CONF_DEFAULT_3081
+.TEMP == (1<<C0_CONF_SLOWB_v) | (7<<C0_CONF_FPINT_v)
+	HEX_CONST    C0_CONF_DEFAULT_3081 .TEMP < bits that must be set in config register >
+.endc
+.TEMP == (1<<C0_CONF_SLOWB_v) 
+	HEX_CONST    C0_CONF_DEFAULT_3071 .TEMP < bits that must be set in config register >
+	REG_CONST C0_COUNT		$9	< count >
+	REG_CONST C0_PORTSIZE		$10	< port size >
+	REG_CONST C0_COMPARE		$11	< compare >
+	REG_CONST C1_FIR		$0	< FPU implementation register >
+	REG_CONST C1_FCSR		$31	< FPU control and status register >
+;
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+REMB <** >
+REMM <** R4000 configuration register definitions >
+REME <** >
+	HEX_CONST	CFG_CM		0x80000000	< Master-Checker mode >
+	HEX_CONST	CFG_ECMASK	0x70000000	< System Clock Ratio >
+	HEX_CONST	CFG_ECBY2	0x00000000 	< divide by 2 >
+	HEX_CONST	CFG_ECBY3	0x10000000 	< divide by 3 >
+	HEX_CONST	CFG_ECBY4	0x20000000 	< divide by 4 >
+	HEX_CONST	CFG_EPMASK	0x0f000000	< Transmit data pattern >
+	HEX_CONST	CFG_EPD		0x00000000	< D >
+	HEX_CONST	CFG_EPDDX	0x01000000	< DDX >
+	HEX_CONST	CFG_EPDDXX	0x02000000	< DDXX >
+	HEX_CONST	CFG_EPDXDX	0x03000000	< DXDX >
+	HEX_CONST	CFG_EPDDXXX	0x04000000	< DDXXX >
+	HEX_CONST	CFG_EPDDXXXX	0x05000000	< DDXXXX >
+	HEX_CONST	CFG_EPDXXDXX	0x06000000	< DXXDXX >
+	HEX_CONST	CFG_EPDDXXXXX	0x07000000	< DDXXXXX >
+	HEX_CONST	CFG_EPDXXXDXXX	0x08000000	< DXXXDXXX >
+	HEX_CONST	CFG_SBMASK	0x00c00000	< Secondary cache block size >
+	HEX_CONST	CFG_SBSHIFT	22
+	HEX_CONST	CFG_SB4		0x00000000	< 4 words >
+	HEX_CONST	CFG_SB8		0x00400000	< 8 words >
+	HEX_CONST	CFG_SB16	0x00800000	< 16 words >
+	HEX_CONST	CFG_SB32	0x00c00000	< 32 words >
+	HEX_CONST	CFG_SS		0x00200000	< Split secondary cache >
+	HEX_CONST	CFG_SW		0x00100000	< Secondary cache port width >
+	HEX_CONST	CFG_EWMASK	0x000c0000	< System port width >
+	HEX_CONST	CFG_EWSHIFT	18
+	HEX_CONST	CFG_EW64	0x00000000	< 64 bit >
+	HEX_CONST	CFG_EW32	0x00010000	< 32 bit >
+	HEX_CONST	CFG_SC		0x00020000	< Secondary cache absent >
+	HEX_CONST	CFG_SM		0x00010000	< Dirty Shared mode disabled >
+	HEX_CONST	CFG_BE		0x00008000	< Big Endian >
+	HEX_CONST	CFG_LE		0x00000000	< Little Endian >
+	HEX_CONST	CFG_EM		0x00004000	< ECC mode enable >
+	HEX_CONST	CFG_EB		0x00002000	< Block ordering >
+	HEX_CONST	CFG_ICMASK	0x00000e00	< Instruction cache size >
+	HEX_CONST	CFG_ICSHIFT	9
+	HEX_CONST	CFG_DCMASK	0x000001c0	< Data cache size >
+	HEX_CONST	CFG_DCSHIFT	6
+	HEX_CONST	CFG_IB		0x00000020	< Instruction cache block size >
+	HEX_CONST	CFG_DB		0x00000010	< Data cache block size >
+	HEX_CONST	CFG_CU		0x00000008	< Update on Store Conditional >
+	HEX_CONST	CFG_K0MASK	0x00000007	< KSEG0 coherency algorithm >
+;
+REMB <** >
+REMM <** R4000 primary cache mode >
+REME <** >
+;
+	HEX_CONST	CFG_C_UNCACHED		2
+	HEX_CONST	CFG_C_NONCOHERENT	3
+	HEX_CONST	CFG_C_COHERENTXCL	4
+	HEX_CONST	CFG_C_COHERENTXCLW	5
+	HEX_CONST	CFG_C_COHERENTUPD	6
+;
+REMB <** >
+REMM <** R4000 cache operations >
+REME <** >
+;
+	HEX_CONST	Index_Invalidate_I               ((0<<2)|0)
+	HEX_CONST	Index_Writeback_Inv_D            ((0<<2)|1)
+	HEX_CONST	Scache_clear			 ((0<<2)|3)
+	HEX_CONST	Index_Load_Tag_I                 ((1<<2)|0)
+	HEX_CONST	Index_Load_Tag_D                 ((1<<2)|1)
+	HEX_CONST	Index_Load_Tag_S                 ((1<<2)|3)
+	HEX_CONST	Index_Store_Tag_I                ((2<<2)|0)
+	HEX_CONST	Index_Store_Tag_D                ((2<<2)|1)
+	HEX_CONST	Index_Store_Tag_S                ((2<<2)|3)
+	HEX_CONST	Create_Dirty_Exc_D               ((3<<2)|1)
+	HEX_CONST	Create_Dirty_Exc_S               ((3<<2)|3)
+	HEX_CONST	Hit_Invalidate_I                 ((4<<2)|0)
+	HEX_CONST	Hit_Invalidate_D                 ((4<<2)|1)
+	HEX_CONST	Hit_Invalidate_S                 ((4<<2)|3)
+	HEX_CONST	Fill_I                           ((5<<2)|0)
+	HEX_CONST	Hit_Writeback_Inv_D              ((5<<2)|1)
+	HEX_CONST	Cache_Page_Inv_S                 ((5<<2)|3)
+	HEX_CONST	Hit_Writeback_I                  ((6<<2)|0)
+	HEX_CONST	Hit_Writeback_D                  ((6<<2)|1)
+.endc
+;
+REMB <** >
+REMM <** TLB resource defines >
+REME <** >
+.if true, (PROCESSOR&-16) == MIPS3000
+	HEX_CONST	N_TLB_ENTRIES	64
+	HEX_CONST	TLB_PGSIZE	0x1000
+	HEX_CONST	RANDBASE	8
+	HEX_CONST	TLBLO_PFNMASK	0xfffff000
+	HEX_CONST	TLBLO_PFNSHIFT	12
+	HEX_CONST	TLBLO_N		0x800	< non-cacheable >
+	HEX_CONST	TLBLO_D		0x400	< writeable >
+	HEX_CONST	TLBLO_V		0x200	< valid bit >
+	HEX_CONST	TLBLO_G		0x100	< global access bit >
+;
+	HEX_CONST	TLBHI_VPNMASK	0xfffff000
+	HEX_CONST	TLBHI_VPNSHIFT	12
+	HEX_CONST	TLBHI_PIDMASK	0xfc0
+	HEX_CONST	TLBHI_PIDSHIFT	6
+	HEX_CONST	TLBHI_NPID	64
+;
+	HEX_CONST	TLBINX_PROBE	0x80000000
+	HEX_CONST	TLBINX_INXMASK	0x00003f00
+	HEX_CONST	TLBINX_INXSHIFT	8
+;
+	HEX_CONST	TLBRAND_RANDMASK	0x00003f00
+	HEX_CONST	TLBRAND_RANDSHIFT	8
+;
+	HEX_CONST	TLBCTXT_BASEMASK	0xffe00000
+	HEX_CONST	TLBCTXT_BASESHIFT	21
+;
+	HEX_CONST	TLBCTXT_VPNMASK		0x001ffffc
+	HEX_CONST	TLBCTXT_VPNSHIFT	2
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+ .if true, (PROCESSOR == MIPS4300L) || (PROCESSOR != MIPS4300)
+	HEX_CONST	N_TLB_ENTRIES	32
+ .iff
+	HEX_CONST	N_TLB_ENTRIES	48
+ .endc
+;
+	HEX_CONST	TLBHI_VPN2MASK	0xffffe000
+	HEX_CONST	TLBHI_PIDMASK	0x000000ff
+	HEX_CONST	TLBHI_NPID	256
+;
+	HEX_CONST	TLBLO_PFNMASK	0x3fffffc0
+	HEX_CONST	TLBLO_PFNSHIFT	6
+	HEX_CONST	TLBLO_D		0x00000004	< writeable >
+	HEX_CONST	TLBLO_V		0x00000002	< valid bit >
+	HEX_CONST	TLBLO_G		0x00000001	< global access bit >
+	HEX_CONST	TLBLO_CMASK	0x00000038	< cache algorithm mask >
+	HEX_CONST	TLBLO_CSHIFT	3
+;
+	HEX_CONST	TLBLO_UNCACHED		(CFG_C_UNCACHED<<TLBLO_CSHIFT)
+	HEX_CONST	TLBLO_NONCOHERENT	(CFG_C_NONCOHERENT<<TLBLO_CSHIFT)
+	HEX_CONST	TLBLO_COHERENTXCL	(CFG_C_COHERENTXCL<<TLBLO_CSHIFT)
+	HEX_CONST	TLBLO_COHERENTXCLW	(CFG_C_COHERENTXCLW<<TLBLO_CSHIFT)
+	HEX_CONST	TLBLO_COHERENTUPD	(CFG_C_COHERENTUPD<<TLBLO_CSHIFT)
+;
+	HEX_CONST	TLBINX_PROBE	0x80000000
+	HEX_CONST	TLBINX_INXMASK	0x0000003f
+;
+	HEX_CONST	TLBRAND_RANDMASK	0x0000003f
+;
+	HEX_CONST	TLBCTXT_BASEMASK	0xff800000
+	HEX_CONST	TLBCTXT_BASESHIFT	23
+;
+	HEX_CONST	TLBCTXT_VPN2MASK	0x007ffff0
+	HEX_CONST	TLBCTXT_VPN2SHIFT	4
+;
+	HEX_CONST	TLBPGMASK_MASK		0x01ffe000
+.endc
+;
+.if true, (PROCESSOR&-16) == MIPS3000
+	HEX_CONST	SR_CUMASK	0xf0000000	< coproc usable bits >
+	HEX_CONST	SR_CU3		0x80000000	< Coprocessor 3 usable >
+	HEX_CONST	SR_CU2		0x40000000	< Coprocessor 2 usable >
+	HEX_CONST	SR_CU1		0x20000000	< Coprocessor 1 usable >
+	HEX_CONST	SR_CU0		0x10000000	< Coprocessor 0 usable >
+;
+	HEX_CONST	SR_BEV		0x00400000	< use boot exception vectors >
+;
+REMB <** >
+REMM <** Cache control bits >
+REME <** >
+;
+	HEX_CONST	SR_TS		0x00200000	< TLB shutdown >
+	HEX_CONST	SR_PE		0x00100000	< cache parity error >
+	HEX_CONST	SR_CM		0x00080000	< cache miss >
+	HEX_CONST	SR_PZ		0x00040000	< cache parity zero >
+	HEX_CONST	SR_SWC		0x00020000	< swap cache >
+	HEX_CONST	SR_ISC		0x00010000	< Isolate data cache >
+;
+REMB <** >
+REMM <** status register interrupt masks and bits >
+REME <** >
+;
+	HEX_CONST	SR_IMASK	0x0000ff00	< Interrupt mask >
+	HEX_CONST	SR_IMASK8	0x00000000	< mask level 8 >
+	HEX_CONST	SR_IMASK7	0x00008000	< mask level 7 >
+	HEX_CONST	SR_IMASK6	0x0000c000	< mask level 6 >
+	HEX_CONST	SR_IMASK5	0x0000e000	< mask level 5 >
+	HEX_CONST	SR_IMASK4	0x0000f000	< mask level 4 >
+	HEX_CONST	SR_IMASK3	0x0000f800	< mask level 3 >
+	HEX_CONST	SR_IMASK2	0x0000fc00	< mask level 2 >
+	HEX_CONST	SR_IMASK1	0x0000fe00	< mask level 1 >
+	HEX_CONST	SR_IMASK0	0x0000ff00	< mask level 0 >
+;
+	HEX_CONST	SR_IMASKSHIFT	8
+;
+	HEX_CONST	SR_IBIT8	0x00008000	< bit level 8 >
+	HEX_CONST	SR_IBIT7	0x00004000	< bit level 7 >
+	HEX_CONST	SR_IBIT6	0x00002000	< bit level 6 >
+	HEX_CONST	SR_IBIT5	0x00001000	< bit level 5 >
+	HEX_CONST	SR_IBIT4	0x00000800	< bit level 4 >
+	HEX_CONST	SR_IBIT3	0x00000400	< bit level 3 >
+	HEX_CONST	SR_IBIT2	0x00000200	< bit level 2 >
+	HEX_CONST	SR_IBIT1	0x00000100	< bit level 1 >
+;
+	HEX_CONST	SR_KUO		0x00000020	< old kernel/user, 0 => k, 1 => u >
+	HEX_CONST	SR_IEO		0x00000010	< old interrupt enable, 1 => enable >
+	HEX_CONST	SR_KUP		0x00000008	< prev kernel/user, 0 => k, 1 => u >
+	HEX_CONST	SR_IEP		0x00000004	< prev interrupt enable, 1 => enable >
+	HEX_CONST	SR_KUC		0x00000002	< cur kernel/user, 0 => k, 1 => u >
+	HEX_CONST	SR_IE		0x00000001	< cur interrupt enable, 1 => enable >
+	HEX_CONST	SR_IEC		0x00000001	< cur interrupt enable, 1 => enable >
+.endc
+;
+.if true, (PROCESSOR&-16) == MIPS4000
+	HEX_CONST	SR_CUMASK	0xf0000000	< coproc usable bits >
+	HEX_CONST	SR_CU3		0x80000000	< Coprocessor 3 usable >
+	HEX_CONST	SR_CU2		0x40000000	< Coprocessor 2 usable >
+	HEX_CONST	SR_CU1		0x20000000	< Coprocessor 1 usable >
+	HEX_CONST	SR_CU0		0x10000000	< Coprocessor 0 usable >
+;
+	HEX_CONST	SR_RP		0x08000000      < Reduced power operation >
+	HEX_CONST	SR_FR		0x04000000	< Additional floating point registers >
+	HEX_CONST	SR_RE		0x02000000	< Reverse endian in user mode >
+ .if true, (PROCESSOR&-2) == MIPS4300
+	HEX_CONST	SR_ITS		0x01000000	< Instruction trace support >
+ .endc
+;
+	HEX_CONST	SR_BEV		0x00400000	< Use boot exception vectors >
+	HEX_CONST	SR_TS		0x00200000	< TLB shutdown >
+	HEX_CONST	SR_SR		0x00100000	< Soft reset >
+	HEX_CONST	SR_CH		0x00040000	< Cache hit >
+	HEX_CONST	SR_CE		0x00020000	< Use cache ECC  >
+	HEX_CONST	SR_DE		0x00010000	< Disable cache exceptions >
+;
+REMB <** >
+REMM <** status register interrupt masks and bits >
+REME <** >
+;
+	HEX_CONST	SR_IMASK	0x0000ff00	< Interrupt mask >
+	HEX_CONST	SR_IMASK8	0x00000000	< mask level 8 >
+	HEX_CONST	SR_IMASK7	0x00008000	< mask level 7 >
+	HEX_CONST	SR_IMASK6	0x0000c000	< mask level 6 >
+	HEX_CONST	SR_IMASK5	0x0000e000	< mask level 5 >
+	HEX_CONST	SR_IMASK4	0x0000f000	< mask level 4 >
+	HEX_CONST	SR_IMASK3	0x0000f800	< mask level 3 >
+	HEX_CONST	SR_IMASK2	0x0000fc00	< mask level 2 >
+	HEX_CONST	SR_IMASK1	0x0000fe00	< mask level 1 >
+	HEX_CONST	SR_IMASK0	0x0000ff00	< mask level 0 >
+;
+	HEX_CONST	SR_IMASKSHIFT	8
+;
+	HEX_CONST	SR_IBIT8	0x00008000	< bit level 8 >
+	HEX_CONST	SR_IBIT7	0x00004000	< bit level 7 >
+	HEX_CONST	SR_IBIT6	0x00002000	< bit level 6 >
+	HEX_CONST	SR_IBIT5	0x00001000	< bit level 5 >
+	HEX_CONST	SR_IBIT4	0x00000800	< bit level 4 >
+	HEX_CONST	SR_IBIT3	0x00000400	< bit level 3 >
+	HEX_CONST	SR_IBIT2	0x00000200	< bit level 2 >
+	HEX_CONST	SR_IBIT1	0x00000100	< bit level 1 >
+;
+	HEX_CONST	SR_KX		0x00000080	< TLB vector offset = 0x80 >
+	HEX_CONST	SR_SX		0x00000040	< Supervisor mode 64 bit >
+	HEX_CONST	SR_UX		0x00000020	< User mode 64 bit >
+	HEX_CONST	SR_KSMASK	0x00000018	< Kernel mode mask >
+	HEX_CONST	SR_KSUSER	0x00000010	< User mode >
+	HEX_CONST	SR_KSSUPER	0x00000008	< Supervisor mode >
+	HEX_CONST	SR_KSKERNEL	0x00000000	< Kernel mode >
+	HEX_CONST	SR_ERL		0x00000004	< Error level >
+	HEX_CONST	SR_EXL		0x00000002	< Exception level >
+	HEX_CONST	SR_IE		0x00000001	< Interrupts enabled >
+	HEX_CONST	SR_IEC		0x00000001	< Interrupts enabled >
+.endc
+;
+REMB <** >
+REMM <** Cause Register >
+REME <** >
+;
+	HEX_CONST	CAUSE_BD	0x80000000	< Branch delay slot >
+	HEX_CONST	CAUSE_CEMASK	0x30000000	< coprocessor error >
+	HEX_CONST	CAUSE_CESHIFT	28
+;
+	HEX_CONST	CAUSE_IPMASK	0x0000FF00	< Pending interrupt mask >
+	HEX_CONST	CAUSE_IPSHIFT	8
+;
+	HEX_CONST	CAUSE_EXCMASK	0x0000007C	< Cause code bits >
+	HEX_CONST	CAUSE_EXCSHIFT	2
+;
+REMB <** >
+REMM <**  Coprocessor 0 registers >
+REME <** >
+;
+	REG_CONST	C0_INX		$0		< tlb index >
+	REG_CONST	C0_RAND		$1		< tlb random >
+.if true, (PROCESSOR&-16) == MIPS3000
+	REG_CONST	C0_TLBLO	$2		< tlb entry low >
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+	REG_CONST	C0_TLBLO0	$2		< tlb entry low 0 >
+	REG_CONST	C0_TLBLO1	$3		< tlb entry low 1 >
+.endc
+;
+	REG_CONST	C0_CTXT		$4		< tlb context >
+;
+.if true, (PROCESSOR&-16) == MIPS4000
+	REG_CONST	C0_PAGEMASK	$5		< tlb page mask >
+	REG_CONST	C0_WIRED	$6		< number of wired tlb entries >
+.endc
+;
+	REG_CONST	C0_BADVADDR	$8		< bad virtual address >
+;
+.if true, (PROCESSOR&-16) == MIPS4000
+	REG_CONST	C0_COUNT	$9		< cycle count >
+.endc
+;
+	REG_CONST	C0_TLBHI	$10		< tlb entry hi >
+;
+.if true, (PROCESSOR&-16) == MIPS4000
+	REG_CONST	C0_COMPARE	$11		< cyccle count comparator  >
+.endc
+;
+	REG_CONST	C0_SR		$12		< status register >
+	REG_CONST	C0_CAUSE	$13		< exception cause >
+	REG_CONST	C0_EPC		$14		< exception pc >
+	REG_CONST	C0_PRID		$15		< revision identifier >
+;
+.if true, (PROCESSOR&-16) == MIPS4000
+	REG_CONST	C0_CONFIG	$16		< configuration register >
+	REG_CONST	C0_LLADDR	$17		< linked load address >
+ .if true, PROCESSOR != MIPS4600
+	REG_CONST	C0_WATCHLO	$18		< watchpoint trap register >
+	REG_CONST	C0_WATCHHI	$19		< watchpoint trap register >
+ .iff
+	REG_CONST	C0_WATCHLO_U	$18
+	REG_CONST	C0_WATCHHI_U	$19
+ .endc
+	REG_CONST	C0_XCTXT	$20		< 64 bit context register >
+	REG_CONST	C0_ECC		$26		< secondary cache ECC control >
+	REG_CONST	C0_CACHEERR	$27		< cache error status >
+	REG_CONST	C0_TAGLO	$28		< cache tag lo >
+	REG_CONST	C0_TAGHI	$29		< cache tag hi >
+	REG_CONST	C0_ERRPC	$30		< cache error pc >
+	REG_CONST	C1_FIR		$0		< FPU implementation register >
+	REG_CONST	C1_FCSR		$31		< FPU Control and status register >
+	DEC_CONST		C1_FCSR_FS	(1<<24)	< Flush denormalized results to 0>
+	DEC_CONST		C1_FCSR_C	(1<<23)	< Condition bit >
+	DEC_CONST		C1_FCSR_CA_E	(1<<17)	< Unimplemented operation exception >
+	DEC_CONST		C1_FCSR_CA_V	(1<<16)	< Invalid operation exception >
+	DEC_CONST		C1_FCSR_CA_Z	(1<<15)	< Divide by 0 exception >
+	DEC_CONST		C1_FCSR_CA_O	(1<<14)	< Overflow exception >
+	DEC_CONST		C1_FCSR_CA_U	(1<<13)	< Undeflow exception >
+	DEC_CONST		C1_FCSR_CA_I	(1<<12)	< Inexact exception >
+	DEC_CONST		C1_FCSR_EN_V	(1<<11)	< Enable invalid operation exception >
+	DEC_CONST		C1_FCSR_EN_Z	(1<<10)	< Enable divide by 0 exception >
+	DEC_CONST		C1_FCSR_EN_O	(1<<9)	< Enable overflow exception >
+	DEC_CONST		C1_FCSR_EN_U	(1<<8)	< Enable underflow exception >
+	DEC_CONST		C1_FCSR_EN_I	(1<<7)	< Enable inexact exception >
+	DEC_CONST		C1_FCSR_FLG_V	(1<<6)	< Invalid operation >
+	DEC_CONST		C1_FCSR_FLG_Z	(1<<5)	< Divide by 0 >
+	DEC_CONST		C1_FCSR_FLG_O	(1<<4)	< Overflow >
+	DEC_CONST		C1_FCSR_FLG_U	(1<<3)	< Undeflow >
+	DEC_CONST		C1_FCSR_FLG_I	(1<<2)	< Inexact >
+	DEC_CONST		C1_FCSR_RM_RN	0	< Round to nearest representable >
+	DEC_CONST		C1_FCSR_RM_RZ	1	< Round toward 0 >
+	DEC_CONST		C1_FCSR_RM_RP	2	< Round toward +infinity >
+	DEC_CONST		C1_FCSR_RM_RM	3	< Round toward -infinity >
+.endc
+;
+	STR_START cpu_params
+	STR_ELT	  cpu_type	U32 1	<cpu type (3041, 3051, etc)>
+	STR_ELT	  cpu_prid	U32 1	<copy of C0_PRID register>
+	STR_ELT	  cpu_icache	U32 1	<size of I cache in bytes>
+	STR_ELT	  cpu_dcache	U32 1	<size of D cache in bytes>
+.if true, (PROCESSOR&-16) == MIPS4000
+        STR_ELT   cpu_icache_ls U32 1   <linesize of I cache in bytes>
+        STR_ELT   cpu_dcache_ls U32 1   <linesize of D cache in bytes>
+.endc
+	STR_END	  cpu_params
+;
+	DEC_CONST CPU_ID_TYPE	0	< Index into cpu_ident[] for TYPE >
+	DEC_CONST CPU_ID_PRID	1	< Index into cpu_ident[] for PRID >
+	DEC_CONST CPU_ID_ICACHE	2	< Index into cpu_ident[] for ICACHE size >
+	DEC_CONST CPU_ID_DCACHE	3	< Index into cpu_ident[] for DCACHE size >
+;
+.macro MK_VECTOR name type qty comment
+	STR_ELT	  ROMV_'name' type qty <comment>
+.endm
+;**********************************************************************************
+;*  WARNING DANGER 
+;*  DO NOT CHANGE THE ORDER OF ANY OF THE ENTRIES IN THIS STRUCTURE OR ADD ANYTHING
+;*  EXCEPT TO THE END.
+;**********************************************************************************
+	STR_START ROM_VECTOR_STR
+.if true, HB_PHOENIX
+	MK_VECTOR   JUMP	U32 1	<Jump (or branch) to start address>
+	MK_VECTOR   JNOP	U32 1	<Delay slot after jump>
+	MK_VECTOR   SENTINEL	U32 1	<FEEDFACE or FEEDFADE sentinel>
+	MK_VECTOR   TSIZE	U32 1	<Size of data to copy>
+	MK_VECTOR   STUB_INIT	U32 1	<Entry point to stub's init>
+	MK_VECTOR   STUB_FLAG	U32 1	<Stub init marker>
+	MK_VECTOR   STUB_EH	U32 1	<Stub exception handler entry>
+	MK_VECTOR   STUB_VECS	U32 1	<Ptr to list of functions provided by stub>
+	MK_VECTOR   RAMVBR	U32 1	<Pointer to RAM based array of pointers to functions>
+	MK_VECTOR   STACK	U32 1	<Last usable address in SRAM>
+	MK_VECTOR   ENTRY	U32 1	<reset entry point>
+	MK_VECTOR   EXCEPT	U32 1	<Pointer to game's exception handler>
+	MK_VECTOR   STUB_REASON U32 1	<Pointer to game's exception message (or 0)>
+.iff
+	MK_VECTOR   RAMVBR	U32 1	<Pointer to RAM based array of pointers to functions>
+	MK_VECTOR   ROMVBR	U32 1	<Not used anymore. Remains for compatibility with old code>
+	MK_VECTOR   STACK	U32 1	<Last usable address in SRAM>
+	MK_VECTOR   ENTRY	U32 1	<reset entry point>
+	MK_VECTOR   PKTINIT	U32 1	<Packet init>
+	MK_VECTOR   PKTPOLL	U32 1	<Packet poll>
+	MK_VECTOR   PKTRECV	U32 1	<Packet recv>
+	MK_VECTOR   PKTSEND	U32 1	<Packet send>
+	MK_VECTOR   TLBPTR	U32 1	<Not used anymore. Remains for compatibility with old code>
+	MK_VECTOR   IRQPTR	U32 8	<Not used anymore. Remains for compatibility with old code>
+.if true, (PROCESSOR&-16) == MIPS3000
+	MK_VECTOR   TEMP	U32 1	<Not used anymore. Remains for compatibility with old code>
+	MK_VECTOR   NORMAL	U32 1	<Not used anymore. Remains for compatibility with old code>
+	MK_VECTOR   CHEAP	U32 1	<Not used anymore. Remains for compatibility with old code>
+.endc
+	MK_VECTOR   EXPTR	U32 15	<Not used anymore. Remains for compatibility with old code>
+	MK_VECTOR   CTSINIT	U32 1	<Initial control register for 4K>
+	MK_VECTOR   EXCEPT	U32 1	<Pointer to exception handler>
+	MK_VECTOR   SW_ADDR	U32 1	<Pointer to switch>
+	MK_VECTOR   SW_BIT	U32 1	<Bit within SW_ADDR for stub start switch>
+	MK_VECTOR   STUB_EH	U32 1	<Pointer to stub's exception handler (or 0)>
+	MK_VECTOR   STUB_REASON U32 1	<Pointer to game's exception message (or 0)>
+.endc
+	STR_END	  ROM_VECTOR_STR
+;
+.macro MK_VECTOR name type qty comment
+	STR_ELT	  RAMV_'name' type qty <comment>
+.endm
+	STR_START RAM_VECTOR_STR
+	.include  idt_vectors.mac
+	STR_END   RAM_VECTOR_STR
+;
+.macro MK_VECTOR name type qty comment
+	STR_ELT	  STUBVEC_'name' type qty <comment>
+.endm
+	STR_START IIO_VECTOR_STR
+	MK_VECTOR   PKTINIT	U32 1	<Ptr to pktinit function (not used)>
+	MK_VECTOR   PKTPOLL	U32 1	<Ptr to pktpoll function>
+	MK_VECTOR   PKTQRECV	U32 1	<Ptr to pktquerecv function>
+	MK_VECTOR   PKTQSEND	U32 1	<Ptr to pktquesend function>
+	MK_VECTOR   PKTIOCTL	U32 1	<Ptr to pktioctl function>
+	MK_VECTOR   NMI		U32 1	<Ptr to stub's NMI handler>
+	MK_VECTOR   FAKE_EH	U32 1	<Ptr to stub's fake exception handler>
+	MK_VECTOR   GOT_ATTEN	U32 1	<Ptr to stub's got_attention function>
+	MK_VECTOR   PKTSCAN	U32 1	<Ptr to stub's pktScan function>
+	STR_END	  IIO_VECTOR_STR
+;
+...1 == 0
+.macro MK_VECTOR name type qty comment
+.if true, OUTPUT_LANG == LANG_C
+	VN_'name',
+.endc
+	VN_'name' == ...1
+	...1 == ...1 + 1
+.endm
+.if true, OUTPUT_LANG == LANG_C
+enum vecnums {
+.endc
+	.include  idt_vectors.mac
+.if true, OUTPUT_LANG == LANG_C
+	VN_MAX
+};
+#define NUM_RVECS VN_MAX
+.endc
+;
+; MIPS gdb register placement (stub uses this)
+;
+.if true, (PROCESSOR&-16) == MIPS4000
+ .if defined, BYTE0_OFFS
+   endian == (BYTE0_OFFS != 0)	;.ne. if big, .eq. if little
+ .iff
+   endian == 1			;assume big endian
+ .endc
+ ls32 == endian
+ ms32 == endian ^ 1
+  .macro MK_REGNUM name	number size comment
+	DEC_CONST name number <comment>
+	DEC_CONST 'name'_W (number*2)+ls32 <comment>
+    .if true, 1 || (size == 32)
+	DEC_CONST 'name'_U (number*2)+ms32   <comment>
+    .endc
+  .endm
+.iff
+  .macro MK_REGNUM name	number size comment
+	DEC_CONST name number <comment>
+	DEC_CONST 'name'_W number <comment>
+  .endm
+.endc
+;
+.if true, (PROCESSOR&-16) == MIPS4000
+	DEC_CONST REGISTER_SIZE		 8	< Size of the registers in bytes >
+	DEC_CONST MIPS_REGSIZE		 8	< Size of the registers in bytes >
+.iff
+	DEC_CONST REGISTER_SIZE		 4	< Size of the registers in bytes >
+	DEC_CONST MIPS_REGSIZE		 4	< Size of the registers in bytes >
+.endc
+	MK_REGNUM ZERO_REGNUM		 0			64	< read-only register, always 0 >
+	MK_REGNUM AT_REGNUM		 1			64	< reg used by assembler >
+	MK_REGNUM V0_REGNUM		 2			64	< Function integer return value >
+	MK_REGNUM A0_REGNUM		 4			64	< Loc of first arg during a subr call >
+	MK_REGNUM SP_REGNUM		29			64	< Contains address of top of stack >
+	MK_REGNUM S8_REGNUM		30			64	< S8/FP register >
+	MK_REGNUM RA_REGNUM		31			64	< Contains return address value >
+	MK_REGNUM PS_REGNUM		32			32	< Contains processor status >
+	MK_REGNUM HI_REGNUM		34      		32	< Multiply/divide high byte >
+	MK_REGNUM LO_REGNUM		33      		32	< Multiply/divide low byte >
+	MK_REGNUM BADVADDR_REGNUM	35			64	< bad vaddr for addressing exception >
+	MK_REGNUM CAUSE_REGNUM		36			32	< describes last exception >
+	MK_REGNUM PC_REGNUM		37			64	< Contains program counter >
+	MK_REGNUM FP0_REGNUM		38      		64	< Floating point register 0 (single float) >
+	MK_REGNUM FCRCS_REGNUM		70      		32	< FP control/status >
+	MK_REGNUM FCRIR_REGNUM		71      		32	< FP implementation/revision >
+	MK_REGNUM FP_REGNUM		72			64	< Pseudo register that contains true address of executing stack frame >
+	MK_REGNUM FIRST_EMBED_REGNUM	73			64	< First supervisor register for embedded use >
+.if true, (PROCESSOR&-16) == MIPS4000
+	MK_REGNUM INX_REGNUM		(FIRST_EMBED_REGNUM+0)	32
+	MK_REGNUM RAND_REGNUM		(FIRST_EMBED_REGNUM+1)	32
+	MK_REGNUM TLBLO0_REGNUM		(FIRST_EMBED_REGNUM+2)	64
+	MK_REGNUM TLBLO1_REGNUM		(FIRST_EMBED_REGNUM+3)	64
+	MK_REGNUM CTXT_REGNUM		(FIRST_EMBED_REGNUM+4)	64
+	MK_REGNUM PAGEMASK_REGNUM	(FIRST_EMBED_REGNUM+5)	32
+	MK_REGNUM WIRED_REGNUM		(FIRST_EMBED_REGNUM+6)	32
+	MK_REGNUM COUNT_REGNUM		(FIRST_EMBED_REGNUM+7)	32
+	MK_REGNUM TLBHI_REGNUM		(FIRST_EMBED_REGNUM+8)	64
+	MK_REGNUM COMPARE_REGNUM	(FIRST_EMBED_REGNUM+9)	32
+	MK_REGNUM EPC_REGNUM		(FIRST_EMBED_REGNUM+10)	64
+	MK_REGNUM PRID_REGNUM		(FIRST_EMBED_REGNUM+11)	32
+	MK_REGNUM CONFIG_REGNUM		(FIRST_EMBED_REGNUM+12)	32
+	MK_REGNUM LLADDR_REGNUM		(FIRST_EMBED_REGNUM+13)	32
+ .if true, PROCESSOR != MIPS4600
+	MK_REGNUM WATCHLO_REGNUM	(FIRST_EMBED_REGNUM+14)	64
+	MK_REGNUM WATCHHI_REGNUM	(FIRST_EMBED_REGNUM+15)	64
+ .endc
+	MK_REGNUM XCTXT_REGNUM		(FIRST_EMBED_REGNUM+16)	64
+	MK_REGNUM ECC_REGNUM		(FIRST_EMBED_REGNUM+17)	32
+	MK_REGNUM CACHEERR_REGNUM	(FIRST_EMBED_REGNUM+18)	32
+	MK_REGNUM TAGLO_REGNUM		(FIRST_EMBED_REGNUM+19)	32
+	MK_REGNUM TAGHI_REGNUM		(FIRST_EMBED_REGNUM+20)	32
+	MK_REGNUM ERRPC_REGNUM		(FIRST_EMBED_REGNUM+21)	64
+	MK_REGNUM LAST_EMBED_REGNUM	(FIRST_EMBED_REGNUM+22-1) 32	< Last one >
+.iff
+	MK_REGNUM INX_REGNUM		(FIRST_EMBED_REGNUM+0)	32
+	MK_REGNUM RAND_REGNUM		(FIRST_EMBED_REGNUM+1)	32
+	MK_REGNUM TLBLO_REGNUM		(FIRST_EMBED_REGNUM+2)	32
+	MK_REGNUM CTXT_REGNUM		(FIRST_EMBED_REGNUM+3)	32
+	MK_REGNUM TLBHI_REGNUM		(FIRST_EMBED_REGNUM+4)	32
+	MK_REGNUM EPC_REGNUM		(FIRST_EMBED_REGNUM+5)	32
+	MK_REGNUM PRID_REGNUM		(FIRST_EMBED_REGNUM+6)	32
+	MK_REGNUM LAST_EMBED_REGNUM	(FIRST_EMBED_REGNUM+7-1) 32	< Last one >
+.endc
+	DEC_CONST NUM_REGS		(LAST_EMBED_REGNUM+1)	< Number of machine registers >
+	DEC_CONST REGISTER_BYTES (NUM_REGS*MIPS_REGSIZE) < Total number of register bytes >
+;
+.if true, OUTPUT_LANG != LANG_C
+	DEC_CONST CPU_FRAME_SIZE S_SIZ_cpu_params
+.endc
+;
+	DEC_CONST MAX_IRQS		8	< RxK has only 8 possible interrupts >
+.if true, (PROCESSOR&-16) == MIPS4000
+	DEC_CONST MAX_EXCEPTIONS 	16	< R4k has only 16 possible exceptions >
+.iff
+	DEC_CONST MAX_EXCEPTIONS 	13	< R3k has only 13 possible exceptions >
+.endc
+;
+.if true, OUTPUT_LANG != LANG_C
+.DEFINE zero	$0
+.DEFINE r0	$0
+.DEFINE r1	$1
+.DEFINE r2	$2
+.DEFINE r3	$3
+.DEFINE r4	$4
+.DEFINE r5	$5
+.DEFINE r6	$6
+.DEFINE r7	$7
+.DEFINE r8	$8
+.DEFINE r9	$9
+.DEFINE r10	$10
+.DEFINE r11	$11
+.DEFINE r12	$12
+.DEFINE r13	$13
+.DEFINE r14	$14
+.DEFINE r15	$15
+.DEFINE r16	$16
+.DEFINE r17	$17
+.DEFINE r18	$18
+.DEFINE r19	$19
+.DEFINE r20	$20
+.DEFINE r21	$21
+.DEFINE r22	$22
+.DEFINE r23	$23
+.DEFINE r24	$24
+.DEFINE r25	$25
+.DEFINE r26	$26
+.DEFINE r27	$27
+.DEFINE r28	$28
+.DEFINE r29	$29
+.DEFINE r30	$30
+.DEFINE r31	$31
+;
+.DEFINE f0	$f0
+.DEFINE f1	$f1
+.DEFINE f2	$f2
+.DEFINE f3	$f3
+.DEFINE f4	$f4
+.DEFINE f5	$f5
+.DEFINE f6	$f6
+.DEFINE f7	$f7
+.DEFINE f8	$f8
+.DEFINE f9	$f9
+.DEFINE f10	$f10
+.DEFINE f11	$f11
+.DEFINE f12	$f12
+.DEFINE f13	$f13
+.DEFINE f14	$f14
+.DEFINE f15	$f15
+.DEFINE f16	$f16
+.DEFINE f17	$f17
+.DEFINE f18	$f18
+.DEFINE f19	$f19
+.DEFINE f20	$f20
+.DEFINE f21	$f21
+.DEFINE f22	$f22
+.DEFINE f23	$f23
+.DEFINE f24	$f24
+.DEFINE f25	$f25
+.DEFINE f26	$f26
+.DEFINE f27	$f27
+.DEFINE f28	$f28
+.DEFINE f29	$f29
+.DEFINE f30	$f30
+.DEFINE f31	$f31
+;
+.DEFINE v0	$2
+.DEFINE v1	$3
+.DEFINE a0	$4
+.DEFINE a1	$5
+.DEFINE a2	$6
+.DEFINE a3	$7
+.DEFINE t0	$8
+.DEFINE t1	$9
+.DEFINE t2	$10
+.DEFINE t3	$11
+.DEFINE t4	$12
+.DEFINE t5	$13
+.DEFINE t6	$14
+.DEFINE t7	$15
+.DEFINE t8	$24
+.DEFINE t9	$25
+.DEFINE s0	$16
+.DEFINE s1	$17
+.DEFINE s2	$18
+.DEFINE s3	$19
+.DEFINE s4	$20
+.DEFINE s5	$21
+.DEFINE s6	$22
+.DEFINE s7	$23
+.DEFINE k0	$26
+.DEFINE k1	$27
+.DEFINE gp	$28
+.DEFINE sp	$29
+.DEFINE fp	$30
+.DEFINE s8	$30
+.DEFINE ra	$31
+;
+;
+.macro SYSERR message, arg
+	.set noreorder
+	mfc0 t0, C0_SR
+	li a1, arg
+	andi t0, ~SR_IEC
+	la t1, TrapIt
+	mtc0 t0, C0_SR
+	jalr a0, t1
+	nop
+	DC.B	"'message'"
+	DC.B	0
+	.align	2
+	.set reorder
+.endm SYSERR
+;			
+.macro frame entry, frame=sp, size=0, return=ra, global=1, mask=0, offset=0, fmask=0, foff=0
+ .if defined, PROCESSOR
+  .if true, (PROCESSOR == MIPS5000) || (PROCESSOR == MIPS5000L)
+    .align 3
+  .endc
+ .endc
+	.iif true,global,.globl entry
+	.ent entry
+entry:
+	.frame	frame, size, return
+	.mask	mask, offset
+	.fmask	fmask, foff
+	.endm
+;
+.macro endframe entry
+.end entry
+.endm
+.endc
+@
+
+
+1.29
+log
+@Added SR_ITS for 4300 CPU.
+@
+text
+@d1 2
+@
+
+
+1.28
+log
+@Changed references to HOST_BOARD to use class instead of
+individual types.
+For MIPS4300x, set N_TLB_ENTRIES to 32.
+@
+text
+@d358 3
+@
+
+
+1.27
+log
+@Corrected definitions and use of cache instruction defines.
+@
+text
+@d15 2
+a16 5
+.if true, (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE) || (HOST_BOARD == VEGAS)
+  HB_PHOENIX == 1
+.iff
+  HB_PHOENIX == 0
+.endc
+d174 1
+d255 3
+d259 1
+@
+
+
+1.26
+log
+@Syntax for gas 2.7 is only one name on a .global directive.
+Split all .globl statements into multiples where appropriate.
+gas 2.7 doesn't like numbers appearing as the first item after
+a # in (effectively) column 1. It assumes it is a line number.
+@
+text
+@d202 19
+a220 26
+	HEX_CONST	Index_Invalidate_I               0x0         < * 0 0 >
+	HEX_CONST	Index_Writeback_Inv_D            0x1         < * 0 1 >
+	HEX_CONST	Index_Invalidate_SI              0x2         < * 0 2 >
+	HEX_CONST	Index_Writeback_Inv_SD           0x3         < * 0 3 >
+	HEX_CONST	Index_Load_Tag_I                 0x4         < * 1 0 >
+	HEX_CONST	Index_Load_Tag_D                 0x5         < * 1 1 >
+	HEX_CONST	Index_Load_Tag_SI                0x6         < * 1 2 >
+	HEX_CONST	Index_Load_Tag_SD                0x7         < * 1 3 >
+	HEX_CONST	Index_Store_Tag_I                0x8         < * 2 0 >
+	HEX_CONST	Index_Store_Tag_D                0x9         < * 2 1 >
+	HEX_CONST	Index_Store_Tag_SI               0xA         < * 2 2 >
+	HEX_CONST	Index_Store_Tag_SD               0xB         < * 2 3 >
+	HEX_CONST	Create_Dirty_Exc_D               0xD         < * 3 1 >
+	HEX_CONST	Create_Dirty_Exc_SD              0xF         < * 3 3 >
+	HEX_CONST	Hit_Invalidate_I                 0x10        < * 4 0 >
+	HEX_CONST	Hit_Invalidate_D                 0x11        < * 4 1 >
+	HEX_CONST	Hit_Invalidate_SI                0x12        < * 4 2 >
+	HEX_CONST	Hit_Invalidate_SD                0x13        < * 4 3 >
+	HEX_CONST	Hit_Writeback_Inv_D              0x15        < * 5 1 >
+	HEX_CONST	Hit_Writeback_Inv_SD             0x17        < * 5 3 >
+	HEX_CONST	Fill_I                           0x14        < * 5 0 >
+	HEX_CONST	Hit_Writeback_D                  0x19        < * 6 1 >
+	HEX_CONST	Hit_Writeback_SD                 0x1B        < * 6 3 >
+	HEX_CONST	Hit_Writeback_I                  0x18        < * 6 0 >
+	HEX_CONST	Hit_Set_Virtual_SI               0x1E        < * 7 2 >
+	HEX_CONST	Hit_Set_Virtual_SD               0x1F        < * 7 3 >
+@
+
+
+1.25
+log
+@Added an .align 3 to FRAME macro if processor is 5k.
+@
+text
+@d202 26
+a227 26
+	HEX_CONST	Index_Invalidate_I               0x0         < 0       0 >
+	HEX_CONST	Index_Writeback_Inv_D            0x1         < 0       1 >
+	HEX_CONST	Index_Invalidate_SI              0x2         < 0       2 >
+	HEX_CONST	Index_Writeback_Inv_SD           0x3         < 0       3 >
+	HEX_CONST	Index_Load_Tag_I                 0x4         < 1       0 >
+	HEX_CONST	Index_Load_Tag_D                 0x5         < 1       1 >
+	HEX_CONST	Index_Load_Tag_SI                0x6         < 1       2 >
+	HEX_CONST	Index_Load_Tag_SD                0x7         < 1       3 >
+	HEX_CONST	Index_Store_Tag_I                0x8         < 2       0 >
+	HEX_CONST	Index_Store_Tag_D                0x9         < 2       1 >
+	HEX_CONST	Index_Store_Tag_SI               0xA         < 2       2 >
+	HEX_CONST	Index_Store_Tag_SD               0xB         < 2       3 >
+	HEX_CONST	Create_Dirty_Exc_D               0xD         < 3       1 >
+	HEX_CONST	Create_Dirty_Exc_SD              0xF         < 3       3 >
+	HEX_CONST	Hit_Invalidate_I                 0x10        < 4       0 >
+	HEX_CONST	Hit_Invalidate_D                 0x11        < 4       1 >
+	HEX_CONST	Hit_Invalidate_SI                0x12        < 4       2 >
+	HEX_CONST	Hit_Invalidate_SD                0x13        < 4       3 >
+	HEX_CONST	Hit_Writeback_Inv_D              0x15        < 5       1 >
+	HEX_CONST	Hit_Writeback_Inv_SD             0x17        < 5       3 >
+	HEX_CONST	Fill_I                           0x14        < 5       0 >
+	HEX_CONST	Hit_Writeback_D                  0x19        < 6       1 >
+	HEX_CONST	Hit_Writeback_SD                 0x1B        < 6       3 >
+	HEX_CONST	Hit_Writeback_I                  0x18        < 6       0 >
+	HEX_CONST	Hit_Set_Virtual_SI               0x1E        < 7       2 >
+	HEX_CONST	Hit_Set_Virtual_SD               0x1F        < 7       3 >
+@
+
+
+1.24
+log
+@Added support and detection for SEATTLE and VEGAS host boards.
+@
+text
+@d825 5
+@
+
+
+1.23
+log
+@Added GOT_ATTEN and PKTSCAN to the IIO_VECT struct.
+@
+text
+@d15 1
+a15 1
+.if true, (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+@
+
+
+1.22
+log
+@Added support for PHOENIX_AD and FLAGSTAFF boards.
+@
+text
+@d587 2
+@
+
+
+1.21
+log
+@Added more arguments to the FRAME macro
+@
+text
+@d15 6
+d529 15
+a543 1
+.if true, HOST_BOARD != PHOENIX
+a564 14
+	MK_VECTOR   STUB_REASON U32 1	<Pointer to game's exception message (or 0)>
+.iff
+	MK_VECTOR   JUMP	U32 1	<Jump (or branch) to start address>
+	MK_VECTOR   JNOP	U32 1	<Delay slot after jump>
+	MK_VECTOR   SENTINEL	U32 1	<FEEDFACE or FEEDFADE sentinel>
+	MK_VECTOR   TSIZE	U32 1	<Size of data to copy>
+	MK_VECTOR   STUB_INIT	U32 1	<Entry point to stub's init>
+	MK_VECTOR   STUB_FLAG	U32 1	<Stub init marker>
+	MK_VECTOR   STUB_EH	U32 1	<Stub exception handler entry>
+	MK_VECTOR   STUB_VECS	U32 1	<Ptr to list of functions provided by stub>
+	MK_VECTOR   RAMVBR	U32 1	<Pointer to RAM based array of pointers to functions>
+	MK_VECTOR   STACK	U32 1	<Last usable address in SRAM>
+	MK_VECTOR   ENTRY	U32 1	<reset entry point>
+	MK_VECTOR   EXCEPT	U32 1	<Pointer to game's exception handler>
+@
+
+
+1.20
+log
+@Added FAKE_EH stub vector.
+@
+text
+@d816 1
+a816 1
+.macro frame entry, frame=sp, size=0, return=ra, global=1, mask=0x00000000, offset=0
+d822 1
+a822 1
+	.fmask	0, 0
+@
+
+
+1.19
+log
+@Added a NMI vector to the stub vector struct.
+@
+text
+@d580 1
+@
+
+
+1.18
+log
+@Added support for Phoenix sys.
+Added support for little endian.
+@
+text
+@d579 1
+@
+
+
+1.17
+log
+@Added vectors for PHOENIX system.
+@
+text
+@d551 2
+a552 2
+	MK_VECTOR   STUBINIT	U32 1	<Entry point to stub's init>
+	MK_VECTOR   STUBFLAG	U32 1	<Stub init marker>
+d554 1
+a554 5
+	MK_VECTOR   PKTIOCTL	U32 1	<Packet I/O control>
+	MK_VECTOR   PKTINIT	U32 1	<Packet init>
+	MK_VECTOR   PKTPOLL	U32 1	<Packet poll>
+	MK_VECTOR   PKTRECV	U32 1	<Packet recv>
+	MK_VECTOR   PKTSEND	U32 1	<Packet send>
+d570 11
+d602 7
+d611 1
+a611 1
+	DEC_CONST 'name'_W (number*2)+1 <comment>
+d613 1
+a613 1
+	DEC_CONST 'name'_U (number*2)   <comment>
+@
+
+
+1.16
+log
+@Added SR_KX, SR_SX and SR_UX bits for 4K status register.
+@
+text
+@d517 5
+d523 1
+d546 19
+@
+
+
+1.15
+log
+@Added vectors for floating point exception <=> stub interface.
+@
+text
+@d391 3
+@
+
+
+1.14
+log
+@Made the definition of C0_CONF_DEFAULT_3081 conditional
+@
+text
+@d535 2
+@
+
+
+1.13
+log
+@Added an additional vector for stub to read start switch.
+@
+text
+@d124 1
+d127 1
+@
+
+
+1.12
+log
+@Added a .mask and .fmask to the FRAME macro.
+@
+text
+@d531 2
+@
+
+
+1.11
+log
+@The NORMAL and CHEAP exceptions are not in th R4K systems so they were commented out.
+@
+text
+@d766 1
+a766 1
+.macro frame entry, frame=sp, size=0, return=ra, global=1
+d771 2
+@
+
+
+1.10
+log
+@Made numerous changes to support R4k.
+@
+text
+@d523 1
+d527 1
+@
+
+
+1.9
+log
+@Oops. Should have used PROCESSOR instead of HOST_BOARD
+@
+text
+@d513 2
+a514 2
+	MK_VECTOR   RAMVBR	U32 1	<pointer to RAM vector table>
+	MK_VECTOR   ROMVBR	U32 1	<pointer to ROM vector table>
+d521 8
+a528 5
+.if true, (HOST_BOARD == HCR4K) || (HOST_BOARD == MB4600)
+	MK_VECTOR   CTSINIT	U32 1	<Initial control register setting>
+.endc
+	MK_VECTOR   TLB		U32 1	<TLB exception entry address>
+	.include  idt_vectors.mac
+d530 1
+a530 1
+
+d534 15
+a548 1
+	STR_START IRQ_TABLE_STR
+a549 2
+	STR_ELT	  RAMV_MAX	U32 1	<Place holder indicating maximum exceptions >
+	STR_END	  IRQ_TABLE_STR
+d551 3
+a553 1
+#define NUM_RVECS (sizeof(struct IRQ_TABLE_STR)/sizeof(U32))
+@
+
+
+1.8
+log
+@Added cpu_icache_ls and cpu_dcache_ls to cpu_params struct on 4K processor
+@
+text
+@d498 1
+a498 1
+.if true, (HOST_BOARD == HCRK) || (HOST_BOARD == MB4600)
+@
+
+
+1.7
+log
+@Added a ROMCTS_INIT member to the ROMV struct
+@
+text
+@d498 4
+@
+
+
+1.6
+log
+@MK_REGNUM now always makes _U symbols regardless of register size.
+Added S8_REGNUM (30) which doubles as FP sometimes.
+@
+text
+@d517 3
+@
+
+
+1.5
+log
+@Added some floating point CSR constants (C1_FCSR_xxx)
+@
+text
+@d538 1
+a538 1
+    .if true, size == 32
+d561 1
+@
+
+
+1.4
+log
+@Added a REGNUM_U variable to index to the unused 32 bits in the 64 place holders of the 32 bit registers
+@
+text
+@d457 3
+a466 1
+.endc
+d469 23
+d535 1
+a535 1
+  .macro MK_REGNUM name	number comment
+d538 1
+d540 1
+d543 1
+a543 1
+  .macro MK_REGNUM name	number comment
+d556 17
+a572 21
+	MK_REGNUM ZERO_REGNUM		 0	< read-only register, always 0 >
+	MK_REGNUM AT_REGNUM		 1	< reg used by assembler >
+	MK_REGNUM V0_REGNUM		 2	< Function integer return value >
+	MK_REGNUM A0_REGNUM		 4	< Loc of first arg during a subr call >
+	MK_REGNUM SP_REGNUM		29	< Contains address of top of stack >
+	MK_REGNUM RA_REGNUM		31	< Contains return address value >
+	MK_REGNUM PS_REGNUM		32	< Contains processor status >
+	MK_REGNUM HI_REGNUM		34      < Multiply/divide high byte >
+	MK_REGNUM LO_REGNUM		33      < Multiply/divide low byte >
+	MK_REGNUM BADVADDR_REGNUM	35	< bad vaddr for addressing exception >
+	MK_REGNUM CAUSE_REGNUM		36	< describes last exception >
+	MK_REGNUM PC_REGNUM		37	< Contains program counter >
+	MK_REGNUM FP0_REGNUM		38      < Floating point register 0 (single float) >
+	MK_REGNUM FCRCS_REGNUM		70      < FP control/status >
+	MK_REGNUM FCRIR_REGNUM		71      < FP implementation/revision >
+	MK_REGNUM FP_REGNUM		72	< Pseudo register that contains true address of executing stack frame >
+	.list
+	.list
+	MK_REGNUM FIRST_EMBED_REGNUM	73	< First supervisor register for embedded use >
+	.nlist
+	.nlist
+d574 14
+a587 14
+	MK_REGNUM INX_REGNUM		(FIRST_EMBED_REGNUM+0)
+	MK_REGNUM RAND_REGNUM		(FIRST_EMBED_REGNUM+1)
+	MK_REGNUM TLBLO0_REGNUM		(FIRST_EMBED_REGNUM+2)
+	MK_REGNUM TLBLO1_REGNUM		(FIRST_EMBED_REGNUM+3)
+	MK_REGNUM CTXT_REGNUM		(FIRST_EMBED_REGNUM+4)
+	MK_REGNUM PAGEMASK_REGNUM	(FIRST_EMBED_REGNUM+5)
+	MK_REGNUM WIRED_REGNUM		(FIRST_EMBED_REGNUM+6)
+	MK_REGNUM COUNT_REGNUM		(FIRST_EMBED_REGNUM+7)
+	MK_REGNUM TLBHI_REGNUM		(FIRST_EMBED_REGNUM+8)
+	MK_REGNUM COMPARE_REGNUM	(FIRST_EMBED_REGNUM+9)
+	MK_REGNUM EPC_REGNUM		(FIRST_EMBED_REGNUM+10)
+	MK_REGNUM PRID_REGNUM		(FIRST_EMBED_REGNUM+11)
+	MK_REGNUM CONFIG_REGNUM		(FIRST_EMBED_REGNUM+12)
+	MK_REGNUM LLADDR_REGNUM		(FIRST_EMBED_REGNUM+13)
+d589 2
+a590 2
+	MK_REGNUM WATCHLO_REGNUM	(FIRST_EMBED_REGNUM+14)
+	MK_REGNUM WATCHHI_REGNUM	(FIRST_EMBED_REGNUM+15)
+d592 7
+a598 11
+	MK_REGNUM XCTXT_REGNUM		(FIRST_EMBED_REGNUM+16)
+	MK_REGNUM ECC_REGNUM		(FIRST_EMBED_REGNUM+17)
+	MK_REGNUM CACHEERR_REGNUM	(FIRST_EMBED_REGNUM+18)
+	MK_REGNUM TAGLO_REGNUM		(FIRST_EMBED_REGNUM+19)
+	MK_REGNUM TAGHI_REGNUM		(FIRST_EMBED_REGNUM+20)
+	MK_REGNUM ERRPC_REGNUM		(FIRST_EMBED_REGNUM+21)
+	.list
+	.list
+	MK_REGNUM LAST_EMBED_REGNUM	(FIRST_EMBED_REGNUM+22-1) < Last one >
+	.nlist
+	.nlist
+d600 8
+a607 8
+	MK_REGNUM INX_REGNUM		(FIRST_EMBED_REGNUM+0)
+	MK_REGNUM RAND_REGNUM		(FIRST_EMBED_REGNUM+1)
+	MK_REGNUM TLBLO_REGNUM		(FIRST_EMBED_REGNUM+2)
+	MK_REGNUM CTXT_REGNUM		(FIRST_EMBED_REGNUM+3)
+	MK_REGNUM TLBHI_REGNUM		(FIRST_EMBED_REGNUM+4)
+	MK_REGNUM EPC_REGNUM		(FIRST_EMBED_REGNUM+5)
+	MK_REGNUM PRID_REGNUM		(FIRST_EMBED_REGNUM+6)
+	MK_REGNUM LAST_EMBED_REGNUM	(FIRST_EMBED_REGNUM+7-1) < Last one >
+@
+
+
+1.3
+log
+@Changed CAUSE_EXCMASK from 0x0000003C to 0x0000007C.
+@
+text
+@d513 1
+@
+
+
+1.2
+log
+@Added the missing R3K constants
+@
+text
+@d410 1
+a410 1
+	HEX_CONST	CAUSE_EXCMASK	0x0000003C	< Cause code bits >
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d80 9
+d94 39
+d134 1
+d480 3
+d484 10
+a493 37
+	STR_ELT	  ROMV_RAMVBR	U32 1	<pointer to RAM vector table>
+	STR_ELT	  ROMV_ROMVBR	U32 1	<pointer to ROM vector table>
+	STR_ELT   ROMV_STACK	U32 1	<Last usable address in SRAM>
+	STR_ELT	  ROMV_ENTRY	U32 1	<reset entry point>
+	STR_ELT	  ROMV_PKTINIT	U32 1	<Packet init>
+	STR_ELT	  ROMV_PKTPOLL	U32 1	<Packet poll>
+	STR_ELT	  ROMV_PKTRECV	U32 1	<Packet recv>
+	STR_ELT	  ROMV_PKTSEND	U32 1	<Packet send>
+	STR_ELT	  ROMV_TLB	U32 1	<TLB exception entry address>
+	STR_ELT	  ROMV_SW0	U32 1	<S/W 0 interrupt entry address>
+	STR_ELT	  ROMV_SW1	U32 1	<S/W 1 interrupt entry address>
+	STR_ELT	  ROMV_ICELESS	U32 1	<ICELESS interrupt entry address>
+	STR_ELT	  ROMV_XBUS0	U32 1	<XBUS 0 interrupt entry address>
+	STR_ELT	  ROMV_XBUS1	U32 1	<XBUS 1 interrupt entry address>
+	STR_ELT	  ROMV_XBUS2	U32 1	<XBUS 2 interrupt entry address>
+	STR_ELT	  ROMV_XBUS3	U32 1	<XBUS 3 interrupt entry address>
+	STR_ELT	  ROMV_CPUTIME	U32 1	<CPU timer interrupt entry address>
+	STR_ELT	  ROMV_TEMP	U32 1	<Place holder for interrupt temp use>
+	STR_ELT	  ROMV_GENRAL	U32 1	<General exception handler address>
+	STR_ELT	  ROMV_IRQ	U32 1	<IRQ interrupt entry address>
+	STR_ELT	  ROMV_TLBM	U32 1	<TLB modification exception address>
+	STR_ELT	  ROMV_TLBL	U32 1	<TLB Load exception address>
+	STR_ELT	  ROMV_TLBS	U32 1	<TLB store exception address>
+	STR_ELT	  ROMV_ADDRR	U32 1	<Address exception on load or I-fetch>
+	STR_ELT	  ROMV_ADDRS	U32 1	<Address exception on store>
+	STR_ELT	  ROMV_BUSERRI	U32 1	<Bus error on I-fetch>
+	STR_ELT	  ROMV_BUSERRD	U32 1	<Bus error on data load>
+	STR_ELT	  ROMV_SYSCALL	U32 1	<SYSCALL exception>
+	STR_ELT	  ROMV_BREAK	U32 1	<Breakpoint exception>
+	STR_ELT	  ROMV_RESERV	U32 1	<Reserved instruction exception>
+	STR_ELT	  ROMV_COPROC	U32 1	<Coprocessor unusable exception>
+	STR_ELT	  ROMV_OVERFL	U32 1	<Integer overflow exception>
+.if true, (PROCESSOR&-16) == MIPS4000
+	STR_ELT	  ROMV_TRAPV	U32 1	<Trap exception>
+	STR_ELT   ROMV_FILL0	U32 1	<Reserved entry>
+	STR_ELT   ROMV_FPE	U32 1	<Floating point exception>
+.endc
+d495 4
+a498 1
+;
+d500 1
+a500 28
+	STR_ELT	  RAMV_SW0	U32 1	<S/W 0 interrupt entry address>
+	STR_ELT	  RAMV_SW1	U32 1	<S/W 1 interrupt entry address>
+	STR_ELT	  RAMV_ICELESS	U32 1	<ICELESS interrupt entry address>
+	STR_ELT	  RAMV_XBUS0	U32 1	<XBUS 0 interrupt entry address>
+	STR_ELT	  RAMV_XBUS1	U32 1	<XBUS 1 interrupt entry address>
+	STR_ELT	  RAMV_XBUS2	U32 1	<XBUS 2 interrupt entry address>
+	STR_ELT	  RAMV_XBUS3	U32 1	<XBUS 3 interrupt entry address>
+	STR_ELT	  RAMV_CPUTIME	U32 1	<CPU timer interrupt entry address>
+	STR_ELT	  RAMV_TEMP	U32 1	<Place holder for interrupt temp use>
+	STR_ELT	  RAMV_GENRAL	U32 1	<General exception handler address>
+	STR_ELT	  RAMV_IRQ	U32 1	<IRQ interrupt entry address>
+	STR_ELT	  RAMV_TLBM	U32 1	<TLB modification exception address>
+	STR_ELT	  RAMV_TLBL	U32 1	<TLB Load exception address>
+	STR_ELT	  RAMV_TLBS	U32 1	<TLB store exception address>
+	STR_ELT	  RAMV_ADDRR	U32 1	<Address exception on load or I-fetch>
+	STR_ELT	  RAMV_ADDRS	U32 1	<Address exception on store>
+	STR_ELT	  RAMV_BUSERRI	U32 1	<Bus error on I-fetch>
+	STR_ELT	  RAMV_BUSERRD	U32 1	<Bus error on data load>
+	STR_ELT	  RAMV_SYSCALL	U32 1	<SYSCALL exception>
+	STR_ELT	  RAMV_BREAK	U32 1	<Breakpoint exception>
+	STR_ELT	  RAMV_RESERV	U32 1	<Reserved instruction exception>
+	STR_ELT	  RAMV_COPROC	U32 1	<Coprocessor unusable exception>
+	STR_ELT	  RAMV_OVERFL	U32 1	<Integer overflow exception>
+.if true, (PROCESSOR&-16) == MIPS4000
+	STR_ELT	  RAMV_TRAPV	U32 1	<Trap exception>
+	STR_ELT   RAMV_FILL0	U32 1	<Reserved entry>
+	STR_ELT   RAMV_FPE	U32 1	<Floating point exception>
+.endc
+d503 3
+d510 12
+d528 36
+a563 32
+	DEC_CONST ZERO_REGNUM		 0	< read-only register, always 0 >
+	DEC_CONST AT_REGNUM		 1	< reg used by assembler >
+	DEC_CONST V0_REGNUM		 2	< Function integer return value >
+	DEC_CONST A0_REGNUM		 4	< Loc of first arg during a subr call >
+	DEC_CONST SP_REGNUM		29	< Contains address of top of stack >
+	DEC_CONST RA_REGNUM		31	< Contains return address value >
+	DEC_CONST PS_REGNUM		32	< Contains processor status >
+	DEC_CONST HI_REGNUM		34      < Multiply/divide high byte >
+	DEC_CONST LO_REGNUM		33      < Multiply/divide low byte >
+	DEC_CONST BADVADDR_REGNUM	35	< bad vaddr for addressing exception >
+	DEC_CONST CAUSE_REGNUM		36	< describes last exception >
+	DEC_CONST PC_REGNUM		37	< Contains program counter >
+	DEC_CONST FP0_REGNUM		38      < Floating point register 0 (single float) >
+	DEC_CONST FCRCS_REGNUM		70      < FP control/status >
+	DEC_CONST FCRIR_REGNUM		71      < FP implementation/revision >
+	DEC_CONST FP_REGNUM		72	< Pseudo register that contains true address of executing stack frame >
+	DEC_CONST FIRST_EMBED_REGNUM	73	< First supervisor register for embedded use >
+.if true, (PROCESSOR&-16) == MIPS4000
+	DEC_CONST INX_REGNUM		(FIRST_EMBED_REGNUM+0)
+	DEC_CONST RAND_REGNUM		(FIRST_EMBED_REGNUM+1)
+	DEC_CONST TLBLO0_REGNUM		(FIRST_EMBED_REGNUM+2)
+	DEC_CONST TLBLO1_REGNUM		(FIRST_EMBED_REGNUM+3)
+	DEC_CONST CTXT_REGNUM		(FIRST_EMBED_REGNUM+4)
+	DEC_CONST PAGEMASK_REGNUM	(FIRST_EMBED_REGNUM+5)
+	DEC_CONST WIRED_REGNUM		(FIRST_EMBED_REGNUM+6)
+	DEC_CONST COUNT_REGNUM		(FIRST_EMBED_REGNUM+7)
+	DEC_CONST TLBHI_REGNUM		(FIRST_EMBED_REGNUM+8)
+	DEC_CONST COMPARE_REGNUM	(FIRST_EMBED_REGNUM+9)
+	DEC_CONST EPC_REGNUM		(FIRST_EMBED_REGNUM+10)
+	DEC_CONST PRID_REGNUM		(FIRST_EMBED_REGNUM+11)
+	DEC_CONST CONFIG_REGNUM		(FIRST_EMBED_REGNUM+12)
+	DEC_CONST LLADDR_REGNUM		(FIRST_EMBED_REGNUM+13)
+d565 2
+a566 2
+	DEC_CONST WATCHLO_REGNUM	(FIRST_EMBED_REGNUM+14)
+	DEC_CONST WATCHHI_REGNUM	(FIRST_EMBED_REGNUM+15)
+d568 11
+a578 7
+	DEC_CONST XCTXT_REGNUM		(FIRST_EMBED_REGNUM+16)
+	DEC_CONST ECC_REGNUM		(FIRST_EMBED_REGNUM+17)
+	DEC_CONST CACHEERR_REGNUM	(FIRST_EMBED_REGNUM+18)
+	DEC_CONST TAGLO_REGNUM		(FIRST_EMBED_REGNUM+19)
+	DEC_CONST TAGHI_REGNUM		(FIRST_EMBED_REGNUM+20)
+	DEC_CONST ERRPC_REGNUM		(FIRST_EMBED_REGNUM+21)
+	DEC_CONST LAST_EMBED_REGNUM	(FIRST_EMBED_REGNUM+22-1) < Last one >
+d580 8
+a587 8
+	DEC_CONST INX_REGNUM		(FIRST_EMBED_REGNUM+0)
+	DEC_CONST RAND_REGNUM		(FIRST_EMBED_REGNUM+1)
+	DEC_CONST TLBLO_REGNUM		(FIRST_EMBED_REGNUM+2)
+	DEC_CONST CTXT_REGNUM		(FIRST_EMBED_REGNUM+3)
+	DEC_CONST TLBHI_REGNUM		(FIRST_EMBED_REGNUM+4)
+	DEC_CONST EPC_REGNUM		(FIRST_EMBED_REGNUM+5)
+	DEC_CONST PRID_REGNUM		(FIRST_EMBED_REGNUM+6)
+	DEC_CONST LAST_EMBED_REGNUM	(FIRST_EMBED_REGNUM+7-1) < Last one >
+@

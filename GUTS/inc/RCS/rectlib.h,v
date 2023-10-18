@@ -1,0 +1,90 @@
+head	1.3;
+access;
+symbols
+	CJ_206:1.3
+	CJ2_05:1.3
+	CJ2_04:1.3;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	95.06.14.01.51.36;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.03.22.21.49.06;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.16.39.58;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@definitions and prototypes for Jaguar rectangle-processing library
+@
+
+
+1.3
+log
+@added name (rectangle) to previous anonymous typedef for RECT, to
+allow pre-decalration of functions taking a pointer to struct rectangle.
+@
+text
+@/************************************************************
+* RECTLIB.H | Author: Robert M. Birmingham | August 3, 1994 *
+* ========================================================= *
+* Header file for the Jaguar/CoJag rectangle functions.     *
+* Copyright 1994, Atari Games.                              *
+************************************************************/
+
+#ifndef _RECTLIB_H
+#define _RECTLIB_H
+
+typedef struct rectangle {
+    int x;
+    int y;
+    int w;
+    int h;
+    } RECT;
+
+void rect_set( RECT *rect, int x, int y, int w, int h );
+void rect_clip( RECT *dst_rect, RECT *clip_rect );
+void rect_translate( RECT *rect, int deltax, int deltay );
+int rect_intersect( RECT *rect1, RECT *rect2 );
+
+#endif
+
+/*************************************************************************
+* End of file: RECTLIB.H                                                 *
+*************************************************************************/
+@
+
+
+1.2
+log
+@Added guard and prototype for rect_intersect() function.
+@
+text
+@d11 1
+a11 1
+typedef struct{
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d8 3
+d21 1
+d23 2
+a27 2
+
+
+@

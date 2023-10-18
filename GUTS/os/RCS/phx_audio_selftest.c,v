@@ -1,0 +1,1800 @@
+head	1.19;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.19
+date	97.12.04.23.42.42;	author todd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.12.04.19.16.15;	author todd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	97.12.04.01.58.23;	author todd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	97.11.27.01.27.35;	author todd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	97.10.14.00.40.18;	author todd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	97.10.13.21.25.17;	author todd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	97.10.10.01.46.03;	author todd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	97.10.03.18.43.36;	author forrest;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	97.10.03.18.27.44;	author todd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	97.09.19.22.05.22;	author todd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	97.09.18.18.03.23;	author todd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	97.09.18.17.28.45;	author todd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	97.08.28.18.27.48;	author todd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.08.20.00.35.07;	author todd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	97.08.12.01.07.43;	author todd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	97.08.07.00.20.07;	author todd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.08.06.17.37.08;	author todd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.07.30.21.32.15;	author todd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.07.30.01.32.45;	author todd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Guts Self Test code for audio
+@
+
+
+1.19
+log
+@Finished the boot from rom volume diags that someone else started.
+@
+text
+@#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <stdarg.h>
+#include <eer_defs.h>
+#include <nsprintf.h>
+#include <phx_audio_internal.h>
+#include <phx_audio_proto.h>
+
+/*****************************************************************************/
+
+extern U8 phx_testbank[], phx_testbank_e[];
+extern U8 phx_lr_bank[];
+#define SOUND_FIFO (*(VU16*)(AUDIO_FIFO))
+int soundFifoTest(void);
+/*****************************************************************************/
+/***************************************************************************/
+int audio_test(const struct menu_d *smp) 	 
+{
+int row;
+int errr;
+char emsg[AN_VIS_COL_MAX+1];
+U16 retval;
+int fail;
+
+row = 5;
+fail=0;
+
+*(VU16*)IO_H2SND_CTL |= 5;		/* enable the sound processor and FIFO's */
+
+txt_str(5, row++, "*** Testing Audio Hardware  ***", GRN_PAL);
+row++;
+prc_delay(1);
+
+if (soundHardwareReset()) 
+	{
+	txt_str(5, row++, "Hardware Reset, FAILED.", RED_PAL);
+	fail++;
+    } 
+else 
+	{
+    txt_str(5, row++, "Hardware Reset, passed.", WHT_PAL);
+    }
+
+prc_delay(1);
+
+if ((errr=soundLatchTest())) 
+	{
+	txt_str(5, row++, "Latch test, FAILED.", RED_PAL);
+	fail++;
+    }
+else
+	{
+	txt_str(5, row++, "Latch test, passed.", WHT_PAL);
+    }
+
+prc_delay(1);
+
+if (soundGetEppromRev(&retval)) 
+	{
+	txt_str(5, row++, "Get epprom revision, TIMED OUT.", RED_PAL);
+	fail++;
+    }
+else
+	{
+	nsprintf(emsg, sizeof(emsg)-1, "Eprom Revision: V%x.%02x",retval>>8,retval&0x00FF);
+	txt_str(5, row++, emsg, WHT_PAL);
+    }
+
+prc_delay(1);
+
+if (soundGetAsicRev(&retval)) 
+	{
+	txt_str(5, row++, "Get SDRC revision, TIMED OUT.", RED_PAL);
+	fail++;
+    }
+else
+	{
+	nsprintf(emsg, sizeof(emsg)-1, "SDRC Revision: %d",retval);
+	txt_str(5, row++, emsg, WHT_PAL);
+    }
+
+prc_delay(1);
+
+if (soundGetPMChecksum(&retval)) 
+	{
+	txt_str(5, row++, "Get Checksum, TIMED OUT.", RED_PAL);
+	fail++;
+    }
+else
+	{
+	nsprintf(emsg, sizeof(emsg)-1, "PM Checksum: %04x",retval);
+	txt_str(5, row++, emsg, WHT_PAL);
+    }
+
+prc_delay(1);
+
+if ((errr=soundRamTest(0))) 
+	{
+	fail++;
+	if (errr<4 && errr>0) nsprintf(emsg, sizeof(emsg)-1, "S/RAM chip #%d failed",errr);
+	else if (errr==9) nsprintf(emsg, sizeof(emsg)-1, "RAM return code mismatch");
+	else if (errr<0) nsprintf(emsg, sizeof(emsg)-1, "Communication error in RAM test #%d.",errr);
+	else nsprintf(emsg, sizeof(emsg)-1, "unknown error durring RAM test");
+
+	txt_str(5, row++, emsg, RED_PAL);
+    }
+else
+	{
+	txt_str(5, row++, "SRAM test, passed.", WHT_PAL);
+    }
+
+prc_delay(1);
+
+if ((errr=soundRamTest(2))) 
+	{
+	fail++;
+	if (errr==9) nsprintf(emsg, sizeof(emsg)-1, "RAM return code mismatch");
+	else if (errr<0) nsprintf(emsg, sizeof(emsg)-1, "Communication error in RAM test #%d.",errr);
+	else if (errr==4) nsprintf(emsg, sizeof(emsg)-1, "D/RAM bank 0 failed");
+	else nsprintf(emsg, sizeof(emsg)-1, "unknown error durring RAM test");
+	txt_str(5, row++, emsg, RED_PAL);
+    }
+else
+	{
+	txt_str(5, row++, "DRAM bank 0 test, passed.", WHT_PAL);
+    }
+
+prc_delay(1);
+
+if (soundEppromBong()) 
+	{
+	txt_str(5, row++, "Boink, failed.", RED_PAL);
+	fail++;
+    }
+else
+	{
+	txt_str(5, row++, "Boink, passed.", WHT_PAL);
+    }
+
+prc_delay(1);
+
+if ((errr=soundSoftwareReset()))
+	{
+	txt_str(5, row++, "Software Reset, FAILED.", RED_PAL);
+	fail++;
+    }
+else
+	{
+	txt_str(5, row++, "Software Reset, passed.", WHT_PAL);
+    }
+
+prc_delay(1);
+
+#if defined(SOUND_DCS_STREAMED_AUDIO) || defined(SA_DIAGS)
+	if ((errr=soundFifoTest())) 
+		{
+		nsprintf(emsg, sizeof(emsg)-1, "Communication error in FIFO test #%d.",errr);
+		txt_str(5, row++, emsg, RED_PAL);
+		fail++;
+		}
+	else
+		{
+		txt_str(5, row++, "FIFO test, passed.", WHT_PAL);
+		}
+
+soundHardwareReset();
+prc_delay(1);
+#endif
+
+
+row++;
+if (fail==0) txt_str(5, row++, "All tests passed.", GRN_PAL);
+
+ExitInst(INSTR_PAL);
+
+while ( 1 ) 
+	{
+	U32 ctls;
+	ctls = ctl_read_sw(SW_NEXT);
+	if ((ctls&SW_NEXT)) break;
+	prc_delay(0);
+    }
+
+ctl_read_sw(-1);			/* flush all edges */
+return(0);
+}
+
+/*****************************************************************************/
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+/*****************************************************************************/
+int soundFifoTest(void) 
+{
+int retval;
+U16 flags;
+int x;
+U16 test;
+
+if (soundHardwareReset()) return(-1);
+if (soundSoftwareReset()) return(-1);
+
+x = SOUND_CONTROL_REGISTER;
+x = x & (~((1<<1)+(1<<2)));	  /* hold in reset */
+SOUND_CONTROL_REGISTER = x;
+
+prc_delay(1);
+
+x = SOUND_CONTROL_REGISTER;
+x = x | (((1<<1)+(1<<2)));	  /* fifo is released and enabled */
+SOUND_CONTROL_REGISTER = x;
+
+for (x=0;x<512;x++)
+	{
+/*	soundPutWord(0x55a8); */
+	soundPutWord(0x55ff);
+	soundGetWord(&test);
+	}
+
+retval=0;
+flags=SOUND_PORT_FLAGS& 0x0038;
+if (flags!=0x0008) return(1);
+
+SOUND_FIFO=0;
+
+flags=SOUND_PORT_FLAGS& 0x0038;
+if (flags!=0x0000) return(2);
+
+for (x=1;x<257;x++)
+	{
+	SOUND_FIFO=x;
+	}
+
+flags=SOUND_PORT_FLAGS& 0x0038;
+if (flags!=0x0010) return(4);
+
+for (x=257;x<512;x++)
+	{
+	SOUND_FIFO=x;
+	}
+flags=SOUND_PORT_FLAGS& 0x0038;
+if (flags!=0x0030) return(5);
+
+for (x=0;x<512;x++)
+	{
+/*	soundPutWord(0x55a8);*/ 
+	soundPutWord(0x55FF); 
+	soundGetWord(&test);
+	if (x!=test)  return(6);
+	}
+
+x = SOUND_CONTROL_REGISTER;
+x = x & (~((1<<1)+(1<<2)));	  /* hold in reset */
+SOUND_CONTROL_REGISTER = x;
+return(soundHardwareReset());
+}
+/*****************************************************************************/
+int audio_fifo_test(const struct menu_d *smp) 
+{
+U32 ctls;
+U16 retval;
+U16 x,y;
+int row,err;
+int goodblks,errorblks;
+char emsg[AN_VIS_COL_MAX+1];
+
+
+row=5;
+goodblks=0;
+errorblks=0;
+
+txt_str(5, row++, "*** Testing Audio Fifo Hardware  ***", GRN_PAL);
+row++;
+if (soundHardwareReset()) return(-1);
+if (soundSoftwareReset()) return(-1);
+
+x = SOUND_CONTROL_REGISTER;
+x = x & (~((1<<1)+(1<<2)));	  /* hold in reset */
+SOUND_CONTROL_REGISTER = x;
+
+prc_delay(1);
+
+x = SOUND_CONTROL_REGISTER;
+x = x | (((1<<1)+(1<<2)));	  /* fifo is released and enabled */
+SOUND_CONTROL_REGISTER = x;
+
+ExitInst(INSTR_PAL);
+
+
+while(1) 
+	{
+	for (y=0;y<32;y++)
+		{
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+		SOUND_FIFO=x++;
+		}
+
+	err=0;
+	x=x-512;
+	for (y=0;y<512;y++)
+		{
+		soundPutWord(0x55FF); 
+		soundGetWord(&retval);
+		if (x!=retval)  err++;
+		x++;
+		}
+
+	if (err) errorblks++;
+	else goodblks++;
+
+	nsprintf(emsg, sizeof(emsg)-1, "Good FIFO blocks : %d.",goodblks);
+	txt_str(5,8, emsg, WHT_PAL);
+	nsprintf(emsg, sizeof(emsg)-1, "Bad FIFO blocks  : %d.",errorblks);
+	txt_str(5,9, emsg, WHT_PAL);
+
+	if (err) 
+		{
+		for (y=0;y<512;y++)
+			{
+			soundPutWord(0x55FF); 
+			soundGetWord(&retval);
+			}
+		}
+		ctls = ctl_read_sw(SW_NEXT);
+		if ((ctls&SW_NEXT)) break;
+		prc_delay(1);
+     }
+
+ctl_read_sw(-1); /* flush all edges */
+
+return(soundHardwareReset());
+}
+#endif
+/*****************************************************************************/
+int audio_speaker_test(const struct menu_d *smp) 
+{
+int i;
+int idx;
+U16 temp;
+
+/*  if (!aud_init(0)) return -1;
+    if (aud_game_volume()==0) return(-1);
+    if ((idx=aud_load_partition(0,phx_lr_bank))==0) return(-1);
+*/
+    if (!aud_init(0)) return -1;
+
+    if ((idx=aud_load_bank(phx_lr_bank))==0) return(-1);
+
+    temp=eer_gets(EER_AUD_VOL);
+    temp=temp&0x00FF;
+	if (temp==0)
+		{
+	    if (soundPutWord(0x55AA)) return(-1);
+    	if (soundPutWord(0x40BF)) return(-1);
+		}
+	else if (aud_game_volume()==0) return(-1);
+
+
+ExitInst(INSTR_PAL);
+
+i=0;
+while (1) 
+	{
+	U32 ctls;
+	ctls = ctl_read_sw(SW_NEXT);
+
+	if ((ctls&SW_NEXT)) break;
+
+	if ((i&0x000F) == 0) txt_clr_wid(1, AN_VIS_ROW/2, AN_VIS_COL-2);
+
+	if ((i&0x001F)==0) 
+		{
+	    txt_str(4, AN_VIS_ROW/2, "LEFT", WHT_PAL);
+	    if (soundPutWord(idx)) return(-1);
+	    if (soundPutWord(0xFF00)) return(-1);
+	    if (soundPutWord(0x0000)) return(-1);
+	    if (soundGetWord(&temp)) return(-1);
+		}
+	if ((i&0x001F)==0x0010) 
+		{
+	    txt_str(AN_VIS_COL-1-4-5, AN_VIS_ROW/2, "RIGHT", WHT_PAL);
+	    if (soundPutWord(1+idx)) return(-1);
+	    if (soundPutWord(0xFFFF)) return(-1);
+	    if (soundPutWord(0x0000)) return(-1);
+	    if (soundGetWord(&temp)) return(-1);
+		}
+	prc_delay(3);
+	i++;
+    }
+
+ctl_read_sw(-1); /* flush all edges */
+return(0);
+}
+/*****************************************************************************/
+int audio_sine_test(const struct menu_d *smp) 
+{
+U32 ctls;
+U16 retval;
+
+if (soundHardwareReset()) return(-1);
+
+/* 1K sin on */
+soundPutWord(0x00BA);
+
+soundGetWord(&retval);
+if (retval!=0xCC05) return(-1);
+
+soundGetWord(&retval);
+if (retval!=0x000a) return(-1);
+
+ExitInst(INSTR_PAL);
+
+while(1) 
+	{
+	ctls = ctl_read_sw(SW_NEXT);
+	if ((ctls&SW_NEXT)) break;
+	prc_delay(5);
+    }
+
+ctl_read_sw(-1); /* flush all edges */
+
+return(soundHardwareReset());
+}
+/*****************************************************************************/
+#if defined(USER_REC_UREC10)
+int audio_clear_stats(const struct menu_d *smp) 
+{
+U32 ctls;
+U16 row,x;
+char msg[80];
+struct audio_stats *stats;
+struct audio_stats2 *stats2;
+struct audio_stats3 *stats3;
+
+row=3;
+
+nsprintf(msg, sizeof(msg)-1, "Reset all audio stats,");txt_str(4, row++, msg, WHT_PAL);
+nsprintf(msg, sizeof(msg)-1, "Are you sure? (Reset to exit!)");txt_str(4, row++, msg, WHT_PAL);
+
+
+ExitInst(INSTR_PAL);
+
+while(1) 
+	{
+	ctls = ctl_read_sw(SW_NEXT);
+	if ((ctls&SW_NEXT)) break;
+	prc_delay(5);
+    }
+
+ctl_read_sw(-1); /* flush all edges */
+
+stats=(struct audio_stats *)eer_user_rd(USER_REC_UREC10,NULL);
+eer_user_free(USER_REC_UREC10);
+
+stats->num_cmds=0;
+
+for (x=0;x<52;x++) stats->error[x]=0;
+
+eer_user_wrt(USER_REC_UREC10);
+eer_user_free(USER_REC_UREC10);
+
+stats2=(struct audio_stats2 *)eer_user_rd(USER_REC_UREC11,NULL);
+eer_user_free(USER_REC_UREC11);
+
+for (x=0;x<8;x++)
+	{
+	stats2->cmd1[x]=0;
+	stats2->cmd2[x]=0;
+	stats2->cmd3[x]=0;
+	stats2->cmd4[x]=0;
+	}
+eer_user_wrt(USER_REC_UREC11);
+eer_user_free(USER_REC_UREC11);
+
+stats2=(struct audio_stats2 *)eer_user_rd(USER_REC_UREC12,NULL);
+eer_user_free(USER_REC_UREC12);
+
+for (x=0;x<8;x++)
+	{
+	stats2->cmd1[x]=0;
+	stats2->cmd2[x]=0;
+	stats2->cmd3[x]=0;
+	stats2->cmd4[x]=0;
+	}
+eer_user_wrt(USER_REC_UREC12);
+eer_user_free(USER_REC_UREC12);
+
+stats3=(struct audio_stats3 *)eer_user_rd(USER_REC_UREC13,NULL);
+eer_user_free(USER_REC_UREC13);
+
+for (x=0;x<16;x++)
+	{
+	stats3->flags[x]=0;
+	stats3->data[x]=0;
+	}
+eer_user_wrt(USER_REC_UREC13);
+eer_user_free(USER_REC_UREC13);
+
+
+
+nsprintf(msg, sizeof(msg)-1, "All values reset to zero");txt_str(4, row++, msg, WHT_PAL);
+
+ExitInst(INSTR_PAL);
+
+while(1) 
+	{
+	ctls = ctl_read_sw(SW_NEXT);
+	if ((ctls&SW_NEXT)) break;
+	prc_delay(5);
+    }
+
+ctl_read_sw(-1); /* flush all edges */
+
+return(soundHardwareReset());
+}
+/*****************************************************************************/
+int audio_stats(const struct menu_d *smp) 
+{
+U32 ctls;
+U16 row;
+U16 error;
+char msg[80];
+struct audio_stats *stats;
+struct audio_stats2 *stats2;
+struct audio_stats3 *stats3;
+U32 total;
+
+row=3;
+
+stats=(struct audio_stats *)eer_user_rd(USER_REC_UREC10, 0);
+
+nsprintf(msg, sizeof(msg)-1, "%d audio commands have been processed",stats->num_cmds);txt_str(4, row++, msg, WHT_PAL);
+total=0;for (error=0;error<42; error++) total=total+stats->error[error];
+if (total) {nsprintf(msg, sizeof(msg)-1, "%d errors occured",total);txt_str(4, row++, msg, RED_PAL);}
+
+row++;
+for (error=0;error<40; error=error+6)
+	{
+	nsprintf(msg, sizeof(msg)-1, "%02d:%03d   %02d:%03d   %02d:%03d   %02d:%03d   %02d:%03d   %02d:%03d",error,stats->error[error],error+1,stats->error[error+1],error+2,stats->error[error+2],error+3,stats->error[error+3],error+4,stats->error[error+4],error+5,stats->error[error+5]);
+	txt_str(4, row++, msg, WHT_PAL);
+	}
+row++;
+
+eer_user_free(USER_REC_UREC10);
+
+stats2=(struct audio_stats2 *)eer_user_rd(USER_REC_UREC11, 0);
+nsprintf(msg, sizeof(msg)-1, "%04x  %04x  %04x  %04x  %04x  %04x  %04x  %04x",stats2->cmd1[0],stats2->cmd1[1],stats2->cmd1[2],stats2->cmd1[3],stats2->cmd1[4],stats2->cmd1[5],stats2->cmd1[6],stats2->cmd1[7]);
+txt_str(4, row++, msg, WHT_PAL);
+nsprintf(msg, sizeof(msg)-1, "%04x  %04x  %04x  %04x  %04x  %04x  %04x  %04x",stats2->cmd2[0],stats2->cmd2[1],stats2->cmd2[2],stats2->cmd2[3],stats2->cmd2[4],stats2->cmd2[5],stats2->cmd2[6],stats2->cmd2[7]);
+txt_str(4, row++, msg, WHT_PAL);
+nsprintf(msg, sizeof(msg)-1, "%04x  %04x  %04x  %04x  %04x  %04x  %04x  %04x",stats2->cmd3[0],stats2->cmd3[1],stats2->cmd3[2],stats2->cmd3[3],stats2->cmd3[4],stats2->cmd3[5],stats2->cmd3[6],stats2->cmd3[7]);
+txt_str(4, row++, msg, WHT_PAL);
+nsprintf(msg, sizeof(msg)-1, "%04x  %04x  %04x  %04x  %04x  %04x  %04x  %04x",stats2->cmd4[0],stats2->cmd4[1],stats2->cmd4[2],stats2->cmd4[3],stats2->cmd4[4],stats2->cmd4[5],stats2->cmd4[6],stats2->cmd4[7]);
+txt_str(4, row++, msg, WHT_PAL);
+eer_user_free(USER_REC_UREC11);
+
+stats2=(struct audio_stats2 *)eer_user_rd(USER_REC_UREC12, 0);
+nsprintf(msg, sizeof(msg)-1, "%04x  %04x  %04x  %04x  %04x  %04x  %04x  %04x",stats2->cmd1[0],stats2->cmd1[1],stats2->cmd1[2],stats2->cmd1[3],stats2->cmd1[4],stats2->cmd1[5],stats2->cmd1[6],stats2->cmd1[7]);
+txt_str(4, row++, msg, WHT_PAL);
+nsprintf(msg, sizeof(msg)-1, "%04x  %04x  %04x  %04x  %04x  %04x  %04x  %04x",stats2->cmd2[0],stats2->cmd2[1],stats2->cmd2[2],stats2->cmd2[3],stats2->cmd2[4],stats2->cmd2[5],stats2->cmd2[6],stats2->cmd2[7]);
+txt_str(4, row++, msg, WHT_PAL);
+nsprintf(msg, sizeof(msg)-1, "%04x  %04x  %04x  %04x  %04x  %04x  %04x  %04x",stats2->cmd3[0],stats2->cmd3[1],stats2->cmd3[2],stats2->cmd3[3],stats2->cmd3[4],stats2->cmd3[5],stats2->cmd3[6],stats2->cmd3[7]);
+txt_str(4, row++, msg, WHT_PAL);
+nsprintf(msg, sizeof(msg)-1, "%04x  %04x  %04x  %04x  %04x  %04x  %04x  %04x",stats2->cmd4[0],stats2->cmd4[1],stats2->cmd4[2],stats2->cmd4[3],stats2->cmd4[4],stats2->cmd4[5],stats2->cmd4[6],stats2->cmd4[7]);
+txt_str(4, row++, msg, WHT_PAL);
+eer_user_free(USER_REC_UREC12);
+
+row++;
+stats3=(struct audio_stats3 *)eer_user_rd(USER_REC_UREC13, 0);
+
+for (error=0;error<16; error=error+4)
+	{
+	nsprintf(msg, sizeof(msg)-1, "%04x:%04x    %04x:%04x    %04x:%04x    %04x:%04x",stats3->flags[error],stats3->data[error],stats3->flags[error+1],stats3->data[error+1],stats3->flags[error+2],stats3->data[error+2],stats3->flags[error+3],stats3->data[error+3]);
+	txt_str(4, row++, msg, WHT_PAL);
+	}
+
+eer_user_free(USER_REC_UREC13);
+
+ExitInst(INSTR_PAL);
+
+while(1) 
+	{
+	ctls = ctl_read_sw(SW_NEXT);
+	if ((ctls&SW_NEXT)) break;
+	prc_delay(5);
+    }
+
+ctl_read_sw(-1); /* flush all edges */
+
+return(soundHardwareReset());
+}
+#endif
+/********************************************************************
+ *     Here are a bunch of defines used for volume control:
+ *******************************************************************/
+
+/* Display GREEN up to low volume */
+#define       LOW_VOLUME    (MAX_VOLUME-((MAX_VOLUME/8)*2)) 
+/* Display RED after HIGH volume */
+#define       HIGH_VOLUME   (MAX_VOLUME-(MAX_VOLUME/15))
+
+#define VBAR_TEXT_ROW        (6)
+#define VBAR_GAME_ROW        (6)
+#define VBAR_ATTRACT_ROW     (14)
+/*#define VBAR_COL 7
+#define VBAR_CHAR "*"
+#define VBAR_WIDTH (AN_VIS_COL - 14)*/
+
+#define VBAR_COL 4
+#define VBAR_CHAR "*"
+#define VBAR_WIDTH (56)
+#define DYN_VBAR_ROW	     (AN_VIS_ROW-3-1)
+
+#define MIN_VOLUME   (0)
+#define MAX_VOLUME   (255)
+#ifndef DEF_VOLUME
+#define DEF_VOLUME   ((MAX_VOLUME+MIN_VOLUME)/2)
+#endif
+
+/*****************************************************************************/
+void ShowVolume(int volume, int row, int bg) 
+{
+m_int i,j,color;
+/*    char msg[5];	 */
+
+for (i=0;i<VBAR_WIDTH;i++)
+	{
+	j=((MAX_VOLUME-MIN_VOLUME)*(i+1))/VBAR_WIDTH;
+	if (volume<j) color = GRY_PAL | bg;
+	else if (j<=LOW_VOLUME) color = GRN_PAL | bg;
+	else if (j>HIGH_VOLUME) color = RED_PAL | bg;
+	else color = YEL_PAL | bg;
+	 
+	txt_str(VBAR_COL+i,row,VBAR_CHAR,color);
+	txt_str(VBAR_COL+i,row+1,VBAR_CHAR,color);
+	txt_str(VBAR_COL+i,row+2,VBAR_CHAR,color);
+
+/*	nsprintf(msg, sizeof(msg)-1, "%02d%%",((volume*100)+MAX_VOLUME-1)/MAX_VOLUME);
+	txt_str(VBAR_COL-4, row+1, msg, GRY_PAL | bg);*/
+	}
+}
+
+#if SW_VOLM && SW_VOLP
+#if !defined(VOLUME_UP)
+#define VOLUME_UP	(SW_VOLP|J_RIGHT)
+#endif
+#if !defined(VOLUME_DOWN)
+#define VOLUME_DOWN	(SW_VOLM|J_LEFT)
+#endif
+# define VOLUME_BUTTONS	(VOLUME_UP|VOLUME_DOWN)
+#else
+# define VOLUME_BUTTONS (0)
+# define VOLUME_UP	(0)
+# define VOLUME_DOWN	(0)
+#endif
+
+#define ATTRACT_GRANULARITY 5
+
+/*****************************************************************************/
+#if defined(SA_DIAGS)
+int audio_volume_adj(const struct menu_d *smp) 
+{
+    U32       ctrls;
+    U32       prev_ctrls;
+    int      update;
+    int original_game_volume;
+    int original_attract_volume;
+    int game_volume;
+    int clr1,clr2;
+    int vol;
+    int bottom;
+	int hold_cntr;
+
+/* Reset the audio processor:  Full reset, load first bank for volume test */
+    if (!aud_init(0)) return -1;
+    if (aud_load_bank(phx_testbank)==0) return(-1);
+
+/* default to game volume */
+    if (aud_game_volume()==0) return(-1);
+
+#if BOOT_FROM_DISK
+    bottom = st_insn(AN_VIS_ROW-3,t_msg_ret_menu,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,"To set to midrange",t_msg_action,INSTR_PAL);
+#else
+    bottom = st_insn(AN_VIS_ROW-3,t_msg_save_ret,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,t_msg_restore,t_msg_actionh,INSTR_PAL);
+#endif
+    bottom = st_insn(bottom,"To ADJUST volume,",t_msg_control,INSTR_PAL);
+
+
+    ctl_autorepeat(JOY_BITS | VOLUME_BUTTONS, 60/4, 60/30); /* Autorepeat after 1/2secs @@ 1/15 */
+
+    vol=eer_gets(EER_AUD_VOL);
+    original_game_volume=vol&0x00FF;
+    original_attract_volume=(vol&0xFF00)>>8;
+
+	prev_ctrls=0;
+	hold_cntr=0;
+
+    game_volume=original_game_volume;
+    update=1;
+    clr1=GRY_PAL;
+    clr2=GRY_PAL;
+
+/* Start Tune */
+    if (soundPutWord(1)) return(-1);
+    if (soundPutWord(0xFF7F)) return(-1);
+    if (soundPutWord(0x0000)) return(-1);
+
+    while (1) 
+    {			  
+	prc_delay0(); 		/* is this neccesarry? */
+	ctrls = ctl_read_sw(JOY_BITS | SW_NEXT | VOLUME_BUTTONS);
+
+	if (ctrls & SW_NEXT) /* exit vol adj */
+		{
+	    soundPutWord(0);
+	    soundPutWord(0xFF7F);
+	    soundPutWord(0x0000);
+	    eer_puts(EER_AUD_VOL,(original_attract_volume<<8)|game_volume);
+	    break;
+		}
+
+	if ((!(prev_ctrls & SW_ACTION)) && (ctrls & SW_ACTION)) 
+		{
+		hold_cntr=0;
+		}
+
+	if ((prev_ctrls & SW_ACTION) && (ctrls & SW_ACTION)) 
+		{
+		hold_cntr++;
+		if (hold_cntr==57)
+			{
+		    game_volume = original_game_volume;
+		    update = 1;
+			}
+		}
+
+	if (ctrls & (J1_DOWN|VOLUME_DOWN) ) {
+	    /* decreasing whichever volume */
+	    	{
+ 			game_volume= ((((game_volume*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+ 			if (game_volume < MIN_VOLUME) game_volume = MIN_VOLUME;
+ 			}
+	    update = 1;
+		}
+
+	if ( ctrls & (J1_UP|VOLUME_UP) ) 
+		{
+			{
+			game_volume= ((((game_volume*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+			if (game_volume > MAX_VOLUME) game_volume = MAX_VOLUME;
+			}
+	    update = 1;
+		}
+
+	if (update) /* display bar and text */
+		{
+	    update=0;
+
+	    ShowVolume(game_volume,VBAR_GAME_ROW,0);
+	    txt_str(VBAR_COL+1, VBAR_GAME_ROW-2,"Game", clr1);
+
+	    soundPutWord(0x55AA);
+		soundPutWord((game_volume<<8)|((~game_volume)&0x00FF));
+		}
+
+	prev_ctrls=ctrls;
+    }
+ctl_read_sw(-1);		/* flush all edges */
+return(0);
+}
+#endif
+/*****************************************************************************/
+int adj_vol(const struct menu_d *smp) {
+    U32       ctrls;
+    U32       prev_ctrls;
+    int      update;
+    int original_game_volume;
+    int original_attract_volume;
+    int game_volume;
+    int attract_volume;
+    int which_volume;
+    int cntr;
+    int clr1,clr2;
+    int vol;
+    int bottom;
+	int percent;
+	int hold_cntr;
+#if BOOT_FROM_DISK
+#else
+	char strng[24];
+#endif
+/* Reset the audio processor:  Full reset, load first bank for volume test */
+    if (!aud_init(0)) return -1;
+    if (aud_load_bank(phx_testbank)==0) return(-1);
+
+/* default to game volume */
+    if (aud_game_volume()==0) return(-1);
+
+#if BOOT_FROM_DISK
+    bottom = st_insn(AN_VIS_ROW-3,t_msg_ret_menu,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,"To set to midrange",t_msg_action,INSTR_PAL);
+#else
+    bottom = st_insn(AN_VIS_ROW-3,t_msg_save_ret,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,t_msg_restore,t_msg_actionh,INSTR_PAL);
+    bottom = st_insn(bottom,"To SELECT which volume,",t_msg_action,INSTR_PAL);
+#endif
+    bottom = st_insn(bottom,"To ADJUST volume,",t_msg_control,INSTR_PAL);
+
+    ctl_autorepeat(JOY_BITS | VOLUME_BUTTONS, 60/4, 60/30); /* Autorepeat after 1/2secs @@ 1/15 */
+
+#if BOOT_FROM_DISK
+	vol=0x7f7f;
+#else
+    vol=eer_gets(EER_AUD_VOL);
+#endif
+    original_game_volume=vol&0x00FF;
+    original_attract_volume=(vol>>8)&0x00FF;
+
+	prev_ctrls=0;
+	hold_cntr=0;
+
+    game_volume=original_game_volume;
+    attract_volume=original_attract_volume;
+	if (game_volume) percent=(((attract_volume*100+50)/game_volume)/ATTRACT_GRANULARITY)*ATTRACT_GRANULARITY;
+	else percent=50;
+    update=1;
+    which_volume=0;
+    cntr=0;
+    clr1=GRY_PAL;
+    clr2=GRY_PAL;
+
+/* Start Tune */
+    if (soundPutWord(1)) return(-1);
+    if (soundPutWord(0xFF7F)) return(-1);
+    if (soundPutWord(0x0000)) return(-1);
+
+    while (1) 
+    {			  
+	prc_delay0(); 		/* is this neccesarry? */
+	ctrls = ctl_read_sw(JOY_BITS | SW_NEXT | VOLUME_BUTTONS);
+
+	if (ctrls & SW_NEXT) /* exit vol adj */
+		{
+	    soundPutWord(0);
+	    soundPutWord(0xFF7F);
+	    soundPutWord(0x0000);
+#if BOOT_FROM_DISK
+#else
+	    eer_puts(EER_AUD_VOL,(attract_volume<<8)|game_volume);
+#endif
+	    break;
+		}
+
+	if ((!(prev_ctrls & SW_ACTION)) && (ctrls & SW_ACTION)) 
+		{
+		hold_cntr=0;
+		}
+
+	if ((prev_ctrls & SW_ACTION) && (ctrls & SW_ACTION)) 
+		{
+		hold_cntr++;
+		if (hold_cntr==57)
+			{
+		    game_volume = original_game_volume;
+		    attract_volume = original_attract_volume;
+			if (game_volume) percent=(((attract_volume*100+50)/game_volume)/ATTRACT_GRANULARITY)*ATTRACT_GRANULARITY;
+			else percent=50;
+		    update = 1;
+			}
+		}
+
+	if ((prev_ctrls & SW_ACTION) && (!(ctrls & SW_ACTION))) 
+		{
+		if (hold_cntr<57) 
+			{
+#if BOOT_FROM_DISK
+			game_volume=original_game_volume;
+#else
+			which_volume=(which_volume+1)&1;
+			update = 1;
+#endif
+			}
+		}
+
+
+	if (!(J_UP & VOLUME_UP))
+		{
+		if (ctrls & (J_DOWN))	{which_volume=1;update = 1;}
+		if (ctrls & (J_UP)  )	{which_volume=0;update = 1;}
+		}
+
+
+	if (ctrls & (VOLUME_DOWN) ) {
+	    /* decreasing whichever volume */
+	    if ( which_volume ) 
+			{
+			percent -= ATTRACT_GRANULARITY;
+			if (percent<00) percent=00;
+			attract_volume=(game_volume*percent)/100; 
+			}
+	    else
+	    	{
+ 			game_volume= ((((game_volume*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+ 			if (game_volume < MIN_VOLUME) game_volume = MIN_VOLUME;
+ 			attract_volume=(game_volume*percent)/100;
+ 			}
+	    update = 1;
+		}
+
+	if (ctrls & (VOLUME_UP)) 
+		{
+	    if ( which_volume ) 
+			{
+ 			if (percent!=100)
+				{				
+				percent += ATTRACT_GRANULARITY;
+				if (percent>100) percent=100;
+				attract_volume=(game_volume*percent)/100;
+				}
+			}
+	    else
+			{
+			game_volume= ((((game_volume*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+			if (game_volume > MAX_VOLUME) game_volume = MAX_VOLUME;
+			attract_volume=(game_volume*percent)/100;
+			}
+	    update = 1;
+		}
+
+	if ((cntr&0x07)==0)  /* flash active volume text */
+		{
+	    if (cntr&0x08) 
+	    	{
+			if (which_volume) {clr1=GRY_PAL;clr2=WHT_PAL;update=1;}
+			else {clr1=WHT_PAL;clr2=GRY_PAL;update=1;}
+	    	}
+	    else 
+	    	{clr1=GRY_PAL;clr2=GRY_PAL;update=1;}
+		}
+	cntr++;
+
+	if (update) /* display bar and text */
+		{
+	    update=0;
+
+#if BOOT_FROM_DISK
+	    ShowVolume(game_volume,VBAR_GAME_ROW,0);
+	    soundPutWord(0x55AA);
+	    soundPutWord((game_volume<<8)|((~game_volume)&0x00FF));
+#else
+	    ShowVolume(game_volume,VBAR_GAME_ROW,0);
+	    ShowVolume(attract_volume,VBAR_ATTRACT_ROW,0);
+									   
+	    txt_str(VBAR_COL+1, VBAR_GAME_ROW-2,"Game", clr1);
+
+	    nsprintf(strng, sizeof(strng)-1,"Attract (%02d%% of Game) ",percent);
+	    txt_str(VBAR_COL+1, VBAR_ATTRACT_ROW-2,strng, clr2);
+	    soundPutWord(0x55AA);
+	    if (which_volume) soundPutWord((attract_volume<<8)|((~attract_volume)&0x00FF));
+	    else soundPutWord((game_volume<<8)|((~game_volume)&0x00FF));
+#endif	
+		}
+
+	prev_ctrls=ctrls;
+    }
+ctl_read_sw(-1);		/* flush all edges */
+return(0);
+}
+
+#define DYN_INIT_AUTOREP	0x01
+#define DYN_INIT_DISPLAY_UP	0x02
+
+/*****************************************************************************/
+int aud_dyn_adjvol(int which_volume) {
+    static int off_time, init;
+    U32 ctrls;
+    int att_vol, game_vol, volume,percent;
+#if !defined(SOUND_DCS_STREAMED_AUDIO)
+    char strng[AN_VIS_COL_MAX];
+#endif
+
+    if (!init) 
+    	{
+		ctl_autorepeat(VOLUME_BUTTONS, 15, 15); /* Autorepeat after 15 frames, @@ 15 frames/key */
+		init |= DYN_INIT_AUTOREP;	/* signal we've done this already */
+    	}
+
+    ctrls = ctl_read_sw(VOLUME_BUTTONS)&VOLUME_BUTTONS;
+    if (!ctrls) 
+    	{
+		if (off_time > 60) return 0;		/* nothing to do */
+		if (off_time == 60 && (init&DYN_INIT_DISPLAY_UP) ) 
+			{
+	    	txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW-1, VBAR_WIDTH+1);
+		    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+0, VBAR_WIDTH+1);
+		    txt_clr_wid(VBAR_COL-4, DYN_VBAR_ROW+1, VBAR_WIDTH+5);
+		    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+2, VBAR_WIDTH+1);
+		    init &= ~(DYN_INIT_DISPLAY_UP);	/* signal the display is off */
+			}
+		++off_time;
+		return 0;
+    	}
+
+    off_time = 0;
+    volume = eer_gets(EER_AUD_VOL);
+    att_vol = (volume>>8)&0xFF;
+    game_vol = volume&0xFF;    
+    if (game_vol) percent=(((att_vol*100+(game_vol-1))/game_vol)/ATTRACT_GRANULARITY)*ATTRACT_GRANULARITY;
+    else percent=75;
+
+    if ( (init&DYN_INIT_DISPLAY_UP) )	/* Adjust volume only after display is up */
+		{
+    	if ((ctrls & VOLUME_DOWN)) 
+ 		   	{
+	    	/* decreasing volume */
+	    	if ( which_volume ) 
+				{
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+ 				att_vol = ((((att_vol *VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+ 				if (att_vol < MIN_VOLUME) att_vol = MIN_VOLUME;
+#else
+				percent -= ATTRACT_GRANULARITY;
+				if (percent<00) percent=00;
+				att_vol=(game_vol*percent)/100; 
+#endif
+				}
+	    	else
+	    		{
+ 				game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+ 				if (game_vol < MIN_VOLUME) game_vol = MIN_VOLUME;
+#if !defined(SOUND_DCS_STREAMED_AUDIO)
+ 				att_vol=(game_vol*percent)/100;
+#endif
+ 				}
+	    	}
+	    if ((ctrls & VOLUME_UP)) 
+    		{
+	    	if ( which_volume ) 
+				{
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+				att_vol = (((( att_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+				if (att_vol > MAX_VOLUME) att_vol = MAX_VOLUME;
+#else
+ 				if (percent<100)
+					{				
+					percent += ATTRACT_GRANULARITY;
+					if (percent>100) percent=100;
+					att_vol=(game_vol*percent)/100;
+					}
+#endif
+				}
+		    else
+				{
+				game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+				if (game_vol > MAX_VOLUME) game_vol = MAX_VOLUME;
+#if !defined(SOUND_DCS_STREAMED_AUDIO)
+				att_vol=(game_vol*percent)/100;
+#endif
+				}
+			}
+
+	    if (game_vol<MIN_VOLUME) game_vol=MIN_VOLUME; 
+    	if (game_vol>MAX_VOLUME) game_vol=MAX_VOLUME; 
+
+	    if (att_vol<MIN_VOLUME) att_vol=MIN_VOLUME; 
+#if !defined(SOUND_DCS_STREAMED_AUDIO)
+    	if (att_vol>game_vol)   att_vol=game_vol; 
+#else
+    	if (att_vol>MAX_VOLUME)   att_vol=MAX_VOLUME; 
+#endif
+	    volume = (att_vol << 8) | game_vol;
+	    eer_puts(EER_AUD_VOL, volume);
+		}
+	if (which_volume) {
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+    	txt_str(VBAR_COL, DYN_VBAR_ROW-1, "ATTRACT VOLUME", WHT_PALB);
+	  	ShowVolume(att_vol, DYN_VBAR_ROW, BGBIT);
+#else
+	    nsprintf(strng, sizeof(strng)-1,"ATTRACT VOLUME (%02d%% of Game) ",percent);
+		txt_str(VBAR_COL, DYN_VBAR_ROW-1,strng, WHT_PALB);
+	 	ShowVolume(att_vol, DYN_VBAR_ROW, BGBIT);
+#endif
+		}
+	else {
+    	txt_str(VBAR_COL, DYN_VBAR_ROW-1, "GAME VOLUME", WHT_PALB);
+	  	ShowVolume(game_vol, DYN_VBAR_ROW, BGBIT);
+		}
+    init |= DYN_INIT_DISPLAY_UP;		/* next time we can adjust volume */
+    if (which_volume) 
+    	{
+#if defined(SOUND_QUEUED_LATCH)
+		adiAttractVolume();
+#else
+		aud_attract_volume();
+#endif
+    	}
+    else
+    	{
+#if defined(SOUND_QUEUED_LATCH)
+		adiGameVolume();
+#else
+		aud_game_volume();
+#endif
+    	}
+    return 0;
+}
+
+/*****************************************************************************/
+int sound_cb (const struct menu_d *smp);
+
+static const struct menu_d snd_menu[] = 
+{
+    {"SOUND TESTS",  sound_cb},
+#if SA_DIAGS
+    {"Audio Volume Adjustment", audio_volume_adj},
+#endif
+    {"Audio Speaker Test", audio_speaker_test},
+    {"Audio Hardware test",  audio_test},
+#if defined(USER_REC_UREC10)
+    {"Audio Debugging stats",  audio_stats},
+    {"Clear Debugging stats",  audio_clear_stats},
+#endif
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+    {"?Fifo Test",  audio_fifo_test},
+#endif
+    {"?LOUD 1k Hz sine test",  audio_sine_test},
+    {0, 0} 
+};
+/*****************************************************************************/
+
+int snd_test ( const struct menu_d *smp ) 
+{
+int status;
+ctl_autorepeat(JOY_BITS,30,15);       /* Autorepeat after 1/2secs @@ 1/4 */
+status = st_menu(snd_menu,sizeof(snd_menu[0]),MNORMAL_PAL,0);
+ 
+if (!aud_init(0)) return -1;
+return status;
+}
+
+static int snd_status;
+
+/*****************************************************************************/
+int sound_cb (const struct menu_d *smp) 
+{
+if ( smp ) 
+	{
+	/* after first call, just watch for SW_NEXT, and clean up if seen */
+
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) 
+		{
+	    prc_delay0();
+	    aud_init(0);
+	    if ( snd_status == 0 ) 
+	    	{
+			ctl_read_sw(-1);
+			return -1;
+	    	}
+		}
+    } 
+return 0;
+}
+/*****************************************************************************/
+@
+
+
+1.18
+log
+@Made it so VOLUME_UP and VOLUME_DOWN can be overrided.
+@
+text
+@d806 2
+d809 1
+a809 1
+
+d829 3
+d833 1
+d865 2
+d868 1
+d894 3
+d899 1
+d964 5
+d979 1
+@
+
+
+1.17
+log
+@changed the volume adjust screen to use J1_up,J1_DOWN rather than J1_LEFT,J1_RIGHT
+@
+text
+@d660 7
+a666 3
+# define VOLUME_BUTTONS	(SW_VOLM|SW_VOLP)
+# define VOLUME_UP	(SW_VOLP)
+# define VOLUME_DOWN	(SW_VOLM)
+d852 1
+a852 1
+	ctrls = ctl_read_sw(JOY_BITS | SW_NEXT |/* SW_ACTION |*/ VOLUME_BUTTONS);
+d890 1
+d897 2
+a898 1
+	if (ctrls & (J_LEFT|VOLUME_DOWN) ) {
+d915 1
+a915 1
+	if ( ctrls & (J_RIGHT|VOLUME_UP) ) 
+@
+
+
+1.16
+log
+@removed a fifo bug
+@
+text
+@d751 1
+a751 1
+	if (ctrls & (J_LEFT|VOLUME_DOWN) ) {
+d760 1
+a760 1
+	if ( ctrls & (J_RIGHT|VOLUME_UP) ) 
+@
+
+
+1.15
+log
+@removed the DRAM bank 1 test
+@
+text
+@d214 2
+a215 1
+	soundPutWord(0x55FF);
+d245 1
+a318 1
+/*		soundPutWord(0x6612); */
+a336 1
+/*			soundPutWord(0x6612); */
+d362 1
+@
+
+
+1.14
+log
+@add tests for the SA_DIAGS version
+@
+text
+@a170 17
+#if defined(SA_DIAGS)
+if ((errr=soundRamTest(4))) 
+	{
+	fail++;
+	if (errr==9) nsprintf(emsg, sizeof(emsg)-1, "RAM return code mismatch");
+	else if (errr<0) nsprintf(emsg, sizeof(emsg)-1, "Communication error in RAM test #%d.",errr);
+	else if (errr==5) nsprintf(emsg, sizeof(emsg)-1, "D/RAM bank 1 failed");
+	else nsprintf(emsg, sizeof(emsg)-1, "unknown error durring RAM test");
+	txt_str(5, row++, emsg, RED_PAL);
+    }
+else
+	{
+	txt_str(5, row++, "DRAM bank 1 test, passed.", WHT_PAL);
+    }
+
+prc_delay(1);
+#endif
+@
+
+
+1.13
+log
+@fixed a fifo selftest bug (audio hardware test)
+@
+text
+@d17 1
+d20 5
+a24 5
+    int row;
+    int errr;
+    char emsg[AN_VIS_COL_MAX+1];
+    U16 retval;
+	int fail;
+d26 2
+a27 2
+    row = 5;
+	fail=0;
+d29 1
+a29 1
+    *(VU16*)IO_H2SND_CTL |= 5;		/* enable the sound processor and FIFO's */
+d31 2
+a32 2
+    txt_str(5, row++, "*** Testing Audio Hardware  ***", GRN_PAL);
+    row++;
+d34 3
+a36 1
+    if (soundHardwareReset()) {
+d39 4
+a42 2
+    } else {
+    	txt_str(5, row++, "Hardware Reset, passed.", WHT_PAL);
+d44 1
+d46 3
+a48 1
+    if ((errr=soundLatchTest())) {
+d51 3
+a53 1
+    } else {
+d56 1
+d58 4
+a61 2
+    if (soundGetEppromRev(&retval)) {
+	txt_str(5, row++, "Get epprom revision, TIMEDOUT.", RED_PAL);
+d63 3
+a65 1
+    } else {
+d67 14
+a80 1
+	txt_str(5, row, emsg, WHT_PAL);
+d82 1
+d84 4
+a87 2
+    if (soundGetAsicRev(&retval)) {
+	txt_str(5, ++row, "Get ASIC revision, TIMED OUT.", RED_PAL);
+d89 5
+a93 3
+    } else {
+	nsprintf(emsg, sizeof(emsg)-1, "ASIC Revision: %d",retval);
+	txt_str(30, row++, emsg, WHT_PAL);
+d95 1
+d97 3
+a99 1
+    if ((errr=soundRamTest(0))) {
+a101 2
+	else if (errr==4) nsprintf(emsg, sizeof(emsg)-1, "D/RAM bank 0 failed");
+	else if (errr==5) nsprintf(emsg, sizeof(emsg)-1, "D/RAM bank 1 failed (note: bank 1 is optional)");
+a106 2
+    } else {
+	txt_str(5, row++, "RAM test, passed.", WHT_PAL);
+d108 5
+d114 15
+a128 19
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+	errr=SOUND_PORT_FLAGS& 0x0038;
+	if (errr==0 && errr==0x0038)
+		{
+		txt_str(5, row++, "Audio FIFOes not installed.", YEL_PAL);
+		}
+	else
+		if ((errr=soundFifoTest())) 
+			{
+			nsprintf(emsg, sizeof(emsg)-1, "Communication error in FIFO test #%d.",errr);
+			txt_str(5, row++, emsg, RED_PAL);
+			fail++;
+			}
+		else
+			{
+			txt_str(5, row++, "FIFO test, passed.", WHT_PAL);
+			}
+prc_delay(1);
+soundHardwareReset();
+a129 1
+#endif
+d131 2
+a132 1
+    if (soundEppromBong()) {
+d135 3
+a137 1
+    } else {
+d140 1
+d142 3
+a144 1
+    if ((errr=soundSoftwareReset())) {
+d147 3
+a149 1
+    } else {
+d152 34
+d187 4
+a190 3
+    row++;
+    if (fail==0) txt_str(5, row++, "All tests passed.", GRN_PAL);
+    else txt_str(5, row++, "Test failure.", RED_PAL);
+d192 1
+a192 1
+    ExitInst(INSTR_PAL);
+d194 2
+a195 1
+    while ( 1 ) {
+d201 3
+a203 2
+    ctl_read_sw(-1);			/* flush all edges */
+    return(0);
+a231 1
+/*	soundPutWord(0x6612);*/
+a261 1
+/*	soundPutWord(0x6612); */
+d688 115
+d1123 3
+@
+
+
+1.12
+log
+@Protected DEF_VOLUME if already defined.
+@
+text
+@d78 2
+a79 1
+	if ((errr=soundFifoTest())) 
+d81 1
+a81 3
+		nsprintf(emsg, sizeof(emsg)-1, "Communication error in FIFO test #%d.",errr);
+		txt_str(5, row++, emsg, RED_PAL);
+		fail++;
+d84 12
+a95 3
+		{
+		txt_str(5, row++, "FIFO test, passed.", WHT_PAL);
+		}
+d305 9
+a313 1
+    if (aud_game_volume()==0) return(-1);
+@
+
+
+1.11
+log
+@mucked with adj_vol() for speed, it should be more generic
+@
+text
+@d557 1
+d559 1
+@
+
+
+1.10
+log
+@fix the fifo test, which was broken by the previous version
+@
+text
+@d597 1
+d609 1
+d624 2
+a625 1
+    bottom = st_insn(bottom,t_msg_restore,t_msg_action,INSTR_PAL);
+d635 3
+d640 2
+a641 2
+	if (game_volume) percent=(((attract_volume*100)/game_volume)/ATTRACT_GRANULARITY)*ATTRACT_GRANULARITY;
+	else percent=75;
+d656 1
+a656 1
+	ctrls = ctl_read_sw(JOY_BITS | SW_NEXT | SW_ACTION | VOLUME_BUTTONS);
+d658 2
+a659 1
+	if (ctrls & SW_NEXT) {
+d667 25
+a691 4
+	if (ctrls & SW_ACTION) {
+	    game_volume = original_game_volume;
+	    attract_volume = original_attract_volume;
+	    update = 1;
+d694 5
+a698 2
+	if (ctrls & (J_DOWN))	{which_volume=1;update = 1;}
+	if (ctrls & (J_UP)  )	{which_volume=0;update = 1;}
+a726 6
+ /*			else if (attract_volume<MAX_VOLUME)
+				{
+				game_volume= ((((game_volume*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+				if (game_volume > MAX_VOLUME) game_volume = MAX_VOLUME;
+				attract_volume=(game_volume*percent)/100;
+				}  	*/
+d737 1
+a737 1
+	if ((cntr&0x07)==0) 
+a746 1
+
+d749 1
+a749 1
+	if (update) 
+d764 2
+d767 2
+a768 2
+    ctl_read_sw(-1);		/* flush all edges */
+    return(0);
+@
+
+
+1.9
+log
+@added switch for speeds' set game / attract volume requirerments
+@
+text
+@d146 2
+a147 2
+/*	soundPutWord(0x55FF); */
+	soundPutWord(0x6612);
+d177 2
+a178 2
+/*	soundPutWord(0x55FF); */
+	soundPutWord(0x6612);
+d250 2
+a251 2
+/*		soundPutWord(0x55FF); */
+		soundPutWord(0x6612);
+d269 2
+a270 2
+/*			soundPutWord(0x55FF); */
+			soundPutWord(0x6612);
+@
+
+
+1.8
+log
+@Removed a dependancy on USER_REC_URECxx
+@
+text
+@d841 1
+a841 1
+#if defined(SOUND_DCS_STREAMED_AUDIO)
+@
+
+
+1.7
+log
+@change dyn_adj_vol for speed.
+@
+text
+@d146 2
+a147 1
+	soundPutWord(0x55FF);
+d177 2
+a178 1
+	soundPutWord(0x55FF);
+d250 2
+a251 1
+		soundPutWord(0x55FF);
+d269 2
+a270 1
+			soundPutWord(0x55FF);
+d366 1
+d533 1
+a533 1
+
+d757 5
+a761 4
+    if (!init) {
+	ctl_autorepeat(VOLUME_BUTTONS, 15, 15); /* Autorepeat after 15 frames, @@ 15 frames/key */
+	init |= DYN_INIT_AUTOREP;	/* signal we've done this already */
+    }
+d764 14
+a777 12
+    if (!ctrls) {
+	if (off_time > 60) return 0;		/* nothing to do */
+	if (off_time == 60 && (init&DYN_INIT_DISPLAY_UP) ) {
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW-1, VBAR_WIDTH+1);
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+0, VBAR_WIDTH+1);
+	    txt_clr_wid(VBAR_COL-4, DYN_VBAR_ROW+1, VBAR_WIDTH+5);
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+2, VBAR_WIDTH+1);
+	    init &= ~(DYN_INIT_DISPLAY_UP);	/* signal the display is off */
+	}
+	++off_time;
+	return 0;
+    }
+d794 1
+a794 1
+ 				att_vol= ((((att_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+d816 1
+a816 1
+				att_vol= ((((att_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+a825 7
+		 /*	Bump game volume if attract at 100%
+ 				else if (att_vol<MAX_VOLUME)	   
+					{
+					game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+					if (game_vol > MAX_VOLUME) game_vol = MAX_VOLUME;
+					att_vol=(game_vol*percent)/100;
+					}  	*/
+d841 1
+d843 3
+a845 1
+
+d891 1
+d894 1
+@
+
+
+1.6
+log
+@Added a fifo test
+@
+text
+@d469 1
+a469 1
+total=0;for (error=0;error<40; error++) total=total+stats->error[error];
+d748 1
+d750 1
+d785 4
+d792 1
+d798 1
+d800 1
+d807 4
+d817 1
+d830 1
+d832 1
+d846 4
+d853 1
+@
+
+
+1.5
+log
+@Different error logging
+@
+text
+@d14 2
+a15 1
+
+d77 14
+d122 159
+d868 3
+a870 1
+
+@
+
+
+1.4
+log
+@Silly non critical error logging error.
+@
+text
+@d296 1
+a296 1
+if (total) nsprintf(msg, sizeof(msg)-1, "%d errors occured",total);txt_str(4, row++, msg, RED_PAL);
+@
+
+
+1.3
+log
+@Debugging information added
+@
+text
+@d295 2
+a296 2
+total=0;for (error=0;error<40; error=error+6) total=total+stats->error[error];
+nsprintf(msg, sizeof(msg)-1, "%d errors occured",total);txt_str(4, row++, msg, WHT_PAL);
+@
+
+
+1.2
+log
+@added support for queued interface to func aud_dyn_adjvol()
+@
+text
+@d188 166
+d692 2
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d499 16
+a514 5
+    if (which_volume) {
+	aud_attract_volume();
+    } else {
+	aud_game_volume();
+    }
+@

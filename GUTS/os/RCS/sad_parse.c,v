@@ -1,0 +1,1413 @@
+head	1.7;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.7
+date	96.03.29.03.51.00;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.03.18.18.55.19;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.03.18.18.52.10;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.02.08.20.45.18;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.01.03.21.47.31;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.01.03.05.28.38;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.01.02.21.39.38;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@R4K StandAlone Diagnostics command line parse and dispatch
+@
+
+
+1.7
+log
+@Fixed bug in auto_size of Object DRAM
+Changed comments in Object DRAM size report.
+@
+text
+@#define LCD_GUTS_ONLY
+#include <config.h>
+#include <sad_proto.h>
+#include <nsprintf.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <zmbdiags.h>
+
+#define n_elts(x) (sizeof(x)/sizeof(x[0]))
+
+static char * const help_msg[] = {
+    "\r\nR4k diagnostics. The following commands are available. All commands can be",
+    "abbreviated to one or more characters. In the case of ambiguity, the command",
+    "listed here first takes precedence. []'s indicates optional (hex) arguments.",
+    "Pressing the \"BREAK\" key will stop runaway commands and may abort",
+    "the scope loops. If not, you will need to reset to regain control.",
+    "The syntax for [range] is either: \"start\" or \"start [LENGTH n]\"",
+    "or \"start TO end\". The keywords LENGTH and TO can be abbreviated.",
+    "The 'n' after LENGTH specifies the number of bytes, the 'end' after TO",
+    "specifies the end address. In _all_ cases numbers are expected to be HEX.",
+    "",
+    "HELP - Displays this message",
+    "? - Displays this message",
+    "FIFO [range] - Run FIFO tests. If no arguments, all FIFO tests are run.",
+    "DRAM [range] - Run DRAM tests. If no arguments, it tests most of DRAM",
+    "BRAM [range] - Run BRAM tests. If no arguments, it tests all of BRAM",
+    "ODRAM [range] - Run Object DRAM tests. If no args, it tests all of ODRAM",
+    "RROM [range] - Run RAMROM memory tests. If no args, tests most of RAMROM",
+#if 0
+    "MEM range - Perform generic 32 bit memory test on specified range",
+#endif
+    "READ range - Read from memory (scope loop)",
+    "WRITE range [data0 [data1...]] - Write data to memory (scope loop)",
+    "RW range [data0 [data1...]] - Write data then read (scope loop)",
+    "DUMP range - Display memory",
+    "SET range data0 [data1 ...] - Write data (32 bit) to memory once",
+    "XBUS [range] - look on XBUS for 2Mb memory and test it or if [range]",
+    "           is supplied, do plain memory test on the range.",
+    "LOOP test [test ...] - run test(s) until error (no [range]'s allowed on test(s))",
+    "TEST test [test ...] - run test(s) once (no [range]'s allowed on test(s))",
+    "DATE [dow mm/dd/yy HH:MM:SS] - show/set the date and time in Timekeeper chip",
+    "		dow = one of MON, TUE, WED, etc.",
+    "		mm=month (01-12), dd=day (01-31), yy=year (00-99)",
+    "		HH=hours (00-59), MM=minutes (00-59), SS=seconds (00-59)",
+#if INCLUDE_ICE_TEST
+    "ICELESS - run ICELESS I/O tests",
+#endif
+    0
+};
+
+static int help(int dummy) {
+    char * const *s = help_msg;
+    while (*s) {
+	diag_serial_str(*s);
+	diag_serial_str("\r\n");
+	++s;
+    }
+    return 0;
+}
+
+static int get_numb(char *str, U32 *val, int radix) {
+    char *s;
+    U32 t;
+
+    t = strtoul(str, &s, radix);
+    if (s && *s != 0) {
+	nisprintf(emsg, sizeof(emsg), "Illegal hex number: %s\r\n", str);
+	diag_serial_str(emsg);
+	return -1;
+    }
+    *val = t;
+    return 0;
+}
+
+/****************************************************************
+ * get_args - get a list of arguments from the command line
+ * At entry:
+ *	max - maximum number of arguments accepted (n_elts(array))
+ *	array - pointer to array of U32's that will get the params
+ *	def - default length
+ * At exit:
+ *	returns the number of arguments found (0 if none)
+ *	return -1 if syntax error in any of the arguments
+ *	array[0] has the first argument
+ *	array[1] will be adjusted to array[0]+length where length
+ *		is either explicitly specified on the command line
+ *		(with a TO or LENGTH argument) or as the provided
+ *		def parameter.
+ *	array[2] will have the second argument (not counting a
+ *		TO or LENGTH argument).
+ *	array[3-n] will have the third through n arguments
+ */
+
+static int get_args(int max, U32 *array, int def) {
+    int ii;
+    char *s;
+
+    for (ii=0; ii < max; ++ii) {
+	s = strtok(0, " ");
+	if (s == 0) break;
+	if (ii == 1 && max >= 2) {
+	    int condit = 0, len;
+	    len = strlen(s);
+	    if (strncmp(s, "LENGTH", len) == 0) condit = 1;
+	    else if (strncmp(s, "TO", len) == 0) condit = 2;
+	    if (condit) {
+		s = strtok(0, " ");
+		if (s == 0) {
+		    nisprintf(emsg, sizeof(emsg), "Expected an argument after %s\r\n",
+		    	condit == 1 ? "LENGTH" : "TO");
+		    diag_serial_str(emsg);
+		    return -1;
+		}
+		if (get_numb(s, array+1, 16) != 0) return -1;
+		array[1] = (array[1]+3)&-4;
+		if (condit == 2) array[1] = ((array[1]-array[0])+3)&-4;
+		continue;
+	    } else {
+		array[1] = def;
+		++ii;
+		if (max < 3) {
+		    break;
+		}
+	    }
+	}
+	if (get_numb(s, array+ii, 16) != 0) return -1;
+    }
+    if (ii > 1) {
+	if (array[1] == 4 && ii > 3) {
+	    array[1] = (ii - 2)*4;
+	}
+	array[1] = array[1]-1+array[0];
+    }
+    return ii;
+}
+	
+static int get_strs(int max, char **array) {
+    int ii;
+    char *s;
+
+    for (ii=0; ii < max; ++ii) {
+	s = strtok(0, " ");
+	if (s == 0) break;
+	array[ii] = s;
+    }
+    return ii;
+}
+	
+static U32 dram_size, odram_size, rr_size;
+
+extern int tlbprobe(U32 addr, int len);
+extern U8 INIT_SP[], _etext[], bss_end[], FREE_DRAM[], FREE_RAMROM[];
+
+#define V_READ  0
+#define V_WRITE	1
+
+static int validate_addr(U32 *start, U32 *end, int rw) {
+    U32 sa, ea;
+    U32 low;
+    sa = *start;
+    ea = *end;
+    if ((sa&3) != 0) {
+	nisprintf(emsg, sizeof(emsg), "Address 0x%08lX not an even multiple of 4\r\n", sa);
+	diag_serial_str(emsg);
+	return -1;
+    }
+    if (ea < sa) {
+	nisprintf(emsg, sizeof(emsg), "End (0x%08lX) is less than start (0x%08lX)\r\n",
+		ea, sa);
+	diag_serial_str(emsg);
+	return -1;
+    }
+    if (sa >= 0x1fc00000 && sa < 0x20000000) {
+	sa -= 0x1fc00000;
+	ea -= 0x1fc00000;
+	sa += RRBUS_BASEnc;
+	ea += RRBUS_BASEnc;
+    }
+    if (rw == V_WRITE) {
+	low = (U32)INIT_SP;
+	if ( ((sa >= DRAM_BASE) && (sa <= low)) || ((sa >= DRAM_BASEnc) && (sa < (low|0x00800000)))) {
+not_bss:
+	    nisprintf(emsg, sizeof(emsg), "Not allowed to write into this program's bss (%08lX-%08lX\r\n",
+		     0x80000000, 0x80000000+((U32)INIT_SP-DRAM_BASE));
+	    diag_serial_str(emsg);
+	    return -1;
+	}
+	low -= DRAM_BASE;
+	low += 0x80000000;
+	if ( (sa >= 0x80000000) && (sa <= low) ) goto not_bss;
+	low = (U32)_etext;
+	if ( ((sa >= 0x9fc00000) && (sa <= low)) || ((sa >= 0xBfc00000) && (sa < (low|0x20000000))) ) {
+not_text:
+	    nisprintf(emsg, sizeof(emsg), "Not allowed to write into this program's text (%08lX-%08lX)\r\n",
+		     0x9fc00000, _etext);
+	    diag_serial_str(emsg);
+	    return -1;
+	}
+	low -= (U32)begin;
+	low += RRBUS_BASE;
+	if ( ((sa >= RRBUS_BASE) && (sa <= low)) || ((sa >= RRBUS_BASEnc) && (sa < (low|0x00800000))) ) {
+	    goto not_text;
+	}
+    }
+    if (sa >= 0x80000000 && sa < 0x9FC00000) {
+	sa -= 0x80000000;
+	sa += DRAM_BASEnc;
+	ea -= 0x80000000;
+	ea += DRAM_BASEnc;
+	if (tlbprobe(sa, ea-sa) >= 0) {
+	    *start = sa;
+	    *end = ea;
+	    return 0;
+	}
+    } else if ((sa >= 0x9fc00000 && sa < 0xA0000000) || (sa >= 0xBFC00000 && sa < 0xC0000000)) {
+	if (rw == V_WRITE) {
+	    nisprintf(emsg, sizeof(emsg), "Not allowed to write to %08lX-%08lX\r\n", sa, ea);
+	    diag_serial_str(emsg);
+	    return -1;
+	}
+	sa |= 0x20000000;
+	ea |= 0x20000000;
+	if (ea < 0xC0000000) {
+	    *start = sa;
+	    *end = ea;
+	    return 0;
+	}
+    } else if ((sa >= 0x00200000 && sa < 0x00600000) || (sa >= 0x00A00000 && sa < 0x00E00000) ||
+    	       (sa >= 0x38000000 && sa < 0x39000000) ) {
+	sa |= 0x00800000;
+	ea |= 0x00800000;
+	if (((sa >= 0x00A00000) && (sa < 0x00E00000) && (ea < 0x00E00000)) ||
+    	    ((sa >= 0x38800000) && (sa < 0x39000000) && (ea < 0x39000000))) {
+	    *start = sa;
+	    *end = ea;
+	    return 0;
+	}
+    } else if (tlbprobe(sa, ea-sa) >= 0) {
+	return 0;
+    }
+    nisprintf(emsg, sizeof(emsg), "Address 0x%08lX-0x%08lX encompasses non-existant memory\r\n",
+    	sa, ea);
+    diag_serial_str(emsg);
+    return -1;
+}
+
+#define RW_READ	     0
+#define RW_WRITE     1
+#define RW_READWRITE 2
+#define RW_SET	     3
+
+static int read_write(int rw) {
+    U32 values[16+2], *adp, junk;
+    VU32 *sa, *ea;
+    int count, outer;
+    const char *msg;
+
+    msg = 0;
+    if (rw == RW_READ) msg = "Reading from memory forever";
+    if (rw == RW_WRITE) msg = "Writing to memory forever";
+    if (rw == RW_READWRITE) msg = "Writing to then reading from memory forever";
+    if (rw == RW_SET) msg = "Writing selected values to memory";
+    if (msg) {
+	diag_serial_str(msg);
+	diag_serial_str(" ...\r\n");
+    }
+    count = get_args(n_elts(values), values, 4);
+    if (count <= 0) return 1;
+    if (count < 2) {
+	values[1] = values[0] + 4;
+	count = 2;
+    }
+    if (count < 3) {
+	values[2] = 0x5555AAAA;
+	count = 3;
+    }
+    if (validate_addr(values+0, values+1, (rw > RW_READ) ? V_WRITE : V_READ) < 0) return 1;
+    if (rw != RW_SET) {
+	diag_serial_str("Press BREAK to abort this command\r\n");
+    }
+    ea = (VU32 *)values[1];
+    if (rw == RW_READ) {
+	if ((values[1]-values[0]) > 4) {
+	    nisprintf(emsg, sizeof(emsg), "Reading addresses %08lX-%08lX\r\n",
+		values[0], values[1]);
+	} else {
+	    nisprintf(emsg, sizeof(emsg), "Reading address %08lX\r\n", values[0]);
+	}
+    } else {
+	nisprintf(emsg, sizeof(emsg), "%s address %08lX-%08lX with %d values\r\n",
+	    (rw == RW_SET) ? "Setting":"Testing", values[0], values[1], count-2);
+    }
+    diag_serial_str(emsg);
+    outer = 0;
+    while (1) {
+	int ii;
+	sa = (VU32*)values[0];
+	if (rw == RW_READ) {
+	    while (sa <= ea) junk = *sa++;
+	} else if (rw == RW_WRITE) {
+	    while (sa <= ea) {
+		VU32 *ctrl = (VU32*)(CTRL_BASE+4);
+		adp = values+2;
+		for (ii=2; ii < count && sa <= ea; ++ii, ++sa) {
+		    *sa = *adp++;
+		    junk = *ctrl;
+		}
+	    }
+	} else if (rw == RW_SET) {
+	    while (sa <= ea) {
+		VU32 *ctrl = (VU32*)(CTRL_BASE+4);
+		adp = values+2;
+		for (ii=2; ii < count && sa <= ea; ++ii, ++sa) {
+		    *sa = *adp++;
+		    junk = *ctrl;
+		}
+	    }
+	    break;
+	} else if (rw == RW_READWRITE) {
+	    while (sa <= ea) {
+		adp = values+2;
+		for (ii=2; ii < count && sa <= ea; ++ii, ++sa) {
+		    *sa = *adp++;
+		    junk = *sa;
+		}
+	    }
+	}
+	++outer;
+	if ( outer > 10000 ) {
+	    if ((*(VU32*)SERIAL_ADDRESS&1) == 0) break;		/* he wants us to stop */
+	    outer = 0;
+	}
+    }
+    return 0;
+}
+
+static int dump(int param) {
+    U32 values[2];
+    VU32 *sa, *ea;
+    int count, outer, leader;
+
+    diag_serial_str("Dumping memory ...\r\n");
+    count = get_args(n_elts(values), values, 4);
+    if (count <= 0) return 1;
+    if (count < 2) {
+	values[1] = values[0] + 4;
+	count = 2;
+    }
+    if (validate_addr(values+0, values+1, V_READ) < 0) return 1;
+    sa = (VU32 *)values[0];
+    ea = (VU32 *)values[1];
+    outer = 0;
+    leader = ':';
+    while (sa <= ea) {
+        if ((*(VU32*)SERIAL_ADDRESS&1) == 0) break;		/* he wants us to stop */
+	if (outer == 0) {
+	    nisprintf(emsg, sizeof(emsg), "%08lX", sa);
+	    diag_serial_str(emsg);
+	}
+	nisprintf(emsg, sizeof(emsg), "%c%08lX", leader, *sa);
+	diag_serial_str(emsg);
+        leader = ' ';
+	++outer;
+	++sa;
+	if (outer == 8) {
+	    outer = 0;
+	    diag_serial_str("\r\n");
+	    leader = ':';
+	}
+    }
+    if (outer) diag_serial_str("\r\n");
+    return 0;
+}
+
+static void show_mem_error(struct diag_params *dparms, int bram, int mode) {
+    nisprintf(emsg, sizeof(emsg), "Failed at %08lX\r\n", dparms->bad_address);
+    diag_serial_str(emsg);
+    nisprintf(emsg, sizeof(emsg), "\tduring test \"%s\"\r\n", (char *)dparms->subtest);
+    diag_serial_str(emsg);
+    if (bram) {
+	nisprintf(emsg, sizeof(emsg), "\t\tExpected %02X\r\n\t\tFound    %02X\r\n",
+	    dparms->expected_lsb&0xFF, dparms->actual_lsb&0xFF);
+    } else {
+	if (mode == 0) {
+	    nisprintf(emsg, sizeof(emsg), "\t\tExpected %08lX\r\n\t\tFound    %08lX\r\n",
+		dparms->expected_lsb, dparms->actual_lsb);
+	} else {
+	    nisprintf(emsg, sizeof(emsg), "\t\tExpected %08lX%08lX\r\n\t\tFound    %08lX%08lX\r\n",
+		dparms->expected_msb, dparms->expected_lsb, dparms->actual_msb, dparms->actual_lsb);
+	}
+    }
+    diag_serial_str(emsg);
+    return;
+}
+
+/******************************************************************************
+ *   +++++ WARNING WARNING WARNING +++
+ * If you change the order of the entries in memptrs[], be sure to change these
+ * defines to match.
+ */
+#define SPEC_BRAM	0
+#define SPEC_DRAM	1
+#define SPEC_ODRAM	2
+#define SPEC_RROM	3
+
+static const struct mem_tests {
+    const char *name;
+    U32 start, end;		/* start and end addresses */
+    int raw;			/* .ne. if a read-after-write is required in this region */
+} memptrs[] = {
+    { "BRAM", BRAM_BASE, BRAM_BASE+BRAM_SIZE-1, 0},
+    { "DRAM", (U32)INIT_SP, DRAM_BASE+DRAM_SIZE-1, 0},
+    { "Object DRAM", RDRAM_BASEnc, RDRAM_BASEnc+RDRAM_SIZE-1, 1},
+    { "RamRom", 0, RRBUS_BASEnc+RRBUS_SIZE/2-1, 1 }
+};
+
+static int spec_test(int param) {
+    U32 values[2];
+    U32 sa, ea;
+    int count, jj;
+    struct diag_params dparms;
+
+    diag_serial_str(memptrs[param].name);
+    if ((param == SPEC_DRAM && dram_size == 0) ||
+    	(param == SPEC_ODRAM && odram_size == 0) ||
+    	(param == SPEC_RROM && rr_size == 0)) {
+	diag_serial_str(" is not present on this system\r\n");
+	return 1;
+    }
+    diag_serial_str(" test ...\r\n");
+    count = get_args(n_elts(values), values, 4);
+    if (count < 0) return 1;
+    if (count) {
+	if (count < 2) {
+	    values[1] = values[0] + 4;
+	    count = 2;
+	}
+    } else {
+	if (param == SPEC_DRAM) {
+	    values[0] = ((((U32)INIT_SP-(U32)DRAM_BASE)+0xF)&-0x10)+DRAM_BASEnc;
+	    values[1] = DRAM_BASEnc+dram_size-1;
+	} else if (param == SPEC_ODRAM) {
+	    values[0] = memptrs[param].start;
+	    values[1] = RDRAM_BASEnc+odram_size-1;
+	} else if (param == SPEC_RROM) {
+	    values[0] = ((((U32)_etext-(U32)begin)+0xF)&-0x10) + RRBUS_BASEnc;
+	    values[1] = RRBUS_BASEnc+rr_size-1;
+	} else {
+	    values[0] = memptrs[param].start;
+	    values[1] = memptrs[param].end;
+	}
+    }
+    if (validate_addr(values+0, values+1, V_WRITE) < 0) return 1;
+    sa = values[0];
+    ea = values[1];
+    diag_serial_str("This command cannot be aborted.\r\n");
+    for (jj=0; jj < ((param != SPEC_BRAM) ? 2:1); ++jj) {
+	nisprintf(emsg, sizeof(emsg), "Testing addresses %08lX-%08lX", sa, ea);
+	diag_serial_str(emsg);
+	if (param != SPEC_BRAM) {
+	    nisprintf(emsg, sizeof(emsg), " in %d bit mode", 32+jj*32);
+	    diag_serial_str(emsg);
+	}
+	diag_serial_str(" ... ");
+	if (param == SPEC_BRAM) {
+	    count = zag_test_bram(&dparms, sa, ea);
+	} else {
+	    if (jj == 0) {
+		count = zag_test_mem32(&dparms, sa, ea, memptrs[param].raw);
+	    } else {
+		count = zag_test_mem32(&dparms, sa, ea, memptrs[param].raw);
+	    }
+	}
+	if (count) {
+	    show_mem_error(&dparms, param == SPEC_BRAM, jj);
+	} else {		
+	    diag_serial_str("ok\r\n");
+	}
+    }
+    return 0;
+}
+
+static void fifo_out(ZagSAfifo *zfifo) {
+    char tmp[132];
+    if (zfifo->subtest != ZagFIFOok && zfifo->subtest != ZagFIFOannounce) {
+	if (!zfifo->hdr.status) {
+	    nisprintf(tmp, sizeof(tmp), "Test %d:", zfifo->sequence++);
+	    diag_serial_str(tmp);
+	} else {
+	    diag_serial_str("nfg\r\n");
+	    zfifo->row += 1;
+	}
+    }
+    switch (zfifo->subtest) {
+	case ZagFIFOok:
+	    diag_serial_str("ok\r\n");
+	    zfifo->row += 1;
+	    break;
+	case ZagFIFOinit:
+	    if (!zfifo->hdr.status) {
+		diag_serial_str("check reset conditions ...");
+	    } else {
+		nisprintf(tmp, sizeof(tmp), "  Found FIFO empty %sasserted, FIFO full %sasserted\r\n",
+			(zfifo->actual&1) ? "" : "de-",
+			(zfifo->actual&2) ? "" : "de-");
+		diag_serial_str(tmp);
+		zfifo->row += 1;
+		if ((zfifo->actual&1) == 0) {
+		    diag_serial_str("  Expected FIFO empty to be asserted\r\n");
+		    zfifo->row += 1;
+		}
+		if ((zfifo->actual&2) != 0) {
+		    diag_serial_str("  Expected FIFO full to be de-asserted\r\n");
+		    zfifo->row += 1;
+		}
+	    }
+	    break;	    
+	case ZagFIFOicounter:
+	    if (!zfifo->hdr.status) {
+		diag_serial_str("check initial counter bits ...");
+	    } else {
+		nisprintf(tmp, sizeof(tmp), "  After reset, found 0x%02X, expected 0x00\r\n",
+			zfifo->actual);
+		diag_serial_str(tmp);
+		zfifo->row += 1;
+	    }
+	    break;		
+	case ZagFIFOcounter:
+	    if (!zfifo->hdr.status) {
+		diag_serial_str("check counter bits ...");
+	    } else {
+		nisprintf(tmp, sizeof(tmp), "  after %d stores, counter was 0x%02X, expected 0x*%01X\r\n",
+			zfifo->actual,
+			zfifo->actual&0xF);
+		diag_serial_str(tmp);
+		zfifo->row += 1;
+		diag_serial_str("    where '*' can be a 1, 2 or 3\r\n");
+		zfifo->row += 1;
+	    }
+	    break;
+	case ZagFIFOfull:
+	    if (!zfifo->hdr.status) {
+		diag_serial_str("check FIFO Full bit ...");
+	    } else {
+		diag_serial_str("  FIFO Full bit de-asserted after 128k writes\r\n");
+		zfifo->row += 1;
+		diag_serial_str("  Expected FIFO Full bit to be asserted\r\n");
+		zfifo->row += 1;
+	    }
+	    break;
+	case ZagFIFOannounce:
+	    nisprintf(tmp, sizeof(tmp), "  Size=0x%05X(%dK), hiwater=0x%05X, lowwater=0x%05X\r\n",
+	    	zfifo->size,
+	    	zfifo->size/1024,
+	    	zfifo->highwater,
+	    	zfifo->lowater);
+	    diag_serial_str(tmp);
+	    zfifo->row += 1;
+	    break;
+	case ZagFIFO132:
+	    if (!zfifo->hdr.status) {
+		diag_serial_str("walk a 1 through first 32 locations ...");
+	    } else {
+normal_error:
+		nisprintf(tmp, sizeof(tmp), "  At location %05X, expected %08X\r\n",
+			zfifo->failed, zfifo->expected);
+		diag_serial_str(tmp);
+		nisprintf(tmp, sizeof(tmp), "                     found    %08X\r\n",
+			zfifo->actual);
+		diag_serial_str(tmp);
+		zfifo->row += 2;
+	    }
+	    break;		
+	case ZagFIFOaddress:
+	    if (zfifo->hdr.status) goto normal_error;
+	    diag_serial_str("write address into location ...");
+	    break;
+	case ZagFIFOnotaddress:
+	    if (zfifo->hdr.status) goto normal_error;
+	    diag_serial_str("write compliment of address into location ...");
+	    break;
+	case ZagFIFOones:
+	    if (zfifo->hdr.status) goto normal_error;
+	    diag_serial_str("fill FIFO with all 1's ...");
+	    break;
+	case ZagFIFOzeros:
+	    if (zfifo->hdr.status) goto normal_error;
+	    diag_serial_str("fill FIFO with 0's ...");
+	    break;
+	default:
+	    if (!zfifo->hdr.status) {
+		diag_serial_str("unknown test ... ");
+	    } else {
+		diag_serial_str("Have know idea why it failed either\r\n");
+	    }
+	    break;
+    }
+    return;
+}
+
+static void fifo_reset() {
+    lcl_set_latch((bitshd|CTS_FIFO_ENAB)&~CTS_FIFO_RST);	/* reset the FIFO */
+    lcl_set_latch(bitshd|(CTS_FIFO_RST|CTS_FIFO_ENAB));
+}
+
+static int ltest_fifo(int param) {
+    int count, ii, jj;
+    U32 values[16+2];
+    VU32 *tbus = (VU32 *)TBUS_BASE;
+    VU32 *ctrl = (VU32 *)(CTRL_BASE+4);
+
+    diag_serial_str("FIFO test ...\r\n");
+    count = get_args(n_elts(values), values, 1);
+    if (count < 0) return 1;
+    if (count == 0) {
+	ZagSAfifo lcl_zfifo, *zfifo = &lcl_zfifo;
+	ii = zag_test_fifo(zfifo, fifo_out);
+	if (ii) fifo_out(zfifo);
+/*	diag_serial_str("\r\n"); */
+	return ii;
+    }
+    if (count < 2) {
+	values[1] = values[0];
+	count = 2;
+    }
+    if (count < 3) {
+	values[2] = 0x5555AAAA;
+	count = 3;
+    }
+    diag_serial_str("Press BREAK to abort this command\r\n");
+    fifo_reset();
+    jj = values[1]-values[0];
+    count -= 2;
+    if (jj < count) jj = count;
+    if (jj > count) {
+	ii = jj%count;
+	jj += ii;
+    }
+    values[1] = values[0] + jj;
+    nisprintf(emsg, sizeof(emsg), "Skipping 0x%X locations then writing/reading 0x%X-0x%X\r\n",
+			values[0], values[0], values[1]-1);
+    diag_serial_str(emsg);
+    for (ii=0; ii<values[0]; ++ii) {
+	*tbus = ii;
+    }
+    jj = *ctrl;				/* flush the write buffer */
+    wait_n_usecs(50);			/* wait for tbus data to get through */
+    while (1) {
+	for (ii=values[0]; ii <= values[1]; ++ii) {
+	    U32 *adp = values+2;
+	    for (jj=0; jj < count; ++jj) {
+		*tbus = *adp++;		/* write a bunch of data */
+	    }
+	    jj = *ctrl;			/* flush the write buffer */
+	    wait_n_usecs(5);		/* give time for data to walk through buffer */
+	    for (jj=0; jj < count; ++jj) {
+		U32 junk;
+		junk = *tbus;		/* read the back */
+	    }
+	    ii += count;
+	}
+	if ((*(VU32*)SERIAL_ADDRESS&1) == 0) break; /* he wants us to stop */
+    }
+    return 0;
+}
+
+#if 0
+static int senthil_test(int flag) {
+    int ii;
+    VU32 *tbus = (VU32 *)TBUS_BASE;
+
+    diag_serial_str("Senthil's test ...\r\n");
+    
+    while (1) {
+	fifo_reset();
+	for (ii=0; ii <= 128*1024; ++ii) {
+    	    if (ii > 128*1024-16) {
+		char fred[60];
+		nisprintf(fred, sizeof(fred), "Writing location 0x%06X\r\n", ii);
+		diag_serial_str(fred);
+	    }
+	    *tbus = 0;			/* write a bunch of data */
+	}
+	if ((*(VU32*)SERIAL_ADDRESS&1) == 0) break; /* he wants us to stop */
+    }
+    return 0;
+}
+#endif
+
+#if !HAS_LCD
+char lcd_buf[81];
+#else
+static int did_lcd_reset;
+#endif
+
+static void do_quick_lcd() {
+#if HAS_LCD
+    int ii;
+    for (ii=0; ii<100; ++ii) {
+	lcd_wait(1);
+	lcd_update();
+    }
+#endif
+    return;
+}
+
+static int xbus_test(int param) {
+     VU32 *vup;
+     U32 values[2];
+     int ii, jj, xbinc, loop, count;
+     struct diag_params dparms;
+
+#define XB_FIRST	1
+#define XB_LAST		6
+#define XB_ASSUME	3
+#define XB_SIZE		(2*1024*1024/4)
+
+     diag_serial_str("XBUS test ...\r\n");
+     diag_serial_str("This command will hang forever on a Mathbox\r\n");
+     count = get_args(n_elts(values), values, 4);
+     if (count < 0) return 1;
+     if (count > 0) {
+	 if (count == 1) values[1] = values[0]+3;
+	 if (values[0] > values[1]) {
+	    diag_serial_str("End address < start address\r\n");
+	    return 1;
+	 }
+	 if (values[0] < XBUS_SLOT1 || values[0] >= XBUS_SLOT0+0x10000000 ||
+	     values[1] < XBUS_SLOT1 || values[1] >= XBUS_SLOT0+0x10000000) {
+	    diag_serial_str("Addresses not in the range of 0xC2000000-0xCFFFFFFF\r\n");
+	    return 1;
+	 }
+         diag_serial_str("This command cannot be aborted.\r\n");
+	 nisprintf(emsg, sizeof(emsg), "Testing addresses %08lX-%08lX\r\n", values[0], values[1]);
+	 diag_serial_str(emsg);
+	 count = zag_test_mem32(&dparms, values[0], values[1], 0);
+	 if (count) {
+	    show_mem_error(&dparms, 0, 0);
+	    return 1;
+	 } else {
+	    diag_serial_str("ok\r\n");
+	 }
+	 return 0;
+     }
+     diag_serial_str("This command can be aborted on a Host or MathHost with a BREAK\r\n");
+#if HAS_LCD
+     if (!did_lcd_reset) { lcd_reset(); did_lcd_reset = 1; }
+#endif
+     xbinc = (XBUS_SLOT1-XBUS_SLOT0)/4;
+     for (ii=XB_FIRST, vup=(VU32 *)XBUS_SLOT0+ii*xbinc; ii < XB_LAST+1; ++ii, vup += xbinc) {
+	for (jj=0; jj < XB_SIZE; ++jj) {
+	    vup[jj] = ~(jj*4);
+	}
+	for (jj=0; jj < XB_SIZE; ++jj) {
+	    U32 tmp;
+	    tmp = vup[jj];
+	    if (tmp != ~(jj*4)) break;
+	}
+	if (jj >= XB_SIZE) break;
+     }
+     if (ii < XB_LAST+1) {
+	nisprintf(lcd_buf, 40, "Found 2MB memory in slot %d", ii);
+	diag_serial_str(lcd_buf);
+	diag_serial_str("  ");
+	nisprintf(lcd_buf+40, 40, "XBUS is ok");
+	diag_serial_str(lcd_buf+40);
+	diag_serial_str("\r\n");
+     } else {
+	nisprintf(lcd_buf, 40, "No memory found. Assuming slot %d", XB_ASSUME);
+	diag_serial_str(lcd_buf);
+	diag_serial_str("  ");
+	nisprintf(lcd_buf+40, 40, "XBUS is broken");
+	diag_serial_str(lcd_buf+40);
+	diag_serial_str("\r\n");
+	prc_set_led(1);
+	ii = XB_ASSUME;
+     }
+     do_quick_lcd();
+     nisprintf(emsg, sizeof(emsg), "Writing then reading addresses %08lX-%08lX\r\n",
+    		XBUS_SLOT0+ii*xbinc*4, XBUS_SLOT0+ii*xbinc*4+0x00200000-1);
+     diag_serial_str(emsg);
+     for (loop=0;;++loop) {
+        nisprintf(lcd_buf+80-6, 7, "%6d", loop);
+	diag_serial_str(lcd_buf+80-6);
+	diag_serial_out('\r');
+        do_quick_lcd();
+	for (vup=(VU32 *)XBUS_SLOT0+ii*xbinc, jj=0; jj < XB_SIZE; ++jj) {
+	    vup[jj] = ~(jj*4);
+	}
+	for (jj=0; jj < XB_SIZE; ++jj) {
+	    U32 tmp;
+	    if ((jj&0xFFF) == 0 && (*(VU32*)SERIAL_ADDRESS&1) == 0) break; /* he wants us to stop */
+	    tmp = vup[jj];
+	    if (tmp != ~(jj*4)) {
+                memset(lcd_buf, ' ', 80);
+		nisprintf(lcd_buf, 40, "Failed @@ %d loop; slot %d, adr %07X", loop, ii, jj*4);
+		diag_serial_str(lcd_buf);
+		diag_serial_str("  ");
+		nisprintf(lcd_buf+40, 40, "data is %08X, s/b %08X", tmp, ~(jj*4));
+		diag_serial_str(lcd_buf+40);
+		nisprintf(emsg, sizeof(emsg), "\r\nPhysical memory address = %08lX", vup+jj);
+		diag_serial_str(emsg);
+                do_quick_lcd();
+    		break;
+	    }		
+	}
+	if ((jj < XB_SIZE) || (*(VU32*)SERIAL_ADDRESS&1) == 0) break;		/* he wants us to stop */
+     }
+     diag_serial_str("\r\n");
+     return 0;
+}
+
+static int decode(char *src);
+
+static int many_tests(int param) {
+    char *args[16];
+    int ii, count;
+    count = get_strs(16, args);
+    do {
+	for (ii=0; ii<count; ++ii) {
+	    if (decode(args[ii])) return 1;
+	}
+    } while (param);
+    return 0;
+}
+
+typedef struct {
+   VU8  control;
+   VU8  filler0[7];
+   VU8  seconds;
+   VU8  filler1[7];
+   VU8  minutes;
+   VU8  filler2[7];
+   VU8  hours;
+   VU8  filler3[7];
+   VU8  dow;
+   VU8  filler4[7];
+   VU8  day;
+   VU8  filler5[7];
+   VU8  month;
+   VU8  filler6[7];
+   VU8  year;
+   VU8  filler7[7];
+} DateTime;
+
+#define CTL_READ	0x40
+
+char *const days = "MonTueWedThuFriSatSun";
+char *const months = "-Jan-Feb-Mar-Apr-May-Jun-Jul-Aug-Sep-Oct-Nov-Dec";
+DateTime *const daytime = (DateTime *)(BRAM_BASE+BRAM_SIZE);
+
+static void eer_write_byte(VU8 *where, VU32 *unlock, int what) {
+   int junk, oldipl;
+   oldipl = prc_set_ipl(INTS_OFF);
+   junk = *unlock;
+   *where = what;
+   junk = *(VU32 *)CTRL_BASE;
+   prc_set_ipl(oldipl);
+} 
+
+static int getbcd(char **src) {
+    U8 bcd;
+    int c;
+    char *s = *src;
+    bcd = 0;
+    c = *s;
+    if (c < '0' || c > '9') return -1;
+    bcd = c - '0';
+    ++s;
+    *src = s;
+    c = *s;
+    if (c < '0' || c > '9') return -1;
+    ++s;
+    *src = s;
+    bcd <<= 4;
+    bcd |= c - '0';
+    return bcd;
+}
+
+static int setdate(int param) {
+    char *s, *src, *dst;
+    int ii, errs;
+    int secs;
+    int mins;
+    int hours;
+    int dow;
+    int day;
+    int month;
+    int year;
+
+    if ((src=strtok(0, " ")) != 0) {
+	s = src;
+	ii = strlen(s);
+	if (strncmp(s, "MON", ii) == 0) {
+	    dow = 1;
+	} else if (strncmp(s, "TUE", ii) == 0) {
+	    dow = 2;
+	} else if (strncmp(s, "WED", ii) == 0) {
+	    dow = 3;
+	} else if (strncmp(s, "THU", ii) == 0) {
+	    dow = 4;
+	} else if (strncmp(s, "FRI", ii) == 0) {
+	    dow = 5;
+	} else if (strncmp(s, "SAT", ii) == 0) {
+	    dow = 6;
+	} else if (strncmp(s, "SUN", ii) == 0) {
+	    dow = 7;
+	} else {
+	    goto nfg;
+	}
+	s = src = strtok(0, " ");
+	if ((month=getbcd(&s)) < 0) goto nfg;
+	if (*s != '/') goto nfg;
+	++s;
+	if ((day=getbcd(&s)) < 0) goto nfg;
+	if (*s != '/') goto nfg;
+	++s;
+	if ((year=getbcd(&s)) < 0) goto nfg;
+	if (*s) goto nfg;
+	s = src = strtok(0, " ");
+	if ((hours=getbcd(&s)) < 0) goto nfg;
+	if (*s != ':') goto nfg;
+	++s;
+	if ((mins=getbcd(&s)) < 0) goto nfg;
+	if (*s != ':') goto nfg;
+	++s;
+	if ((secs=getbcd(&s)) < 0) goto nfg;
+	if (*s) goto nfg;
+        eer_write_byte(&daytime->control, (VU32 *)BRAM_UNLK, 0x80);	/* enable writes to clock */
+        eer_write_byte(&daytime->year,	  (VU32 *)BRAM_UNLK, year);	/* set the time to now */
+        eer_write_byte(&daytime->month,	  (VU32 *)BRAM_UNLK, month);
+        eer_write_byte(&daytime->day,	  (VU32 *)BRAM_UNLK, day);
+        eer_write_byte(&daytime->dow,	  (VU32 *)BRAM_UNLK, dow);
+        eer_write_byte(&daytime->hours,	  (VU32 *)BRAM_UNLK, hours);
+        eer_write_byte(&daytime->minutes, (VU32 *)BRAM_UNLK, mins);
+        eer_write_byte(&daytime->seconds, (VU32 *)BRAM_UNLK, secs);
+        eer_write_byte(&daytime->control, (VU32 *)BRAM_UNLK, 0x00);	/* disable writes to clock */
+    } 	
+    eer_write_byte(&daytime->control, (VU32 *)BRAM_UNLK, CTL_READ);	/* enable reads from timer */
+    wait_n_usecs(1000);
+    nisprintf(emsg, sizeof(emsg), "Raw data: %02X %02X %02X %02X %02X %02X %02X %02X\r\n",
+   	daytime->control, daytime->seconds, daytime->minutes,
+   	daytime->hours,   daytime->dow,     daytime->day,
+   	daytime->month,   daytime->year);
+    diag_serial_str(emsg);
+    dst = emsg;
+    ii = daytime->dow&7;
+    if (ii >= 1 && ii <= 7) {
+       src = days + (ii-1)*3;
+    } else {
+       src = "???";
+       errs = 1;
+    }
+    strncpy(dst, (char *)src, 3);
+    dst += 3;
+    *dst++ = ' ';
+    ii = daytime->day&63;
+    if (ii > 0) {
+       nisprintf(dst, sizeof(emsg)-(dst-emsg), "%02X", ii);
+    } else {
+       strcpy(dst, "??");
+       errs = 1;
+    } 
+    dst += 2;
+    ii = daytime->month&31;
+    if (ii > 0 && ii <= 0x12) {
+       if (ii >= 0x10) ii = (ii - 0x10) + 10;
+       src = months + (ii-1)*4;
+    } else {
+       src = "-???";
+       errs = 1;
+    }
+    strncpy(dst, src, 4);
+    dst += 4;
+    strcpy(dst, "-19");
+    dst += 3;
+    ii = daytime->year&255;
+    nisprintf(dst, sizeof(emsg)-(dst-emsg), "%02X", ii);
+    dst += 2;
+    ii = daytime->hours&63;
+    if (ii < 0x24) {
+       nisprintf(dst, sizeof(emsg)-(dst-emsg), " %02X:", ii);
+    } else {
+       strcpy(dst," ??:");
+       errs = 1;
+    }
+    dst += 4;
+    ii = daytime->minutes&127;
+    if (ii >= 0x60) errs = 1;
+    nisprintf(dst, sizeof(emsg)-(dst-emsg), "%02X:", ii);
+    dst += 3;
+    ii = daytime->seconds&127;
+    if (ii >= 0x60) errs = 1;
+    nisprintf(dst, sizeof(emsg)-(dst-emsg), "%02X ", ii);
+    dst += 3;
+    if ((daytime->seconds&128) == 0) {
+       strcpy(dst, "run\r\n");
+    } else {
+       strcpy(dst, "stop\r\n");
+    }
+    dst += 6;
+    *dst = 0;
+    eer_write_byte(&daytime->control, (VU32 *)BRAM_UNLK, 0);
+    diag_serial_str(emsg);
+    return 0;
+
+nfg:
+    nisprintf(emsg, sizeof(emsg), "Syntax error in %s\r\n", src);
+    diag_serial_str(emsg);
+    nisprintf(emsg, sizeof(emsg), "               %*c^\r\n", s-src, ' ');
+    diag_serial_str(emsg);
+    return 1;
+}
+
+#if INCLUDE_ICE_TEST
+extern int read_iceless(int);
+#endif
+
+static struct {
+    const char *name;
+    int (*func)(int);
+    int param;
+} const funcs[] = {
+    { "HELP", help, 0 },
+    { "?", help, 0 },
+    { "READ", read_write, RW_READ},
+    { "RW", read_write, RW_READWRITE},
+    { "WRITE", read_write, RW_WRITE},
+    { "SET", read_write, RW_SET},
+    { "DUMP", dump, 0},
+    { "BRAM", spec_test, SPEC_BRAM},
+    { "DRAM", spec_test, SPEC_DRAM},
+    { "ODRAM", spec_test, SPEC_ODRAM},
+    { "RROM", spec_test, SPEC_RROM},
+    { "FIFO", ltest_fifo, 0},
+    { "XBUS", xbus_test, 0},
+    { "TEST", many_tests, 0},
+    { "LOOP", many_tests, 1},
+    { "DATE", setdate, 0},
+#if INCLUDE_ICE_TEST
+    { "ICELESS", read_iceless, 0},
+#endif
+#if 0
+    { "SV", senthil_test, 0},
+#endif
+    { 0, 0 }
+};
+
+static int decode(char *src) {
+    int ii, len, sts;
+#if 0
+    nisprintf(emsg, sizeof(emsg), "String to decode: %s\r\n", src);
+    diag_serial_str(emsg);
+#endif
+    len = strlen(src);
+    for (ii=0; funcs[ii].name; ++ii) {
+	if (strncmp(src, funcs[ii].name, len) == 0) {
+#if 0
+	    nisprintf(emsg, sizeof(emsg), "Found string at entry %d. name=%s, func=%08lX\r\n",
+	    	ii, funcs[ii].name, funcs[ii].func);
+	    diag_serial_str(emsg);
+#endif
+            int (*f)(int);
+            f = funcs[ii].func;
+/*            if (ii == 16) f = (int (*)(int))((U32)f | 0x20000000); */
+	    sts = f(funcs[ii].param);
+	    return sts;
+	}
+    }
+    diag_serial_str("Unknown command. Try HELP or ?\r\n");
+    return 0;
+}
+
+static U32 size_mem(VU32 *mem, U32 memsize, const char *msg) {
+    VU32 *ptr;
+    U32 *vp, vals[16], hvals[16], size;
+    int ii, sts;
+
+    size = memsize/2;		/* assume there's only 1/2 mem */
+    ptr = mem;
+    vp = vals;
+    for (ii=0; ii<16; ++ii) {	/* save the first 16 locations in case there is trouble */
+	*vp++ = *ptr++;
+    }
+    ptr = mem + (memsize/8);	/* skip to the 1/2 way point (bank 1) */
+    vp = hvals;
+    for (ii=1; ii < 0x00010000; ii += ii) {	/* write some data */
+	*ptr++ = ((*vp++ = *ptr) ^ ii);
+	sts = *(VU32*)(CTRL_BASE);
+    }
+    ptr = mem + (memsize/8);
+    vp = hvals;
+    for (ii=1; ii < 0x00010000; ii += ii) {	/* read it back to see if there is something there */
+	if (*ptr++ != (*vp++^ii)) break;
+    }
+    if (ii >= 0x00010000) {	/* it matched, so maybe it worked */
+	vp = vals;
+	ptr = mem;
+	for (ii=0; ii<16; ++ii) {	/* check to see that bank 0 is sill ok */
+	    if (*vp++ != *ptr++) break;
+	}
+	if (ii < 16) {			/* it isn't, bank 1 maps on top of bank 0 */
+	    diag_serial_str(msg);	/* emit the message */
+	    ptr = mem;
+	    vp = vals;
+	    for (ii=0; ii<16; ++ii) {	/* restore bank 0's data */
+		*ptr++ = *vp++;
+		sts = *(VU32*)(CTRL_BASE);
+	    }
+	    return size;		/* and give 'em only 1/2 */	    
+	} else {
+	    size = memsize;
+	}
+    }
+    if (mem == (VU32*)RDRAM_BASEnc) {
+	ptr = mem;
+	for (ii=1; ii < 0x00010000; ii += ii) {
+    	    *ptr++ = ii;
+	    sts = *(VU32*)(CTRL_BASE);
+	}
+	ptr = mem;
+	for (ii=1; ii < 0x00010000; ii += ii) {
+	    if (*ptr++ != ii) break;
+	}
+	if (ii < 0x00010000) {
+	    return 0;
+	}
+    }
+    return size;
+}
+
+void parse(void) {
+#if DO_AUTOBAUD
+    extern int ticks_microsec;
+    nisprintf(emsg, sizeof(emsg), "CPU running at somewhere near %dMHZ\r\n",
+    	ticks_microsec*2);
+    diag_serial_str(emsg);
+#endif
+
+    rr_size = size_mem((VU32*)RRBUS_BASEnc, RRBUS_SIZE, "RamRom address bit A21 appears dead.\r\n");
+    dram_size = size_mem((VU32*)DRAM_BASEnc, DRAM_SIZE, "DRAM bank 1 appears mapped on bank 0\r\n");
+    odram_size = size_mem((VU32*)RDRAM_BASEnc, RDRAM_SIZE, "ObjDRAM bank 1 appears mapped on bank 0\r\n");
+    nisprintf(emsg, sizeof(emsg), "Found %dMB of RamRom at addrs 0x%08lX-0x%08lX\r\n",
+    	rr_size>>20, RRBUS_BASE, RRBUS_BASE+rr_size-1);
+    diag_serial_str(emsg);
+    nisprintf(emsg, sizeof(emsg), "Found %dMB of DRAM at addrs 0x%08lX-0x%08lX\r\n",
+    	dram_size>>20, DRAM_BASEnc, DRAM_BASEnc+dram_size-1);
+    diag_serial_str(emsg);
+    if (odram_size) {
+	nisprintf(emsg, sizeof(emsg), "Found %dMB of Object DRAM at 0x%08lX-0x%08lX\r\n",
+	    odram_size>>20, RDRAM_BASE, RDRAM_BASE+odram_size-1);
+	diag_serial_str(emsg);
+    } else {
+	diag_serial_str("No Object DRAM present\r\n");
+    }
+    while (1) {
+	char *s, *s1;
+	s = diag_get_line("Diags> ");
+	diag_serial_str("\r\n");
+	s1 = s;
+	while (*s1) {
+	    *s1 = toupper(*s1);
+	    ++s1;
+	}
+	s = strtok(s, " ");
+	if (s) decode(s);
+#if 0
+	{
+	    int ii;
+	    ii = 0;
+	    while (s) {
+		nisprintf(emsg, sizeof(emsg), "String %d, len %d: \"%s\"\r\n", ii++, strlen(s), s);
+		diag_serial_str(emsg);
+		s = strtok(0, " ");
+	    }
+	}
+#endif
+    }
+}
+@
+
+
+1.6
+log
+@Changed text in help message.
+@
+text
+@d30 1
+d32 1
+d1122 1
+d1136 1
+a1136 1
+    nisprintf(emsg, sizeof(emsg), "CPU running at %dMHZ\r\n",
+d1151 1
+a1151 1
+	nisprintf(emsg, sizeof(emsg), "Found %dMB of Object DRAM at %08lX-%08lX\r\n",
+@
+
+
+1.5
+log
+@Added range tests for XBUS command.
+@
+text
+@d36 2
+a37 1
+    "XBUS [range] - look on XBUS for 2Mb memory and test it",
+@
+
+
+1.4
+log
+@Changed the name of proto.h to sad_proto.h
+Updated the interface to zag_test_fifo()
+@
+text
+@d10 2
+d30 1
+d36 1
+a36 1
+    "XBUS - look on XBUS for 2Mb memory and write/read it",
+d73 19
+d265 1
+a265 1
+    count = get_args(sizeof(values)/sizeof(U32), values, 4);
+d341 1
+a341 1
+    count = get_args(sizeof(values)/sizeof(U32), values, 4);
+d373 21
+d417 1
+a417 1
+    U32 sa, ea, phys;
+d429 1
+a429 1
+    count = get_args(sizeof(values)/sizeof(U32), values, 4);
+d452 1
+a452 1
+    phys = sa = values[0];
+a453 3
+    if (phys >= 0x00A00000 && phys < 0x00E00000) {
+	phys = (phys-0x00A00000) + 0x80000000;
+    }
+d456 1
+a456 2
+	nisprintf(emsg, sizeof(emsg), "Testing addresses %08lX-%08lX",
+		    phys, phys+(ea-sa));
+d473 1
+a473 18
+	    nisprintf(emsg, sizeof(emsg), "Failed at %08lX\r\n",
+		    dparms.bad_address-sa+phys);
+	    diag_serial_str(emsg);
+	    nisprintf(emsg, sizeof(emsg), "\tduring test \"%s\"\r\n", mem_test_msgs[count]);
+	    diag_serial_str(emsg);
+	    if (param != SPEC_BRAM) {
+		if (jj == 0) {
+		    nisprintf(emsg, sizeof(emsg), "\t\tExpected %08lX\r\n\t\tFound    %08lX\r\n",
+			dparms.expected_lsb, dparms.actual_lsb);
+		} else {
+		    nisprintf(emsg, sizeof(emsg), "\t\tExpected %08lX%08lX\r\n\t\tFound    %08lX%08lX\r\n",
+			dparms.expected_msb, dparms.expected_lsb, dparms.actual_msb, dparms.actual_lsb);
+		}
+	    } else {
+		nisprintf(emsg, sizeof(emsg), "\t\tExpected %02X\r\n\t\tFound    %02X\r\n",
+		    dparms.expected_lsb&0xFF, dparms.actual_lsb&0xFF);
+	    }
+	    diag_serial_str(emsg);
+d611 1
+a611 1
+    count = get_args(sizeof(values)/sizeof(U32), values, 1);
+d707 3
+a709 1
+     int ii, jj, xbinc, loop;
+d718 25
+d777 1
+a777 1
+     nisprintf(emsg, sizeof(emsg), "Writing then reading addresses %008lX-%08lX\r\n",
+d1140 1
+a1140 1
+    nisprintf(emsg, sizeof(emsg), "Found %dMB of RamRom at physical addrs 0x%08lX-0x%08lX\r\n",
+d1143 2
+a1144 2
+    nisprintf(emsg, sizeof(emsg), "Found %dMB of DRAM at physical addrs 0x%08lX-0x%08lX\r\n",
+    	dram_size>>20, 0x80000000, 0x80000000+dram_size-1);
+@
+
+
+1.3
+log
+@Conditional'd the use of LCD calls.
+@
+text
+@d3 2
+a4 1
+#include <proto.h>
+d459 10
+a468 8
+static int last_col, last_row;
+static void so(int col, int row, const char *str) {
+    int len;
+    col += 2;
+    while (last_row < row) {
+	diag_serial_str("\r\n");
+	++last_row;
+	last_col = 0;
+d470 103
+a572 8
+    while (last_col < col) {
+	diag_serial_out(' ');
+	++last_col;
+    }
+    if (str) {
+	len = strlen(str);
+	diag_serial_str(str);
+	last_col += len;
+d574 1
+d592 5
+a596 4
+	last_col = last_row = 0;
+	zag_test_fifo(so, 2, 1);
+	diag_serial_str("\r\n");
+	return 0;
+@
+
+
+1.2
+log
+@Changed a comment.
+Added a CPU speed report if autobaud is in use.
+@
+text
+@d493 1
+d566 6
+d573 1
+d579 1
+a582 2
+static int did_lcd_reset;
+
+d595 1
+d597 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d39 3
+d777 1
+a777 1
+        eer_write_byte(&daytime->control, (VU32 *)BRAM_UNLK, 0x00);	/* enable writes to clock */
+d855 1
+d857 1
+d880 1
+d882 1
+d938 1
+d972 7
+@

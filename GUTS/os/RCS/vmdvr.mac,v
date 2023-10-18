@@ -1,0 +1,39 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	97.06.25.20.06.12;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@
+.if ndf, _VMDVR_MAC_
+_VMDVR_MAC_ == 0
+;
+;	VMDVR definitions
+;
+	HEX_CONST VMDVR_WHEEL		4
+	HEX_CONST VMDVR_LAMPS		5
+;
+	HEX_CONST M_VMDVR_DATA		0x00FF
+;
+	HEX_CONST M_VMDVR_SETUP_HOLD	0xFF00
+	HEX_CONST M_VMDVR_ADDR_STROBE	0xF700
+	HEX_CONST M_VMDVR_DATA_STROBE	0xFB00
+;
+.endc 		;_VMDVR_MAC_
+@

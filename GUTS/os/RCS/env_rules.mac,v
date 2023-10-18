@@ -1,0 +1,120 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	97.10.05.00.51.35;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Rules to make environ.c.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@;
+;	$Id$
+;
+;		Copyright 1997 Atari Games.
+;	Unauthorized reproduction, adaptation, distribution, performance or 
+;	display of this computer program or the associated audiovisual work
+;	is strictly prohibited.
+;
+.if not_defined,_ENV_RULES_MAC_
+_ENV_RULES_MAC_ == 0
+;
+...tot == 0
+...epi == 0
+.radix 10
+;
+.macro PROLOG name
+.if true, ...tot != 0
+.error ;PROLOG must be first, and there can be only one
+.mexit
+.endc
+.if true, ...epi != 0
+.error ;EPILOG must be the last directive in the file
+.mexit
+.endc
+#if !defined(_ENVIRONMENT_C_)
+#define _ENVIRONMENT_C_
+
+#include <config.h>
+#include <st_proto.h>
+
+...tot == 1
+.endm
+;
+.macro mk_head num
+static const struct st_envar env_'num' = {
+.endm
+;
+.macro mk_next num
+    &env_'num',
+.endm
+;
+.macro ENV name value=0 flags=0
+.endm
+;
+.macro ENV name value=0 flags=0
+.if true, ...tot == 0
+.error ;You must have one PROLOG directive before any ENV or EPILOG directives
+.mexit
+.endc
+.if true, ...epi != 0
+.error ;EPILOG must be the last directive in the file
+.mexit
+.endc
+;
+mk_head \...tot
+    name,
+    (void *)('value'), 
+.if true, ...tot == 1
+    0,
+.iff
+mk_next \(...tot-1)
+.endc
+    flags
+};
+...tot == ...tot+1
+.endm
+;
+.macro EPILOG name value flags table 
+.if true, ...epi != 0
+.error ;There must be no more than 1 EPILOG directive and it must be last
+.mexit
+.endc
+...epi == 1
+.if true, ...tot == 0
+.error ;You must have one PROLOG directive before any ENV or EPILOG directives
+.mexit
+.endc
+.if blank,<table>
+.error ;You must have a table name on the EPILOG directive
+.mexit
+.endc
+const struct st_envar 'table' = {
+    name,
+    (void *)('value'), 
+.if true, ...tot == 1
+    0,
+.iff
+mk_next \(...tot-1)
+.endc
+    flags
+};
+
+#endif
+.endm
+;
+.endc				;_ENV_RULES_MAC_
+@

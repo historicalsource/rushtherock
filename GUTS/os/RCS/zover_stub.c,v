@@ -1,0 +1,203 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	96.01.13.01.20.10;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.12.21.00.24.06;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Stub entry points for zover-less systems.
+@
+
+
+1.2
+log
+@Added stubs for zov_stamp() and zov_clr_wid().
+@
+text
+@/**************************************************************
+* zover_stub.c Derived by Mike Albaugh from:
+* zover_vid.c Derived by Mike Albaugh from:
+* jag_vid.c Derived by Michael Albaugh from:                  *
+* VIDEO.C | Author: Robert M. Birmingham | June 29, 1994      *
+* =========================================================== *
+* Stub definitions for Zoid20 stacks which do _not_ have a    *
+* Zover board. Zover is the Zoid Overlay board,  a stripped-  *
+* down version of CoJag                                       *
+* G.U.T.S video support routines: Copyright 1994, Atari Games *
+**************************************************************/
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <string.h>
+#define MAKE_EXTERNS
+#include <intvecs.h>
+#undef MAKE_EXTERNS
+#include <intvecs.h>
+
+
+void zover_vi();
+
+#ifdef MEMCON
+static unsigned short tomint_shad;
+
+static void rawvb();
+
+static int zover_enable;
+#endif
+
+int zover_init() { return -1; }
+
+void zover_ANPal(int palette, U32 color) { return; }
+
+/*
+* On the Jaguar, there are several devices on a single interrupt.
+* The cause of an interrupt is determined by looking in TOM_INT1,
+* and acknowledged by writing another bit in TOM_INT1. When all
+* interrupts have been serviced, a write to TOM_INT2 is used to
+* lower the CPU priority for access to DRAM
+*/
+
+/*	Individual vectors for the possible Interrupts from TOM */
+
+#ifdef MEMCON
+#if NEEDS_FULL_VECS
+void (*dspvec)();
+void (*pitvec)();
+void (*objvec)();
+void (*gpuvec)();
+#endif
+void (*vbvec)();
+void (*vivec)();
+
+/*
+* The following vectors are in order for scanning D0..D4 while
+* counting _down_ from 4, a minor optimization for the 68K. If
+* we get a reason to sub-prioritze differently we will re-visit
+* this code.
+*/
+
+static void (** const tomvecs[])() = {
+#if NEEDS_FULL_VECS
+ &dspvec, &pitvec, &objvec, &gpuvec,
+#else
+ 0, 0, 0, 0,
+#endif
+ &vivec
+ };
+
+/*	Following is the 'C' version of the routine VBINT formerly
+ *	in os_root.asm. It is normally pointed to by vbvec, and should
+ *	not be casually replaced. Note that it does some houskeeping and
+ *	then jumps via gameint, which is the normal "bending point"
+ *	for installing user VBLANK routines.
+ */
+static void rawvb()
+{
+#if MAX_OBLIST_SIZE
+	ob_copy(1);
+#endif
+}
+
+void zover_vi()
+{
+	if ( vbvec ) vbvec();
+}
+
+void tom_install(const struct irq_tab *tbp, void (*new)()) {
+    int bitno;
+
+    bitno = tbp->notes;
+    if ( zover_enable ) {
+	if ( new ) TOM_INT1 = (tomint_shad |= (1<<bitno));
+	else  TOM_INT1 = (tomint_shad &= ~(1<<bitno));
+    } else {
+	if ( new ) tomint_shad |= (1<<bitno);
+	else  tomint_shad &= ~(1<<bitno);
+    }
+}
+
+void tomint(vecno)
+int vecno;
+{
+    int idx;
+    int bit;
+    void (*ivec)();
+
+    VU16 *tvip = &TOM_INT1;
+    bit = 1;
+    idx = n_elts(tomvecs)-1;
+
+    if ( vbvec == 0 ) vbvec = rawvb;
+    if ( !zover_enable ) return;
+    do {
+	if ( bit & *tvip ) {
+	    /* bits set are interrupts pending. First clear
+	     * the IRQ by setting the bit 8 above the "pending"
+	     * one, then pick up the appropriate vector and jump through it.
+	     */
+	    *tvip = (tomint_shad | (bit <<8));
+	    if ( tomvecs[idx] && (ivec = *(tomvecs[idx])) != 0 ) ivec();
+	    else *tvip = (tomint_shad &= ~(bit));
+	}
+	bit <<= 1;
+    } while ( --idx >= 0 );
+    TOM_INT2 = 0;		/* set interrupt resume register */
+}
+#endif
+
+int zov_str(int col, int row, const char *string, int font_color) {
+    return 0;
+}
+
+void zov_stamp(int col, int row, const int stamp, int pal) {return;}
+void zov_clr_wid(int col, int row, int wid) { return; }
+
+extern	struct menu_d	mainMenu[];
+static const char nada[] = "NO ZOVER TEST";
+
+int zover_test ( const struct menu_d *smp ) {
+
+    struct menu_d *mp;
+    for ( mp = mainMenu; mp && mp->mn_label ; ++mp ) {
+	if ( mp == smp ) {
+	    if ( mp->mn_label != nada ) {
+		mp->mn_label = (char *)nada;
+		st_frame(smp,TITLE_PAL, INSTR_PAL, 0);
+		prc_delay(240);
+	    }
+	}
+    }
+    return 0;
+}
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d145 3
+@

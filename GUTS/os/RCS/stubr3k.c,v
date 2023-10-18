@@ -1,0 +1,5735 @@
+head	1.35;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.35
+date	97.08.05.20.53.58;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	97.08.01.02.37.30;	author shepperd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	97.07.07.20.12.11;	author shepperd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	97.07.07.20.10.07;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	97.05.24.20.43.24;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	97.03.15.01.56.47;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	97.03.14.23.22.07;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	97.01.15.01.42.39;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.11.25.21.05.04;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.10.14.21.56.18;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.10.09.20.12.35;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.08.27.23.41.47;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.06.13.03.27.41;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.06.06.03.41.06;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.05.07.22.45.24;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.04.27.22.33.24;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.04.17.23.19.58;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.04.16.03.04.54;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.04.13.17.07.28;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.04.10.00.04.53;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.03.20.02.17.06;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.02.18.00.18.35;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.01.16.18.45.14;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.01.14.05.37.50;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.01.10.04.12.40;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.01.04.22.59.41;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.12.20.20.30.49;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.12.15.02.10.15;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.12.02.22.19.28;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.11.20.19.10.35;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.11.20.18.59.32;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.11.06.23.20.11;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.10.31.02.29.50;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.09.12.20.54.43;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.07.21.01.39.35;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@ICELESS Stub code for the R3K and R4K
+@
+
+
+1.35
+log
+@Added support for local exception capture for Chameleon
+which will do DBE and IBE on access to non-existant memory.
+@
+text
+@/****************************************************************************
+
+		THIS SOFTWARE IS NOT COPYRIGHTED
+
+   TWI offers the following for use in the public domain.  TWI makes no
+   warranty with regard to the software or it's performance and the
+   user accepts the software "AS IS" with all faults.
+
+   TWI DISCLAIMS ANY WARRANTIES, EXPRESS OR IMPLIED, WITH REGARD
+   TO THIS SOFTWARE INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+****************************************************************************/
+
+/****************************************************************************
+ *  $Header: /usr/local/GUTS/chameleon/stub/RCS/../../../os/RCS/stubr3k.c,v 1.34 1997/08/01 02:37:30 shepperd Exp shepperd $
+ *
+ *  $RCSfile: stubr3k.c,v $
+ *  $Revision: 1.34 $
+ *  $Date: 1997/08/01 02:37:30 $
+ *
+ *  Contributor:     Time Warner Interactive
+ *
+ *  Description:     low level support for gdb debugger. $
+ *
+ *  Considerations:  only works on target hardware $
+ *
+ *  $Author: shepperd $
+ *  $State: Exp $
+ *
+ *  NOTES:           See Below $
+ *
+ *  To enable debugger support, two things need to happen.  One, a
+ *  call to set_debug_traps() is necessary in order to allow any breakpoints
+ *  or error conditions to be properly intercepted and reported to gdb.
+ *  Two, an exception needs to be generated to begin communication.
+ *  This is most easily accomplished from this code by a call to breakpoint().
+ *  Breakpoint() executes the machine instruction BREAK. From an external source,
+ *  an ICELESS interrupt needs to be generated which will do essentially the
+ *  same thing.
+ *
+ *  Some explanation is probably necessary to explain how exceptions are
+ *  handled.  When an exception is encountered, the 3k and 4k processors save
+ *  the current pc in the C0_EPC register (or C0_ERRPC in the case of an error exception
+ *  on the 4k processor only), sets Kernel mode, disables interrupts and jumps to the
+ *  exception vector. The exception handler implemented in this code has a software
+ *  based vector table that is used to dispatch the exception to either itself or
+ *  to the target's exception (interrupts only) handler.
+ *
+ *  Because gdb will sometimes write to the stack area to execute function
+ *  calls, this program cannot rely on using the supervisor stack so it
+ *  uses it's own stack area reserved in the int array remcomStack.
+ *
+ *************
+ *
+ *    The following gdb commands are supported:
+ *
+ * command          function                               Return value
+ *
+ *    g             return the value of the CPU registers  data or nakN
+ *    G             set the value of the CPU registers     ack or nakN
+ *    Pnnsr...      set the value of CPU register n        ack or nakN
+ *		    (nn=register number, s=size, r=data)
+ *
+ *    pnnLL	    Read LL registers' worth of CPU	   data or nakN
+ *		    registers starting with register
+ *		    n (LL*REGISTER_RAW_SIZE must
+ *		    be less than or equal to 505)
+ *
+ *    mnA..ALL      Read LL bytes at address A..A          data or nakN
+ *    MnA..ALLd...  Write LL bytes at address A..A         ack or nakN
+ *		    (n = number of A bytes present)
+ *
+ *    c             Resume at current address              ack
+ *    cnA..A        Continue at address A..A               ack
+ *		    (n = number of A bytes)
+ *
+ *    s             Step one instruction                   ack
+ *    snA..A        Step one instruction from AA..AA       ack
+ *		    (n = number of A bytes)
+ *
+ *    k             kill				   ack
+ *
+ *    ?             What was the last sigval ?             SN   (signal NN)
+ *
+ * All command bytes are the ASCII characters listed in the above table.
+ * All data is simple binary octets. In the case of a multi-octet value,
+ * the octets are delivered most significant first. The reply
+ * "command" octet is one of ICEack, ICEnak or ICEreply. In the case
+ * of ICEnak, the error code(s) follow the command octet. In the case
+ * of ICEreply the reply data follows the command octet. In the case
+ * of ICEack, no additional data follows.
+ *
+ ****************************************************************************/
+
+#define NEED_CORP_DEFS
+#define LCD_GUTS_ONLY
+#include <config.h>
+#include <icelesspkt.h>
+#include <ctype.h>
+#include <string.h>
+#include <setjmp.h>
+
+#if HOST_BOARD_CLASS && ((HOST_BOARD&HOST_BOARD_CLASS) == PHOENIX)
+# define WMS_HOST 1
+#endif
+
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == MB4600) || WMS_HOST
+#define R4K_HOST 1
+#else
+#define R4K_HOST 0
+#endif
+
+#if R4K_HOST
+static unsigned long registers[NUM_REGS * 2];
+static unsigned long lcl_regs[NUM_REGS];	/* These are what we'll pass to gdb */
+static int using_r3k;		/* signal we're to talk using R3K lingo */
+static const U16 reg_xlate[] = {
+    INX_REGNUM_W, RAND_REGNUM_W, TLBLO0_REGNUM_W, CTXT_REGNUM_W,
+TLBHI_REGNUM_W, EPC_REGNUM_W, PRID_REGNUM_W};
+
+#else
+static unsigned long registers[NUM_REGS];	/* fake out the stub */
+
+#endif
+
+#define STACKSIZE 1024
+#define NUMREGBYTES (MIPS_REGSIZE*NUM_REGS)
+
+/************************************************************************
+ * Putting our buffers and stuff first in case GUTS steps on them
+ */
+unsigned long remcomStack[STACKSIZE / MIPS_REGSIZE];
+
+/************************************************************************/
+/* BUFMAX defines the maximum number of characters in inbound/outbound buffers */
+
+#define BUFMAX (512)
+#define OBUFMAX (BUFMAX-PKTuser-1)
+unsigned char remcomInBuffer1[BUFMAX];
+unsigned char remcomInBuffer2[BUFMAX];
+unsigned char remcomOutBuffer[BUFMAX];
+
+/************************************************************************
+ *
+ * external low-level support routines
+ */
+typedef void (*ExceptionHook) (int);	/* pointer to function with int parm */
+typedef void (*Function) ();	/* pointer to a function */
+
+#if (PROCESSOR&-16) == 0
+extern Function exceptionHandler();	/* assign an exception handler */
+ExceptionHook exceptionHook;	/* hook variable for errors/exceptions */
+extern void catchException();
+
+#endif
+
+#include <nsprintf.h>
+
+#if (PROCESSOR & -16) == MIPS4000
+extern int tlbprobe(U32 ptr, int size);
+extern U32 ret_pagemask(int indx);
+
+#endif
+
+/************************/
+/* FORWARD DECLARATIONS */
+/************************/
+
+static short error;
+static PktIOStruct outRemcomPkt;
+static PktIOStruct inpRemcomPkt1;
+static PktIOStruct inpRemcomPkt2;
+static char initialized;	/* boolean flag. != 0 means we've been initialized */
+
+#if 0
+/* In many cases, the system will want to continue exception processing when a continue command is
+ * given.  oldExceptionHook is a function to invoke in this case. */
+
+static ExceptionHook oldExceptionHook;
+
+#endif
+
+/************* jump buffer used for setjmp/longjmp **************************/
+static jmp_buf remcomEnv;
+
+/***************************  External functions ***************************/
+
+extern void returnToUser(unsigned long *);
+
+#if (PROCESSOR & -16) == MIPS4000
+extern void flush_cache(void), flush_dcache(void);
+
+#else
+extern void zap_i_cache(void);
+
+#endif
+
+/*************************** Our code **************************************/
+
+static short error;
+char errmsg[132];
+
+#if !defined(HB_PHOENIX)
+
+#if HOST_BOARD == PHOENIX || HOST_BOARD == PHOENIX_AD || HOST_BOARD == SEATTLE || HOST_BOARD == FLAGSTAFF || HOST_BOARD == VEGAS
+#define HB_PHOENIX 1
+#else
+#define HB_PHOENIX 0
+#endif
+
+#endif
+
+#if !HB_PHOENIX
+extern void wait_n_usecs(int);
+
+#endif
+
+#if defined(DEBUG_STUB)
+extern void write_line(char *msg);
+extern void pktDumpQues();
+
+static void debug_dmppkt(char *prefix, unsigned char *buf, int len)
+{
+    char *s;
+    int ch, pktn;
+
+    pktn = *buf++;		/* packet number */
+    ch = *buf++;		/* command char */
+    nisprintf(errmsg, "  sizeof(errmsg), %s (%d): %02X %02X(%c)", prefix, len, pktn, ch, isprint(ch) ? ch : '.');
+    s = errmsg + strlen(errmsg);
+    len -= 2;
+    if (len > 8)
+	len = 8;
+    for (; len > 0; --len) {
+	nisprintf(s, sizeof(errmsg) - (s - errmsg), " %02X", *buf++);
+	s += 3;
+    }
+    write_line(errmsg);
+    return;
+}
+
+#define DBG_DMP(pref, buf, len) debug_dmppkt(pref, buf, len)
+
+#else
+
+#define DBG_DMP(a,b,c)
+#endif
+
+/* send the packet in buffer.  The host get's one chance to read it.  This routine does not wait for
+ * a positive acknowledge.  */
+extern void blink(int);
+
+static void putpacket(int len)
+{
+    PktIOStruct *pkt;
+    int sts;
+
+    pkt = &outRemcomPkt;
+    pkt->len = len;
+    DBG_DMP("S", pkt->buf, pkt->len);
+
+#if !HB_PHOENIX
+    wait_n_usecs(1000);		/* wait about 1 millisecond */
+#endif
+
+    if (pkt->len > 1) {
+	sts = pktQueSend(pkt, 1);	/* send and wait for the packet to be delivered */
+    }
+    return;
+}
+
+#if !defined(BOARD)
+#define BOARD 0			/* look for gdb packet from board 0 */
+#endif
+
+static void add_stub_pkts(void)
+{
+
+#if R4K_HOST || (HOST_BOARD == LCR3K)
+    outRemcomPkt.buf = remcomOutBuffer;
+    outRemcomPkt.size = sizeof(remcomOutBuffer);
+    outRemcomPkt.to = 0;
+    outRemcomPkt.tothread = TWI_THREAD;
+    outRemcomPkt.from = 0;
+    outRemcomPkt.frmthread = TWI_THREAD;
+
+    inpRemcomPkt1.buf = remcomInBuffer1;
+    inpRemcomPkt1.size = sizeof(remcomInBuffer1);
+    inpRemcomPkt1.to = 0;
+    inpRemcomPkt1.tothread = TWI_THREAD;
+    inpRemcomPkt1.from = 0;
+    inpRemcomPkt1.frmthread = TWI_THREAD;
+    inpRemcomPkt1.func = 0;
+    inpRemcomPkt1.next = 0;
+
+    inpRemcomPkt2.buf = remcomInBuffer2;
+    inpRemcomPkt2.size = sizeof(remcomInBuffer2);
+    inpRemcomPkt2.to = 0;
+    inpRemcomPkt2.tothread = TWI_THREAD;
+    inpRemcomPkt2.from = 0;
+    inpRemcomPkt2.frmthread = TWI_THREAD;
+    inpRemcomPkt2.func = 0;
+    inpRemcomPkt2.next = 0;
+
+    pktQueRecv(&inpRemcomPkt1);	/* tell input routine we are ready to read */
+#endif
+}
+
+/* This is a particularly nasty hack. It ought to be fixed. */
+
+extern PktIOStruct *current[];
+extern PktIOStruct *queued[];
+extern PktIOStruct *ready[];
+
+static void pkt_validate(void)
+{				/* just check that stub has an element on one of the queues */
+    PktIOStruct *pkt = 0;
+    int ii;
+
+    for (ii = 0; ii < 3; ++ii) {
+	if (ii == 0)
+	    pkt = current[0];
+	else if (ii == 1)
+	    pkt = ready[0];
+	else if (ii == 2)
+	    pkt = queued[0];
+	while (pkt) {
+	    if (pkt == &inpRemcomPkt1 || pkt == &inpRemcomPkt2)
+		return;
+	    pkt = pkt->next;
+	}
+    }
+    add_stub_pkts();		/* stick one on anyway */
+    return;
+}
+
+#if HB_PHOENIX
+extern PktIOStruct *pktPollq(int board, int flag, int channel, int thread);
+extern int pktQueRecvq(PktIOStruct * pkt);
+
+#define PKTPOLL pktPollq
+#define PKTRECV pktQueRecvq
+#else
+#define PKTPOLL pktPoll
+#define PKTRECV pktQueRecv
+#endif
+
+PktIOStruct *getpacket(void)
+{
+    unsigned char *buffer;
+    int ii, jj;
+    char ch;
+    PktIOStruct *pkt, *opkt;
+
+    pkt_validate();		/* make sure there's something we can read into */
+
+    while (1) {
+	jj = 0;
+	while ((pkt = PKTPOLL(BOARD, PKT_CHK_THREAD, 0, TWI_THREAD)) == 0) {
+
+#if defined(WDOG)
+	    WDOG = 0;		/* keep watchdog at bay */
+#endif
+
+#if defined(DEBUG_STUB)
+	    if (++jj == 500000) {
+		nisprintf(errmsg, sizeof(errmsg), "  Waiting pc=%08lX, sp=%08lX..",
+			  registers[PC_REGNUM_W], registers[SP_REGNUM_W]);
+		write_line(errmsg);
+		pktDumpQues();
+	    }
+#endif
+	}
+
+	/* wait for anything on GDB thread */
+	if (pkt == &inpRemcomPkt1) {
+	    PKTRECV(&inpRemcomPkt2);	/* tell input routine we are ready to read */
+	} else {
+	    PKTRECV(&inpRemcomPkt1);	/* tell input routine we are ready to read */
+	}
+	DBG_DMP("R", pkt->buf, pkt->len);
+	opkt = &outRemcomPkt;
+	opkt->to = pkt->from;	/* prepare the output packet */
+	opkt->tothread = pkt->frmthread;
+	opkt->from = pkt->to;	/* say where we came from */
+	opkt->frmthread = pkt->tothread;
+	ii = pkt->len;
+	buffer = pkt->buf;
+	remcomOutBuffer[0] = *buffer++;	/* clone the sequence number */
+	if (ii < 2) {
+	    remcomOutBuffer[1] = ICEnak;	/* return an error code */
+	    remcomOutBuffer[2] = NAKinsufarg;
+	    strcpy((char *) remcomOutBuffer + 3, "Command packet too short");
+	    outRemcomPkt.len = 2 + strlen((char *) remcomOutBuffer + 3);	/* n items in the record */
+	    pktQueSend(&outRemcomPkt, 1);	/* send the NAK and wait for the packet to be
+						 * delivered */
+	    continue;		/* ignore short records */
+	}
+	remcomOutBuffer[1] = ICEack;	/* assume success */
+	ch = *buffer;
+	if (ch == ICEack || ch == ICEnak)
+	    continue;		/* ignore ack's/nak's he sends us */
+	return pkt;
+    }
+}
+
+#if defined(COJAG_STUB) && BYTE0_OFFS
+U32 jpeek(VU16 * jerry)
+{
+    U32 tmp;
+
+    tmp = *(U32 *) jerry & 0xFFFF0000;	/* high word */
+    tmp |= jerry[1];		/* low word */
+    return tmp;
+}
+
+void jpoke(VU16 * jerry, U32 what)
+{
+    *(U32 *) jerry = (what & 0xFFFF0000) | (what >> 16);
+    jerry[1] = what;
+}
+
+/*****************************************************************************************/
+static int jerry_read(unsigned char *buf, unsigned char *mem, int amt)
+{
+    VU16 *jerry;
+    U32 tmp, mask;
+    int indx;
+    unsigned char *bbuf;
+
+    bbuf = buf;
+    indx = (long) mem & 3;	/* clip input to longword boundary */
+    jerry = (VU16 *) (((long) mem & 0x00FFFFFC) | XBUS_SLOT3);
+    if (indx) {			/* if arrived on an odd byte boundary */
+	tmp = jpeek(jerry);
+	indx = 8 * (3 - indx);
+	mask = 0xFF << indx;
+	for (; amt && indx >= 0; indx -= 8, mask >>= 8, --amt) {	/* copy bytes up to longword
+									 * boundary */
+	    *buf++ = tmp >> indx;	/* get byte we're interested in */
+	}
+	jerry += 2;		/* advance jerry to next longword */
+    }
+    for (; amt & ~3; amt -= 4) {/* next, copy out longwords */
+	tmp = jpeek(jerry);
+	*buf++ = tmp >> 24;
+	*buf++ = tmp >> 16;
+	*buf++ = tmp >> 8;
+	*buf++ = tmp;
+	jerry += 2;
+    }
+
+    if (amt) {			/* next copy any left over bytes */
+	tmp = jpeek(jerry);
+	mask = 0xFF000000;	/* init a mask byte */
+	indx = 24;
+	for (; amt && indx >= 0; --amt, indx -= 8, mask >>= 8) {
+	    *buf++ = tmp >> indx;	/* get byte we're interested in */
+	}
+    }
+    return buf - bbuf;
+}
+
+static int jerry_write(unsigned char *mem, unsigned char *buf, int amt)
+{
+    VU16 *jerry;
+    U32 tmp, mask;
+    int indx;
+
+    indx = (long) mem & 3;
+    jerry = (unsigned short *) (((long) mem & 0x00FFFFFC) | XBUS_SLOT3);
+    if (indx) {			/* if arrived on an odd byte boundary */
+	tmp = jpeek(jerry);
+	indx = 8 * (3 - indx);
+	mask = 0xFF << indx;
+	for (; amt && indx >= 0; indx -= 8, mask >>= 8, --amt) {	/* copy bytes up to longword
+									 * boundary */
+	    tmp &= ~mask;	/* out with the old */
+	    tmp |= *buf++ << indx;	/* in with the new */
+	}
+	jpoke(jerry, tmp);
+	jerry += 2;
+    }
+    for (; amt & ~3; amt -= 4) {/* then copy longwords */
+	tmp = *buf++ << 24;
+	tmp |= *buf++ << 16;
+	tmp |= *buf++ << 8;
+	tmp |= *buf++;
+	jpoke(jerry, tmp);
+	jerry += 2;
+    }
+    if (amt) {			/* next copy any left over bytes */
+	tmp = jpeek(jerry);
+	mask = 0xFF000000;	/* init a mask byte */
+	indx = 24;
+	for (; amt && indx >= 0; --amt, indx -= 8, mask >>= 8) {
+	    tmp &= ~mask;	/* out with old */
+	    tmp |= *buf++ << indx;	/* in with the new */
+	}
+	jpoke(jerry, tmp);
+    }
+    return 0;
+}
+
+#endif
+
+#if R4K_HOST
+
+#if !defined(FLUSH_WB) && defined(CTRL_BASE)
+#define FLUSH_WB() do { U32 junk; junk = *((VU32 *)CTRL_BASE); } while (0)
+#endif
+
+#endif
+
+#if !defined(FLUSH_WB)
+#define FLUSH_WB()
+#endif
+
+static int romulator_write(unsigned char *mem, unsigned char *buf, int amt)
+{
+    unsigned long *lp, tmp, mask;
+    int indx;
+
+    indx = (long) mem & 3;
+    lp = (unsigned long *) ((long) mem & ~3);
+    if (indx) {			/* if arrived on an odd byte boundary */
+	tmp = *lp;
+
+#if BYTE0_OFFS
+	indx = 8 * (3 - indx);
+	mask = 0xFF << indx;
+	for (; amt && indx >= 0; indx -= 8, mask >>= 8, --amt) {	/* copy bytes up to longword
+									 * boundary */
+	    tmp &= ~mask;	/* out with the old */
+	    tmp |= *buf++ << indx;	/* in with the new */
+	}
+#else
+	mask = 0xFF << (8 * indx);
+	for (; amt && indx < 4; ++indx, mask <<= 8, --amt) {
+	    tmp &= ~mask;
+	    tmp |= *buf++ << (8 * indx);
+	}
+#endif
+
+	*lp++ = tmp;
+	FLUSH_WB();
+    }
+    for (; amt & ~3; amt -= 4) {/* then copy longwords */
+
+#if BYTE0_OFFS
+	tmp = *buf++ << 24;
+	tmp |= *buf++ << 16;
+	tmp |= *buf++ << 8;
+	tmp |= *buf++;
+#else
+	tmp = *buf++;
+	tmp |= *buf++ << 8;
+	tmp |= *buf++ << 16;
+	tmp |= *buf++ << 24;
+#endif
+
+	*lp++ = tmp;
+	FLUSH_WB();
+    }
+    if (amt) {			/* next copy any left over bytes */
+	tmp = *lp;
+
+#if BYTE0_OFFS
+	mask = 0xFF000000;	/* init a mask byte */
+	indx = 24;
+	for (; amt && indx >= 0; --amt, indx -= 8, mask >>= 8) {
+	    tmp &= ~mask;	/* out with old */
+	    tmp |= *buf++ << indx;	/* in with the new */
+	}
+#else
+	mask = 0xFF;
+	indx = 0;
+	for (; amt && indx < 4; --amt, ++indx, mask <<= 8) {
+	    tmp &= ~mask;
+	    tmp |= *buf++ << (8 * indx);
+	}
+#endif
+
+	*lp++ = tmp;
+	FLUSH_WB();
+    }
+    return (U32) lp - (U32) ((int) mem & ~3);
+}
+
+#if defined(XBUS_SLOT0) || (HB_PHOENIX)
+/* csl_write - writes bytes, shorts or longs depending on the amt and the alignment of the address. */
+
+static int csl_write(unsigned char *mem, unsigned char *buf, int amt)
+{
+    if (amt == 0)
+	return 0;		/* nothing to do */
+    if (((U32) mem & 3) == 0 && (amt & 3) == 0) {	/* count and ptr are longword aligned, do
+							 * longwords */
+	U32 *src, *dst, tmp;
+
+	dst = (U32 *) mem;
+	amt >>= 2;		/* divide amount by 4 */
+	if (((U32) buf & 3) == 0) {	/* source is longword aligned too */
+	    src = (U32 *) buf;
+	    while (amt-- > 0)
+		*dst++ = *src++;/* copy longwords */
+	} else {
+	    while (amt-- > 0) {
+
+#if BYTE0_OFFS
+		tmp = *buf++ << 24;	/* copy source as bytes... */
+		tmp |= *buf++ << 16;
+		tmp |= *buf++ << 8;
+		tmp |= *buf++;
+#else
+		tmp = *buf++;	/* copy source as bytes... */
+		tmp |= *buf++ << 8;
+		tmp |= *buf++ << 16;
+		tmp |= *buf++ << 24;
+#endif
+
+		*dst++ = tmp;	/* and destination as longwords */
+	    }
+	}
+	return 0;
+    }
+    if (((U32) mem & 1) == 0 && (amt & 1) == 0) {	/* count and ptr are short aligned, do shorts */
+	U16 *src, *dst;
+
+	dst = (U16 *) mem;
+	amt >>= 1;		/* divide amount by 2 */
+	if (((U32) buf & 1) == 0) {	/* source is short aligned too */
+	    src = (U16 *) buf;
+	    while (amt-- > 0)
+		*dst++ = *src++;/* copy longwords */
+	} else {
+	    while (amt-- > 0) {
+		U16 tmp;
+
+#if BYTE0_OFFS
+		tmp = *buf++ << 8;	/* copy source as bytes... */
+		tmp |= *buf++;
+#else
+		tmp = *buf++;	/* copy source as bytes... */
+		tmp |= *buf++ << 8;
+#endif
+
+		*dst++ = tmp;	/* and destination as longwords */
+	    }
+	}
+	return 0;
+    }
+    memcpy(mem, buf, amt);	/* else just copy them as bytes */
+    return 0;
+}
+
+/* csl_read - read bytes, shorts or longs depending on the amt and the alignment of the address. */
+
+static int csl_read(unsigned char *buf, unsigned char *mem, int amt)
+{
+    if (amt == 0)
+	return 0;		/* nothing to do */
+    if (((U32) mem & 3) == 0 && (amt & 3) == 0) {	/* count and ptr are longword aligned, do
+							 * longwords */
+	U32 *src;
+
+	src = (U32 *) mem;
+	amt >>= 2;		/* divide amount by 4 */
+	if (((U32) buf & 3) == 0) {	/* source is longword aligned too */
+	    U32 *dst;
+
+	    dst = (U32 *) buf;
+	    while (amt-- > 0)
+		*dst++ = *src++;/* copy longwords */
+	} else {
+	    while (amt-- > 0) {
+		U32 tmp;
+
+		tmp = *src++;	/* copy source as longwords */
+
+#if BYTE0_OFFS
+		*buf++ = tmp >> 24;	/* and destination as bytes */
+		*buf++ = tmp >> 16;
+		*buf++ = tmp >> 8;
+		*buf++ = tmp;
+#else
+		*buf++ = tmp;	/* and destination as bytes */
+		*buf++ = tmp >> 8;
+		*buf++ = tmp >> 16;
+		*buf++ = tmp >> 24;
+#endif
+	    }
+	}
+	return 0;
+    }
+    if (((U32) mem & 1) == 0 && (amt & 1) == 0) {	/* count and ptr are short aligned, do shorts */
+	U16 *src;
+
+	src = (U16 *) mem;
+	amt >>= 1;		/* divide amount by 2 */
+	if (((U32) buf & 1) == 0) {	/* source is short aligned too */
+	    U16 *dst;
+
+	    dst = (U16 *) buf;
+	    while (amt-- > 0)
+		*dst++ = *src++;/* copy shorts */
+	} else {
+	    while (amt-- > 0) {
+		U16 tmp;
+
+		tmp = *src++;	/* copy source as shorts */
+
+#if BYTE0_OFFS
+		*buf++ = tmp >> 8;	/* copy dest as bytes */
+		*buf++ = tmp;
+#else
+		*buf++ = tmp;	/* copy dest as bytes */
+		*buf++ = tmp >> 8;
+#endif
+	    }
+	}
+	return 0;
+    }
+    memcpy(buf, mem, amt);	/* else just copy as bytes */
+    return 0;
+}
+
+#endif
+
+#if R4K_HOST && !HB_PHOENIX
+static int control_write(unsigned char *mem, unsigned char *buf, int amt)
+{
+    nisprintf(errmsg, sizeof(errmsg), "Cannot store to control register %08lX-%08lX\n", (U32) mem, (U32) mem + amt);
+    return -strlen(errmsg);
+}
+
+#endif
+
+#if !HAS_LCD
+
+#if R4K_HOST
+#define W_SPEC(func, start, end, xlate, name) func, (unsigned long)(start), (unsigned long)((end)-1), (unsigned long)xlate
+#else
+#define W_SPEC(func, start, end, xlate, name) func, (unsigned long)(start), (unsigned long)((end)-1)
+#endif
+
+#else
+
+#if R4K_HOST
+#define W_SPEC(func, start, end, xlate, name) func, (unsigned long)(start), (unsigned long)((end)-1), (unsigned long)xlate, name
+#else
+#define W_SPEC(func, start, end, xlate, name) func, (unsigned long)(start), (unsigned long)((end)-1), name
+#endif
+
+#endif
+
+typedef struct {
+    int (*func) (unsigned char *dst, unsigned char *src, int amt);
+    unsigned long start;
+    unsigned long end;
+
+#if R4K_HOST
+    unsigned long xlate;
+#endif
+
+#if HAS_LCD
+    const char *name;
+#endif
+} MSpecials;
+
+#if !HB_PHOENIX
+extern U8 ROMULATOR_STARTnc[], ROMULATOR_ENDnc[];
+
+#if R4K_HOST
+extern U8 ROMULATOR_STARTc[], ROMULATOR_ENDc[];
+
+#endif
+
+#else
+# define PCICFG_ADDRESS_BASE	0xE0000000
+#endif
+
+#if R4K_HOST
+
+extern void dummy_exception(void);
+struct old_eh {
+    U32 one;
+    U32 two;
+} oldeh;
+
+static void patch_eh(struct old_eh *eh) {
+    U32 j;
+    U32 *vec = (U32*)0x80000180;	/* R4k/R5k exception handler address */
+
+    j = (U32)dummy_exception >> 2;	/* divide address by 4 */
+    j &= ~0xFC000000;			/* mask off upper bits */
+    j |= 0x08000000;			/* compute a jump instruction to 'dummy_exception' */
+    eh->one = vec[0];			/* save old vector */
+    eh->two = vec[1];
+    vec[0] = j;				/* drop in new one */
+    vec[1] = 0;
+    flush_cache();			/* discard all the I and D caches */
+    return;
+}
+
+static void un_patch_eh(struct old_eh *eh) {
+    U32 *vec = (U32*)0x80000180;	/* R4k/R5k exception handler address */
+    vec[0] = eh->one;			/* restore vector */
+    vec[1] = eh->two;
+    flush_cache();
+    return;
+}
+#endif
+
+#if HB_PHOENIX 
+static int write_pcicfg(unsigned char *where, unsigned char *what, int icount)
+{
+    int ii;
+    volatile int count = icount;
+    VU32 dst;
+    U32 value, dstinc;
+    U8 *src;
+
+# if HOST_BOARD != CHAMELEON
+    VU32 *pci_cfg = (VU32 *) GALILEO_PCI_CFG;
+    VU32 *pci_dta = (VU32 *) GALILEO_PCI_DTA;
+
+    dst = (((U32) where) & 0xFFFC);
+    dst |= 0x80000000;		/* enable the configuration register */
+    dstinc = 0x10;
+
+# else
+
+    VU32 *pci_cfg = &NILE3_PCI_CONFIG_ADDRESS_T;
+    VU32 *pci_dta = &NILE3_PCI_CONFIG_DATA_T;
+
+    dst = (((U32) where) & 0x00FC);
+    ii = ((U32)where & 0xFF00) >> 8;
+    dst |= NILE3_PCI_CONFIG_ADD_ENAB | (1<<(ii+13));
+    dstinc = 4;
+
+# endif
+
+    ii = count;
+    for (src = what; count > 0; dst += dstinc) {
+
+#  if BYTE0_OFFS
+	value = *src++ << 24;
+	if (--count <= 0)
+	    break;
+	value |= *src++ << 16;
+	if (--count <= 0)
+	    break;
+	value |= *src++ << 8;
+	if (--count <= 0)
+	    break;
+	value |= *src++;
+	if (--count <= 0)
+	    break;
+#  else
+	int jj;
+
+	for (value = 0, jj = 0; jj < 4 && count > 0; ++jj, --count) {
+	    value |= *src++ << (8 * jj);
+	}
+#  endif
+	*pci_cfg = dst;
+	*pci_dta = value;
+    }
+    *pci_cfg = 0;
+    return ii;
+}
+
+#endif
+
+MSpecials const m_specials[] = {
+
+#if !HB_PHOENIX
+    {W_SPEC(romulator_write, ROMULATOR_STARTnc, ROMULATOR_ENDnc, RRBUS_BASEnc, "RomWrite")},
+
+#if COJAG_STUB
+    {W_SPEC(romulator_write, &G_FLAGS, &G_ENDRAM, &G_FLAGS, "RomWrite")},
+    {W_SPEC(jerry_write, &JPIT1, &D_ENDRAM, &JPIT1, "JerryWrite")},
+#endif
+
+#if defined(XBUS_SLOT0)
+    {W_SPEC(csl_write, XBUS_SLOT0, XBUS_SLOT77 + 0x400000, XBUS_SLOT0, "cslWrite")},
+#endif
+
+#if R4K_HOST
+    {W_SPEC(romulator_write, ROMULATOR_STARTc, ROMULATOR_ENDc, RRBUS_BASEnc, "RomWrite")},
+    {W_SPEC(romulator_write, TBUS_BASE, TBUS_BASE + TBUS_SIZE, TBUS_BASE, "RomWrite")},
+    {W_SPEC(romulator_write, RRBUS_BASE, RRBUS_BASE + RRBUS_SIZE, RRBUS_BASEnc, "RomWrite")},
+    {W_SPEC(control_write, CTRL_BASE, CTRL_BASE + 4096, CTRL_BASE, "CtlWrite")},
+#endif
+
+#else
+
+# if HOST_BOARD != CHAMELEON
+#  if HOST_BOARD == PHOENIX
+    {W_SPEC(romulator_write, EXPAN2_BASE, EXPAN2_BASE + 0x01000000, EXPAN2_BASE, "RomWrite")},
+#  else
+    {W_SPEC(romulator_write, GALILEO_CS1, GALILEO_CS1 + 0x01000000, GALILEO_CS1, "RomWrite")},
+#  endif
+    {W_SPEC(write_pcicfg, PCICFG_ADDRESS_BASE, PCICFG_ADDRESS_BASE + 0x10000, PCICFG_ADDRESS_BASE, "pcicfgwrt")},
+    {W_SPEC(csl_write, PCI_MEM_BASE, PCI_MEM_BASE + 0x18000000, PCI_MEM_BASE, "cslWrite")},
+# else
+    {W_SPEC(write_pcicfg, PCICFG_ADDRESS_BASE, PCICFG_ADDRESS_BASE + 0x10000, PCICFG_ADDRESS_BASE, "pcicfgwrt")},
+    {W_SPEC(romulator_write, ROMBUS_BASE, ROMBUS_BASE + 0x02000000, ROMBUS_BASE, "RomWrite")},
+    {W_SPEC(csl_write, 0xC0000000, 0xD0000000, 0xC0000000, "PCI Alternate addresses")},
+# endif
+#endif
+    {0, 0, 0}
+};
+
+/* copy "count" bytes of data pointed to by "buf" into memory pointed to by "mem" */
+/* return a count of characters written or a negative length of error message */
+
+int buf2mem(unsigned char *mem, unsigned char *buf, int count)
+{
+    int jj;
+    unsigned long beg, lim;
+    MSpecials const *ms;
+    unsigned char *bp = buf;
+
+#if (PROCESSOR & -16) == MIPS3000
+    mem = (unsigned char *) ((U32) mem | 0xA0000000);	/* make sure address is uncached */
+#endif
+
+    while (count) {
+	jj = count;		/* assume we're to transfer the whole amount */
+	lim = (unsigned long) (mem + count - 1);	/* compute high limit */
+	beg = (U32) mem;
+	for (ms = m_specials; ms->func; ++ms) {
+	    int a, b;
+
+	    a = lim < ms->start;
+	    b = beg > ms->end;
+	    if (a || b)
+		continue;
+	    break;
+	}
+	if (ms->func) {
+	    if (beg < ms->start) {
+		jj = ms->start - beg;	/* chop off some from the end */
+	    } else {
+		int sts;
+
+		if (lim > ms->end) {
+		    jj = lim - ms->end;	/* chop off some from the end */
+		}
+
+#if R4K_HOST
+		beg = (U32) mem - ms->start;	/* index into memory */
+		sts = ms->func((unsigned char *) (beg + ms->xlate), buf, jj);	/* copy the bytes using
+										 * the special move */
+#else
+		sts = ms->func(mem, buf, jj);	/* copy the bytes using the special move */
+#endif
+
+		if (sts < 0) {	/* if we got an error, */
+		    if (bp < buf)
+			memcpy(bp, buf, -sts + 1);	/* move the message to head of buffer */
+		    return sts;	/* and signal we got an error */
+		}
+		buf += jj;	/* advance the pointers */
+		mem += jj;
+		count -= jj;
+		continue;
+	    }
+	}
+	memcpy(mem, buf, jj);
+	mem += jj;
+	buf += jj;
+	count -= jj;
+    }
+    return buf - bp;
+}
+
+#if R4K_HOST
+static int read_32bits(unsigned char *buf, unsigned char *mem, int count)
+{
+    int ii;
+    U32 *src, value;
+    U8 *dst;
+
+    src = (U32 *) ((U32) mem & -sizeof(U32));
+    ii = count;
+    for (dst = buf; count > 0;) {
+	value = *src++;
+
+#if BYTE0_OFFS
+	*dst++ = value >> 24;
+	if (--count <= 0)
+	    break;
+	*dst++ = value >> 16;
+	if (--count <= 0)
+	    break;
+	*dst++ = value >> 8;
+	if (--count <= 0)
+	    break;
+	*dst++ = value;
+	if (--count <= 0)
+	    break;
+#else
+	*dst++ = value;
+	if (--count <= 0)
+	    break;
+	*dst++ = value >> 8;
+	if (--count <= 0)
+	    break;
+	*dst++ = value >> 16;
+	if (--count <= 0)
+	    break;
+	*dst++ = value >> 24;
+	if (--count <= 0)
+	    break;
+#endif
+    }
+    return ii;
+}
+
+#endif
+
+#if HB_PHOENIX 
+static int read_pcicfg(unsigned char *buf, unsigned char *mem, int icount)
+{
+    int ii, srcinc;
+    volatile int count = icount;
+    VU32 src;
+    U32 value;
+    U8 *dst;
+#if !BYTE0_OFFS
+    int jj;
+#endif
+
+# if HOST_BOARD != CHAMELEON
+    VU32 *pci_cfg = (VU32 *) GALILEO_PCI_CFG;
+    VU32 *pci_dta = (VU32 *) GALILEO_PCI_DTA;
+
+    src = (((U32) mem) & 0xFFFC);
+    src |= 0x80000000;		/* enable the configuration register */
+
+    srcinc = 0x10;
+
+# else
+
+    VU32 *pci_cfg = &NILE3_PCI_CONFIG_ADDRESS_T;
+    VU32 *pci_dta = &NILE3_PCI_CONFIG_DATA_T;
+
+    src = (((U32) mem) & 0x00FC);
+    ii = ((U32)mem & 0x1F00) >> 8;
+    src |= NILE3_PCI_CONFIG_ADD_ENAB | (1<<(ii+15));
+    srcinc = 4;
+
+# endif
+
+    ii = count;
+    for (dst = buf; count > 0;) {
+	*pci_cfg = src;
+	src += srcinc;
+	value = *pci_dta;
+
+#if BYTE0_OFFS
+	*dst++ = value >> 24;
+	if (--count <= 0)
+	    break;
+	*dst++ = value >> 16;
+	if (--count <= 0)
+	    break;
+	*dst++ = value >> 8;
+	if (--count <= 0)
+	    break;
+	*dst++ = value;
+	if (--count <= 0)
+	    break;
+#else
+	for (jj = 0; jj < 4 && count > 0; ++jj, --count) {
+	    *dst++ = value;
+	    value >>= 8;
+	}
+#endif
+    }
+#if HOST_BOARD == CHAMELEON
+    *pci_cfg = 0;
+#endif
+    return ii;
+}
+
+#else
+
+#if R4K_HOST
+extern int control_read(unsigned char *buf, unsigned char *mem, int count);
+
+#endif
+
+#endif
+
+MSpecials const m_rspecials[] = {
+
+#if !HB_PHOENIX
+
+#if COJAG_STUB
+    {W_SPEC(jerry_read, &JPIT1, &D_ENDRAM, &JPIT1, "jerryrd")},
+#endif
+
+#if defined(XBUS_SLOT0)
+    {W_SPEC(csl_read, XBUS_SLOT0, XBUS_SLOT77 + 0x400000, XBUS_SLOT0, "cslRead")},
+#endif
+
+#if R4K_HOST
+    {W_SPEC(read_32bits, TBUS_BASE, TBUS_BASE + TBUS_SIZE, TBUS_BASE, "r32Bits")},
+    {W_SPEC(read_32bits, RDRAM_BASE, RDRAM_BASE + RDRAM_SIZE, RDRAM_BASE, "r32Bits")},
+    {W_SPEC(read_32bits, RRBUS_BASE, RRBUS_BASE + RRBUS_SIZE, RRBUS_BASEnc, "r32Bits")},
+    {W_SPEC(control_read, CTRL_BASE, CTRL_BASE + 4096, CTRL_BASE, "ctlRead")},
+#endif
+
+#else
+
+# if HOST_BOARD != CHAMELEON
+#  if HOST_BOARD == PHOENIX
+    {W_SPEC(read_32bits, EXPAN2_BASE, EXPAN2_BASE + 0x01000000, EXPAN2_BASE, "r32Bits")},
+#  else
+    {W_SPEC(read_32bits, GALILEO_CS1, GALILEO_CS1 + 0x01000000, GALILEO_CS1, "r32Bits")},
+#  endif
+    {W_SPEC(csl_read, PCI_MEM_BASE, GALILEO_BASE + 0x14000000, PCI_MEM_BASE, "cslRead")},
+    {W_SPEC(read_pcicfg, PCICFG_ADDRESS_BASE, PCICFG_ADDRESS_BASE + 0x10000, PCICFG_ADDRESS_BASE, "pcicfg")},
+# else
+    {W_SPEC(read_pcicfg, PCICFG_ADDRESS_BASE, PCICFG_ADDRESS_BASE + 0x10000, PCICFG_ADDRESS_BASE, "pcicfg")},
+    {W_SPEC(read_32bits, ROMBUS_BASE, ROMBUS_BASE + 0x02000000, ROMBUS_BASE, "r32Bits")},
+    {W_SPEC(csl_read, 0xC0000000, 0xD0000000, 0xC0000000, "cslRead")},
+# endif
+#endif
+    {0, 0, 0}
+};
+
+/* convert the memory pointed to by mem into hex, placing result in buf */
+/* return a length of bytes placed in buf, or -length of error message */
+
+static int mem2buf(unsigned char *buf, unsigned char *mem, int count)
+{
+    unsigned char *bp;
+    unsigned long beg, lim;
+    MSpecials const *ms = 0;
+    int jj;
+
+    bp = buf;
+
+#if (PROCESSOR & -16) == MIPS3000
+    mem = (unsigned char *) ((U32) mem | 0xA0000000);	/* make sure address is uncached */
+#endif
+
+    while ((jj = count) > 0) {
+	lim = (unsigned long) (mem + count - 1);	/* compute high limit */
+	beg = (U32) mem;
+	for (ms = m_rspecials; ms->func; ++ms) {
+	    int a, b;
+
+	    a = lim < ms->start;
+	    b = beg > ms->end;
+	    if (a || b)
+		continue;
+	    break;
+	}
+	if (ms->func) {
+	    if (beg < ms->start) {
+		jj = ms->start - beg;	/* chop off some from the end */
+	    } else {
+		int sts;
+
+		if (lim > ms->end) {
+		    jj = lim - ms->end;	/* chop off some from the end */
+		}
+		sts = ms->func(buf, mem, jj);	/* copy the bytes using the special move */
+		if (sts < 0) {	/* if we got an error, */
+		    if (bp < buf)
+			memcpy(bp, buf, -sts + 1);	/* move the message to head of buffer */
+		    return sts;	/* and signal we got an error */
+		}
+		buf += jj;	/* advance the pointers */
+		mem += jj;
+		count -= jj;
+		continue;
+	    }
+	}
+	memcpy(buf, mem, jj);
+	mem += jj;
+	buf += jj;
+	count -= jj;
+    }
+    return buf - bp;
+}
+
+/* a bus error has occurred, perform a longjmp to return execution and allow handling of the error */
+
+void handle_buserror()
+{
+    longjmp(remcomEnv, 1);
+}
+
+/* this function takes the R3k exception number and attempts to translate this number into a unix
+ * compatible signal value */
+
+int computeSignal(int exceptionVector)
+{
+    int sigval;
+
+    switch (exceptionVector) {
+	case 0:
+	    sigval = 2;
+	    break;		/* SIGINT		 */
+	case 4:
+	    sigval = 11;
+	    break;		/* TLB modification	 */
+	case 8:
+	    sigval = 11;
+	    break;		/* TLB load		 */
+	case 12:
+	    sigval = 11;
+	    break;		/* TLB store		 */
+	case 16:
+	    sigval = 11;
+	    break;		/* Load address error	 */
+	case 20:
+	    sigval = 11;
+	    break;		/* Store address error	 */
+	case 24:
+	    sigval = 10;
+	    break;		/* I load error	 */
+	case 28:
+	    sigval = 10;
+	    break;		/* D load error	 */
+	case 32:
+	    sigval = 7;
+	    break;		/* syscall		 */
+	case 36:
+	    sigval = 5;
+	    break;		/* breakpoint		 */
+	case 40:
+	    sigval = 4;
+	    break;		/* reserved instruction */
+	case 44:
+	    sigval = 4;
+	    break;		/* Coprocessor unusable */
+	case 48:
+	    sigval = 8;
+	    break;		/* arithmetic overflow	 */
+	default:
+	    sigval = 4;
+	    break;		/* reserved		 */
+    }
+    return sigval;
+}
+
+/* This function does all command procesing for interfacing to gdb. */
+
+static unsigned char *getaddr(unsigned char *buf, unsigned long *addp)
+{
+    int ii;
+    unsigned long addr;
+
+    ii = *buf++;		/* number of digits in the address */
+    addr = 0;
+    for (; ii > 0; --ii) {
+	addr <<= 8;
+	addr |= *buf++;
+    }
+    *addp = addr;
+    return buf;
+}
+
+typedef struct brk {
+    U32 *prev0;			/* pointer to primary breakpoint */
+    U32 instr0;			/* instruction previously at breakpoint */
+    U32 *prev1;			/* pointer to secondary breakpoint */
+    U32 instr1;			/* instruction previously at breakpoint */
+    int active;			/* 1=primary breakpoint set, 2=secondary breakpoint set */
+} Break;
+
+#define ACTIVE_BRK_PRIMARY	1	/* breakpoint 0 is active */
+#define ACTIVE_BRK_SECONDARY	2	/* breakpoint 1 is active */
+
+static Break tbreak;
+
+#define BREAK_INSTR 0x0006000D;
+
+#if R4K_HOST
+#define CHECK_I_ADDR(addr) check_i_addr((U32 *)(addr))
+static U32 *check_i_addr(U32 * ptr)
+{
+    U8 *addr = (U8 *) ptr;
+
+    if (((U32) addr & 3) == 0) {
+
+#if !HB_PHOENIX
+	if (addr >= ROMULATOR_STARTc && addr < ROMULATOR_ENDc) {
+	    addr = (addr - ROMULATOR_STARTc) + (U8 *) RRBUS_BASEnc;
+	    return (U32 *) addr;
+	} else if (addr >= ROMULATOR_STARTnc && addr < ROMULATOR_ENDnc) {
+	    addr = (addr - ROMULATOR_STARTnc) + (U8 *) RRBUS_BASEnc;
+	    return (U32 *) addr;
+	} else if (tlbprobe((U32) addr, 4) >= 0) {
+	    return ptr;
+	}
+#else
+	if ((U32) addr >= (U32) DRAM_BASE && (U32) addr < (U32) DRAM_BASE + DRAM_SIZE) {
+	    return (U32 *) addr;
+	} else if ((U32) addr >= (U32) DRAM_BASEnc && (U32) addr < (U32) DRAM_BASEnc + DRAM_SIZE) {
+	    return (U32 *) addr;
+	} else if (tlbprobe((U32) addr, 4) >= 0) {
+	    return ptr;
+	}
+#endif
+    }
+    nisprintf(errmsg, sizeof(errmsg), "I address of %08lX is not patchable", addr);
+    return (U32 *) 0;
+}
+
+#else
+#define CHECK_I_ADDR(addr) ((U32 *)((U32)(addr)|0xA0000000))
+#endif
+
+static int do_single_step(U32 * regs)
+{
+    int op, func;
+    unsigned long inst, *opp;
+
+    /* First remove any existing breakpoints that we set */
+
+    if ((tbreak.active & ACTIVE_BRK_PRIMARY) != 0) {
+	*tbreak.prev0 = tbreak.instr0;	/* replace the original instruction */
+	FLUSH_WB();
+	if ((tbreak.active & ACTIVE_BRK_SECONDARY) != 0) {
+	    *tbreak.prev1 = tbreak.instr1;	/* replace the branch target too */
+	    FLUSH_WB();
+	}
+    }
+    tbreak.active = 0;		/* assume no breakpoints in case of errors */
+    opp = (U32 *) regs[PC_REGNUM_W];	/* get pointer to next instruction */
+    opp = CHECK_I_ADDR(opp);	/* verify and translate the address to patchable location */
+    if (opp == 0)
+	return -1;		/* it ain't valid or patchable, give up and die */
+    inst = *opp;		/* pickup the opcode */
+    op = inst >> 26;		/* isolate the opcode bits */
+
+#if 0 && HAS_LCD
+    {
+	nisprintf(lcd_buf, 40, "b: op=%d, opp=%08X", op, opp);
+    }
+#endif
+
+    switch (op) {
+	case 0:{
+		func = inst & 63;	/* isolate the subfunction bits */
+		if (func == 8 || func == 9) {	/* jr or jalr */
+		    int ii;
+#if R4K_HOST
+		    union {
+			U32 a;
+			S8 b[4];
+		    } endian;
+#endif
+		    tbreak.active = ACTIVE_BRK_PRIMARY;	/* the primary break is at the target */
+		    ii = (inst >> 21) & 0x1F;	/* get the register index.. */
+#if R4K_HOST
+		    endian.a = 1;
+		    if (endian.b[0] == 1) {	/* little endian */
+			ii = 2 * ii;	/* *** ON 4K hosts, index into 64 bit array *** */
+		    } else {
+			ii = 2 * ii + 1;	/* *** ON 4K hosts, index into 64 bit array *** */
+		    }
+#endif
+		    tbreak.prev0 = CHECK_I_ADDR(regs[ii]);	/* ...of the jump. Read which
+								 * register points */
+		    if (tbreak.prev0 == 0) {
+			tbreak.active = 0;
+			return -1;	/* address is not legal */
+		    }
+		    break;	/* ...to the next instruction. */
+		} else if (
+
+#if !R4K_HOST
+			   func == 1 || func == 5 || func == 10 || func == 11 ||
+			   func == 14 || func == 15 || (func >= 20 && func <= 23) ||
+			   (func >= 28 && func <= 31) || func == 40 || func == 41 ||
+			   func > 43
+#else
+			   func == 5 || func == 14 || func == 21 || func == 40 ||
+			   func == 41 || func == 53 || func == 55 || func == 57 ||
+			   func == 61
+#endif
+
+		    ) {
+	    do_unknown:
+		    nisprintf(errmsg, sizeof(errmsg), "unknown func in instr at 0x%08lX => 0x%08lX, op=%d, func=%d",
+			      opp, *opp, op, func);
+		    return -1;
+		}
+		goto do_default;
+	    }
+	case 17:		/* COP1, check for Branches */
+	    if (((inst >> 21) & 0x1F) == 8) {	/* BC field has to be 8 */
+
+#if !R4K_HOST
+		func = (inst >> 16) & 0x1F;
+		if (func >= 0 && func <= 3)
+		    goto do_branch;	/* BCTL field has to be 0, 1, 2 or 3 */
+#else
+		goto do_branch;	/* BCTL field can be anything in MIPS IV */
+#endif
+	    }
+	    /* goto do_default; */
+	default:
+    do_default:
+	    tbreak.prev0 = opp + 1;	/* primary breakpoint is the next instruction */
+	    tbreak.active = ACTIVE_BRK_PRIMARY;
+	    break;
+	case 1:{
+		func = (inst >> 16) & 0x1F;	/* isolate the subfunction bits */
+		if (func >= 0 && func <= 3)
+		    goto do_branch;	/* bltz, bgez, bltzl, bgezl */
+
+#if R4K_HOST
+		if ((func >= 8 && func <= 12) || func == 14)
+		    goto do_default;	/* traps */
+#endif
+
+		if (func >= 16 && func <= 19)
+		    goto do_branch;	/* bltzal, bgezal, bltzall, bgezall */
+		goto do_unknown;
+	    }
+	case 4:		/* beq, bne, blez, bgtz */
+	case 5:
+	case 6:
+	case 7:
+
+#if R4K_HOST
+	case 20:		/* beql, bnel, blezl, bgtzl */
+	case 21:
+	case 22:
+	case 23:
+#endif
+
+	    {
+		S16 offset;
+
+	do_branch:
+		offset = inst & 0x0000FFFF;	/* compute target address */
+		tbreak.prev0 = opp + 1 + offset;	/* Primary breakpoint is target address */
+		tbreak.active = ACTIVE_BRK_PRIMARY | ACTIVE_BRK_SECONDARY;	/* activate both
+										 * breakpoints */
+		break;
+	    }
+	case 2:		/* j and jal */
+	case 3:
+	    /* Primary breakpoint is target of jump */
+	    tbreak.prev0 = (U32 *) (((regs[PC_REGNUM_W] + 4) & 0xF0000000) | ((inst & ((1 << 26) - 1)) << 2));
+
+#if R4K_HOST
+	    tbreak.prev0 = CHECK_I_ADDR(tbreak.prev0);
+	    if (tbreak.prev0 == 0)
+		return -1;
+#endif
+
+	    tbreak.active = ACTIVE_BRK_PRIMARY;
+	    break;
+    }
+    tbreak.instr0 = *tbreak.prev0;	/* pickup instruction */
+    *tbreak.prev0 = BREAK_INSTR;/* replace it with a BREAK instruction */
+
+    FLUSH_WB();			/* flush the write buffer */
+    if (tbreak.active & ACTIVE_BRK_SECONDARY) {	/* if we're to also stuff in a secondary breakpoint */
+	/* secondary breakpoints are placed at the instruction */
+	/* after the branch delay slot (PC+8) */
+	tbreak.prev1 = CHECK_I_ADDR(regs[PC_REGNUM_W] + 8);	/* verify address */
+	if (tbreak.prev1 == 0) {
+	    tbreak.active = 0;	/* zap this on error */
+	    return -1;		/* return nfg */
+	}
+	tbreak.instr1 = *tbreak.prev1;	/* save instruction */
+	*tbreak.prev1 = BREAK_INSTR;	/* and replace it with a BREAK instruction */
+	FLUSH_WB();		/* flush the write buffer */
+    }
+
+#if defined(DEBUG_STUB)
+    if ((tbreak.active & ACTIVE_BRK_SECONDARY) == 0) {
+	nisprintf(errmsg, sizeof(errmsg), " ss:%08lX,%08X", tbreak.prev0, tbreak.instr0);
+    } else {
+	nisprintf(errmsg, sizeof(errmsg), " ss:%08lX,%08X %08lX,%08lX",
+		  tbreak.prev0, tbreak.instr0,
+		  tbreak.prev1, tbreak.instr1);
+    }
+    write_line(errmsg);
+#endif
+
+#if 0 && HAS_LCD
+    {
+	int kk;
+
+	if ((tbreak.active & ACTIVE_BRK_SECONDARY) == 0) {
+	    nisprintf(lcd_buf + 40, 80, "%08lX,%08X", tbreak.prev0, tbreak.instr0);
+	} else {
+	    nisprintf(lcd_buf + 40, 40, "%08lX,%08X %08lX,%08lX",
+		      tbreak.prev0, tbreak.instr0,
+		      tbreak.prev1, tbreak.instr1);
+	}
+	for (kk = 0; kk < 81; ++kk) {
+	    lcd_wait(1);
+	    lcd_update();
+	}
+    }
+#endif
+
+    return 0;
+}
+
+#if !HB_PHOENIX
+int iceless_semaphore;
+
+#endif
+extern const char *get_pm_msg(int);
+static U32 pm_instr;
+
+#if !NO_STUB_RUNNING
+extern VU32 stub_running;
+
+#if R4K_HOST && !HB_PHOENIX
+#define STUB_RUNNING_ON do { int junk; stub_running |= 1; junk = stub_running; } while (0)
+#define STUB_RUNNING_OFF do { int junk; stub_running &= ~1; junk = stub_running; } while (0)
+#else
+#define STUB_RUNNING_ON do { stub_running |= 1; } while (0)
+#define STUB_RUNNING_OFF do { stub_running &= ~1; } while (0)
+#endif
+
+#else
+#define STUB_RUNNING_ON do { ; } while (0)
+#define STUB_RUNNING_OFF do { ; } while (0)
+#endif
+
+#if R4K_HOST
+static unsigned char *send_mem(unsigned char *ibuf, unsigned long addr, int length) {
+    struct old_eh oldeh;
+    unsigned char * volatile obuf;
+    int sts;
+
+    patch_eh(&oldeh);		/* grab exception handler */
+    obuf = ibuf;
+    if (setjmp(remcomEnv) == 0) {
+	sts = mem2buf(obuf, (unsigned char *) addr, length);
+	if (sts == length) {
+	    obuf += length;
+	}
+    }
+    un_patch_eh(&oldeh);	/* put exception handler back */
+    return obuf;
+}
+
+static unsigned char *put_mem(unsigned char *ibuf, unsigned char *buf, unsigned long addr, int length) {
+    struct old_eh oldeh;
+    unsigned char * volatile obuf;
+
+    patch_eh(&oldeh);	/* grab exception handler */
+    obuf = ibuf;
+    if (setjmp(remcomEnv) == 0) {
+	int sts;
+	*obuf++ = ICEack;
+	sts = buf2mem((unsigned char *) addr, buf, length);
+	if (sts == length) {
+	    flush_dcache();	/* make sure all the data is written to memory */
+	}
+    } else {
+	*obuf++ = ICEnak;
+	*obuf++ = NAKfatal;
+	strcpy((char *)obuf, " Bus error");
+	obuf += strlen((char *)obuf) + 1;
+    }				
+    un_patch_eh(&oldeh);	/* put exception handler back */
+    return obuf;
+}
+#endif
+
+extern int prc_set_ipl(int);
+
+void handle_exception(unsigned long *regs)
+{
+    int sigval;
+    int length;
+    unsigned long addr, ii;
+    unsigned char *buf, *obuf;
+    PktIOStruct *pkt;
+
+    STUB_RUNNING_ON;
+
+#if !HB_PHOENIX
+    iceless_semaphore = 1;
+#endif
+
+#if R4K_HOST
+    flush_cache();		/* clear all the caches */
+    regs[PS_REGNUM_U] = 0;	/* 0 the unused word (Upper 32 bits) of the 32 bit registers */
+    regs[HI_REGNUM_U] = 0;
+    regs[LO_REGNUM_U] = 0;
+    regs[CAUSE_REGNUM_U] = 0;
+    regs[FCRCS_REGNUM_U] = 0;
+    regs[FCRIR_REGNUM_U] = 0;
+    regs[INX_REGNUM_U] = 0;
+    regs[RAND_REGNUM_U] = 0;
+    regs[PAGEMASK_REGNUM_U] = 0;
+    regs[WIRED_REGNUM_U] = 0;
+    regs[COUNT_REGNUM_U] = 0;
+    regs[COMPARE_REGNUM_U] = 0;
+    regs[PRID_REGNUM_U] = 0;
+    regs[CONFIG_REGNUM_U] = 0;
+    regs[LLADDR_REGNUM_U] = 0;
+    regs[ECC_REGNUM_U] = 0;
+    regs[CACHEERR_REGNUM_U] = 0;
+    regs[TAGLO_REGNUM_U] = 0;
+    regs[TAGHI_REGNUM_U] = 0;
+    regs[FP_REGNUM_U] = regs[S8_REGNUM_U];
+#endif
+
+    regs[FP_REGNUM_W] = regs[S8_REGNUM_W];	/* copy the frame pointer into GDB's spot */
+    memcpy((char *) registers, regs, NUMREGBYTES);	/* clone the saved registers */
+
+    sigval = computeSignal(registers[CAUSE_REGNUM_W] & 0x3C);
+    obuf = remcomOutBuffer + 1;
+
+    addr = registers[PC_REGNUM_W];
+    if (registers[CAUSE_REGNUM_W] & 0x80000000)
+	addr += 4;		/* adjust if in delay slot */
+    addr = (U32) CHECK_I_ADDR(addr);	/* translate address if necessary */
+    if (addr) {
+	ii = pm_instr = *(U32 *) addr;	/* save actual instruction in error */
+    } else {
+	ii = pm_instr = 0;
+    }
+    if (sigval == 5 && (tbreak.active & ACTIVE_BRK_PRIMARY) != 0) {	/* if this is a breakpoint
+									 * report */
+	*(U32 *) tbreak.prev0 = tbreak.instr0;	/* put his instruction back */
+	FLUSH_WB();
+	if ((tbreak.active & ACTIVE_BRK_SECONDARY) != 0) {
+	    *(U32 *) tbreak.prev1 = tbreak.instr1;	/* put back the other one too, if there is
+							 * one */
+	    FLUSH_WB();
+	}
+	tbreak.active = 0;	/* no more local breakpoints */
+    }
+    *obuf++ = ICEreply;
+    *obuf++ = 'S';
+    *obuf++ = sigval;
+
+    ii >>= 16;
+    ii &= 0x3FF;
+    if (sigval != 5 || (sigval == 5 && (ii >= 7 && ii <= 9))) {
+
+#if HOST_BOARD == LCR3K
+	struct ROM_VECTOR_STR *romv = (struct ROM_VECTOR_STR *) 0x9FC00010;
+	int max = BUFMAX - (obuf - remcomOutBuffer) - 1;
+
+	if ((registers[CAUSE_REGNUM_W] & 0x3F) == 0 && romv->ROMV_STUB_EH && romv->ROMV_STUB_REASON) {
+	    strncpy((char *) obuf, (char *) romv->ROMV_STUB_REASON, max);
+	    obuf[max] = 0;
+	    romv->ROMV_STUB_REASON = 0;	/* burn our bridges */
+	} else {
+	    strcpy((char *) obuf, get_pm_msg(registers[CAUSE_REGNUM_W]));
+	}
+#else
+
+#if HB_PHOENIX
+	struct ROM_VECTOR_STR *volatile romv = (struct ROM_VECTOR_STR *) (DRAM_BASEnc);
+
+#else
+	struct ROM_VECTOR_STR *volatile romv = (struct ROM_VECTOR_STR *) (RRBUS_BASEnc + 0x10);
+
+#endif
+	int max = BUFMAX - (obuf - remcomOutBuffer) - 1;
+
+	if (((registers[CAUSE_REGNUM_W] & 0x3F) == 0 || (registers[CAUSE_REGNUM_W] & 0x3F) == 0x3C) &&
+	    romv->ROMV_STUB_EH && romv->ROMV_STUB_REASON) {
+	    strncpy((char *) obuf, (char *) romv->ROMV_STUB_REASON, max);
+	    obuf[max] = 0;
+	    romv->ROMV_STUB_REASON = 0;	/* burn our bridges */
+	    FLUSH_WB();
+	} else {
+	    strcpy((char *) obuf, get_pm_msg(registers[CAUSE_REGNUM_W]));
+	}
+#endif
+
+	obuf += strlen((char *) obuf) + 1;
+    }
+    putpacket(obuf - remcomOutBuffer);	/* send the exception report */
+
+#if 0
+    if (sigval == 11) {
+	obuf = remcomOutBuffer + 1;
+	*obuf++ = ICEnak;
+	*obuf++ = NAKunsupport;
+	nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, " PANIC addr err at %08lX, %08lX", registers[RA_REGNUM_W], registers[BADVADDR_REGNUM_W]);
+	obuf += strlen((char *) obuf);
+	putpacket(obuf - remcomOutBuffer);
+	while (1);
+    }
+#endif
+
+    while (1) {
+	extern long ipl_get();
+	extern void ipl_set(long);
+	char cchar;
+
+	error = 0;
+
+#if HAS_LCD
+	for (ii = 0; ii < 81; ++ii) {
+	    wait_n_usecs(150);
+	    ++lcd_time;
+	    lcd_update();
+	}
+#endif
+
+#if STUB_ALLOWS_INTERRUPTS
+
+#if R4K_HOST
+	prc_set_ipl((registers[PS_REGNUM_W] & 0xFB00) | (registers[PS_REGNUM_W] & 1));	/* re-enable interrupts */
+#else
+	prc_set_ipl((registers[PS_REGNUM_W] & 0xFB00) | ((registers[PS_REGNUM_W] >> 2) & 1));	/* re-enable interrupts */
+#endif
+
+#endif
+
+	pkt = getpacket();
+	prc_set_ipl(0);		/* disable interrupts */
+
+	buf = pkt->buf;		/* point to command byte */
+	obuf = remcomOutBuffer;
+	*obuf++ = *buf++;	/* copy the packet sequence number */
+
+#define COMM_MAX_OCTETS (512-1-PKTuser-4-2)
+
+	cchar = *buf++;
+	switch (cchar) {
+	    case 'A':		/* just eat attention commands */
+		break;
+	    case '?':		/* return the value of the last exception */
+		*obuf++ = ICEreply;
+		*obuf++ = 'S';
+		*obuf++ = sigval;
+		break;
+	    case 'g':{		/* return the value of the CPU registers */
+		    char *src;
+		    int amt;
+
+#if (PROCESSOR & -16) == MIPS4000
+		    int ii, jj;
+
+		    for (ii = 0, jj = ZERO_REGNUM_W; ii < FP0_REGNUM; ++ii, jj += 2) {
+			lcl_regs[ii] = registers[jj];
+		    }
+		    for (jj = FP0_REGNUM * 2; ii < FIRST_EMBED_REGNUM; ii += 2, jj += 4) {
+			lcl_regs[ii] = registers[jj];
+			lcl_regs[ii + 1] = registers[jj + 1];
+		    }
+		    for (jj = 0; jj < sizeof(reg_xlate) / sizeof(U16); ++ii, ++jj) {
+			lcl_regs[ii] = registers[reg_xlate[jj]];
+		    }
+		    src = (char *) lcl_regs;
+		    amt = (FIRST_EMBED_REGNUM + sizeof(reg_xlate) / sizeof(U16)) * 4;
+		    using_r3k = 1;
+#else
+		    src = (char *) registers;
+		    amt = NUMREGBYTES;
+#endif
+
+		    *obuf++ = ICEreply;
+		    memcpy(obuf, src, amt);
+		    obuf += amt;
+		    break;
+		}
+	    case 'G':{		/* set the value of all the CPU registers - return OK */
+		    int amt;
+
+#if (PROCESSOR & -16) == MIPS4000
+		    amt = (FIRST_EMBED_REGNUM + sizeof(reg_xlate) / sizeof(U16)) * 4;
+#else
+		    amt = NUMREGBYTES;
+#endif
+
+		    if (pkt->len - 2 != amt) {
+			*obuf++ = ICEnak;
+			*obuf++ = NAKinsufarg;
+			nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, "Expected %d bytes of 'G' data; recv'd %d", amt, pkt->len - 2);
+			obuf += strlen((char *) obuf);
+		    } else {
+
+#if (PROCESSOR & -16) == MIPS4000
+			int ii, jj;
+
+			memcpy((char *) lcl_regs, buf, amt);
+			for (ii = 0, jj = ZERO_REGNUM_W; ii < FP0_REGNUM; ++ii, jj += 2) {
+			    registers[jj] = lcl_regs[ii];
+			    registers[jj ^ 1] = ((long) lcl_regs[ii]) >= 0 ? 0 : 0xffffffff;
+			}
+			for (jj = FP0_REGNUM * 2; ii < FIRST_EMBED_REGNUM; ii += 2, jj += 4) {
+			    registers[jj] = lcl_regs[ii];
+			    registers[jj + 1] = lcl_regs[ii + 1];
+			}
+			for (jj = 0; jj < sizeof(reg_xlate) / sizeof(U16); ++ii, ++jj) {
+			    registers[reg_xlate[jj]] = lcl_regs[ii];
+			    registers[reg_xlate[jj] ^ 1] = ((long) lcl_regs[ii]) >= 0 ? 0 : 0xffffffff;
+			}
+#else
+			memcpy((char *) registers, buf, amt);
+#endif
+
+			*obuf++ = ICEack;
+		    }
+		    break;
+		}
+	    case 'P':{		/* set value of specific register */
+		    int amt, more;
+
+		    amt = pkt->len - (buf - pkt->buf) - 3;
+		    more = amt % MIPS_REGSIZE;
+		    if (amt <= 0 || amt > MIPS_REGSIZE) {
+			*obuf++ = ICEnak;
+			*obuf++ = NAKinsufarg;
+			nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, "Expected at least %d bytes of 'P' data; recv'd %d",
+				  3 + amt + (MIPS_REGSIZE - more), pkt->len - 2);
+			obuf += strlen((char *) obuf);
+		    } else {
+			int indx, siz;
+
+			indx = *buf++ << 8;
+			indx |= *buf++;
+			siz = *buf++;
+			if (indx >= NUM_REGS || siz > MIPS_REGSIZE || (siz != 4 && siz != 8)) {
+			    *obuf++ = ICEnak;
+			    *obuf++ = NAKillparam;
+			    nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, "'P' register index (%d) out of range. Must be < %d",
+				      indx, NUM_REGS);
+			    obuf += strlen((char *) obuf);
+			} else {
+
+#if MIPS_REGSIZE == 8
+			    if (siz == 8) {
+				memcpy((char *) registers + indx * MIPS_REGSIZE, buf, siz);
+			    } else {
+				char *p;
+				union {
+				    U32 a;
+				    S8 b[4];
+				} endian;
+
+				endian.a = 1;
+				p = (char *) registers + indx * MIPS_REGSIZE;
+				if (endian.b[0] == 1) {	/* little endian */
+				    memcpy(p, buf, amt);
+				    memset(p + 4, (buf[3] & 0x80) ? 0xFF : 0x00, 4);
+				} else {
+				    memset(p, (buf[0] & 0x80) ? 0xFF : 0x00, 4);
+				    memcpy(p + 4, buf, amt);
+				}
+			    }
+#else
+			    memcpy((char *) registers + indx * MIPS_REGSIZE, buf, siz);
+#endif
+
+			    *obuf++ = ICEack;
+			}
+		    }
+		    break;
+		}
+	    case 'R':{		/* set value of n registers */
+		    int amt, indx;
+
+		    amt = pkt->len - (buf - pkt->buf) - 2;
+		    if (amt < 2 + MIPS_REGSIZE) {
+			*obuf++ = ICEnak;
+			*obuf++ = NAKinsufarg;
+			nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, "Expected at least %d bytes of 'R' data; recv'd %d", 2 + MIPS_REGSIZE, amt + 2);
+			obuf += strlen((char *) obuf);
+		    } else {
+			amt -= 2;
+			indx = *buf++ << 8;
+			indx |= *buf++;
+			if (indx * MIPS_REGSIZE + amt > sizeof(registers)) {
+			    amt = sizeof(registers) - indx * MIPS_REGSIZE;
+			}
+			memcpy((char *) registers + indx * MIPS_REGSIZE, buf, amt);
+			*obuf++ = ICEack;
+		    }
+		    break;
+		}
+	    case 'r':{		/* get value of n registers */
+		    int amt;
+
+		    amt = pkt->len - (buf - pkt->buf);
+		    if (amt != 4) {
+			*obuf++ = ICEnak;
+			*obuf++ = NAKinsufarg;
+			nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, "Expected 4 bytes of 'r' data; recv'd %d",
+				  amt);
+			obuf += strlen((char *) obuf);
+		    } else {
+			int indx;
+
+			indx = *buf++ << 8;
+			indx |= *buf++;
+			amt = *buf++ << 8;
+			amt |= *buf++;
+			if (indx + amt > NUM_REGS)
+			    amt = NUM_REGS - indx;	/* clip qty back to max */
+			if (amt * MIPS_REGSIZE > COMM_MAX_OCTETS)
+			    amt = COMM_MAX_OCTETS / MIPS_REGSIZE;
+			if (indx >= NUM_REGS) {
+			    *obuf++ = ICEnak;
+			    *obuf++ = NAKillparam;
+			    nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, "'r' register index (%d) out of range. Must be < %d",
+				      indx, NUM_REGS);
+			    obuf += strlen((char *) obuf);
+			} else {
+			    *obuf++ = ICEreply;
+			    memcpy(obuf, (char *) registers + indx * MIPS_REGSIZE, amt * MIPS_REGSIZE);
+			    obuf += amt * MIPS_REGSIZE;
+			}
+		    }
+		    break;
+		}
+	    case 'm':		/* mnA..ALL  Read LL bytes starting at address A..A */
+		buf = getaddr(buf, &addr);
+		if (pkt->len - (buf - pkt->buf) != 2) {
+		    *obuf++ = ICEnak;
+		    *obuf++ = NAKinsufarg;
+		    nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, "Expected 2 byte length on 'm' command; found %d", pkt->len - (buf - pkt->buf));
+		    obuf += strlen((char *) obuf);
+		} else {
+		    length = *buf++ << 8;
+		    length |= *buf++;
+		    if (length > OBUFMAX) {
+			*obuf++ = ICEnak;
+			*obuf++ = NAKtoobig;
+			nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, "Expected len on 'm' cmd to be < %d; found %d", OBUFMAX, length);
+			obuf += strlen((char *) obuf);
+		    } else {
+
+#if R4K_HOST
+			U32 lim;
+			int sts;
+
+#if HB_PHOENIX
+			if ((addr&0xE0000000) == 0x80000000) {
+			    addr |= 0x20000000;	/* make address non-cached */
+			}
+			lim = addr + length;
+			sts = addr < lim;
+			if (sts == 1)
+			    sts |= (addr >= 0xA0000000 && (lim < 0xC0000000)) << 1;
+			if (sts == 1)
+			    sts |= (addr >= PCICFG_ADDRESS_BASE && (lim < PCICFG_ADDRESS_BASE + 0x10000)) << 2;
+#else
+			lim = addr + length;
+			sts = addr < lim;
+			if (sts == 1)
+			    sts |= (addr >= (U32) ROMULATOR_STARTc && (lim < (U32) ROMULATOR_ENDc)) << 1;
+			if (sts == 1)
+			    sts |= (addr >= (U32) ROMULATOR_STARTnc && (lim < (U32) ROMULATOR_ENDnc)) << 2;
+#endif
+
+			if (sts == 1) {
+			    int tlb;
+
+			    tlb = tlbprobe(addr, length);	/* see if the whole range is ok */
+			    if (tlb < 0) {
+				sts = 0;	/* gdb doesn't deal with a partial range */
+			    }
+			}
+			if (sts) {
+			    *obuf++ = ICEreply;
+			    obuf = send_mem(obuf, addr, length);
+			} else {
+			    *obuf++ = ICEreply;	/* gdb knows how to handle a 0 length return */
+			}
+#else
+			*obuf++ = ICEreply;
+			mem2buf(obuf, (unsigned char *) addr, length);
+			obuf += length;
+#endif
+		    }
+		}
+		break;
+	    case 'M':		/* MnA..ALL: Write LL bytes at address A..A return OK */
+		buf = getaddr(buf, &addr);
+		if (pkt->len - (buf - pkt->buf) <= 2) {
+		    *obuf++ = ICEnak;
+		    *obuf++ = NAKinsufarg;
+		    nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, "Expected 2 byte length on 'M' command; found %d", pkt->len - (buf - pkt->buf));
+		    obuf += strlen((char *) obuf);
+		} else {
+		    length = *buf++ << 8;
+		    length |= *buf++;
+		    if (length > BUFMAX) {
+			*obuf++ = ICEnak;
+			*obuf++ = NAKtoobig;
+			nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, "Expected len on 'M' cmd to be < %d; found %d", BUFMAX, length);
+			obuf += strlen((char *) obuf);
+		    } else {
+
+#if R4K_HOST
+
+#if HB_PHOENIX
+			if ((addr >= DRAM_BASE && addr < DRAM_BASE + DRAM_SIZE) ||
+			    (addr >= 0xA0000000 && addr < 0xE0010000) ||
+#else
+			if ((addr >= (U32) ROMULATOR_STARTc && (addr + length < (U32) ROMULATOR_ENDc)) ||
+			    (addr >= (U32) ROMULATOR_STARTnc && (addr + length < (U32) ROMULATOR_ENDnc)) ||
+#endif
+
+			    (tlbprobe(addr, length) >= 0)) {
+			    obuf = put_mem(obuf, buf, addr, length);
+			} else {
+			    *obuf++ = ICEnak;
+			    *obuf++ = NAKillparam;
+			    nisprintf((char *) obuf, sizeof(remcomOutBuffer) - 3, " TLB prevents writes to %08lX-%08lX", addr, addr + length - 1);
+			    obuf += strlen((char *) obuf) + 1;
+			}
+#else
+			*obuf++ = ICEack;
+			buf2mem((unsigned char *) addr, buf, length);
+#endif
+		    }
+		}
+		break;
+		/* snA..A    Step one instruction from optional A..A */
+	    case 's':
+	    case 'c':
+		if (pkt->len - (buf - pkt->buf) > 1) {
+		    getaddr(buf, &addr);
+		    registers[PC_REGNUM_W] = addr;
+		}
+		if (cchar == 's') {
+		    if (do_single_step(registers) < 0) {
+			*obuf++ = ICEnak;
+			*obuf++ = NAKunsupport;
+			strcpy((char *) obuf, errmsg);
+			obuf += strlen(errmsg);
+		    } else {
+			*obuf++ = ICEack;
+		    }
+		} else {
+		    *obuf++ = ICEack;
+		}
+
+		putpacket(obuf - remcomOutBuffer);
+
+#if 0 && HAS_LCD
+		{
+		    int kk;
+
+		    memset(lcd_buf, ' ', 80);
+		    strcpy(lcd_buf, (cchar == 's') ? "Program stepped" : "Program continued");
+		    nisprintf(lcd_buf + 40, 80, "PC=%08lX, SR=%08X",
+			      registers[PC_REGNUM_W], registers[PS_REGNUM_W]);
+		    for (kk = 0; kk < 81; ++kk) {
+			++lcd_time;
+			lcd_update();
+			wait_n_usecs(120);
+		    }
+		}
+#endif
+
+#if (PROCESSOR & -16) == MIPS4000
+		flush_cache();	/* clear the I and D caches cuz of patches */
+#else
+		zap_i_cache();	/* clear the I cache cuz of breakpoints */
+#endif
+
+#if 1
+		{
+		    U32 *opp;
+
+		    opp = (U32 *) registers[PC_REGNUM_W];
+
+#if !HB_PHOENIX
+
+#if (PROCESSOR & -16) == MIPS4000
+		    if (opp < (U32 *) 0x00800000)
+			opp = (U32 *) ((U32) opp | 0x00800000);	/* make it uncached */
+		    if (opp >= (U32 *) 0x9FC00000 && opp < (U32 *) 0xA0000000)
+			opp = (U32 *) ((U32) opp | 0x20000000);	/* make it uncached */
+#else
+		    opp = (U32 *) ((U32) opp | 0xA0000000);	/* make oppess uncached */
+#endif
+
+#endif
+
+		    addr = *opp;/* pick up instruction to which we are to return */
+		    if ((addr & 0xFC00003F) == 0x0000000D) {	/* if it's a break instruction */
+			if ((addr & 0x03FFFFC0) != 0x00060000 &&	/* if not one of our BREAK's */
+			    (addr & 0x03FFFFC0) != 0x00050000) {	/* and not one of gdb's
+									 * BREAK's */
+			    registers[PC_REGNUM_W] += 4;	/* advance the PC over the
+								 * instruction */
+			}
+		    }
+		}
+#endif
+
+#if R4K_HOST
+		if ((registers[PC_REGNUM_W] & 0x80000000) != 0)
+		    registers[PC_REGNUM_U] = 0xFFFFFFFF;
+		if ((registers[SP_REGNUM_W] & 0x80000000) != 0)
+		    registers[SP_REGNUM_U] = 0xFFFFFFFF;
+		if ((registers[FP_REGNUM_W] & 0x80000000) != 0)
+		    registers[FP_REGNUM_U] = 0xFFFFFFFF;
+		if ((registers[RA_REGNUM_W] & 0x80000000) != 0)
+		    registers[RA_REGNUM_U] = 0xFFFFFFFF;
+		registers[CAUSE_REGNUM_W] &= ~0x300;	/* clear any pending software interrupts */
+		registers[EPC_REGNUM_W] = registers[PC_REGNUM_W];
+		registers[EPC_REGNUM_U] = registers[PC_REGNUM_U];
+		registers[ERRPC_REGNUM_W] = registers[PC_REGNUM_W];
+		registers[ERRPC_REGNUM_U] = registers[PC_REGNUM_U];
+#endif
+
+#if !HB_PHOENIX
+		iceless_semaphore = 0;
+#endif
+
+		STUB_RUNNING_OFF;
+
+#if 0
+		returnToUser(registers);	/* this is actually a jump */
+#else
+		return;		/* this just might a work */
+#endif
+
+	    case 'k':		/* kill the program */
+		*obuf++ = ICEack;	/* report ok */
+		break;		/* but otherwise do nothing */
+	}			/* -- switch */
+
+
+#if STUB_ALLOWS_INTERRUPTS
+
+#if R4K_HOST
+	prc_set_ipl((registers[PS_REGNUM_W] & 0xFB00) | (registers[PS_REGNUM_W] & 1));	/* re-enable interrupts */
+#else
+	prc_set_ipl((registers[PS_REGNUM_W] & 0xFB00) | ((registers[PS_REGNUM_W] >> 2) & 1));	/* re-enable interrupts */
+#endif
+
+#endif
+
+	if (obuf - remcomOutBuffer > 1) {	/* ++ if anything to send */
+	    putpacket(obuf - remcomOutBuffer);
+	}			/* -- stuff to send */
+    }				/* -- while(1) */
+}				/* -- putpacket */
+
+#if 0
+void initializeRemcomErrorFrame()
+{
+    lastFrame = ((Frame *) & gdbFrameStack[FRAMESIZE - 1]) - 1;
+    lastFrame->previous = lastFrame;
+}
+
+#endif
+
+/* this function is used to set up exception handlers for tracing and breakpoints */
+
+void set_debug_traps()
+{
+    extern void remcomHandler();
+
+#if (R4K_HOST && !HB_PHOENIX) || (HOST_BOARD == LCR3K)
+    volatile struct ROM_VECTOR_STR *pktp;
+
+#endif
+
+#if 0
+    initializeRemcomErrorFrame();
+#endif
+
+#if (HOST_BOARD == LCR3K)
+    pktp = (volatile struct ROM_VECTOR_STR *) 0x9FC00010;	/* reset vector + 16 */
+    pktp->ROMV_PKTINIT = (U32) pktInit;
+    pktp->ROMV_PKTPOLL = (U32) pktPoll;
+    pktp->ROMV_PKTRECV = (U32) pktQueRecv;
+    pktp->ROMV_PKTSEND = (U32) pktQueSend;
+#endif
+
+#if R4K_HOST && !HB_PHOENIX
+
+#if RUN_FROM_DRAM
+    pktp = (volatile struct ROM_VECTOR_STR *) (DRAM_BASE + 0x10);	/* reset vector + 16 */
+#else
+    pktp = (volatile struct ROM_VECTOR_STR *) (RRBUS_BASEnc + 0x10);	/* reset vector + 16 */
+#endif
+
+    pktp->ROMV_PKTINIT = (U32) pktInit;
+    FLUSH_WB();
+    pktp->ROMV_PKTPOLL = (U32) pktPoll;
+    FLUSH_WB();
+    pktp->ROMV_PKTRECV = (U32) pktQueRecv;
+    FLUSH_WB();
+    pktp->ROMV_PKTSEND = (U32) pktQueSend;
+    FLUSH_WB();
+#endif
+
+    pkt_validate();
+
+#if (PROCESSOR&-16) == 0
+    for (exception = 2; exception <= 23; exception++)
+	exceptionHandler(exception, _catchException);
+
+    /* level 7 interrupt              */
+    exceptionHandler(31, level7int);
+
+    /* breakpoint exception (trap #1) */
+    exceptionHandler(33, _catchException);
+
+    /* This is a trap #8 instruction.  Apparently it is someone's software convention for some sort
+     * of SIGFPE condition.  Whose?  How many people are being screwed by having this code the way it
+     * is? Is there a clean solution?  */
+    exceptionHandler(40, _catchException);
+
+    /* 48 to 54 are floating point coprocessor errors */
+    for (exception = 48; exception <= 54; exception++)
+	exceptionHandler(exception, _catchException);
+
+    if (oldExceptionHook != remcomHandler) {
+	oldExceptionHook = exceptionHook;
+	exceptionHook = remcomHandler;
+    }
+#endif
+
+    initialized = 1;
+
+}
+
+#if !R4K_HOST
+/* This function will generate a breakpoint exception.  It is used at the beginning of a program to
+ * sync up with a debugger and can be used otherwise as a quick means to stop program execution and
+ * "break" into the debugger. */
+
+#define BREAKPOINT() __asm__("BREAK");
+
+void breakpoint()
+{
+    if (initialized)
+	BREAKPOINT();
+}
+
+#endif
+
+void setup_only()
+{
+    set_debug_traps();
+    return;
+}
+@
+
+
+1.34
+log
+@Only make addresses non-cached if they are between 0x80000000-0x9FFFFFFF.
+@
+text
+@d16 1
+a16 1
+ *  $Header: /usr/local/GUTS/chameleon/stub/RCS/../../../os/RCS/stubr3k.c,v 1.33 1997/07/07 20:12:11 shepperd Exp shepperd $
+d19 2
+a20 2
+ *  $Revision: 1.33 $
+ *  $Date: 1997/07/07 20:12:11 $
+d591 1
+a591 1
+#if defined(XBUS_SLOT0) || (HB_PHOENIX && (HOST_BOARD != CHAMELEON))
+d781 33
+a813 3
+# if HOST_BOARD != CHAMELEON
+#  define PCICFG_ADDRESS_BASE	0xE0000000
+# endif
+d816 2
+a817 2
+#if HB_PHOENIX && (HOST_BOARD != CHAMELEON)
+static int write_pcicfg(unsigned char *where, unsigned char *what, int count)
+d820 3
+a822 1
+    U32 dst, value;
+d824 2
+d831 1
+d833 12
+d846 1
+a846 1
+    for (src = what; count > 0; dst += 0x10) {
+d848 1
+a848 1
+#if BYTE0_OFFS
+d861 1
+a861 1
+#else
+d867 1
+a867 2
+#endif
+
+d909 3
+a911 1
+    {W_SPEC(romulator_write, XBUS_BASE, XBUS_BASE + 0x02000000, XBUS_BASE, "RomWrite")},
+d1026 2
+a1027 2
+#if HB_PHOENIX && (HOST_BOARD != CHAMELEON)
+static int read_pcicfg(unsigned char *buf, unsigned char *mem, int count)
+d1029 5
+a1033 2
+    int ii;
+
+d1036 1
+d1038 1
+a1038 3
+#endif
+    U32 src, value;
+    U8 *dst;
+d1045 14
+d1062 1
+a1062 1
+	src += 0x10;
+d1085 3
+d1130 3
+a1132 1
+    {W_SPEC(read_32bits, XBUS_BASE, XBUS_BASE + 0x02000000, XBUS_BASE, "r32Bits")},
+d1541 42
+d1587 2
+a1588 1
+    int sigval, length;
+d1957 1
+a1957 2
+			    sts |= (addr >= 0xA0000000 && (lim < 0xE0000000)) << 1;
+# if HOST_BOARD != CHAMELEON
+a1959 1
+# endif
+d1979 1
+a1979 2
+			    mem2buf(obuf, (unsigned char *) addr, length);
+			    obuf += length;
+d2019 1
+a2019 3
+			    *obuf++ = ICEack;
+			    buf2mem((unsigned char *) addr, buf, length);
+			    flush_dcache();	/* make sure all the data is written to memory */
+@
+
+
+1.33
+log
+@Added RCS variables.
+@
+text
+@d16 1
+a16 1
+ *  $Header: /usr/local/GUTS/chameleon/stub/RCS/../../../os/RCS/stubr3k.c,v 1.32 1997/07/07 20:10:07 shepperd Exp shepperd $
+d19 2
+a20 2
+ *  $Revision: 1.32 $
+ *  $Date: 1997/07/07 20:10:07 $
+d1839 3
+a1841 1
+			addr |= 0x20000000;	/* make address non-cached */
+a1901 5
+
+#if 0
+			addr |= 0x20000000;
+#endif
+
+@
+
+
+1.32
+log
+@Added support for Chameleon.
+@
+text
+@d16 1
+a16 1
+ *  Header: $Header$
+d18 4
+a21 3
+ *  Module name: $RCSfile$
+ *  Revision:  $Revision$
+ *  Date: $Date$
+d28 2
+a29 2
+ *  Written by:      $Author$
+ *  ModuleState:     $State$
+@
+
+
+1.31
+log
+@Correct bonehead move of using 0x31 instead of 0x1F.
+@
+text
+@d16 1
+a16 1
+ *  Header: remcom.c,v 1.34 91/03/09 12:29:49 glenne Exp $
+d18 3
+a20 3
+ *  Module name: stubr3k.c $
+ *  Revision: 1.00 $
+ *  Date: 95/02/09 18:00:00 $
+d27 2
+a28 2
+ *  Written by:      Dave Shepperd $
+ *  ModuleState:     Experimental $
+d103 5
+a107 3
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == MB4600) || (HOST_BOARD == PHOENIX) || \
+    (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == SEATTLE) || (HOST_BOARD == FLAGSTAFF) ||\
+    (HOST_BOARD == VEGAS)
+d590 1
+a590 1
+#if defined(XBUS_SLOT0) || HB_PHOENIX
+d780 3
+a782 1
+#define PCICFG_ADDRESS_BASE	0xE0000000
+d785 1
+a785 1
+#if HB_PHOENIX
+d853 2
+a854 1
+#if HOST_BOARD == PHOENIX
+d856 1
+a856 1
+#else
+d858 1
+a858 1
+#endif
+d861 3
+d977 1
+a977 1
+#if HB_PHOENIX
+d1053 2
+a1054 1
+#if HOST_BOARD == PHOENIX
+d1056 1
+a1056 1
+#else
+d1058 1
+a1058 1
+#endif
+d1061 3
+d1843 1
+d1846 1
+@
+
+
+1.30
+log
+@Fixed single step bug (added MIPS IV instruction decodes).
+Reformatted source.
+@
+text
+@d1338 1
+a1338 1
+		func = (inst >> 16) & 0x31;	/* isolate the subfunction bits */
+@
+
+
+1.29
+log
+@Made use of stub_running optional.
+@
+text
+@d3 2
+a4 2
+		THIS SOFTWARE IS NOT COPYRIGHTED  
+   
+d6 1
+a6 1
+   warranty with regard to the software or it's performance and the 
+d16 1
+a16 1
+ *  Header: remcom.c,v 1.34 91/03/09 12:29:49 glenne Exp $                   
+d18 1
+a18 1
+ *  Module name: stubr3k.c $  
+d22 1
+a22 1
+ *  
+d28 1
+a28 1
+ *  ModuleState:     Experimental $ 
+d31 1
+a31 1
+ * 
+d40 1
+a40 1
+ *  
+d48 1
+a48 1
+ * 
+d51 2
+a52 2
+ *  uses it's own stack area reserved in the int array remcomStack.  
+ * 
+d56 1
+a56 1
+ * 
+d58 1
+a58 1
+ * 
+d66 1
+a66 1
+ *		    n (LL*REGISTER_RAW_SIZE must 
+d72 2
+a73 2
+ * 
+ *    c             Resume at current address              ack 
+d76 1
+a76 1
+ * 
+d80 1
+a80 1
+ * 
+d84 1
+a84 1
+ * 
+d92 1
+a92 1
+ * 
+d106 1
+a106 1
+# define R4K_HOST 1
+d108 1
+a108 1
+# define R4K_HOST 0
+d112 1
+a112 1
+static unsigned long registers[NUM_REGS*2];
+d114 1
+a114 1
+static int using_r3k;				/* signal we're to talk using R3K lingo */
+d117 2
+a118 1
+    TLBHI_REGNUM_W, EPC_REGNUM_W, PRID_REGNUM_W };
+d121 1
+d130 1
+a130 1
+unsigned long remcomStack[STACKSIZE/MIPS_REGSIZE];
+d133 1
+a133 1
+/* BUFMAX defines the maximum number of characters in inbound/outbound buffers*/
+d143 1
+a143 1
+ * external low-level support routines 
+d145 2
+a146 2
+typedef void (*ExceptionHook)(int);   /* pointer to function with int parm */
+typedef void (*Function)();           /* pointer to a function */
+d149 4
+a152 3
+extern Function exceptionHandler();   /* assign an exception handler */
+       ExceptionHook exceptionHook;  /* hook variable for errors/exceptions */
+extern void catchException ();
+d160 1
+d171 1
+a171 1
+static char initialized;  /* boolean flag. != 0 means we've been initialized */
+d174 2
+a175 5
+/*
+ * In many cases, the system will want to continue exception processing
+ * when a continue command is given.  
+ * oldExceptionHook is a function to invoke in this case.
+ */
+d178 1
+d187 1
+d190 1
+d193 1
+d202 5
+a206 5
+# if HOST_BOARD == PHOENIX || HOST_BOARD == PHOENIX_AD || HOST_BOARD == SEATTLE || HOST_BOARD == FLAGSTAFF || HOST_BOARD == VEGAS
+#  define HB_PHOENIX 1
+# else
+#  define HB_PHOENIX 0
+# endif
+d209 2
+d213 1
+d220 18
+a237 15
+static void debug_dmppkt(char *prefix, unsigned char *buf, int len) {
+   char *s;
+   int ch, pktn;
+   pktn = *buf++;	/* packet number */
+   ch = *buf++;		/* command char */
+   nisprintf(errmsg,"  sizeof(errmsg), %s (%d): %02X %02X(%c)", prefix, len, pktn, ch, isprint(ch)?ch:'.');
+   s = errmsg + strlen(errmsg);
+   len -= 2;
+   if (len > 8) len = 8;
+   for (; len > 0; --len) {
+      nisprintf(s, sizeof(errmsg)-(s-errmsg), " %02X", *buf++);
+      s += 3;
+   }
+   write_line(errmsg);
+   return;
+d240 1
+a240 1
+#  define DBG_DMP(pref, buf, len) debug_dmppkt(pref, buf, len)
+d244 1
+a244 2
+#  define DBG_DMP(a,b,c)
+
+d247 2
+a248 2
+/* send the packet in buffer.  The host get's one chance to read it.  
+   This routine does not wait for a positive acknowledge.  */
+d251 9
+a259 6
+static void putpacket(int len) {
+   PktIOStruct *pkt;
+   int sts;
+   pkt = &outRemcomPkt;
+   pkt->len = len;
+   DBG_DMP("S", pkt->buf, pkt->len);
+d261 1
+a261 1
+   wait_n_usecs(1000);		/* wait about 1 millisecond */
+d263 5
+a267 4
+   if (pkt->len > 1) {
+      sts = pktQueSend(pkt, 1);	/* send and wait for the packet to be delivered */
+   }
+   return;
+d271 1
+a271 1
+#  define BOARD 0		/* look for gdb packet from board 0 */
+d274 3
+a276 1
+static void add_stub_pkts(void) {
+d303 1
+a303 1
+    pktQueRecv(&inpRemcomPkt1);		/* tell input routine we are ready to read */
+d313 3
+a315 2
+static void pkt_validate(void) {	/* just check that stub has an element on one of the queues */
+    PktIOStruct *pkt=0;
+d317 8
+a324 4
+    for (ii=0; ii < 3; ++ii) {
+	if (ii == 0) pkt = current[0];
+	else if (ii == 1) pkt = ready[0];
+	else if (ii == 2) pkt = queued[0];
+d326 2
+a327 1
+	    if (pkt == &inpRemcomPkt1 || pkt == &inpRemcomPkt2) return;
+d337 2
+a338 1
+extern int pktQueRecvq(PktIOStruct *pkt);
+d346 13
+a358 11
+PktIOStruct *getpacket(void) {
+  unsigned char *buffer;
+  int  ii, jj;
+  char ch;
+  PktIOStruct *pkt, *opkt;
+  
+  pkt_validate();		/* make sure there's something we can read into */
+
+  while (1) {
+    jj = 0;
+    while ((pkt = PKTPOLL(BOARD, PKT_CHK_THREAD, 0, TWI_THREAD)) == 0) {
+d360 1
+a360 1
+       WDOG = 0;		/* keep watchdog at bay */
+d362 1
+d364 6
+a369 6
+       if (++jj == 500000) {
+	  nisprintf(errmsg, sizeof(errmsg), "  Waiting pc=%08lX, sp=%08lX..",
+		      registers[PC_REGNUM_W], registers[SP_REGNUM_W]);
+	  write_line(errmsg);
+	  pktDumpQues();
+       }
+d371 1
+a371 1
+    }
+d374 28
+a401 4
+    if (pkt == &inpRemcomPkt1) {
+       PKTRECV(&inpRemcomPkt2);   /* tell input routine we are ready to read */
+    } else {
+       PKTRECV(&inpRemcomPkt1);   /* tell input routine we are ready to read */
+a402 23
+    DBG_DMP("R", pkt->buf, pkt->len);
+    opkt = &outRemcomPkt;
+    opkt->to = pkt->from;		/* prepare the output packet */
+    opkt->tothread = pkt->frmthread;
+    opkt->from = pkt->to;		/* say where we came from */
+    opkt->frmthread = pkt->tothread;    
+    ii = pkt->len;
+    buffer = pkt->buf;
+    remcomOutBuffer[0] = *buffer++;	/* clone the sequence number */    
+    if (ii < 2) {
+       remcomOutBuffer[1] = ICEnak;	/* return an error code */
+       remcomOutBuffer[2] = NAKinsufarg;
+       strcpy((char *)remcomOutBuffer+3, "Command packet too short");
+       outRemcomPkt.len = 2+strlen((char *)remcomOutBuffer+3);	/* n items in the record */
+       pktQueSend(&outRemcomPkt, 1);	/* send the NAK and wait for the packet to be delivered */
+       continue;	/* ignore short records */
+    }
+      
+    remcomOutBuffer[1] = ICEack;	/* assume success */
+    ch = *buffer;
+    if (ch == ICEack || ch == ICEnak) continue;	/* ignore ack's/nak's he sends us */
+    return pkt;
+  } 
+d406 3
+d410 3
+a412 5
+U32 jpeek(VU16 *jerry) {
+   U32 tmp;
+   tmp  = *(U32 *)jerry&0xFFFF0000;	/* high word */
+   tmp |= jerry[1];			/* low word */
+   return tmp;
+d415 4
+a418 3
+void jpoke(VU16 *jerry, U32 what) {
+   *(U32 *)jerry = (what&0xFFFF0000) | (what>>16);
+   jerry[1] = what;
+d422 89
+a510 83
+static int jerry_read(unsigned char *buf, unsigned char *mem, int amt) {
+   VU16 *jerry;
+   U32 tmp, mask;
+   int indx;
+   unsigned char *bbuf;
+
+   bbuf = buf;
+   indx = (long)mem & 3;		/* clip input to longword boundary */
+   jerry = (VU16 *)(((long)mem & 0x00FFFFFC) | XBUS_SLOT3);
+   if (indx) {				/* if arrived on an odd byte boundary */
+      tmp = jpeek(jerry);
+      indx = 8*(3-indx);
+      mask = 0xFF << indx;
+      for ( ;amt && indx >= 0; indx -= 8, mask >>= 8, --amt) { /* copy bytes up to longword boundary */
+	 *buf++ = tmp >> indx;		/* get byte we're interested in */
+      }
+      jerry += 2;			/* advance jerry to next longword */
+   }
+
+   for (;amt&~3; amt -= 4) {		/* next, copy out longwords */
+       tmp = jpeek(jerry);
+       *buf++ = tmp >> 24;
+       *buf++ = tmp >> 16;
+       *buf++ = tmp >> 8;
+       *buf++ = tmp;
+       jerry += 2;
+   }
+
+   if (amt) {				/* next copy any left over bytes */
+      tmp  = jpeek(jerry);
+      mask = 0xFF000000;		/* init a mask byte */
+      indx = 24;
+      for (; amt && indx >= 0; --amt, indx -= 8, mask >>= 8) {
+	 *buf++ = tmp >> indx;		/* get byte we're interested in */
+      }
+   }
+   return buf-bbuf;
+}
+
+static int jerry_write(unsigned char *mem, unsigned char *buf, int amt) {
+   VU16 *jerry;
+   U32 tmp, mask;
+   int indx;
+
+   indx = (long)mem & 3;
+   jerry = (unsigned short *)(((long)mem & 0x00FFFFFC) | XBUS_SLOT3);
+   if (indx) {				/* if arrived on an odd byte boundary */
+      tmp = jpeek(jerry);
+      indx = 8*(3-indx);
+      mask = 0xFF << indx;
+      for ( ;amt && indx >= 0; indx -= 8, mask >>= 8, --amt) { /* copy bytes up to longword boundary */
+	  tmp &= ~mask;			/* out with the old */
+	  tmp |= *buf++ << indx;	/* in with the new */
+      }
+      jpoke(jerry, tmp);
+      jerry += 2;
+   }
+   for (;amt&~3; amt -= 4) {		/* then copy longwords */
+       tmp  = *buf++ << 24;
+       tmp |= *buf++ << 16;
+       tmp |= *buf++ << 8;
+       tmp |= *buf++;
+       jpoke(jerry, tmp);
+       jerry += 2;
+   }
+   if (amt) {				/* next copy any left over bytes */
+      tmp = jpeek(jerry);
+      mask = 0xFF000000;		/* init a mask byte */
+      indx = 24;
+      for (; amt && indx >= 0; --amt, indx -= 8, mask >>= 8) {
+	  tmp &= ~mask;			/* out with old */
+	  tmp |= *buf++ << indx;	/* in with the new */
+      }
+      jpoke(jerry, tmp);
+   }
+   return 0;
+}
+#endif
+
+#if R4K_HOST
+# if !defined(FLUSH_WB) && defined(CTRL_BASE)
+#  define FLUSH_WB() do { U32 junk; junk = *((VU32 *)CTRL_BASE); } while (0)
+# endif
+d514 1
+a514 1
+# define FLUSH_WB()
+d517 9
+a525 3
+static int romulator_write(unsigned char *mem, unsigned char *buf, int amt) {
+   unsigned long *lp, tmp, mask;
+   int indx;
+a526 4
+   indx = (long)mem & 3;
+   lp = (unsigned long *)((long)mem & ~3);
+   if (indx) {				/* if arrived on an odd byte boundary */
+      tmp = *lp;
+d528 20
+a547 17
+      indx = 8*(3-indx);
+      mask = 0xFF << indx;
+      for ( ;amt && indx >= 0; indx -= 8, mask >>= 8, --amt) { /* copy bytes up to longword boundary */
+	  tmp &= ~mask;			/* out with the old */
+	  tmp |= *buf++ << indx;	/* in with the new */
+      }
+#else
+      mask = 0xFF << (8*indx);
+      for (; amt && indx < 4; ++indx, mask <<= 8, --amt) {
+          tmp &= ~mask;
+          tmp |= *buf++ << (8*indx);
+      }
+#endif
+      *lp++ = tmp;
+      FLUSH_WB();
+   }
+   for (;amt&~3; amt -= 4) {		/* then copy longwords */
+d549 17
+a565 15
+       tmp  = *buf++ << 24;
+       tmp |= *buf++ << 16;
+       tmp |= *buf++ << 8;
+       tmp |= *buf++;
+#else
+       tmp  = *buf++;
+       tmp |= *buf++ << 8;
+       tmp |= *buf++ << 16;
+       tmp |= *buf++ << 24;
+#endif
+       *lp++ = tmp;
+       FLUSH_WB();
+   }
+   if (amt) {				/* next copy any left over bytes */
+      tmp = *lp;
+d567 19
+a585 18
+      mask = 0xFF000000;		/* init a mask byte */
+      indx = 24;
+      for (; amt && indx >= 0; --amt, indx -= 8, mask >>= 8) {
+	  tmp &= ~mask;			/* out with old */
+	  tmp |= *buf++ << indx;	/* in with the new */
+      }
+#else
+      mask = 0xFF;
+      indx = 0;
+      for (; amt && indx < 4; --amt, ++indx, mask <<= 8) {
+          tmp &= ~mask;
+          tmp |= *buf++ << (8*indx);
+      }
+#endif
+      *lp++ = tmp;
+      FLUSH_WB();
+   }
+   return (U32)lp - (U32)((int)mem & ~3);
+d589 18
+a606 3
+/* csl_write - writes bytes, shorts or longs depending on the amt and the alignment
+ * of the address.
+ */
+a607 11
+static int csl_write(unsigned char *mem, unsigned char *buf, int amt) {
+   if (amt == 0) return 0;		/* nothing to do */
+   if (((U32)mem&3) == 0 && (amt&3) == 0) {	/* count and ptr are longword aligned, do longwords */
+      U32 *src, *dst, tmp;
+      dst = (U32 *)mem;
+      amt >>= 2;			/* divide amount by 4 */
+      if (((U32)buf&3) == 0) {		/* source is longword aligned too */
+	 src = (U32 *)buf;
+	 while (amt-- > 0) *dst++ = *src++;	/* copy longwords */
+      } else {
+	 while (amt-- > 0) {
+d609 29
+a637 25
+	    tmp  = *buf++ << 24;	/* copy source as bytes... */
+	    tmp |= *buf++ << 16;
+	    tmp |= *buf++ << 8;
+	    tmp |= *buf++;
+#else
+	    tmp  = *buf++;	/* copy source as bytes... */
+	    tmp |= *buf++ << 8;
+	    tmp |= *buf++ << 16;
+	    tmp |= *buf++ << 24;
+#endif
+	    *dst++ = tmp;		/* and destination as longwords */
+	 }
+      }
+      return 0;
+   }	 
+   if (((U32)mem&1) == 0 && (amt&1) == 0) { /* count and ptr are short aligned, do shorts */
+      U16 *src, *dst;
+      dst = (U16 *)mem;
+      amt >>= 1;			/* divide amount by 2 */
+      if (((U32)buf&1) == 0) {		/* source is short aligned too */
+	 src = (U16 *)buf;
+	 while (amt-- > 0) *dst++ = *src++;	/* copy longwords */
+      } else {
+	 while (amt-- > 0) {
+	    U16 tmp;
+d639 2
+a640 2
+	    tmp  = *buf++ << 8;		/* copy source as bytes... */
+	    tmp |= *buf++;
+d642 2
+a643 2
+	    tmp  = *buf++;		/* copy source as bytes... */
+	    tmp |= *buf++ << 8;
+d645 8
+a652 7
+	    *dst++ = tmp;		/* and destination as longwords */
+	 }
+      }
+      return 0;
+   }	 
+   memcpy(mem, buf, amt);		/* else just copy them as bytes */
+   return 0;
+d655 23
+a677 3
+/* csl_read - read bytes, shorts or longs depending on the amt and the alignment
+ * of the address.
+ */
+a678 14
+static int csl_read(unsigned char *buf, unsigned char *mem, int amt) {
+   if (amt == 0) return 0;		/* nothing to do */
+   if (((U32)mem&3) == 0 && (amt&3) == 0) {	/* count and ptr are longword aligned, do longwords */
+      U32 *src;
+      src = (U32 *)mem;
+      amt >>= 2;			/* divide amount by 4 */
+      if (((U32)buf&3) == 0) {		/* source is longword aligned too */
+	 U32 *dst;
+	 dst = (U32 *)buf;
+	 while (amt-- > 0) *dst++ = *src++;	/* copy longwords */
+      } else {
+	 while (amt-- > 0) {
+	    U32 tmp;
+	    tmp = *src++;		/* copy source as longwords */
+d680 31
+a710 26
+	    *buf++ = tmp >> 24;		/* and destination as bytes */
+	    *buf++ = tmp >> 16;
+	    *buf++ = tmp >> 8;
+	    *buf++ = tmp;
+#else
+	    *buf++ = tmp;		/* and destination as bytes */
+	    *buf++ = tmp >> 8;
+	    *buf++ = tmp >> 16;
+	    *buf++ = tmp >> 24;
+#endif
+	 }
+      }
+      return 0;
+   }	 
+   if (((U32)mem&1) == 0 && (amt&1) == 0) { /* count and ptr are short aligned, do shorts */
+      U16 *src;
+      src = (U16 *)mem;
+      amt >>= 1;			/* divide amount by 2 */
+      if (((U32)buf&1) == 0) {		/* source is short aligned too */
+	 U16 *dst;
+	 dst = (U16 *)buf;
+	 while (amt-- > 0) *dst++ = *src++;	/* copy shorts */
+      } else {
+	 while (amt-- > 0) {
+	    U16 tmp;
+	    tmp = *src++;		/* copy source as shorts */
+d712 2
+a713 2
+	    *buf++ = tmp >> 8;		/* copy dest as bytes */
+	    *buf++ = tmp;
+d715 2
+a716 2
+	    *buf++ = tmp;		/* copy dest as bytes */
+	    *buf++ = tmp >> 8;
+d718 6
+a723 6
+	 }
+      }
+      return 0;
+   }	 
+   memcpy(buf, mem, amt);		/* else just copy as bytes */
+   return 0;
+d725 1
+d729 4
+a732 3
+static int control_write(unsigned char *mem, unsigned char *buf, int amt) {
+   nisprintf(errmsg, sizeof(errmsg), "Cannot store to control register %08lX-%08lX\n", (U32)mem, (U32)mem+amt);
+   return -strlen(errmsg);
+d734 1
+d738 15
+a752 11
+# if R4K_HOST
+#  define W_SPEC(func, start, end, xlate, name) func, (unsigned long)(start), (unsigned long)((end)-1), (unsigned long)xlate
+# else
+#  define W_SPEC(func, start, end, xlate, name) func, (unsigned long)(start), (unsigned long)((end)-1)
+# endif
+#else
+# if R4K_HOST
+#  define W_SPEC(func, start, end, xlate, name) func, (unsigned long)(start), (unsigned long)((end)-1), (unsigned long)xlate, name
+# else
+#  define W_SPEC(func, start, end, xlate, name) func, (unsigned long)(start), (unsigned long)((end)-1), name
+# endif
+d756 4
+a759 3
+   int (*func)(unsigned char *dst, unsigned char *src, int amt);
+   unsigned long start;
+   unsigned long end;
+d761 1
+a761 1
+   unsigned long xlate;
+d763 1
+d765 1
+a765 1
+   const char *name;
+d771 2
+a772 1
+# if R4K_HOST
+d774 3
+a776 1
+# endif
+d778 1
+a778 1
+# define PCICFG_ADDRESS_BASE	0xE0000000
+d781 3
+a783 2
+# if HB_PHOENIX
+static int write_pcicfg(unsigned char *where, unsigned char *what, int count) {
+d787 2
+a788 2
+    VU32 *pci_cfg = (VU32 *)GALILEO_PCI_CFG;
+    VU32 *pci_dta = (VU32 *)GALILEO_PCI_DTA;
+d790 2
+a791 2
+    dst = (((U32)where)&0xFFFC);
+    dst |= 0x80000000;	/* enable the configuration register */
+d794 2
+a795 1
+    for (src=what; count > 0; dst += 0x10) {
+d798 2
+a799 1
+	if (--count <= 0) break;
+d801 2
+a802 1
+	if (--count <= 0) break;
+d804 2
+a805 1
+	if (--count <= 0) break;
+d807 2
+a808 1
+	if (--count <= 0) break;
+d811 3
+a813 2
+	for (value=0, jj=0; jj < 4 && count > 0; ++jj, --count) {
+	    value |= *src++ << (8*jj);
+d816 6
+a821 5
+       *pci_cfg = dst;
+       *pci_dta = value;
+   }
+   *pci_cfg = 0;
+   return ii;
+d823 1
+d827 1
+d829 27
+a855 22
+   {W_SPEC(romulator_write, ROMULATOR_STARTnc, ROMULATOR_ENDnc, RRBUS_BASEnc, "RomWrite")},
+# if COJAG_STUB
+   {W_SPEC(romulator_write, &G_FLAGS, &G_ENDRAM, &G_FLAGS, "RomWrite")},
+   {W_SPEC(jerry_write, &JPIT1, &D_ENDRAM, &JPIT1, "JerryWrite")},
+# endif
+# if defined(XBUS_SLOT0)
+   {W_SPEC(csl_write, XBUS_SLOT0, XBUS_SLOT77+0x400000, XBUS_SLOT0, "cslWrite")},
+# endif
+# if R4K_HOST
+   {W_SPEC(romulator_write, ROMULATOR_STARTc, ROMULATOR_ENDc, RRBUS_BASEnc, "RomWrite")},
+   {W_SPEC(romulator_write, TBUS_BASE, TBUS_BASE+TBUS_SIZE, TBUS_BASE, "RomWrite")},
+   {W_SPEC(romulator_write, RRBUS_BASE, RRBUS_BASE+RRBUS_SIZE, RRBUS_BASEnc, "RomWrite")},
+   {W_SPEC(control_write,   CTRL_BASE, CTRL_BASE+4096, CTRL_BASE, "CtlWrite")},
+# endif
+#else
+# if HOST_BOARD == PHOENIX
+   {W_SPEC(romulator_write, EXPAN2_BASE, EXPAN2_BASE+0x01000000, EXPAN2_BASE, "RomWrite")},
+# else
+   {W_SPEC(romulator_write, GALILEO_CS1, GALILEO_CS1+0x01000000, GALILEO_CS1, "RomWrite")},
+# endif
+   {W_SPEC(write_pcicfg, PCICFG_ADDRESS_BASE, PCICFG_ADDRESS_BASE+0x10000, PCICFG_ADDRESS_BASE, "pcicfgwrt")},
+   {W_SPEC(csl_write, PCI_MEM_BASE, PCI_MEM_BASE+0x18000000, PCI_MEM_BASE, "cslWrite")},
+d857 1
+a857 1
+   {0, 0, 0}
+d863 7
+a869 6
+int buf2mem(unsigned char *mem, unsigned char *buf, int count) {
+      int jj;
+      unsigned long beg, lim;
+      MSpecials const *ms;
+      unsigned char *bp = buf;
+      
+d871 1
+a871 1
+      mem = (unsigned char *)((U32)mem|0xA0000000);	/* make sure address is uncached */
+d873 12
+a884 9
+      while (count) {
+	 jj = count;			/* assume we're to transfer the whole amount */
+	 lim = (unsigned long)(mem + count-1); /* compute high limit */
+	 beg = (U32)mem;
+	 for (ms=m_specials; ms->func; ++ms) {
+            int a, b;
+            a = lim < ms->start;
+   	    b = beg > ms->end;
+	    if (a || b) continue;
+d886 2
+a887 2
+	 }
+	 if (ms->func) {
+d889 1
+a889 1
+	       jj = ms->start - beg;	/* chop off some from the end */
+d891 23
+a913 18
+	       int sts;
+	       if (lim > ms->end) {
+		  jj = lim - ms->end;	/* chop off some from the end */
+	       }
+#if R4K_HOST
+	       beg = (U32)mem-ms->start; /* index into memory */
+	       sts = ms->func((unsigned char *)(beg+ms->xlate), buf, jj); /* copy the bytes using the special move */
+#else
+	       sts = ms->func(mem, buf, jj);	/* copy the bytes using the special move */
+#endif
+	       if (sts < 0) {		/* if we got an error, */
+		  if (bp < buf) memcpy(bp, buf, -sts + 1); /* move the message to head of buffer */
+		  return sts;		/* and signal we got an error */
+	       }
+	       buf += jj;		/* advance the pointers */
+	       mem += jj;
+	       count -= jj;
+	       continue;
+d915 7
+a921 7
+	 }
+         memcpy(mem, buf, jj);
+         mem += jj;
+         buf += jj;
+	 count -= jj;
+      }
+      return buf - bp;
+d925 11
+a935 8
+static int read_32bits(unsigned char *buf, unsigned char *mem, int count) {
+   int ii;
+   U32 *src, value;
+   U8 *dst;
+   src = (U32 *)((U32)mem&-sizeof(U32));
+   ii = count;
+   for (dst=buf; count > 0;) {
+       value = *src++;
+d937 25
+a961 17
+       *dst++ = value >> 24;
+       if (--count <= 0) break;
+       *dst++ = value >> 16;
+       if (--count <= 0) break;
+       *dst++ = value >> 8;
+       if (--count <= 0) break;
+       *dst++ = value;
+       if (--count <= 0) break;
+#else
+       *dst++ = value;
+       if (--count <= 0) break;
+       *dst++ = value >> 8;
+       if (--count <= 0) break;
+       *dst++ = value >> 16;
+       if (--count <= 0) break;
+       *dst++ = value >> 24;
+       if (--count <= 0) break;
+d963 2
+a964 2
+   }
+   return ii;
+d966 1
+d970 2
+a971 1
+static int read_pcicfg(unsigned char *buf, unsigned char *mem, int count) {
+d973 1
+d976 1
+d980 2
+a981 2
+    VU32 *pci_cfg = (VU32 *)GALILEO_PCI_CFG;
+    VU32 *pci_dta = (VU32 *)GALILEO_PCI_DTA;
+d983 1
+a983 1
+    src = (((U32)mem)&0xFFFC);
+d987 2
+a988 2
+    for (dst=buf; count > 0;) {
+	*pci_cfg = src;       
+d991 1
+d994 2
+a995 1
+	if (--count <= 0) break;
+d997 2
+a998 1
+	if (--count <= 0) break;
+d1000 2
+a1001 1
+	if (--count <= 0) break;
+d1003 2
+a1004 1
+	if (--count <= 0) break;
+d1006 1
+a1006 1
+	for (jj=0; jj < 4 && count > 0; ++jj, --count) {
+d1014 1
+d1016 2
+a1017 1
+# if R4K_HOST
+d1019 3
+a1021 1
+# endif
+d1025 1
+d1027 22
+a1048 20
+# if COJAG_STUB
+   {W_SPEC(jerry_read, &JPIT1, &D_ENDRAM, &JPIT1, "jerryrd")},
+# endif
+# if defined(XBUS_SLOT0)
+   {W_SPEC(csl_read, XBUS_SLOT0, XBUS_SLOT77+0x400000, XBUS_SLOT0, "cslRead")},
+# endif
+# if R4K_HOST
+   {W_SPEC(read_32bits,  TBUS_BASE, TBUS_BASE+TBUS_SIZE, TBUS_BASE, "r32Bits")},
+   {W_SPEC(read_32bits,  RDRAM_BASE, RDRAM_BASE+RDRAM_SIZE, RDRAM_BASE, "r32Bits")},
+   {W_SPEC(read_32bits,  RRBUS_BASE, RRBUS_BASE+RRBUS_SIZE, RRBUS_BASEnc, "r32Bits")},
+   {W_SPEC(control_read, CTRL_BASE, CTRL_BASE+4096, CTRL_BASE, "ctlRead")},
+# endif
+#else
+# if HOST_BOARD == PHOENIX
+   {W_SPEC(read_32bits, EXPAN2_BASE, EXPAN2_BASE+0x01000000, EXPAN2_BASE, "r32Bits")},
+# else
+   {W_SPEC(read_32bits, GALILEO_CS1, GALILEO_CS1+0x01000000, GALILEO_CS1, "r32Bits")},
+# endif
+   {W_SPEC(csl_read, PCI_MEM_BASE, GALILEO_BASE+0x14000000, PCI_MEM_BASE, "cslRead")},
+   {W_SPEC(read_pcicfg, PCICFG_ADDRESS_BASE, PCICFG_ADDRESS_BASE+0x10000, PCICFG_ADDRESS_BASE, "pcicfg")},
+d1050 4
+a1053 1
+   {0, 0, 0}
+d1059 9
+a1067 7
+static int mem2buf(unsigned char *buf, unsigned char *mem, int count) {
+      unsigned char *bp;
+      unsigned long beg, lim;
+      MSpecials const *ms=0;
+      int jj;
+      
+      bp = buf;
+d1069 1
+a1069 1
+      mem = (unsigned char *)((U32)mem|0xA0000000);	/* make sure address is uncached */
+d1071 11
+a1081 8
+      while ((jj=count) > 0) {
+	 lim = (unsigned long)(mem + count-1); /* compute high limit */
+	 beg = (U32)mem;
+	 for (ms=m_rspecials; ms->func; ++ms) {
+            int a, b;
+            a = lim < ms->start;
+   	    b = beg > ms->end;
+	    if (a || b) continue;
+d1083 2
+a1084 2
+	 }
+	 if (ms->func) {
+d1086 1
+a1086 1
+	       jj = ms->start - beg;	/* chop off some from the end */
+d1088 15
+a1102 13
+	       int sts;
+	       if (lim > ms->end) {
+		  jj = lim - ms->end;	/* chop off some from the end */
+	       }
+	       sts = ms->func(buf, mem, jj);	/* copy the bytes using the special move */
+	       if (sts < 0) {		/* if we got an error, */
+		  if (bp < buf) memcpy(bp, buf, -sts + 1); /* move the message to head of buffer */
+		  return sts;		/* and signal we got an error */
+	       }
+	       buf += jj;		/* advance the pointers */
+	       mem += jj;
+	       count -= jj;
+	       continue;
+d1104 7
+a1110 43
+	 }
+         memcpy(buf, mem, jj);
+         mem += jj;
+         buf += jj;
+	 count -= jj;
+      }
+#if 0
+#if defined(COJAG_STUB)
+	 if (mem+count > (unsigned char *)(&JPIT1) && mem < (unsigned char *)(&D_ENDRAM)) {
+	    if (mem < (unsigned char *)(&JPIT1)) {
+	       len = (unsigned char *)(&JPIT1)-mem;
+	    } else {
+	       if (mem+count > (unsigned char *)(&D_ENDRAM)) {
+		  len = (unsigned char *)(&D_ENDRAM)-mem;
+	       }
+	       count -= len;
+	       buf = jerry_read(buf, mem, len);
+	       continue;
+	    }
+	 }
+#endif
+#if defined(XBUS_SLOT0)
+	 if (mem+count > (unsigned char *)XBUS_SLOT0 && mem < (unsigned char *)(XBUS_SLOT77+0x400000)) {
+	    if (mem < (unsigned char *)XBUS_SLOT0) {
+	       len = (unsigned char *)XBUS_SLOT0 - mem;
+	    } else {
+	       if (mem+count > (unsigned char *)(XBUS_SLOT77+0x400000)) {
+		  len = (unsigned char *)(XBUS_SLOT77+0x400000) - mem;
+	       }
+	       csl_read(buf, mem, len);
+	       count -= len;
+	       buf += len;
+	       mem += len;
+	       continue;
+	    }
+	 }
+#endif
+	 count -= len;
+	 memcpy(buf, mem, len);
+	 buf += len;
+      }
+#endif
+      return buf - bp;
+d1113 1
+a1113 2
+/* a bus error has occurred, perform a longjmp
+   to return execution and allow handling of the error */
+d1117 1
+a1117 1
+  longjmp(remcomEnv,1);
+d1120 2
+a1121 2
+/* this function takes the R3k exception number and attempts to 
+   translate this number into a unix compatible signal value */
+d1123 49
+a1171 19
+int computeSignal( int exceptionVector ) { 
+  int sigval;
+  switch (exceptionVector) {
+    case  0: sigval =  2;  break; /* SIGINT		*/
+    case  4: sigval = 11; break; /* TLB modification	*/
+    case  8: sigval = 11; break; /* TLB load		*/
+    case 12: sigval = 11; break; /* TLB store		*/
+    case 16: sigval = 11; break; /* Load address error	*/
+    case 20: sigval = 11; break; /* Store address error	*/
+    case 24: sigval = 10; break; /* I load error	*/
+    case 28: sigval = 10; break; /* D load error	*/
+    case 32: sigval =  7; break; /* syscall		*/
+    case 36: sigval =  5; break; /* breakpoint		*/
+    case 40: sigval =  4; break; /* reserved instruction*/
+    case 44: sigval =  4; break; /* Coprocessor unusable */
+    case 48: sigval =  8; break; /* arithmetic overflow	*/
+    default: sigval =  4; break; /* reserved		*/
+  }
+  return sigval;
+d1174 6
+a1179 3
+/*
+ * This function does all command procesing for interfacing to gdb.
+ */
+d1181 8
+a1188 12
+static unsigned char *getaddr(unsigned char *buf, unsigned long *addp) {
+   int ii;
+   unsigned long addr;
+
+   ii = *buf++;			/* number of digits in the address */
+   addr = 0;
+   for (;ii > 0; --ii) {
+      addr <<= 8;
+      addr |= *buf++;
+   }
+   *addp = addr;
+   return buf;
+d1192 5
+a1196 5
+   U32 *prev0;			/* pointer to primary breakpoint */
+   U32	instr0;			/* instruction previously at breakpoint */
+   U32 *prev1;			/* pointer to secondary breakpoint */
+   U32	instr1;			/* instruction previously at breakpoint */
+   int active;			/* 1=primary breakpoint set, 2=secondary breakpoint set */
+d1199 2
+a1200 2
+#define ACTIVE_BRK_PRIMARY	1 /* breakpoint 0 is active */
+#define ACTIVE_BRK_SECONDARY	2 /* breakpoint 1 is active */
+d1203 1
+d1206 59
+a1264 52
+#if R4K_HOST 
+# define CHECK_I_ADDR(addr) check_i_addr((U32 *)(addr))
+static U32 *check_i_addr(U32 *ptr) {
+   U8 *addr = (U8 *)ptr;
+   if (((U32)addr&3) == 0) {
+# if !HB_PHOENIX
+       if (addr >= ROMULATOR_STARTc && addr < ROMULATOR_ENDc) {
+	  addr = (addr - ROMULATOR_STARTc) + (U8*)RRBUS_BASEnc;
+	  return (U32 *)addr;
+       } else if (addr >= ROMULATOR_STARTnc && addr < ROMULATOR_ENDnc) {
+	  addr = (addr - ROMULATOR_STARTnc) + (U8*)RRBUS_BASEnc;
+	  return (U32 *)addr;
+       } else if (tlbprobe((U32)addr, 4) >= 0) {
+	   return ptr;
+       }
+# else
+       if ((U32)addr >= (U32)DRAM_BASE && (U32)addr < (U32)DRAM_BASE+DRAM_SIZE) {
+	  return (U32 *)addr;
+       } else if ((U32)addr >= (U32)DRAM_BASEnc && (U32)addr < (U32)DRAM_BASEnc+DRAM_SIZE) {
+	  return (U32 *)addr;
+       } else if (tlbprobe((U32)addr, 4) >= 0) {
+	   return ptr;
+       }
+# endif
+   }
+   nisprintf(errmsg, sizeof(errmsg), "I address of %08lX is not patchable", addr);
+   return (U32 *)0;
+}
+#else
+# define CHECK_I_ADDR(addr) ((U32 *)((U32)(addr)|0xA0000000))
+#endif
+
+static int do_single_step(U32 *regs) {
+   int op;
+   unsigned long inst, *opp;
+
+/* First remove any existing breakpoints that we set */
+
+   if ((tbreak.active&ACTIVE_BRK_PRIMARY) != 0) {
+      *tbreak.prev0 = tbreak.instr0;	/* replace the original instruction */
+      FLUSH_WB();
+      if ((tbreak.active&ACTIVE_BRK_SECONDARY) != 0) {
+	 *tbreak.prev1 = tbreak.instr1;	/* replace the branch target too */
+	 FLUSH_WB();
+      }
+   }
+   tbreak.active = 0;			/* assume no breakpoints in case of errors */
+   opp = (U32 *)regs[PC_REGNUM_W];	/* get pointer to next instruction */
+   opp = CHECK_I_ADDR(opp);		/* verify and translate the address to patchable location */
+   if (opp == 0) return -1;		/* it ain't valid or patchable, give up and die */
+   inst = *opp;				/* pickup the opcode */
+   op = inst >> 26;			/* isolate the opcode bits */
+d1266 106
+a1371 19
+   {
+       nisprintf(lcd_buf, 40, "b: op=%d, opp=%08X", op, opp);
+   }
+#endif   
+   switch (op) {
+      case 0: {
+	 int func;
+	 func = inst&63;		/* isolate the subfunction bits */
+	 if (func == 8 || func == 9) {	/* jr or jalr */
+	    int ii;
+	    tbreak.active = ACTIVE_BRK_PRIMARY;		/* the primary break is at the target */
+	    ii = (inst>>21)&0x1F;	/* get the register index.. */
+#if R4K_HOST
+	    ii = 2*ii+1;		/* *** ON 4K hosts, index into 64 bit array *** */
+#endif
+	    tbreak.prev0 = CHECK_I_ADDR(regs[ii]); /* ...of the jump. Read which register points */
+	    if (tbreak.prev0 == 0) {
+	       tbreak.active = 0;
+	       return -1;		/* address is not legal */
+d1373 31
+a1403 58
+	    break;			/* ...to the next instruction. */
+	 } else if (func == 1 || func == 5 || func == 10 || func == 11 ||
+   		    func == 14 || func == 15 || (func >= 20 && func <= 23) ||
+   		    (func >= 28 && func <= 31) || func == 40 || func == 41 ||
+   		     func > 43) {
+	    nisprintf(errmsg, sizeof(errmsg), "unknown func in instr %08lX, op=%d", *opp, op);
+	    return -1;
+	 } /******** ELSE FALL THROUGH TO DEFAULT *******************/
+      }
+      case 17: 			/* COP1, check for Branches */
+	 if (((inst>>21)&0x1F) == 8) {	/* BC field has to be 8 */
+	     int func;
+	     func = (inst>>16)&0x1F;
+	     if (func >= 0 && func <= 3) goto do_branch; /* BCTL field has to be 0, 1, 2 or 3 */
+	 }
+      default:
+	 tbreak.prev0 = opp+1;		/* primary breakpoint is the next instruction */
+	 tbreak.active = ACTIVE_BRK_PRIMARY;
+	 break;
+      case 1:			/* bltz, bgez, bltzal, bgezal */
+      case 4:			/* beq, bne, blez, bgtz */
+      case 5:
+      case 6:
+      case 7: {
+	 S16 offset;
+do_branch:
+	 offset = inst&0x0000FFFF;		/* compute target address */
+	 tbreak.prev0 = opp+1+offset;		/* Primary breakpoint is target address */
+	 tbreak.active = ACTIVE_BRK_PRIMARY|ACTIVE_BRK_SECONDARY; /* activate both breakpoints */
+	 break;
+      }
+      case 2:			/* j and jal */
+      case 3:
+   				/* Primary breakpoint is target of jump */
+	 tbreak.prev0 = (U32*)(((regs[PC_REGNUM_W]+4)&0xF0000000) | ((inst&((1<<26)-1))<<2));
+#if R4K_HOST
+	 tbreak.prev0 = CHECK_I_ADDR(tbreak.prev0);
+	 if (tbreak.prev0 == 0) return -1;
+#endif
+	 tbreak.active = ACTIVE_BRK_PRIMARY;
+	 break;
+   }
+   tbreak.instr0 = *tbreak.prev0;		/* pickup instruction */
+   *tbreak.prev0 = BREAK_INSTR;			/* replace it with a BREAK instruction */
+
+   FLUSH_WB();					/* flush the write buffer */
+   if (tbreak.active&ACTIVE_BRK_SECONDARY) {	/* if we're to also stuff in a secondary breakpoint */
+      						/* secondary breakpoints are placed at the instruction */
+   						/* after the branch delay slot (PC+8) */
+      tbreak.prev1 = CHECK_I_ADDR(regs[PC_REGNUM_W]+8); /* verify address */
+      if (tbreak.prev1 == 0) {
+	 tbreak.active = 0;		/* zap this on error */
+	 return -1;			/* return nfg */
+      }
+      tbreak.instr1 = *tbreak.prev1;	/* save instruction */
+      *tbreak.prev1 = BREAK_INSTR;	/* and replace it with a BREAK instruction */
+      FLUSH_WB();			/* flush the write buffer */
+   }
+d1405 8
+a1412 8
+   if ((tbreak.active&ACTIVE_BRK_SECONDARY) == 0) {
+      nisprintf(errmsg, sizeof(errmsg), " ss:%08lX,%08X", tbreak.prev0, tbreak.instr0);
+   } else {
+      nisprintf(errmsg, sizeof(errmsg), " ss:%08lX,%08X %08lX,%08lX",
+   		 tbreak.prev0, tbreak.instr0,
+   		 tbreak.prev1, tbreak.instr1);
+   }
+   write_line(errmsg);
+d1414 1
+d1416 15
+a1430 14
+   {
+        int kk;
+        if ((tbreak.active&ACTIVE_BRK_SECONDARY) == 0) {
+	  nisprintf(lcd_buf+40, 80, "%08lX,%08X", tbreak.prev0, tbreak.instr0);
+        } else {
+	  nisprintf(lcd_buf+40, 40, "%08lX,%08X %08lX,%08lX",
+		     tbreak.prev0, tbreak.instr0,
+		     tbreak.prev1, tbreak.instr1);
+        }
+        for (kk=0; kk < 81; ++kk) {
+	   lcd_wait(1);
+	   lcd_update();
+        }
+   }
+d1432 2
+a1433 1
+   return 0;      
+d1438 1
+d1445 9
+a1453 7
+# if R4K_HOST && !HB_PHOENIX
+#  define STUB_RUNNING_ON do { int junk; stub_running |= 1; junk = stub_running; } while (0)
+#  define STUB_RUNNING_OFF do { int junk; stub_running &= ~1; junk = stub_running; } while (0)
+# else
+#  define STUB_RUNNING_ON do { stub_running |= 1; } while (0)
+#  define STUB_RUNNING_OFF do { stub_running &= ~1; } while (0)
+# endif
+d1455 2
+a1456 2
+# define STUB_RUNNING_ON do { ; } while (0)
+# define STUB_RUNNING_OFF do { ; } while (0)
+d1461 6
+a1466 5
+void handle_exception(unsigned long *regs) {
+   int    sigval, length;
+   unsigned long addr, ii;
+   unsigned char *buf, *obuf;
+   PktIOStruct *pkt;
+d1468 1
+a1468 1
+   STUB_RUNNING_ON;
+d1471 1
+a1471 1
+   iceless_semaphore = 1;
+d1473 1
+d1475 57
+a1531 53
+   flush_cache();		/* clear all the caches */
+   regs[PS_REGNUM_U] = 0;	/* 0 the unused word (Upper 32 bits) of the 32 bit registers */
+   regs[HI_REGNUM_U] = 0;
+   regs[LO_REGNUM_U] = 0;
+   regs[CAUSE_REGNUM_U] = 0;
+   regs[FCRCS_REGNUM_U] = 0;
+   regs[FCRIR_REGNUM_U] = 0;
+   regs[INX_REGNUM_U] = 0;
+   regs[RAND_REGNUM_U] = 0;
+   regs[PAGEMASK_REGNUM_U] = 0;
+   regs[WIRED_REGNUM_U] = 0;
+   regs[COUNT_REGNUM_U] = 0;
+   regs[COMPARE_REGNUM_U] = 0;
+   regs[PRID_REGNUM_U] = 0;
+   regs[CONFIG_REGNUM_U] = 0;
+   regs[LLADDR_REGNUM_U] = 0;
+   regs[ECC_REGNUM_U] = 0;
+   regs[CACHEERR_REGNUM_U] = 0;
+   regs[TAGLO_REGNUM_U] = 0;
+   regs[TAGHI_REGNUM_U] = 0;
+   regs[FP_REGNUM_U] = regs[S8_REGNUM_U];
+#endif
+   regs[FP_REGNUM_W] = regs[S8_REGNUM_W];		/* copy the frame pointer into GDB's spot */
+   memcpy((char *)registers, regs, NUMREGBYTES);	/* clone the saved registers */
+
+   sigval = computeSignal( registers[CAUSE_REGNUM_W]&0x3C ); 
+   obuf = remcomOutBuffer+1;
+
+   addr = registers[PC_REGNUM_W];
+   if (registers[CAUSE_REGNUM_W]&0x80000000) addr += 4; /* adjust if in delay slot */
+   addr = (U32)CHECK_I_ADDR(addr);		/* translate address if necessary */
+   if (addr) {
+       ii = pm_instr = *(U32*)addr;			/* save actual instruction in error */
+   } else {
+       ii = pm_instr = 0;
+   }
+   if (sigval == 5 && (tbreak.active&ACTIVE_BRK_PRIMARY) != 0) { /* if this is a breakpoint report */
+      *(U32*)tbreak.prev0 = tbreak.instr0; 	/* put his instruction back */
+      FLUSH_WB();
+      if ((tbreak.active&ACTIVE_BRK_SECONDARY) != 0) {
+	 *(U32*)tbreak.prev1 = tbreak.instr1; /* put back the other one too, if there is one */
+	 FLUSH_WB();
+      }
+      tbreak.active = 0;		/* no more local breakpoints */
+   }
+
+   *obuf++ = ICEreply;
+   *obuf++ = 'S';
+   *obuf++ = sigval;
+
+   ii >>= 16;
+   ii &= 0x3FF;
+   if (sigval != 5 || (sigval == 5 && (ii >= 7 && ii <= 9))) {
+d1533 2
+a1534 29
+      struct ROM_VECTOR_STR *romv = (struct ROM_VECTOR_STR *)0x9FC00010;
+      int max = BUFMAX-(obuf-remcomOutBuffer)-1;
+      if ((registers[CAUSE_REGNUM_W]&0x3F) == 0 && romv->ROMV_STUB_EH && romv->ROMV_STUB_REASON) {
+	 strncpy((char *)obuf, (char *)romv->ROMV_STUB_REASON, max);
+	 obuf[max] = 0;
+         romv->ROMV_STUB_REASON = 0;	/* burn our bridges */
+      } else {
+         strcpy((char *)obuf, get_pm_msg(registers[CAUSE_REGNUM_W]));
+      }
+#else
+# if HB_PHOENIX
+      struct ROM_VECTOR_STR * volatile romv = (struct ROM_VECTOR_STR *)(DRAM_BASEnc);
+# else
+      struct ROM_VECTOR_STR * volatile romv = (struct ROM_VECTOR_STR *)(RRBUS_BASEnc+0x10);
+# endif
+      int max = BUFMAX-(obuf-remcomOutBuffer)-1;
+      if ( ((registers[CAUSE_REGNUM_W]&0x3F) == 0 || (registers[CAUSE_REGNUM_W]&0x3F) == 0x3C) &&
+          romv->ROMV_STUB_EH && romv->ROMV_STUB_REASON) {
+	 strncpy((char *)obuf, (char *)romv->ROMV_STUB_REASON, max);
+	 obuf[max] = 0;
+         romv->ROMV_STUB_REASON = 0;	/* burn our bridges */
+	 FLUSH_WB();
+      } else {
+         strcpy((char *)obuf, get_pm_msg(registers[CAUSE_REGNUM_W]));
+      }
+#endif
+      obuf += strlen((char *)obuf)+1;
+   }      
+   putpacket(obuf-remcomOutBuffer);	/* send the exception report */
+d1536 33
+d1570 15
+a1584 15
+   if (sigval == 11) {
+      obuf = remcomOutBuffer+1;
+      *obuf++ = ICEnak;
+      *obuf++ = NAKunsupport;
+      nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, " PANIC addr err at %08lX, %08lX", registers[RA_REGNUM_W], registers[BADVADDR_REGNUM_W]);
+      obuf += strlen((char *)obuf);
+      putpacket(obuf-remcomOutBuffer);
+      while (1);
+   }
+#endif
+
+   while (1) { 
+      extern long ipl_get();
+      extern void ipl_set(long);
+      char cchar;
+d1586 1
+a1586 1
+      error = 0;
+d1589 5
+a1593 5
+      for (ii=0; ii < 81; ++ii) {
+	 wait_n_usecs(150);
+	 ++lcd_time;
+	 lcd_update();
+      }
+d1597 11
+a1607 12
+#  if R4K_HOST
+      prc_set_ipl((registers[PS_REGNUM_W]&0xFB00) | (registers[PS_REGNUM_W]&1));	/* re-enable interrupts */
+#  else
+      prc_set_ipl((registers[PS_REGNUM_W]&0xFB00) | ((registers[PS_REGNUM_W]>>2)&1)); /* re-enable interrupts */
+#  endif
+#endif
+      pkt = getpacket();
+      prc_set_ipl(0);		/* disable interrupts */
+
+      buf = pkt->buf;		/* point to command byte */
+      obuf = remcomOutBuffer;
+      *obuf++ = *buf++;		/* copy the packet sequence number */
+d1609 4
+d1615 13
+a1627 12
+      cchar = *buf++;
+      switch (cchar) {
+         case 'A':		/* just eat attention commands */
+	    break;
+	 case '?':		/* return the value of the last exception */
+	    *obuf++ = ICEreply;
+	    *obuf++ = 'S';
+	    *obuf++ = sigval;
+	    break; 
+	 case 'g': {		 /* return the value of the CPU registers */
+	    char *src;
+	    int amt;
+d1629 28
+a1656 25
+    	    int ii, jj;
+	    for (ii=0, jj=ZERO_REGNUM_W; ii<FP0_REGNUM; ++ii, jj += 2) {
+		lcl_regs[ii] = registers[jj];
+	    }
+	    for (jj=FP0_REGNUM*2; ii<FIRST_EMBED_REGNUM; ii += 2, jj += 4) {
+		lcl_regs[ii]   = registers[jj];
+		lcl_regs[ii+1] = registers[jj+1];
+	    }
+	    for (jj=0; jj<sizeof(reg_xlate)/sizeof(U16); ++ii, ++jj ) {
+		lcl_regs[ii] = registers[reg_xlate[jj]];
+	    }
+	    src = (char *)lcl_regs;
+	    amt = (FIRST_EMBED_REGNUM+sizeof(reg_xlate)/sizeof(U16))*4;
+	    using_r3k = 1;
+#else
+	    src = (char *)registers;
+	    amt = NUMREGBYTES;
+#endif
+	    *obuf++ = ICEreply;
+	    memcpy(obuf, src, amt);
+	    obuf += amt;
+	    break;
+         }
+	 case 'G' : {		/* set the value of all the CPU registers - return OK */
+	    int amt;
+d1658 1
+a1658 1
+	    amt = (FIRST_EMBED_REGNUM + sizeof(reg_xlate)/sizeof(U16)) * 4;
+d1660 1
+a1660 1
+	    amt = NUMREGBYTES;
+d1662 8
+a1669 6
+	    if (pkt->len-2 != amt) {
+	       *obuf++ = ICEnak;
+	       *obuf++ = NAKinsufarg;
+	       nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "Expected %d bytes of 'G' data; recv'd %d", amt, pkt->len-2);
+	       obuf += strlen((char *)obuf);
+	    } else {
+d1671 22
+a1692 5
+		int ii, jj;
+		memcpy((char *)lcl_regs, buf, amt);
+		for (ii=0, jj=ZERO_REGNUM_W; ii<FP0_REGNUM; ++ii, jj += 2) {
+		    registers[jj] = lcl_regs[ii];
+    		    registers[jj^1] = ((long)lcl_regs[ii]) >= 0 ? 0 : 0xffffffff;
+d1694 109
+a1802 3
+		for (jj=FP0_REGNUM*2; ii<FIRST_EMBED_REGNUM; ii += 2, jj += 4) {
+		    registers[jj]   = lcl_regs[ii];
+		    registers[jj+1] = lcl_regs[ii+1];
+d1804 59
+a1862 3
+		for (jj=0; jj <	sizeof(reg_xlate)/sizeof(U16); ++ii, ++jj) {
+		    registers[reg_xlate[jj]] = lcl_regs[ii];
+		    registers[reg_xlate[jj]^1] = ((long)lcl_regs[ii]) >= 0 ? 0 : 0xffffffff;
+d1864 28
+d1893 2
+a1894 1
+	        memcpy((char *)registers, buf, amt);
+d1896 11
+a1906 45
+	        *obuf++ = ICEack;
+	    }
+	    break;
+	 }
+	 case 'P': {	/* set value of specific register */
+	    int amt, more;
+	    amt = pkt->len - (buf-pkt->buf) - 3; 
+	    more = amt%MIPS_REGSIZE;
+	    if (amt <= 0 || amt > MIPS_REGSIZE) {
+	       *obuf++ = ICEnak;
+	       *obuf++ = NAKinsufarg;
+	       nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "Expected at least %d bytes of 'P' data; recv'd %d",
+		  3+amt+(MIPS_REGSIZE-more), pkt->len-2);
+	       obuf += strlen((char *)obuf);
+	    } else {
+	       int indx, siz;
+	       indx = *buf++ << 8;
+	       indx |= *buf++;
+               siz = *buf++;
+	       if (indx >= NUM_REGS || siz > MIPS_REGSIZE || (siz != 4 && siz != 8)) {
+		  *obuf++ = ICEnak;
+		  *obuf++ = NAKillparam;
+		  nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "'P' register index (%d) out of range. Must be < %d",
+		     indx, NUM_REGS);
+		  obuf += strlen((char *)obuf);
+	       } else {		  
+#if MIPS_REGSIZE == 8
+                  if (siz == 8) {
+		      memcpy((char *)registers+indx*MIPS_REGSIZE, buf, siz);
+                  } else {
+    		      char *p;
+                      union {
+                         U32 a;
+                         S8 b[4];
+                      } endian;
+                      endian.a = 1;
+    		      p = (char *)registers+indx*MIPS_REGSIZE;
+                      if (endian.b[0] == 1) {	/* little endian */
+			  memcpy(p, buf, amt);
+			  memset(p+4, (buf[3]&0x80) ? 0xFF : 0x00, 4);
+                      } else {
+			  memset(p, (buf[0]&0x80) ? 0xFF : 0x00, 4);
+			  memcpy(p+4, buf, amt);
+		      }
+                  }
+d1908 2
+a1909 1
+		  memcpy((char *)registers+indx*MIPS_REGSIZE, buf, siz);
+d1911 39
+a1949 105
+		  *obuf++ = ICEack;
+	       }
+	    }
+	    break;
+	 }
+	 case 'R': {	/* set value of n registers */
+	    int amt, indx;
+	    amt = pkt->len - (buf-pkt->buf) - 2; 
+	    if (amt < 2+MIPS_REGSIZE) {
+	       *obuf++ = ICEnak;
+	       *obuf++ = NAKinsufarg;
+	       nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "Expected at least %d bytes of 'R' data; recv'd %d", 2+MIPS_REGSIZE, amt+2 );
+	       obuf += strlen((char *)obuf);
+	    } else {
+	       amt -= 2;
+	       indx = *buf++ << 8;
+	       indx |= *buf++;
+	       if (indx*MIPS_REGSIZE + amt > sizeof(registers)) {
+		  amt = sizeof(registers) - indx*MIPS_REGSIZE;
+	       }
+	       memcpy((char *)registers+indx*MIPS_REGSIZE, buf, amt);
+	       *obuf++ = ICEack;
+	    }
+	    break;
+	 }
+	 case 'r': {	/* get value of n registers */
+	    int amt;
+	    amt = pkt->len - (buf-pkt->buf); 
+	    if (amt != 4) {
+	       *obuf++ = ICEnak;
+	       *obuf++ = NAKinsufarg;
+	       nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "Expected 4 bytes of 'r' data; recv'd %d",
+		  amt);
+	       obuf += strlen((char *)obuf);
+	    } else {
+	       int indx;
+	       indx = *buf++ << 8;
+	       indx |= *buf++;
+	       amt  = *buf++ << 8;
+	       amt  |= *buf++;
+	       if (indx+amt > NUM_REGS) amt = NUM_REGS-indx;	/* clip qty back to max */
+	       if (amt*MIPS_REGSIZE > COMM_MAX_OCTETS ) amt = COMM_MAX_OCTETS/MIPS_REGSIZE;
+	       if (indx >= NUM_REGS) {
+		  *obuf++ = ICEnak;
+		  *obuf++ = NAKillparam;
+		  nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "'r' register index (%d) out of range. Must be < %d",
+		     indx, NUM_REGS);
+		  obuf += strlen((char *)obuf);
+	       } else {
+		  *obuf++ = ICEreply;
+		  memcpy(obuf, (char *)registers+indx*MIPS_REGSIZE, amt*MIPS_REGSIZE);
+		  obuf += amt*MIPS_REGSIZE;
+	       }
+	    }
+	    break;
+	 }
+	 case 'm': /* mnA..ALL  Read LL bytes starting at address A..A */
+	    buf = getaddr(buf, &addr);
+	    if (pkt->len - (buf-pkt->buf) != 2) {
+	       *obuf++ = ICEnak;
+	       *obuf++ = NAKinsufarg;
+	       nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "Expected 2 byte length on 'm' command; found %d", pkt->len-(buf-pkt->buf));
+	       obuf += strlen((char *)obuf);
+	    } else {
+	       length = *buf++<<8;
+	       length |= *buf++;
+	       if (length > OBUFMAX) {
+		  *obuf++ = ICEnak;
+		  *obuf++ = NAKtoobig;
+		  nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "Expected len on 'm' cmd to be < %d; found %d", OBUFMAX, length);
+		  obuf += strlen((char *)obuf);
+	       } else {
+#if R4K_HOST
+		  U32 lim;
+		  int sts;
+# if HB_PHOENIX
+		  addr |= 0x20000000;		/* make address non-cached */
+		  lim = addr+length;
+		  sts = addr < lim;
+		  if (sts == 1) sts |= (addr >= 0xA0000000 && (lim < 0xE0000000)) << 1;
+		  if (sts == 1) sts |= (addr >= PCICFG_ADDRESS_BASE && (lim < PCICFG_ADDRESS_BASE+0x10000)) << 2;
+# else
+		  lim = addr+length;
+		  sts = addr < lim;
+		  if (sts == 1) sts |= (addr >= (U32)ROMULATOR_STARTc && (lim < (U32)ROMULATOR_ENDc)) << 1;
+		  if (sts == 1) sts |= (addr >= (U32)ROMULATOR_STARTnc && (lim < (U32)ROMULATOR_ENDnc)) << 2;
+# endif
+		  if (sts == 1) {
+		     int tlb;
+		     tlb = tlbprobe(addr, length);       /* see if the whole range is ok */
+		     if (tlb < 0) {
+    			sts = 0;		/* gdb doesn't deal with a partial range */
+		     }
+		  }
+		  if (sts) {
+		     *obuf++ = ICEreply;
+		     mem2buf(obuf, (unsigned char *)addr, length);
+		     obuf += length;
+		  } else {
+		     *obuf++ = ICEreply;		/* gdb knows how to handle a 0 length return */
+		  }
+#else
+		  *obuf++ = ICEreply;
+		  mem2buf(obuf, (unsigned char *)addr, length);
+		  obuf += length;
+d1951 3
+a1953 40
+	       }
+	    }
+	    break;
+	 case 'M': /* MnA..ALL: Write LL bytes at address A..A return OK */
+	    buf = getaddr(buf, &addr);
+	    if (pkt->len - (buf-pkt->buf) <= 2) {
+	       *obuf++ = ICEnak;
+	       *obuf++ = NAKinsufarg;
+	       nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "Expected 2 byte length on 'M' command; found %d", pkt->len-(buf-pkt->buf));
+	       obuf += strlen((char *)obuf);
+	    } else {
+	       length = *buf++<<8;
+	       length |= *buf++;
+	       if (length > BUFMAX) {
+		  *obuf++ = ICEnak;
+		  *obuf++ = NAKtoobig;
+		  nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "Expected len on 'M' cmd to be < %d; found %d", BUFMAX, length);
+		  obuf += strlen((char *)obuf);
+	       } else {
+#if R4K_HOST
+# if HB_PHOENIX
+#  if 0
+		  addr |= 0x20000000;
+#  endif
+    		  if ((addr >= DRAM_BASE && addr < DRAM_BASE+DRAM_SIZE) || 
+		      (addr >= 0xA0000000 && addr < 0xE0010000) || 
+# else
+		  if ((addr >= (U32)ROMULATOR_STARTc && (addr+length < (U32)ROMULATOR_ENDc)) ||
+   		      (addr >= (U32)ROMULATOR_STARTnc && (addr+length < (U32)ROMULATOR_ENDnc)) ||
+# endif
+   		      (tlbprobe(addr, length) >= 0)) {
+		     *obuf++ = ICEack;
+		     buf2mem((unsigned char *)addr, buf, length);
+                     flush_dcache();			/* make sure all the data is written to memory */
+		  } else {
+		     *obuf++ = ICEnak;
+		     *obuf++ = NAKillparam;
+		     nisprintf((char*)obuf, sizeof(remcomOutBuffer)-3, " TLB prevents writes to %08lX-%08lX", addr, addr+length-1);
+		     obuf += strlen((char*)obuf)+1;
+		  }
+d1955 1
+a1955 2
+		  *obuf++ = ICEack;
+		  buf2mem((unsigned char *)addr, buf, length);
+a1956 10
+	       }
+	    }
+	    break;
+	 /* snA..A    Step one instruction from optional A..A */
+	 case 's' : 
+	 case 'c' : 
+	    if (pkt->len-(buf-pkt->buf) > 1) {
+	       getaddr(buf, &addr);
+	       registers[PC_REGNUM_W] = addr;
+	    }
+d1958 3
+a1960 12
+	    if (cchar == 's') {
+	       if (do_single_step(registers) < 0) {
+		  *obuf++ = ICEnak;
+		  *obuf++ = NAKunsupport;
+		  strcpy((char *)obuf, errmsg);
+		  obuf += strlen(errmsg);
+	       } else {
+		  *obuf++ = ICEack;
+	       }
+	    } else {
+	       *obuf++ = ICEack;	
+	    }
+d1962 1
+a1962 1
+	    putpacket(obuf - remcomOutBuffer);
+d1964 1
+a1964 14
+#if 0 && HAS_LCD
+	    {
+	        int kk;
+	        memset(lcd_buf, ' ', 80);
+	        strcpy(lcd_buf, (cchar == 's') ? "Program stepped":"Program continued");
+	        nisprintf(lcd_buf+40, 80, "PC=%08lX, SR=%08X",
+			registers[PC_REGNUM_W], registers[PS_REGNUM_W]);
+	        for (kk=0; kk < 81; ++kk) {
+		   ++lcd_time;
+		   lcd_update();
+		   wait_n_usecs(120);
+	        }
+	    }
+#endif
+d1967 4
+a1970 1
+	    flush_cache();		/* clear the I and D caches cuz of patches */
+d1972 15
+a1986 1
+	    zap_i_cache();		/* clear the I cache cuz of breakpoints */
+d1989 14
+a2002 31
+#if 1
+   	    {
+   	       U32 *opp;
+	       opp = (U32 *)registers[PC_REGNUM_W];
+# if !HB_PHOENIX
+#  if (PROCESSOR & -16) == MIPS4000
+	       if (opp < (U32*)0x00800000) opp = (U32*)((U32)opp|0x00800000);	/* make it uncached */
+	       if (opp >= (U32*)0x9FC00000 && opp < (U32 *)0xA0000000) opp = (U32*)((U32)opp|0x20000000); /* make it uncached */
+#  else
+	       opp = (U32 *)((U32)opp|0xA0000000);	/* make oppess uncached */
+#  endif
+# endif
+	       addr = *opp;		/* pick up instruction to which we are to return */
+	       if ((addr&0xFC00003F) == 0x0000000D) {	/* if it's a break instruction */
+		  if ((addr&0x03FFFFC0) != 0x00060000 && 	/* if not one of our BREAK's */
+		      (addr&0x03FFFFC0) != 0x00050000) {	/* and not one of gdb's BREAK's */
+		     registers[PC_REGNUM_W] += 4;	/* advance the PC over the instruction */
+		  }
+	       }
+   	    }
+#endif	       
+#if R4K_HOST
+	    if ((registers[PC_REGNUM_W]&0x80000000) != 0) registers[PC_REGNUM_U] = 0xFFFFFFFF;
+	    if ((registers[SP_REGNUM_W]&0x80000000) != 0) registers[SP_REGNUM_U] = 0xFFFFFFFF;
+	    if ((registers[FP_REGNUM_W]&0x80000000) != 0) registers[FP_REGNUM_U] = 0xFFFFFFFF;
+	    if ((registers[RA_REGNUM_W]&0x80000000) != 0) registers[RA_REGNUM_U] = 0xFFFFFFFF;
+   	    registers[CAUSE_REGNUM_W] &= ~0x300;	/* clear any pending software interrupts */
+            registers[EPC_REGNUM_W] = registers[PC_REGNUM_W];
+            registers[EPC_REGNUM_U] = registers[PC_REGNUM_U];
+            registers[ERRPC_REGNUM_W] = registers[PC_REGNUM_W];
+            registers[ERRPC_REGNUM_U] = registers[PC_REGNUM_U];
+d2004 1
+d2006 1
+a2006 1
+	    iceless_semaphore = 0;
+a2007 11
+	    STUB_RUNNING_OFF;
+# if 0
+	    returnToUser( registers ); 	/* this is actually a jump */
+# else
+    	    return;		/* this just might a work */
+# endif
+	 case 'k':		/* kill the program */
+            *obuf++ = ICEack;	/* report ok */
+	    break;		/* but otherwise do nothing */
+      } 			/* -- switch */ 
+    
+d2009 14
+d2024 13
+a2036 10
+#  if R4K_HOST
+      prc_set_ipl((registers[PS_REGNUM_W]&0xFB00) | (registers[PS_REGNUM_W]&1));	/* re-enable interrupts */
+#  else
+      prc_set_ipl((registers[PS_REGNUM_W]&0xFB00) | ((registers[PS_REGNUM_W]>>2)&1)); /* re-enable interrupts */
+#  endif
+#endif
+      if (obuf - remcomOutBuffer > 1) { /* ++ if anything to send */
+	 putpacket(obuf - remcomOutBuffer);
+      }				/* -- stuff to send */
+   }				/* -- while(1) */
+d2040 1
+a2040 2
+void
+initializeRemcomErrorFrame()
+d2042 1
+a2042 1
+    lastFrame = ((Frame *) &gdbFrameStack[FRAMESIZE-1]) - 1;
+d2045 1
+d2048 8
+a2055 2
+/* this function is used to set up exception handlers for tracing and 
+   breakpoints */
+a2056 4
+void set_debug_traps() {
+   extern void remcomHandler();
+#if (R4K_HOST && !HB_PHOENIX) || (HOST_BOARD == LCR3K) 
+   volatile struct ROM_VECTOR_STR *pktp;
+d2060 1
+a2060 1
+   initializeRemcomErrorFrame();
+d2064 5
+a2068 5
+   pktp = (volatile struct ROM_VECTOR_STR *)0x9FC00010;	/* reset vector + 16 */
+   pktp->ROMV_PKTINIT = (U32)pktInit;
+   pktp->ROMV_PKTPOLL = (U32)pktPoll;
+   pktp->ROMV_PKTRECV = (U32)pktQueRecv;
+   pktp->ROMV_PKTSEND = (U32)pktQueSend;
+d2072 15
+a2086 13
+# if RUN_FROM_DRAM
+   pktp = (volatile struct ROM_VECTOR_STR *)(DRAM_BASE+0x10);	/* reset vector + 16 */
+# else
+   pktp = (volatile struct ROM_VECTOR_STR *)(RRBUS_BASEnc+0x10);	/* reset vector + 16 */
+# endif
+   pktp->ROMV_PKTINIT = (U32)pktInit;
+   FLUSH_WB();
+   pktp->ROMV_PKTPOLL = (U32)pktPoll;
+   FLUSH_WB();
+   pktp->ROMV_PKTRECV = (U32)pktQueRecv;
+   FLUSH_WB();
+   pktp->ROMV_PKTSEND = (U32)pktQueSend;
+   FLUSH_WB();
+d2089 1
+a2089 1
+   pkt_validate();
+d2092 2
+a2093 1
+   for (exception = 2; exception <= 23; exception++) exceptionHandler(exception,_catchException);   
+d2095 2
+a2096 2
+/* level 7 interrupt              */
+   exceptionHandler(31,level7int);    
+d2098 16
+a2113 17
+/* breakpoint exception (trap #1) */
+   exceptionHandler(33,_catchException);
+  
+/* This is a trap #8 instruction.  Apparently it is someone's software
+     convention for some sort of SIGFPE condition.  Whose?  How many
+     people are being screwed by having this code the way it is?
+     Is there a clean solution?  */
+   exceptionHandler(40,_catchException);
+  
+  /* 48 to 54 are floating point coprocessor errors */
+   for (exception = 48; exception <= 54; exception++)
+      exceptionHandler(exception,_catchException);   
+
+   if (oldExceptionHook != remcomHandler) {
+      oldExceptionHook = exceptionHook;
+      exceptionHook    = remcomHandler;
+   }
+a2114 2
+  
+   initialized = 1;
+d2116 2
+d2121 4
+a2124 5
+/* This function will generate a breakpoint exception.  It is used at the
+   beginning of a program to sync up with a debugger and can be used
+   otherwise as a quick means to stop program execution and "break" into
+   the debugger. */
+   
+d2129 2
+a2130 1
+  if (initialized) BREAKPOINT();
+d2132 1
+d2135 4
+a2138 3
+void setup_only() {
+   set_debug_traps();
+   return;
+@
+
+
+1.28
+log
+@Fixed the way the debugger intreprets floats and doubles.
+@
+text
+@d103 3
+a105 1
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == MB4600) || (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD)
+d146 1
+d149 2
+d152 1
+a152 1
+extern int nisprintf(char *, int, char *,...);
+a156 1
+
+d169 1
+a175 1
+#if 0
+d186 1
+a186 1
+extern void flush_cache(), flush_dcache();
+d188 1
+a188 1
+extern void zap_i_cache();
+a189 1
+extern void catchException ();
+d196 6
+a201 4
+#if HOST_BOARD == PHOENIX || HOST_BOARD == PHOENIX_AD
+# define HB_PHOENIX 1
+#else
+# define HB_PHOENIX 0
+d323 1
+a323 1
+PktIOStruct *getpacket() {
+d542 1
+a542 1
+   return (U32)lp - ((U32)mem & ~3);
+d1242 2
+d1245 12
+d1265 2
+a1266 4
+   stub_running |= 1;
+#if R4K_HOST && !HB_PHOENIX
+   sigval = stub_running;	/* flush the write buffer for this particular address */
+#endif
+d1745 1
+a1745 4
+	    stub_running &= ~1;
+# if !HB_PHOENIX
+   	    sigval = stub_running;	/* flush the write buffer for this particular address */
+# endif
+@
+
+
+1.27
+log
+@Exception now 'return's instead of jumping to returnToUser
+@
+text
+@d1395 1
+a1395 1
+	    for (ii=0, jj=ZERO_REGNUM_W; ii<FIRST_EMBED_REGNUM; ++ii, jj += 2) {
+d1398 4
+d1433 1
+a1433 1
+		for (ii=0, jj=ZERO_REGNUM_W; ii<FIRST_EMBED_REGNUM; ++ii, jj += 2) {
+d1435 5
+a1439 1
+    		    if (jj < FP0_REGNUM_W) registers[jj^1] = ((long)lcl_regs[ii]) >= 0 ? 0 : 0xffffffff;
+@
+
+
+1.26
+log
+@Checks ROMV_STUB_REASON for all exceptions in case GUTS reports other
+h/w errors.
+@
+text
+@d1724 1
+d1726 3
+a1728 1
+
+@
+
+
+1.25
+log
+@Added pktPollq and changed get_packet to use it instead of pktPoll
+if on PHOENIX_AD or FLAGSTAFF boards.
+@
+text
+@d1324 2
+a1325 1
+      if ((registers[CAUSE_REGNUM_W]&0x3F) == 0x3C && romv->ROMV_STUB_EH && romv->ROMV_STUB_REASON) {
+@
+
+
+1.24
+log
+@Corrected a bobble on an #ifdef.
+@
+text
+@d308 10
+d328 1
+a328 1
+    while ((pkt = pktPoll(BOARD, PKT_CHK_THREAD, 0, TWI_THREAD)) == 0) {
+d344 1
+a344 1
+       pktQueRecv(&inpRemcomPkt2);   /* tell input routine we are ready to read */
+d346 1
+a346 1
+       pktQueRecv(&inpRemcomPkt1);   /* tell input routine we are ready to read */
+@
+
+
+1.23
+log
+@Added support for Phoenix_ad
+@
+text
+@d199 1
+a199 1
+#if HB_PHOENIX
+@
+
+
+1.22
+log
+@Corrected address checks on 4K/5K Phoenix boards.
+@
+text
+@d103 1
+a103 1
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == MB4600) || (HOST_BOARD == PHOENIX)
+d193 7
+a199 1
+#if HOST_BOARD != PHOENIX
+d242 1
+a242 1
+#if HOST_BOARD != PHOENIX
+d530 1
+a530 1
+#if defined(XBUS_SLOT0) || (HOST_BOARD == PHOENIX)
+d649 1
+a649 1
+#if R4K_HOST && HOST_BOARD != PHOENIX
+d682 1
+a682 1
+#if HOST_BOARD != PHOENIX
+d691 1
+a691 1
+# if HOST_BOARD == PHOENIX
+d728 1
+a728 1
+#if HOST_BOARD != PHOENIX
+d744 1
+d746 3
+d843 1
+a843 1
+#if HOST_BOARD == PHOENIX
+d887 1
+a887 1
+#if HOST_BOARD != PHOENIX
+d901 1
+d903 3
+d1067 1
+a1067 1
+# if HOST_BOARD != PHOENIX
+d1222 1
+a1222 1
+#if HOST_BOARD != PHOENIX
+d1237 1
+a1237 1
+#if R4K_HOST && HOST_BOARD != PHOENIX
+d1240 1
+a1240 1
+#if HOST_BOARD != PHOENIX
+d1308 1
+a1308 1
+# if HOST_BOARD == PHOENIX
+d1552 1
+a1552 1
+# if HOST_BOARD == PHOENIX
+d1603 1
+a1603 1
+# if HOST_BOARD == PHOENIX
+d1678 1
+a1678 1
+# if HOST_BOARD != PHOENIX
+d1706 1
+a1706 1
+#if HOST_BOARD != PHOENIX
+d1710 1
+a1710 1
+# if HOST_BOARD != PHOENIX
+d1748 1
+a1748 1
+#if (R4K_HOST && HOST_BOARD != PHOENIX) || (HOST_BOARD == LCR3K) 
+d1764 1
+a1764 1
+#if R4K_HOST && (HOST_BOARD != PHOENIX)
+@
+
+
+1.21
+log
+@Fixed some 4k bugs and made it more compatible with Phoenix systems.
+@
+text
+@d1052 1
+d1054 9
+a1062 9
+   if (addr >= ROMULATOR_STARTc && addr < ROMULATOR_ENDc) {
+      addr = (addr - ROMULATOR_STARTc) + (U8*)RRBUS_BASEnc;
+      return (U32 *)addr;
+   } else if (addr >= ROMULATOR_STARTnc && addr < ROMULATOR_ENDnc) {
+      addr = (addr - ROMULATOR_STARTnc) + (U8*)RRBUS_BASEnc;
+      return (U32 *)addr;
+   } else if (tlbprobe((U32)addr, 4) >= 0) {
+       return ptr;
+   }
+d1064 8
+a1071 6
+   if ((U32)addr >= (U32)DRAM_BASE && (U32)addr < (U32)DRAM_BASE+DRAM_SIZE) {
+      return (U32 *)addr;
+   } else if ((U32)addr >= (U32)DRAM_BASEnc && (U32)addr < (U32)DRAM_BASEnc+DRAM_SIZE) {
+      return (U32 *)addr;
+   } else if (tlbprobe((U32)addr, 4) >= 0) {
+       return ptr;
+a1072 1
+# endif
+@
+
+
+1.20
+log
+@Put in some packet validation checking.
+@
+text
+@d638 1
+a638 1
+   memcpy(buf, mem, amt);
+d681 31
+d713 7
+d739 2
+a740 1
+   {W_SPEC(csl_write, PCI_IO_BASE, PCI_IO_BASE+0x18000000, PCI_IO_BASE, "cslWrite")},
+d745 1
+a745 1
+/* convert the hex array pointed to by buf into binary to be placed in mem */
+d831 1
+a831 3
+
+# if HOST_BOARD == PHOENIX
+#define PCICFG_ADDRESS_BASE	0xE0000000
+d833 1
+d835 17
+a851 14
+   int ii;
+   U32 src, value;
+   U8 *dst;
+   VU32 *pci_cfg = (VU32 *)GALILEO_PCI_CFG;
+   VU32 *pci_dta = (VU32 *)GALILEO_PCI_DTA;
+
+   src = (((U32)mem)&0xFFFC);
+   src |= 0x80000000;	/* enable the configuration register */
+
+   ii = count;
+   for (dst=buf; count > 0;) {
+       *pci_cfg = src;       
+       src += 0x10;
+       value = *pci_dta;
+d853 8
+a860 8
+       *dst++ = value >> 24;
+       if (--count <= 0) break;
+       *dst++ = value >> 16;
+       if (--count <= 0) break;
+       *dst++ = value >> 8;
+       if (--count <= 0) break;
+       *dst++ = value;
+       if (--count <= 0) break;
+d862 4
+a865 8
+       *dst++ = value;
+       if (--count <= 0) break;
+       *dst++ = value >> 8;
+       if (--count <= 0) break;
+       *dst++ = value >> 16;
+       if (--count <= 0) break;
+       *dst++ = value >> 24;
+       if (--count <= 0) break;
+d867 2
+a868 2
+   }
+   return ii;
+d870 2
+a871 1
+# else
+d892 1
+a892 1
+   {W_SPEC(csl_read, GALILEO_BASE, GALILEO_BASE+0x14000000, GALILEO_BASE, "cslRead")},
+a1050 8
+# if HOST_BOARD == PHOENIX
+   U32 addr = (U32)ptr;
+   addr |= 0x20000000;		/* make address non-cached */
+   if ((addr >= DRAM_BASEnc && addr < DRAM_BASEnc+0x00800000) ||
+       (addr >= DRAM_BASEnc+0x02000000 && addr < DRAM_BASEnc+0x04000000)) {
+      return (U32 *)addr;
+   }
+# else
+d1052 1
+d1062 8
+d1128 6
+d1144 1
+d1588 1
+d1590 3
+a1592 1
+		  if ((addr >= 0xA0000000 && addr <= 0xE0000000) || 
+d1662 2
+a1663 1
+# if (PROCESSOR & -16) == MIPS4000
+d1666 1
+a1666 1
+# else
+d1668 1
+@
+
+
+1.19
+log
+@Corrected for big/little endian problems.
+@
+text
+@a164 2
+static unsigned long *stackPtr;
+
+d249 53
+d308 2
+d1713 1
+a1713 31
+#if R4K_HOST || (HOST_BOARD == LCR3K)
+   pktInit();			/* init the packet switch */
+   outRemcomPkt.buf = remcomOutBuffer;
+   outRemcomPkt.size = sizeof(remcomOutBuffer);
+   outRemcomPkt.to = 0;
+   outRemcomPkt.tothread = TWI_THREAD;
+   outRemcomPkt.from = 0;
+   outRemcomPkt.frmthread = TWI_THREAD;
+
+   inpRemcomPkt1.buf = remcomInBuffer1;
+   inpRemcomPkt1.size = sizeof(remcomInBuffer1);
+   inpRemcomPkt1.to = 0;
+   inpRemcomPkt1.tothread = TWI_THREAD;
+   inpRemcomPkt1.from = 0;
+   inpRemcomPkt1.frmthread = TWI_THREAD;
+   inpRemcomPkt1.func = 0;
+   inpRemcomPkt1.next = 0;
+
+   inpRemcomPkt2.buf = remcomInBuffer2;
+   inpRemcomPkt2.size = sizeof(remcomInBuffer2);
+   inpRemcomPkt2.to = 0;
+   inpRemcomPkt2.tothread = TWI_THREAD;
+   inpRemcomPkt2.from = 0;
+   inpRemcomPkt2.frmthread = TWI_THREAD;
+   inpRemcomPkt2.func = 0;
+   inpRemcomPkt2.next = 0;
+
+   pktQueRecv(&inpRemcomPkt1);		/* tell input routine we are ready to read */
+#endif
+
+   stackPtr  = remcomStack+(sizeof(remcomStack)/4)-1;
+@
+
+
+1.18
+log
+@Removed iceless_semaphore (moved it to root).
+@
+text
+@d304 1
+a304 1
+#if defined(COJAG_STUB)
+a318 1
+
+d340 3
+a342 3
+       *buf++ = tmp>>24;
+       *buf++ = tmp>>16;
+       *buf++ = tmp>>8;
+d416 1
+d423 7
+d434 1
+d439 6
+d450 1
+d457 8
+d487 1
+d492 6
+d513 1
+d516 4
+d547 1
+d552 6
+d574 1
+d577 4
+d747 2
+a748 2
+   VU32 *pci_cfg = (VU32 *)(GALILEO_BASE+GALILEO_PCI_CFG);
+   VU32 *pci_dta = (VU32 *)(GALILEO_BASE+GALILEO_PCI_DTA);
+d758 10
+d776 1
+@
+
+
+1.17
+log
+@Added some special stuff for Phoenix.
+@
+text
+@d1049 1
+d1051 1
+d1067 1
+d1069 1
+a1516 2
+	    iceless_semaphore = 0;
+	    stub_running &= ~1;
+a1517 3
+# if HOST_BOARD != PHOENIX
+   	    sigval = stub_running;	/* flush the write buffer for this particular address */
+# endif
+d1528 7
+@
+
+
+1.16
+log
+@Added support for PHOENIX
+@
+text
+@d664 2
+a665 2
+   U32 *src, *dst;
+   count = (count + sizeof(U32)-1) & -sizeof(U32);
+d667 24
+a690 3
+   dst = (U32 *)((U32)buf&-sizeof(U32));
+   for (ii=0; ii < count; ii += sizeof(U32)) *dst++ = *src++;
+   return count;
+d693 30
+d724 1
+d744 1
+d1061 2
+a1062 2
+   stub_running = 1;
+#if R4K_HOST
+d1380 1
+d1514 1
+a1514 1
+	    stub_running = 0;
+d1516 1
+d1518 1
+d1564 1
+a1564 1
+#if R4K_HOST || (HOST_BOARD == LCR3K) 
+d1580 3
+a1582 3
+#if R4K_HOST
+# if HOST_BOARD == PHOENIX
+   pktp = (volatile struct ROM_VECTOR_STR *)(DRAM_BASEnc);	/* reset vector + 16 */
+a1583 3
+#  if RUN_FROM_DRAM
+   pktp = (volatile struct ROM_VECTOR_STR *)(DRAM_BASE+0x10);	/* reset vector + 16 */
+#  else
+a1584 1
+#  endif
+@
+
+
+1.15
+log
+@Removed conditionalled out code.
+@
+text
+@d103 1
+a103 1
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == MB4600)
+d195 1
+d197 1
+d238 1
+a238 1
+#if 1
+d400 7
+a406 3
+#define FLUSH_WB() junk = *((VU32 *)CTRL_BASE)
+#else
+#define FLUSH_WB()
+a411 3
+#if R4K_HOST
+   unsigned long junk;
+#endif
+d448 1
+a448 1
+#if defined(XBUS_SLOT0)
+d543 1
+a543 1
+#if R4K_HOST
+d576 1
+d578 1
+a578 1
+#if R4K_HOST
+d580 1
+d584 1
+d586 1
+a586 1
+#if COJAG_STUB
+d589 2
+a590 2
+#endif
+#if defined(XBUS_SLOT0)
+d592 2
+a593 2
+#endif
+#if R4K_HOST
+d598 4
+d676 2
+a677 1
+#if COJAG_STUB
+d679 2
+a680 2
+#endif
+#if defined(XBUS_SLOT0)
+d682 2
+a683 2
+#endif
+#if R4K_HOST
+d688 4
+d846 1
+a846 1
+#if R4K_HOST
+d849 8
+d867 1
+a877 3
+#if R4K_HOST
+   int junk;
+#endif
+a1006 3
+#if R4K_HOST
+   int junk;
+#endif
+d1078 3
+d1082 1
+a1084 1
+	 U32 junk;
+d1088 1
+a1088 1
+	 junk = *(VU32*)CTRL_BASE;
+d1322 6
+d1332 1
+d1372 4
+d1378 1
+a1510 4
+#if R4K_HOST
+   int junk;
+   VU32 *ctl = (VU32 *)CTRL_BASE;
+#endif
+d1525 4
+a1528 1
+# if RUN_FROM_DRAM
+d1530 1
+a1530 1
+# else
+d1532 1
+d1535 1
+a1535 1
+   junk = *ctl;
+d1537 1
+a1537 1
+   junk = *ctl;
+d1539 1
+a1539 1
+   junk = *ctl;
+d1541 1
+a1541 1
+   junk = *ctl;
+a1622 17
+
+#if 0
+extern char text_start[], text_end[], date[], bss_start[], bss_end[];
+extern char vector_table[];
+
+#  if defined(NEW_COJAG_STUB)
+
+long init_switch;
+
+extern struct {
+   unsigned short jmp;
+   unsigned long addr;
+} GUTS_ENTRY[];
+
+#  endif
+#endif
+
+@
+
+
+1.14
+log
+@Added support for 4K processor to jump to STUB_EH entry point.
+@
+text
+@a1308 1
+#if 1
+a1309 19
+#else
+			tlb = tlbprobe(addr, 1);        /* is even the first location ok? */
+			if (tlb < 0) {
+			   sts = 0;                    /* nope, reject the whole thing */
+			} else { 
+			   U32 nxt;
+			   int newlen; 
+
+			   nxt = (addr+8191)&-8192;    /* round addr up to next 8k boundary */
+			   newlen = nxt-addr;          /* compute length to next region */
+			   while (1) { 
+			       if (tlbprobe(nxt, 8192) < 0) break;
+			       nxt += 8192;
+			       newlen += 8192;
+			       if (newlen >= length) break;
+			   }
+			   if (newlen < length) length = newlen;
+			}
+#endif
+a1316 7
+		     
+# if 0
+		     *obuf++ = ICEnak;
+		     *obuf++ = NAKillparam;
+		     nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, " TLB prevents reads from %08lX-%08lX", addr, addr+length-1);
+		     obuf += strlen((char*)obuf)+1;
+# else
+a1317 1
+# endif
+@
+
+
+1.13
+log
+@Added volatile to the pkt->PKT_QUE??? init code
+@
+text
+@d1060 11
+a1070 1
+      strcpy((char *)obuf, get_pm_msg(registers[CAUSE_REGNUM_W]));
+@
+
+
+1.12
+log
+@Mem reads of non-existant memory return null rather than error.
+GDB knows how to deal with that and correctly reports errors on its
+own rather than having the stub say it. Writes continue to report
+errors.
+@
+text
+@d1494 1
+a1494 1
+   struct ROM_VECTOR_STR *pktp;
+d1506 1
+a1506 1
+   pktp = (struct ROM_VECTOR_STR *)0x9FC00010;	/* reset vector + 16 */
+d1515 1
+a1515 1
+   pktp = (struct ROM_VECTOR_STR *)(DRAM_BASE+0x10);	/* reset vector + 16 */
+d1517 2
+a1518 2
+   pktp = (struct ROM_VECTOR_STR *)(RRBUS_BASEnc+0x10);	/* reset vector + 16 */
+#endif
+@
+
+
+1.11
+log
+@Added creation of pktInit, pktQue* and pktPoll pointers on R4K host.
+@
+text
+@d147 1
+a147 1
+extern void nisprintf(char *, int, char *,...);
+d150 1
+a150 1
+extern int tlbprobe(U8 *ptr, int size);
+d841 1
+a841 1
+   } else if (tlbprobe(addr, 4) >= 0) {
+d1289 34
+a1322 3
+		  if ((addr >= (U32)ROMULATOR_STARTc && (addr+length < (U32)ROMULATOR_ENDc)) ||
+   		      (addr >= (U32)ROMULATOR_STARTnc && (addr+length < (U32)ROMULATOR_ENDnc)) ||
+   		       tlbprobe((U8 *)addr, length) >= 0) {
+d1327 2
+d1333 3
+d1364 1
+a1364 1
+   		      tlbprobe((U8 *)addr, length) >= 0) {
+@
+
+
+1.10
+log
+@Made the 'k' command return an ACK instead of nothing.
+@
+text
+@d1457 1
+a1457 1
+#if HOST_BOARD == LCR3K
+d1460 4
+d1475 16
+@
+
+
+1.9
+log
+@Fixed the 'P' command.
+@
+text
+@d81 1
+a81 1
+ *    k             kill				   nop
+d1425 2
+a1426 1
+	    break;		/* do nothing */
+@
+
+
+1.8
+log
+@Added handling of report from "game" as for reason for exception.
+This is to support better floating point exception reporting.
+@
+text
+@d61 2
+a62 1
+ *    Pnnr...       set the value of CPU register n        ack or nakN
+d1174 1
+a1174 1
+	    amt = pkt->len - (buf-pkt->buf) - 2; 
+d1176 1
+a1176 1
+	    if (amt <= 0 || more != 0) {
+d1180 1
+a1180 1
+		  2+amt+(MIPS_REGSIZE-more), pkt->len-2);
+d1183 1
+a1183 1
+	       int indx;
+d1186 2
+a1187 1
+	       if (indx >= NUM_REGS) {
+d1194 22
+a1215 1
+		  memcpy((char *)registers+indx*MIPS_REGSIZE, buf, amt);
+@
+
+
+1.7
+log
+@Changed the way pm_instr is picked up.
+@
+text
+@d666 1
+a666 1
+   {W_SPEC(jerry_read, &JPIT1, &D_ENDRAM, &JPIT1)},
+d1048 11
+d1060 1
+@
+
+
+1.6
+log
+@Protected references to lcd_xxx with HAS_LCD
+@
+text
+@d95 1
+a100 4
+#if HAS_LCD
+#define GUTS_ONLY
+#include <xbusmon.h>
+#endif
+d1026 5
+a1030 2
+   ii = pm_instr = *(U32*)addr;			/* save actual instruction in error */
+
+@
+
+
+1.5
+log
+@Added stuff to support R4K processor.
+@
+text
+@d1072 1
+d1078 1
+@
+
+
+1.4
+log
+@Removed reference to RDRAM_BASE
+@
+text
+@d113 5
+d186 1
+a186 1
+extern void flush_cache();
+d549 6
+a554 2
+#if R4K_HOST
+#define W_SPEC(func, start, end, xlate) func, (unsigned long)(start), (unsigned long)((end)-1), (unsigned long)xlate
+d556 5
+a560 1
+#define W_SPEC(func, start, end, xlate) func, (unsigned long)(start), (unsigned long)((end)-1)
+d570 3
+d581 1
+a581 1
+   {W_SPEC(romulator_write, ROMULATOR_STARTnc, ROMULATOR_ENDnc, RRBUS_BASEnc)},
+d583 2
+a584 2
+   {W_SPEC(romulator_write, &G_FLAGS, &G_ENDRAM, &G_FLAGS)},
+   {W_SPEC(jerry_write, &JPIT1, &D_ENDRAM, &JPIT1)},
+d587 1
+a587 1
+   {W_SPEC(csl_write, XBUS_SLOT0, XBUS_SLOT77+0x400000, XBUS_SLOT0)},
+d590 4
+a593 4
+   {W_SPEC(romulator_write, ROMULATOR_STARTc, ROMULATOR_ENDc, RRBUS_BASEnc)},
+   {W_SPEC(romulator_write, TBUS_BASE, TBUS_BASE+TBUS_SIZE, TBUS_BASE)},
+   {W_SPEC(romulator_write, RRBUS_BASE, RRBUS_BASE+RRBUS_SIZE, RRBUS_BASE)},
+   {W_SPEC(control_write,   CTRL_BASE, CTRL_BASE+4096, CTRL_BASE)},
+d672 1
+a672 1
+   {W_SPEC(csl_read, XBUS_SLOT0, XBUS_SLOT77+0x400000, XBUS_SLOT0)},
+d675 4
+a678 4
+   {W_SPEC(read_32bits,  TBUS_BASE, TBUS_BASE+TBUS_SIZE, TBUS_BASE)},
+   {W_SPEC(read_32bits,  RDRAM_BASE, RDRAM_BASE+RDRAM_SIZE, RDRAM_BASE)},
+   {W_SPEC(read_32bits,  RRBUS_BASE, RRBUS_BASE+RRBUS_SIZE, RRBUS_BASE)},
+   {W_SPEC(control_read, CTRL_BASE, CTRL_BASE+4096, CTRL_BASE)},
+d838 1
+a838 1
+      addr = (addr - ROMULATOR_STARTc) + (U8*)RRBUS_BASE;
+d876 1
+a876 1
+#if 1 && HAS_LCD
+d924 1
+a924 1
+	 tbreak.prev0 = (U32*)((((U32)opp)&0xF0000000) | ((inst&((1<<26)-1))<<2));
+d958 1
+a958 1
+#if 1 && HAS_LCD
+d969 1
+a969 1
+	   ++lcd_time;
+a970 1
+	   wait_n_usecs(120);
+d998 1
+a1046 14
+#if 0 && HAS_LCD
+   {
+      int kk;
+      strncpy(lcd_buf, get_pm_msg(registers[CAUSE_REGNUM_W]), 40);
+      nisprintf(lcd_buf+40, 40, "PC=%08lX CAUSE=%08lX SR=%08lX",
+		registers[PC_REGNUM_W], registers[CAUSE_REGNUM_W],
+		registers[PS_REGNUM_W]);
+      for (kk=0; kk < 81; ++kk) {
+	  ++lcd_time;
+	  lcd_update();
+	  wait_n_usecs(120);
+      }
+   }
+#endif
+d1072 6
+d1103 3
+d1107 10
+a1116 7
+         case 'G':
+	 case 'g':
+	    *obuf++ = ICEnak;
+	    *obuf++ = NAKunsupport;
+	    nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, " '%c' command not supported in twi protocol on 4600", cchar);
+	    obuf += strlen((char*)obuf) + 1;
+	    break;
+d1118 3
+a1120 1
+	 case 'g':		 /* return the value of the CPU registers */
+d1122 2
+a1123 2
+	    memcpy(obuf, (char *)registers, NUMREGBYTES);
+	    obuf += NUMREGBYTES;
+d1125 9
+a1133 5
+	 case 'G' : 		/* set the value of all the CPU registers - return OK */
+	    if (pkt->len-2 == NUMREGBYTES) {
+	       *obuf++ = ICEack;
+	       memcpy((char *)registers, buf, NUMREGBYTES);
+	    } else {
+d1136 1
+a1136 1
+	       nisprintf((char *)obuf, sizeof(remcomOutBuffer)-3, "Expected %d bytes of 'G' data; recv'd %d", NUMREGBYTES, pkt->len-2);
+d1138 16
+d1156 1
+a1156 1
+#endif
+d1294 1
+d1380 4
+@
+
+
+1.3
+log
+@*** empty log message ***
+@
+text
+@a575 1
+   {W_SPEC(romulator_write, RDRAM_BASE, RDRAM_BASE+RDRAM_SIZE, RDRAM_BASE)},
+@
+
+
+1.2
+log
+@Added numerous changes to accomodate the R4K processor and protocol
+@
+text
+@d100 4
+d192 1
+a192 1
+extern void pause(int);
+d234 1
+a234 1
+   pause(1000);
+d537 1
+a537 1
+#if HOST_BOARD == MB4600
+d638 1
+a638 1
+#if HOST_BOARD == MB4600
+d659 1
+a659 1
+#if HOST_BOARD == MB4600
+d861 5
+d919 1
+d943 17
+d965 1
+a965 1
+extern U32 pm_instr;
+d1032 14
+d1294 15
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d63 3
+a65 2
+ *    pnnLL	    Read LL bytes of CPU registers	   data or nakN
+ *		    starting with register n (LL should
+a93 2
+#include <string.h>
+#include <setjmp.h>
+d98 2
+d107 5
+a111 1
+static unsigned long registers[NUM_REGS];
+d124 2
+a125 1
+#define BUFMAX (500)
+d140 1
+a140 1
+extern void isprintf(char *, char *,...);
+d143 1
+a143 1
+extern int tlbprobe(U8 *ptr, int pid);
+a145 13
+#if 0
+static int check_tlb_entry(U8 *ptr, int len, int wr) {
+   U32 size;
+   int indx;
+   indx = tlbprobe(ptr, 0);
+   if (indx < 0) return -1;	/* address not in the tlb */
+   size = ret_pagemask(indx);	/* get the pagemask */
+/***********************************************
+ * Need to finish this tlb inspection code
+ ***********************************************/
+   return 0;
+}
+#endif
+a186 1
+extern void isprintf(char *, char *, ...);
+d199 1
+a199 1
+   isprintf(errmsg,"  %s (%d): %02X %02X(%c)", prefix, len, pktn, ch, isprint(ch)?ch:'.');
+d204 1
+a204 1
+      isprintf(s, " %02X", *buf++);
+d221 1
+d225 1
+d233 1
+a233 1
+      pktQueSend(pkt, 1);	/* send and wait for the packet to be delivered */
+d251 1
+d253 1
+d256 1
+a256 1
+	  isprintf(errmsg, "  Waiting pc=%08lX, sp=%08lX..",
+a294 2
+extern unsigned char ROMULATOR_STARTnc[], ROMULATOR_ENDnc[];
+
+d390 6
+d399 3
+d414 1
+d422 1
+d433 1
+d535 2
+a536 2
+   isprintf((char *)buf, "Cannot store to control register %08lX-%08lX\n", (U32)mem, (U32)mem+amt);
+   return -strlen((char *)buf);
+d540 5
+a544 1
+#define W_SPEC(func, start, end) func, (unsigned long)(start), (unsigned long)((end)-1)
+d550 3
+d555 5
+d561 1
+a561 1
+   {W_SPEC(romulator_write, ROMULATOR_STARTnc, ROMULATOR_ENDnc)},
+d563 2
+a564 2
+   {W_SPEC(romulator_write, &G_FLAGS, &G_ENDRAM)},
+   {W_SPEC(jerry_write, &JPIT1, &D_ENDRAM)},
+d567 1
+a567 1
+   {W_SPEC(csl_write, XBUS_SLOT0, XBUS_SLOT77+0x400000)},
+d569 6
+a574 5
+#if HOST_BOARD == MB4600
+   {W_SPEC(romulator_write, TBUS_BASE, TBUS_BASE+TBUS_SIZE)},
+   {W_SPEC(romulator_write, RDRAM_BASE, RDRAM_BASE+RDRAM_SIZE)},
+   {W_SPEC(romulator_write, RRBUS_BASE, RRBUS_BASE+RRBUS_SIZE)},
+   {W_SPEC(control_write,   CTRL_BASE, CTRL_BASE+4096)},
+d610 4
+d615 1
+d645 1
+a645 12
+static int control_read(unsigned char *buf, unsigned char *mem, int count) {
+   __asm__("li $2, 7");
+   __asm__("not $2");
+   __asm__("and $5, $2");
+   __asm__("sra $2, 1");
+   __asm__("and $4, $2");
+   __asm__("ld $2, ($5)");
+   __asm__("dsrl32 $3, $2, 0");
+   __asm__("sw $3, ($4)");
+   __asm__("sw $2, 4($4)");
+   return 8;
+}
+d650 1
+a650 1
+   {W_SPEC(jerry_read, &JPIT1, &D_ENDRAM)},
+d653 1
+a653 1
+   {W_SPEC(csl_read, XBUS_SLOT0, XBUS_SLOT77+0x400000)},
+d656 4
+a659 4
+   {W_SPEC(read_32bits,  TBUS_BASE, TBUS_BASE+TBUS_SIZE)},
+   {W_SPEC(read_32bits,  RDRAM_BASE, RDRAM_BASE+RDRAM_SIZE)},
+   {W_SPEC(read_32bits,  RRBUS_BASE, RRBUS_BASE+RRBUS_SIZE)},
+   {W_SPEC(control_read, CTRL_BASE, CTRL_BASE+4096)},
+a799 2
+extern int prc_set_im(int);
+
+d801 5
+a805 5
+   unsigned long prev0;		/* pointer to breakpoint */
+   unsigned long instr0;	/* old instruction */
+   unsigned long prev1;
+   unsigned long instr1;	/* old instruction */
+   int active;			/* 1=struct alive, 2=2 breakpoints active */
+d808 3
+d814 1
+a814 1
+#if (PROCESSOR & -16) == MIPS4000
+d817 9
+a825 6
+   U32 addr = (U32)ptr;
+   if (addr < 0x00800000) addr = addr|0x00800000;	/* make it uncached */
+   if (addr >= 0x9FC00000 && addr < 0xA0000000) addr = addr|0x20000000; /* make it uncached */
+   if ((addr >= 0x01000000 && addr < 0xBFC00000) || (addr >= 0xC0000000)) {
+      isprintf(errmsg, "I address of %08lX is illegal", addr);
+      return (U32 *)0;
+d827 2
+a828 1
+   return (U32 *)addr;
+d837 12
+a848 4
+   if ((tbreak.active&1) != 0) {
+      *(U32 *)tbreak.prev0 = tbreak.instr0;	/* fix any existing breakpoints */
+      if ((tbreak.active&2) != 0) {
+	 *(U32 *)tbreak.prev1 = tbreak.instr1;
+d851 4
+a854 4
+   tbreak.active = 0;			/* in case of errors */
+   opp = (U32 *)regs[PC_REGNUM_W];
+   opp = CHECK_I_ADDR(opp);		/* check and adjust the address if necessary */
+   if (opp == 0) return -1;
+d862 12
+a873 3
+	    tbreak.active = 1;
+	    tbreak.prev0 = regs[(inst>>21)&0x1F];
+	    break;
+d878 1
+a878 1
+	    isprintf(errmsg, "unknown func in instr %08lX, op=%d", *opp, op);
+d880 2
+a881 1
+	 }			/* else fall through to default */
+d883 2
+a884 2
+	 tbreak.prev0 = regs[PC_REGNUM_W]+4;
+	 tbreak.active = 1;
+a885 1
+      }
+d891 4
+a894 4
+	 short offset;
+	 offset = inst&0x0000FFFF;
+	 tbreak.prev0 = (U32)(opp+1+offset);
+	 tbreak.active = 3;
+d899 7
+a905 2
+	 tbreak.prev0 = (((U32)opp)&0xF0000000) | ((inst&((1<<26)-1))<<2);
+	 tbreak.active = 1;
+d908 14
+a921 9
+   tbreak.prev0 = (U32)CHECK_I_ADDR(tbreak.prev0); /* make addres uncached */
+   if (tbreak.prev0 == 0) return -1;
+   tbreak.instr0 = *(U32 *)tbreak.prev0;
+   *(U32 *)tbreak.prev0 = BREAK_INSTR;	/* replace with a BREAK instruction */
+   if (tbreak.active&2) {
+      tbreak.prev1 = (U32)CHECK_I_ADDR(regs[PC_REGNUM_W]+8);
+      if (tbreak.prev1 == 0) return -1;
+      tbreak.instr1 = *(U32 *)tbreak.prev1;
+      *(U32 *)tbreak.prev1 = BREAK_INSTR;	/* replace with a BREAK instruction */
+d924 2
+a925 2
+   if ((tbreak.active&2) == 0) {
+      isprintf(errmsg, " ss:%08lX,%08X", tbreak.prev0, tbreak.instr0);
+d927 1
+a927 1
+      isprintf(errmsg, " ss:%08lX,%08X %08lX,%08lX",
+d940 1
+d947 3
+d952 3
+d956 24
+a979 1
+   memcpy(registers, regs, NUMREGBYTES);
+d981 1
+a981 1
+   sigval = computeSignal( regs[CAUSE_REGNUM_W]&0x3C ); 
+d984 11
+a994 16
+   addr = regs[PC_REGNUM_W];
+#if (PROCESSOR & -16) == MIPS4000
+   if (addr < 0x00800000) addr = addr|0x00800000;	/* make it uncached */
+   if (addr >= 0x9FC00000 && addr < 0xA0000000) addr = addr|0x20000000; /* make it uncached */
+#else
+   addr |= 0xA0000000;			/* make address uncached */
+#endif
+   if (regs[CAUSE_REGNUM_W]&0x80000000) addr += 4; /* adjust if in delay slot */
+   ii = pm_instr = *(U32*)addr;		/* save actual instruction in error */
+
+   if (sigval == 5 && (tbreak.active&1) != 0) { /* if this is a breakpoint report */
+      if (tbreak.prev0 == addr || ((tbreak.active&2) != 0 && tbreak.prev1 == addr)) {
+	 *(U32*)tbreak.prev0 = tbreak.instr0; /* put his instruction back */
+	 if ((tbreak.active&2) != 0) {
+	    *(U32*)tbreak.prev1 = tbreak.instr1; /* put the other one too, if necessary */
+	 }
+d996 1
+a996 1
+      tbreak.active = 0;	/* this is dead now */
+d1006 1
+a1006 1
+      strcpy((char *)obuf, get_pm_msg(regs[CAUSE_REGNUM_W]));
+d1016 1
+a1016 1
+      isprintf((char *)obuf, " PANIC addr err at %08lX, %08lX", regs[RA_REGNUM_W], regs[BADVADDR_REGNUM_W]);
+d1030 6
+a1035 4
+#if R4K_HOST
+      prc_set_im((regs[PS_REGNUM_W]&0xFB00) | (regs[PS_REGNUM_W]&1));	/* re-enable interrupts */
+#else
+      prc_set_im((regs[PS_REGNUM_W]&0xFB00) | ((regs[PS_REGNUM_W]>>2)&1)); /* re-enable interrupts */
+a1036 1
+
+d1038 1
+a1038 1
+      prc_set_im(0);		/* disable interrupts */
+d1044 2
+d1060 1
+a1060 1
+	    isprintf((char *)obuf, " '%c' command not supported in twi protocol on 4600", cchar);
+d1076 1
+a1076 1
+	       isprintf((char *)obuf, "Expected %d bytes of 'G' data; recv'd %d", NUMREGBYTES, pkt->len-2);
+d1081 1
+a1081 1
+	 case 'P': {	/* set value of specific register(s) */
+d1088 1
+a1088 1
+	       isprintf((char *)obuf, "Expected at least %d bytes of 'P' data; recv'd %d",
+d1098 1
+a1098 1
+		  isprintf((char *)obuf, "'P' register index (%d) out of range. Must be < %d",
+d1102 1
+a1102 1
+		  memcpy((char *)(registers+indx), buf, amt);
+d1108 20
+d1134 1
+a1134 1
+	       isprintf((char *)obuf, "Expected 4 bytes of 'p' data; recv'd %d",
+d1138 1
+a1138 1
+	       int indx, max;
+d1143 2
+a1144 1
+	       max = 512-1-PKTuser-4-2;
+d1148 1
+a1148 1
+		  isprintf((char *)obuf, "'p' register index (%d) out of range. Must be < %d",
+a1150 7
+	       } else if (amt > max) {
+		  indx = (max/MIPS_REGSIZE) * MIPS_REGSIZE;
+		  *obuf++ = ICEnak;
+		  *obuf++ = NAKillparam;
+		  isprintf((char *)obuf, "'p' count of %d too big. Cannot be more than %d",
+   			indx, indx);
+		  obuf += strlen((char *)obuf);
+d1152 3
+a1154 2
+		  memcpy((char *)(registers+indx), buf, amt);
+		  *obuf++ = ICEack;
+d1164 1
+a1164 1
+	       isprintf((char *)obuf, "Expected 2 byte length on 'm' command; found %d", pkt->len-(buf-pkt->buf));
+d1169 1
+a1169 1
+	       if (length > BUFMAX-PKTuser-1) {
+d1172 1
+a1172 1
+		  isprintf((char *)obuf, "Expected len on 'm' cmd to be < %d; found %d", BUFMAX-PKTuser-1, length);
+d1175 4
+a1178 2
+#if (PROCESSOR & -16) == MIPS4000
+		  if (tlbprobe((U8 *)addr, length)) {
+d1185 1
+a1185 1
+		     isprintf((char *)obuf, " TLB prevents reads from %08lX-%08lX", addr, addr+length-1);
+d1201 1
+a1201 1
+	       isprintf((char *)obuf, "Expected 2 byte length on 'M' command; found %d", pkt->len-(buf-pkt->buf));
+d1206 1
+a1206 1
+	       if (length > BUFMAX-PKTuser-1) {
+d1209 1
+a1209 1
+		  isprintf((char *)obuf, "Expected len on 'M' cmd to be < %d; found %d", BUFMAX-PKTuser-1, length);
+d1212 4
+a1215 2
+#if (PROCESSOR & -16) == MIPS4000
+		  if (tlbprobe((U8 *)addr, length)) {
+d1221 1
+a1221 1
+		     isprintf((char*)obuf, " TLB prevents reads from %08lX-%08lX", addr, addr+length-1);
+d1240 1
+a1240 1
+	       if (do_single_step(regs) < 0) {
+d1281 8
+d1296 6
+a1301 4
+#if R4K_HOST
+      prc_set_im((regs[PS_REGNUM_W]&0xFB00) | (regs[PS_REGNUM_W]&1));	/* re-enable interrupts */
+#else
+      prc_set_im((regs[PS_REGNUM_W]&0xFB00) | ((regs[PS_REGNUM_W]>>2)&1)); /* re-enable interrupts */
+a1302 1
+
+d1331 1
+a1331 1
+#if HOST_BOARD == LCR3K
+d1339 1
+a1339 1
+#if HOST_BOARD == LCR3K
+d1342 1
+a1346 1
+   outRemcomPkt.size = BUFMAX;
+a1353 1
+   inpRemcomPkt1.size = BUFMAX;
+a1362 1
+   inpRemcomPkt2.size = BUFMAX;
+d1400 1
+d1412 1
+@

@@ -1,0 +1,1023 @@
+head	1.15;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.15
+date	96.03.04.21.25.40;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.02.29.22.17.52;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.02.28.01.19.19;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.02.23.21.40.39;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.02.23.00.00.13;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.02.22.03.54.02;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.02.21.22.19.21;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.02.15.01.03.14;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.02.05.22.39.48;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.02.02.02.25.51;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.01.25.22.22.05;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.01.16.03.57.46;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.01.13.00.53.42;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.12.22.22.57.34;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.12.10.00.21.24;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@ZAG routines.
+@
+
+
+1.15
+log
+@Put txt_vsptr back in in MB code.
+@
+text
+@/*		zag_text.c
+ *
+ *	Text routines for the Zoid Math Box (ZAG).
+ *
+ *		Copyright 1995 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#include <string.h>
+
+#if HOST_BOARD != MB4600
+# if !TINY_MODE
+#  define GREAT_RENAME (1)
+#  include <os_proto.h>
+#  include <st_proto.h>
+#  if HOST_BOARD == HCR4K
+#   include <os_root.h>
+#  endif
+# endif
+#endif
+
+# include <zoid_proto.h>
+
+#ifndef n_elts
+# define n_elts(x) (sizeof(x)/sizeof((x)[0]))
+#endif
+
+#if HOST_IS_MATHBOX || HOST_BOARD == MB4600
+# define TBUS *((VU32*)TBUS_BASE)
+#endif
+
+#ifndef STATIC
+# define STATIC static
+#endif
+
+#if HOST_BOARD == MB4600		/* this function has moved to z20_text.c */
+static TxtAlphaPtr *where_is_vs;
+
+/* txt_vsptr - set the pointer to the virtual screen
+ * At entry:
+ *	new - pointer to new TxtAlphaPtr struct to use or 0
+ *		(if new->screen == 0, clears the current pointer)
+ * At exit:
+ *	returns the old contents of where_is_vs
+ */
+TxtAlphaPtr *txt_vsptr(TxtAlphaPtr *new) {
+    TxtAlphaPtr *old;
+    old = where_is_vs;			/* save previous value */
+    if (new) {				/* if user supplied a value ...*/
+	if (new->screen) {		/* and the screen member is not 0...*/
+	    where_is_vs = new;		/* his value becomes the new one */
+	} else {
+	    where_is_vs = 0;		/* else there is no virtual screen anymore */
+	}
+    }					/* if new == 0, just return previous value */
+    return old;				/* always return previous value */
+}
+#endif
+
+#if !TINY_MODE
+/* The virtual screen consists of an array of 16 bit 'chars' AN_VIS_ROW*AN_VIS_COL
+ * large. The lower 8 bits of the 'character' specifies the actual ASCII character
+ * to draw and the upper bits encode the color. The DIRTY bits array is an array of
+ * bits AN_VIS_ROW*AN_VIS_COL large, one bit for each 'character' in the virtual
+ * screen array. There are 2 U32's (64 bits) per ROW in ZOID20. If a bit is set in
+ * the dirty bit array, then the cooresponding 'character' in the virtual screen
+ * is to be displayed.
+ *
+ * Due to a hardware restriction on the mathbox, both arrays have to be accessed
+ * using only U32 instructions, so the following code does read/modify/writes to
+ * those arrays on the assumption that they are likely located in the memory
+ * shared between the mathbox and the host. If both the host processor and the MB
+ * processor are updating the same locations in this shared memory, what gets
+ * displayed may not be predictable.
+ */
+
+#if !defined(ASCII_OFFSET)
+# if HOST_BOARD != MB4600
+extern U16 an_stamps, an_norm_a, an_end;
+#  define ASCII_OFFSET (((&an_norm_a-&an_stamps)>>3)-'A')
+# else
+#  define ASCII_OFFSET 6
+# endif
+#endif
+
+#if HOST_BOARD == MB4600
+# define MBTXT_STR txt_str
+#else
+# define MBTXT_STR mbtxt_str
+#endif
+
+/* mbtxt_str - write a string to the virtual screen
+ * At entry:
+ *	col - column number (0-AN_VIS_COL-1)
+ *	row - row number    (0-AN_VIS_ROW-1)
+ *	txt - pointer to null terminated string
+ *	palset - character set and color to use
+ * At exit:
+ *	returns number of characters written
+ */
+int MBTXT_STR(int col, int row, const char *txt, int palset) {
+    VU32 *lp, *dirty;
+    U32 stamp, dirtyb, bits, comp;
+    const char *src = txt;
+    TxtAlphaPtr *where;
+    VU32 *limit;
+
+    where = txt_vsptr(0);			/* get pointer to virtual screen */
+    if (!where) return 0;			/* there isn't one */
+    if (where->screen == 0 || where->dirty == 0) return 0; /* ditto */
+
+    limit = where->screen + AN_VIS_ROW*AN_VIS_COL/2;	/* can't write past this area */
+    lp = where->screen + (row*AN_VIS_COL/2) + col/2;	/* get pointer to first U32 to update */
+    if (lp >= limit) return 0;			/* of off the end, we're done */
+    dirty = where->dirty + row*2;		/* compute location of U32 in dirty array */
+
+    if (col >= AN_VIS_COL/2) {			/* second half of ROW? */
+	++dirty;				/* yep, advance pointer */
+	col -= AN_VIS_COL/2;			/* and adjust the column */
+    }
+    dirtyb = 1 << col;				/* compute a starting bit within the dirty's U32 */
+    bits = 0;					/* new accumulation */
+    comp = *lp;					/* preload the composite */
+    while ( ( stamp = *src++) != 0 && lp < limit) { /* while there is data and not off the end */
+	if ( stamp == ' ' ) stamp = 0;		/* if blank, make stamp 0 */
+	else stamp += ASCII_OFFSET;		/* adjust it */
+	if ((col++&1) == 0) {			/* even half of 'character'? */
+	    comp = (comp & 0x0000FFFF) | ((stamp | palset) << 16); /* yep, mask and or in shifted new one */
+	} else {
+	    *lp++ = (comp & 0xFFFF0000) | (stamp | palset);	/* mask and or in the new one */
+	    comp = 0;				/* next comp starts out 0 */
+	}
+        bits |= dirtyb;				/* accumulate the dirty bit */
+	dirtyb <<= 1;				/* advance it */
+	if (dirtyb == 0) {			/* overflow to next halfrow? */
+	    *dirty++ |= bits;			/* yep, write the accumulated dirty bits */
+	    dirtyb = 1;				/* reset the bit counter */
+            bits = 0;				/* reset the accumulator */
+	}
+    }
+    if (bits) {					/* any partials written? */
+	if (col&1) {				/* if stopped on odd half of character */
+	    *lp = (*lp & 0x0000FFFF) | comp;	/* write what we've saved */
+	}
+	*dirty |= bits;				/* merge dirty bits with existing bits */
+    }
+    return src - txt - 1;			/* return the amount written */
+}
+
+#if HOST_BOARD == MB4600
+# define MBTXT_CLR_WID txt_clr_wid
+#else
+# define MBTXT_CLR_WID mbtxt_clr_wid
+#endif
+
+/* mbtxt_clr_wid - clear a specified number of characters
+ * At entry:
+ *	col - column number (0-AN_VIS_COL-1)
+ *	row - row number    (0-AN_VIS_ROW-1)
+ *	width - number of columns to clear
+ * At exit:
+ *	returns nothing
+ */
+void MBTXT_CLR_WID(int col, int row, int width) {
+    VU32 *lp, *dirty;
+    U32 dirtyb, bits, comp;
+    VU32 *limit;
+    TxtAlphaPtr *where;
+
+    where = txt_vsptr(0);			/* get pointer to virtual screen */
+    if (!where) return;				/* there isn't one */
+    if (where->screen == 0 || where->dirty == 0) return; /* ditto */
+
+    limit = where->screen + AN_VIS_ROW*AN_VIS_COL/2; /* can't write past this  */
+    lp = where->screen + (row*AN_VIS_COL/2) + col/2; /* point to U32 in virtual screen */
+    if (lp >= limit) return;			/* if past limit, we're done */
+    dirty = where->dirty + row*2;		/* compute pointer to U32 in dirty array */
+
+    if (col >= AN_VIS_COL/2) {			/* if last half of ROW */
+	++dirty;				/* adjust pointer */
+	col -= AN_VIS_COL/2;			/* adjust column number */
+    }
+    dirtyb = 1 << col;				/* compute starting dirty bit */
+    bits = 0;					/* reset accumulator */
+    comp = *lp;					/* get composite 'character' */
+    while ( width > 0 && lp < limit) {		/* while we haven't run off the end */
+	if ((col++&1) == 0) {			/* if even column */
+	    comp = (comp & 0x0000FFFF);		/* clear 'upper' U16 */
+	} else {
+	    *lp++ = (comp & 0xFFFF0000);	/* else clear 'lower' U16 and update */
+	    comp = 0;				/* next composite is always 0 */
+	}
+        bits |= dirtyb;				/* accumulate dirty bits */
+	dirtyb <<= 1;				/* advance */
+	if (dirtyb == 0) {			/* if advanced over 1/2 row boundary */
+	    *dirty++ &= ~bits;			/* clear the old bits */
+	    dirtyb = 1;				/* reset the bit counter */
+            bits = 0;				/* reset the accumulator */
+	}
+	--width;				/* adjust user's count */
+    }
+    if (bits) {					/* if done partial line */
+	*dirty &= ~bits;			/* clear old bits */
+	if (col&1) {				/* if stopped on odd 'character' */
+	    *lp = (*lp & 0x0000FFFF) | comp;	/* clobber it */
+	}
+    }
+}
+
+#if HOST_BOARD == MB4600
+# define MBTXT_STAMP txt_stamp
+#else
+# define MBTXT_STAMP mbtxt_stamp
+#endif
+
+/* mbtxt_stamp - write a specific stamp at a specific location
+ * At entry:
+ *	col - column number (0-AN_VIS_COL-1)
+ *	row - row number    (0-AN_VIS_ROW-1)
+ *	width - number of columns to clear
+ * At exit:
+ *	returns nothing
+ */
+void MBTXT_STAMP(int col, int row, int stampno, int pal_font) {
+    VU32 *lp, *dirty, *limit;
+    
+    TxtAlphaPtr *where;
+
+    where = txt_vsptr(0);
+    if (!where) return;
+
+    lp = where->screen + (row*AN_VIS_COL/2) + col/2;
+    limit = where->screen + AN_VIS_ROW*AN_VIS_COL/2;
+    if (lp >= limit) return;
+
+    dirty = where->dirty + row*2;
+
+    if (col >= AN_VIS_COL/2) {
+	++dirty;
+	col -= AN_VIS_COL/2;
+    }
+
+    stampno |= pal_font;
+
+    if ((col&1) == 0) {
+	*lp = (*lp & 0x0000FFFF) | (stampno << 16);
+    } else {
+	*lp = (*lp & 0xFFFF0000) | stampno;
+    }
+    *dirty |= 1 << col;
+
+}
+#endif
+
+#if HOST_IS_MATHBOX || HOST_BOARD == MB4600
+
+# include <tbus.h>
+
+/* Following preloads needed to do any text at all */
+STATIC const U32 boilerplate[] = {
+    0x04000007,		/* TRAP PLH 8 */
+    0x08000007,		/* TRAP PRH 8 */
+    0x10000000,		/* Vertical */
+    0x18000000,		/* Vertical */
+/* Magic no-perspective PERC, verbatim from pencil sheet */
+    0x20400000,		/* VD PL0 */
+    0x21400000,		/* VD PR0 */
+    0x22000000,		/* VD PDL */
+    0x23000000,		/* VD PDR */
+    0x24000000,		/* VN PL0 */
+    0x25000000,		/* VN PR0 */
+    0x26400000,		/* VN PDL */
+    0x27400000,		/* VN PDR */
+    0x28400000,		/* HD PL0 */
+    0x29000000,		/* HD PR0 */
+    0x2A000000,		/* HD PDL */
+    0x2B000000,		/* HD PDR */
+    0x2C000000,		/* HN PL0 */
+    0x2D400000,		/* HN PR0 */
+    0x2E000000,		/* HN PDL */
+    0x2F000000,		/* HN PDR */
+#if (0)
+    0x40000000,		/* SCI_S_PL0 = 0.0.0 */
+    0x4100ff00,		/* SCI_S_PR0 = 0.ff.0 */
+    0x42000000,		/* SCI_S_PDL = 0.0.0 */
+    0x43000000,		/* SCI_S_PDR = 0.0.0 */
+    0x44000000,		/* SCI_T_PL0 = 0.0.0 */
+    0x45000000,		/* SCI_T_PR0 = 0.0.0 */
+    0x4600ff00,		/* SCI_T_PDL = 0.ff.0 */
+    0x4700ff00,		/* SCI_T_PDR = 0.ff.0 */
+#else
+/* The SCI_S and SCI_T regs are swapped. */
+    0x44000000,		/* SCI_S_PL0 = 0.0.0 */
+    0x4500ff00,		/* SCI_S_PR0 = 0.ff.0 */
+    0x46000000,		/* SCI_S_PDL = 0.0.0 */
+    0x47000000,		/* SCI_S_PDR = 0.0.0 */
+    0x40000000,		/* SCI_T_PL0 = 0.0.0 */
+    0x41000000,		/* SCI_T_PR0 = 0.0.0 */
+    0x4200ff00,		/* SCI_T_PDL = 0.ff.0 */
+    0x4300ff00,		/* SCI_T_PDR = 0.ff.0 */
+#endif
+    0x50800330,		/* Texture 8x8x2 */
+    0x78000000,		/* In your face at Z = 0 */
+    0x79000000,		/* No change at right edge */
+    0x7A000000,		/* No change down the left side */
+    0x7B000000,		/* No change down right side */
+#if (0)
+    0x7C030000,		/* Flat, no Z compare */
+#else
+    0x7C032000,		/* Flat, no Z compare, XP (color D15 = invis) */
+#endif
+};
+
+#ifndef SCI_SHF
+#define SCI_SHF (29)
+#endif
+#ifndef PLREG_SHF
+#define PLREG_SHF (26)
+#endif
+#ifndef FEND_OP
+#define FEND_OP (7)
+#endif
+
+/* do_half_row - convert 1/2 of a row of alpha's in the psuedo screen
+ * buffer to traps and deliver them to the TBUS.
+ *
+ * At entry:
+ *	x - x position to begin (0 through AN_VIS_COL/2-1; first half or
+ *		                 AN_VIS_COL/2 through AN_VIS_COL-1 second half).
+ *	y - y position to begin (0 through AN_VIS_ROW-1)
+ *	dirty - 32 dirty bits for the 1/2 to display
+ *	lp - pointer to first char in row
+ * At exit:
+ *	up to 32 chars worth of traps delivered to TBUS
+ */
+
+static void do_half_row(int x, int y, U32 dirty, VU16 *lp, TxtAlphaPtr *alp) {
+    int y_init,old_col = -1;
+    int lim;
+    U32 dirtyb;
+
+    lim = x ? AN_VIS_COL : AN_VIS_COL/2;
+    y_init = PL_PY|(((AN_VIS_ROW-y)<<3)-1);
+    for (dirtyb=1 ; x < lim; ++x, dirtyb += dirtyb ) {
+	int stamp;
+	U32 plx, new_col;
+        if ((dirty&dirtyb) == 0) continue;
+	stamp = lp[x];
+	if ( stamp == 0) continue;
+	if ( (new_col = stamp >> AN_PAL_SHF) != old_col ) {
+	    old_col = new_col;
+	    *(VU32 *)TBUS_BASE = PL_PLB | ((new_col &~(BGBIT>>AN_PAL_SHF)) << 2) | alp->color_offset;
+	    *(VU32 *)TBUS_BASE = PL_PPW | PL_PPW_ZWRITE | PL_PPW_FRAMEWRITE |
+		    ((new_col & (BGBIT>>AN_PAL_SHF)) ? 0 : PL_PPW_TRANSPEN);
+	}
+	stamp &= (1<<AN_PAL_SHF)-1;
+	plx = PL_PLX | (x<<15);
+	*(VU32 *)TBUS_BASE = plx;
+	*(VU32 *)TBUS_BASE = plx + ((PL_PRX-PL_PLX) | (7<<12));
+	*(VU32 *)TBUS_BASE = PL_TEXBASE | alp->texture_offset | (stamp<<2);
+	if ( y_init ) {
+	    *(VU32 *)TBUS_BASE = y_init;
+	    y_init = 0; 
+	}
+	*(VU32 *)TBUS_BASE = 0xCF000000;	/* TSTART */
+    }
+    return;
+}
+    
+/* zag_text2traps - scans a "fake screen" and emits TBUS commands
+ * to display the requested alphanumerics.
+ * At entry:
+ *	flag - contains flags bits. Bit 0 set means to use the "dirty bit array",
+ *		bit 1 set means to clear the character and the "dirty bit array"
+ *		after displaying each character.
+ * At exit:
+ *	Traps written to TBUS.
+ *	Returns nothing.
+ */
+
+#define USE_DIRTY	(flag&ZAG_TXT2TRAP_USE_DIRTY)
+#define CLR_DIRTY	(flag&ZAG_TXT2TRAP_CLR_DIRTY)
+
+void zag_text2traps(int flag) {
+    VU16 *lp;
+    VU32 *dirty;
+    int y, cidx;		/* "Command" Index */
+    const U32 *clist = boilerplate;
+    TxtAlphaPtr *where;
+
+    where = txt_vsptr(0);
+    if (!where) return;
+    lp = (U16 *)where->screen;
+    dirty = where->dirty;
+    
+    for ( cidx = 0 ; cidx < n_elts(boilerplate) ; ++cidx ) {	/* dump the boilerplate */
+	*(VU32 *)TBUS_BASE = clist[cidx];
+    }
+    for ( y = 0 ; y < AN_VIS_ROW ; ++y, dirty += 2, lp += AN_VIS_COL ) {
+	if (USE_DIRTY) {
+	    if (dirty[0]) {
+		do_half_row(0, y, dirty[0], lp, where);
+	    }
+	    if (dirty[1]) {
+		do_half_row(AN_VIS_COL/2, y, dirty[1], lp, where);
+	    }
+	    if (CLR_DIRTY) {
+		dirty[0] = 0;
+		dirty[1] = 0;
+	    }
+	} else {
+	    do_half_row(0, y, 0xFFFFFFFF, lp, where);
+	    do_half_row(AN_VIS_COL/2, y, 0xFFFFFFFF, lp, where);
+	}
+    }
+}
+
+# if (HOST_BOARD == MB4600) && !TINY_MODE
+
+extern int utl_cdec(unsigned long num, char *buf, int len, int format);
+extern int utl_chex(unsigned long num, char *buf, int len, int format);
+
+int
+txt_cstr(string,psmask)
+const char	*string;
+int	psmask;
+{
+    return txt_str(0,-1,string,psmask);
+}
+
+int
+txt_decnum(col,row,val,wid,form,palset)
+int		col;	/* coord. of UL corner of first character of txt */
+int 		row;	/* (0,0) is upper left corner of screen		*/
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    char num[20];
+    utl_cdec(val,num,wid,form);
+    return txt_str(col,row,num,palset);    
+}
+
+void
+txt_cdecnum(val,wid,form,palset)
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    txt_decnum(0,-1,val,wid,form,palset);
+}
+
+int
+txt_hexnum(col,row,val,wid,form,palset)
+int		col;	/* coord. of UL corner of first character of txt */
+int 		row;	/* (0,0) is upper left corner of screen		*/
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    char num[20];
+    utl_chex(val,num,wid,form);
+    return txt_str(col,row,num,palset);
+}
+
+void
+txt_chexnum(val,wid,form,palset)
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    txt_hexnum(0,-1,val,wid,form,palset);
+}
+
+# endif		/* HOST_BOARD == MB4600 */
+#endif		/* !TINY_MODE */
+
+@
+
+
+1.14
+log
+@Conditionalled out txt_vsptr since it has been moved into z20_text.c
+@
+text
+@d39 1
+a39 1
+#if 0					/* this function has moved to z20_text.c */
+@
+
+
+1.13
+log
+@Added !TINY_MODE to inclusion of txt_cstr et al.
+@
+text
+@d39 1
+d61 1
+@
+
+
+1.12
+log
+@fixed BGBIT error in do_half_row(). This prevented xx_PALB
+palettes from working properly.
+@
+text
+@d419 1
+a419 1
+# if HOST_BOARD == MB4600
+@
+
+
+1.11
+log
+@Made zag_text2traps use the texture_offset field.
+@
+text
+@d353 1
+a353 1
+	    *(VU32 *)TBUS_BASE = PL_PLB | ((new_col &~BGBIT) << 2) | alp->color_offset;
+d355 1
+a355 1
+		    ((new_col & BGBIT) ? 0 : PL_PPW_TRANSPEN);
+d357 1
+a357 1
+	stamp &= 0x3FF;
+@
+
+
+1.10
+log
+@Added support for MB4600 this module residing in the mathbox code.
+@
+text
+@d361 1
+a361 1
+	*(VU32 *)TBUS_BASE = PL_TEXBASE | /* alp->texture_offset | */ (stamp<<2);
+@
+
+
+1.9
+log
+@Added some support for MB4600 mode
+@
+text
+@d23 2
+a25 1
+#endif
+d78 2
+d81 11
+a91 1
+#define ASCII_OFFSET (((&an_norm_a-&an_stamps)>>3)-'A')
+d102 1
+a102 1
+int mbtxt_str(int col, int row, const char *txt, int palset) {
+d151 6
+d165 1
+a165 1
+void mbtxt_clr_wid(int col, int row, int width) {
+d211 6
+d225 1
+a225 1
+void mbtxt_stamp(int col, int row, int stampno, int pal_font) {
+d418 85
+a502 1
+#endif
+@
+
+
+1.8
+log
+@Removed all direct references to zre_csr.
+Use zre_setup() instead of zre_init().
+Put ZIG conditionals around all zre references in case
+none of these changes work.
+@
+text
+@d13 9
+a21 9
+#if !TINY_MODE
+# define GREAT_RENAME (1)
+# include <os_proto.h>
+# include <st_proto.h>
+# if 0
+#  include <zre_defs.h>
+# endif
+# if HOST_BOARD == HCR4K
+#  include <os_root.h>
+d23 1
+a24 1
+#include <zoid_proto.h>
+d30 1
+a30 1
+#if HOST_IS_MATHBOX
+@
+
+
+1.7
+log
+@Fixed bug in txt_stamp.
+@
+text
+@d17 3
+a19 1
+# include <zre_defs.h>
+@
+
+
+1.6
+log
+@Conditionaled some code on TINY_MODE
+@
+text
+@a199 1
+    U32 dirtyb;
+d209 1
+a215 2
+    dirtyb = 1 << col;
+    *dirty |= dirtyb;
+d217 1
+a217 1
+    stampno |= (pal_font << AN_PAL_SHF);
+d219 1
+a219 1
+    if ((col++&1) == 0) {
+d224 2
+@
+
+
+1.5
+log
+@Made types of variables match those defined in zoid_proto.h
+@
+text
+@d13 8
+a20 6
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <zre_defs.h>
+#if HOST_BOARD == HCR4K
+# include <os_root.h>
+d58 1
+d227 1
+d229 1
+a229 1
+#if HOST_IS_MATHBOX || HOST == MB4600
+d317 1
+a317 1
+    y_init = (TRAP_PY<<PLREG_SHF)|(((AN_VIS_ROW-y)<<3)-1);
+a323 1
+	/* got a non-blank, get ready and wait */
+d326 2
+a327 2
+	    TBUS = PL_PLB | ((new_col &~BGBIT) << 2) | alp->color_offset;
+	    TBUS = PL_PPW | PL_PPW_ZWRITE | PL_PPW_FRAMEWRITE |
+d331 4
+a334 4
+	plx = (TRAP_PLX<<PLREG_SHF)|(x<<15);
+	TBUS = plx;
+	TBUS = plx+((TRAP_PRX-TRAP_PLX)<<PLREG_SHF)+(7<<12);
+	TBUS = PL_TEXBASE | alp->texture_offset | (stamp<<2);
+d336 1
+a336 1
+	    TBUS = y_init;
+d339 1
+a339 1
+	TBUS = 0xCF000000;	/* TSTART */
+d371 1
+a371 1
+	TBUS = clist[cidx];
+@
+
+
+1.4
+log
+@Added comments. txt_vsptr clears where_is_vs if screen member of
+TxtAlphaPtr parameter is 0.
+@
+text
+@d89 1
+a89 1
+    U32 *limit;
+d144 1
+a144 1
+    U32 *limit;
+d196 3
+a198 2
+    VU32 *lp, *dirty;
+    U32 dirtyb, *limit;
+d307 1
+a307 1
+static void do_half_row(int x, int y, U32 dirty, U16 *lp, TxtAlphaPtr *alp) {
+d356 2
+a357 2
+    U16 *lp;
+    U32 *dirty;
+@
+
+
+1.3
+log
+@Removed the reliance on zmbcom.h and made the txt functions
+use the information maintained by txt_vsptr.
+@
+text
+@d36 7
+d45 9
+a53 3
+    old = where_is_vs;
+    if (new) where_is_vs = new;
+    return old;
+d56 16
+d75 9
+d91 21
+a111 20
+    where = txt_vsptr(0);
+    if (!where) return 0;
+
+    limit = where->screen + AN_VIS_ROW*AN_VIS_COL/2;
+    lp = where->screen + (row*AN_VIS_COL/2) + col/2;
+    if (lp >= limit) return 0;
+    dirty = where->dirty + row*2;
+
+    if (col >= AN_VIS_COL/2) {
+	++dirty;
+	col -= AN_VIS_COL/2;
+    }
+    dirtyb = 1 << col;
+    bits = 0;
+    comp = *lp;			/* preload the composite */
+    while ( ( stamp = *src++) != 0 && lp < limit) {
+	if ( stamp == ' ' ) stamp = 0;
+	else stamp += ASCII_OFFSET;
+	if ((col++&1) == 0) {
+	    comp = (comp & 0x0000FFFF) | ((stamp | palset) << 16);
+d113 2
+a114 2
+	    *lp++ = (comp & 0xFFFF0000) | (stamp | palset);
+	    comp = 0;
+d116 6
+a121 6
+        bits |= dirtyb;
+	dirtyb <<= 1;
+	if (dirtyb == 0) {
+	    *dirty++ |= bits;
+	    dirtyb = 1;
+            bits = 0;
+d124 3
+a126 4
+    if (bits) {
+	*dirty |= bits;
+	if (col&1) {
+	    *lp = (*lp & 0x0000FFFF) | comp;
+d128 1
+d130 1
+a130 1
+    return src - txt - 1;
+d133 8
+d147 19
+a165 18
+    where = txt_vsptr(0);
+    if (!where) return;
+
+    limit = where->screen + AN_VIS_ROW*AN_VIS_COL/2;
+    lp = where->screen + (row*AN_VIS_COL/2) + col/2;
+    if (lp >= limit) return;
+    dirty = where->dirty + row*2;
+
+    if (col >= AN_VIS_COL/2) {
+	++dirty;
+	col -= AN_VIS_COL/2;
+    }
+    dirtyb = 1 << col;
+    bits = 0;
+    comp = *lp;
+    while ( width > 0 && lp < limit) {
+	if ((col++&1) == 0) {
+	    comp = (comp & 0x0000FFFF);
+d167 2
+a168 2
+	    *lp++ = (comp & 0xFFFF0000);
+	    comp = 0;
+d170 13
+a182 13
+        bits |= dirtyb;
+	dirtyb <<= 1;
+	if (dirtyb == 0) {
+	    *dirty++ &= ~bits;
+	    dirtyb = 1;
+            bits = 0;
+	}
+	--width;
+    }
+    if (bits) {
+	*dirty &= ~bits;
+	if (col&1) {
+	    *lp = (*lp & 0x0000FFFF) | comp;
+d187 8
+@
+
+
+1.2
+log
+@Added some code in preparation for HOST_IS_MATHBOX.
+None of it has been tested yet, though.
+@
+text
+@a16 1
+#include <zmbcom.h>
+d20 1
+d34 9
+d50 5
+d56 5
+a60 2
+    lp = ZMB_TEXT_BUF + (row*AN_VIS_COL/2) + (col/2);
+    dirty = ZMB_TEXT_DIRTY + row*2;
+d68 1
+a68 1
+    while ( ( stamp = *src++) != 0 && lp < ZMB_TEXT_DIRTY) {
+d97 5
+d103 5
+a107 2
+    lp = ZMB_TEXT_BUF + (row*AN_VIS_COL/2) + (col/2);
+    dirty = ZMB_TEXT_DIRTY + row*2;
+d115 1
+a115 1
+    while ( width > 0 && lp < ZMB_TEXT_DIRTY) {
+d141 10
+a150 1
+    U32 dirtyb;
+a151 2
+    lp = ZMB_TEXT_BUF + (row*AN_VIS_COL/2) + (col/2);
+    dirty = ZMB_TEXT_DIRTY + row*2;
+d168 1
+a168 1
+#if HOST_IS_MATHBOX
+a236 2
+static int texmap;
+
+d250 1
+a250 1
+static void do_half_row(int x, int y, U32 dirty, U16 *lp) {
+d259 1
+d262 16
+a277 19
+	if ( stamp != 0 ) {
+	    /* got a non-blank, get ready and wait */
+	    U32 plx, new_col;
+	    if ( (new_col = stamp >> AN_PAL_SHF) != old_col ) {
+			old_col = new_col;
+			TBUS = PL_PLB | ((new_col &~BGBIT) << 2);
+			TBUS = PL_PPW | PL_PPW_ZWRITE | PL_PPW_FRAMEWRITE |
+				((new_col & BGBIT) ? 0 : PL_PPW_TRANSPEN);
+	    }
+	    stamp &= 0x3FF;
+	    plx = (TRAP_PLX<<PLREG_SHF)|(x<<15);
+	    TBUS = plx;
+	    TBUS = plx+((TRAP_PRX-TRAP_PLX)<<PLREG_SHF)+(7<<12);
+	    TBUS = texmap|(stamp<<2); /* texmap = text texture base address! */
+	    if ( y_init ) {
+		TBUS = y_init;
+		y_init = 0; 
+	    }
+	    TBUS = 0xCF000000;	/* TSTART */
+d279 1
+d295 2
+a296 2
+#define USE_DIRTY	(flag&1)
+#define CLR_DIRTY	(flag&2)
+d299 2
+a300 2
+    U16 *lp = (U16 *)(ZMB_TEXT_BUF);
+    U32 *dirty = (U32 *)(ZMB_TEXT_DIRTY);
+d303 1
+d305 5
+a312 1
+    texmap = ZMB_COMM[ZMB_TEXMAP_PTR];		/* point to texture in texmap */
+d316 1
+a316 1
+		do_half_row(0, y, dirty[0], lp);
+d319 1
+a319 1
+		do_half_row(AN_VIS_COL/2, y, dirty[1], lp);
+d326 2
+a327 2
+	    do_half_row(0, y, 0xFFFFFFFF, lp);
+	    do_half_row(AN_VIS_COL/2, y, 0xFFFFFFFF, lp);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d19 1
+a19 1
+#include <os_root.h>
+d22 12
+d135 163
+@

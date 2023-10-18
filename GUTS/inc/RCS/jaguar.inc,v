@@ -1,0 +1,295 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	94.06.21.17.46.12;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Misc Jaguar definitions
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@;****************************************************************************
+;
+;	JAGUAR.INC  Hardware Equates for JAGUAR System
+;
+;			COPYRIGHT 1994 Atari Computer Corporation
+;          UNATHORIZED REPRODUCTION, ADAPTATION, DISTRIBUTION,   
+;          PERFORMANCE OR DISPLAY OF THIS COMPUTER PROGRAM OR    
+;        THE ASSOCIATED AUDIOVISUAL WORK IS STRICTLY PROHIBITED. 
+;                            ALL RIGHTS RESERVED.		
+;
+;****************************************************************************
+;
+;
+;	JAGUAR REGISTERS
+;
+BASE		equ	$FFF00000	;TOM Internal Register Base
+;
+;
+;			       size R/W description
+MEMCON1		equ	BASE + $0000	;w RW Memory Configuration Register One
+MEMCON2		equ	BASE + $0002	;w RW Memory Configuration Register Two
+;
+HC		equ	BASE + $0004	;w RW Horizontal Count
+VC		equ	BASE + $0006	;w RW Vertical Count
+;
+LPH		equ	BASE + $0008	;w RO Horizontal Lightpen
+LPV		equ	BASE + $000A	;w RO Vertical Lightpen
+;
+;		equ	BASE + $000C	;w (unused)
+;		equ	BASE + $000E	;w (unused)
+;
+;
+OB0		equ	BASE + $0010	;w RO Current Object Phrase
+OB1		equ	BASE + $0012	;w RO
+OB2		equ	BASE + $0014	;w RO 
+OB3		equ	BASE + $0016	;w RO
+;
+;	BASE + $0018-BASE + $001E	(reserved)
+;
+OLP		equ	BASE + $0020	;l WO Object List Pointer (little endian)
+ODP		equ	BASE + $0024	;w    Object Data Pointer
+OBF		equ	BASE + $0026	;w WO Object Processor Flag
+;
+VMODE		equ	BASE + $0028	;w WO Video Mode
+;
+BORD1		equ	BASE + $002A	;w WO Border Color (Red & Green)
+BORD2		equ	BASE + $002C	;w WO Border Color (Blue)
+;
+HP		equ	BASE + $002E	;w WO Horizontal Period
+HBB		equ	BASE + $0030	;w WO Horizontal Blanking Begin
+HBE		equ	BASE + $0032	;w WO Horizontal Blanking End
+HS		equ	BASE + $0034	;w WO Horizontal Sync
+HVS		equ	BASE + $0036	;w WO Horizontal Vertical Sync
+HDB1		equ	BASE + $0038	;w WO Horizontal Display Begin One
+HDB2		equ	BASE + $003A	;w WO Horizontal Display Begin Two
+HDE		equ	BASE + $003C	;w WO Horizontal Display End
+VP		equ	BASE + $003E	;w WO Vertical Period
+VBB		equ	BASE + $0040	;w WO Vertical Blanking Begin
+VBE		equ	BASE + $0042	;w WO Vertical Blanking End
+VS		equ	BASE + $0044	;w WO Vertical Sync
+VDB		equ	BASE + $0046	;w WO Vertical Display Begin
+VDE		equ	BASE + $0048	;w WO Vertical Display End
+VEB		equ	BASE + $004A	;w WO Vertical equalization Begin
+VEE		equ	BASE + $004C	;w WO Vertical equalization End
+VI		equ	BASE + $004E	;w WO Vertical Interrupt
+PIT0		equ	BASE + $0050	;w WO Programmable Interrupt Timer (Lo)
+PIT1		equ	BASE + $0052	;w WO Programmable Interrupt Timer (Hi)
+HEQ		equ	BASE + $0054	;w WO Horizontal equalization End
+TEST1		equ	BASE + $0056	;w    Undocumented Register - DO NOT USE
+BG		equ	BASE + $0058	;w WO Background Color
+;
+;	BASE + $005A-BASE + $00DE  (reserved)
+;
+INT1		equ	BASE + $00E0	;w RW CPU Interrupt Control Register
+INT2		equ	BASE + $00E2	;w WO CPU Interrupt Resume Register
+;
+;	BASE + $00E4-BASE + $03FE  (reserved)
+;
+CLUT		equ	BASE + $0400	;w RW -BASE + $05FE Color Lookup Table (A)
+;				;w RW -BASE + $07FE Color Lookup Table (B)
+LBUFA		equ	BASE + $0800	;w RW -BASE + $0D9E Line Buffer A
+;	BASE + $0DA0-BASE + $0FFE  (reserved)
+LBUFB		equ	BASE + $1000	;w RW -BASE + $159E Line Buffer B
+;	BASE + $15A0-BASE + $17FE  (reserved)
+LBUFC		equ	BASE + $1800	;w RW -BASE + $1D9E Line Buffer Current
+;
+;	BASE + $1DA0-BASE + $1FFE  (reserved)
+;
+;	BASE + $2000-BASE + $20FE  (reserved)
+;
+;	GPU REGISTERS
+;
+G_FLAGS 	equ	BASE + $2100	;l RW GPU Flags
+G_MTXC		equ	BASE + $2104	;l WO GPU Matrix Control
+G_MTXA		equ	BASE + $2108	;l WO GPU Matrix Address
+G_END		equ	BASE + $210C	;l WO GPU Data Organization
+G_PC		equ	BASE + $2110	;l RW GPU Program Counter
+G_CTRL		equ	BASE + $2114	;l RW GPU Operation Control/Status
+G_HIDATA 	equ	BASE + $2118	;l RW GPU Bus Interface high data
+G_REMAIN 	equ	BASE + $211C	;l RO GPU Division Remainder
+G_DIVCTRL 	equ	BASE + $211C	;l WO DSP Divider control
+;
+;	BASE + $2120-BASE + $21FE  (reserved)
+;
+;	BLTTER REGISTERS
+;
+A1_BASE 	equ	BASE + $2200	;l WO A1 Base Address
+A1_FLAGS	equ	BASE + $2204	;l WO A1 Control Flags
+A1_CLIP		equ	BASE + $2208	;l WO A1 Clipping Size
+A1_PIXEL	equ	BASE + $220C	;l RW A1 Pixel Pointer
+A1_STEP		equ	BASE + $2210	;l WO A1 Step (Integer Part)
+A1_FSTEP	equ	BASE + $2214	;l WO A1 Step (Fractional Part)
+A1_FPIXEL	equ	BASE + $2218	;l RW A1 Pixel Pointer (Fractional)
+A1_INC		equ	BASE + $221C	;l WO A1 Increment (Integer Part)
+A1_FINC		equ	BASE + $2220	;l WO A1 Increment (Fractional Part)
+A2_BASE		equ	BASE + $2224	;l WO A2 Base Address
+A2_FLAGS	equ	BASE + $2228	;l WO A2 Control Flags
+A2_MASK		equ	BASE + $222C	;l WO A2 Address Mask
+A2_PIXEL	equ	BASE + $2230	;l RW A2 PIXEL
+A2_STEP		equ	BASE + $2234	;l WO A2 Step (Integer)
+;
+B_CMD		equ	BASE + $2238	;l WO Command
+				;l RO Status
+;
+B_COUNT		equ	BASE + $223C	;l WO Counters
+B_SRCD		equ	BASE + $2240	;2xl WO Source Data
+B_DSTD		equ	BASE + $2248	;2xl WO Destination Data
+B_DSTZ		equ	BASE + $2250	;2xl WO Destination Z
+B_SRCZ1		equ	BASE + $2258	;2xl WO Source Z (Integer)
+B_SRCZ2		equ	BASE + $2260	;2xl WO Source Z (Fractional)
+B_PATD		equ	BASE + $2268	;2xl WO Pattern Data
+B_IINC		equ	BASE + $2270	;l WO Intensity Increment
+B_ZINC		equ	BASE + $2274	;l WO Z Increment
+B_STOP		equ	BASE + $2278	;l WO Collision stop control
+;
+B_I3		equ	BASE + $227C	;l WO Blitter Intensity 3
+B_I2		equ	BASE + $2280	;l WO Blitter Intensity 2
+B_I1		equ	BASE + $2284	;l WO Blitter Intensity 1
+B_I0		equ	BASE + $2288	;l WO Blitter Intensity 0
+;
+B_Z3		equ	BASE + $228C	;l WO Blitter Z 3
+B_Z2		equ	BASE + $2290	;l WO Blitter Z 2
+B_Z1		equ	BASE + $2294	;l WO Blitter Z 1
+B_Z0		equ	BASE + $2298	;l WO Blitter Z 0
+;
+;	BASE + $229C-BASE + $2FFC  (reserved)
+;
+;
+G_RAM		equ	BASE + $3000	;l RW GPU Internal sRAM
+G_ENDRAM	equ	BASE + $4000	;  end GPU internal sRAM (+1), 4K bytes
+;
+;	BASE + $4000-BASE + $9FFC (reserved)
+;
+;	BASE + $A000-BASE + $A0FC (reserved)
+;
+;
+;	BASE + $A100-BASE + $BFFC (hi speed WO access of BASE + $2100-BASE + $3FFC, longwords only)	
+;
+;
+;	BASE + $C000-BASE + $FFFC (reserved)
+JERRY		equ	$FFF10000
+;
+;	JERRY TIMERS
+;
+JPIT1		equ	JERRY + $0000	;w WO Timer 1 Pre-Scaler
+JPIT2		equ	JERRY + $0002	;w WO Timer 1 Divider
+JPIT3		equ	JERRY + $0004	;w WO Timer 2 Pre-Scaler
+JPIT4		equ	JERRY + $0006	;w WO Timer 2 Divider
+;
+;	JERRY + $0008-JERRY + $000E  (reserved)
+;
+CLK1		equ	JERRY + $0010	;w WO Processor Clock Frequency
+CLK2		equ	JERRY + $0012	;w WO Video Clock Frequency
+CHRO_CLK	equ	JERRY + $0014	;w WO Chroma clock control
+;
+;	JERRY + $0016-JERRY + $001E  (reserved)
+;
+J_INT		equ	JERRY + $0020	;w RW Jerry's Interrupt control Register
+;
+;	JERRY + $0022-JERRY + $002E  (reserved)
+;
+ASIDATA		equ	JERRY + $0030	;w RW Asynchronous Serial Data
+ASICTRL		equ	JERRY + $0032	;w WO Asynchronous Serial Control
+ASISTAT		equ	JERRY + $0032	;w RO Asynchronous Serial Status
+ASICLK		equ	JERRY + $0034	;w RW Asynchronous Serial Interface Clock
+;
+;
+;	JERRY TIMERS READ ACCESS
+;
+;			JERRY + $0036	;w RO Timer 1 Pre-Scaler
+;			JERRY + $0038	;w RO Timer 1 Divider
+;			JERRY + $003A	;w RO Timer 2 Pre-Scaler
+;			JERRY + $003C	;w RO Timer 2 Divider
+;
+;	JERRY + $0040-JERRY + $3FFC  (reserved)
+;
+JOY1		equ	JERRY + $4000	;w RW Joystick register 
+JOY2		equ	JERRY + $4002	;w RW Button register 
+;
+;	JERRY + $4004-JERRY + $47FC  (reserved)
+;
+;
+;	General Purpose IO
+;
+GPIO_0		equ	JERRY + $4800	;w -JERRY + $4FFE Used by EEPROM code
+GPIO_1		equ	JERRY + $5000	;w -JERRY + $5FFE
+GPIO_2		equ	JERRY + $6000	;w -JERRY + $6FFE
+GPIO_3		equ	JERRY + $7000	;w -JERRY + $77FE
+GPIO_4		equ	JERRY + $7800	;w -JERRY + $7BFE
+GPIO_5		equ	JERRY + $7C00	;w -JERRY + $7FFE
+;
+;	JERRY + $8000-JERRY + $A0FC  (reserved)
+;
+;
+;	JERRY Registers (DSP)
+;
+D_FLAGS		equ	JERRY + $A100	;l RW DSP Flags
+D_MTXC		equ	JERRY + $A104	;l WO DSP Matrix Control
+D_MTXA		equ	JERRY + $A108	;l WO DSP Matrix Address
+D_END		equ	JERRY + $A10C	;l WO DSP Data Organization
+D_PC		equ	JERRY + $A110	;l RW DSP Program Counter
+D_CTRL		equ	JERRY + $A114	;l RW DSP Operation Control/Status
+D_HIDATA 	equ	JERRY + $A118	;l WO DSP Bus Interface high data
+D_REMAIN 	equ	JERRY + $A11C	;l RO DSP Division Remainder
+D_DIVCTRL 	equ	JERRY + $A11C	;l WO DSP Divider control
+;
+;
+;	JERRY + $A120-JERRY + $A13C  (reserved)
+;
+;	PULSE WIDTH MODULATION DACs
+;
+DAC1		equ	JERRY + $A140	;l WO Left 14-bit DAC
+DAC2		equ	JERRY + $A144	;l WO Right 14-bit DAC
+;
+;	I2S transmit/receive data
+LTXD		equ	JERRY + $A148	;l WO Left 16-bit transmit data 
+LRXD		equ	JERRY + $A148	;l RO Left 16-bit receive data 
+;
+RTXD		equ	JERRY + $A14C	;l WO Right 16-bit transmit data 
+RRXD		equ	JERRY + $A14C	;l RO Right 16-bit receive data 
+;
+;
+;	JERRY + $A148-JERRY + $A14C  (reserved)
+;
+;
+SCLK		equ	JERRY + $A150	;l WO SSI Clock Frequency
+SSTAT		equ	JERRY + $A150	;l RO Serial Status
+SMODE		equ	JERRY + $A154	;l WO SSI Control
+;
+;
+;	JERRY + $A158-JERRY + $AFFC  (reserved)
+;
+D_RAM		equ	JERRY + $B000	; DSP Internal RAM
+D_ENDRAM	equ	JERRY + $D000	; End of sRAM (+1) 8K bytes
+;
+;
+;	ROM Tables built into Jerry 128 samples
+;	16 bit samples sign extended to 32
+;
+ROM_TABLE   	equ	JERRY + $D000	; Base of tables
+;
+; These are NEW CHANGED DIFFERENT equates they should cause less confusion
+;
+ROM_TRI     	equ	JERRY + $D000	; A triangle wave
+ROM_SINE    	equ	JERRY + $D200	; Full amplitude SINE
+ROM_AMSINE  	equ	JERRY + $D400	; Linear (?) ramp SINE
+ROM_SINE12W 	equ	JERRY + $D600	; SINE(X)+SINE(2*X)
+ROM_CHIRP16 	equ	JERRY + $D800	; SHORT SWEEP
+ROM_NTRI    	equ	JERRY + $DA00	; Triangle w/NOISE
+ROM_DELTA   	equ	JERRY + $DC00	; Positive spike
+ROM_NOISE   	equ	JERRY + $DE00	; Guess
+@

@@ -1,0 +1,807 @@
+head	1.11;
+access;
+symbols
+	CJ_206:1.10
+	CJ2_05:1.9
+	CJ2_04:1.8
+	CJ2_03:1.6;
+locks; strict;
+comment	@ * @;
+
+
+1.11
+date	97.07.01.22.31.02;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.11.11.18.33.18;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.10.24.17.20.24;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.06.20.21.08.57;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.06.12.18.21.02;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.09.25.20.50.02;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.08.23.18.46.13;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.08.02.23.07.39;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.08.01.20.00.45;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.06.09.00.26.04;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.05.02.20.18.48;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Brian Mckee's Cojag cold-start initialization, auto-rev detect,
+and all-singing-all-dancing power-on diagnostic.
+@
+
+
+1.11
+log
+@Added RCS ID string
+@
+text
+@/**********************************************************************************
+* JAG_INIT.C | Author: Brian T. McKee and Robert M. Birmingham | June 19, 1995    *
+* =============================================================================== *
+* Copyright 1995 Time Warner Interactive.  Unauthorized reproduction, adaptation, *
+* distribution, performance or display of this computer program or the associated *
+* audiovisual work is strictly prohibited.                                        *
+* =============================================================================== *
+* This file contains the CoJag Initialization code.                               *
+**********************************************************************************/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <os_proto.h>
+#include <st_proto.h>
+#define BATRAM_KLUGE (300)
+
+/************************************************/
+
+/* Defines that will need to be put in an 'h' file */
+
+/* Banks A and C are in physical bank 0 */
+#define	DRAM_BANKAH (*(VU32 *)(HOST_MEM_BASE + 0x000000))
+#define	DRAM_BANKAL (*(VU32 *)(HOST_MEM_BASE + 0x000004))
+#define	DRAM_BANKCH (*(VU32 *)(HOST_MEM_BASE + 0x200000))
+#define	DRAM_BANKCL (*(VU32 *)(HOST_MEM_BASE + 0x200004))
+
+/* Banks B and D are in physical bank 1 */
+#define	DRAM_BANKBH (*(VU32 *)(HOST_MEM_BASE + 0x400000))
+#define	DRAM_BANKBL (*(VU32 *)(HOST_MEM_BASE + 0x400004))
+#define	DRAM_BANKDH (*(VU32 *)(HOST_MEM_BASE + 0x600000))
+#define	DRAM_BANKDL (*(VU32 *)(HOST_MEM_BASE + 0x600004))
+
+void jag_diag( int rev, int drsiz0, int drsiz1, int drwid0, int drwid1, U32 memcon );
+int prc_mod_config( int new );
+
+/* Following routine was added in an attempt to troubleshoot
+ * Power-on problems. It "throbs" (DMS had already taken the
+ * name "blink") the VCR line in pseudo-morse code. In the
+ * interest on speeding up the boot process, the actual
+ * pulsing is omitted, Unless DO_VCR_THROB is defined to
+ * be non-zero. The "pattern" sent to vcr_thorb() is still
+ * sent to the "BORDER register, and _may_, depending on the
+ * monitor, be visible. Some monitors suppress video when they
+ * do not have sync, so it may not work... (MEA 11NOV96)
+ * Also: these pulses may be "redirected" to the diagnostic
+ * LED by:
+ * #define vcr_throb(pat, wdp) st_throb(pat)
+ */
+void vcr_throb( int pat, VU32 *wdp);
+
+/************************************************/
+
+#define SOFT_DEL 50000
+
+int cojag_rev;     /* COJAG revision number (1..4) */
+int cojag_drsiz0;  /* Size of COJAG DRAM bank 0 */
+int cojag_drsiz1;  /* Size of COJAG DRAM bank 1 */
+U32 memcon_val;    /* Actual Value of MEMCON after memory sizing */
+
+/************************************************/
+
+/*
+** ***********************
+** jag_init():
+** Initialize the system.
+** ***********************
+*/
+
+void jag_init( coldboot )
+int coldboot;
+{
+    volatile int i;   /* generic loop counter */
+    U8 cojag_drwid0;  /* Width of COJAG DRAM bank 0 */
+    U8 cojag_drwid1;  /* Width of COJAG DRAM bank 1 */
+
+
+    WDOG = 0;    /* Pet the watchdog */
+
+    /*
+    ** Determine if we're running on a Rev. 1, 2, or 4 (Zover) COJAG...
+    ** Zover ist Kaput. Rev. # 4 has been stolen back for Silencer.
+    */
+
+#if PROCESSOR >= MIPS3000
+    /* R3K will not work with Rev 1, and looking at the COJAG_2_CF_REG
+     * to determine rev number is deadly if the security chip is installed,
+     * so, we kluge by assuming rev 2 if we have an R3K.
+     */
+    /* NOT SO FAST there :-). Turns out the security chip a) was never
+     * installed and b) hooked to the "graphics bank" lines on the
+     * write_only "LATCH" port (XBUS_SLOT2+0xF1780+SHORT0_OFFS).
+     * With the coming of UniJag (single-board R3k+CoJag), we need
+     * to distinguish among:
+     *
+     * Rev 2:	Cojag as produced for Area 51
+     * Rev 3:	UniJag for Freeze (ROMBUS, no IDE)
+     * Rev 4:	UniJag for Silencer (IDE, no ROMBUS)
+     *
+     * This is accomplished by reading back the COJAG_2_CF_REG,
+     * which is _almost_ R/W, except that:
+     * D5 (CM_VOLCTRL_DATA) is bidirectional data to Volume Control.
+     * D1 (CM_VCR_REC) is Write-Only VCR control on REV 4 (reads as '1')
+     * D0 (CM_IDE_RST) is IDE drive reset on Rev 4, (reads as '1' on Rev 3)
+     */
+    cojag_rev = 2;
+    COJAG_2_CF_REG = 0;		/* Reset all of CoJag to known state */
+    if ( COJAG_2_CF_REG & CM_IDE_RST ) cojag_rev = 3;
+    else if ( COJAG_2_CF_REG & CM_VCR_REC ) cojag_rev = 4;
+#else
+    cojag_rev = 1;          /* Set the Rev number to one */
+    COJAG_2_CF_REG = 0x00;  /* Reset the board */
+
+    /* The config register, when present is 0x20 on reset */
+    if( (COJAG_2_CF_REG) == 0x20 )
+        {
+        COJAG_2_CF_REG = 0x01;          /* Test bit 0 */
+
+	/* Remember bit 5 is inverted on writes */
+        if( COJAG_2_CF_REG == 0x21 )
+            {
+    	    COJAG_2_CF_REG = 0x0E;      /* Test bits 1..3 */
+
+    	    if( COJAG_2_CF_REG == 0x2E )
+                {
+    		COJAG_2_CF_REG = 0x60;  /* Test bits 5..6 */
+
+                /* If it gets this far, its rev. 2 */
+    		if( COJAG_2_CF_REG == 0x40 ) cojag_rev = 2;
+                }
+    	    }
+        }
+#endif
+    /*
+    ** Reset Rev. 2+ boards, this guarantees the Xilinx EPLD is programmed
+    ** correctly.  Rev. 1 does not have software controlled RESET.  Setting
+    ** the MEMCON register at this point to determine memory size
+    */
+
+    WDOG = 0;    /* Pet the watchdog */
+
+    if( cojag_rev >= 2 )
+        {
+        /*
+        ** This code must Reset the COJAG, if os_root doesn't
+        ** because the GPU must be killed with a hard reset
+        */
+#if !DO_VCR_THROB
+        COJAG_2_CF_REG = 0x00;              /* Reset the board */
+        for( i = 0; i< SOFT_DEL; i++ ) {;}  /* Pause */
+        COJAG_2_CF_REG = 0x80;              /* Unreset the board */
+#else
+	/* Shut off the VCR LED as we do this... */
+        COJAG_2_CF_REG = CM_VCR_REC;              /* Reset the board */
+        for( i = 0; i< SOFT_DEL; i++ ) {;}  /* Pause */
+        COJAG_2_CF_REG = 0x80|CM_VCR_REC;              /* Unreset the board */
+#endif
+        for(i = 0; i < SOFT_DEL; i++ ) {;}  /* Pause */
+	MEMCON = MEMCON_VAL_2;
+        }
+    else
+        {
+        MEMCON = MEMCON_VAL_1;
+        }
+    vcr_throb(0x10, &WDOG);
+    WDOG = 0;                               /* Pet the watchdog */
+    for( i = 0; i < SOFT_DEL; i++ ) {;}     /* Pause */
+    WDOG = 0;                               /* Pet the watchdog */
+    G_END = 0x70007;                        /* Set the GPU's endianness */
+    vcr_throb(0x11, &WDOG);
+
+    /*
+    ** Determine COJAG memory size and width.
+    ** At this point memory is configured for 64 bits of width,
+    ** so I'm going to check to see if all 64 bits are present,
+    ** if its not then I'll change the width to match how much
+    ** memory is really there
+    */
+
+#ifdef COJAG_2_CF_REG
+
+    cojag_drwid0 = cojag_drwid1 = cojag_drsiz0 = cojag_drsiz1 = 0;
+
+    DRAM_BANKAL = 0x5a5a5a5a;
+    DRAM_BANKAH = 0xa5a5a5a5;
+    DRAM_BANKCL = 0x69696969;
+    DRAM_BANKCH = 0x96969696;
+
+    if( (DRAM_BANKAL & 0x0000ffff) == 0x00005a5a )
+        {
+        cojag_drwid0 = 1;
+        cojag_drsiz0 += 512;
+
+        if( (DRAM_BANKCL & 0x0000ffff) == 0x00006969 )
+            cojag_drsiz0 += 512;
+ 
+        if( DRAM_BANKAL == 0x5a5a5a5a )
+            {
+            cojag_drwid0 = 2;
+            cojag_drsiz0 += 512;
+
+            if( DRAM_BANKCL == 0x69696969 )
+                cojag_drsiz0 += 512;
+
+            if( DRAM_BANKAH == 0xa5a5a5a5 )
+                {
+                cojag_drwid0 = 3;
+                cojag_drsiz0 += 1024;
+
+                if( DRAM_BANKCH == 0x96969696 )
+                    cojag_drsiz0 += 1024;
+                }
+            }
+        }
+
+    WDOG = 0;    /* Pet the watchdog */
+
+    DRAM_BANKBL = 0x5a5a5a5a;
+    DRAM_BANKBH = 0xa5a5a5a5;
+    DRAM_BANKDL = 0x69696969;
+    DRAM_BANKDH = 0x96969696;
+
+    if( (DRAM_BANKBL & 0x0000ffff) == 0x00005a5a )
+        {
+        cojag_drwid1 = 1;
+        cojag_drsiz1 += 512;
+
+        if( (DRAM_BANKDL & 0x0000ffff) == 0x00006969 )
+            cojag_drsiz1 += 512;
+
+        if( DRAM_BANKBL == 0x5a5a5a5a )
+            {
+            cojag_drwid1 = 2;
+            cojag_drsiz1 += 512;
+
+            if( DRAM_BANKDL == 0x69696969 )
+                cojag_drsiz1 += 512;
+
+            if( DRAM_BANKBH == 0xa5a5a5a5 )
+                {
+                cojag_drwid1 = 3;
+                cojag_drsiz1 += 1024;
+
+                if( DRAM_BANKDH == 0x96969696 )
+                    cojag_drsiz1 += 1024;
+                }
+            }
+        }
+
+    /*
+    ** Now I'm going to construct and stuff a new memcon value based
+    ** on the width of each bank of DRAM and the COJAG rev number.
+    */
+
+    WDOG = 0;    /* Pet the watchdog */
+    memcon_val = 0x587d3500 | (cojag_drwid1 << 6) | (cojag_drwid0 << 2);
+    if ( cojag_rev >= 2 ) memcon_val |= 0x11;
+
+    MEMCON = memcon_val;                 /* Set hardware MEMCON value */
+    for( i = 0; i < SOFT_DEL; i++ ) {;}  /* Pause */
+    WDOG = 0;                            /* Pet the watchdog */
+
+#ifdef BATRAM_KLUGE
+    /* The Dallas Semi Battery-backed RAMs apparently are comatose
+     * for about BATRAM_KLUGE (300?) milliseconds after power
+     * stabilizes. We have to wait before reading them.
+     */
+    if ( coldboot ) {
+	vcr_throb(0x12, &WDOG);
+	for ( i = BATRAM_KLUGE ; i > 0 ; --i ) {
+
+	    /* guess that the fastest this for loop can spin
+	     * is 100 Nanoseconds per iteration. This should be
+	     * conservative for the 68020. As long as the loop
+	     * actually takes less than the Watchdog interval, it
+	     * should be safe, and we have a safety factor of about
+	     * 100.
+	     */
+	    int msdelay;
+	    volatile int stumble;
+	    for ( msdelay = 1000000 ; msdelay >= 0 ; msdelay -= 100 ) {++stumble;}
+	    WDOG = 0;
+	}
+    }
+#endif
+    /* If this is a coldboot, perform diagnostics */
+    vcr_throb(0x13, &WDOG);
+
+    if( coldboot && !( TEST & (1<<B_TEST)) )
+        {
+	/* If this is a power-on, and the selftest switch is on,
+	 * run the diag and re-boot
+	 */
+	vcr_throb(0x14, &WDOG);
+        jag_diag( (int)cojag_rev, (int)cojag_drsiz0, (int)cojag_drsiz1,
+                  (int)cojag_drwid0, (int)cojag_drwid1, (U32)memcon_val );
+
+	vcr_throb(0x15, &WDOG);
+        prc_reboot();
+        }
+    else prc_set_ipl(INTS_ON);
+    vcr_throb(0x16, &WDOG);
+#endif
+}   /* End: jag_init() */
+
+#ifdef CM_VCR_REC
+/* As of "the last straw", when Brian and Minh moved the VCR
+ * bit to two _different_ bits of two _different_ latches,
+ * I (MEA) have thrown in the towel and moved this function
+ * to jag_init.c, with much (but not all) of the other rev-related
+ * gunk. As of 24OCT96, added routine similar to prc_mod_latch(),
+ * to properly shadow this latch, which is not-quite-read/write.
+ */
+static int vcr_shad;
+
+int prc_mod_config( int new )
+{
+    int old_ipl, cur;
+    VU8 *cp = &COJAG_2_CF_REG;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    cur = *cp ^ CM_VOLCTRL_DATA;
+    cur |= vcr_shad;
+    if ( new < 0 ) cur &= new;
+    else cur |= new;
+    *cp = cur;
+    vcr_shad = cur & CM_VCR_REC;
+    prc_set_ipl(old_ipl);
+    return cur;
+}
+
+void
+vcr(vcr_on_flag)		
+U16 vcr_on_flag;
+{
+
+    switch (cojag_rev) {
+	case 2 :
+#ifdef LM_VCR_REC
+	    prc_mod_latch(vcr_on_flag ? LM_VCR_REC : ~LM_VCR_REC);
+#endif
+	    break;
+	case 3 :
+#ifdef LM_VCR_REC_R3
+	    prc_mod_latch(vcr_on_flag ? LM_VCR_REC_R3 : ~LM_VCR_REC_R3);
+#endif
+	    break;
+	case 4 :
+	    if ( vcr_on_flag ) prc_mod_config(CM_VCR_REC);
+	    else prc_mod_config(~CM_VCR_REC);
+	    break;
+	default :
+	    /* Whatever floats the boat... */
+	    break;
+    }
+}
+#endif
+
+#ifndef vcr_throb
+extern void wait_n_usecs( int );
+#define WAIT (1500)
+extern int vid_set_border( int );
+
+void vcr_throb( int pat, VU32 *wdp )
+{
+    int tick,phase;
+    static volatile int colmsk;
+
+    colmsk = (pat & 2) ? 0xF80000 : 0 ; /* Green */
+    colmsk |= (pat & 4) ? 0x00F800 : 0 ;/* Red */
+    colmsk |= (pat & 1) ? 0x0000F8 : 0 ;/* Blue */
+
+    vid_set_border(colmsk);
+
+    colmsk = (pat & 2) ? 0x3F : 0 ; /* Green */
+    colmsk |= (pat & 4) ? 0xF800 : 0 ;/* Red */
+    colmsk |= (pat & 1) ? 0x7C0 : 0 ;/* Blue */
+
+    vid_set_bg(colmsk);
+
+    /* Default word space if pat == 0 */
+    phase = (pat != 0);
+    tick = 90;
+#if DO_VCR_THROB
+    prc_mod_config(CM_VCR_REC);	/* LEDOFF, by setting VCR _hi_ */
+    do {
+	if ( phase ) {
+	    tick = ( pat & 1 ) ? 30 : 10;
+	    prc_mod_config(~CM_VCR_REC);	/* LEDON, by setting VCR _lo_ */
+	}
+	for ( ; tick > 0 ; --tick ) {
+	    wait_n_usecs(WAIT);
+	    *wdp = 0;
+	}
+	prc_mod_config(CM_VCR_REC);	/* LEDOFF, by setting VCR _hi_ */
+	tick = 10;		/* After any mark, space is dot-space */
+	if ( phase ^= 1 ) pat >>= 1;
+    } while ( pat > 1);
+
+    /* Finish with 20 ticks, to pad last element-space to character space. */
+    for ( tick = 20 ; tick > 0 ; --tick ) {
+	wait_n_usecs(WAIT);
+	*wdp = 0;
+    }
+#endif
+}
+#endif
+@
+
+
+1.10
+log
+@Added (optional) throbbing of VCR line as progress-report
+during initialization. Skipped extraneous BATRAM_KLUGE
+delay if not power-on. Skipped extraneous jag_diag()/prc_reboot()
+is not in selftest. Added color-change to BORDER register, even
+if not throbbing vcr line.
+@
+text
+@d10 3
+a12 1
+
+@
+
+
+1.9
+log
+@Add prc_mod_config(), and use for VCR control.
+@
+text
+@d45 1
+d47 15
+d118 2
+a119 2
+    if ( COJAG_2_CF_REG & 1 ) cojag_rev = 3;
+    else if ( COJAG_2_CF_REG & 2 ) cojag_rev = 4;
+d158 1
+a158 1
+
+d162 6
+d175 1
+a175 1
+
+d180 1
+d278 16
+a293 12
+    for ( i = BATRAM_KLUGE ; i > 0 ; --i ) {
+	/* guess that the fastest this for loop can spin
+	 * is 100 Nanoseconds per iteration. This should be
+	 * conservative for the 68020. As long as the loop
+	 * actually takes less than the Watchdog interval, it
+	 * should be safe, and we have a safety factor of about
+	 * 100.
+	 */
+	int msdelay;
+	volatile int stumble;
+	for ( msdelay = 1000000 ; msdelay >= 0 ; msdelay -= 100 ) {++stumble;}
+	WDOG = 0;
+d297 3
+a299 1
+    if( coldboot )
+d301 4
+d308 1
+d311 2
+d366 50
+@
+
+
+1.8
+log
+@Detect rev 3(Freeze) and 4 (Silencer) UniJag boards.
+@
+text
+@d285 2
+a286 1
+ * gunk.
+d288 18
+a309 1
+    int old_ipl;
+d323 2
+a324 4
+	    old_ipl = prc_set_ipl(INTS_OFF);
+	    if ( vcr_on_flag ) COJAG_2_CF_REG |= CM_VCR_REC;
+	    else COJAG_2_CF_REG &= ~CM_VCR_REC;
+	    prc_set_ipl(old_ipl);
+d327 1
+a327 1
+	    /* Whatver floats the boat... */
+@
+
+
+1.7
+log
+@moved vcr() to this file from gamedefs.c, if CM_VCR_REC is
+defined, as it was getting just too wierd for a semi-generic
+file like gamedefs.c
+@
+text
+@d50 1
+a50 1
+int cojag_rev;     /* COJAG revision number (1/2) */
+d76 1
+a78 1
+#ifdef COJAG_2_CF_REG
+d84 16
+d101 3
+d129 1
+a129 1
+    ** Reset Rev. 2 boards, this guarantees the Xilinx EPLD is programmed
+d136 1
+a136 1
+    if( cojag_rev == 2 )
+d153 1
+a153 4
+#else
+    cojag_rev = 4;
+    MEMCON = MEMCON_VAL;
+#endif
+d243 2
+a244 3
+
+    memcon_val = 0x587d3500 | (cojag_drwid1 << 6) | ((cojag_rev - 1) << 4)
+                            | (cojag_drwid0 << 2) | (cojag_rev - 1);
+@
+
+
+1.6
+log
+@added BATRAM_KLUGE in an (unsuccessful) attempt to get
+BATRAM to work. Apparently this (added 300 millisecond delay)
+is a necessary, but not a sufficient, kluge. The actual kluge
+involves a component change which is beyond the scope of
+this document.
+@
+text
+@d264 37
+@
+
+
+1.5
+log
+@If on R3K, ignore value of COJAG_2_CF_REG, as R3K will not
+work on Rev 1 anyway, and use of the security chip precludes
+assumptions of CF reg contents.
+@
+text
+@d26 1
+d235 19
+@
+
+
+1.4
+log
+@new CoJag initialization code that calls jag_diag (see JAG_DIAG.C)
+on a coldboot.
+@
+text
+@d78 7
+a84 1
+
+d107 1
+a107 1
+
+@
+
+
+1.3
+log
+@kluge possible use with Zover (stripped CoJag for Zoid
+Overlay graphics). Keyed on definition of COJAG_2_CF_REG
+@
+text
+@d1 10
+a10 11
+/*
+ *		jag_init.c
+ *
+ *		Copyright 1995 Time Warner Interactive.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+ *	Brian McKee's private playpen, soon to grow into a first-power diagnostic
+ *	for CoJag boards.
+ */
+d27 21
+a47 3
+short trash;
+int	cojag_rev;		/* COJAG revision number (1/2) */
+void jag_init(int coldboot)
+d49 16
+d66 3
+a69 1
+int	i;		/* Duh... I think its a counter */
+d71 7
+a77 29
+/* Test_num is the test number that was last called before death
+    Number	Description
+    0					Before MEMCON Programming
+    1		After MEMCON		Before Hello World
+    2		After Hello World	Before Tom SRAM
+    3		After Tom SRAM		Before GPU CODE
+    4		After GPUCODE		Before GPU DRAM Test
+    5		After DRAM DRAM		Before Shared SRAM GPU
+    6		After Shared SRAM GPU	Before Shared SRAM XHOST
+    7		After SRAM XHOST	Before Object Processor
+    8		After Object Processsor	Before Blitter
+    9		After Blitter		Before Jerry SRAM
+    10		After Jerry SRAM	Before Jerry DSP
+    11		After Jerry DSP		Before Jerry DRAM Test
+    12		After Jerry DRAM	Before Jerry Audio
+    13		After Jerry Audio	Before Volume Control
+    14		After Volume Control	Before Switch Test
+    15		After Switch Test	Before Gun Test
+    16		After Gun Test		Before Hard Disk Test
+    17		After Hard Disk Test	Before Hard Disk Performace Test
+    18		After HD Performace	Before Final Screen
+    19		Tests Completed Succesfully				*/
+
+int		test_num;		/* Stores the current test number */
+
+#if 0
+int		pause;			/* 1 = Pause after each test */
+int		interactive;		/* 1 = Interactive Test Mode */
+#endif
+d79 2
+d82 4
+a85 1
+    WDOG = 0;				/* Pet the watchdog */
+d87 4
+a90 1
+    test_num = 0;			/* Set Test Number flag */
+d92 2
+a93 11
+/* I will now try to determine whether this is a Rev. 1 or Rev. 2 COJAG */
+#ifdef COJAG_2_CF_REG
+    cojag_rev = 1;			/* Set the Rev number to one */
+    if ((COJAG_2_CF_REG & 0x3f) == 0x20)/* The config register, when present is 0x20 on reset */
+    {
+        COJAG_2_CF_REG = 0x01;		/* Test bit 0 */
+        if (COJAG_2_CF_REG == 0x21)	/* Remember bit 5 is inverted on writes */
+        {
+    	    COJAG_2_CF_REG = 0x0E;	/* Test bits 1..3 */
+    	    if (COJAG_2_CF_REG == 0x2E)
+    	    {
+d95 4
+a98 1
+    		if (COJAG_2_CF_REG == 0x40) cojag_rev = 2;  /* If it gets this far, its rev. 2 */
+d100 1
+a100 2
+    	}
+    }
+d102 5
+a106 2
+/* Reset Rev. 2 boards, this guarantees the Xilinx EPLD is programmed correctly */
+/* Rev. 1 does not have software controlled RESET */
+d108 1
+a108 1
+    WDOG = 0;				/* Pet the watchdog */
+d110 17
+a126 7
+    if (cojag_rev == 2)
+    {
+        COJAG_2_CF_REG = 0x80;		/* Unreset the board */
+        for (i=0;i<100000;i++) {;}	/* Pause */
+    	MEMCON = MEMCON_VAL_2;
+    }
+    else MEMCON = MEMCON_VAL_1;
+d131 21
+a151 2
+    for (i=0;i<100000;i++) {;}		/* Pause */
+    G_END = 0x70007;
+d153 38
+a190 1
+/* The following code is the dead test code */
+d192 2
+a193 14
+    if (coldboot && cojag_rev < 4)		/* Check to see if we're cold */
+    {
+	int pause = 120;
+	prc_set_ipl(INTS_ON);
+	vid_init();
+	setancolors();
+	txt_str(-1,AN_VIS_ROW/2,"Hello, World! Press a button.",MNORMAL_PAL);
+	while ( (ctl_read_sw(SW_ACTION) & SW_ACTION) == 0 ) {
+	    if ( --pause <= 0 ) break;
+	    prc_delay0();
+	}
+	prc_reboot();
+    }
+}
+d195 43
+@
+
+
+1.2
+log
+@added kluge for MIPS or 68k style includes (jag_defs)
+@
+text
+@d72 1
+d100 4
+d109 1
+a109 1
+    if (coldboot)			/* Check to see if we're cold */
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 9
+d22 1
+d24 1
+@

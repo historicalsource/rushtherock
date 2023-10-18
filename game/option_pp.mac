@@ -1,0 +1,272 @@
+; First, some initialization to decide what language the definitions will be
+; output in.
+;
+ .if	df,MAKE_MENU
+C_OUTPUT == 0
+MACXX_OUTPUT == 0
+ASM_OUTPUT == 0
+ .iff
+MAKE_MENU == 0			; Not Menu definer
+C_OUTPUT == 0			; probably not C
+ .if	ndf,ASM_OUTPUT
+ASM_OUTPUT == 0
+ .if	ndf,MACXX_OUTPUT
+MACXX_OUTPUT == 0
+C_OUTPUT == 1			; owell it was C after all
+ .endc
+ .iff
+MACXX_OUTPUT == 0		; if it's ASM_ can't be MACXX
+ .endc
+ .endc
+;
+;
+; One more try at stand-alone comments
+.macro .REM. code body
+'code'body
+	.endm
+;
+	.if	ne,ASM_OUTPUT
+.MACRO	REMB comments
+	.REM. *
+ .endm
+.MACRO	REMM comments
+	.REM. * <'comments'>
+ .endm
+.MACRO	REME comments
+	.REM. *
+ .endm
+;
+; Now some macros for outputting common constructs in the various languages:
+; DEC_CONST and HEX_CONST emit constant definitions in decimal and hexadecimal
+; respectively. Each takes a name and value, and an optional comment.
+.MACRO	DEC_CONST name val comment
+	.if	b,comment
+name	EQU	val
+	.iff
+name	EQU	val	* comment
+	.endc
+ .ENDM
+;
+.MACRO	HEX_OCONST name val comment
+	.if	b,comment
+name	EQU	$'val
+	.iff
+name	EQU	$'val	* comment
+	.endc
+ .ENDM
+;
+.MACRO	MENU_OCHOICE name val
+name	EQU	val
+ .ENDM
+.MACRO	MENU_CHOICE choice name
+	.if	nb,name
+	MENU_OCHOICE name \(...CCH)
+	.endc
+...CCH == ...CCH+1
+ .ENDM
+;
+.MACRO	MENU_START 
+ .ENDM
+.MACRO	MENU_END
+ .ENDM
+;
+	.endc			; was MOTOROLA
+;
+;
+	.if	ne,MACXX_OUTPUT
+.MACRO	REMB comments
+	.REM. ;
+ .endm
+.MACRO	REMM comments
+	.REM. ; <'comments'>
+ .endm
+.MACRO	REME comments
+	.REM. ;
+ .endm
+;
+; Now some macros for outputting common constructs in the various languages:
+; DEC_CONST and HEX_CONST emit constant definitions in decimal and hexadecimal
+; respectively. Each takes a name and value, and an optional comment.
+.MACRO	DEC_CONST name val comment
+	.if	b,comment
+name	=	val
+	.iff
+name	= 	val	; comment
+	.endc
+ .ENDM
+;
+.MACRO	HEX_OCONST name val comment
+	.if	b,comment
+name	=	$'val
+	.iff
+name	=	$'val	; comment
+	.endc
+ .ENDM
+;
+.MACRO	MENU_OCHOICE name val
+name	=	val
+ .ENDM
+.MACRO	MENU_CHOICE choice name
+	.if	nb,name
+	MENU_OCHOICE name \(...CCH)
+	.endc
+...CCH == ...CCH+1
+ .ENDM
+;
+.MACRO	MENU_START 
+ .ENDM
+.MACRO	MENU_END
+ .ENDM
+;
+	.endc			; was MACXX_OUTPUT
+;
+;
+	.if	ne,C_OUTPUT
+.MACRO	REMB comments
+	.REM. </*>
+ .endm
+.MACRO	REMM comments
+	.REM. < *> <'comments'>
+ .endm
+.MACRO	REME comments
+	.REM. < */>
+ .endm
+;
+; Now some macros for outputting common constructs in the various languages:
+; DEC_CONST and HEX_CONST emit constant definitions in decimal and hexadecimal
+; respectively. Each takes a name and value, and an optional comment.
+.MACRO	HEX_OCONST name val comment
+	.if	b,comment
+#define name (0x'val)
+	.iff
+#define name (0x'val)	/* comment */
+	.endc
+ .ENDM
+;
+.MACRO	DEC_CONST name val comment
+	.if	b,comment
+#define name (val)
+	.iff
+#define name (val)	/* comment */
+	.endc
+ .ENDM
+;
+.MACRO	MENU_OCHOICE name val
+#define	name	(val)
+ .ENDM
+.MACRO	MENU_CHOICE choice name
+	.if	nb,name
+	MENU_OCHOICE name \(...CCH)
+	.endc
+...CCH == ...CCH+1
+ .ENDM
+;
+.MACRO	MENU_START 
+ .ENDM
+.MACRO	MENU_OEND bit_num
+REMB
+REMM	<  Number of option bits used is bit_num out of a total of 32 bits available.>
+REME
+ .ENDM
+.MACRO	MENU_END
+	.iif	gt,...TCH-...CCH,.ERROR ;too few choices for previous option
+	.iif	lt,...TCH-...CCH,.ERROR ;too many choices for previous option
+	MENU_OEND \(...OP+32-...TBITS)
+ .ENDM
+;
+	.endc			; was C_OUTPUT
+;
+;
+	.if	ne,MAKE_MENU
+.MACRO	MENU_OTITLE val1 val2 val3 name
+"\val1'val2'val3'name:\000"
+ .ENDM
+;
+.MACRO	MENU_TITLE val1 val2 val3 name
+	MENU_OTITLE \(val1) \(val2) \(val3) <'name'>
+ .ENDM
+;
+.MACRO	MENU_CHOICE choice name
+	"'choice'\000"
+...CCH == ...CCH+1
+ .ENDM
+;
+.MACRO	MENU_START name
+static const unsigned char	'name[] =
+.ENDM
+;
+.MACRO	MENU_END
+"";
+.ENDM
+;	these REMARK macros _could_ be the same as the C_OUTPUT macros
+.MACRO	REMB comments
+ .endm
+.MACRO	REMM comments
+ .endm
+.MACRO	REME comments
+ .endm
+;
+.MACRO	HEX_OCONST name val comment
+ .ENDM
+;
+.MACRO	DEC_CONST name val comment
+ .ENDM
+	.endc			; was MAKE_MENU
+;
+;
+;	this is for all output modes
+;
+.MACRO	HEX_CONST name val comment
+	HEX_OCONST name \\X(val) <'comment'>
+ .ENDM
+;
+;
+;
+; create #defines or EQUs for defining options
+;
+	.radix 10.
+...OP == 0		; Option position, increments by size of option
+...MSK == 0		; Mask for current option, 1,3,7 or F allowed
+...CCH == 0		; Current CHoice
+...TCH == 0		; Total CHoices
+...TBITS == 32		; Total Bits available
+...PTRN == 0		; Bit mask for all options
+;
+	.macro DEF_OPTION name,field_size,comment
+	.iif	gt,...TCH-...CCH,.ERROR ;too few choices for previous option
+	.iif	lt,...TCH-...CCH,.ERROR ;too many choices for previous option
+...MSK == ((1<<field_size)-1)
+	.if	ne,MAKE_MENU
+	MENU_TITLE (...OP>>3) (...OP&7) (field_size) <'comment'>
+	.iff
+
+	HEX_CONST GO_'name (...MSK<<...OP)	<'comment'>
+	HEX_CONST GOS_'name ...OP	<Number of bits to shift>
+	.endc
+	.iif	ne,...PTRN&(...MSK<<...OP),.ERROR ;Bit(s) already in use
+...PTRN == ...PTRN|(...MSK<<...OP)
+...OP == ...OP+field_size
+	.iif	gt,...OP-...TBITS,.ERROR ;too many bits used
+...TCH == ...MSK+1
+...CCH == 0
+	.endm
+
+	.macro SPEC_OPTION name,position,field_size,comment
+	.iif	gt,...TCH-...CCH,.ERROR ;too few choices for previous option
+	.iif	lt,...TCH-...CCH,.ERROR ;too many choices for previous option
+...MSK == ((1<<field_size)-1)
+	.if	ne,MAKE_MENU
+	MENU_TITLE (position>>3) (position&7) (field_size) <'comment'>
+	.iff
+
+	HEX_CONST GO_'name (...MSK<<position)	<'comment'>
+	HEX_CONST GOS_'name position	<Number of bits to shift>
+	.endc
+	.iif	ne,...PTRN&(...MSK<<position),.ERROR ;Bit(s) already in use
+...PTRN == ...PTRN|(...MSK<<position)
+...TBITS == ...TBITS-field_size
+	.iif	gt,...OP-...TBITS,.ERROR ;too many bits used
+...TCH == ...MSK+1
+...CCH == 0
+	.endm
+;

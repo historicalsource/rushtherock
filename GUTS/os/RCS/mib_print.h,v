@@ -1,0 +1,54 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	95.11.20.22.16.49;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@mib_print.c header file.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/*
+ * Copyright 1993 Atari Games
+ * Unauthorized reproduction, adaptation, distribution, performance or
+ * display of this computer program or the associated audiovisual work is
+ * strictly prohibited.
+ * 
+ */
+/*		mib_print.h
+ *	global definitions for mib_print, which loads a .hex file image of an
+ *	EEPROM and prints out its contents in human-or-spreadsheet
+ *	readable form.
+ */
+
+/*	The .HEX file loader was "borrowed" from the simulator harness,
+ *	with the following entry point:
+ */
+extern unsigned long put_byte (
+    unsigned long addr,		/* address in simulated memory */
+    int data		/* data for simulated memory */
+);
+
+extern int memload( FILE *infile, int mode /* 0 for binary, != 0 for hex */ );
+
+extern int target_lsb;
+
+extern int align_shift;
+
+extern int byte_offset;
+
+extern unsigned long eeprom_base;
+@

@@ -1,0 +1,65 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	96.01.31.21.36.43;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Enums and string definitions required by zag_tbus.c
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/* NOTE: these have to be in groups. The order the groups appear in
+ * the list is not important, but the order of the items within the
+ * groups MUST NOT BE CHANGED!!!
+ */
+TOPT( UPD_Automatic,	"start automatic sequence")
+/*+++ Begin TRAP group */
+TOPT( UPD_XYPOS,	"move square")				/* UP/DWN=Y, LFT/RGT=X position */
+TOPT( UPD_XYSIZ,	"move top left corner")			/* UP/DWN=Y, LFT/RGT=X size */
+TOPT( UPD_TOPLFT,	"change size of square")		/* UP/DWN=Y, LFT/RGT=X position of top line and top left point */
+TOPT( UPD_TOPRT,	"move top right corner")		/* UP/DWN=Y, LFT/RGT=X position of top line and top right point */
+TOPT( UPD_BOTTOMLFT,	"move bottom left corner")		/* UP/DWN=Y, LFT/RGT=X position of bottom line and bottom left point */
+TOPT( UPD_BOTTOMRT,	"move bottom right corner")		/* UP/DWN=Y, LFT/RGT=X position of bottom line and bottom right point */
+/*--- End TRAP group */
+/*+++ Begin PERC group */
+TOPT( UPD_Wtl,		"adj Top Left Perspective Correction")	/* UP/DWN = increment/decrement Top left Prespective correction */
+TOPT( UPD_Wtr,		"adj Top Right Perspective Correction")	/* UP/DWN = increment/decrement Top right Prespective correction */
+TOPT( UPD_Wbl,		"adj Bottom Left Perspective Correction") /* UP/DWN = increment/decrement Bottom left Prespective correction */
+TOPT( UPD_Wbr,		"adj Bottom Right Perspective Correction") /* UP/DWN = increment/decrement Bottom right Prespective correction */
+/*--- End PERC group */
+/*+++ Begin PIXOP group */
+TOPT( UPD_RGBtl,	"adj Top Left shading")	/* UP/DWN = increment/decrement Top Left shading */
+TOPT( UPD_RGBtr,	"adj Top Right shading")		/* UP/DWN = increment/decrement Top Right shading */
+TOPT( UPD_RGBbl,	"adj Bottom Left shading")		/* UP/DWN = increment/decrement Bottom Left shading */
+TOPT( UPD_RGBbr,	"adj Bottom Right shading")		/* UP/DWN = increment/decrement Bottom Right shading */
+/*--- End RGB group */
+/*+++ Begin Z buffer group */
+TOPT( UPD_Ztl,		"change Top Left Z coordinate")
+TOPT( UPD_Ztr,		"change Top Right Z coordinate")
+TOPT( UPD_Zbl,		"change Bottom Left Z coordinate")
+TOPT( UPD_Zbr,		"change Bottom Right Z coordinate")
+TOPT( UPD_Zall,		"move square through Z")
+/*--- End Z buffer group */
+/*+++ Begin TEXMAP group */
+TOPT( UPD_TEXtl,	"adj Top Left texture coordinate")
+TOPT( UPD_TEXtr,	"adj Top right texture coordinate")
+TOPT( UPD_TEXbl,	"adj Bottom Left texture coordinate")
+TOPT( UPD_TEXbr,	"adj Bottom Right texture coordinate")
+TOPT( UPD_TEXaddr,	"use different texture addr")
+TOPT( UPD_TEXpatt,	"change texture pattern")
+TOPT( UPD_MIPgr,	"change static MIPMAP gradient")
+/*--- End TEXMAP group */
+@

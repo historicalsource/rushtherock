@@ -1,0 +1,2491 @@
+head	1.18;
+access;
+symbols
+	RUSH_ROCK_1_0:1.17
+	RUSH_ROCK_1_0epst:1.15
+	RUSH_1_06A:1.9;
+locks; strict;
+comment	@ * @;
+
+
+1.18
+date	97.10.11.03.27.41;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	97.10.06.18.21.43;	author forrest;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	97.10.06.18.02.14;	author forrest;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	97.09.10.17.31.56;	author forrest;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	97.08.07.22.47.58;	author forrest;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	97.03.28.16.50.26;	author forrest;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	97.03.20.17.18.41;	author forrest;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	97.02.25.21.20.05;	author forrest;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.12.18.16.41.52;	author forrest;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.12.06.19.38.08;	author forrest;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.12.02.17.17.15;	author forrest;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.11.05.18.09.23;	author forrest;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.10.01.15.24.00;	author forrest;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.07.08.20.13.53;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.07.04.20.45.45;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.06.28.22.49.45;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.06.12.00.50.47;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.06.11.23.48.00;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@First cut at network diagnostics.  Work in progress!
+@
+
+
+1.18
+log
+@Added timeouts for the infinite loops in SMC_Reset_Chip and
+error reports for Reset and Init errors (timeouts). Both are
+enabled only if the cpp variable SMC_SA_TESTS is set.
+@
+text
+@
+/*
+ *	net_test.c -- Forrest Miller -- November 1996
+ *
+ *	Functions for network testing.
+ *
+ *
+ *		Copyright 1996 Atari Games Corporation
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <phx_proto.h>
+#include <wms_proto.h>
+#include <nsprintf.h>
+#include <string.h>
+#include <net_smc.h>
+#include <net_link.h>
+#include <smc_link.h>
+#include <smc_test.h>
+#include <smc_regs.h>
+#if USE_QIO_ETH
+# include <qio.h>
+# include <eth.h>
+#endif
+
+#if SST_GAME == SST_RUSH
+# if NO_EER_WRITE == 0
+extern const unsigned char **GUTS_finds_car_color( void );
+# endif
+#endif
+
+#define	STATIC	static
+
+/*
+ * Ethernet Controller Definitions
+ */
+#define LOGICAL_LOOPBACK  ( SMC_TX_EPHLOOP )
+#define PHYSICAL_LOOPBACK ( SMC_TX_LOOP )
+
+/*
+ * Net Test Definitions
+ */
+#define OP_LOGICAL_LOOPBACK	LOGICAL_LOOPBACK
+#define OP_PHYSICAL_LOOPBACK	PHYSICAL_LOOPBACK
+#define OP_NETWORK_LOOPBACK	( LOGICAL_LOOPBACK | PHYSICAL_LOOPBACK )
+#define OP_COMM_INIT		0x10000
+#define OP_COMM_LINK		0x20000
+#define OP_COMM_STOP		0x30000
+
+#define NET_ERR_OPEN		(-1)
+#define NET_ERR_BUFF		(-2)
+#define NET_ERR_SEND		(-3)
+#define NET_ERR_LOOP		(-4)
+#define NET_ERR_DATA		(-5)
+#define NET_ERR_NODE		(-6)
+#define NET_ERR_INIT		(-7)
+#define NET_ERR_RESET		(-8)
+
+#define NET_BUFFER_MEMORY	( NET_BUFFER_TOTAL * sizeof( Net_Buffer ) )
+
+
+STATIC Net_Buffer *fnb;
+STATIC Net_Buffer *lnb;
+
+STATIC void net_que( Net_Buffer *qnb )
+{
+ if ( lnb )
+ {
+  lnb->next = qnb;
+  lnb = qnb;
+ }
+ else
+ {
+  fnb = lnb = qnb;
+ }
+ lnb->next = (Net_Buffer *)0;
+}
+
+
+STATIC Net_Buffer *net_deq( void )
+{
+ Net_Buffer *dnb = fnb;
+
+ if ( dnb )
+ {
+  int old_ipl = prc_set_ipl(INTS_OFF);
+  fnb = dnb->next;
+  if ( fnb == (Net_Buffer *)0 ) lnb = (Net_Buffer *)0;
+  prc_set_ipl(old_ipl);
+  dnb->next = (Net_Buffer *)0;
+ } 
+
+ return dnb;
+}
+
+
+STATIC int win_l, win_u, win_r, win_d, win_x, win_y;
+
+STATIC void clrwin( void )
+{
+ int row;
+ for ( row = win_u; row <= win_d; ++row )
+ {
+  txt_clr_wid(win_l, row, win_r);
+ }
+}
+
+
+#define min(a,b) (a<b?a:b)
+#define max(a,b) (a>b?a:b)
+
+STATIC void gotoxy(int x, int y)
+{
+ win_x = win_l + max(x, 0);
+ win_x = min(win_x, win_r);
+ win_y = win_u + max(y, 0);
+ win_y = min(win_y, win_d);
+}
+
+
+STATIC void window(int x1, int y1, int x2, int y2)
+{
+ win_l = min(x1, x2);		/* left */
+ win_l = max(win_l, 0);
+ win_u = min(y1, y2);		/* up */
+ win_u = max(win_u, 0);
+ win_r = max(x1, x2);		/* right */
+ win_r = max(win_r, 0);
+ win_d = max(x1, y2);		/* down */
+ win_d = max(win_d, 0);
+ gotoxy(0, 0);
+ clrwin();
+}
+
+
+STATIC void _smc_putstr( const char *str )
+{
+ int i = 0;
+ char c, txt[AN_VIS_COL+1];
+
+ while ( ( c = *str++ ) )
+ {
+  if ( ( c == '\n' ) || ( c == '\r' ) )
+  {
+   txt[i] = '\0';
+   txt_str(win_x, win_y, txt, WHT_PALB);
+   i = 0;
+   win_x = win_l;
+   if ( c == '\n' )
+   {
+    win_y = ( win_y == win_d ) ? win_u : ++win_y;
+    txt_clr_wid(win_l, win_y, win_r - win_l);
+   }
+  }
+  else txt[ i++ ] = c;
+
+  if ( i == ( win_r - win_x) )
+  {
+   txt[i] = '\0';
+   txt_str(win_x, win_y, txt, WHT_PALB);
+   i = 0;
+   win_x = win_l;
+   win_y = ( win_y == win_d ) ? win_u : ++win_y;
+   txt_clr_wid(win_l, win_y, win_r - win_l);
+  }
+ }
+
+ if ( i )
+ {
+  txt[i] = '\0';
+  txt_str(win_x, win_y, txt, WHT_PALB);
+  win_x = win_l + i;
+ }
+
+}
+
+
+void (*_smc_putstr_vec)(const char *);
+extern void smc_putstr(const char *);
+
+int net_init( void )
+{
+#if USE_QIO_ETH
+ qio_eth_init();
+#endif
+ _smc_putstr_vec = _smc_putstr;
+ return 0;
+}
+
+
+STATIC U32 net_loopback;
+
+#define LOOPBACK_SIG OP_NETWORK_LOOPBACK
+
+STATIC net_callback_fn net_callback;	/* Prototype to force parameter consistency  */
+STATIC Net_CB_Result net_callback(	/* Compiler will balk if there is a mismatch */
+        Net_CB_Func func,
+        network_descriptor nd,
+        packet_number pkt_no,
+        U32 len,
+        U32 param1,
+        U32 param2,
+        U32 param3
+)
+{
+ int res = 0;
+ U16 sig;
+ switch (func)
+ {
+  case CB_Filter :
+   sig = ((U8 *)param2)[6] | ( ((U8 *)param2)[7] << 8 );
+   if ( net_loopback )
+   {
+    if ( ( memcmp( (char *)param2, &smc_data[0].my_nid, sizeof(netadd) ) == 0 )
+      && ( sig == LOOPBACK_SIG ) )
+     res = CB_Copy_Packet;
+    else
+     res = CB_Drop_Packet;
+   }
+   else
+   {
+    if ( sig == WHOSTHERE || sig == IMHERE || sig == TOITSELF )
+     res = CB_Copy_Packet;
+    else
+     res = CB_Drop_Packet;
+   }
+   if ( res == CB_Copy_Packet )
+   {
+    if ( Net_Get_Buffer( (Net_Buffer **)param3, NET_BUFFER_SIZE, NETOPT_NONBLOCK ) != NETOK )
+    {
+     res = CB_Drop_Packet;
+    }
+   }
+   break;
+
+  case CB_Receive :
+   net_que( (Net_Buffer *)param1 );
+   res = CB_OK;
+   break;
+
+  case CB_TXResult:
+   break;
+
+  case CB_BfrRlse:
+  case CB_BfrAquire:
+  default:
+   res = CB_FAILED;
+   break;
+ } /* endswitch */
+ return res;
+}
+
+STATIC seq_num;
+STATIC const netadd brdcast = {0xff,0xff,0xff,0xff,0xff,0xff};
+
+#define LOOP_CB_CAPS ( CB_Will_Filter | CB_Will_Receive | NET_SEND_RAW )
+#define LOOP_RETRIES 2
+
+STATIC int net_loopback_test( int which )
+{
+ int i, res;
+ Net_Buffer *nb, *rnb;
+ network_descriptor pnd;
+ U16 tx_control;
+
+ i = Net_Initialize( prc_extend_bss(0), NET_BUFFER_MEMORY, (void(*))0, (void *)0 );
+ if (i) return NET_ERR_INIT;
+
+ net_loopback = TRUE;
+
+ pnd = Net_Open_Interface("SMC0", net_callback, LOOP_CB_CAPS, 8, 6);
+ if ( pnd == 0 ) return NET_ERR_OPEN;
+
+ tx_control = smc_data[0].control.TX_control;
+
+ if ( Net_Get_Buffer(&nb, NET_BUFFER_SIZE, NETOPT_NONBLOCK) != NETOK )
+ {
+  Net_Close_Interface(pnd);
+  return NET_ERR_BUFF;
+ }
+
+ if ( ( which == OP_LOGICAL_LOOPBACK ) || ( which == OP_PHYSICAL_LOOPBACK ) )
+ {
+  smc_data[0].control.TX_control |= which;
+  smc_data[0].status = SMC_Setup(&smc_data[0]);
+ }
+
+ nb->data[0] = LOOPBACK_SIG & 0xff;
+ nb->data[1] = LOOPBACK_SIG >> 8;
+
+ for ( i = 2; i < 238; ++i ) nb->data[i] = i;
+ nb->len = 238;
+
+ for ( i = 0; i < 10; ++i, ++seq_num )
+ {
+  nb->data[2] = (U8)seq_num;
+  nb->data[3] = (U8)( seq_num >> 8 );
+  res = Net_Send_Packet(pnd, smc_data[0].my_nid, nb, NETOPT_NONBLOCK);
+
+  if ( res & NETOK_MASK )
+  {
+   int j = LOOP_RETRIES;
+
+   while ( ( rnb = net_deq() ) == (Net_Buffer *)0 )
+   {
+    if ( --j ) prc_delay(0);
+    else
+    {
+     Net_Close_Interface(pnd);
+     Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+     return NET_ERR_LOOP;
+    }
+   }
+   for ( j = 16; j < 250; j++)
+   {
+    if ( rnb->data[j] != ( j - 12 ) )
+    {
+     Net_Close_Interface(pnd);
+     Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+     Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+     return NET_ERR_DATA;
+    }
+   }
+   Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+  }
+  else
+  {
+   Net_Close_Interface(pnd);
+   Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+   return NET_ERR_SEND;
+  }
+ }
+
+ Net_Close_Interface(pnd);
+ Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+
+ if ( ( which == OP_LOGICAL_LOOPBACK ) || ( which == OP_PHYSICAL_LOOPBACK ) )
+ {
+  smc_data[0].control.TX_control = tx_control;
+  if ( which == OP_LOGICAL_LOOPBACK )
+  {
+   extern int SMC_Reset_Chip(SMC_Data *smc);
+   if (SMC_Reset_Chip(&smc_data[0])) return NET_ERR_RESET;
+  }
+  smc_data[0].status = SMC_Setup(&smc_data[0]);
+ }
+
+ net_loopback = FALSE;
+ return 0;
+}
+
+#define N_RECS 8
+#define N_CHAR 16
+#define N_DATA 50
+
+STATIC struct t_rec
+{
+ U32    sent;
+ U32    recv;
+ netadd node;
+ U8     used;
+ U8     pad_;
+ U8	serial[N_CHAR];
+ U8	g_text[N_CHAR];
+ U8	g_item[N_CHAR];
+} *test_summary;
+
+STATIC struct t_rec *net_get_trec( netadd *nid )
+{
+ struct t_rec *tp;
+
+ for ( tp = test_summary; tp < &test_summary[ N_RECS ]; ++tp )
+ {
+  if ( memcmp( &tp->node, nid, sizeof(netadd) ) == 0 ) return( tp );
+  if ( tp->used == 0 )
+  {
+   tp->used = 1;
+   memcpy( &tp->node, nid, sizeof(netadd) );
+   return( tp );
+  }
+ }
+ return ( (struct t_rec *)0 );
+}
+
+
+#define COMM_CB_CAPS ( CB_Will_Filter | CB_Will_Receive | CB_Will_TXResult | NET_SEND_RAW )
+
+STATIC int net_comm_test( int which )
+{
+ static network_descriptor pnd;
+ static Net_Buffer *nb;
+ Net_Buffer *rnb;
+ struct t_rec *tp;
+ int res = 0, ierr;
+
+ if ( which == OP_COMM_INIT )
+ {
+  ierr = Net_Initialize( prc_extend_bss(0), NET_BUFFER_MEMORY, (void(*))0, (void *)0 );
+  if (ierr) return NET_ERR_INIT;
+  pnd = Net_Open_Interface("SMC0", net_callback, COMM_CB_CAPS, 8, 6);
+  if ( pnd == 0 ) return NET_ERR_OPEN;
+
+  if ( Net_Get_Buffer(&nb, NET_BUFFER_SIZE, NETOPT_NONBLOCK) != NETOK )
+  {
+   Net_Close_Interface(pnd);
+   return NET_ERR_BUFF;
+  }
+
+  memset( nb->data, 0, nb->len = N_DATA );
+
+  nb->data[0] = IMHERE & 0xff;
+  nb->data[1] = IMHERE >> 8;
+
+  nsprintf( (char *)&nb->data[2], N_CHAR, "%s%s", GetMFG()[MFG_TYPE], GetMFG()[MFG_SERIAL] );
+#if SST_GAME == SST_RUSH
+# if NO_EER_WRITE == 0
+  nsprintf( (char *)&nb->data[18], N_CHAR, "%s", GUTS_finds_car_color()[0] );
+  nsprintf( (char *)&nb->data[34], N_CHAR, "%s", GUTS_finds_car_color()[1] );
+# endif
+#endif
+
+  memset( test_summary, 0, N_RECS * sizeof(struct t_rec) );
+  tp = net_get_trec( &smc_data[0].my_nid );
+ }
+
+ if ( which == OP_COMM_STOP )
+ {
+  Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+  Net_Close_Interface(pnd);
+  prc_delay(2);
+  while ( ( rnb = net_deq() ) != (Net_Buffer *)0 )
+  {
+   Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+  }
+  return 0;
+ }
+
+ if ( ( Net_Send_Packet(pnd, brdcast, nb, NETOPT_NONBLOCK) & NETOK_MASK ) == 0 )
+ {
+#if 0
+  Net_Close_Interface(pnd);
+  Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+#endif
+  return NET_ERR_SEND;
+ }
+
+ tp = net_get_trec( &smc_data[0].my_nid );
+ ++tp->sent;
+
+ while ( ( rnb = net_deq() ) != (Net_Buffer *)0 )
+ {
+  netadd node;
+  U16 sig = rnb->data[12] | ( rnb->data[13] << 8 );
+
+  if ( sig == (U16)IMHERE )
+  {
+   memcpy( node, &rnb->data[6], sizeof(netadd) );
+   tp = net_get_trec( &node );
+   if ( tp )
+   {
+    ++tp->recv;
+    strncpy( (char *)tp->serial, (char *)&rnb->data[14], N_CHAR );
+    strncpy( (char *)tp->g_text, (char *)&rnb->data[30], N_CHAR );
+    strncpy( (char *)tp->g_item, (char *)&rnb->data[46], N_CHAR );
+   }
+   else
+    res = NET_ERR_NODE;
+  }
+  Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+ }
+
+ if ( res == 0 )
+ {
+  int i;
+  for ( i = 0; i < N_RECS; ++i )
+   if ( test_summary[ i ].used == 1 ) res = i;
+ }
+
+ return res;
+}
+
+
+STATIC void net_print_t_rec( struct t_rec *tp )
+{
+ char buff[ AN_VIS_COL ];
+
+ nsprintf( buff, sizeof(buff), "SERIAL:  %s -- %s  %s\n", tp->serial, tp->g_text, tp->g_item ); 
+ smc_putstr( buff );
+
+ nsprintf( buff, sizeof(buff), "TRANSMITTED:  %10.10d\nRECEIVED:     %10.10d\n\n", tp->sent, tp->recv ); 
+ smc_putstr( buff );
+}
+
+
+STATIC void net_print_error( int which )
+{
+ char *cp;
+ switch ( which )
+ {
+  case NET_ERR_OPEN:  cp = " OPEN";  break;
+  case NET_ERR_BUFF:  cp = " ALLOC";  break;
+  case NET_ERR_SEND:  cp = " SEND";  break;
+  case NET_ERR_LOOP:  cp = " LOOP";  break;
+  case NET_ERR_DATA:  cp = " DATA";  break;
+  case NET_ERR_NODE:  cp = " NODE";  break;
+  case NET_ERR_INIT:  cp = " INIT";  break;
+  case NET_ERR_RESET: cp = " RESET";  break;
+  default:  cp = " UNKNOWN";
+ }
+ txt_cstr( cp, RED_PAL );
+}
+
+
+int net_test( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+{
+ int res;
+ int bottom = AN_VIS_ROW-2;
+
+ bottom = st_insn(bottom, t_msg_ret_menu, t_msg_next, INSTR_PAL);
+
+ test_summary = (struct t_rec *)(((int)prc_extend_bss(0) + NET_BUFFER_MEMORY + 15) & 0xFFFFFFFC);
+
+ txt_str( 3, 3, "Testing local:", WHT_PAL );
+ while ( ( ( res = net_loopback_test( OP_LOGICAL_LOOPBACK ) ) < 0 ) ||
+         ( ( res = net_loopback_test( OP_PHYSICAL_LOOPBACK ) ) < 0 ) ||
+         ( ( res = net_loopback_test( OP_NETWORK_LOOPBACK ) ) < 0 ) )
+ {
+  txt_str( 19, 3, "TRYING", YEL_PAL );
+  net_print_error( res );
+  prc_delay(0);
+  if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) return 0;
+ }
+ txt_clr_str( 19, 3, "TRYING", YEL_PAL );
+ txt_str( 19, 3, "PASSED", GRN_PAL );
+ 
+#if (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE)
+ txt_str( 35, 3, "Testing cable:", WHT_PAL );
+ if ( smc_data[0].control.last_EPHSR & SMC_LINK_OK )
+ {
+  txt_str( 51, 3, "OK", GRN_PAL );
+ }
+ else
+ {
+  txt_str( 51, 3, "??", RED_PAL );
+ }
+#endif
+
+ txt_str( 3, 5, "Testing link:", WHT_PAL );
+ if ( ( res = net_comm_test( OP_COMM_INIT ) ) < 0 )
+ {
+  txt_str( 18, 5, "FAILED", RED_PAL );
+  net_print_error( res );
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+ }
+
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 )
+ {
+  struct t_rec *tp;
+  int i;
+#if (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE)
+  if ( smc_data[0].control.last_EPHSR & SMC_LINK_OK )
+  {
+   txt_str( 51, 3, "OK", GRN_PAL );
+  }
+  else
+  {
+   txt_str( 51, 3, "??", RED_PAL );
+  }
+#endif
+  if ( ( res = net_comm_test( OP_COMM_LINK ) ) < 0 )
+  {
+   net_comm_test( OP_COMM_STOP );
+   if ( res == NET_ERR_NODE )
+   {
+    txt_str( 18, 5, "FOUND TOO MANY GAMES", RED_PAL );
+   }
+   else
+   {
+    txt_str( 18, 5, "ERROR", RED_PAL );
+    net_print_error( res );
+   }
+   while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+   return 0;
+  }
+  else if ( res )
+  {
+   txt_clr_str( 18, 5, "WAITING", YEL_PAL );
+   txt_str( 18, 5, "FOUND", GRN_PAL );
+   txt_chexnum( res, 2, RJ_BF, GRN_PAL);
+   txt_str( 26, 5, "GAME", GRN_PAL );
+   if ( res > 1 ) txt_cstr( "S", GRN_PAL );
+  }
+  else
+  {
+   txt_str( 18, 5, "WAITING", YEL_PAL );
+  }
+  window(3, 7, AN_VIS_COL-8, bottom);
+  tp = test_summary;
+  for ( i = 0; i < N_RECS && tp->used; ++i, ++tp )
+  {
+   net_print_t_rec( tp );
+  }
+  prc_delay(0);
+ }
+
+ net_comm_test( OP_COMM_STOP );
+ return 0;
+}
+@
+
+
+1.17
+log
+@Include phx_proto.h
+@
+text
+@d62 2
+d272 2
+a273 1
+ Net_Initialize( prc_extend_bss(0), NET_BUFFER_MEMORY, (void(*))0, (void *)0 );
+d348 2
+a349 2
+   extern void SMC_Reset_Chip(SMC_Data *smc);
+   SMC_Reset_Chip(&smc_data[0]);
+d400 1
+a400 1
+ int res = 0;
+d404 2
+a405 2
+  Net_Initialize( prc_extend_bss(0), NET_BUFFER_MEMORY, (void(*))0, (void *)0 );
+
+d512 2
+@
+
+
+1.16
+log
+@Using prc_extend_bss(0) instead of &bss_end.
+Start adding qio support.
+@
+text
+@d18 1
+d28 2
+a29 2
+#include <qio.h>
+#include <eth.h>
+@
+
+
+1.15
+log
+@Use GUTS_finds_car_color if NO_EER_WRITE == 0.
+@
+text
+@d26 4
+a30 1
+extern U8 bss_end;
+d186 3
+d269 1
+a269 1
+ Net_Initialize( &bss_end, NET_BUFFER_MEMORY, (void(*))0, (void *)0 );
+d400 1
+a400 1
+  Net_Initialize( &bss_end, NET_BUFFER_MEMORY, (void(*))0, (void *)0 );
+d522 1
+a522 1
+ test_summary = (struct t_rec *)(((int)&bss_end + NET_BUFFER_MEMORY + 15) & 0xFFFFFFFC);
+@
+
+
+1.14
+log
+@SEATTLE support.
+@
+text
+@d29 1
+d31 1
+d412 1
+d415 1
+@
+
+
+1.13
+log
+@Use GUTS_finds_car_color if SST_GAME == SST_RUSH.
+Use 250 byte packets for net_loopback test.
+@
+text
+@d527 1
+a527 1
+#if HOST_BOARD == FLAGSTAFF
+d552 1
+a552 1
+#if HOST_BOARD == FLAGSTAFF
+@
+
+
+1.12
+log
+@Added function "net_print_error" which prints a one word message
+when a test fails.
+@
+text
+@d28 1
+d30 1
+d285 2
+a286 2
+ for ( i = 2; i < 244; ++i ) nb->data[i] = i;
+ nb->len = 244;
+d308 1
+a308 1
+   for ( j = 16; j < 256; j++)
+d409 1
+d412 1
+@
+
+
+1.11
+log
+@In net_comm_test, do not close interface on transmit error because
+we will retry later.
+@
+text
+@d483 17
+d516 1
+d539 1
+d560 1
+a562 1
+    net_comm_test( OP_COMM_STOP );
+d564 5
+a568 2
+    while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+    return 0;
+d570 2
+@
+
+
+1.10
+log
+@Fixed t_rec count in net_comm_test.
+@
+text
+@d428 1
+d431 1
+@
+
+
+1.9
+log
+@Fixed bugs in net_loopback_test.
+@
+text
+@d458 6
+a463 3
+ if ( res == 0 ) while ( res < N_RECS )
+  if ( test_summary[ res + 1 ].used ) ++res;
+  else return res;
+@
+
+
+1.8
+log
+@Rewritten
+@
+text
+@d257 1
+a257 1
+ U16 tx_control = smc_data[0].control.TX_control;
+d261 2
+d266 2
+a272 2
+
+ net_loopback = TRUE;
+@
+
+
+1.7
+log
+@Many changes.
+@
+text
+@d3 1
+a3 1
+ *	net_test.c -- Forrest Miller -- June 1996
+d8 1
+a8 1
+ *		Copyright 1996 Time Warner Interactive
+d18 1
+a18 2
+#include <intvecs.h>
+#include <eer_defs.h>
+d27 2
+a28 6
+#if NET_USE_DMA
+#include <smc_dma.h>
+extern void SMC_DMA_Initialize(U8 *dma_pool, U32 pool_size, void (*handler)(),void *func);
+#define DMA_BUFFER_MEMORY ( 32 * sizeof(SMC_DMA_Req) )
+U8 dma_buf[DMA_BUFFER_MEMORY];
+#endif
+a38 5
+ * CPU Definitions
+ */
+#define COUNTSperUSEC ( CPU_SPEED / 2000000 )
+
+/*
+d44 10
+d55 1
+a55 5
+struct net
+{
+ struct menu_d	menu_desc;	/* _NOT_ a pointer */
+ int		option;		/* one of OP_* */
+};
+d75 1
+a92 33
+#define NET_BUFFER_MEMORY ( NET_BUFFER_TOTAL * sizeof( Net_Buffer ) )
+
+char net_buf[NET_BUFFER_MEMORY];
+
+int net_init( void )
+{
+ void *pointer = net_buf;
+
+ Net_Initialize( pointer, NET_BUFFER_MEMORY, (void(*))0, (void *)0 );
+
+#if NET_USE_DMA
+ pointer = dma_buf;
+ SMC_DMA_Initialize( pointer, DMA_BUFFER_MEMORY, (void(*))0, (void *)0 );
+#endif
+
+ return 0;
+}
+
+
+#if 0
+STATIC int _bottom;
+
+STATIC void clrscr( void )
+{
+ int row;
+ for ( row = 2; row < _bottom; ++row )
+ {
+  txt_clr_wid(1, row, AN_VIS_COL-2);
+ }
+}
+#endif
+
+
+a94 1
+#if 0
+a102 1
+#endif
+d128 1
+d177 1
+a177 41
+STATIC Net_Buffer *nb;
+
+STATIC int net_display( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+{
+
+ if ( smp == (const struct menu_d *)0 )
+ {
+#if 0
+  char buf[60];
+#endif
+
+  _smc_putstr_vec = _smc_putstr;
+#if 0
+  window(16, 20, AN_VIS_COL-16, AN_VIS_ROW-20);
+
+  if ( Net_Get_Buffer(&nb, NET_BUFFER_SIZE * NET_BUFFER_TOTAL, NETOPT_NONBLOCK) == NETOK )
+  {
+   smc_putstr("Net_Get_Buffer allocation ok\n");
+   Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+   nb = (Net_Buffer *)0;
+  }
+  else
+  {
+   smc_putstr("Net_Get_Buffer allocation error\n");
+  }
+
+  nsprintf(buf, sizeof(buf), "\nINTCTL_IE  = 0x%x\nINTCTL_STS = 0x%x\n", *(VU32*)INTCTL_IE, *(VU32*)INTCTL_STS);
+  smc_putstr(buf);
+  {
+   extern U32 smc_prc_q_queued;
+   nsprintf(buf, sizeof(buf), "\nsmc_prc_q_queued = %d\n", smc_prc_q_queued);
+   smc_putstr(buf);
+  }
+#endif
+ }
+
+ return 0;
+}
+
+void net_stats( int col, int row, int mask )
+a179 59
+ if ( mask & 1 )
+ {
+  window(col, row, AN_VIS_COL-1, AN_VIS_ROW-1);
+  SMC_Debug_C_stats( smc_data, 0 );
+  col += 20;
+ }
+ if ( mask & 2 )
+ {
+  window(col, row, AN_VIS_COL-1, AN_VIS_ROW-1);
+  SMC_Debug_P_stats( smc_data, 0 );
+  col += 20;
+ }
+ if ( mask & 4 )
+ {
+  window(col, row, AN_VIS_COL-1, AN_VIS_ROW-1);
+  SMC_Debug_E_stats( smc_data, 0 );
+  row += 16;
+ }
+ if ( mask & 8 )
+ {
+  window(row, col, AN_VIS_COL-1, AN_VIS_ROW-1);
+  SMC_Debug_S_stats( smc_data, 0 );
+ }
+}
+
+
+STATIC int net_monitor( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+{
+ int bottom = AN_VIS_ROW-2;
+
+ bottom = st_insn(bottom, t_msg_ret_menu, t_msg_next, INSTR_PAL);
+
+ SMC_Set_MC_Mask(&smc_data[0], 0,1); /* Turn on MC channel 00 */
+ SMC_Set_MC_Mask(&smc_data[0],26,1); /* Turn on MC channel 24 */
+ SMC_Set_MC_Mask(&smc_data[0],13,1); /* Turn on MC channel 24 */
+ SMC_Set_MC_Mask(&smc_data[0],23,1); /* Turn on MC channel 24 */
+ SMC_Set_MC_Mask(&smc_data[0],38,1); /* Turn on MC channel 24 */
+ SMC_Set_MC_Mask(&smc_data[0],60,1); /* Turn on MC channel 24 */
+ SMC_Set_MC_Mask(&smc_data[0],43,1); /* Turn on MC channel 24 */
+ SMC_Set_MC_Mask(&smc_data[0],49,1); /* Turn on MC channel 24 */
+#if 0
+ SMC_Set_MC_Mask(&smc_data[0],19,1); /* Turn on MC channel 24 */
+ SMC_Set_MC_Mask(&smc_data[0], 9,1); /* Turn on MC channel 24 */
+#endif
+
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 )
+ {
+  window(4, 3, AN_VIS_COL-4, bottom-1);
+  SMC_Debug_C_stats( smc_data, 0 );
+  window(24, 3, AN_VIS_COL-4, bottom-1);
+  SMC_Debug_P_stats( smc_data, 0 );
+  window(44, 3, AN_VIS_COL-4, bottom-1);
+  SMC_Debug_E_stats( smc_data, 0 );
+  window(44, 19, AN_VIS_COL-4, bottom-1);
+  SMC_Debug_S_stats( smc_data, 0 );
+  prc_delay(0);
+ }
+
+d184 1
+a184 1
+STATIC U32 net_loopback, net_rx_start, net_rx_time;
+a198 1
+ static int old_ipl;
+a221 2
+    old_ipl = prc_set_ipl(INTS_OFF);
+    net_rx_start = prc_get_count();
+a224 1
+     prc_set_ipl(old_ipl);
+a231 2
+   net_rx_time += prc_get_count() - net_rx_start;
+   prc_set_ipl(old_ipl);
+d246 1
+a246 16
+
+STATIC U32 net_int_count, net_int_start, net_int_time;
+STATIC void (*net_intp)();	/*  network int soft vector  */
+
+STATIC void net_int( void )
+{
+ ++net_int_count;
+ net_int_start = prc_get_count();
+ net_intp();
+ net_int_time += prc_get_count() - net_int_start;
+}
+
+
+STATIC U32 net_tx_count, net_tx_start, net_tx_time;
+STATIC U32 net_rx_count, net_test_errors;
+
+d250 1
+a250 1
+#define LOOP_RETRIES 6
+d252 1
+a252 2
+STATIC int net_loopback_test( parm_mp )
+const struct menu_d *parm_mp;
+d254 2
+a255 3
+ int i, res, display_rate;
+ char buf[80];
+ Net_Buffer *rnb;
+a257 2
+ int which = ((struct net *)parm_mp)->option;
+ int bottom = AN_VIS_ROW - 2;
+d259 1
+a259 4
+ bottom = st_insn(bottom, t_msg_ret_menu, t_msg_next, INSTR_PAL);
+ bottom = st_insn(bottom, "To pause, ", t_msg_actionh, INSTR_PAL);
+ bottom = st_insn(bottom, "To change display rate, ", t_msg_control, INSTR_PAL);
+ window(2, 3, AN_VIS_COL - 2, bottom - 1);
+d261 2
+a262 7
+ pnd = Net_Open_Interface("SMC0", net_callback, LOOP_CB_CAPS, 10, 6);
+ if ( pnd == 0 )
+ {
+  smc_putstr("Cannot open network interface.\n");
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+ }
+a265 1
+  smc_putstr("Cannot allocate network buffer.\n");
+d267 1
+a267 2
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+a270 10
+ display_rate = ( which == OP_NETWORK_LOOPBACK ) ? 10 : 1000;
+
+ smc_putstr("Tx:  Num  Time  Rx:  Num  Time  Errors  Interrupts  Time\n");
+ window(2, 4, AN_VIS_COL - 2, bottom - 1);
+
+ net_rx_start = net_rx_time = 0;
+ net_int_count = net_int_start = net_int_time = 0;
+ net_tx_count = net_tx_start = net_tx_time = 0;
+ net_rx_count = net_test_errors = 0;
+ net_intp = prc_set_vec(NET_INTVEC, net_int);
+d281 1
+a281 1
+ for ( i = 2; i < 244; i++) nb->data[i] = i;
+d284 1
+a284 1
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 )
+d286 5
+a290 2
+  int old_ipl;
+  if ( net_tx_count <= net_rx_count )
+d292 3
+a294 4
+   old_ipl = prc_set_ipl(INTS_OFF);
+   net_tx_start = prc_get_count();
+   res = Net_Send_Packet(pnd, brdcast, nb, NETOPT_NONBLOCK);
+   if ( res & NETOK_MASK )
+d296 17
+a312 2
+    ++net_tx_count;
+    net_tx_time += prc_get_count() - net_tx_start;
+a313 9
+   prc_set_ipl(old_ipl);
+  }
+  while ( ( rnb = net_deq() ) != (Net_Buffer *)0 )
+  {
+   ++net_rx_count;
+   for ( i = 14; i < 256; i++) if ( rnb->data[i] != ( i - 12 ) ) break;
+   if ( i != 256 ) ++net_test_errors;
+   old_ipl = prc_set_ipl(INTS_OFF);
+   net_rx_start = prc_get_count();
+a314 2
+   net_rx_time += prc_get_count() - net_rx_start;
+   prc_set_ipl(old_ipl);
+d316 1
+a316 1
+  if ( ( net_rx_count ) && ( ( net_rx_count % display_rate ) == 0 ) )
+d318 3
+a320 10
+   int tn = COUNTSperUSEC * ( ( net_tx_count  ) ? net_tx_count  : 1 );
+   int rn = COUNTSperUSEC * ( ( net_int_count ) ? net_int_count : 1 );
+   nsprintf(buf, sizeof(buf), "%8d%6d%10d%6d%8d%8d%10d\n", net_tx_count, net_tx_time / tn,
+    net_rx_count, net_rx_time / rn, net_test_errors, net_int_count, net_int_time / rn);
+   smc_putstr( buf );
+   net_rx_start = net_rx_time = 0;
+   net_int_count = net_int_start = net_int_time = 0;
+   net_tx_count = net_tx_start = net_tx_time = 0;
+   net_rx_count = net_test_errors = 0;
+   do { prc_delay(0); } while ( ( ctl_read_sw(0) & SW_ACTION ) );
+a321 5
+  if ( ( ctl_read_sw(J1_UP) & J1_UP ) )
+   display_rate = ( display_rate < 100000 ) ? display_rate * 10 : display_rate;
+  if ( ( ctl_read_sw(J1_DOWN) & J1_DOWN ) )
+   display_rate = ( display_rate > 1 ) ? display_rate / 10 : display_rate;
+  if ( which == OP_NETWORK_LOOPBACK ) prc_delay(0);
+a326 16
+ {
+  int i = 0, j = 60;
+  do
+  {
+   while ( ( rnb = net_deq() ) != (Net_Buffer *)0 )
+   {
+    ++i;
+    Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+   }
+   prc_delay(0);
+  } while ( ( j-- ) );
+  nsprintf(buf, sizeof(buf), "Received %d more packets\n", i);
+  smc_putstr( buf );
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+ }
+
+d330 1
+a330 1
+  if ( which == OP_LOGICAL_LOOPBACK)
+a338 2
+ prc_set_vec(NET_INTVEC, *net_intp);
+
+d342 3
+a344 1
+#define PONG_CB_CAPS ( CB_Will_Filter | CB_Will_Receive | NET_SEND_RAW )
+d346 1
+a346 2
+STATIC int net_pong( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+d348 9
+a356 3
+ Net_Buffer *rnb;
+ network_descriptor pnd;
+ int bottom = AN_VIS_ROW-2;
+d358 3
+a360 2
+ bottom = st_insn(bottom, t_msg_ret_menu, t_msg_next, INSTR_PAL);
+ window(2, 2, AN_VIS_COL-2, bottom);
+d362 1
+a362 2
+ pnd = Net_Open_Interface("SMC0", net_callback, PONG_CB_CAPS, 10, 6);
+ if ( pnd == 0 )
+d364 2
+a365 8
+  smc_putstr("Cannot open network interface.\n");
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+ }
+
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 )
+ {
+  if ( ( rnb = net_deq() ) != (Net_Buffer *)0 )
+d367 3
+a369 23
+   short sig = rnb->data[12] | ( rnb->data[13] << 8 );
+
+   switch ( sig )
+   {
+    int res;
+    char buf[60];
+
+    case (short)WHOSTHERE :
+     rnb->data[12] = IMHERE & 0xff;
+     rnb->data[13] = IMHERE >> 8;
+
+    case (short)TOITSELF :
+     rnb->offset = 12;	/* A Ping request is in raw mode, as are we */
+     rnb->len -= 12;
+     do res = Net_Send_Packet(pnd, &rnb->data[6], rnb, NETOPT_NONBLOCK);
+     while ( ( res & NETOK_MASK ) == 0 );
+     nsprintf(buf, sizeof(buf), "Sending packet to:  %02x %02x %02x %02x %02x %02x\n", 
+      rnb->data[6], rnb->data[7], rnb->data[8], rnb->data[9], rnb->data[10], rnb->data[11]);
+     smc_putstr( buf );
+
+    default :
+     Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+   }
+a370 2
+
+  prc_delay(0);
+d372 1
+a372 21
+
+ Net_Close_Interface(pnd);
+
+ {
+  int i = 0, j = 60;
+  char buf[60];
+  do
+  {
+   while ( ( rnb = net_deq() ) != (Net_Buffer *)0 )
+   {
+    ++i;
+    Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+   }
+   prc_delay(0);
+  } while ( ( j-- ) );
+  nsprintf(buf, sizeof(buf), "Received %d more packets\n", i);
+  smc_putstr( buf );
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+ }
+
+ return 0;
+d376 1
+a376 2
+#define PING_CB_CAPS ( CB_Will_Filter | CB_Will_Receive | CB_Will_TXResult | NET_SEND_RAW )
+#define PING_RETRIES 60
+d378 1
+a378 2
+STATIC int net_ping( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+d380 2
+a381 1
+ int i, res;
+d383 2
+a384 3
+ netadd pong_add;
+ network_descriptor pnd;
+ int bottom = AN_VIS_ROW-2;
+d386 3
+a388 2
+ bottom = st_insn(bottom, t_msg_ret_menu, t_msg_next, INSTR_PAL);
+ window(2, 2, AN_VIS_COL-2, bottom);
+d390 2
+a391 7
+ pnd = Net_Open_Interface("SMC0", net_callback, PING_CB_CAPS, 10, 6);
+ if ( pnd == 0 )
+ {
+  smc_putstr("Cannot open network interface.\n");
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+ }
+d393 5
+a397 7
+ if ( Net_Get_Buffer(&nb, NET_BUFFER_SIZE, NETOPT_NONBLOCK) != NETOK )
+ {
+  smc_putstr("Cannot allocate network buffer.\n");
+  Net_Close_Interface(pnd);
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+ }
+d399 1
+a399 2
+ nb->data[0] = WHOSTHERE & 0xff;
+ nb->data[1] = WHOSTHERE >> 8;
+d401 2
+a402 6
+ for ( i = 0; i < PING_RETRIES; ++i )
+ {
+  res = Net_Send_Packet(pnd, brdcast, nb, NETOPT_NONBLOCK);
+  if ( res & NETOK_MASK ) break;
+  prc_delay(0);
+ }
+d404 3
+a406 10
+ if ( ( res & NETOK_MASK ) == 0 )
+ {
+  char buf[60];
+  nsprintf(buf, sizeof(buf), "\nCannot send discovery packet.\nResult = 0x%x\n", res);
+  smc_putstr( buf );
+  Net_Close_Interface(pnd);
+  Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0; 
+ }
+d408 2
+a409 4
+ for ( i = 0; i < PING_RETRIES; ++i )
+ {
+  if ( ( rnb = net_deq() ) != (Net_Buffer *)0 ) break;
+  prc_delay(0);
+d412 1
+a412 1
+ if ( rnb == (Net_Buffer *)0 )
+d414 1
+a414 1
+  smc_putstr("\nTimeout waiting for packet.\n");
+d416 6
+a421 17
+  Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0; 
+ }
+
+ if ( (rnb->data[12] != (WHOSTHERE & 0xff) ) || (rnb->data[13] != (WHOSTHERE >> 8)) )
+ {
+  smc_putstr("\nFailed to receive my packet.\n");	/* Bad assumption made here */
+ }
+ else smc_putstr("\nWHOSTHERE packet received.\n");
+
+ Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+
+ for ( i = 0; i < PING_RETRIES; ++i )
+ {
+  if ( ( rnb = net_deq() ) != (Net_Buffer *)0 ) break;
+  prc_delay(0);
+d424 1
+a424 1
+ if ( rnb == (Net_Buffer *)0 )
+a425 1
+  smc_putstr("\nTimeout waiting for IMHERE.\n");
+d428 1
+a428 2
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0; 
+d431 2
+a432 10
+/*
+ * Verify IMHERE
+ */
+
+ pong_add[0] = rnb->data[6];
+ pong_add[1] = rnb->data[7];
+ pong_add[2] = rnb->data[8];
+ pong_add[3] = rnb->data[9];
+ pong_add[4] = rnb->data[10];
+ pong_add[5] = rnb->data[11];
+d434 1
+a434 8
+ Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+
+ nb->data[0] = TOITSELF & 0xff;
+ nb->data[1] = TOITSELF >> 8;
+
+ for ( i = 2; i < 244; i++) nb->data[i] = i;
+
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 )
+d436 2
+a437 28
+  for ( i = 0; i < PING_RETRIES; ++i )
+  {
+   res = Net_Send_Packet(pnd, pong_add, nb, NETOPT_NONBLOCK);
+   if ( res & NETOK_MASK ) break;
+   prc_delay(0);
+  }
+  for ( i = 0; i < PING_RETRIES; ++i )
+  {
+   if ( ( rnb = net_deq() ) != (Net_Buffer *)0 ) break;
+   prc_delay(0);
+  }
+  if ( rnb != (Net_Buffer *)0 )
+  {
+   char buf[60];
+   for ( i = 14; i < 256; i++) if ( rnb->data[i] != ( i - 12 ) ) break;
+   if ( i == 256 )
+    smc_putstr(" 242 bytes from ... ");
+   else
+    smc_putstr("Data error from ... ");
+   nsprintf(buf, sizeof(buf), "%02x %02x %02x %02x %02x %02x\n", 
+    rnb->data[6], rnb->data[7], rnb->data[8], rnb->data[9], rnb->data[10], rnb->data[11]);
+   smc_putstr( buf );
+   Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+  }
+ }
+
+ Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+ Net_Close_Interface(pnd);
+d439 1
+a439 4
+ {
+  int i = 0, j = 60;
+  char buf[60];
+  do
+d441 3
+a443 1
+   while ( ( rnb = net_deq() ) != (Net_Buffer *)0 )
+d445 4
+a448 2
+    ++i;
+    Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+d450 4
+a453 5
+   prc_delay(0);
+  } while ( ( j-- ) );
+  nsprintf(buf, sizeof(buf), "Received %d more packets\n", i);
+  smc_putstr( buf );
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+d456 3
+a458 2
+ return 0;
+}
+d460 1
+a460 42
+
+#define N_RECS 8
+
+STATIC struct t_rec
+{
+ U32    sent;
+ U32    recv;
+ netadd node;
+ U16	code;
+ U16	sign;
+ U8     used;
+ U8     actv;
+ U8     chks;
+ U8     bads;
+ U8     unkn;
+ U8     data;
+ U8     badp;		/* NETERR_BADPARAMETER      */
+ U8     sndn;		/* NETERR_SEND_NORESOURCE   */
+ U8     sndp;		/* NETERR_SEND_BADPARAMETER */
+ U8     nmem;		/* NETERR_NOMEMORY          */
+ U8     badb;		/* NETERR_BAD_BUFFER        */
+ U8     sbdh;		/* NETERR_SEND_BAD_HEADER   */
+ U8     mmur;		/* NETERR_MMU_NORESOURCE    */
+ U8     smcb;		/* NETERR_SMC_BLOCKED       */
+ U8     dmab;		/* NETERR_DMA_ERROR         */
+} test_summary[ N_RECS ];
+
+STATIC struct t_rec *net_get_trec( netadd *nid )
+{
+ struct t_rec *tp;
+
+ for ( tp = test_summary; tp < &test_summary[ N_RECS ]; ++tp )
+ {
+  if ( memcmp( &tp->node, nid, sizeof(netadd) ) == 0 ) return( tp );
+  if ( tp->used == 0 )
+  {
+   tp->used = 1;
+   memcpy( &tp->node, nid, sizeof(netadd) );
+   return( tp );
+  }
+ }
+ return ( (struct t_rec *)0 );
+d466 1
+a466 1
+ char buff[ AN_VIS_COL ], *bp = buff;
+d468 1
+a468 4
+ bp += nsprintf( buff, sizeof(buff), "\nID:  %2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x  ",
+  tp->node[0], tp->node[1], tp->node[2], tp->node[3], tp->node[4], tp->node[5] );
+ bp += nsprintf( bp, sizeof(buff)-(bp-buff), "XMT:  %10.10d  RCV:  %10.10d\n",
+  tp->sent, tp->recv ); 
+d470 2
+a471 7
+ bp = buff;
+ bp += nsprintf( buff, sizeof(buff), "ST:  %3.3d  %3.3d  %3.3d  %3.3d  %3.3d  %3.3d  %3.3d  %3.3d  %3.3d  %3.3d  %3.3d\n",
+  tp->chks, tp->data, tp->badp, tp->sndn, tp->sndp, tp->nmem, tp->badb, tp->sbdh, tp->mmur, tp->smcb, tp->dmab );
+ smc_putstr( buff );
+ bp = buff;
+ bp += nsprintf( buff, sizeof(buff), "UNK:  %3.3d : %4.4x  SIG:  %3.3d : %4.4x\n",
+  tp->unkn, tp->code, tp->bads, tp->sign );
+d476 1
+a476 39
+STATIC void net_log_err( int res, struct t_rec *tp )
+{
+ switch ( res )
+ {
+  case NETERR_BADPARAMETER:
+   ++tp->badp; break;
+  case NETERR_SEND_NORESOURCE:
+   ++tp->sndn; break;
+  case NETERR_SEND_BADPARAMETER:
+   ++tp->sndp; break;
+  case NETERR_NOMEMORY:
+   ++tp->nmem; break;
+  case NETERR_BAD_BUFFER:
+   ++tp->badb; break;
+  case NETERR_SEND_BAD_HEADER:
+   ++tp->sbdh; break;
+  case NETERR_MMU_NORESOURCE:
+   ++tp->mmur; break;
+  case NETERR_SMC_BLOCKED:
+   ++tp->smcb; break;
+  case NETERR_DMA_ERROR:
+   ++tp->dmab; break;
+  default:
+   ++tp->unkn;
+   tp->code = res;
+ }
+}
+
+
+STATIC U16 net_checksum( U8 *p, int len )
+{
+ U16 sum = 0;
+
+ while ( len-- ) sum += *p++;
+ return sum;
+}
+
+
+STATIC int net_comm_test( smp )
+d479 1
+a479 4
+ int i, res;
+ Net_Buffer *rnb;
+ struct t_rec *tp;
+ network_descriptor pnd;
+d484 6
+a489 2
+ pnd = Net_Open_Interface("SMC0", net_callback, PING_CB_CAPS, 10, 6);
+ if ( pnd == 0 )
+d491 3
+a493 3
+  smc_putstr("Cannot open network interface.\n");
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+d495 6
+a500 2
+
+ if ( Net_Get_Buffer(&nb, NET_BUFFER_SIZE, NETOPT_NONBLOCK) != NETOK )
+d502 1
+a502 4
+  smc_putstr("Cannot allocate network buffer.\n");
+  Net_Close_Interface(pnd);
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+d504 1
+a504 5
+
+ nb->len = 4;
+ nb->data[0] = IMHERE & 0xff;
+ nb->data[1] = IMHERE >> 8;
+
+d506 1
+a506 4
+  U16 sum = net_checksum( (U8 *)&nb->data[0], 2 ) + net_checksum( (U8 *)&brdcast, sizeof(netadd) )
+          + net_checksum( (U8 *)&smc_data[0].my_nid, sizeof(netadd) );
+  nb->data[2] = sum & 0xff;
+  nb->data[3] = sum >> 8;
+d508 1
+a508 5
+
+ memset( test_summary, 0, sizeof(test_summary) );
+
+ tp = net_get_trec( &smc_data[0].my_nid );
+ tp->sent = 1;
+d510 2
+a511 1
+ while ( ( ( res = Net_Send_Packet(pnd, brdcast, nb, NETOPT_NONBLOCK) ) & NETOK_MASK ) == 0 )
+d513 3
+a515 3
+  txt_str(3, 3, "ERROR SENDING PACKET", ERROR_PAL);
+  prc_delay(0);
+  if ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) != 0 ) return 0;
+a517 6
+ nb->len = 244;
+ nb->data[0] = TOITSELF & 0xff;
+ nb->data[1] = TOITSELF >> 8;
+
+ for ( i = 4; i < 256; i++) nb->data[i] = i;
+
+d520 13
+a532 1
+  if ( ( rnb = net_deq() ) != (Net_Buffer *)0 )
+d534 1
+a534 3
+   U16 sum = rnb->data[14] | ( rnb->data[15] << 8 );
+
+   if ( sum != net_checksum( &rnb->data[0], 14 ) )
+d536 4
+a539 1
+    ++tp->chks;
+d541 12
+a552 60
+   else
+   {
+    netadd node;
+    U16 sig = rnb->data[12] | ( rnb->data[13] << 8 );
+
+    memcpy( node, &rnb->data[6], sizeof(netadd) );
+    tp = net_get_trec( &node );
+
+    switch ( sig )
+    {
+     int res;
+
+     case (U16)IMHERE :
+      ++tp->recv;
+      if ( memcmp( node, &smc_data[0].my_nid, sizeof(netadd) ) != 0 )
+      {
+       sum = net_checksum( (U8 *)&nb->data[0], 2 ) + net_checksum( (U8 *)&node, sizeof(netadd) )
+           + net_checksum( (U8 *)&smc_data[0].my_nid, sizeof(netadd) );
+       nb->data[2] = sum & 0xff;
+       nb->data[3] = sum >> 8;
+       res = Net_Send_Packet(pnd, node, nb, NETOPT_NONBLOCK);
+       if ( res & NETOK_MASK )
+       {
+        ++tp->actv;
+        ++tp->sent;
+       }
+       else
+        net_log_err( res, tp );
+      }
+      break;
+
+     case (U16)TOITSELF :
+      ++tp->recv;
+      for ( i = 16; i < 256; i++) if ( rnb->data[i] != ( i - 12 ) )
+      {
+       ++tp->data;
+	__asm__("BREAK");
+       break;
+      }
+      sum = net_checksum( (U8 *)&nb->data[0], 2 ) + net_checksum( (U8 *)&node, sizeof(netadd) )
+          + net_checksum( (U8 *)&smc_data[0].my_nid, sizeof(netadd) );
+      nb->data[2] = sum & 0xff;
+      nb->data[3] = sum >> 8;
+      res = Net_Send_Packet(pnd, node, nb, NETOPT_NONBLOCK);
+      if ( res & NETOK_MASK )
+      {
+       ++tp->actv;
+       ++tp->sent;
+      }
+      else
+       net_log_err( res, tp );
+      break;
+
+     default :
+      ++tp->bads;
+      tp->sign = sig;
+    }
+
+    Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+   }
+d554 3
+a556 2
+
+  if ( ( eer_rtc % 60 ) == 0 )
+d558 1
+a558 31
+   txt_clr_wid(-1, 2, 10);
+   txt_decnum(-1, 2, eer_rtc, 10, RJ_BF, WHT_PALB);
+   window(2, 3, AN_VIS_COL-2, bottom);
+   tp = test_summary;
+   for ( i = 0; i < N_RECS && tp->used; ++i, ++tp )
+   {
+    net_print_t_rec( tp );
+    if ( i )
+    {
+     if ( tp->actv )
+     {
+      tp->actv = 0;
+     }
+     else
+     {
+      U16 sum = net_checksum( (U8 *)&nb->data[0], 2 ) + net_checksum( (U8 *)&tp->node, sizeof(netadd) )
+              + net_checksum( (U8 *)&smc_data[0].my_nid, sizeof(netadd) );
+      nb->data[2] = sum & 0xff;
+      nb->data[3] = sum >> 8;
+      res = Net_Send_Packet(pnd, tp->node, nb, NETOPT_NONBLOCK);
+      if ( res & NETOK_MASK )
+      {
+       ++tp->actv;
+       ++tp->sent;
+      }
+      else
+       net_log_err( res, tp );
+     }
+    }
+   }
+   prc_delay(0);
+d560 1
+a560 32
+
+ }
+
+ Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+ Net_Close_Interface(pnd);
+
+ return 0;
+}
+
+
+STATIC int net_win( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+{
+ int i;
+ char c[2];
+ int bottom = AN_VIS_ROW-2;
+
+ bottom = st_insn(bottom, t_msg_ret_menu, t_msg_next, INSTR_PAL);
+
+ window(10, 10, 30, 14);
+
+ for ( i = 0; i < 5; i++)
+ {
+  c[0] = '1'+i;
+  c[1] = '\0';
+  txt_str(8, win_u+i, c, WHT_PAL);
+ }
+
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 )
+ {
+  smc_putstr("abcdefghijklmnopqrstuvwxyz");
+  prc_delay(120);
+d563 1
+a564 21
+}
+
+
+STATIC const struct net NET_LIST[] =
+{
+    { {"NETWORK TESTS", net_display}, 0},
+    { {"NETWORK MONITOR",  net_monitor}, 0},
+    { {"\nLOGICAL LOOPBACK", net_loopback_test}, OP_LOGICAL_LOOPBACK},
+    { {"?PHYSICAL LOOPBACK",   net_loopback_test}, OP_PHYSICAL_LOOPBACK},
+    { {"?NETWORK LOOPBACK",  net_loopback_test}, OP_NETWORK_LOOPBACK},
+    { {"?\nPING SERVER",  net_pong}, 0},
+    { {"?PING CLIENT",  net_ping}, 0},
+    { {"\nCOMMUNICATIONS TEST",  net_comm_test}, 0},
+    { {"?\nWINDOW TEST",  net_win}, 0},
+    { { 0, 0 }, 0}
+};
+
+int net_test( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+{
+ return st_menu((struct menu_d *)&NET_LIST[0], sizeof(NET_LIST[0]), RED_PALB, 0);
+@
+
+
+1.6
+log
+@Many changes and improvements, including ...
+1) net_buf in bss rather than using _end,
+2) re-arranged monitor screen, and
+3) made a single callback function.
+@
+text
+@d21 1
+d28 7
+d106 5
+d179 1
+a179 1
+   txt_str(win_x, win_y, txt, WHT_PAL);
+d193 1
+a193 1
+   txt_str(win_x, win_y, txt, WHT_PAL);
+d204 1
+a204 1
+  txt_str(win_x, win_y, txt, WHT_PAL);
+d222 1
+d224 1
+d227 1
+d248 1
+d254 28
+d288 1
+a288 1
+ bottom = st_insn(bottom, t_msg_next, t_msg_ret_menu, INSTR_PAL);
+d420 3
+a422 3
+ bottom = st_insn(bottom, t_msg_next, t_msg_ret_menu, INSTR_PAL);
+ bottom = st_insn(bottom, t_msg_actionh, " to pause", INSTR_PAL);
+ bottom = st_insn(bottom, t_msg_control, " to change display rate", INSTR_PAL);
+d425 1
+a425 1
+ pnd = Net_Open_Interface("SMC0", net_callback, LOOP_CB_CAPS, 8, 6);
+d556 1
+a556 1
+ bottom = st_insn(bottom, t_msg_next, t_msg_ret_menu, INSTR_PAL);
+d559 1
+a559 1
+ pnd = Net_Open_Interface("SMC0", net_callback, PONG_CB_CAPS, 8, 6);
+d634 1
+a634 1
+ bottom = st_insn(bottom, t_msg_next, t_msg_ret_menu, INSTR_PAL);
+d637 1
+a637 1
+ pnd = Net_Open_Interface("SMC0", net_callback, PING_CB_CAPS, 8, 6);
+d782 274
+d1063 1
+a1063 1
+ bottom = st_insn(bottom, t_msg_next, t_msg_ret_menu, INSTR_PAL);
+d1088 7
+a1094 6
+    { {"LOGICAL LOOPBACK", net_loopback_test}, OP_LOGICAL_LOOPBACK},
+    { {"PHYSICAL LOOPBACK",   net_loopback_test}, OP_PHYSICAL_LOOPBACK},
+    { {"NETWORK LOOPBACK",  net_loopback_test}, OP_NETWORK_LOOPBACK},
+    { {"PING SERVER",  net_pong}, 0},
+    { {"PING CLIENT",  net_ping}, 0},
+    { {"WINDOW TEST",  net_win}, 0},
+@
+
+
+1.5
+log
+@Added time measurements to loopback test.  Made one routine for all loopback tests.
+@
+text
+@d90 1
+a90 1
+extern char _end[];
+d94 1
+a94 1
+ void *pointer = &_end;
+d260 1
+a260 1
+  window(4, 4, AN_VIS_COL-4, bottom-1);
+d262 1
+a262 1
+  window(4, 24, AN_VIS_COL-4, bottom-1);
+d264 1
+a264 1
+  window(24, 4, AN_VIS_COL-4, bottom-1);
+d266 1
+a266 1
+  window(24, 24, AN_VIS_COL-4, bottom-1);
+d275 1
+a275 1
+STATIC U32 net_rx_start, net_rx_time;
+d279 2
+a280 2
+STATIC net_callback_fn loop_callback;	/* Prototype to force parameter consistency  */
+STATIC Net_CB_Result loop_callback(	/* Compiler will balk if there is a mismatch */
+d296 2
+a297 2
+   sig = ((U8 *)param2)[0] | ( ((U8 *)param2)[1] << 8 );
+   if ( sig == LOOPBACK_SIG )
+d299 15
+d316 1
+a316 3
+    if ( Net_Get_Buffer( (Net_Buffer **)param3, NET_BUFFER_SIZE, NETOPT_NONBLOCK ) == NETOK )
+     res = CB_Copy_Packet;
+    else
+a321 1
+   else res = CB_Drop_Packet;
+d364 1
+a364 1
+STATIC int net_loopback( parm_mp )
+d367 2
+a368 2
+ int i, res, display_rate = 1000;
+ char buf[64];
+d380 1
+a380 1
+ pnd = Net_Open_Interface("SMC0", loop_callback, LOOP_CB_CAPS, 6, 12);
+d396 3
+d423 1
+a423 1
+  if ( net_tx_count == net_rx_count )
+d446 1
+a446 1
+  if ( ( net_rx_count % display_rate ) == 0 )
+d448 1
+a448 1
+   int tn = COUNTSperUSEC * net_tx_count;
+d450 1
+a450 1
+   nsprintf(buf, sizeof(buf), "%8d%8d%8d%8d%8d%8d%8d\n", net_tx_count, net_tx_time / tn,
+a456 4
+   if ( ( ctl_read_sw(SW_START) & SW_START ) )
+    display_rate = ( display_rate < 100000 ) ? display_rate * 10 : display_rate;
+   if ( ( ctl_read_sw(SW_VIEW1) & SW_VIEW1 ) )
+    display_rate = ( display_rate > 1 ) ? display_rate / 10 : display_rate;
+d459 5
+a465 5
+ if ( ( which == OP_LOGICAL_LOOPBACK ) || ( which == OP_PHYSICAL_LOOPBACK ) )
+ {
+  smc_data[0].control.TX_control = tx_control;
+  smc_data[0].status = SMC_Setup(&smc_data[0]);
+ }
+a467 5
+ prc_set_vec(NET_INTVEC, *net_intp);
+
+ return 0;
+}
+
+a468 14
+STATIC net_callback_fn ping_callback;	/* Prototype to force parameter consistency  */
+STATIC Net_CB_Result ping_callback(	/* Compiler will balk if there is a mismatch */
+        Net_CB_Func func,
+        network_descriptor nd,
+        packet_number pkt_no,
+        U32 len,
+        U32 param1,
+        U32 param2,
+        U32 param3
+)
+{
+ int res = 0;
+ U16 sig;
+ switch (func)
+d470 4
+a473 3
+  case CB_Filter :
+   sig = ((U8 *)param2)[0] | ( ((U8 *)param2)[1] << 8 );
+   if ( sig == WHOSTHERE || sig == IMHERE || sig == TOITSELF )
+d475 2
+a476 4
+    if ( Net_Get_Buffer( (Net_Buffer **)param3, NET_BUFFER_SIZE, NETOPT_NONBLOCK ) == NETOK )
+     res = CB_Copy_Packet;
+    else
+     res = CB_Drop_Packet;
+d478 6
+a483 2
+   else res = CB_Drop_Packet;
+   break;
+d485 10
+a494 4
+  case CB_Receive :
+   net_que( (Net_Buffer *)param1 );
+   res = CB_OK;
+   break;
+d496 2
+a497 2
+  case CB_TXResult:
+   break;
+d499 1
+a499 7
+  case CB_BfrRlse:
+  case CB_BfrAquire:
+  default:
+   res = CB_FAILED;
+   break;
+ } /* endswitch */
+ return res;
+a501 1
+
+d514 1
+a514 1
+ pnd = Net_Open_Interface("SMC0", ping_callback, PONG_CB_CAPS, 6, 12);
+d540 5
+a544 12
+     res = Net_Send_Packet(pnd, &rnb->data[6], rnb, NETOPT_NONBLOCK);
+     if ( ( res & NETOK_MASK ) == 0 )
+     {
+      nsprintf(buf, sizeof(buf), "\nSend failed:  res = 0x%x\n", res);
+      smc_putstr( buf );
+     }
+     else
+     {
+      nsprintf(buf, sizeof(buf), "Sending packet to:  %02x %02x %02x %02x %02x %02x\n", 
+	rnb->data[6], rnb->data[7], rnb->data[8], rnb->data[9], rnb->data[10], rnb->data[11]);
+      smc_putstr( buf );
+     }
+d556 17
+d578 1
+a578 1
+#define PING_RETRIES 6
+d592 1
+a592 1
+ pnd = Net_Open_Interface("SMC0", ping_callback, PING_CB_CAPS, 6, 12);
+d615 1
+a615 1
+  prc_delay(10);
+d632 1
+a632 1
+  prc_delay(10);
+d655 1
+a655 1
+  prc_delay(10);
+d713 1
+d715 17
+a731 1
+ Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+d769 3
+a771 3
+    { {"LOGICAL LOOPBACK", net_loopback}, OP_LOGICAL_LOOPBACK},
+    { {"PHYSICAL LOOPBACK",   net_loopback}, OP_PHYSICAL_LOOPBACK},
+    { {"NETWORK LOOPBACK",  net_loopback}, OP_NETWORK_LOOPBACK},
+@
+
+
+1.4
+log
+@Implemented loopback tests.
+@
+text
+@d18 1
+d29 23
+d53 1
+a237 16
+STATIC char *cb_buff;
+STATIC U32 pkts;
+STATIC int seq, trk;
+STATIC int p_verbose, blocking;
+
+STATIC void net_mon_init()
+{
+ cb_buff = 0;
+ nb = 0;
+ pkts = 0;
+ seq = trk = 0;
+ p_verbose = 0;
+ blocking = 1;
+}
+
+
+a244 1
+ net_mon_init();
+d275 3
+a277 1
+#define LOOPBACK ( SMC_TX_EPHLOOP | SMC_TX_LOOP )
+d290 1
+d297 1
+a297 1
+   if ( sig == LOOPBACK )
+d299 2
+d304 1
+d306 2
+d315 2
+d332 15
+d352 2
+a353 2
+STATIC int net_lloopback( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+d355 2
+a356 1
+ int i, res;
+d360 2
+a361 1
+ int bottom = AN_VIS_ROW-2;
+d364 3
+a366 1
+ window(2, 2, AN_VIS_COL-2, bottom);
+d384 2
+a385 56
+ smc_data[0].control.TX_control |= SMC_TX_EPHLOOP;
+ smc_data[0].status = SMC_Setup(&smc_data[0]);
+
+ nb->data[0] = LOOPBACK & 0xff;
+ nb->data[1] = LOOPBACK >> 8;
+
+ for ( i = 2; i < 244; i++) nb->data[i] = i;
+
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 )
+ {
+  for ( i = 0; i < LOOP_RETRIES; ++i )
+  {
+   res = Net_Send_Packet(pnd, brdcast, nb, NETOPT_NONBLOCK);
+   if ( res & NETOK_MASK ) break;
+   prc_delay(0);
+  }
+  for ( i = 0; i < LOOP_RETRIES; ++i )
+  {
+   if ( ( rnb = net_deq() ) != (Net_Buffer *)0 ) break;
+   prc_delay(0);
+  }
+  if ( rnb != (Net_Buffer *)0 )
+  {
+   char buf[60];
+   for ( i = 14; i < 256; i++) if ( rnb->data[i] != ( i - 12 ) ) break;
+   if ( i == 256 )
+    smc_putstr(" 242 bytes from ... ");
+   else
+    smc_putstr("Data error from ... ");
+   nsprintf(buf, sizeof(buf), "%02x %02x %02x %02x %02x %02x\n", 
+    rnb->data[6], rnb->data[7], rnb->data[8], rnb->data[9], rnb->data[10], rnb->data[11]);
+   smc_putstr( buf );
+   Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+  }
+ }
+
+ smc_data[0].control.TX_control = tx_control;
+ smc_data[0].status = SMC_Setup(&smc_data[0]);
+ Net_Close_Interface(pnd);
+ Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+
+ return 0;
+}
+
+
+STATIC int net_ploopback( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+{
+ int i, res;
+ Net_Buffer *rnb;
+ network_descriptor pnd;
+ U16 tx_control = smc_data[0].control.TX_control;
+ int bottom = AN_VIS_ROW-2;
+
+ bottom = st_insn(bottom, t_msg_next, t_msg_ret_menu, INSTR_PAL);
+ window(2, 2, AN_VIS_COL-2, bottom);
+d387 5
+a391 7
+ pnd = Net_Open_Interface("SMC0", loop_callback, LOOP_CB_CAPS, 6, 12);
+ if ( pnd == 0 )
+ {
+  smc_putstr("Cannot open network interface.\n");
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+ }
+d393 1
+a393 1
+ if ( Net_Get_Buffer(&nb, NET_BUFFER_SIZE, NETOPT_NONBLOCK) != NETOK )
+d395 2
+a396 4
+  smc_putstr("Cannot allocate network buffer.\n");
+  Net_Close_Interface(pnd);
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+d399 2
+a400 5
+ smc_data[0].control.TX_control |= SMC_TX_LOOP;
+ smc_data[0].status = SMC_Setup(&smc_data[0]);
+
+ nb->data[0] = LOOPBACK & 0xff;
+ nb->data[1] = LOOPBACK >> 8;
+d403 1
+d407 2
+a408 1
+  for ( i = 0; i < LOOP_RETRIES; ++i )
+d410 2
+d413 6
+a418 2
+   if ( res & NETOK_MASK ) break;
+   prc_delay(0);
+d420 1
+a420 1
+  for ( i = 0; i < LOOP_RETRIES; ++i )
+d422 8
+a429 2
+   if ( ( rnb = net_deq() ) != (Net_Buffer *)0 ) break;
+   prc_delay(0);
+d431 1
+a431 1
+  if ( rnb != (Net_Buffer *)0 )
+d433 4
+a436 8
+   char buf[60];
+   for ( i = 14; i < 256; i++) if ( rnb->data[i] != ( i - 12 ) ) break;
+   if ( i == 256 )
+    smc_putstr(" 242 bytes from ... ");
+   else
+    smc_putstr("Data error from ... ");
+   nsprintf(buf, sizeof(buf), "%02x %02x %02x %02x %02x %02x\n", 
+    rnb->data[6], rnb->data[7], rnb->data[8], rnb->data[9], rnb->data[10], rnb->data[11]);
+d438 9
+a446 1
+   Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+d450 1
+a450 42
+ smc_data[0].control.TX_control = tx_control;
+ smc_data[0].status = SMC_Setup(&smc_data[0]);
+ Net_Close_Interface(pnd);
+ Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+
+ return 0;
+}
+
+
+STATIC int net_nloopback( smp )
+const struct menu_d *smp;       /* Selected Menu Pointer */
+{
+ int i, res;
+ Net_Buffer *rnb;
+ network_descriptor pnd;
+ int bottom = AN_VIS_ROW-2;
+
+ bottom = st_insn(bottom, t_msg_next, t_msg_ret_menu, INSTR_PAL);
+ window(2, 2, AN_VIS_COL-2, bottom);
+
+ pnd = Net_Open_Interface("SMC0", loop_callback, LOOP_CB_CAPS, 6, 12);
+ if ( pnd == 0 )
+ {
+  smc_putstr("Cannot open network interface.\n");
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+ }
+
+ if ( Net_Get_Buffer(&nb, NET_BUFFER_SIZE, NETOPT_NONBLOCK) != NETOK )
+ {
+  smc_putstr("Cannot allocate network buffer.\n");
+  Net_Close_Interface(pnd);
+  while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+  return 0;
+ }
+
+ nb->data[0] = LOOPBACK & 0xff;
+ nb->data[1] = LOOPBACK >> 8;
+
+ for ( i = 2; i < 244; i++) nb->data[i] = i;
+
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 )
+d452 2
+a453 24
+  for ( i = 0; i < LOOP_RETRIES; ++i )
+  {
+   res = Net_Send_Packet(pnd, brdcast, nb, NETOPT_NONBLOCK);
+   if ( res & NETOK_MASK ) break;
+   prc_delay(0);
+  }
+  for ( i = 0; i < LOOP_RETRIES; ++i )
+  {
+   if ( ( rnb = net_deq() ) != (Net_Buffer *)0 ) break;
+   prc_delay(0);
+  }
+  if ( rnb != (Net_Buffer *)0 )
+  {
+   char buf[60];
+   for ( i = 14; i < 256; i++) if ( rnb->data[i] != ( i - 12 ) ) break;
+   if ( i == 256 )
+    smc_putstr(" 242 bytes from ... ");
+   else
+    smc_putstr("Data error from ... ");
+   nsprintf(buf, sizeof(buf), "%02x %02x %02x %02x %02x %02x\n", 
+    rnb->data[6], rnb->data[7], rnb->data[8], rnb->data[9], rnb->data[10], rnb->data[11]);
+   smc_putstr( buf );
+   Net_Free_Buffer(rnb, NETOPT_NONBLOCK);
+  }
+a454 1
+
+d457 1
+d744 1
+a744 1
+STATIC const struct menu_d NET_LIST[] =
+d746 9
+a754 10
+    {"NETWORK TESTS", net_display},
+    {"NETWORK MONITOR",  net_monitor},
+    {"LOGICAL LOOPBACK", net_lloopback},
+    {"PHYSICAL LOOPBACK",   net_ploopback},
+    {"NETWORK LOOPBACK",  net_nloopback},
+    {"PING SERVER",  net_pong},
+    {"PING CLIENT",  net_ping},
+    {"WINDOW TEST",  net_win},
+
+    { 0, 0 }
+d760 1
+a760 1
+ return st_menu(&NET_LIST[0], sizeof(NET_LIST[0]), RED_PALB, 0);
+@
+
+
+1.3
+log
+@Implemented net_mon, net_ping, net_pong and some utility functions.
+@
+text
+@d24 1
+d29 2
+a30 2
+Net_Buffer *fnb;
+Net_Buffer *lnb;
+d56 1
+d77 28
+d108 8
+a115 1
+STATIC int win_x, win_y, win_w, win_h, win_r, win_c;
+d117 11
+a127 10
+STATIC void window(U32 x, U32 y, U32 w, U32 h)
+{
+ win_x = x;
+ win_x = max(win_x, 0);
+ win_y = y;
+ win_y = max(win_y, 0);
+ win_w = max(win_x, w);
+ win_h = max(win_y, h);
+ win_r = win_y;
+ win_c = win_w - win_x;
+d133 1
+a133 1
+ int i;
+a135 2
+ i = 0;
+
+d141 1
+a141 1
+   txt_str(win_x, win_r, txt, WHT_PAL);
+d143 6
+a148 1
+   if ( c == '\n' ) win_r = ( win_r == win_h ) ? win_y : ++win_r;
+d152 1
+a152 1
+  if ( i == win_c )
+d155 1
+a155 1
+   txt_str(win_x, win_r, txt, WHT_PAL);
+d157 3
+d166 2
+a167 1
+  txt_str(win_x, win_r, txt, WHT_PAL);
+d191 1
+d193 1
+a193 1
+   smc_putstr("Net_Get_Buffer allocation ok\n");
+d267 52
+d322 4
+d329 23
+d353 29
+a381 1
+ txt_str(-1, AN_VIS_ROW/2, "Not Implemented", WHT_PAL);
+d383 4
+a386 1
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+d395 4
+d402 20
+d423 2
+a424 1
+ txt_str(-1, AN_VIS_ROW/2, "Not Implemented", WHT_PAL);
+d426 1
+a426 1
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+d428 33
+d468 3
+d474 20
+d495 29
+a523 1
+ txt_str(-1, AN_VIS_ROW/2, "Not Implemented", WHT_PAL);
+d525 2
+a526 1
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+a544 1
+
+d577 1
+a577 1
+#define PONG_CB_CAPS ( CB_Will_Filter | CB_Will_Receive | NET_SEND_RAW)
+d587 1
+a587 1
+ window(14, 14, AN_VIS_COL-14, AN_VIS_ROW-14);
+d618 1
+a618 1
+      nsprintf(buf, sizeof(buf), "\nSend failed:  res = 0x%x.\n", res);
+d623 1
+a623 1
+      nsprintf(buf, sizeof(buf), "\nSending packet to:  %2x %2x %2x %2x %2x %2x.\n", 
+d629 1
+a629 1
+     Net_Free_Buffer(nb, NETOPT_NONBLOCK);
+d642 1
+a642 1
+#define PING_CB_CAPS ( CB_Will_Filter | CB_Will_Receive | CB_Will_TXResult | NET_SEND_RAW)
+a644 2
+STATIC const netadd brdcast = {0xff,0xff,0xff,0xff,0xff,0xff};
+
+d655 1
+a655 1
+ window(14, 14, AN_VIS_COL-14, AN_VIS_ROW-14);
+d686 1
+a686 1
+  nsprintf(buf, sizeof(buf), "\nCannot send discovery packet.\nResult = 0x%x.\n", res);
+d732 3
+a734 1
+ smc_putstr("\nIMHERE packet received.\n");
+d745 5
+d752 24
+a775 1
+  prc_delay(0);
+d785 28
+d822 1
+@
+
+
+1.2
+log
+@Added dummy net_init for now.
+@
+text
+@d19 5
+d28 37
+d67 4
+d75 58
+d139 22
+a160 1
+  txt_str(-1, AN_VIS_ROW/2, "Not Implemented", WHT_PAL);
+d167 16
+d190 13
+a202 1
+ txt_str(-1, AN_VIS_ROW/2, "Not Implemented", WHT_PAL);
+d204 12
+a215 1
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+d266 116
+d385 4
+d392 59
+d452 32
+a483 1
+ txt_str(-1, AN_VIS_ROW/2, "Not Implemented", WHT_PAL);
+d485 2
+a486 1
+ while ( ( ctl_read_sw(SW_NEXT) & SW_NEXT ) == 0 ) prc_delay(0);
+d494 1
+a494 1
+    {"NETWORK", net_display},
+d499 1
+a499 1
+    {"PING SERVER",  net_ping},
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d23 6
+@

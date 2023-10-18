@@ -1,0 +1,6390 @@
+head	1.47;
+access;
+symbols
+	MACE_1_0e:1.38.1.1
+	MACE_1_0d:1.38
+	AREA_52_00:1.41
+	MACE_1_0a:1.38;
+locks; strict;
+comment	@ * @;
+
+
+1.47
+date	97.11.27.01.27.00;	author todd;	state Exp;
+branches;
+next	1.46;
+
+1.46
+date	97.10.13.21.25.49;	author todd;	state Exp;
+branches;
+next	1.45;
+
+1.45
+date	97.08.30.00.02.16;	author todd;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	97.08.28.18.25.23;	author todd;	state Exp;
+branches;
+next	1.43;
+
+1.43
+date	97.08.16.04.16.22;	author todd;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	97.07.30.01.36.57;	author todd;	state Exp;
+branches;
+next	1.41;
+
+1.41
+date	97.07.17.03.25.39;	author shepperd;	state Exp;
+branches;
+next	1.40;
+
+1.40
+date	97.07.17.02.57.59;	author shepperd;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	97.07.07.18.33.13;	author todd;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	97.04.10.23.51.17;	author todd;	state Exp;
+branches
+	1.38.1.1;
+next	1.37;
+
+1.37
+date	97.04.10.18.06.48;	author todd;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	97.04.10.00.41.16;	author todd;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	97.04.10.00.25.14;	author todd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	97.03.07.22.02.37;	author todd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	97.03.07.01.20.59;	author todd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	97.02.27.04.04.45;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	97.02.21.00.06.40;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	97.02.20.21.55.44;	author todd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	97.01.15.00.56.00;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	97.01.14.02.49.50;	author todd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	97.01.10.01.24.26;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	97.01.09.01.39.05;	author todd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.11.19.01.45.08;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.09.30.22.40.32;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.09.25.23.05.41;	author todd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.09.25.17.48.33;	author todd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.09.24.19.21.35;	author todd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.09.24.18.03.44;	author todd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.09.24.01.47.52;	author todd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.09.24.00.10.01;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.09.23.20.03.52;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.09.23.18.06.39;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.09.18.18.07.21;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.09.17.03.28.36;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.09.07.01.57.36;	author todd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.09.06.00.55.01;	author todd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.08.20.19.17.10;	author todd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.08.14.02.40.34;	author todd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.08.07.22.34.14;	author todd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.07.25.03.22.07;	author todd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.07.22.22.59.54;	author todd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.07.22.22.38.43;	author todd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.07.19.21.47.19;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.07.18.17.35.06;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.07.09.01.04.39;	author todd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.07.01.18.28.50;	author todd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.06.05.22.15.02;	author shepperd;	state Exp;
+branches;
+next	;
+
+1.38.1.1
+date	97.08.16.16.11.57;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@First cut at Phoenix audio. Lots of work required here.
+@
+
+
+1.47
+log
+@Added func aud_LoadEngines();
+@
+text
+@/*
+ *	$Id: phx_audio.c,v 1.46 1997/10/13 21:25:49 todd Exp todd $
+ *
+ *		Copyright 1996 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+ *	'C' versions of basic audio control routines on a board with a separate
+ *	audio processor. This version for the Phoenix DSP audio board.
+ *
+ */
+#include <config.h>
+#include <stdarg.h>
+#include <os_proto.h>
+#include <eer_defs.h>
+#include <phx_audio_proto.h>
+#include <phx_audio_internal.h>
+		    
+#if !defined(SOUND_NEW_MAKEFILE)
+#include <phx_audio_selftest.c>
+#endif
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+#if !defined(SOUND_CALL_TABLE_SIZE)
+	#define SOUND_CALL_TABLE_SIZE 0x2010
+#endif
+
+#if !defined(SOUND_MAX_PARTITIONS)
+	#define SOUND_MAX_PARTITIONS 32
+#endif
+
+#if !defined(SOUND_TOTAL_DRAM)
+	#define SOUND_TOTAL_DRAM 0x00100000
+#endif
+
+
+int aud_load_partition_internal (int cmd,U8 *data,U16 type);
+int download_snd_table (char *table_addr, int start, int end,U16 type);
+int download_snd_bank (U8 *buffer, int start, int end,U16 type);
+int aud_load_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr,U16 type);
+int aud_block_load_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr,U16 type);
+int aud_load_bank_internal (U8 *data_buffer,U16 type);
+
+U32 auderr;
+
+#define MIN(a,b) {if (a<b) return(a); else return(b);}
+#define MAX(a,b) {if (a>b) return(a); else return(b);}
+
+#define STATIC static
+
+typedef unsigned short aud_t;
+#define MAX_AUD_TRIES	(0)		/* do not retry if output queue is busy */
+#define MAX_EXC_TRIES	(100)		/* at least 10us for exception response */
+#define MAX_RESET_TIME 	(30)		/* 30 fields, 1/2 second */
+#define CAGE_CTL (SND_BUF)
+#define RESETOK (0x000A)		/* first response from audio board */
+
+/*	Try to set a reasonable default for the location and size of the
+ *	Attract-mode volume ratio. This will only be used if EER_AUD_ATRVOL
+ *	is not defined.
+ */
+#ifndef AUD_AV_MSK
+# ifdef EER_GUTS_OPT
+#  define AUD_AV_MSK (3)
+#  define AUD_AV_SHF (0)
+# else
+#  define AUD_AV_MSK (0)
+# endif /* EER_GUTS_OPT defined */
+#endif /* AUD_AV_MSK defined */
+
+#ifndef SND_IDX_MSK
+# define SND_IDX_MSK 	(0x3F)
+#endif
+#ifndef AUD_MAX_TIME
+# define AUD_MAX_TIME 	(40000L)	/* about five frames without output */
+#endif
+
+extern U8 phx_audosys[], phx_audosys_e[];
+extern U8 phx_audcomp[], phx_audcomp_e[];
+extern U8 phx_auddmext[], phx_auddmext_e[];
+extern U8 phx_auddmint[], phx_auddmint_e[];
+
+#ifndef SOUND_CALL_TABLE_SIZE
+#define SOUND_CALL_TABLE_SIZE 0x1000
+#endif
+#define SOUND_MAX_PARTITIONS 32
+U32 snd_bank_data_start;
+U32 snd_bank_cmd_start;
+U32 snd_partition_data[SOUND_MAX_PARTITIONS];
+U32 snd_partition_cmd[SOUND_MAX_PARTITIONS];
+U32 snd_partition_index;
+U32 snd_partition_data_addr;
+U32 snd_partition_cmd_addr;
+U32 snd_bank_data_addr;
+U32 snd_bank_cmd_addr;
+U32 SOUND_TOP_ADDR;
+/***************************************************************************/
+/* IOASIC_BASE is defined in /home/sequoia/usr2/guts/3dfx/mace/phr4k/inc/config.h */
+/***************************************************************************/
+#define IO_ASIC_CONTROL_REGISTER (*((VU16*)IO_MAIN_CTL))
+#define SOUND_CONTROL_REGISTER   (*((VU16*)IO_H2SND_CTL))
+#define SOUND_PORT_GET_DATA      (*((VU16*)IO_SND2H_DTA))
+#define SOUND_PORT_FLAGS         (*((VU16*)IO_SND_STS))
+#define SOUND_PORT_PUT_DATA      (*((VU16*)IO_H2SND_DTA))
+/***************************************************************************/
+#define OK 0
+#define ERROR 1
+#define NULL 0
+#define MASK32 0xFFFFFFFF
+#define MASK16 0x0000FFFF
+#define SOUND_TIMEOUT 1000000
+#define MONITOR_READY 0x000A
+#define SOUND_PORT_SEND_READY 0x80
+#define SOUND_PORT_DATA_READY 0x40
+#define SOUND_LOAD_TYPE_PM 0x00000000
+#define SOUND_LOAD_TYPE_DM 0x00000001
+#define OPSYS_READY 0x000C
+/***************************************************************************/
+#define SOUND_CMD_LOAD  0x0000001A
+#define SOUND_CMD_RUN   0x0000002A
+#define LOAD_DRAM 0x55D0
+#define LOAD_DRAM_WITH_PLAYBACK 0x55D1
+/***************************************************************************/
+int soundHardwareReset(void);
+int soundGetWord(U16 *data);
+int soundPutWord(U16 data);
+/*****************************************************************************/
+/****************************************************************************
+    		streaming stubs, added to get past broken audio.a
+****************************************************************************/
+void strmInit() {;}
+void strmStartStreaming() {;}
+int strmCurrentBufferDonePlaying() {return 1;}
+void strmSwapBuffer() {return;}
+void strmSetupStreaming() {;}
+void strmStop() {;}
+void strmPause() {;}
+void strmResume() {;}
+void strmSetVolume() {;}
+int strmGetSampleRate() { return 42;}
+void synPrintJVcb() {return;}
+void aud_q_dump() {return;}
+int aud_q_mput(int num, ...) {return 0;}
+int aud_getErrorCount() {return 0;}
+void aud_pm() {return;}
+int aud_qlen(void) {return 0;}
+
+/*		aud_reset()
+ *	Resets audio processor and vital state.
+ */
+void aud_reset() {
+    return;
+}
+
+int aud_cmd(int st_val) {
+    return 0;
+}
+
+/*		aud_poll(usec)
+ *	Check on sound processor status, using usec as the amount of time 
+ *	since last check.  For queued sounds without CAGE style interrupts
+ *	this routine will send a sound too.
+ *	Return:
+ *		1 if a sound has been sent
+ *		0 if nothing to output 
+ *		-1 if sound system should not be running from last reset
+ *		-2 if sound subsystem was reset 
+ */
+
+int aud_poll(unsigned long time) {
+    return 0;
+}
+
+/*		aud_setvol(volume)				(audio.c)
+ *	Set the volume of sound.  A parameter of -1 will set the
+ *	volume to the value stored in EEPROM. 
+ *	Returns:
+ *		-1 for an error
+ *		<volume> that was set
+ */
+
+int aud_setvol(int volume) {
+    return -1;
+}
+
+/*		aud_irq()
+ *	Interrupt from sound processor.  Called from assembly after registers
+ *	saved.
+ */
+void aud_irq(void) {
+    return;
+}
+
+/*		aud_f_put(code)
+ *	Attempts to send <code> to the sound processor. 
+ *	Returns:
+ *		0 if sound process (from reset) or port is currently busy
+ *		1 if code sent
+ */
+int aud_f_put(int value) {
+    return 0;
+}
+
+/*		aud_excw(code,buf,cnt)
+ *	Handle an exception-mode transfer, in the "one byte out, 'cnt' bytes in"
+ *	way.
+ *	Returns:
+ *		0 if exception in progress or sound processor is in reset
+ *		1 if exception complete or under way
+ */
+int aud_excw(int code, void *buff, int count) {
+    return 0;
+}
+/*		aud_q_get() 
+ *	Returns:
+ *		-1 if no input available
+ *		else data from port
+ */
+long aud_q_get(void) {
+    return -1;
+}
+
+/*		aud_q_put(code)
+ *	Adds <code> to queue of "sounds" to play. <code> is assumed to be a
+ *	single aud_t. See aud_mput() for multi-aud_t commands. On a system with
+ *	external Audio, <code> will then be written to the port communicating
+ *	with the sound processor. On a host-based audio system, <code> will
+ *	be placed directly in the "action" queue of the sound process. 
+ *	Returns:
+ *		0 if no room
+ *		1 if on queue.
+ */
+int aud_q_put(int code) {
+    return 0;
+}
+
+
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int soundGetWord(unsigned int *data)                          */
+/*                                                                         */
+/*           Reads a single 16-bit word from the DSP.                      */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout                                              */
+/*                                                                         */
+/* note: This function polls a bit to determine when the port is ready,    */
+/*       this is a horible waste of time in a preemtive multitasking system*/
+/*       although this is probably the fastest way.                        */
+/***************************************************************************/
+int soundGetWord(U16 *data) {
+    U32 i;
+
+    i=eer_rtc;
+    while (!(SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) if (eer_rtc-i>2) {auderr=AUDERR_GET_XFER_TIMEOUT;return(ERROR);}
+
+    *data = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+
+    SOUND_PORT_GET_DATA = 0x0000; /* this statment should only be nessecarry for a c30 host */
+
+    return(OK);
+}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int soundPutWord(unsigned int data)                           */
+/*                                                                         */
+/*           Sends a single 16-bit word to the DSP.                        */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout                                              */
+/*                                                                         */
+/* note: This function polls a bit to determine when the port is ready,    */
+/*       this is a horible waste of time in a preemtive multitasking system*/
+/***************************************************************************/
+int soundPutWord(unsigned short data) {
+    int i;
+
+    i=eer_rtc;
+    while (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) if (eer_rtc-i>2) {auderr=AUDERR_XFER_TIMEOUT;return(ERROR);}
+
+    SOUND_PORT_PUT_DATA = data;
+    return(OK);
+}
+
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int soundLoadDM(char *buffer, int start, int end)             */
+/*                                                                         */
+/*           Transfers a block on memory from the host to the V++ DSP's	   */
+/*           Data Memory Segment (data width = 16 bits)                    */
+/*                                                                         */
+/* INPUTS:   char *buffer - The block of memory to xfer to the dsp         */
+/*           long start   - DSP Data Memory starting address 		       */
+/*           long end     - DSP Data Memory ending address                 */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout or checksum failure                          */
+/*                                                                         */
+/***************************************************************************/
+int soundLoadDM(U8 *buffer,U16 start,U16 end) {
+    S32 size;			/* number of 16-bit words to send */
+    S32 i;				/* counters for send loop */
+    U16 temp;
+    U32 checksum;			/* our computed checksum as data sent */
+
+    if (buffer == NULL) {auderr=AUDERR_NO_DATA;return(ERROR);}
+    if (start>=end) {auderr=AUDERR_START_GE_END;return(ERROR);}
+
+/* load command format:  command, start, end, type, data... , checksum */
+
+    if (soundPutWord(SOUND_CMD_LOAD) != OK) return(ERROR);
+    if (soundPutWord(start) != OK) return(ERROR);
+    if (soundPutWord(end) != OK) return(ERROR);
+    if (soundPutWord(SOUND_LOAD_TYPE_DM) != OK) return(ERROR);
+
+    size = (end - start + 1)*2;
+    checksum=0;
+    i=0;
+    while(i<size) {
+	temp = (((short)buffer[i++])&0x000000FF) <<8; 
+	temp = temp | (((short)buffer[i++])&0x000000FF);
+	checksum += temp;
+
+	if (soundPutWord(temp)!=OK)	return(ERROR);
+    }
+
+/* after the data is loaded, the sound DSP will return its */
+/* checksum... make sure it matches ours */
+    if (soundGetWord(&temp) != OK) return(ERROR);
+    if ((checksum & MASK16) != temp) {auderr=AUDERR_CHECKSUM;return(ERROR);}
+
+/* after the checksum, monitor should go back to ready mode */
+    if (soundGetWord(&temp) != OK ) {auderr=AUDERR_NO_ACK;return(ERROR);}
+    if (temp != MONITOR_READY) {auderr=AUDERR_BAD_ACK;return(ERROR);}
+
+    return(OK);
+}
+
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int soundLoadPM(char *buffer, int start, int end)             */
+/*                                                                         */
+/*           Transfers a block on memory from the host to the V++ DSP's	   */
+/*           Program Memory Segment (data width = 24 bits)                 */
+/*                                                                         */
+/* INPUTS:   char *buffer - The block of memory to xfer to the dsp         */
+/*           long start   - DSP Data Memory starting address 		       */
+/*           long end     - DSP Data Memory ending address                 */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout or checksum failure                          */
+/*                                                                         */
+/***************************************************************************/
+int soundLoadPM(U8 *buffer,U16 start,U16 end) {
+    S32 size;			/* number of 16-bit words to send */
+    S32 i;				/* counters for send loop */
+    U16 temp,temp2;
+    U32 checksum;			/* our computed checksum as data sent */
+
+    if (buffer == NULL) {auderr=AUDERR_NO_DATA;return(ERROR);}
+    if (start>=end) {auderr=AUDERR_START_GE_END;return(ERROR);}
+
+/* for each 24-bit word sent to the sound DSP */
+/* we actually send two 16-bit words */
+
+    size = (end - start + 1) * 3;
+
+/* send the load command */
+/* format is command, start, end, type, data... return(checksum) */
+
+    if (soundPutWord (SOUND_CMD_LOAD) != OK) return(ERROR);
+    if (soundPutWord (start) != OK) return(ERROR);
+    if (soundPutWord (end) != OK) return(ERROR);
+    if (soundPutWord (SOUND_LOAD_TYPE_PM) != OK) return(ERROR);
+
+    i = 0;
+    checksum = 0;
+    while (i<size) {
+	temp = (((short)buffer[i++])&0x000000FF) <<8;
+	temp = temp | (((short)buffer[i++])&0x000000FF);
+	checksum += temp;
+	if (soundPutWord(temp)!=OK) return(ERROR);
+
+	temp2= buffer[i++] | 0x0000FF00;
+	checksum += temp2;
+	if (soundPutWord(temp2)!=OK) return(ERROR);
+    }
+
+/* after the data is loaded, the sound DSP will return its */
+/* checksum... make sure it matches ours */	
+    if (soundGetWord(&temp) != OK) return(ERROR);
+    if ((checksum & MASK16) != temp) {auderr=AUDERR_CHECKSUM;return(ERROR);}
+
+/* after the checksum, monitor should go back to ready mode */
+    if (soundGetWord(&temp) != OK ) {auderr=AUDERR_NO_ACK;return(ERROR);}
+    if (temp != MONITOR_READY) {auderr=AUDERR_BAD_ACK;return(ERROR);}
+
+    return(OK);
+}
+
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int soundHardwareReset(void)                                  */
+/*                                                                         */
+/*           Performs a hardware reset of the audio subsystem              */
+/*                                                                         */
+/* RETURNS: OK if successful                                               */
+/*          ERROR if the ack does not come back.                           */
+/*                                                                         */
+/***************************************************************************/
+int soundHardwareReset(void) {
+    
+    U16 sound_ack;
+
+	auderr=AUDERR_NEEDS_RESET;
+/* reset bit is bit 0 of I/O ASIC  */
+    SOUND_CONTROL_REGISTER &= (~1);
+    sound_ack=SOUND_PORT_GET_DATA; /* clear the read latch, just in case */
+    prc_delay(2);
+    SOUND_CONTROL_REGISTER |= (1);
+    prc_delay(1);
+
+/* wait for the acknoledgement */
+
+	if (soundGetWord(&sound_ack)!=OK) return(ERROR);
+    if (sound_ack != MONITOR_READY) {auderr=AUDERR_BAD_ACK;return(ERROR);}
+	
+    return(OK);
+}
+/***************************************************************************/
+
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int soundSoftwareReset(void)                                  */
+/*                                                                         */
+/* Loads the os software to the V-- system                                 */
+/*                                                                         */
+/* The sound operating system consists of four files:                      */
+/* 1. _comp.bin - 24-bit external program memory image                     */
+/* 2. _osys.bin - 24-bit internal on-chip memory image                     */
+/* 3. dm_ext.bin - 16-bit external data memory image                       */
+/* 4. dm_int.bin - 16-bit internal on-chip memory image                    */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout                                              */
+/*                                                                         */
+/***************************************************************************/
+int soundSoftwareReset(void) {
+    U16 retval;
+
+    if (soundLoadDM(phx_auddmext,0x0800, 0x37ff)) return(ERROR); 
+    if (soundLoadDM(phx_auddmint, 0x3800, 0x39ff)) return(ERROR); 
+    if (soundLoadPM(phx_audcomp, 0x2800, 0x37ff)) return(ERROR);
+    if (soundLoadPM(phx_audosys,0,0x3ff)) return(ERROR); /* load this one last */
+
+    if(soundPutWord(0x002A)) return(ERROR);
+    if(soundGetWord(&retval)) return(ERROR);
+    if ((retval) != OPSYS_READY)  {auderr=AUDERR_BAD_ACK;return(ERROR);}
+	auderr=AUDERR_AUD_OK;
+    return(OK);
+}
+/***************************************************************************/
+int soundCustomSoftwareReset(U8 *comp , U8 *osys , U8 *dm_ext , U8 *dm_int)
+{
+U16 retval;
+int x;
+int er;
+
+x=0;
+er=1;
+
+while (x<5 && er!=0)
+	{
+	er=0;
+    if (soundHardwareReset()) er++;
+    if (!er) if (soundLatchTest()) er++;  /* if latch test fails, reset hardware, try again */
+	x++;
+	}
+if(x>=5) {return(ERROR);}
+
+
+if (soundLoadDM(dm_ext,0x0800, 0x37ff)) return(ERROR); 
+if (soundLoadDM(dm_int, 0x3800, 0x39ff)) return(ERROR); 
+if (soundLoadPM(comp, 0x2800, 0x37ff)) return(ERROR);
+if (soundLoadPM(osys,0,0x3ff)) return(ERROR); /* load this one last */
+
+if(soundPutWord(0x002A)) return(ERROR);
+if(soundGetWord(&retval)) return(ERROR);
+if ((retval) != OPSYS_READY)  {auderr=AUDERR_BAD_ACK;return(ERROR);}
+auderr=AUDERR_AUD_OK;
+
+aud_clear_all();
+aud_attract_volume();
+return(OK);
+}
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/* NOTE; after hearing Ed Keenin's (V++ DSP Programmer) speach about how busy
+         he is with war gods and how he should not be contacted, I managed
+	 to convice him that it would be easier for him just to give me 5
+	 minutes of his time to help us debug the V++ system.  Two minutes
+	 into the debugging help (and 10 minutes into the call) he mentioned
+	 several useful commands that the epproms boot code contained.
+	 These under documented features are used in the functions below  */
+
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int soundRamTest(void)                                        */
+/*                                                                         */
+/*           Test all three S/RAM chips and the two banks of D/RAM         */
+/*                                                                         */
+/* INPUTS:  0 test SRAM / DRAM bank 0                                      */
+/*          bit 0 Test SRAM                                                */
+/*          bit 1 Test DRAM bank 0                                         */
+/*          bit 2 Test DRAM bank 1                                         */
+/*                                                                         */
+/* RETURNS: OK if successful                                               */
+/*          1 if SRAM #1 is faulty.                                        */
+/*          2 if SRAM #2 is faulty.                                        */
+/*          3 if SRAM #3 is faulty.                                        */
+/*          4 if DRAM Bank 0 is faulty.                                    */
+/*          5 if DRAM Bank 1 is faulty.                                    */
+/*          9 unknown error code.                                          */
+/*          <0 if a communication error occured.                           */
+/*                                                                         */
+/***************************************************************************/
+/* note: this call is only valid BEFORE the DCS OS is loaded and run */
+int soundRamTest(int code) {
+    U16 sound_data;
+    U16 sound_ack;
+
+/* test SRAM */
+if (code==0 || code & 1)
+	{
+    if (soundPutWord(0x003A) != OK) return(-1);
+    prc_delay(10); /* Give the command a bit of time to complete */
+    if (soundGetWord(&sound_data)) return(-2);
+    prc_delay(1); 
+    if (soundGetWord(&sound_ack)) return(-3);
+    if (sound_data != 0xCC01) 
+    	{
+		if((sound_data & 0xFF00) != 0xEE00) return(9);
+		else return(0x00FF & sound_data);
+    	}
+    if (sound_ack != MONITOR_READY) return(-4);
+	}
+
+/* test DRAM  bank 0 */
+if (code==0 || code & 2)
+	{
+    if (soundPutWord(0x004A) != OK) return(-5);
+    prc_delay(150); /* Give the command a bit of time to complete */
+    if (soundGetWord(&sound_data)) return(-6);
+    prc_delay(1); 
+    if (soundGetWord(&sound_ack)) return(-7);
+    if (sound_data == 0xEE04) return(4);
+    else if (sound_data != 0xCC02) return(9);
+    if (sound_ack != MONITOR_READY) return(-8);
+	}
+
+/* test DRAM bank 1 (NOTE: bank 1 is optional)*/
+    if (code & 4) {
+	if (soundPutWord(0x005A) != OK) return(-9);
+	prc_delay(150); /* Give the command a bit of time to complete */
+	if (soundGetWord(&sound_data)) return(-10);
+    prc_delay(1); 
+	if (soundGetWord(&sound_ack)) return(-11);
+	if (sound_data == 0xEE05) return(5);
+	else if (sound_data != 0xCC03) return(9);
+	if (sound_ack != MONITOR_READY) return(-12);
+    }
+    return(OK);
+}
+
+/***************************************************************************/
+/* note: this call is only valid BEFORE the OS is loaded and run */
+
+int soundGetPMChecksum(U16 *retval) {
+    U16 sound_ack;
+
+    if (soundPutWord(0x009A) != OK) return(ERROR);
+    if (soundGetWord(retval)) return(ERROR);
+    if (soundGetWord(&sound_ack)) return(ERROR);
+    if (sound_ack != MONITOR_READY) return(ERROR);
+    return(OK);
+}
+
+/***************************************************************************/
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundGetAsicRev(U16 *retval) {
+    U16 sound_ack;
+
+    if (soundPutWord(0x007A) != OK) return(ERROR);
+    if (soundGetWord(retval)) return(ERROR);
+    if (soundGetWord(&sound_ack)) return(ERROR);
+    if (sound_ack != MONITOR_READY) return(ERROR);
+    return(OK);
+}
+
+/***************************************************************************/
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundGetEppromRev(U16 *retval) {
+    U16 sound_ack;
+
+    if (soundPutWord(0x006A) != OK) return(ERROR);
+    if (soundGetWord(retval)) return(ERROR);
+    if (soundGetWord(&sound_ack)) return(ERROR);
+    if (sound_ack != MONITOR_READY) return(ERROR);
+    return(OK);
+}
+
+/***************************************************************************/
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundLatchTest(void) {
+    U16 retval;
+    U16 sound_ack;
+    int i;
+
+/* walking ones test */
+    for (i=0;i<16;i++) {
+	if (soundPutWord(0x008A) != OK) return(ERROR);
+	if (soundPutWord((1<<i)) != OK) return(ERROR);
+	if (soundGetWord(&retval)) return(ERROR);
+	if (soundGetWord(&sound_ack)) return(ERROR);
+	if (((1<<i)&0x0000FFFF) != ((~retval)&0x0000FFFF)) return(-(i+1));
+	if (sound_ack != MONITOR_READY) return(ERROR);
+    }
+	
+/* walking zeros test */
+
+    for (i=0;i<16;i++) {
+	if (soundPutWord(0x008A) != OK) return(ERROR);
+	if (soundPutWord((~(1<<i))) != OK) return(ERROR);
+	if (soundGetWord(&retval)) return(ERROR);
+	if (soundGetWord(&sound_ack)) return(ERROR);
+	if ((1<<i) != (retval)) return(-(i+1));
+	if (sound_ack != MONITOR_READY) return(ERROR);
+    }
+
+    return(OK);
+}
+
+/***************************************************************************/
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundInternalPMChecksum(U16 *retval) {
+    U16 sound_ack;
+
+    if (soundPutWord(0x009A) != OK) return(ERROR);
+    if (soundGetWord(retval)) return(ERROR+1);
+    if (soundGetWord(&sound_ack)) return(ERROR+2);
+    if (sound_ack != MONITOR_READY) return(-sound_ack);
+    return(OK);
+}
+
+/***************************************************************************/
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundEppromBong(void)  { /* blurb blurb blurb */ 
+    U16 sound_ack;
+
+    if (soundPutWord(0x00AA) != OK) return(ERROR);
+    prc_delay(100); /* wait for bonk to finish */
+    if (soundGetWord(&sound_ack)) return(ERROR);
+    if (sound_ack != 0xCC04) return(ERROR);
+    if (soundGetWord(&sound_ack)) return(ERROR);
+    if (sound_ack != MONITOR_READY) return(ERROR);
+
+    return(OK);
+}
+
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+void aud_clear_all(void) {
+    int x;
+    U16 data;
+
+    for(x=0;x<SOUND_MAX_PARTITIONS;x++) {
+	snd_partition_data[x]=-1;
+	snd_partition_cmd[x]=-1;
+    }
+    snd_partition_index=0;
+    snd_partition_data[0]=SOUND_CALL_TABLE_SIZE;
+    snd_partition_cmd[0]=2;
+
+    snd_partition_data_addr = SOUND_CALL_TABLE_SIZE;
+    snd_partition_cmd_addr = 2;
+
+    snd_bank_data_start=-1;
+    snd_bank_cmd_start=-1;
+    snd_bank_data_addr = -1;
+    snd_bank_cmd_addr = -1;
+
+    while ((SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) 
+    	{
+		data = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+		prc_delay(0);
+		auderr=AUDERR_WARNING_DATA_LEFT_ON_LATCH;
+	    }
+}
+
+/***************************************************************************/
+void aud_clear_all_banks() {
+    U16 data;
+
+    snd_bank_data_start=-1;
+    snd_bank_cmd_start=-1;
+    snd_bank_data_addr = -1;
+    snd_bank_cmd_addr = -1;
+
+    while ((SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) 
+    	{
+		data = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+		prc_delay(0);
+		auderr=AUDERR_WARNING_DATA_LEFT_ON_LATCH;
+	    }
+}
+
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: aud_load_bank()                                               */
+/*                                                                         */
+/* Loads a .BNK sound bank file from the disk. Computes and stores the     */
+/* sound call table, and stores the compressed data.                       */
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int aud_load_bank_internal (U8 *data_buffer,U16 type) 
+	{
+    unsigned int temp;
+    int num_calls;
+    int bank_size;
+    int retval;
+
+	if(data_buffer==0) {auderr=AUDERR_NO_DATA;return(0);}
+
+    if (snd_bank_cmd_start==-1) 
+    	{
+		if (aud_bank_data_size(data_buffer) > (SOUND_TOP_ADDR*2-snd_partition_data_addr))
+			{auderr=AUDERR_WONT_FIT;return(0);}	   
+		snd_bank_cmd_start=snd_partition_cmd_addr;
+		snd_bank_data_start=snd_partition_data_addr;
+		snd_bank_data_addr = snd_partition_data_addr;
+		snd_bank_cmd_addr = snd_partition_cmd_addr;
+	    }
+ 	else if (aud_bank_data_size(data_buffer) > (SOUND_TOP_ADDR*2-snd_bank_data_addr))
+		{auderr=AUDERR_WONT_FIT;return(0);}
+ 	
+
+    retval=aud_load_internal(data_buffer,snd_bank_cmd_addr, snd_bank_data_addr,type);
+
+	if (retval)
+		{ 
+	    num_calls=aud_bank_cmd_size(data_buffer);
+   		bank_size=aud_bank_data_size(data_buffer);
+
+    	snd_bank_cmd_addr = (snd_bank_cmd_addr + (2 * num_calls) - 1) + 1;
+    	temp = (snd_bank_data_addr / 2) + (bank_size / 2) + 1;
+    	snd_bank_data_addr = (temp + 1) * 2;
+		}
+    return(retval);
+	}
+/***************************************************************************/
+int aud_load_bank (U8 *data_buffer) 
+	{
+	aud_stop_all_sounds();
+    return(aud_load_bank_internal(data_buffer,LOAD_DRAM));
+	}
+/***************************************************************************/
+int aud_load_bank_with_playback (U8 *data_buffer) 
+	{
+    return(aud_load_bank_internal(data_buffer,LOAD_DRAM_WITH_PLAYBACK));
+	}
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int aud_make_partition (int cmd_size,int data_size) 
+	{
+    if (snd_bank_cmd_start!=-1) {auderr=AUDERR_BANK_LOADED_PARTITION_FAILED;return(0);} /* bank already loaded, partitions locked */
+    if (snd_partition_index>=SOUND_MAX_PARTITIONS) {auderr=AUDERR_TOO_MANY_PARTITIONS;return(0);}
+
+    snd_partition_index++;
+
+    snd_partition_data_addr=snd_partition_data_addr+data_size+2;
+    snd_partition_data[snd_partition_index]=snd_partition_data_addr;
+
+    snd_partition_cmd_addr=snd_partition_cmd_addr+(cmd_size*2)+2;
+    snd_partition_cmd[snd_partition_index]=snd_partition_cmd_addr;
+
+    return(snd_partition_cmd[snd_partition_index-1]/2);
+	}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int aud_load_partition (int cmd,U8 *data) 
+	{
+	aud_stop_all_sounds();
+	return(aud_load_partition_internal(cmd,data,LOAD_DRAM));
+	}
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int aud_load_partition_with_playback (int cmd,U8 *data) 
+	{
+	return(aud_load_partition_internal(cmd,data,LOAD_DRAM_WITH_PLAYBACK));
+	}
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int aud_load_partition_internal (int cmd,U8 *data,U16 type) 
+	{
+    int x;
+    int retval;
+
+    if (data==0) {auderr=AUDERR_NO_DATA;return(0);}
+
+	if (aud_bank_data_size(data) > (SOUND_TOP_ADDR*2-(snd_partition_data_addr)))
+		{auderr=AUDERR_WONT_FIT;return(0);}
+
+    retval=0;
+
+    if (cmd==0) 
+    	{
+		if (snd_bank_cmd_start!=-1) {auderr=AUDERR_BANK_LOADED_PARTITION_FAILED;return(0);}
+		if (snd_partition_index>=SOUND_MAX_PARTITIONS) {auderr=AUDERR_TOO_MANY_PARTITIONS;return(0);}
+	
+		retval=aud_load_internal(data,snd_partition_cmd_addr,snd_partition_data_addr,type);
+
+		if (retval) 
+			{
+		    snd_partition_cmd_addr=snd_partition_cmd_addr+(aud_bank_cmd_size(data)*2);
+		    snd_partition_data_addr=snd_partition_data_addr+aud_bank_data_size(data)+2;
+
+		    snd_partition_index++;
+
+		    snd_partition_data[snd_partition_index]=snd_partition_data_addr;
+	    	snd_partition_cmd[snd_partition_index]=snd_partition_cmd_addr;
+			}
+		return(retval);
+    	}
+
+    for (x=0;x<SOUND_MAX_PARTITIONS;x++) 
+    	{
+		if (snd_partition_cmd[x]==(cmd*2)) 
+			{
+		    if(aud_bank_cmd_size(data) > ((snd_partition_cmd[x+1]-snd_partition_cmd[x])/2)) {auderr=AUDERR_PARTITION_CMD_TOO_BIG;return(0);}
+		    if(aud_bank_data_size(data) > ((snd_partition_data[x+1]-snd_partition_data[x]))) {auderr=AUDERR_PARTITION_DATA_TOO_BIG;return(0);}
+
+		    retval=aud_load_internal(data,snd_partition_cmd[x],snd_partition_data[x],type);
+
+		    return(retval);
+			}
+	    }
+	auderr=AUDERR_COULD_NOT_FIND_PARTITION;
+    return(0);
+	}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int aud_load_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr,U16 type) 
+	{
+    unsigned int temp1,temp2;
+    U32 sound_call_table[1024];  /* fix me!! */
+
+    int num_calls;
+    int bank_size;
+    int pos;
+    int i;
+
+    int retval;
+
+	if (data_buffer == NULL) {auderr=AUDERR_NO_DATA;return(0);}
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) {auderr=AUDERR_WRONG_LOAD_TYPE;return(0);}
+
+	/* there is a 128 byte header that we can ignore */
+	/* number of sound calls in the bank is stored in first data loc */
+
+    num_calls=aud_bank_cmd_size(data_buffer);
+    bank_size=aud_bank_data_size(data_buffer);
+    pos=134;
+	if (num_calls >= (1024>>1)) {auderr=AUDERR_INVALID_DATA;return(0);}
+	if (bank_size > (1024*1024*8)) {auderr=AUDERR_INVALID_DATA;return(0);}
+
+#if 0
+	/* the table could be sparse, so be safe */
+    for (i=0; i < num_calls; i++) sound_call_table[i] = 1;
+#endif
+	/* create the local, relocated sound call table */
+    for (i=0; i < num_calls; i++) 
+    	{
+		temp1 = data_buffer[pos++];
+		temp1 += (data_buffer[pos++] << 8);
+		temp1 += (data_buffer[pos++] << 16);
+		temp1 += (data_buffer[pos++] << 24);
+
+		/* relative to last ending point */
+		if (temp1 != MASK32) temp1 = temp1 + data_addr;
+		sound_call_table[i] = temp1;
+    	}
+
+    temp1 = cmd_addr;
+    retval= cmd_addr/2;
+    temp2 = cmd_addr + (2 * num_calls) - 1;
+
+    if ((download_snd_table ((char *)&sound_call_table[0], temp1, temp2,type)) != OK) return(0);
+
+/* startin	 g address of D/RAM to load */
+/* note the "addressing compensation" div by 2 */
+    temp1 = data_addr / 2;
+    temp2 = temp1 + (bank_size) / 2 + 1;
+/* k still holds the index into the buffer loaded from disk */
+    if ((download_snd_bank((&data_buffer[pos]), temp1, temp2,type)) != OK) return (0);
+
+    return(retval);
+   	}
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+
+int download_snd_table (char *table_addr, int start, int end,U16 type) {
+    int i;
+    unsigned int size;
+    unsigned int checksum;
+    U16 table_checksum;
+    U16 temp;
+    U16 temp2;
+
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) {auderr=AUDERR_WRONG_LOAD_TYPE;return(ERROR+3);}
+	if (start>=end) {auderr=AUDERR_START_GE_END;return(ERROR);}
+	
+	size = (end - start + 1)*2;                 
+
+    if (soundPutWord(type) != OK) return(ERROR+4);           
+
+/* send the starting load address */
+    if (soundPutWord((start >> 16) & MASK16) != OK) return(ERROR+5);         
+    if (soundPutWord(start & MASK16) != OK) return(ERROR+6);         
+
+/* send the ending load address */
+    if (soundPutWord((end >> 16) & MASK16) != OK) return(ERROR+7);         
+    if (soundPutWord(end & MASK16) != OK) return(ERROR+8);         
+
+/* now send the data */
+
+    i = 0;
+    checksum = 0;
+
+    while (i < size) {
+	temp=(table_addr[i++] &0x00FF);
+	temp=temp|((table_addr[i++] &0x00FF)<<8);
+	temp2=(table_addr[i++] &0x00FF);
+	temp2=temp2|((table_addr[i++] &0x00FF)<<8);
+	if (soundPutWord(temp2)!= OK) return(ERROR+9);
+	if (soundPutWord(temp)!= OK) return(ERROR+10);
+	checksum += temp;
+	checksum += temp2;
+    }
+#if 0
+    for (j= 0; j < size; j++) {
+	temp=(table_addr[i++]) << 8;
+	temp=temp|(table_addr[i++]&0x00FF);
+	if (soundPutWord(temp)!= OK) return(ERROR+9);
+	checksum += temp;
+    }
+#endif
+
+    if (soundGetWord(&table_checksum)!= OK) return(ERROR+11);         
+    if ((checksum & MASK16) != table_checksum) {auderr=AUDERR_CHECKSUM;return(ERROR+12);}
+
+    return(OK);
+}
+
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+
+int download_snd_bank (U8 *buffer, int start, int end,U16 type) { 
+    int i,j;
+    unsigned int size;
+    unsigned int checksum;
+    U16 bank_checksum;
+    U16 temp;
+
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) {auderr=AUDERR_WRONG_LOAD_TYPE;return(ERROR+3);}
+	if (start>=end) {auderr=AUDERR_START_GE_END;return(ERROR);}
+	if (soundPutWord(type) != OK) return(ERROR+12);           
+
+    if (soundPutWord((start >> 16) & MASK16) != OK) return(ERROR+13);         
+    if (soundPutWord(start & MASK16) != OK) return(ERROR+14);         
+
+    if ((soundPutWord(end >> 16) & MASK16) != OK) return(ERROR+15);        
+    if ((soundPutWord(end & MASK16)) != OK) return(ERROR+16);         
+
+/* now send the data */
+    i = 0;
+
+    checksum = 0;
+
+    size = (end - start + 1);
+    checksum=0;
+    i=0;
+/*while(i<=size) */
+    for (j= 0; j < size; j++) {
+	if (!(j&0x000007FF)) WDOG=0;
+	temp = (((short)buffer[i++])&0x000000FF) <<8; 
+	temp = temp | (((short)buffer[i++])&0x000000FF);
+	checksum += temp;
+	if (soundPutWord(temp)!=OK)	return(ERROR+17);
+    } 
+
+    if((soundGetWord(&bank_checksum))!=OK) return(ERROR+18);         
+    if ((checksum & MASK16) != bank_checksum) {auderr=AUDERR_CHECKSUM;return(ERROR+12);}
+
+    return(OK);
+}
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+struct aud_queue_instance aqi;
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int aud_block_load_partition_internal (int cmd,U8 *data,U16 type) 
+	{
+	int x;
+    int retval;
+
+	if (data == NULL) {auderr=AUDERR_NO_DATA;return(0);}
+    retval=0;
+
+    if (cmd==0) 
+    	{
+		if (snd_bank_cmd_start!=-1) {auderr= AUDERR_BANK_LOADED_PARTITION_FAILED;return(0);}
+		if (snd_partition_index>=SOUND_MAX_PARTITIONS) {auderr=AUDERR_TOO_MANY_PARTITIONS;return(0);}
+	
+		retval=aud_block_load_internal(data,snd_partition_cmd_addr,snd_partition_data_addr,type);
+
+		if (retval) 
+			{
+		    snd_partition_cmd_addr=snd_partition_cmd_addr+(aud_bank_cmd_size(data)*2);
+		    snd_partition_data_addr=snd_partition_data_addr+aud_bank_data_size(data)+2;
+
+		    snd_partition_index++;
+
+		    snd_partition_data[snd_partition_index]=snd_partition_data_addr;
+	    	snd_partition_cmd[snd_partition_index]=snd_partition_cmd_addr;
+			}
+		return(retval);
+    	}
+
+    for (x=0;x<SOUND_MAX_PARTITIONS;x++) 
+    	{
+		if (snd_partition_cmd[x]==(cmd*2)) 
+			{
+ 			retval=aud_block_load_internal(data,snd_partition_cmd[x],snd_partition_data[x],type);
+
+		    return(retval);
+			}
+	    }
+	auderr=AUDERR_COULD_NOT_FIND_PARTITION;
+    return(0);
+	}
+/***************************************************************************/
+int aud_block_load_bank_internal (U8 *buff,U16 type) 
+	{
+    unsigned int temp;
+    int num_calls;
+    int bank_size;
+    int retval;
+
+	if (buff == NULL) {auderr=AUDERR_NO_DATA;return(0);}
+
+    if (snd_bank_cmd_start==-1) 
+    	{
+		snd_bank_cmd_start=snd_partition_cmd_addr;
+		snd_bank_data_start=snd_partition_data_addr;
+		snd_bank_data_addr = snd_partition_data_addr;
+		snd_bank_cmd_addr = snd_partition_cmd_addr;
+	    }
+
+    retval=aud_block_load_internal(buff,snd_bank_cmd_addr, snd_bank_data_addr,type);
+	
+	if (retval)
+		{ 
+	    num_calls=aqi.cmd_size;
+   		bank_size=aqi.data_size;
+
+    	snd_bank_cmd_addr = (snd_bank_cmd_addr + (2 * num_calls) - 1) + 1;
+    	temp = (snd_bank_data_addr / 2) + (bank_size / 2) + 1;
+    	snd_bank_data_addr = (temp + 1) * 2;
+		}
+    return(retval);
+	}
+/***************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int aud_block_load_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr,U16 type) 
+	{
+    unsigned int temp1,temp2;
+    U32 sound_call_table[1024];  /* fix me!! */
+
+    int num_calls;
+    int bank_size;
+    int pos;
+    int i;
+
+    int retval;
+
+	if (data_buffer == NULL) {auderr=AUDERR_NO_DATA;return(0);}
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) {auderr=AUDERR_WRONG_LOAD_TYPE;return(0);}
+
+    num_calls=aqi.cmd_size;
+	bank_size=aqi.data_size;
+
+    pos=0;
+	if (num_calls >= (1024>>1)) return(0);
+	if (bank_size > (1024*1024*8)) return(0);
+
+	/* create the local, relocated sound call table */
+    for (i=0; i < num_calls; i++) 
+    	{
+		temp1 = data_buffer[pos++];
+		temp1 += (data_buffer[pos++] << 8);
+		temp1 += (data_buffer[pos++] << 16);
+		temp1 += (data_buffer[pos++] << 24);
+
+		/* relative to last ending point */
+		if (temp1 != MASK32) temp1 = temp1 + data_addr;
+		sound_call_table[i] = temp1;
+    	}
+
+    temp1 = cmd_addr;
+    retval= cmd_addr/2;
+    temp2 = cmd_addr + (2 * num_calls) - 1;
+
+    if ((download_snd_table ((char *)&sound_call_table[0], temp1, temp2,type)) != OK) return(0);
+
+/* startin	 g address of D/RAM to load */
+/* note the "addressing compensation" div by 2 */
+    temp1 = data_addr / 2;
+    temp2 = temp1 + (bank_size) / 2 + 1;
+
+	aqi.checksum=0;
+	aqi.xfer= (bank_size + 4);
+
+	if (soundPutWord(type) != OK) return(0);           
+	
+	if (soundPutWord((temp1 >> 16) & MASK16) != OK) return(0);         
+    if (soundPutWord(temp1 & MASK16) != OK) return(0);         
+	
+	if ((soundPutWord(temp2 >> 16) & MASK16) != OK) return(0);        
+    if ((soundPutWord(temp2 & MASK16)) != OK) return(0);         
+	
+ 	return(cmd_addr/2);
+	}
+/***************************************************************************/
+/*****************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+int audInitBlockedLoad(U8 *buff,int size)
+	{
+	if (buff == NULL) {auderr=AUDERR_NO_DATA;return(0);}
+	if (size!=134) {auderr=AUDERR_WRONG_DATA_SIZE;return(0);}
+	
+	if (snd_bank_data_addr!=-1)
+		{
+		if (aud_bank_data_size(buff) > (SOUND_TOP_ADDR*2-snd_bank_data_addr))
+			{auderr=AUDERR_WONT_FIT;return(0);}
+		}
+	else if (aud_bank_data_size(buff) > (SOUND_TOP_ADDR*2-snd_partition_data_addr))
+			{auderr=AUDERR_WONT_FIT;return(0);}
+
+	aqi.cmd_size = aud_bank_cmd_size(buff);
+	aqi.data_size=aud_bank_data_size(buff);
+	return(aqi.cmd_size<<2);
+	}
+/***************************************************************************/
+int audPreloadBlockedBankLoadWithPlayback(U8 *buff,int len)
+	{
+	if (len!=(aqi.cmd_size<<2)) {auderr=AUDERR_WRONG_DATA_SIZE;return(0);}
+    return(aud_block_load_bank_internal(buff,LOAD_DRAM_WITH_PLAYBACK));
+	}
+/***************************************************************************/
+int audPreloadBlockedBankLoad(U8 *buff,int len)
+	{
+	if (len!=(aqi.cmd_size<<2)) {auderr=AUDERR_WRONG_DATA_SIZE;return(0);}
+	aud_stop_all_sounds();
+    return(aud_block_load_bank_internal(buff,LOAD_DRAM));
+	}
+/***************************************************************************/
+int audPreloadBlockedPartitionLoad(U16 cmd,U8 *buff,int len)
+	{
+	if (len!=(aqi.cmd_size<<2)) {auderr=AUDERR_WRONG_DATA_SIZE;return(0);}
+	aud_stop_all_sounds();
+    return(aud_block_load_partition_internal(cmd,buff,LOAD_DRAM));
+	}
+/***************************************************************************/
+int audPreloadBlockedPartitionLoadWithPlayback(U16 cmd,U8 *buff,int len)
+	{
+	if (len!=(aqi.cmd_size<<2)) {auderr=AUDERR_WRONG_DATA_SIZE;return(0);}
+	return(aud_block_load_partition_internal(cmd,buff,LOAD_DRAM_WITH_PLAYBACK));
+	}
+/*****************************************************************************/
+int audLoadBlock(U8 *buffer,int size)
+	{
+	int j;
+	U16 temp;
+	if (buffer == NULL) {auderr=AUDERR_NO_DATA;return(0);}
+
+	if (size>aqi.xfer) size=aqi.xfer;
+    for (j= 0; j < size; )
+       	{
+       	temp = (((short)buffer[j++])&0x000000FF) <<8; 
+		temp = temp | (((short)buffer[j++])&0x000000FF);
+		aqi.checksum += temp;
+
+		if (soundPutWord(temp)!=OK)	return(-1);
+    	}
+
+	aqi.xfer -= size;
+
+	if (aqi.xfer==0)
+		{
+		if((soundGetWord(&temp))!=OK)
+			if((soundGetWord(&temp))!=OK)
+				if((soundGetWord(&temp))!=OK) 
+					if((soundGetWord(&temp))!=OK)
+						if((soundGetWord(&temp))!=OK) return(-2);
+		if ((aqi.checksum & MASK16) != temp) {auderr=AUDERR_CHECKSUM;return(-3);}
+		}
+	return(aqi.xfer);
+	}
+/************************************************************************/
+int audGetExtendedError(void)
+{
+return(auderr);
+}
+/************************************************************************/
+void audClearExtendedError(void)
+{
+auderr=AUDERR_AUD_OK;
+}
+/************************************************************************/
+/*****************************************************************************/
+#if 0
+#define BLK_SIZE (48)
+int block_test(const struct menu_d *smp) 
+	{
+    int idx;
+	int i,pos,len;
+	U16 temp;
+
+    if (!aud_init(0)) return -1;
+    if (aud_game_volume()==0) return(-1);
+
+	len=audInitBlockedLoad(phx_testbank,134);
+	pos=134;
+	pos=pos+len;
+ 	idx=audPreloadBlockedBankLoad(&phx_testbank[pos-len],len);
+	len=BLK_SIZE;
+
+	while(len)
+		{
+		if (len>BLK_SIZE) len=BLK_SIZE;
+		pos=pos+len;
+		len=audLoadBlock(&phx_testbank[pos-len],len);
+		if(!len) break;
+		if(len<0) {PrintNum2(len);break;/* Unrecoverable Error */}
+		}
+
+    ExitInst(INSTR_PAL);
+
+    i=0;
+    while ( 1 )
+       	{
+       	U32 ctls;
+		ctls = ctl_read_sw(SW_NEXT);
+
+		if ((ctls&SW_NEXT)) break;
+
+		if ((i&0x001f)==0) 
+			{
+		    if (soundPutWord(idx+1)) return(-1);
+		    if (soundPutWord(0xFF00)) return(-1);
+	    	if (soundPutWord(0x0000)) return(-1);
+	    	if (soundGetWord(&temp)) return(-1);
+			}
+		if ((i&0x001f)==0x0010) 
+			{
+		    if (soundPutWord(idx+2)) return(-1);
+		    if (soundPutWord(0xFFFF)) return(-1);
+	    	if (soundPutWord(0x0000)) return(-1);
+	    	if (soundGetWord(&temp)) return(-1);
+			}
+		prc_delay(0);
+		i++;
+	    }
+    ctl_read_sw(-1);			/* flush all edges */
+    return soundHardwareReset();
+}
+#endif
+/************************************************************************/
+/************************************************************************/
+/************************************************************************/
+/************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+/***************************************************************************/
+int aud_bank_data_size(U8 *data_buffer) {
+    int bank_size;
+    int pos;
+
+    pos=130;
+
+    bank_size = data_buffer[pos++];
+    bank_size += (data_buffer[pos++] << 8);
+    bank_size += (data_buffer[pos++] << 16);
+    bank_size += (data_buffer[pos++] << 24);
+
+    return(bank_size);
+}
+
+/***************************************************************************/
+int aud_bank_cmd_size(U8 *data_buffer) {
+    int num_calls;
+    int pos;
+
+    pos=128;
+
+    num_calls =  data_buffer[pos++];
+    num_calls += (data_buffer[pos++] << 8);
+
+    return(num_calls);
+}
+/************************************************************************/
+int aud_number_of_sounds(void)
+{
+if (snd_bank_cmd_addr != -1) return(snd_bank_cmd_addr/2);
+if (snd_partition_cmd_addr != -1) return(snd_partition_cmd_addr/2);
+return(0);
+}
+/************************************************************************/
+/************************************************************************/
+/************************************************************************/
+/************************************************************************/
+/*		aud_init(level)
+ *	Resets audio processor (or process) and varying amounts of
+ *	local state, depending on <level>.
+ *
+ *		If level is 0, reset the sound process[or] and any crucial
+ *	state (e.g. coin variables) but do not wait for the sound processor
+ *	to "come up". 
+ *	Returns: 0x10000 = 1 sound and all status bits OK.
+ *
+ *		If level is < 0, reset as for 0, but leave the sound
+ *	process[or] "dead" if possible. Not all configurations can do this,
+ *	but it is provided as sort of a "finished with sounds" call for
+ *	those that can, and would benefit in some way from having the sounds
+ *	processor stopped. 
+ *	Returns: 0x10000 = 1 sound and all status bits OK.
+ *
+ *		If level > 0, reset as for 0, but also wait for the sound
+ *	process[or] to "come up", then return a "status" and the "number of 
+ *	sounds".  
+ *	Returns:
+ *		-1 = sound processor did not respond or more than 32768 sounds
+ *		0 = user aborted (there are always 1 sound STOP, NOISY, ...)
+ *		0xnnnnssss = nnnn sounds and status of ssss.
+ */
+long aud_init(int level) 
+	{
+	int x;
+	int er;
+
+	x=0;
+	er=1;
+
+	while (x<5 && er!=0)
+		{
+		er=0;
+	    if (soundHardwareReset()) er++;
+
+	    if (!er) if (soundLatchTest()) er++;
+	    if (!er) if (soundSoftwareReset()) er++;
+		x++;
+		}
+	if(x>=5) {return(0);}
+	SOUND_TOP_ADDR=SOUND_TOTAL_DRAM;
+    aud_clear_all();
+    aud_attract_volume();
+	return 1;
+	}
+/************************************************************************/
+void aud_stop_all_sounds()
+	{
+	U16 temp;
+
+	if(soundPutWord(0x55d2)) return;	  /* flush all pending soundcalls */
+	if(soundGetWord(&temp)) return;
+	if(soundPutWord(0x55d3)) return;	 /* flush i/o queues */
+	if(soundGetWord(&temp)) return;
+	if(soundPutWord(0)) return;
+	}
+/***************************************************************************/
+int aud_game_volume(void)
+	{
+    U16 vol;
+    vol=eer_gets(EER_AUD_VOL);
+    vol=vol&0x00FF;
+    vol=(vol<<8)|((~vol) & 0x00FF);
+    if (soundPutWord(0x55AA)) return(0);
+    if (soundPutWord(vol)) return(0);
+    return(1);
+	}
+/************************************************************************/
+int aud_attract_volume(void) 
+	{
+    U16 vol;
+    vol=eer_gets(EER_AUD_VOL);
+    vol=(vol>>8)&0x00FF;
+    vol=(vol<<8)|((~vol) & 0x00FF);
+
+    if (soundPutWord(0x55AA)) return(0);
+    if (soundPutWord(vol)) return(0);
+    return(1);
+	}
+/*****************************************************************************/
+
+U16 aud_play_sound(U16 sound,U8 vol,U8 pan,U16 priority) {
+U16 temp;
+
+if(soundPutWord(sound)) return(0);
+temp=(vol<<8)+pan;
+if(soundPutWord(temp)) return(0);
+if(soundPutWord(priority)) return(0);
+if(soundGetWord(&temp)) return(0);
+return(temp);
+}
+
+/*****************************************************************************/
+
+/*		aud_mput(buff,cnt)
+ *	Adds <cnt> aud_t's in buffer pointed to by <buff> to queue of "sounds"
+ *	to play. <buff> is assumed to contain _one_ complete command, so the
+ *	first aud_t will have D15 set, and the remainder will have D15 cleared.
+ *	Also, this routine will place the whole buffer, or none of it, on the
+ *	queue.
+ *		Note that the <param> are masked with 0x7FFF
+ *	to insure that they are not treated as commands.
+ *	Returns:
+ *		0 if no room (i.e. not sent)
+ *		<cnt> if queued
+ */
+/*****************************************************************************/
+int aud_mput( unsigned short *buff, int cnt) {
+    while (cnt) {
+	if (soundPutWord(*buff)) return(0);
+	buff++;
+	cnt--;
+    }
+    return 1;
+}
+/*****************************************************************************/
+
+/*		aud_put(code)
+ *	Tries up to MAX_AUD_TRIES times to write <code> to sound port.
+ *	Returns:
+ *		0 if failed
+ *		1 if sent
+ *		2 if on queue (if MAX_AUD_TRIES == 0)
+ */
+/*****************************************************************************/
+int aud_put(int code) {
+    return((soundPutWord(code) ? 1:0));
+}
+/*****************************************************************************/
+int aud_get(U16 *data) {
+    return((soundGetWord(data) ? 1:0));
+}
+/*****************************************************************************/
+int aud_get_safe(U16 *data) { /* Safe to call from irq */
+    U32 i;
+
+    i=0;
+    while (!(SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) if (i++>500000) {auderr=AUDERR_SAFE_GET_XFER_TIMEOUT;return(0);}
+
+    *data = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+
+    SOUND_PORT_GET_DATA = 0x0000; /* this statment should only be nessecarry for a c30 host */
+
+    return(1);
+}
+/***************************************************************************/
+int aud_put_safe(U16 data) {
+    int i;
+
+    i=0;
+    while (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) if (i++>500000) {auderr=AUDERR_SAFE_XFER_TIMEOUT;return(0);}
+
+    SOUND_PORT_PUT_DATA = data;
+    return(1);
+}
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int aud_InitLoadSoftware(char *comp , char *osys ,			   */
+/*                                         char *dm_ext , char *dm_int)    */
+/* Loads the os software to the DCS system                                 */
+/*                                                                         */
+/* INPUTS: (The sound operating system consists of four files)             */
+/* 1. comp   =  _comp.bin - 24-bit external program memory image           */
+/* 2. osys   =  _osys.bin - 24-bit internal on-chip memory image           */
+/* 3. dm_ext = dm_ext.bin - 16-bit external data memory image              */
+/* 4. dm_int = dm_int.bin - 16-bit internal on-chip memory image           */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout                                              */
+/*                                                                         */
+/*   (note: this function assumes the size of the files are constant)      */
+/***************************************************************************/
+int aud_InitLoadSoftware(U8 *comp , U8 *osys , U8 *dm_ext , U8 *dm_int)
+{
+    U16 retval;
+	int x;
+	int er;
+
+	x=0;
+	er=1;
+
+	while (x<5 && er!=0)
+		{
+		er=0;
+	    if (soundHardwareReset()) er++;
+	    if (!er) if (soundLatchTest()) er++;  /* if latch test fails, reset hardware, try again */
+		x++;
+		}
+	if(x>=5) {return(ERROR);}
+
+
+    if (soundLoadDM(dm_ext,0x0800, 0x37ff)) return(ERROR); 
+    if (soundLoadDM(dm_int, 0x3800, 0x39ff)) return(ERROR); 
+    if (soundLoadPM(comp, 0x2800, 0x37ff)) return(ERROR);
+    if (soundLoadPM(osys,0,0x3ff)) return(ERROR); /* load this one last */
+
+    if(soundPutWord(0x002A)) return(ERROR);
+    if(soundGetWord(&retval)) return(ERROR);
+    if ((retval) != OPSYS_READY)  {auderr=AUDERR_BAD_ACK;return(ERROR);}
+	auderr=AUDERR_AUD_OK;
+	SOUND_TOP_ADDR=SOUND_TOTAL_DRAM;
+
+    aud_clear_all();
+    aud_attract_volume();
+    return(OK);
+}
+/***************************************************************************/
+/* int aud_AddressOfPartition(int part_num)                                */
+/*  get the DSP DM (data memory) address of a partition                    */
+/*                                                                         */
+/* inputs:  part_num = partition number (1-x) OR '0' for last partition    */
+/* returns: partition size , or NULL if an error occured                   */
+/***************************************************************************/
+int aud_AddressOfPartition(int part_num)
+{
+if (!snd_partition_index) return(0);	   /* no partitions loaded */
+if (part_num>snd_partition_index) return(0);
+if (part_num==0) part_num=snd_partition_index;
+
+return(snd_partition_data[part_num-1]);
+}
+/***************************************************************************/
+/* int aud_SizeOfPartition(int part_num)                                   */
+/*  get the size of a partition                                            */
+/*                                                                         */
+/* inputs:  part_num = partition number (1-x) OR '0' for last partition    */
+/* returns: partition size , or NULL if an error occured                   */
+/***************************************************************************/
+int aud_SizeOfPartition(int part_num)
+{
+if (!snd_partition_index) return(0);	   /* no partitions loaded */
+if (part_num>snd_partition_index) return(0);
+if (part_num==0) part_num=snd_partition_index;
+
+return(snd_partition_data[part_num] - snd_partition_data[part_num-1]);
+}
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+int yet_another_download_snd_bank (U8 *buffer, int start, int end,U16 type) { 
+    int i,j;
+    unsigned int size;
+    unsigned int checksum;
+    U16 bank_checksum;
+    U16 temp;
+
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) {auderr=AUDERR_WRONG_LOAD_TYPE;return(ERROR+3);}
+	if (start>=end) {auderr=AUDERR_START_GE_END;return(ERROR);}
+	if (soundPutWord(type) != OK) return(ERROR+12);           
+
+    if (soundPutWord((start >> 16) & MASK16) != OK) return(ERROR+13);         
+    if (soundPutWord(start & MASK16) != OK) return(ERROR+14);         
+
+    if ((soundPutWord(end >> 16) & MASK16) != OK) return(ERROR+15);        
+    if ((soundPutWord(end & MASK16)) != OK) return(ERROR+16);         
+
+/* now send the data */
+    i = 0;
+
+    checksum = 0;
+
+    size = (end - start + 1);
+    checksum=0;
+    i=0;
+/*while(i<=size) */
+    for (j= 0; j < size; j++) {
+	if (!(j&0x000007FF)) WDOG=0;
+	temp = (((short)buffer[i++])&0x000000FF); 
+	temp = temp | ((((short)buffer[i++])&0x000000FF) <<8);
+	checksum += temp;
+	if (soundPutWord(temp)!=OK)	return(ERROR+17);
+    } 
+
+    if((soundGetWord(&bank_checksum))!=OK) return(ERROR+18);         
+    if ((checksum & MASK16) != bank_checksum) {auderr=AUDERR_CHECKSUM;return(ERROR+12);}
+
+    return(OK);
+}
+/*****************************************************************************/
+/*****************************************************************************/
+int aud_LoadEngines(U8 *samp1,U32 size1,
+				U8 *samp2,U32 size2,
+				U8 *samp3,U32 size3,
+				U8 *samp4,U32 size4)
+{
+U16 buff[16];
+int err;
+U32 addr;
+
+addr = SOUND_TOTAL_DRAM - size1 - size2 - size3 - size4; 
+SOUND_TOP_ADDR=	addr;
+err=0;
+
+if (samp1) err=yet_another_download_snd_bank(samp1,addr,addr-1+size1,LOAD_DRAM);
+if (err) return(err);
+buff[0]=addr%0x0400;
+buff[1]=addr/0x0400;
+addr +=size1;
+buff[2]=(addr-1)%0x0400;
+buff[3]=(addr-1)/0x0400;
+
+if (samp2) err=yet_another_download_snd_bank(samp2,addr,addr-1+size2,LOAD_DRAM);
+if (err) return(err);
+buff[4]=addr%0x0400;
+buff[5]=addr/0x0400;
+addr +=size2;
+buff[6]=(addr-1)%0x0400;
+buff[7]=(addr-1)/0x0400;
+
+if (samp3) err=yet_another_download_snd_bank(samp3,addr,addr-1+size3,LOAD_DRAM);
+if (err) return(err);
+buff[8]=addr%0x0400;
+buff[9]=addr/0x0400;
+addr +=size3;
+buff[10]=(addr-1)%0x0400;
+buff[11]=(addr-1)/0x0400;
+
+if (samp4) err=yet_another_download_snd_bank(samp4,addr,addr-1+size4,LOAD_DRAM);
+if (err) return(err);
+buff[12]=addr%0x0400;
+buff[13]=addr/0x0400;
+addr +=size3;
+buff[14]=(addr-1)%0x0400;
+buff[15]=(addr-1)/0x0400;
+
+err=yet_another_download_snd_bank((U8 *)buff,0x2000,0x2000+15,LOAD_DRAM); 
+if (err) return(err);
+return(OK);
+}
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+/*****************************************************************************/
+@
+
+
+1.46
+log
+@added a PM checksum test
+@
+text
+@d2 1
+a2 1
+ *	$Id: phx_audio.c,v 1.45 1997/08/30 00:02:16 todd Exp todd $
+d32 1
+a32 1
+	#define SOUND_CALL_TABLE_SIZE 0x1000
+d39 4
+d103 1
+a103 1
+
+d757 2
+d764 3
+d840 3
+d1196 9
+d1420 1
+a1420 1
+	
+d1586 1
+d1626 90
+@
+
+
+1.45
+log
+@added more time to the checksum timeout for blocked downloads
+@
+text
+@d2 1
+a2 1
+ *	$Id: phx_audio.c,v 1.44 1997/08/28 18:25:23 todd Exp todd $
+d524 4
+a527 2
+/* INPUTS:  0 if bank 1 D/RAM is not installed                             */
+/*          1 if bank 1 D/RAM is installed                                 */
+d545 2
+d552 5
+a556 4
+    if (sound_data != 0xCC01) {
+	if((sound_data & 0xFF00) != 0xEE00) return(9);
+	else return(0x00FF & sound_data);
+    }
+d558 1
+d561 2
+d571 1
+d574 1
+a574 1
+    if (code) {
+d584 13
+@
+
+
+1.44
+log
+@??/
+@
+text
+@d2 1
+a2 1
+ *	$Id: phx_audio.c,v 1.43 1997/08/16 04:16:22 todd Exp todd $
+d1213 5
+a1217 1
+		if((soundGetWord(&temp))!=OK) if((soundGetWord(&temp))!=OK) return(-2);
+@
+
+
+1.43
+log
+@Fixed a bug which whould cause a watchdog reset if too large of a soundbank was downloaded.
+@
+text
+@d2 1
+a2 1
+ *	$Id: phx_audio.c,v 1.42 1997/07/30 01:36:57 todd Exp todd $
+d1213 1
+a1213 1
+		if((soundGetWord(&temp))!=OK) return(-2);
+@
+
+
+1.42
+log
+@New version that supports streaming and queued latch
+@
+text
+@d2 1
+a2 1
+ *	$Id: phx_audio.c,v 1.41 1997/07/17 03:25:39 shepperd Exp todd $
+d997 1
+@
+
+
+1.41
+log
+@Added $Id$.
+@
+text
+@d2 1
+a2 1
+ *	$Id$
+a15 1
+#include <st_proto.h>
+a16 1
+#include <nsprintf.h>
+d18 1
+d20 4
+d31 9
+a84 2
+extern U8 phx_testbank[], phx_testbank_e[];
+extern U8 phx_lr_bank[];
+a130 40
+
+void PrintNum(int num) {
+    char emsg[10];
+    nsprintf(emsg, sizeof(emsg)-1, "(%d)",num);
+    txt_str(1, 1, emsg, RED_PAL);
+    prc_delay(50);
+}
+
+int pnline;
+int pncol;
+int pnflag;
+
+void PrintNum2(int num) 
+	{
+    char emsg[12];
+
+    nsprintf(emsg, sizeof(emsg)-1, "[%08x]",num);
+
+	if (pnline<2) pnline=2;
+	if (pnline>30) 
+		{
+		pnline=2;
+		pncol=pncol+12;
+		}	
+	if (pncol<2) pncol=2;
+	if (pncol>60) 
+		{
+		pncol=2;
+		pnflag++;
+		}
+
+
+    if ((pnflag&3)==0) {txt_str(pncol,pnline++,  emsg, RED_PAL);}
+	else if ((pnflag&3)==1) {txt_str(pncol,pnline++, emsg, GRN_PAL);}
+    else if ((pnflag&3)==2) {txt_str(pncol,pnline++,  emsg, WHT_PAL);}
+	else {txt_str(pncol,pnline++, emsg, BLU_PAL);}
+prc_delay(1);
+	}
+
+
+d474 33
+a1011 9
+struct aud_queue_instance
+	{
+	int data_size;
+	int data_addr;	int cmd_size;
+	int cmd_addr;
+	int checksum;
+	int xfer;
+	};
+
+d1229 1
+d1285 1
+a1579 535
+/*****************************************************************************/
+/*****************************************************************************/
+int audio_test(const struct menu_d *smp) {
+    int row;
+    int errr;
+    char emsg[AN_VIS_COL_MAX+1];
+    U16 retval;
+	int fail;
+
+    row = 5;
+	fail=0;
+
+    *(VU16*)IO_H2SND_CTL |= 5;		/* enable the sound processor and FIFO's */
+
+    txt_str(5, row++, "*** Testing Audio Hardware  ***", GRN_PAL);
+    row++;
+    if (soundHardwareReset()) {
+	txt_str(5, row++, "Hardware Reset, FAILED.", RED_PAL);
+	fail++;
+    } else {
+    	txt_str(5, row++, "Hardware Reset, passed.", WHT_PAL);
+    }
+
+    if ((errr=soundLatchTest())) {
+	txt_str(5, row++, "Latch test, FAILED.", RED_PAL);
+	fail++;
+    } else {
+	txt_str(5, row++, "Latch test, passed.", WHT_PAL);
+    }
+
+    if (soundGetEppromRev(&retval)) {
+	txt_str(5, row++, "Get epprom revision, TIMEDOUT.", RED_PAL);
+	fail++;
+    } else {
+	nsprintf(emsg, sizeof(emsg)-1, "Eprom Revision: V%x.%02x",retval>>8,retval&0x00FF);
+	txt_str(5, row, emsg, WHT_PAL);
+    }
+
+    if (soundGetAsicRev(&retval)) {
+	txt_str(5, ++row, "Get ASIC revision, TIMED OUT.", RED_PAL);
+	fail++;
+    } else {
+	nsprintf(emsg, sizeof(emsg)-1, "ASIC Revision: %d",retval);
+	txt_str(30, row++, emsg, WHT_PAL);
+    }
+
+    if ((errr=soundRamTest(0))) {
+	fail++;
+	if (errr<4 && errr>0) nsprintf(emsg, sizeof(emsg)-1, "S/RAM chip #%d failed",errr);
+	else if (errr==4) nsprintf(emsg, sizeof(emsg)-1, "D/RAM bank 0 failed");
+	else if (errr==5) nsprintf(emsg, sizeof(emsg)-1, "D/RAM bank 1 failed (note: bank 1 is optional)");
+	else if (errr==9) nsprintf(emsg, sizeof(emsg)-1, "RAM return code mismatch");
+	else if (errr<0) nsprintf(emsg, sizeof(emsg)-1, "Communication error in RAM test #%d.",errr);
+	else nsprintf(emsg, sizeof(emsg)-1, "unknown error durring RAM test");
+
+	txt_str(5, row++, emsg, RED_PAL);
+    } else {
+	txt_str(5, row++, "RAM test, passed.", WHT_PAL);
+    }
+
+    if (soundEppromBong()) {
+	txt_str(5, row++, "Boink, failed.", RED_PAL);
+	fail++;
+    } else {
+	txt_str(5, row++, "Boink, passed.", WHT_PAL);
+    }
+
+    if ((errr=soundSoftwareReset())) {
+	txt_str(5, row++, "Software Reset, FAILED.", RED_PAL);
+	fail++;
+    } else {
+	txt_str(5, row++, "Software Reset, passed.", WHT_PAL);
+    }
+
+    row++;
+    if (fail==0) txt_str(5, row++, "All tests passed.", GRN_PAL);
+    else txt_str(5, row++, "Test failure.", RED_PAL);
+
+    ExitInst(INSTR_PAL);
+
+    while ( 1 ) {
+	U32 ctls;
+	ctls = ctl_read_sw(SW_NEXT);
+	if ((ctls&SW_NEXT)) break;
+	prc_delay(0);
+    }
+    ctl_read_sw(-1);			/* flush all edges */
+    return(0);
+}
+
+/*****************************************************************************/
+
+
+int audio_speaker_test(const struct menu_d *smp) {
+    int i;
+    int idx;
+	U16 temp;
+
+/*    if (!aud_init(0)) return -1;
+    if (aud_game_volume()==0) return(-1);
+    if ((idx=aud_load_partition(0,phx_lr_bank))==0) return(-1);
+*/
+    if (!aud_init(0)) return -1;
+    if ((idx=aud_load_bank(phx_lr_bank))==0) return(-1);
+    if (aud_game_volume()==0) return(-1);
+
+
+    ExitInst(INSTR_PAL);
+
+    i=0;
+    while ( 1 ) {
+	U32 ctls;
+	ctls = ctl_read_sw(SW_NEXT);
+
+	if ((ctls&SW_NEXT)) break;
+
+	if ((i&0xF) == 0) txt_clr_wid(1, AN_VIS_ROW/2, AN_VIS_COL-2);
+	if ((i&0x001f)==0) {
+	    txt_str(4, AN_VIS_ROW/2, "LEFT", WHT_PAL);
+	    if (soundPutWord(idx)) return(-1);
+	    if (soundPutWord(0xFF00)) return(-1);
+	    if (soundPutWord(0x0000)) return(-1);
+	    if (soundGetWord(&temp)) return(-1);
+	}
+	if ((i&0x001f)==0x0010) {
+	    txt_str(AN_VIS_COL-1-4-5, AN_VIS_ROW/2, "RIGHT", WHT_PAL);
+	    if (soundPutWord(1+idx)) return(-1);
+	    if (soundPutWord(0xFFFF)) return(-1);
+	    if (soundPutWord(0x0000)) return(-1);
+	    if (soundGetWord(&temp)) return(-1);
+	}
+	prc_delay(3);
+	i++;
+    }
+    ctl_read_sw(-1);			/* flush all edges */
+    return(0);
+}
+
+/*****************************************************************************/
+int audio_sine_test(const struct menu_d *smp) {
+    U32       ctls;
+    U16 retval;
+
+/* Reset the audio processor:  Full reset, load first bank for volume test */
+    if (soundHardwareReset()) return -1;
+
+/* 1K sin on */
+    soundPutWord(0x00BA);
+    soundGetWord(&retval);
+    if (retval!=0xCC05) return(-1);
+    soundGetWord(&retval);
+    if (retval!=0x000a) return(-1);
+
+    ExitInst(INSTR_PAL);
+
+    while(1) {
+	ctls = ctl_read_sw(SW_NEXT);
+	if ((ctls&SW_NEXT)) break;
+	prc_delay(5);
+    }
+
+    ctl_read_sw(-1);			/* flush all edges */
+    return soundHardwareReset();
+}
+/*****************************************************************************/
+
+/********************************************************************
+ *     Here are a bunch of defines used for volume control:
+ */
+
+/* Display GREEN up to low volume */
+#define       LOW_VOLUME    (MAX_VOLUME-((MAX_VOLUME/8)*2)) 
+/* Display RED after HIGH volume */
+#define       HIGH_VOLUME   (MAX_VOLUME-(MAX_VOLUME/15))
+
+#define VBAR_TEXT_ROW        (6)
+#define VBAR_GAME_ROW        (6)
+#define VBAR_ATTRACT_ROW     (14)
+/*#define VBAR_COL 7
+#define VBAR_CHAR "*"
+#define VBAR_WIDTH (AN_VIS_COL - 14)*/
+
+#define VBAR_COL 4
+#define VBAR_CHAR "*"
+#define VBAR_WIDTH (56)
+#define DYN_VBAR_ROW	     (AN_VIS_ROW-3-1)
+
+#define MIN_VOLUME   (0)
+#define MAX_VOLUME   (255)
+#define DEF_VOLUME   ((MAX_VOLUME+MIN_VOLUME)/2)
+
+/*****************************************************************************/
+void ShowVolume(int volume, int row, int bg) 
+{
+m_int i,j,color;
+/*    char msg[5];	 */
+
+for (i=0;i<VBAR_WIDTH;i++)
+	{
+	j=((MAX_VOLUME-MIN_VOLUME)*(i+1))/VBAR_WIDTH;
+	if (volume<j) color = GRY_PAL | bg;
+	else if (j<=LOW_VOLUME) color = GRN_PAL | bg;
+	else if (j>HIGH_VOLUME) color = RED_PAL | bg;
+	else color = YEL_PAL | bg;
+	 
+	txt_str(VBAR_COL+i,row,VBAR_CHAR,color);
+	txt_str(VBAR_COL+i,row+1,VBAR_CHAR,color);
+	txt_str(VBAR_COL+i,row+2,VBAR_CHAR,color);
+
+/*	nsprintf(msg, sizeof(msg)-1, "%02d%%",((volume*100)+MAX_VOLUME-1)/MAX_VOLUME);
+	txt_str(VBAR_COL-4, row+1, msg, GRY_PAL | bg);*/
+	}
+}
+
+#if SW_VOLM && SW_VOLP
+# define VOLUME_BUTTONS	(SW_VOLM|SW_VOLP)
+# define VOLUME_UP	(SW_VOLP)
+# define VOLUME_DOWN	(SW_VOLM)
+#else
+# define VOLUME_BUTTONS (0)
+# define VOLUME_UP	(0)
+# define VOLUME_DOWN	(0)
+#endif
+
+#define ATTRACT_GRANULARITY 5
+
+/*****************************************************************************/
+int adj_vol(const struct menu_d *smp) {
+    U32       ctrls;
+    int      update;
+    int original_game_volume;
+    int original_attract_volume;
+    int game_volume;
+    int attract_volume;
+    int which_volume;
+    int cntr;
+    int clr1,clr2;
+    int vol;
+    int bottom;
+	int percent;
+	char strng[24];
+
+/* Reset the audio processor:  Full reset, load first bank for volume test */
+    if (!aud_init(0)) return -1;
+    if (aud_load_bank(phx_testbank)==0) return(-1);
+
+/* default to game volume */
+    if (aud_game_volume()==0) return(-1);
+
+#if BOOT_FROM_DISK
+    bottom = st_insn(AN_VIS_ROW-3,t_msg_ret_menu,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,"To set to midrange",t_msg_action,INSTR_PAL);
+#else
+    bottom = st_insn(AN_VIS_ROW-3,t_msg_save_ret,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,t_msg_restore,t_msg_action,INSTR_PAL);
+#endif
+    bottom = st_insn(bottom,"To ADJUST volume,",t_msg_control,INSTR_PAL);
+
+    ctl_autorepeat(JOY_BITS | VOLUME_BUTTONS, 60/4, 60/30); /* Autorepeat after 1/2secs @@ 1/15 */
+
+    vol=eer_gets(EER_AUD_VOL);
+    original_game_volume=vol&0x00FF;
+    original_attract_volume=(vol>>8)&0x00FF;
+
+    game_volume=original_game_volume;
+    attract_volume=original_attract_volume;
+	if (game_volume) percent=(((attract_volume*100)/game_volume)/ATTRACT_GRANULARITY)*ATTRACT_GRANULARITY;
+	else percent=75;
+    update=1;
+    which_volume=0;
+    cntr=0;
+    clr1=GRY_PAL;
+    clr2=GRY_PAL;
+
+/* Start Tune */
+    if (soundPutWord(1)) return(-1);
+    if (soundPutWord(0xFF7F)) return(-1);
+    if (soundPutWord(0x0000)) return(-1);
+
+    while (1) 
+    {
+	prc_delay0(); 		/* is this neccesarry? */
+	ctrls = ctl_read_sw(JOY_BITS | SW_NEXT | SW_ACTION | VOLUME_BUTTONS);
+
+	if (ctrls & SW_NEXT) {
+	    soundPutWord(0);
+	    soundPutWord(0xFF7F);
+	    soundPutWord(0x0000);
+	    eer_puts(EER_AUD_VOL,(attract_volume<<8)|game_volume);
+	    break;
+		}
+
+	if (ctrls & SW_ACTION) {
+	    game_volume = original_game_volume;
+	    attract_volume = original_attract_volume;
+	    update = 1;
+		}
+
+	if (ctrls & (J_DOWN))	{which_volume=1;update = 1;}
+	if (ctrls & (J_UP)  )	{which_volume=0;update = 1;}
+
+	if (ctrls & (J_LEFT|VOLUME_DOWN) ) {
+	    /* decreasing whichever volume */
+	    if ( which_volume ) 
+			{
+			percent -= ATTRACT_GRANULARITY;
+			if (percent<00) percent=00;
+			attract_volume=(game_volume*percent)/100; 
+			}
+	    else
+	    	{
+ 			game_volume= ((((game_volume*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+ 			if (game_volume < MIN_VOLUME) game_volume = MIN_VOLUME;
+ 			attract_volume=(game_volume*percent)/100;
+ 			}
+	    update = 1;
+		}
+
+	if ( ctrls & (J_RIGHT|VOLUME_UP) ) 
+		{
+	    if ( which_volume ) 
+			{
+ 			if (percent!=100)
+				{				
+				percent += ATTRACT_GRANULARITY;
+				if (percent>100) percent=100;
+				attract_volume=(game_volume*percent)/100;
+				}
+ /*			else if (attract_volume<MAX_VOLUME)
+				{
+				game_volume= ((((game_volume*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+				if (game_volume > MAX_VOLUME) game_volume = MAX_VOLUME;
+				attract_volume=(game_volume*percent)/100;
+				}  	*/
+			}
+	    else
+			{
+			game_volume= ((((game_volume*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+			if (game_volume > MAX_VOLUME) game_volume = MAX_VOLUME;
+			attract_volume=(game_volume*percent)/100;
+			}
+	    update = 1;
+		}
+
+	if ((cntr&0x07)==0) 
+		{
+	    if (cntr&0x08) 
+	    	{
+#if !GUN_CNT
+			if (which_volume) {clr1=GRY_PAL;clr2=WHT_PAL;update=1;}
+			else {clr1=WHT_PAL;clr2=GRY_PAL;update=1;}
+#else
+/* On Chameleon, when using the GUN to select, I make the GRY palette WHT so
+ * I can increase the intensity of the background and still see the text. Since
+ * grey and white are the same, there's no indication of blink. Therefore, I make
+ * it blink WHT/GRN here.
+ */
+			if (which_volume) {clr1=GRY_PAL;clr2=GRN_PAL;update=1;}
+			else {clr1=GRN_PAL;clr2=GRY_PAL;update=1;}
+#endif
+	    	}
+	    else 
+	    	{clr1=GRY_PAL;clr2=GRY_PAL;update=1;}
+		}
+
+	cntr++;
+
+	if (update) 
+		{
+	    update=0;
+
+	    ShowVolume(game_volume,VBAR_GAME_ROW,0);
+	    ShowVolume(attract_volume,VBAR_ATTRACT_ROW,0);
+									   
+	    txt_str(VBAR_COL+1, VBAR_GAME_ROW-2,"Game", clr1);
+
+	    nsprintf(strng, sizeof(strng)-1,"Attract (%02d%% of Game) ",percent);
+	    txt_str(VBAR_COL+1, VBAR_ATTRACT_ROW-2,strng, clr2);
+	    soundPutWord(0x55AA);
+	    if (which_volume) soundPutWord((attract_volume<<8)|((~attract_volume)&0x00FF));
+	    else soundPutWord((game_volume<<8)|((~game_volume)&0x00FF));
+		}
+    }
+    ctl_read_sw(-1);		/* flush all edges */
+    return(0);
+}
+
+#define DYN_INIT_AUTOREP	0x01
+#define DYN_INIT_DISPLAY_UP	0x02
+
+/*****************************************************************************/
+int aud_dyn_adjvol(int which_volume) {
+    static int off_time, init;
+    U32 ctrls;
+    int att_vol, game_vol, volume,percent;
+    char strng[AN_VIS_COL_MAX];
+
+    if (!init) {
+	ctl_autorepeat(VOLUME_BUTTONS, 15, 15); /* Autorepeat after 15 frames, @@ 15 frames/key */
+	init |= DYN_INIT_AUTOREP;	/* signal we've done this already */
+    }
+
+    ctrls = ctl_read_sw(VOLUME_BUTTONS)&VOLUME_BUTTONS;
+    if (!ctrls) {
+	if (off_time > 60) return 0;		/* nothing to do */
+	if (off_time == 60 && (init&DYN_INIT_DISPLAY_UP) ) {
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW-1, VBAR_WIDTH+1);
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+0, VBAR_WIDTH+1);
+	    txt_clr_wid(VBAR_COL-4, DYN_VBAR_ROW+1, VBAR_WIDTH+5);
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+2, VBAR_WIDTH+1);
+	    init &= ~(DYN_INIT_DISPLAY_UP);	/* signal the display is off */
+	}
+	++off_time;
+	return 0;
+    }
+
+    off_time = 0;
+    volume = eer_gets(EER_AUD_VOL);
+    att_vol = (volume>>8)&0xFF;
+    game_vol = volume&0xFF;    
+    if (game_vol) percent=(((att_vol*100+(game_vol-1))/game_vol)/ATTRACT_GRANULARITY)*ATTRACT_GRANULARITY;
+    else percent=75;
+
+    if ( (init&DYN_INIT_DISPLAY_UP) )	/* Adjust volume only after display is up */
+		{
+    	if ((ctrls & VOLUME_DOWN)) 
+ 		   	{
+	    	/* decreasing volume */
+	    	if ( which_volume ) 
+				{
+				percent -= ATTRACT_GRANULARITY;
+				if (percent<00) percent=00;
+				att_vol=(game_vol*percent)/100; 
+				}
+	    	else
+	    		{
+ 				game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+ 				if (game_vol < MIN_VOLUME) game_vol = MIN_VOLUME;
+ 				att_vol=(game_vol*percent)/100;
+ 				}
+	    	}
+	    if ((ctrls & VOLUME_UP)) 
+    		{
+	    	if ( which_volume ) 
+				{
+ 				if (percent<100)
+					{				
+					percent += ATTRACT_GRANULARITY;
+					if (percent>100) percent=100;
+					att_vol=(game_vol*percent)/100;
+					}
+		 /*	Bump game volume if attract at 100%
+ 				else if (att_vol<MAX_VOLUME)	   
+					{
+					game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+					if (game_vol > MAX_VOLUME) game_vol = MAX_VOLUME;
+					att_vol=(game_vol*percent)/100;
+					}  	*/
+				}
+		    else
+				{
+				game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+				if (game_vol > MAX_VOLUME) game_vol = MAX_VOLUME;
+				att_vol=(game_vol*percent)/100;
+				}
+			}
+
+	    if (game_vol<MIN_VOLUME) game_vol=MIN_VOLUME; 
+    	if (game_vol>MAX_VOLUME) game_vol=MAX_VOLUME; 
+
+	    if (att_vol<MIN_VOLUME) att_vol=MIN_VOLUME; 
+    	if (att_vol>game_vol)   att_vol=game_vol; 
+
+	    volume = (att_vol << 8) | game_vol;
+	    eer_puts(EER_AUD_VOL, volume);
+		}
+	if (which_volume) {
+	    nsprintf(strng, sizeof(strng)-1,"ATTRACT VOLUME (%02d%% of Game) ",percent);
+		txt_str(VBAR_COL, DYN_VBAR_ROW-1,strng, WHT_PALB);
+	 	ShowVolume(att_vol, DYN_VBAR_ROW, BGBIT);
+		}
+	else {
+    	txt_str(VBAR_COL, DYN_VBAR_ROW-1, "GAME VOLUME", WHT_PALB);
+	  	ShowVolume(game_vol, DYN_VBAR_ROW, BGBIT);
+		}
+    init |= DYN_INIT_DISPLAY_UP;		/* next time we can adjust volume */
+    if (which_volume) {
+	aud_attract_volume();
+    } else {
+	aud_game_volume();
+    }
+    return 0;
+}
+
+/*****************************************************************************/
+int sound_cb (const struct menu_d *smp);
+static const struct menu_d snd_menu[] = {
+    {"SOUND TESTS",  sound_cb},
+    {"Audio Speaker Test", audio_speaker_test},
+    {"Audio Hardware test",  audio_test},
+/*    {"Audio DL Block",  block_test},*/
+
+    {"?LOUD 1k Hz sine test",  audio_sine_test},
+    {0, 0} 
+};
+/*****************************************************************************/
+
+int snd_test ( const struct menu_d *smp ) {
+    int status;
+    ctl_autorepeat(JOY_BITS,30,15);       /* Autorepeat after 1/2secs @@ 1/4 */
+    status = st_menu(snd_menu,sizeof(snd_menu[0]),MNORMAL_PAL,0);
+ 
+    if (!aud_init(0)) return -1;
+    return status;
+}
+
+static int snd_status;
+
+/*****************************************************************************/
+int sound_cb (const struct menu_d *smp) {
+    if ( smp ) {
+	/* after first call, just watch for SW_NEXT, and clean up if seen */
+
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) {
+	    prc_delay0();
+	    aud_init(0);
+	    if ( snd_status == 0 ) {
+		ctl_read_sw(-1);
+		return -1;
+	    }
+	}
+    } 
+
+    return 0;
+}
+@
+
+
+1.40
+log
+@Makes it blink WHT/GRN if using GUN to select items
+since WHT and GRY are the same (on Chameleon).
+@
+text
+@d2 1
+a2 1
+ *	phx_aud.c
+@
+
+
+1.39
+log
+@ifndef added to sound call table size.
+@
+text
+@d1932 1
+d1935 9
+@
+
+
+1.38
+log
+@added even more delay in the DCS ram test subroutine, one stack was
+failing the ram test.
+@
+text
+@d76 1
+d78 1
+@
+
+
+1.38.1.1
+log
+@WDOG fix for MACE.
+@
+text
+@d855 1
+a855 1
+	
+a991 1
+	if (!(j&0x000007FF)) WDOG=0;
+@
+
+
+1.37
+log
+@added prc_delay in SRAM test
+fixed the 'all tests passed bug'
+@
+text
+@d532 1
+a532 1
+/* note: this call is only valid BEFORE the OS is loaded and run */
+d541 1
+d553 1
+d564 1
+@
+
+
+1.36
+log
+@removed an absolute address that was hard coded into the file, this file
+should work fine with newer pic security chips.
+@
+text
+@d539 1
+d1586 1
+d1589 1
+d1597 1
+d1604 1
+d1611 1
+d1619 1
+d1626 1
+d1641 1
+d1648 1
+d1654 3
+a1656 1
+    txt_str(5, row++, "All tests passed.", GRN_PAL);
+@
+
+
+1.35
+log
+@Added proto file for this file
+@
+text
+@d91 1
+a91 1
+#define IO_ASIC_CONTROL_REGISTER (*((volatile short *)IOASIC_BASE + 0x078))
+@
+
+
+1.34
+log
+@Decided to change the custom dsp download.
+@
+text
+@d19 2
+a20 1
+
+d28 7
+a35 20
+#define AUDERR_AUD_OK						 0
+#define AUDERR_GET_XFER_TIMEOUT				 1
+#define AUDERR_XFER_TIMEOUT					 2
+#define AUDERR_CHECKSUM						 3
+#define AUDERR_NO_ACK						 4
+#define AUDERR_BAD_ACK						 5
+#define AUDERR_NO_DATA						 6
+#define AUDERR_START_GE_END					 7
+#define AUDERR_TOO_MANY_PARTITIONS			 8
+#define AUDERR_BANK_LOADED_PARTITION_FAILED	 9
+#define AUDERR_COULD_NOT_FIND_PARTITION		10
+#define AUDERR_PARTITION_CMD_TOO_BIG		11
+#define AUDERR_PARTITION_DATA_TOO_BIG		12
+#define AUDERR_WRONG_LOAD_TYPE				13
+#define AUDERR_INVALID_DATA					14
+#define AUDERR_WRONG_DATA_SIZE				15
+#define AUDERR_SAFE_GET_XFER_TIMEOUT		16
+#define AUDERR_SAFE_XFER_TIMEOUT			17
+#define AUDERR_WARNING_DATA_LEFT_ON_LATCH 	18
+#define AUDERR_NEEDS_RESET					19
+a87 27
+int audPreloadBlockedBankLoad(U8 *buff,int len);
+int aud_attract_volume(void);
+int aud_game_volume(void);
+int aud_load_partition_internal (int cmd,U8 *data,U16 type);
+int aud_load_bank (U8 *data_buffer);
+int aud_load_bank_with_playback (U8 *data_buffer);
+int download_snd_table (char *table_addr, int start, int end,U16 type);
+int download_snd_bank (U8 *buffer, int start, int end,U16 type);
+int aud_load_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr,U16 type);
+int aud_load_partition (int cmd,U8 *data);
+int aud_load_partition_with_playback(int cmd,U8 *data);
+int aud_make_partition (int cmd_size,int data_size);
+void aud_clear_all(void);
+void aud_clear_all_banks(void);
+int aud_bank_data_size(U8 *data_buffer);
+int aud_bank_cmd_size(U8 *data_buffer);
+U16 aud_play_sound(U16 sound,U8 vol,U8 pan,U16 priority);
+void aud_stop_all_sounds(void);
+int audInitBlockedLoad(U8 *buff,int size);
+int audPreloadBlockedBankLoad(U8 *buff,int len);
+int aud_block_load_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr,U16 type);
+int audLoadBlock(U8 *buffer,int size);
+int aud_load_bank_internal (U8 *data_buffer,U16 type);
+int aud_number_of_sounds(void);
+int aud_InitLoadSoftware(U8 *comp , U8 *osys , U8 *dm_ext , U8 *dm_int)	;
+int aud_AddressOfPartition(int part_num) ;
+int aud_SizeOfPartition(int part_num) ;
+d1169 1
+a1169 1
+    return(aud_block_load_bank_internal(buff,LOAD_DRAM));
+d1476 1
+a1476 1
+int aud_put_safe(unsigned short data) {
+@
+
+
+1.33
+log
+@Added four functions for cal speed...
+Two functions for DCS initialization and two functions to determine
+the address and size of a partition.
+@
+text
+@a123 1
+int aud_InitPreloadSoftware(void) ;
+d1532 9
+a1540 2
+/* FUNCTION: int aud_InitPreloadSoftware(void)                             */
+/* Resets the DCS system, which causes the eprom boot code to load and run */
+d1545 1
+d1547 3
+a1549 2
+int aud_InitPreloadSoftware(void) 
+	{
+d1564 1
+a1564 23
+	
+	return(OK);
+	}
+/***************************************************************************/
+/*                                                                         */
+/* FUNCTION: int aud_InitLoadSoftware(char *comp , char *osys ,			   */
+/*                                         char *dm_ext , char *dm_int)    */
+/* Loads the os software to the DCS system                                 */
+/*                                                                         */
+/* INPUTS: (The sound operating system consists of four files)             */
+/* 1. comp   =  _comp.bin - 24-bit external program memory image           */
+/* 2. osys   =  _osys.bin - 24-bit internal on-chip memory image           */
+/* 3. dm_ext = dm_ext.bin - 16-bit external data memory image              */
+/* 4. dm_int = dm_int.bin - 16-bit internal on-chip memory image           */
+/*                                                                         */
+/* RETURNS:  OK if successful                                              */
+/*           ERROR if timeout                                              */
+/*                                                                         */
+/*   (note: this function assumes the size of the files are constant)      */
+/***************************************************************************/
+int aud_InitLoadSoftware(U8 *comp , U8 *osys , U8 *dm_ext , U8 *dm_int)
+{
+    U16 retval;
+@
+
+
+1.32
+log
+@Allowed for dynamic resolution. I.E. AN_VIS_COL et. al. can be made
+into ints instead of #defines. On 3dfx systems this is accompolished
+by defining the following in config.mac:
+DEC_CONST DYNAMIC_VIS_PIX 1
+DEC_CONST VIS_H_PIX_MAX whatever
+DEC_CONST VIS_V_PIX_MAX whatever
+After this, AN_VIS_COL, AN_VIS_ROW, VIS_V_PIX, VIS_H_PIX and
+SST_RESOLUTION become "extern int" instead of #defines.
+The new #defines AN_VIS_ROW_MAX and AN_VIS_COL_MAX are
+created (computed from VIS_H_PIX_MAX, VIS_V_PIX_MAX) so
+local arrays can be declared and this is the principle changed
+to this file.
+@
+text
+@d123 5
+a127 1
+int aud_number_of_sounds(void); 
+d313 3
+a315 1
+
+a795 4
+/***************************************************************************/
+/*                                                                         */
+/*                                                                         */
+/***************************************************************************/
+d1526 98
+@
+
+
+1.31
+log
+@Removed extraneous ^M's because the new compiler complains
+about them.
+@
+text
+@d20 7
+d1536 1
+a1536 1
+    char emsg[AN_VIS_COL+1];
+d1905 1
+a1905 1
+    char strng[AN_VIS_COL];
+@
+
+
+1.30
+log
+@Added aud_number_of_sound(void) function call and slowed down left/right test
+@
+text
+@d1349 5
+a1353 5
+int aud_number_of_sounds(void)
+{
+if (snd_bank_cmd_addr != -1) return(snd_bank_cmd_addr/2);
+if (snd_partition_cmd_addr != -1) return(snd_partition_cmd_addr/2);
+return(0);
+@
+
+
+1.29
+log
+@Fixed a compiler warning.
+@
+text
+@d115 2
+a116 1
+int aud_load_bank_internal (U8 *data_buffer,U16 type); 
+d1349 6
+d1644 1
+a1644 1
+	prc_delay(1);
+@
+
+
+1.28
+log
+@Change Left Right from load partition to load bank, looked at where I goofed last time
+(I forgot to delclare the banks address in phx_audio.c)
+@
+text
+@d1609 1
+a1609 1
+    if (idx=aud_load_bank(phx_lr_bank)==0) return(-1);
+@
+
+
+1.27
+log
+@extern'd the reference to phx_lr_bank.
+@
+text
+@d79 1
+a1596 1
+extern U8 *phx_lr_bank;
+d1598 1
+d1604 4
+d1609 1
+d1611 1
+a1611 1
+    if ((idx=aud_load_partition(0,phx_lr_bank))==0) return(-1);
+d1625 1
+a1625 1
+	    if (soundPutWord(1+idx)) return(-1);
+d1632 1
+a1632 1
+	    if (soundPutWord(2+idx)) return(-1);
+@
+
+
+1.26
+log
+@Changed the left/right voice, made $20 from Bruce
+@
+text
+@d1596 2
+@
+
+
+1.25
+log
+@Changed instruction text if running adjvol from EPROM.
+@
+text
+@d1603 1
+a1603 1
+    if ((idx=aud_load_partition(0,phx_testbank))==0) return(-1);
+@
+
+
+1.24
+log
+@The autobuttons were too fast so I slowed them down.
+The first time the volume button is pressed, the display
+is put up but the volume is not adjusted.
+@
+text
+@d1747 4
+d1753 1
+@
+
+
+1.23
+log
+@Fixed a bug in dyn_adjvol that would not allow the attract volume to be inccreases
+@
+text
+@d1870 3
+d1878 1
+a1878 4
+	char strng[31];
+	static int oldtimer;
+
+		
+d1881 2
+a1882 2
+	ctl_autorepeat(VOLUME_BUTTONS, 60/4, 60/30); /* Autorepeat after 1/2secs @@ 1/15 */
+	init = 1;
+d1888 1
+a1888 1
+	if (off_time == 60 && init > 1) {
+d1893 2
+a1894 1
+		}
+d1899 1
+a1899 2
+    init = 3;
+   	off_time = 0;
+d1901 1
+a1901 1
+   	att_vol = (volume>>8)&0xFF;
+d1903 2
+a1904 2
+	if (game_vol) percent=(((att_vol*100+(game_vol-1))/game_vol)/ATTRACT_GRANULARITY)*ATTRACT_GRANULARITY;
+	else percent=75;
+d1906 1
+a1906 1
+	if (oldtimer>(eer_rtc-5))
+a1958 1
+
+d1968 1
+a1973 1
+	oldtimer=eer_rtc;
+@
+
+
+1.22
+log
+@The volume control UI is finished (hopefully)
+@
+text
+@d1701 1
+a1701 1
+	else color = YEL_PAL;
+d1876 1
+d1878 2
+d1899 1
+a1899 1
+    off_time = 0;
+d1901 1
+a1901 1
+    att_vol = (volume>>8)&0xFF;
+d1903 1
+a1903 1
+	if (game_vol) percent=(((att_vol*100)/game_vol)/ATTRACT_GRANULARITY)*ATTRACT_GRANULARITY;
+d1906 35
+a1940 25
+    if ((ctrls & VOLUME_DOWN)) 
+    	{
+	    /* decreasing volume */
+	    if ( which_volume ) 
+			{
+			percent -= ATTRACT_GRANULARITY;
+			if (percent<00) percent=00;
+			att_vol=(game_vol*percent)/100; 
+			}
+	    else
+	    	{
+ 			game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )-1)*MAX_VOLUME)/VBAR_WIDTH;
+ 			if (game_vol < MIN_VOLUME) game_vol = MIN_VOLUME;
+ 			att_vol=(game_vol*percent)/100;
+ 			}
+	    }
+    if ((ctrls & VOLUME_UP)) 
+    	{
+	    if ( which_volume ) 
+			{
+ 			if (percent<100)
+				{				
+				percent += ATTRACT_GRANULARITY;
+				if (percent>100) percent=100;
+				att_vol=(game_vol*percent)/100;
+d1942 1
+a1942 2
+ /*	Bump game volume if attract at 100%
+ 			else if (att_vol<MAX_VOLUME)	   
+d1947 1
+a1947 7
+				}  	*/
+			}
+	    else
+			{
+			game_vol= ((((game_vol*VBAR_WIDTH+(VBAR_WIDTH-1))/MAX_VOLUME )+1)*MAX_VOLUME)/VBAR_WIDTH;
+			if (game_vol > MAX_VOLUME) game_vol = MAX_VOLUME;
+			att_vol=(game_vol*percent)/100;
+a1948 1
+		}
+d1950 2
+d1953 2
+a1954 2
+    if (game_vol<MIN_VOLUME) game_vol=MIN_VOLUME; 
+    if (game_vol>MAX_VOLUME) game_vol=MAX_VOLUME; 
+d1956 3
+a1958 5
+    if (att_vol<MIN_VOLUME) att_vol=MIN_VOLUME; 
+    if (att_vol>game_vol)   att_vol=game_vol; 
+
+    volume = (att_vol << 8) | game_vol;
+    eer_puts(EER_AUD_VOL, volume);
+d1974 1
+@
+
+
+1.21
+log
+@steve bennet just called and Im checkin it back out...
+@
+text
+@d19 1
+a1666 4
+#define INC_VOLUME   (8)
+#define MIN_VOLUME   (0)
+#define MAX_VOLUME   (255)
+#define DEF_VOLUME   ((MAX_VOLUME+MIN_VOLUME)/2)
+d1676 1
+a1676 1
+#define VBAR_COL 7
+d1678 5
+a1682 1
+#define VBAR_WIDTH (AN_VIS_COL - 14)
+d1685 4
+d1690 4
+a1693 3
+void ShowVolume(int volume, int row, int bg) {
+    m_int i,j,color;
+    char msg[5];
+d1695 3
+a1697 4
+    i=0;
+    for (j=((MAX_VOLUME-MIN_VOLUME)/VBAR_WIDTH);
+    	 j<=MAX_VOLUME ;
+         j += ((MAX_VOLUME-MIN_VOLUME)/VBAR_WIDTH)) {
+d1707 3
+a1709 5
+	nsprintf(msg, sizeof(msg)-1, "%02d%%",((volume*100)+MAX_VOLUME-1)/MAX_VOLUME);
+
+	txt_str(VBAR_COL-4, row+1, msg, GRY_PAL | bg);
+	i++;
+    }
+d1722 2
+d1751 1
+a1751 1
+    ctl_autorepeat(JOY_BITS | VOLUME_BUTTONS, 60/2, 60/30); /* Autorepeat after 1/2secs @@ 1/30 */
+d1759 2
+a1760 2
+	if (game_volume) percent=(attract_volume*100)/game_volume;
+	else percent=100;
+d1798 3
+a1800 5
+			if (attract_volume>0)
+				{
+	    		attract_volume--;
+				percent=(attract_volume*100)/game_volume;
+				}
+d1804 4
+a1807 11
+			if (game_volume>1)
+				{	    	 
+		    	game_volume--;
+				attract_volume=(game_volume*percent)/100;
+				}
+			if (game_volume==1)
+				{
+		    	game_volume=0;
+				attract_volume=0;
+				}
+			}
+d1811 2
+a1812 1
+	if ( ctrls & (J_RIGHT|VOLUME_UP) ) {
+d1815 1
+a1815 1
+			if (attract_volume<game_volume)
+d1817 3
+a1819 2
+		    	attract_volume++;
+				percent=(attract_volume*100)/game_volume;
+d1821 1
+a1821 1
+			else if (attract_volume<MAX_VOLUME)
+d1823 4
+a1826 4
+				attract_volume++;
+				game_volume=attract_volume;
+				percent=100;
+				}
+d1830 3
+a1832 5
+			if (game_volume<MAX_VOLUME)
+				{
+		    	game_volume++;
+				attract_volume=(game_volume*percent)/100;
+				}
+d1837 1
+a1837 1
+	if ((cntr&0x0f)==0) 
+d1839 1
+a1839 1
+	    if (cntr&0x10) 
+d1878 1
+a1878 1
+	ctl_autorepeat(VOLUME_BUTTONS, 60/2, 60/30); /* Autorepeat after 1/2secs @@ 1/30 */
+d1900 3
+a1902 2
+	if (game_vol) percent=(att_vol*100)/game_vol;
+	else percent=100;
+d1905 1
+a1905 1
+	    /* decreasing whichever volume */
+d1908 3
+a1910 5
+			if (att_vol>0)
+				{
+	    		att_vol--;
+				percent=(att_vol*100)/game_vol;
+				}
+d1914 4
+a1917 11
+			if (game_vol>1)
+				{	    	 
+		    	game_vol--;
+				att_vol=(game_vol*percent)/100;
+				}
+			if (game_vol==1)
+				{
+		    	game_vol=0;
+				att_vol=0;
+				}
+			}
+d1923 1
+a1923 1
+			if (att_vol<game_vol)
+d1925 3
+a1927 2
+		    	att_vol++;
+				percent=(att_vol*100)/game_vol;
+d1929 2
+a1930 1
+			else if (att_vol<MAX_VOLUME)
+d1932 4
+a1935 4
+				att_vol++;
+				game_vol=att_vol;
+				percent=100;
+				}
+d1937 1
+a1937 1
+		else
+d1939 3
+a1941 5
+			if (game_vol<MAX_VOLUME)
+				{
+		    	game_vol++;
+				att_vol=(game_vol*percent)/100;
+				}
+d1943 3
+a1945 1
+ 		}
+d1955 1
+a1955 2
+	if (which_volume) 
+		{
+d1960 1
+a1960 2
+	else
+		{
+@
+
+
+1.20
+log
+@Newer UI for volume
+@
+text
+@d1733 1
+a1733 1
+	char strng[23];
+d1823 6
+d1879 1
+a1879 1
+	char strng[30];
+d1940 6
+d1947 1
+a1947 1
+	    else
+@
+
+
+1.19
+log
+@Attract volume is a percentage of game volume.
+@
+text
+@d1685 1
+a1685 1
+void ShowVolume(int volume, int row, int bg,int val) {
+d1702 1
+a1702 1
+	nsprintf(msg, sizeof(msg)-1, "%02d%%",val);
+d1733 1
+d1852 4
+a1855 2
+	    ShowVolume(game_volume,VBAR_GAME_ROW,0,((game_volume*100)+MAX_VOLUME-1)/MAX_VOLUME);
+	    ShowVolume(attract_volume,VBAR_ATTRACT_ROW,0,percent);
+d1857 2
+a1858 2
+	    txt_str(VBAR_COL+1, VBAR_GAME_ROW-2,"Game", clr1);
+	    txt_str(VBAR_COL+1, VBAR_ATTRACT_ROW-2,"Attract", clr2);
+d1873 1
+d1953 11
+a1963 4
+    txt_str(VBAR_COL, DYN_VBAR_ROW-1, "VOLUME", WHT_PALB);
+	if (which_volume) ShowVolume(att_vol, DYN_VBAR_ROW, BGBIT,percent);
+	else  ShowVolume(game_vol, DYN_VBAR_ROW, BGBIT,((game_vol*100)+MAX_VOLUME-1)/MAX_VOLUME);
+
+@
+
+
+1.18
+log
+@Minor tweaks to the dyn vol adjust function.
+@
+text
+@d1685 1
+a1685 1
+void ShowVolume(int volume, int row, int bg) {
+d1702 1
+a1702 1
+	nsprintf(msg, sizeof(msg)-1, "%02d%%",((volume*100)+MAX_VOLUME-1)/MAX_VOLUME);
+d1732 1
+d1753 2
+d1766 2
+a1767 1
+    while (1) {
+d1777 1
+a1777 1
+	}
+d1783 1
+a1783 1
+	}
+d1790 21
+a1810 2
+	    if ( which_volume ) attract_volume--;
+	    else game_volume--;
+d1812 1
+a1812 1
+	}
+d1815 16
+a1830 2
+	    if ( which_volume ) attract_volume++;
+	    else game_volume++;
+d1832 1
+a1832 1
+	}
+d1834 9
+a1842 10
+	if ((cntr&0x0f)==0) {
+	    if (cntr&0x10) {
+		if (which_volume) {
+		    clr1=GRY_PAL;
+		    clr2=WHT_PAL;
+		    update=1;
+		} else {
+		    clr1=WHT_PAL;
+		    clr2=GRY_PAL;
+		    update=1;
+a1843 6
+	    } else {
+		clr1=GRY_PAL;
+		clr2=GRY_PAL;
+		update=1;
+	    }
+	}
+d1847 2
+a1848 1
+	if (update) {
+d1851 2
+a1852 5
+	    if (game_volume<MIN_VOLUME) game_volume=MIN_VOLUME; 
+	    if (game_volume>MAX_VOLUME) game_volume=MAX_VOLUME; 
+
+	    if (attract_volume<MIN_VOLUME) attract_volume=MIN_VOLUME; 
+	    if (attract_volume>game_volume) attract_volume=game_volume; 
+a1853 3
+	    ShowVolume(game_volume,VBAR_GAME_ROW,0);
+	    ShowVolume(attract_volume,VBAR_ATTRACT_ROW,0);
+
+d1859 1
+a1859 1
+	}
+d1869 1
+a1869 1
+    int att_vol, game_vol, volume;
+d1875 1
+d1884 1
+a1884 1
+	}
+d1888 1
+d1894 46
+a1939 14
+    if ((ctrls & VOLUME_DOWN)) {
+	if (which_volume) {	/* decreasing whichever volume */
+	    --att_vol;
+	} else {
+	    --game_vol;
+	}
+    }
+    if ((ctrls & VOLUME_UP)) {
+	if (which_volume) {	/* increasing whichever volume */
+	    ++att_vol;
+	} else {
+	    ++game_vol;
+	}
+    }
+d1950 2
+a1951 1
+    ShowVolume(which_volume ? att_vol : game_vol, DYN_VBAR_ROW, BGBIT);
+@
+
+
+1.17
+log
+@Added a dynamic volume adjust function to be called by the game
+code set set volume during attract or game play.
+@
+text
+@d1852 1
+a1852 1
+	++off_time;
+d1859 1
+a1859 1
+	if (off_time > 1000) off_time = 1000;
+d1887 3
+a1892 1
+    soundPutWord(0x55AA);
+d1894 1
+a1894 1
+	soundPutWord( (att_vol<<8) | (~att_vol&0x00FF) );
+d1896 1
+a1896 1
+	soundPutWord( (game_vol<<8) | (~game_vol&0x00FF) );
+a1897 2
+    volume = (att_vol << 8) | game_vol;
+    eer_puts(EER_AUD_VOL, volume);
+@
+
+
+1.16
+log
+@Added a aud_dyn_adjvol() function to allow volume adjustment
+during game play.
+@
+text
+@d1682 1
+a1682 1
+#define DYN_VBAR_ROW	     (AN_VIS_ROW-3-3)
+d1685 1
+a1685 1
+void ShowVolume(int volume, int row) {
+d1693 3
+a1695 3
+	if (volume<j) color = GRY_PAL;
+	else if (j<=LOW_VOLUME) color = GRN_PAL;
+	else if (j>HIGH_VOLUME) color = RED_PAL;
+d1704 1
+a1704 1
+	txt_str(VBAR_COL-4, row+1, msg, GRY_PAL);
+d1826 2
+a1827 2
+	    ShowVolume(game_volume,VBAR_GAME_ROW);
+	    ShowVolume(attract_volume,VBAR_ATTRACT_ROW);
+d1842 1
+a1842 1
+    static int off_time, volume, init;
+d1844 1
+a1844 1
+    int att_vol, game_vol;
+a1847 1
+	volume = eer_gets(EER_AUD_VOL);
+d1854 4
+a1857 4
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+0, VBAR_WIDTH);
+	    txt_clr_wid(VBAR_COL-4, DYN_VBAR_ROW+1, VBAR_WIDTH+4);
+	    txt_clr_wid(VBAR_COL,   DYN_VBAR_ROW+2, VBAR_WIDTH);
+	    eer_puts(EER_AUD_VOL, volume);
+d1864 1
+d1887 2
+a1888 1
+    ShowVolume(which_volume ? att_vol : game_vol, DYN_VBAR_ROW);
+d1897 1
+@
+
+
+1.15
+log
+@Allowed for use of VOL + and VOL - buttons as well as joystick to adjust
+volume.
+@
+text
+@d1682 2
+d1685 1
+a1685 1
+void ShowVolume(int volume,int row) {
+d1838 59
+@
+
+
+1.14
+log
+@Added "LEFT" and "RIGHT" messages during speaker test.
+@
+text
+@d1706 11
+d1742 1
+a1742 1
+    ctl_autorepeat(JOY_BITS, 60/2, 60/30);       /* Autorepeat after 1/2secs @@ 1/30 */
+d1763 1
+a1763 1
+	ctrls = ctl_read_sw(JOY_BITS | SW_NEXT | SW_ACTION);
+d1782 1
+a1782 1
+	if (ctrls & J_LEFT ) {
+d1789 1
+a1789 1
+	if ( ctrls & J_RIGHT ) {
+@
+
+
+1.13
+log
+@on the vol adjust screen, it was possible that you would hear sound even
+though it said 0%,  I round up now.
+@
+text
+@d1613 1
+d1615 1
+d1622 1
+@
+
+
+1.12
+log
+@Stomped a bug in partial downloads, it seems that I added too much
+error handling (in improper places)
+@
+text
+@d1697 1
+a1697 1
+	nsprintf(msg, sizeof(msg)-1, "%02d%%",(volume*100)/MAX_VOLUME);
+@
+
+
+1.11
+log
+@Added extended error conditions
+@
+text
+@a1076 3
+		    if(aud_bank_cmd_size(data) > ((snd_partition_cmd[x+1]-snd_partition_cmd[x])/2)) {auderr=AUDERR_PARTITION_CMD_TOO_BIG;return(0);}
+		    if(aud_bank_data_size(data) > ((snd_partition_data[x+1]-snd_partition_data[x]))) {auderr=AUDERR_PARTITION_DATA_TOO_BIG;return(0);}
+
+d1226 1
+@
+
+
+1.10
+log
+@Added blocked download functions for partial bank xfers.
+@
+text
+@d19 21
+d317 1
+a317 1
+    while (!(SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) if (eer_rtc-i>5) return(ERROR);
+d342 1
+a342 1
+    while (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) if (eer_rtc-i>30) return(ERROR);
+d369 2
+a370 2
+    if (buffer == 0) return(ERROR);
+    if (start>=end) return(ERROR);
+d375 3
+a377 3
+    if (soundPutWord(start) != OK) return ERROR;
+    if (soundPutWord(end) != OK) return ERROR;
+    if (soundPutWord(SOUND_LOAD_TYPE_DM) != OK) return ERROR;
+d393 1
+a393 1
+    if ((checksum & MASK16) != temp) return(ERROR);
+d396 2
+a397 2
+    if (soundGetWord(&temp) != OK ) return(ERROR);
+    if (temp != MONITOR_READY) return(ERROR);
+d423 2
+a424 2
+    if (buffer == NULL) return(ERROR);
+    if (start>=end) return(ERROR);
+d455 1
+a455 1
+    if ((checksum & MASK16) != temp) return(ERROR);
+d458 2
+a459 2
+    if (soundGetWord(&temp) != OK) return(ERROR);
+    if (temp != MONITOR_READY) return(ERROR);
+d475 1
+a475 1
+    int status;
+d478 1
+a486 2
+    status = soundGetWord(&sound_ack);
+    if (status != OK || sound_ack != MONITOR_READY) return(ERROR);
+d488 3
+d521 2
+a522 33
+    if ((retval) != OPSYS_READY) return(ERROR);
+
+
+    return(OK);
+
+#if 0
+    unsigned short sound_ack;
+    struct aud const *aud;
+
+    aud = audio_pgms;
+
+    while (aud->name) {
+	if ((aud->end-aud->start											) != (aud->eaddr+1-aud->saddr)*(aud->type ? 2:3)) {
+	    return(ERROR+1);
+	}
+	if (aud->type) if(soundLoadDM(aud->start,aud->saddr,aud->eaddr)) return(ERROR+2);
+	else if(soundLoadPM(aud->start,aud->saddr,aud->eaddr)) return(ERROR+3);
+	++aud;
+    }
+
+/* now that the code images have been loaded into memory by */
+/* the boot monitor, tell it to "run" the just-loaded opsys */
+
+    if (soundPutWord(SOUND_CMD_RUN)) return(ERROR+4);
+
+/* if the code ran OK then there should be a 0x0C waiting */
+/* see sound system docs for more info on ack codes */
+
+    if(soundGetWord(&sound_ack)) return(ERROR+5);
+    if ((sound_ack & MASK16) != OPSYS_READY) {
+	if (sound_ack) return(sound_ack);
+	else return(ERROR+6);
+    }
+a523 1
+#endif
+d701 6
+a706 4
+    while ((SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) {
+	data = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+	prc_delay(0);
+    }
+d718 6
+a723 4
+    while ((SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) {
+	data = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+	prc_delay(0);
+    }
+d742 1
+a742 1
+	if(data_buffer==0) return(0);
+a779 30
+#if 0
+int aud_load_bank_with_playback (U8 *data_buffer) 
+	{
+    unsigned int temp;
+    int num_calls;
+    int bank_size;
+    int retval;
+
+    if (snd_bank_cmd_start==-1) 
+    	{
+		snd_bank_cmd_start=snd_partition_cmd_addr;
+		snd_bank_data_start=snd_partition_data_addr;
+		snd_bank_data_addr = snd_partition_data_addr;
+		snd_bank_cmd_addr = snd_partition_cmd_addr;
+	    }
+
+    retval=aud_load_internal(data_buffer,snd_bank_cmd_addr, snd_bank_data_addr,LOAD_DRAM_WITH_PLAYBACK);
+
+	if (retval)
+		{ 
+	    num_calls=aud_bank_cmd_size(data_buffer);
+   		bank_size=aud_bank_data_size(data_buffer);
+
+    	snd_bank_cmd_addr = (snd_bank_cmd_addr + (2 * num_calls) - 1) + 1;
+    	temp = (snd_bank_data_addr / 2) + (bank_size / 2) + 1;
+    	snd_bank_data_addr = (temp + 1) * 2;
+		}
+    return(retval);
+	}
+#endif
+d786 2
+a787 2
+    if (snd_bank_cmd_start!=-1) return(0); /* bank already loaded, partitions locked */
+    if (snd_partition_index>=SOUND_MAX_PARTITIONS) return(0);
+d826 1
+a826 1
+    if (data==0) return(0);
+d832 2
+a833 2
+		if (snd_bank_cmd_start!=-1) return(0);
+		if (snd_partition_index>=SOUND_MAX_PARTITIONS) return(0);
+d854 2
+a855 2
+		    if(aud_bank_cmd_size(data) > ((snd_partition_cmd[x+1]-snd_partition_cmd[x])/2)) return(0);
+		    if(aud_bank_data_size(data) > ((snd_partition_data[x+1]-snd_partition_data[x]))) return(0);
+d862 1
+d882 2
+a883 2
+	if (data_buffer == NULL) return(0);
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) return(0);
+d891 2
+a892 2
+	if (num_calls >= (1024>>1)) return(0);
+	if (bank_size > (1024*1024*8)) return(0);
+d939 2
+a940 1
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) return(ERROR+3);
+d943 1
+d979 1
+a979 1
+    if ((checksum & MASK16) != table_checksum) return(ERROR+12);
+d996 2
+a997 1
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) return(ERROR+11);
+d1023 1
+a1023 1
+    if ((checksum & MASK16) != bank_checksum) return((checksum & MASK16)-bank_checksum);
+d1047 1
+a1047 1
+    int x;
+d1050 1
+a1050 1
+    if (data==0) return(0);
+d1055 2
+a1056 2
+		if (snd_bank_cmd_start!=-1) return(0);
+		if (snd_partition_index>=SOUND_MAX_PARTITIONS) return(0);
+d1077 2
+a1078 2
+		    if(aud_bank_cmd_size(data) > ((snd_partition_cmd[x+1]-snd_partition_cmd[x])/2)) return(0);
+		    if(aud_bank_data_size(data) > ((snd_partition_data[x+1]-snd_partition_data[x]))) return(0);
+d1085 1
+d1096 1
+a1096 1
+	if (buff == NULL) return(0);
+d1136 2
+a1137 2
+	if (data_buffer == NULL) return(0);
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) return(0);
+a1172 1
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) return(0);
+d1190 2
+a1191 2
+	if (buff == NULL) return(0);
+	if (size!=134) return(0);
+d1199 1
+a1199 1
+	if (len!=(aqi.cmd_size<<2)) return(0);
+d1205 1
+a1205 1
+	if (len!=(aqi.cmd_size<<2)) return(0);
+d1212 1
+a1212 1
+	if (len!=(aqi.cmd_size<<2)) return(0);
+d1219 1
+a1219 1
+	if (len!=(aqi.cmd_size<<2)) return(0);
+d1227 1
+d1243 1
+a1243 1
+		if ((aqi.checksum & MASK16) != temp) return(-3);
+d1248 10
+d1378 17
+a1394 6
+    if (soundHardwareReset()) return(0);
+    if (soundLatchTest()) return(0);
+#if 0
+    if (soundEppromBong()) return(0);
+#endif
+    if (soundSoftwareReset()) return(0);
+d1491 1
+a1491 1
+    while (!(SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) if (i++>500000) return(0);
+d1504 1
+a1504 1
+    while (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) if (i++>500000) return(0);
+@
+
+
+1.9
+log
+@Cleanup before new features added (p.s. please do reformat the braceing style)
+@
+text
+@d20 3
+d58 1
+a58 1
+#define SOUND_CALL_TABLE_SIZE 0x4000
+d70 1
+d77 1
+a77 1
+int download_snd_bank (char *buffer, int start, int end,U16 type);
+d88 5
+d132 31
+a304 1
+
+d460 2
+a462 2
+    SOUND_CONTROL_REGISTER |= (1);
+    prc_delay(0);
+d740 1
+a740 1
+int aud_load_bank (U8 *data_buffer) 
+d747 1
+a747 1
+	aud_stop_all_sounds();
+d757 1
+a757 1
+    retval=aud_load_internal(data_buffer,snd_bank_cmd_addr, snd_bank_data_addr,LOAD_DRAM);
+d771 11
+d785 1
+d801 1
+a801 1
+    retval=aud_load_internal(data_buffer,snd_bank_cmd_addr, snd_bank_data_addr,LOAD_DRAM);
+d814 1
+d956 1
+a957 2
+    if ((download_snd_bank((char *)(&data_buffer[pos]), temp1, temp2,type)) != OK) return (0);
+
+d959 1
+a959 2
+}
+
+d1021 1
+a1021 1
+int download_snd_bank (char *buffer, int start, int end,U16 type) { 
+a1037 1
+
+a1049 1
+
+d1062 121
+d1184 4
+a1187 7
+int blocked_download_snd_bank (char *buffer, int start, int end,U16 type) 
+	{ 
+    int i,j;
+    unsigned int size;
+    unsigned int checksum;
+    U16 bank_checksum;
+    U16 temp;
+d1189 3
+a1191 2
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) return(ERROR+11);
+	if (soundPutWord(type) != OK) return(ERROR+12);           
+d1193 1
+a1193 2
+    if (soundPutWord((start >> 16) & MASK16) != OK) return(ERROR+13);         
+    if (soundPutWord(start & MASK16) != OK) return(ERROR+14);         
+d1195 4
+a1198 2
+    if ((soundPutWord(end >> 16) & MASK16) != OK) return(ERROR+15);        
+    if ((soundPutWord(end & MASK16)) != OK) return(ERROR+16);         
+d1200 2
+a1201 6
+/* now send the data */
+    i = 0;
+    checksum = 0;
+    size = (end - start + 1);
+    checksum=0;
+    i=0;
+d1203 55
+a1257 5
+/*while(i<=size) */
+    for (j= 0; j < size; j++) {
+	temp = (((short)buffer[i++])&0x000000FF) <<8; 
+	temp = temp | (((short)buffer[i++])&0x000000FF);
+	checksum += temp;
+d1259 5
+a1263 2
+	if (soundPutWord(temp)!=OK)	return(ERROR+17);
+    } 
+d1265 2
+a1266 2
+    if((soundGetWord(&bank_checksum))!=OK) return(ERROR+18);         
+    if ((checksum & MASK16) != bank_checksum) return((checksum & MASK16)-bank_checksum);
+d1268 1
+a1268 2
+    return(OK);
+}
+d1270 7
+d1278 56
+d1339 1
+a1339 1
+
+d1406 1
+a1406 1
+    return 1;
+d1609 1
+d1628 1
+d1634 1
+d1636 1
+a1636 1
+	prc_delay(8);
+d1841 2
+@
+
+
+1.8
+log
+@Added Fn() aud_put_safe and aud_get_safe so that audio calls
+are safe to call from interupt routines
+@
+text
+@d67 3
+d74 1
+a74 1
+int aud_load_partition_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr,U16 type);
+d123 116
+d471 1
+a471 1
+	if ((aud->end-aud->start) != (aud->eaddr+1-aud->saddr)*(aud->type ? 2:3)) {
+d496 10
+d508 22
+a529 3
+int aud_load_partition_with_playback (int cmd,U8 *data) {
+    int x;
+    int retval;
+d531 9
+a539 1
+    if (data==0) return(0);
+d541 8
+a548 1
+    retval=0;
+d550 9
+a558 16
+    if (cmd==0) {
+	if (snd_bank_cmd_start!=-1) return(0);
+	if (snd_partition_index>=SOUND_MAX_PARTITIONS) return(0);
+	
+	retval=aud_load_partition_internal(data,snd_partition_cmd_addr,snd_partition_data_addr,LOAD_DRAM_WITH_PLAYBACK);
+
+	if (retval) {
+	    snd_partition_cmd_addr=snd_partition_cmd_addr+(aud_bank_cmd_size(data)*2);
+	    snd_partition_data_addr=snd_partition_data_addr+aud_bank_data_size(data)+2;
+
+	    snd_partition_index++;
+
+	    snd_partition_data[snd_partition_index]=snd_partition_data_addr;
+	    snd_partition_cmd[snd_partition_index]=snd_partition_cmd_addr;
+	}
+	return(retval);
+d560 2
+d563 4
+a566 4
+    for (x=0;x<SOUND_MAX_PARTITIONS;x++) {
+	if (snd_partition_cmd[x]==(cmd*2)) {
+	    if(aud_bank_cmd_size(data) > ((snd_partition_cmd[x+1]-snd_partition_cmd[x])/2)) return(0);
+	    if(aud_bank_data_size(data) > ((snd_partition_data[x+1]-snd_partition_data[x]))) return(0);
+d568 5
+a572 6
+	    retval=aud_load_partition_internal(data,snd_partition_cmd[x],snd_partition_data[x],LOAD_DRAM_WITH_PLAYBACK);
+
+	    return(retval);
+	}
+    }
+    return(0);
+a573 4
+/***************************************************************************/
+void aud_stop_all_sounds()
+	{
+	U16 temp;
+a574 6
+	if(soundPutWord(0x55d2)) return;	  /* flush all pending soundcalls */
+	if(soundGetWord(&temp)) return;
+	if(soundPutWord(0x55d3)) return;	 /* flush i/o queues */
+	if(soundGetWord(&temp)) return;
+	if(soundPutWord(0)) return;
+	}
+d576 3
+a578 3
+int aud_load_partition (int cmd,U8 *data) {
+    int x;
+    int retval;
+d580 6
+a585 1
+    if (data==0) return(0);
+d587 6
+a592 2
+	aud_stop_all_sounds();
+    retval=0;
+d594 9
+a602 3
+    if (cmd==0) {
+	if (snd_bank_cmd_start!=-1) return(0);
+	if (snd_partition_index>=SOUND_MAX_PARTITIONS) return(0);
+d604 1
+a604 1
+	retval=aud_load_partition_internal(data,snd_partition_cmd_addr,snd_partition_data_addr,LOAD_DRAM);
+d606 7
+a612 10
+	if (retval) {
+	    snd_partition_cmd_addr=snd_partition_cmd_addr+(aud_bank_cmd_size(data)*2);
+	    snd_partition_data_addr=snd_partition_data_addr+aud_bank_data_size(data)+2;
+
+	    snd_partition_index++;
+
+	    snd_partition_data[snd_partition_index]=snd_partition_data_addr;
+	    snd_partition_cmd[snd_partition_index]=snd_partition_cmd_addr;
+	}
+	return(retval);
+d615 2
+a616 4
+    for (x=0;x<SOUND_MAX_PARTITIONS;x++) {
+	if (snd_partition_cmd[x]==(cmd*2)) {
+	    if(aud_bank_cmd_size(data) > ((snd_partition_cmd[x+1]-snd_partition_cmd[x])/2)) return(0);
+	    if(aud_bank_data_size(data) > ((snd_partition_data[x+1]-snd_partition_data[x]))) return(0);
+d618 4
+a621 1
+	    retval=aud_load_partition_internal(data,snd_partition_cmd[x],snd_partition_data[x],LOAD_DRAM);
+d623 5
+a627 4
+	    return(retval);
+	}
+    }
+    return(0);
+d631 3
+a633 3
+int aud_make_partition (int cmd_size,int data_size) {
+    if (snd_bank_cmd_start!=-1) return(0);
+    if (snd_partition_index>=SOUND_MAX_PARTITIONS) return(0);
+d635 6
+a640 1
+    snd_partition_index++;
+d642 1
+a642 7
+    snd_partition_data_addr=snd_partition_data_addr+data_size+2;
+    snd_partition_data[snd_partition_index]=snd_partition_data_addr;
+
+    snd_partition_cmd_addr=snd_partition_cmd_addr+(cmd_size*2)+2;
+    snd_partition_cmd[snd_partition_index]=snd_partition_cmd_addr;
+
+    return(snd_partition_cmd[snd_partition_index-1]/2);
+d646 5
+d693 7
+a699 11
+U16 aud_play_sound(U16 sound,U8 vol,U8 pan,U16 priority) {
+U16 temp;
+
+if(soundPutWord(sound)) return(0);
+temp=(vol<<8)+pan;
+if(soundPutWord(temp)) return(0);
+if(soundPutWord(priority)) return(0);
+if(soundGetWord(&temp)) return(0);
+return(temp);
+}
+
+d701 4
+a704 1
+int aud_bank_data_size(U8 *data_buffer) {
+d706 1
+a706 1
+    int pos;
+d708 1
+a708 1
+    pos=130;
+d710 21
+a730 8
+    bank_size = data_buffer[pos++];
+    bank_size += (data_buffer[pos++] << 8);
+    bank_size += (data_buffer[pos++] << 16);
+    bank_size += (data_buffer[pos++] << 24);
+
+    return(bank_size);
+}
+
+d732 2
+a733 12
+int aud_bank_cmd_size(U8 *data_buffer) {
+    int num_calls;
+    int pos;
+
+    pos=128;
+
+    num_calls =  data_buffer[pos++];
+    num_calls += (data_buffer[pos++] << 8);
+
+    return(num_calls);
+}
+
+d735 3
+a737 4
+int aud_load_partition_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr,U16 type) {
+    unsigned int temp1,temp2;
+    U32 sound_call_table[1024];  /* fix me!! */
+
+a739 3
+    int pos;
+    int i;
+
+d742 29
+a770 2
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) return(0);
+	if (data_buffer == NULL) return(0);
+d772 1
+a772 2
+/* there is a 128 byte header that we can ignore */
+/* number of sound calls in the bank is stored in first data loc */
+d774 2
+a775 3
+    num_calls=aud_bank_cmd_size(data_buffer);
+    bank_size=aud_bank_data_size(data_buffer);
+    pos=134;
+d777 2
+a778 2
+/* the table could be sparse, so be safe */
+    for (i=0; i < num_calls; i++) sound_call_table[i] = MASK32;
+d780 12
+a791 29
+/* create the local, relocated sound call table */
+    for (i=0; i < num_calls; i ++) {
+	temp1 = data_buffer[pos++];
+	temp1 += (data_buffer[pos++] << 8);
+	temp1 += (data_buffer[pos++] << 16);
+	temp1 += (data_buffer[pos++] << 24);
+
+	/* relative to last ending point */
+	if (temp1 != MASK32) temp1 = temp1 + data_addr;
+	sound_call_table[i] = temp1;
+    }
+
+    temp1 = cmd_addr;
+    retval= cmd_addr/2;
+    temp2 = cmd_addr + (2 * num_calls) - 1;
+
+    if ((download_snd_table ((char *)&sound_call_table[0], temp1, temp2,type)) != OK) return(0);
+
+/* startin	 g address of D/RAM to load */
+/* note the "addressing compensation" div by 2 */
+    temp1 = data_addr / 2;
+    temp2 = temp1 + (bank_size) / 2 + 1;
+/* k still holds the index into the buffer loaded from disk */
+
+    if ((download_snd_bank((char *)(&data_buffer[pos]), temp1, temp2,type)) != OK) return (0);
+
+    return(retval);
+}
+
+a793 1
+/* FUNCTION: aud_load_bank()                                               */
+d795 6
+a800 2
+/* Loads a .BNK sound bank file from the disk. Computes and stores the     */
+/* sound call table, and stores the compressed data.                       */
+d804 3
+a806 8
+int aud_load_bank (U8 *data_buffer) {
+    unsigned int temp1,temp2;
+    U32 sound_call_table[500];  /* fix me!! */
+
+    int num_calls;
+    int bank_size;
+    int pos;
+    int i;
+a807 6
+/*
+    retval=0;
+    temp1=0;
+    temp2=0;*/
+    if (data_buffer == NULL) return(0);
+	aud_stop_all_sounds();
+d809 1
+a809 2
+/* there is a 128 byte header that we can ignore */
+/* number of sound calls in the bank is stored in first data loc */
+d811 1
+a811 3
+    num_calls=aud_bank_cmd_size(data_buffer);
+    bank_size=aud_bank_data_size(data_buffer);
+    pos=134;
+d813 6
+a818 6
+    if (snd_bank_cmd_start==-1) {
+	snd_bank_cmd_start=snd_partition_cmd_addr;
+	snd_bank_data_start=snd_partition_data_addr;
+	snd_bank_data_addr = snd_partition_data_addr;
+	snd_bank_cmd_addr = snd_partition_cmd_addr;
+    }
+d820 31
+a850 40
+
+/* the table could be sparse, so be safe */
+    for (i=0; i < num_calls; i++) sound_call_table[i] = MASK32;
+
+/* create the local, relocated sound call table */
+    for (i=0; i < num_calls; i ++) {
+	temp1 = data_buffer[pos++];
+	temp1 += (data_buffer[pos++] << 8);
+	temp1 += (data_buffer[pos++] << 16);
+	temp1 += (data_buffer[pos++] << 24);
+
+	/* relative to last ending point */
+	if (temp1 != MASK32) temp1 = temp1 + snd_bank_data_addr;
+	sound_call_table[i] = temp1;
+    }
+
+/* starting location in D/RAM of sound calls to store */
+    temp1 = snd_bank_cmd_addr;
+    retval= snd_bank_cmd_addr/2;
+
+/* location of last sound call to store */
+    temp2 = snd_bank_cmd_addr + (2 * num_calls) - 1;
+
+    if ((download_snd_table ((char *)&sound_call_table[0], temp1, temp2,LOAD_DRAM)) != OK) return(0);
+
+    snd_bank_cmd_addr = temp2 + 1;
+
+/* startin	 g address of D/RAM to load */
+/* note the "addressing compensation" div by 2 */
+    temp1 = snd_bank_data_addr / 2;
+    temp2 = temp1 + (bank_size) / 2 + 1;
+
+/* k still holds the index into the buffer loaded from disk */
+
+    if ((download_snd_bank((char *)(&data_buffer[pos]), temp1, temp2,LOAD_DRAM)) != OK) return (0);
+
+    snd_bank_data_addr = (temp2 + 1) * 2;
+
+    return(retval);
+}
+d852 2
+a853 1
+int aud_load_bank_with_playback (U8 *data_buffer) {
+d855 1
+a855 1
+    U32 sound_call_table[500];  /* fix me!! */
+d861 1
+a862 4
+/*
+    retval=0;
+    temp1=0;
+    temp2=0;*/
+d864 2
+a865 1
+    if (data_buffer == NULL) return(0);
+d867 2
+a868 2
+/* there is a 128 byte header that we can ignore */
+/* number of sound calls in the bank is stored in first data loc */
+d873 2
+d876 16
+a891 6
+    if (snd_bank_cmd_start==-1) {
+	snd_bank_cmd_start=snd_partition_cmd_addr;
+	snd_bank_data_start=snd_partition_data_addr;
+	snd_bank_data_addr = snd_partition_data_addr;
+	snd_bank_cmd_addr = snd_partition_cmd_addr;
+    }
+d893 3
+d897 1
+a897 21
+/* the table could be sparse, so be safe */
+    for (i=0; i < num_calls; i++) sound_call_table[i] = MASK32;
+
+/* create the local, relocated sound call table */
+    for (i=0; i < num_calls; i ++) {
+	temp1 = data_buffer[pos++];
+	temp1 += (data_buffer[pos++] << 8);
+	temp1 += (data_buffer[pos++] << 16);
+	temp1 += (data_buffer[pos++] << 24);
+
+	/* relative to last ending point */
+	if (temp1 != MASK32) temp1 = temp1 + snd_bank_data_addr;
+	sound_call_table[i] = temp1;
+    }
+
+/* starting location in D/RAM of sound calls to store */
+    temp1 = snd_bank_cmd_addr;
+    retval= snd_bank_cmd_addr/2;
+
+/* location of last sound call to store */
+    temp2 = snd_bank_cmd_addr + (2 * num_calls) - 1;
+a898 4
+    if ((download_snd_table ((char *)&sound_call_table[0], temp1, temp2,LOAD_DRAM_WITH_PLAYBACK)) != OK) return(0);
+
+    snd_bank_cmd_addr = temp2 + 1;
+
+d901 1
+a901 1
+    temp1 = snd_bank_data_addr / 2;
+a902 1
+
+d905 1
+a905 3
+    if ((download_snd_bank((char *)(&data_buffer[pos]), temp1, temp2,LOAD_DRAM_WITH_PLAYBACK)) != OK) return (0);
+
+    snd_bank_data_addr = (temp2 + 1) * 2;
+a911 1
+/* FUNCTION: download_snd_table()                                          */
+a912 9
+/* Sends the local copy of the relocated sound call table to the sound     */
+/* D/RAM.                                                                  */
+/*                                                                         */
+/* Called by load_bank().                                                  */
+/*                                                                         */
+/* Returns OK or ERROR.                                                    */
+/*                                                                         */
+/* Copyright (c) 1995 Midway Manufacturing Company - MVB                   */
+/*                                                                         */
+d923 1
+a923 1
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) return(0);
+d947 1
+a947 1
+	if (soundPutWord(temp)!= OK) return(ERROR+9);
+d960 2
+a961 2
+    if (soundGetWord(&table_checksum)!= OK) return(ERROR+10);         
+    if ((checksum & MASK16) != table_checksum) return(ERROR+11);
+a967 3
+/* FUNCTION: download_snd_bank()                                           */
+/*                                                                         */
+/* Sends the actual compressed audio and playlist data to the sound D/RAM. */
+a968 8
+/* Basically the same as download_snd_table() except for swizzle steps.    */
+/*                                                                         */
+/* Called by load_bank().                                                  */
+/*                                                                         */
+/* Returns OK or ERROR.                                                    */
+/*                                                                         */
+/* Copyright (c) 1995 Midway Manufacturing Company - MVB                   */
+/*                                                                         */
+d978 1
+a978 1
+	if (type!=LOAD_DRAM && type!=LOAD_DRAM_WITH_PLAYBACK) return(0);
+a1009 9
+
+/* NOTE; after hearing Ed Keenin's (V++ DSP Programmer) speach about how busy
+         he is with war gods and how he should not be contacted, I managed
+	 to convice him that it would be easier for him just to give me 5
+	 minutes of his time to help us debug the V++ system.  Two minutes
+	 into the debugging help (and 10 minutes into the call) he mentioned
+	 several useful commands that the epproms boot code contained.
+	 These under documented features are used in the functions below  */
+
+a1011 15
+/* FUNCTION: int soundRamTest(void)                                        */
+/*                                                                         */
+/*           Test all three S/RAM chips and the two banks of D/RAM         */
+/*                                                                         */
+/* INPUTS:  0 if bank 1 D/RAM is not installed                             */
+/*          1 if bank 1 D/RAM is installed                                 */
+/*                                                                         */
+/* RETURNS: OK if successful                                               */
+/*          1 if SRAM #1 is faulty.                                        */
+/*          2 if SRAM #2 is faulty.                                        */
+/*          3 if SRAM #3 is faulty.                                        */
+/*          4 if DRAM Bank 0 is faulty.                                    */
+/*          5 if DRAM Bank 1 is faulty.                                    */
+/*          9 unknown error code.                                          */
+/*          <0 if a communication error occured.                           */
+d1014 17
+a1030 4
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundRamTest(int code) {
+    U16 sound_data;
+    U16 sound_ack;
+d1032 6
+a1037 9
+/* test SRAM */
+    if (soundPutWord(0x003A) != OK) return(-1);
+    if (soundGetWord(&sound_data)) return(-2);
+    if (soundGetWord(&sound_ack)) return(-3);
+    if (sound_data != 0xCC01) {
+	if((sound_data & 0xFF00) != 0xEE00) return(9);
+	else return(0x00FF & sound_data);
+    }
+    if (sound_ack != MONITOR_READY) return(-4);
+d1039 5
+a1043 8
+/* test DRAM  bank 0 */
+    if (soundPutWord(0x004A) != OK) return(-5);
+    prc_delay(150); /* Give the command a bit of time to complete */
+    if (soundGetWord(&sound_data)) return(-6);
+    if (soundGetWord(&sound_ack)) return(-7);
+    if (sound_data == 0xEE04) return(4);
+    else if (sound_data != 0xCC02) return(9);
+    if (sound_ack != MONITOR_READY) return(-8);
+d1045 2
+a1046 12
+/* test DRAM bank 1 (NOTE: bank 1 is optional)*/
+    if (code) {
+	if (soundPutWord(0x005A) != OK) return(-9);
+	prc_delay(150); /* Give the command a bit of time to complete */
+	if (soundGetWord(&sound_data)) return(-10);
+	if (soundGetWord(&sound_ack)) return(-11);
+	if (sound_data == 0xEE05) return(5);
+	else if (sound_data != 0xCC03) return(9);
+	if (sound_ack != MONITOR_READY) return(-12);
+    }
+    return(OK);
+}
+d1048 2
+a1049 4
+/***************************************************************************/
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundGetAsicRev(U16 *retval) {
+    U16 sound_ack;
+a1050 4
+    if (soundPutWord(0x007A) != OK) return(ERROR);
+    if (soundGetWord(retval)) return(ERROR);
+    if (soundGetWord(&sound_ack)) return(ERROR);
+    if (sound_ack != MONITOR_READY) return(ERROR);
+d1054 5
+a1059 10
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundGetEppromRev(U16 *retval) {
+    U16 sound_ack;
+
+    if (soundPutWord(0x006A) != OK) return(ERROR);
+    if (soundGetWord(retval)) return(ERROR);
+    if (soundGetWord(&sound_ack)) return(ERROR);
+    if (sound_ack != MONITOR_READY) return(ERROR);
+    return(OK);
+}
+d1062 3
+a1064 5
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundLatchTest(void) {
+    U16 retval;
+    U16 sound_ack;
+    int i;
+d1066 1
+a1066 11
+/* walking ones test */
+    for (i=0;i<16;i++) {
+	if (soundPutWord(0x008A) != OK) return(ERROR);
+	if (soundPutWord((1<<i)) != OK) return(ERROR);
+	if (soundGetWord(&retval)) return(ERROR);
+	if (soundGetWord(&sound_ack)) return(ERROR);
+	if (((1<<i)&0x0000FFFF) != ((~retval)&0x0000FFFF)) return(-(i+1));
+	if (sound_ack != MONITOR_READY) return(ERROR);
+    }
+	
+/* walking zeros test */
+d1068 4
+a1071 8
+    for (i=0;i<16;i++) {
+	if (soundPutWord(0x008A) != OK) return(ERROR);
+	if (soundPutWord((~(1<<i))) != OK) return(ERROR);
+	if (soundGetWord(&retval)) return(ERROR);
+	if (soundGetWord(&sound_ack)) return(ERROR);
+	if ((1<<i) != (retval)) return(-(i+1));
+	if (sound_ack != MONITOR_READY) return(ERROR);
+    }
+d1073 1
+a1073 1
+    return(OK);
+d1077 3
+a1079 3
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundInternalPMChecksum(U16 *retval) {
+    U16 sound_ack;
+d1081 1
+a1081 6
+    if (soundPutWord(0x009A) != OK) return(ERROR);
+    if (soundGetWord(retval)) return(ERROR+1);
+    if (soundGetWord(&sound_ack)) return(ERROR+2);
+    if (sound_ack != MONITOR_READY) return(-sound_ack);
+    return(OK);
+}
+d1083 2
+a1084 4
+/***************************************************************************/
+/* note: this call is only valid BEFORE the OS is loaded and run */
+int soundEppromBong(void)  { /* blurb blurb blurb */ 
+    U16 sound_ack;
+d1086 1
+a1086 8
+    if (soundPutWord(0x00AA) != OK) return(ERROR);
+    prc_delay(100); /* wait for bonk to finish */
+    if (soundGetWord(&sound_ack)) return(ERROR);
+    if (sound_ack != 0xCC04) return(ERROR);
+    if (soundGetWord(&sound_ack)) return(ERROR);
+    if (sound_ack != MONITOR_READY) return(ERROR);
+
+    return(OK);
+a1087 6
+
+/***************************************************************************/
+/***************************************************************************/
+/************************************************************************/
+/************************************************************************/
+/************************************************************************/
+a1092 35
+/************************************************************************/
+/************************************************************************/
+
+int aud_cmd(int st_val) {
+    return 0;
+}
+
+int aud_game_volume(void) {
+    U16 vol;
+    vol=eer_gets(EER_AUD_VOL);
+    vol=vol&0x00FF;
+    vol=(vol<<8)|((~vol) & 0x00FF);
+    if (soundPutWord(0x55AA)) return(0);
+    if (soundPutWord(vol)) return(0);
+    return(1);
+}
+
+int aud_attract_volume(void) {
+    U16 vol;
+    vol=eer_gets(EER_AUD_VOL);
+    vol=(vol>>8)&0x00FF;
+    vol=(vol<<8)|((~vol) & 0x00FF);
+
+    if (soundPutWord(0x55AA)) return(0);
+    if (soundPutWord(vol)) return(0);
+    return(1);
+}
+
+/*		aud_reset()
+ *	Resets audio processor and vital state.
+ */
+void aud_reset() {
+    return;
+}
+
+d1117 2
+a1118 1
+long aud_init(int level) {
+d1122 1
+a1122 1
+    if (soundEppromBong()) return(1);
+d1128 39
+a1166 1
+}
+d1168 6
+a1173 7
+/*		aud_q_get() 
+ *	Returns:
+ *		-1 if no input available
+ *		else data from port
+ */
+long aud_q_get(void) {
+    return -1;
+d1176 1
+a1176 13
+/*		aud_q_put(code)
+ *	Adds <code> to queue of "sounds" to play. <code> is assumed to be a
+ *	single aud_t. See aud_mput() for multi-aud_t commands. On a system with
+ *	external Audio, <code> will then be written to the port communicating
+ *	with the sound processor. On a host-based audio system, <code> will
+ *	be placed directly in the "action" queue of the sound process. 
+ *	Returns:
+ *		0 if no room
+ *		1 if on queue.
+ */
+int aud_q_put(int code) {
+    return 0;
+}
+d1190 1
+d1199 1
+d1208 1
+d1212 1
+a1212 1
+
+d1216 1
+a1216 1
+
+a1238 81
+
+/*		aud_poll(usec)
+ *	Check on sound processor status, using usec as the amount of time 
+ *	since last check.  For queued sounds without CAGE style interrupts
+ *	this routine will send a sound too.
+ *	Return:
+ *		1 if a sound has been sent
+ *		0 if nothing to output 
+ *		-1 if sound system should not be running from last reset
+ *		-2 if sound subsystem was reset 
+ */
+
+int aud_poll(unsigned long time) {
+    return 0;
+}
+
+/*		aud_setvol(volume)				(audio.c)
+ *	Set the volume of sound.  A parameter of -1 will set the
+ *	volume to the value stored in EEPROM. 
+ *	Returns:
+ *		-1 for an error
+ *		<volume> that was set
+ */
+
+int aud_setvol(int volume) {
+    return -1;
+}
+
+/*		aud_irq()
+ *	Interrupt from sound processor.  Called from assembly after registers
+ *	saved.
+ */
+void aud_irq(void) {
+    return;
+}
+
+/*		aud_f_put(code)
+ *	Attempts to send <code> to the sound processor. 
+ *	Returns:
+ *		0 if sound process (from reset) or port is currently busy
+ *		1 if code sent
+ */
+int aud_f_put(int value) {
+    return 0;
+}
+
+/*		aud_excw(code,buf,cnt)
+ *	Handle an exception-mode transfer, in the "one byte out, 'cnt' bytes in"
+ *	way.
+ *	Returns:
+ *		0 if exception in progress or sound processor is in reset
+ *		1 if exception complete or under way
+ */
+int aud_excw(int code, void *buff, int count) {
+    return 0;
+}
+
+/****************************************************************************
+    		streaming stubs, added to get past broken audio.a
+****************************************************************************/
+
+void strmInit() {;}
+void strmStartStreaming() {;}
+int strmCurrentBufferDonePlaying() {return 1;}
+void strmSwapBuffer() {return;}
+void strmSetupStreaming() {;}
+void strmStop() {;}
+void strmPause() {;}
+void strmResume() {;}
+void strmSetVolume() {;}
+int strmGetSampleRate() { return 42;}
+void synPrintJVcb() {return;}
+void aud_q_dump() {return;}
+int aud_q_mput(int num, ...) {return 0;}
+int aud_getErrorCount() {return 0;}
+void aud_pm() {return;}
+int aud_qlen(void) {return 0;}
+
+
+/*****************************************************************************/
+/*****************************************************************************/
+a1248 2
+/*****************************************************************************/
+/*****************************************************************************/
+d1408 1
+a1408 1
+
+d1432 1
+a1432 1
+
+@
+
+
+1.7
+log
+@Added funcion aud_stop_all_sounds() which is called in the load without
+playback calls
+@
+text
+@d1180 23
+@
+
+
+1.6
+log
+@Added downloading while playback functionality
+@
+text
+@d80 1
+a80 1
+
+d418 11
+d435 1
+a642 1
+
+d644 1
+@
+
+
+1.5
+log
+@Since this file had no formatting at all (everything started on
+column 1), I formatted it the way _I_ like it.
+Fiddled with the values on ctl_autorepeat() in adj volume.
+@
+text
+@d56 1
+a56 1
+#define SOUND_MAX_PARTITIONS 16
+d67 5
+a71 3
+int download_snd_table (char *table_addr, int start, int end);
+int download_snd_bank (char *buffer, int start, int end);
+int aud_load_partition_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr);
+d73 1
+d79 1
+a79 1
+void aud_play_sound(U16 sound,U8 vol,U8 pan,U16 priority);
+d106 1
+d379 32
+d412 5
+d430 1
+a430 1
+	retval=aud_load_partition_internal(data,snd_partition_cmd_addr,snd_partition_data_addr);
+d449 1
+a449 1
+	    retval=aud_load_partition_internal(data,snd_partition_cmd[x],snd_partition_data[x]);
+d516 2
+a517 4
+void aud_play_sound(U16 sound,U8 vol,U8 pan,U16 priority) {
+    U16 temp;
+
+    temp=(vol<<8)+pan;
+d519 6
+a524 4
+    if(soundPutWord(sound)) return;
+    if(soundPutWord(temp)) return;
+    if(soundPutWord(priority)) return;
+    if(soundGetWord(&temp)) return;
+d556 1
+a556 1
+int aud_load_partition_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr) {
+d567 2
+a568 1
+    if (data_buffer == NULL) return(0);
+d596 1
+a596 1
+    if ((download_snd_table ((char *)&sound_call_table[0], temp1, temp2)) != OK) return(0);
+d604 1
+a604 1
+    if ((download_snd_bank((char *)(&data_buffer[pos]), temp1, temp2)) != OK) return (0);
+d671 72
+a742 1
+    if ((download_snd_table ((char *)&sound_call_table[0], temp1, temp2)) != OK) return(0);
+d753 1
+a753 1
+    if ((download_snd_bank((char *)(&data_buffer[pos]), temp1, temp2)) != OK) return (0);
+d775 1
+a775 1
+int download_snd_table (char *table_addr, int start, int end) {
+d783 4
+a786 2
+    size = (end - start + 1)*2;                 
+    if (soundPutWord(LOAD_DRAM) != OK) return(ERROR+4);           
+d842 1
+a842 1
+int download_snd_bank (char *buffer, int start, int end) { 
+d849 2
+a850 2
+
+    if (soundPutWord(LOAD_DRAM) != OK) return(ERROR+12);           
+@
+
+
+1.4
+log
+@Changed instruction messages text and placement.
+@
+text
+@d34 6
+a39 6
+#ifdef EER_GUTS_OPT
+#define AUD_AV_MSK (3)
+#define AUD_AV_SHF (0)
+#else
+#define AUD_AV_MSK (0)
+#endif /* EER_GUTS_OPT defined */
+d43 1
+a43 1
+#define SND_IDX_MSK 	(0x3F)
+d46 1
+a46 1
+#define AUD_MAX_TIME 	(40000L)	/* about five frames without output */
+d108 6
+a113 6
+void PrintNum(int num)
+{
+char emsg[10];
+nsprintf(emsg, sizeof(emsg)-1, "(%d)",num);
+txt_str(1, 1, emsg, RED_PAL);
+prc_delay(50);
+d115 1
+d129 2
+a130 3
+int soundGetWord(U16 *data)
+{
+U32 i;
+d132 2
+a133 2
+i=eer_rtc;
+while (!(SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY)) if (eer_rtc-i>5) return(ERROR);
+d135 1
+a135 1
+*data = (SOUND_PORT_GET_DATA & 0x0000FFFF);
+d137 1
+a137 1
+SOUND_PORT_GET_DATA = 0x0000; /* this statment should only be nessecarry for a c30 host */
+d139 1
+a139 1
+return(OK);
+d155 2
+a156 3
+int soundPutWord(unsigned short data)
+{
+int i;
+d158 2
+a159 2
+i=eer_rtc;
+while (!(SOUND_PORT_FLAGS & SOUND_PORT_SEND_READY)) if (eer_rtc-i>30) return(ERROR);
+d161 2
+a162 2
+SOUND_PORT_PUT_DATA = data;
+return(OK);
+d164 1
+d180 5
+a184 6
+int soundLoadDM(U8 *buffer,U16 start,U16 end)
+{
+S32 size;							/* number of 16-bit words to send */
+S32 i;								/* counters for send loop */
+U16 temp;
+U32 checksum;			/* our computed checksum as data sent */
+d186 2
+a187 2
+if (buffer == 0) return(ERROR);
+if (start>=end) return(ERROR);
+d191 9
+a199 10
+if (soundPutWord(SOUND_CMD_LOAD) != OK) return(ERROR);
+if (soundPutWord(start) != OK) return ERROR;
+if (soundPutWord(end) != OK) return ERROR;
+if (soundPutWord(SOUND_LOAD_TYPE_DM) != OK) return ERROR;
+
+size = (end - start + 1)*2;
+checksum=0;
+i=0;
+while(i<size)
+	{
+d205 1
+a205 1
+	}
+d209 2
+a210 2
+if (soundGetWord(&temp) != OK) return(ERROR);
+if ((checksum & MASK16) != temp) return(ERROR);
+d213 2
+a214 2
+if (soundGetWord(&temp) != OK ) return(ERROR);
+if (temp != MONITOR_READY) return(ERROR);
+d216 1
+a216 1
+return(OK);
+d218 1
+d234 5
+a238 6
+int soundLoadPM(U8 *buffer,U16 start,U16 end)
+{
+S32 size;							/* number of 16-bit words to send */
+S32 i;								/* counters for send loop */
+U16 temp,temp2;
+U32 checksum;			/* our computed checksum as data sent */
+d240 2
+a241 2
+if (buffer == NULL) return(ERROR);
+if (start>=end) return(ERROR);
+d246 1
+a246 1
+size = (end - start + 1) * 3;
+d251 8
+a258 9
+if (soundPutWord (SOUND_CMD_LOAD) != OK) return(ERROR);
+if (soundPutWord (start) != OK) return(ERROR);
+if (soundPutWord (end) != OK) return(ERROR);
+if (soundPutWord (SOUND_LOAD_TYPE_PM) != OK) return(ERROR);
+
+i = 0;
+checksum = 0;
+while (i<size)
+	{
+d262 1
+a262 1
+	if (soundPutWord(temp)!=OK)	return(ERROR);
+d267 1
+a267 1
+	}
+d271 2
+a272 2
+if (soundGetWord(&temp) != OK) return(ERROR);
+if ((checksum & MASK16) != temp) return(ERROR);
+d275 2
+a276 2
+if (soundGetWord(&temp) != OK) return(ERROR);
+if (temp != MONITOR_READY) return(ERROR);
+d278 1
+a278 1
+return(OK);
+d280 1
+d291 3
+a293 4
+int soundHardwareReset(void)
+{
+int status;
+U16 sound_ack;
+d296 5
+a300 5
+SOUND_CONTROL_REGISTER &= (~1);
+sound_ack=SOUND_PORT_GET_DATA; /* clear the read latch, just in case */
+prc_delay(1);
+SOUND_CONTROL_REGISTER |= (1);
+prc_delay(0);
+d303 2
+a304 2
+status = soundGetWord(&sound_ack);
+if (status != OK || sound_ack != MONITOR_READY) return(ERROR);
+d306 1
+a306 1
+return(OK);
+d309 1
+d326 2
+a327 3
+int soundSoftwareReset(void)
+{
+U16 retval;
+d329 4
+a332 4
+if (soundLoadDM(phx_auddmext,0x0800, 0x37ff)) return(ERROR); 
+if (soundLoadDM(phx_auddmint, 0x3800, 0x39ff)) return(ERROR); 
+if (soundLoadPM(phx_audcomp, 0x2800, 0x37ff)) return(ERROR);
+if (soundLoadPM(phx_audosys,0,0x3ff)) return(ERROR); /* load this one last */
+d334 3
+a336 3
+if(soundPutWord(0x002A)) return(ERROR);
+if(soundGetWord(&retval)) return(ERROR);
+if ((retval) != OPSYS_READY) return(ERROR);
+d339 1
+a339 1
+return(OK);
+d342 2
+a343 2
+unsigned short sound_ack;
+struct aud const *aud;
+d345 1
+a345 1
+aud = audio_pgms;
+d347 4
+a350 4
+while (aud->name)
+	{
+	if ((aud->end-aud->start) != (aud->eaddr+1-aud->saddr)*(aud->type ? 2:3))
+	   {return(ERROR+1);}
+a352 1
+
+d354 1
+a354 1
+	}
+d359 1
+a359 2
+if (soundPutWord(SOUND_CMD_RUN)) return(ERROR+4);
+
+d364 2
+a365 2
+if(soundGetWord(&sound_ack)) return(ERROR+5);
+if ((sound_ack & MASK16) != OPSYS_READY) 
+d368 2
+a369 2
+
+return(OK);
+d372 1
+d375 1
+d377 3
+a379 5
+/***************************************************************************/
+int aud_load_partition (int cmd,U8 *data)
+{
+int x;
+int retval;
+d381 1
+a381 1
+if (data==0) return(0);
+d383 1
+a383 1
+retval=0;
+d385 1
+a385 2
+if(cmd==0)
+	{
+d391 3
+a393 4
+	if(retval)
+		{
+		snd_partition_cmd_addr=snd_partition_cmd_addr+(aud_bank_cmd_size(data)*2);
+		snd_partition_data_addr=snd_partition_data_addr+aud_bank_data_size(data)+2;
+d395 1
+a395 1
+		snd_partition_index++;
+d397 3
+a399 3
+		snd_partition_data[snd_partition_index]=snd_partition_data_addr;
+		snd_partition_cmd[snd_partition_index]=snd_partition_cmd_addr;
+		}
+d401 1
+a401 1
+	}
+d403 4
+a406 6
+for(x=0;x<SOUND_MAX_PARTITIONS;x++) 
+	{
+	if (snd_partition_cmd[x]==(cmd*2))
+		{
+		if(aud_bank_cmd_size(data) > ((snd_partition_cmd[x+1]-snd_partition_cmd[x])/2)) return(0);
+		if(aud_bank_data_size(data) > ((snd_partition_data[x+1]-snd_partition_data[x]))) return(0);
+d408 1
+a408 1
+		retval=aud_load_partition_internal(data,snd_partition_cmd[x],snd_partition_data[x]);
+d410 1
+a410 2
+		return(retval);
+		}
+d412 2
+a413 1
+return(0);
+d415 1
+d417 3
+a419 4
+int aud_make_partition (int cmd_size,int data_size)
+{
+if (snd_bank_cmd_start!=-1) return(0);
+if (snd_partition_index>=SOUND_MAX_PARTITIONS) return(0);
+d421 1
+a421 1
+snd_partition_index++;
+d423 2
+a424 2
+snd_partition_data_addr=snd_partition_data_addr+data_size+2;
+snd_partition_data[snd_partition_index]=snd_partition_data_addr;
+d426 2
+a427 2
+snd_partition_cmd_addr=snd_partition_cmd_addr+(cmd_size*2)+2;
+snd_partition_cmd[snd_partition_index]=snd_partition_cmd_addr;
+d429 1
+a429 1
+return(snd_partition_cmd[snd_partition_index-1]/2);
+d431 1
+d433 3
+a435 4
+void aud_clear_all(void)
+{
+int x;
+U16 data;
+d437 1
+a437 2
+for(x=0;x<SOUND_MAX_PARTITIONS;x++) 
+	{
+d440 12
+a451 12
+	}
+snd_partition_index=0;
+snd_partition_data[0]=SOUND_CALL_TABLE_SIZE;
+snd_partition_cmd[0]=2;
+
+snd_partition_data_addr = SOUND_CALL_TABLE_SIZE;
+snd_partition_cmd_addr = 2;
+
+snd_bank_data_start=-1;
+snd_bank_cmd_start=-1;
+snd_bank_data_addr = -1;
+snd_bank_cmd_addr = -1;
+d453 1
+a453 2
+while ((SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY))
+	{
+d456 1
+a456 1
+	}
+d458 1
+d460 2
+a461 8
+void aud_clear_all_banks()
+{
+U16 data;
+
+snd_bank_data_start=-1;
+snd_bank_cmd_start=-1;
+snd_bank_data_addr = -1;
+snd_bank_cmd_addr = -1;
+d463 6
+a468 2
+while ((SOUND_PORT_FLAGS & SOUND_PORT_DATA_READY))
+	{
+d471 1
+a471 1
+	}
+d473 1
+d475 2
+a476 3
+void aud_play_sound(U16 sound,U8 vol,U8 pan,U16 priority)\
+{
+U16 temp;
+d478 1
+a478 1
+temp=(vol<<8)+pan;
+d480 4
+a483 4
+if(soundPutWord(sound)) return;
+if(soundPutWord(temp)) return;
+if(soundPutWord(priority)) return;
+if(soundGetWord(&temp)) return;
+d485 1
+d487 3
+a489 4
+int aud_bank_data_size(U8 *data_buffer)
+{
+int bank_size;
+int pos;
+d491 1
+a491 1
+pos=130;
+d493 4
+a496 4
+bank_size = data_buffer[pos++];
+bank_size += (data_buffer[pos++] << 8);
+bank_size += (data_buffer[pos++] << 16);
+bank_size += (data_buffer[pos++] << 24);
+d498 1
+a498 1
+return(bank_size);
+d500 1
+d502 3
+a504 4
+int aud_bank_cmd_size(U8 *data_buffer)
+{
+int num_calls;
+int pos;
+d506 1
+a506 1
+pos=128;
+d508 2
+a509 2
+num_calls =  data_buffer[pos++];
+num_calls += (data_buffer[pos++] << 8);
+d511 1
+a511 1
+return(num_calls);
+d515 3
+a517 4
+int aud_load_partition_internal (U8 *data_buffer,U32 cmd_addr, U32 data_addr)
+{
+unsigned int temp1,temp2;
+U32 sound_call_table[1024];  /* fix me!! */
+d519 4
+a522 4
+int num_calls;
+int bank_size;
+int pos;
+int i;
+d524 1
+a524 1
+int retval;
+d526 1
+a526 1
+if (data_buffer == NULL) return(0);
+d531 3
+a533 3
+num_calls=aud_bank_cmd_size(data_buffer);
+bank_size=aud_bank_data_size(data_buffer);
+pos=134;
+d536 1
+a536 1
+for (i=0; i < num_calls; i++) sound_call_table[i] = MASK32;
+d539 1
+a539 2
+for (i=0; i < num_calls; i ++)
+	{
+d548 1
+a548 1
+	}
+d550 3
+a552 3
+temp1 = cmd_addr;
+retval= cmd_addr/2;
+temp2 = cmd_addr + (2 * num_calls) - 1;
+d554 1
+a554 1
+if ((download_snd_table ((char *)&sound_call_table[0], temp1, temp2)) != OK) return(0);
+d558 2
+a559 2
+temp1 = data_addr / 2;
+temp2 = temp1 + (bank_size) / 2 + 1;
+d562 1
+a562 1
+if ((download_snd_bank((char *)(&data_buffer[pos]), temp1, temp2)) != OK) return (0);
+d564 1
+a564 1
+return(retval);
+d566 1
+d576 9
+a584 10
+int aud_load_bank (U8 *data_buffer)
+{
+unsigned int temp1,temp2;
+U32 sound_call_table[500];  /* fix me!! */
+
+int num_calls;
+int bank_size;
+int pos;
+int i;
+int retval;
+d586 3
+a588 3
+retval=0;
+temp1=0;
+temp2=0;*/
+d590 1
+a590 1
+if (data_buffer == NULL) return(0);
+d595 3
+a597 3
+num_calls=aud_bank_cmd_size(data_buffer);
+bank_size=aud_bank_data_size(data_buffer);
+pos=134;
+d599 1
+a599 2
+if (snd_bank_cmd_start==-1)
+	{
+d604 1
+a604 1
+	}
+d608 1
+a608 1
+for (i=0; i < num_calls; i++) sound_call_table[i] = MASK32;
+d611 1
+a611 2
+for (i=0; i < num_calls; i ++)
+	{
+d620 1
+a620 1
+	}
+d623 2
+a624 2
+temp1 = snd_bank_cmd_addr;
+retval= snd_bank_cmd_addr/2;
+d627 1
+a627 1
+temp2 = snd_bank_cmd_addr + (2 * num_calls) - 1;
+d629 1
+a629 1
+if ((download_snd_table ((char *)&sound_call_table[0], temp1, temp2)) != OK) return(0);
+d631 1
+a631 1
+snd_bank_cmd_addr = temp2 + 1;
+d635 2
+a636 2
+temp1 = snd_bank_data_addr / 2;
+temp2 = temp1 + (bank_size) / 2 + 1;
+d640 1
+a640 1
+if ((download_snd_bank((char *)(&data_buffer[pos]), temp1, temp2)) != OK) return (0);
+d642 1
+a642 1
+snd_bank_data_addr = (temp2 + 1) * 2;
+d644 1
+a644 1
+return(retval);
+d662 7
+a668 8
+int download_snd_table (char *table_addr, int start, int end)
+{
+int i;
+unsigned int size;
+unsigned int checksum;
+U16 table_checksum;
+U16 temp;
+U16 temp2;
+d670 2
+a671 2
+size = (end - start + 1)*2;                 
+if (soundPutWord(LOAD_DRAM) != OK) return(ERROR+4);           
+d674 2
+a675 2
+if (soundPutWord((start >> 16) & MASK16) != OK) return(ERROR+5);         
+if (soundPutWord(start & MASK16) != OK) return(ERROR+6);         
+d678 2
+a679 2
+if (soundPutWord((end >> 16) & MASK16) != OK) return(ERROR+7);         
+if (soundPutWord(end & MASK16) != OK) return(ERROR+8);         
+d683 2
+a684 2
+i = 0;
+checksum = 0;
+d686 1
+a686 2
+while (i < size)
+	{
+d695 3
+a697 3
+	}
+/*for (j= 0; j < size; j++)
+	{
+d702 2
+a703 1
+	}*/
+d705 2
+a706 2
+if (soundGetWord(&table_checksum)!= OK) return(ERROR+10);         
+if ((checksum & MASK16) != table_checksum) return(ERROR+11);
+d708 1
+a708 1
+return(OK);
+d727 6
+a732 7
+int download_snd_bank (char *buffer, int start, int end)
+{ 
+int i,j;
+unsigned int size;
+unsigned int checksum;
+U16 bank_checksum;
+U16 temp;
+d735 1
+a735 1
+if (soundPutWord(LOAD_DRAM) != OK) return(ERROR+12);           
+d737 2
+a738 2
+if (soundPutWord((start >> 16) & MASK16) != OK) return(ERROR+13);         
+if (soundPutWord(start & MASK16) != OK) return(ERROR+14);         
+d740 2
+a741 2
+if ((soundPutWord(end >> 16) & MASK16) != OK) return(ERROR+15);        
+if ((soundPutWord(end & MASK16)) != OK) return(ERROR+16);         
+d745 1
+a745 1
+i = 0;
+d747 1
+a747 1
+checksum = 0;
+d749 3
+a751 3
+size = (end - start + 1);
+checksum=0;
+i=0;
+d753 1
+a753 2
+for (j= 0; j < size; j++)
+	{
+d759 1
+a759 1
+	} 
+d761 2
+a762 2
+if((soundGetWord(&bank_checksum))!=OK) return(ERROR+18);         
+if ((checksum & MASK16) != bank_checksum) return((checksum & MASK16)-bank_checksum);
+d764 1
+a764 1
+return(OK);
+d769 5
+a773 5
+		 to convice him that it would be easier for him just to give me 5
+		 minutes of his time to help us debug the V++ system.  Two minutes
+		 into the debugging help (and 10 minutes into the call) he mentioned
+		 several useful commands that the epproms boot code contained.
+		 These under documented features are used in the functions below  */
+d795 3
+a797 4
+int soundRamTest(int code)
+{
+U16 sound_data;
+U16 sound_ack;
+d800 4
+a803 5
+if (soundPutWord(0x003A) != OK) return(-1);
+if (soundGetWord(&sound_data)) return(-2);
+if (soundGetWord(&sound_ack)) return(-3);
+if (sound_data != 0xCC01)
+	{
+d806 2
+a807 2
+	}
+if (sound_ack != MONITOR_READY) return(-4);
+d810 7
+a816 7
+if (soundPutWord(0x004A) != OK) return(-5);
+prc_delay(150); /* Give the command a bit of time to complete */
+if (soundGetWord(&sound_data)) return(-6);
+if (soundGetWord(&sound_ack)) return(-7);
+if (sound_data == 0xEE04) return(4);
+else if (sound_data != 0xCC02) return(9);
+if (sound_ack != MONITOR_READY) return(-8);
+d819 1
+a819 2
+if (code)
+	{
+d827 2
+a828 2
+	}
+return(OK);
+d830 1
+d833 8
+a840 9
+int soundGetAsicRev(U16 *retval)
+{
+U16 sound_ack;
+
+if (soundPutWord(0x007A) != OK) return(ERROR);
+if (soundGetWord(retval)) return(ERROR);
+if (soundGetWord(&sound_ack)) return(ERROR);
+if (sound_ack != MONITOR_READY) return(ERROR);
+return(OK);
+d842 1
+d845 8
+a852 9
+int soundGetEppromRev(U16 *retval)
+{
+U16 sound_ack;
+
+if (soundPutWord(0x006A) != OK) return(ERROR);
+if (soundGetWord(retval)) return(ERROR);
+if (soundGetWord(&sound_ack)) return(ERROR);
+if (sound_ack != MONITOR_READY) return(ERROR);
+return(OK);
+d854 1
+d857 4
+a860 5
+int soundLatchTest(void)
+{
+U16 retval;
+U16 sound_ack;
+int i;
+d863 1
+a863 2
+for (i=0;i<16;i++)
+	{
+d870 1
+a870 1
+	}
+d874 1
+a874 2
+for (i=0;i<16;i++)
+	{
+d881 1
+a881 1
+	}
+d883 1
+a883 1
+return(OK);
+d885 1
+d888 8
+a895 9
+int soundInternalPMChecksum(U16 *retval)
+{
+U16 sound_ack;
+
+if (soundPutWord(0x009A) != OK) return(ERROR);
+if (soundGetWord(retval)) return(ERROR+1);
+if (soundGetWord(&sound_ack)) return(ERROR+2);
+if (sound_ack != MONITOR_READY) return(-sound_ack);
+return(OK);
+d897 1
+d900 2
+a901 10
+int soundEppromBong(void)  /* blurb blurb blurb */
+{
+U16 sound_ack;
+
+if (soundPutWord(0x00AA) != OK) return(ERROR);
+prc_delay(100); /* wait for bonk to finish */
+if (soundGetWord(&sound_ack)) return(ERROR);
+if (sound_ack != 0xCC04) return(ERROR);
+if (soundGetWord(&sound_ack)) return(ERROR);
+if (sound_ack != MONITOR_READY) return(ERROR);
+d903 8
+a910 1
+return(OK);
+d912 1
+d926 23
+a948 28
+int aud_cmd(st_val)
+int st_val;
+{
+
+return 0;
+}
+
+int aud_game_volume(void)
+{
+U16 vol;
+vol=eer_gets(EER_AUD_VOL);
+vol=vol&0x00FF;
+vol=(vol<<8)|((~vol) & 0x00FF);
+if (soundPutWord(0x55AA)) return(0);
+if (soundPutWord(vol)) return(0);
+return(1);
+}
+
+int aud_attract_volume(void)
+{
+U16 vol;
+vol=eer_gets(EER_AUD_VOL);
+vol=(vol>>8)&0x00FF;
+vol=(vol<<8)|((~vol) & 0x00FF);
+
+if (soundPutWord(0x55AA)) return(0);
+if (soundPutWord(vol)) return(0);
+return(1);
+d954 1
+a954 2
+void aud_reset()
+{
+d982 10
+a991 11
+long
+aud_init(level)
+int level;
+{
+if (soundHardwareReset()) return(0);
+if (soundLatchTest())	  return(0);
+/*if (soundEppromBong()) 	  return(1); */
+if (soundSoftwareReset()) return(0);
+aud_clear_all();
+aud_attract_volume();
+return 1;
+a993 1
+
+d999 1
+a999 3
+long
+aud_q_get()
+{
+a1002 1
+
+d1013 1
+a1013 4
+int
+aud_q_put(code)
+int code;
+{
+d1029 2
+a1030 5
+int
+aud_mput( unsigned short *buff, int cnt)
+{
+while (cnt)
+	{
+d1034 2
+a1035 2
+	}
+return 1;
+d1045 2
+a1046 3
+int aud_put(int code)
+{
+return((soundPutWord(code) ? 1:0));
+d1049 2
+a1050 4
+
+int aud_get(U16 *data)
+{
+return((soundGetWord(data) ? 1:0));
+a1052 1
+
+d1064 1
+a1064 4
+int
+aud_poll(time)
+unsigned long time;
+{
+d1076 1
+a1076 4
+int
+aud_setvol(volume)
+int	volume;
+{
+d1084 1
+a1084 3
+typedef unsigned short snd_t;
+void aud_irq()
+{
+d1094 1
+a1094 3
+int aud_f_put(value)
+snd_t value;
+{
+d1105 1
+a1105 5
+int aud_excw(code, buff, count)
+int code;
+void *buff;
+int count;
+{
+d1145 27
+a1171 22
+int audio_test(const struct menu_d *smp) 
+{
+int row;
+int errr;
+char emsg[AN_VIS_COL+1];
+U16 retval;
+
+row = 5;
+
+*(VU16*)IO_H2SND_CTL |= 5;		/* enable the sound processor and FIFO's */
+
+txt_str(5, row++, "*** Testing Audio Hardware  ***", GRN_PAL);
+row++;
+if (soundHardwareReset()) {txt_str(5, row++, "Hardware Reset, FAILED.", RED_PAL);}
+else txt_str(5, row++, "Hardware Reset, passed.", WHT_PAL);
+
+if ((errr=soundLatchTest())) {txt_str(5, row++, "Latch test, FAILED.", RED_PAL);}
+else txt_str(5, row++, "Latch test, passed.", WHT_PAL);
+
+if (soundGetEppromRev(&retval)) {txt_str(5, row++, "Get epprom revision, TIMEDOUT.", RED_PAL);}
+else
+	{
+d1174 1
+a1174 1
+	}
+d1176 3
+a1178 3
+if (soundGetAsicRev(&retval)) {txt_str(5, ++row, "Get ASIC revision, TIMED OUT.", RED_PAL);}
+else
+	{
+d1181 1
+a1181 1
+	}
+d1183 1
+a1183 2
+if ((errr=soundRamTest(0)))
+	{
+d1192 3
+a1194 2
+	}
+else txt_str(5, row++, "RAM test, passed.", WHT_PAL);
+d1196 5
+a1200 2
+if (soundEppromBong()) {txt_str(5, row++, "Boink, failed.", RED_PAL);}
+else txt_str(5, row++, "Boink, passed.", WHT_PAL);	
+d1202 5
+a1206 2
+if ((errr=soundSoftwareReset())) {txt_str(5, row++, "Software Reset, FAILED.", RED_PAL);}
+else txt_str(5, row++, "Software Reset, passed.", WHT_PAL);
+d1208 3
+a1210 3
+row++;
+txt_str(5, row++, "All tests passed.", GRN_PAL);
+ExitInst(INSTR_PAL);
+d1212 1
+a1212 2
+while ( 1 ) 
+    {
+d1218 2
+a1219 2
+ctl_read_sw(-1);			/* flush all edges */
+return(0);
+d1221 1
+d1223 9
+a1231 32
+int audio_speaker_test(const struct menu_d *smp)
+{
+int i;
+int idx;
+
+if (!aud_init(0)) return -1;
+if (aud_game_volume()==0) return(-1);
+if ((idx=aud_load_partition(0,phx_testbank))==0) return(-1);
+
+ExitInst(INSTR_PAL);
+
+i=0;
+while ( 1 )
+    {
+    U32 ctls;
+    ctls = ctl_read_sw(SW_NEXT);
+    
+    if ((ctls&SW_NEXT)) break;
+    
+    if ((i&0x001f)==0)
+     	{
+     	if (soundPutWord(1+idx)) return(-1);
+     	if (soundPutWord(0xFF00)) return(-1);
+     	if (soundPutWord(0x0000)) return(-1);
+     	}
+     if ((i&0x001f)==0x0010)
+     	{
+     	if (soundPutWord(2+idx)) return(-1);
+     	if (soundPutWord(0xFFFF)) return(-1);
+     	if (soundPutWord(0x0000)) return(-1);
+     	}
+     prc_delay(8);
+d1233 18
+d1252 3
+a1254 3
+	}
+ctl_read_sw(-1);			/* flush all edges */
+return(0);
+d1256 1
+d1258 3
+a1260 4
+int audio_sine_test(const struct menu_d *smp)
+{
+U32       ctls;
+U16 retval;
+d1263 1
+a1263 1
+if (soundHardwareReset()) return -1;
+d1266 5
+a1270 5
+soundPutWord(0x00BA);
+soundGetWord(&retval);
+if (retval!=0xCC05) return(-1);
+soundGetWord(&retval);
+if (retval!=0x000a) return(-1);
+d1272 1
+a1272 1
+ExitInst(INSTR_PAL);
+d1274 1
+a1274 2
+while(1)
+	{
+d1278 1
+a1278 1
+	}
+d1280 2
+a1281 2
+ctl_read_sw(-1);			/* flush all edges */
+return(soundHardwareReset());
+d1305 8
+a1312 8
+void ShowVolume(int volume,int row)
+{
+m_int i,j,color;
+char msg[5];
+
+i=0;
+for(j=((MAX_VOLUME-MIN_VOLUME)/VBAR_WIDTH); j<=MAX_VOLUME ;j=j+((MAX_VOLUME-MIN_VOLUME)/VBAR_WIDTH)) 
+    {
+d1318 3
+a1320 3
+    txt_str(VBAR_COL+i,row,VBAR_CHAR,color);
+    txt_str(VBAR_COL+i,row+1,VBAR_CHAR,color);
+    txt_str(VBAR_COL+i,row+2,VBAR_CHAR,color);
+d1329 12
+a1340 13
+int adj_vol(const struct menu_d *smp)
+{
+U32       ctrls;
+int      update;
+int original_game_volume;
+int original_attract_volume;
+int game_volume;
+int attract_volume;
+int which_volume;
+int cntr;
+int clr1,clr2;
+int vol;
+int bottom;
+d1343 2
+a1344 2
+if (!aud_init(0)) return -1;
+if (aud_load_bank(phx_testbank)==0) return(-1);
+d1347 1
+a1347 11
+if (aud_game_volume()==0) return(-1);
+
+bottom = st_insn(AN_VIS_ROW-3,t_msg_save_ret,t_msg_next,INSTR_PAL);
+bottom = st_insn(bottom,t_msg_restore,t_msg_action,INSTR_PAL);
+bottom = st_insn(bottom,"To ADJUST volume,",t_msg_control,INSTR_PAL);
+#if 0
+txt_str(VBAR_COL-4,VBAR_TEXT_ROW  ,"Use the joysick to adjust the volume", GRY_PAL);
+txt_str(VBAR_COL-4,VBAR_TEXT_ROW+2,"Press the 'Action' button to restore last saved volumes", GRY_PAL);
+txt_str(VBAR_COL-4,VBAR_TEXT_ROW+3,"Press the 'Next' button to save changes and exit", GRY_PAL);
+txt_str(VBAR_COL-4,VBAR_TEXT_ROW+4,"These controls need to be displayed as dBs", GRY_PAL);
+#endif
+d1349 17
+a1365 11
+vol=eer_gets(EER_AUD_VOL);
+original_game_volume=vol&0x00FF;
+original_attract_volume=(vol>>8)&0x00FF;
+
+game_volume=original_game_volume;
+attract_volume=original_attract_volume;
+update=1;
+which_volume=0;
+cntr=0;
+clr1=GRY_PAL;
+clr2=GRY_PAL;
+d1368 6
+a1373 9
+if (soundPutWord(1)) return(-1);
+if (soundPutWord(0xFF7F)) return(-1);
+if (soundPutWord(0x0000)) return(-1);
+
+ctl_autorepeat(JOY_BITS,8,4);
+
+while (1)
+	{
+	prc_delay0(); /* is this neccesarry? */
+d1376 7
+a1382 9
+	if (ctrls & SW_NEXT) 
+		{
+		soundPutWord(0);
+		soundPutWord(0xFF7F);
+		soundPutWord(0x0000);
+		eer_puts(EER_AUD_VOL,(attract_volume<<8)|game_volume);
+		ctl_autorepeat(JOY_BITS,30,15);
+		break;
+		}
+d1384 5
+a1388 6
+	if (ctrls & SW_ACTION) 
+		{
+		game_volume = original_game_volume;
+		attract_volume = original_attract_volume;
+		update = 1;
+		}
+d1393 23
+a1415 6
+	if (ctrls & J_LEFT )
+		{
+		/* decreasing whichever volume */
+		if ( which_volume ) attract_volume--;
+		else game_volume--;
+		update = 1;
+d1417 6
+d1424 4
+a1427 6
+	if ( ctrls & J_RIGHT )
+		{
+		if ( which_volume ) attract_volume++;
+		else game_volume++;
+		update = 1;
+		}
+d1429 2
+a1430 24
+	if ((cntr&0x0f)==0)
+		{
+		if (cntr&0x10)
+			{
+			if (which_volume)
+				{
+				clr1=GRY_PAL;
+				clr2=WHT_PAL;
+				update=1;
+				}
+			else
+				{
+				clr1=WHT_PAL;
+				clr2=GRY_PAL;
+				update=1;
+				}
+			}
+		else
+			{
+			clr1=GRY_PAL;
+			clr2=GRY_PAL;
+			update=1;
+			}
+		}
+d1432 2
+a1433 1
+	cntr++;
+d1435 8
+a1442 19
+	if (update)
+		{
+		update=0;
+
+		if (game_volume<MIN_VOLUME) game_volume=MIN_VOLUME; 
+		if (game_volume>MAX_VOLUME) game_volume=MAX_VOLUME; 
+
+		if (attract_volume<MIN_VOLUME) attract_volume=MIN_VOLUME; 
+		if (attract_volume>game_volume) attract_volume=game_volume; 
+
+		ShowVolume(game_volume,VBAR_GAME_ROW);
+		ShowVolume(attract_volume,VBAR_ATTRACT_ROW);
+
+		txt_str(VBAR_COL+1, VBAR_GAME_ROW-2,"Game", clr1);
+		txt_str(VBAR_COL+1, VBAR_ATTRACT_ROW-2,"Attract", clr2);
+		soundPutWord(0x55AA);
+		if (which_volume) soundPutWord((attract_volume<<8)|((~attract_volume)&0x00FF));
+		else soundPutWord((game_volume<<8)|((~game_volume)&0x00FF));
+		}
+d1444 3
+a1446 2
+ctl_read_sw(-1);			/* flush all edges */
+return(0);
+d1448 1
+d1452 1
+a1452 1
+	{"SOUND TESTS",  sound_cb},
+d1460 1
+a1460 5
+int snd_test ( smp )
+const struct menu_d *smp;
+{
+	
+
+d1462 1
+a1462 1
+    ctl_autorepeat(JOY_VERT,30,15);       /* Autorepeat after 1/2secs @@ 1/4 */
+d1465 1
+a1465 1
+	if (!aud_init(0)) return -1;
+d1472 2
+a1473 4
+int sound_cb (const struct menu_d *smp)
+{
+if ( smp ) 
+	{
+d1476 7
+a1482 13
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) 
+		{
+		prc_delay0();
+		aud_init(0);
+		if ( snd_status == 0 ) { ctl_read_sw(-1); return -1; }
+		}
+	} 
+/*else if ( snd_status == 0 )  */
+	{
+/* first time in this menu, and first time we talk to MOS. */
+/* Reset the audio processor:  
+ * Full reset, load second bank for volume test */
+ /*	if (soundHardwareReset()) return -1; */
+d1484 1
+a1484 1
+/*else show_sound_status( 0, snd_status>>16 ); */
+d1486 1
+a1486 2
+ctl_read_sw(-1); 
+return 0;
+@
+
+
+1.3
+log
+@Changed 2 things.
+First added aud_play_sound() function
+second 'fixed' aud_clear_all to work() to clear and pending get from V+ DSP
+@
+text
+@d1257 1
+a1257 3
+row++;
+row++;
+txt_str(5, row++, "Press the 'Next' button to exit,", WHT_PAL);
+d1266 1
+d1279 1
+a1279 1
+txt_str(16,10,"Press the 'Next' button to exit", WHT_PAL);
+d1305 1
+d1324 1
+a1324 1
+txt_str(16,10,"Press the 'Next' button to exit", WHT_PAL);
+d1333 1
+d1352 2
+a1353 2
+#define VBAR_GAME_ROW        (19)
+#define VBAR_ATTRACT_ROW     (27)
+d1394 1
+d1403 4
+d1410 2
+a1411 2
+/*txt_str(VBAR_COL-4,VBAR_TEXT_ROW+4,"These controls need to be displayed as dBs", GRY_PAL);
+*/
+d1519 1
+d1555 1
+a1555 1
+	if ( ctl_read_sw(0) & SW_NEXT ) 
+d1559 1
+a1559 1
+		if ( snd_status == 0 ) return -1;
+d1571 1
+@
+
+
+1.2
+log
+@Support file for V+ audio.
+@
+text
+@d76 1
+d444 1
+d462 6
+d472 2
+d478 18
+d923 1
+a923 1
+int soundEppromBong(void)
+d961 1
+a961 1
+vol=(vol<<8)|(~vol);
+d972 1
+a972 1
+vol=(vol<<8)|(~vol);
+d1521 1
+a1521 1
+    {"LOUD 1k Hz sine test",  audio_sine_test},
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d49 325
+a373 2
+#ifndef MIN_VOLUME
+#define	MIN_VOLUME	(0)
+d375 545
+a919 6
+#ifndef MAX_VOLUME
+#define	MAX_VOLUME	(32)
+#endif
+#ifndef DEF_VOLUME
+#define	DEF_VOLUME	(MIN_VOLUME+((2*(MAX_VOLUME))/3))
+#endif
+d924 25
+a948 1
+    return 0;
+d954 1
+a954 2
+void
+aud_reset()
+d987 7
+a993 1
+    return 0;
+d1041 7
+a1047 1
+    return 0;
+d1057 7
+a1063 3
+int
+aud_put(code)
+int code;
+d1065 1
+a1065 1
+    return 0;
+d1068 1
+d1160 66
+a1225 4
+extern U8 phx_audosys[], phx_audosys_e[];
+extern U8 phx_audcomp[], phx_audcomp_e[];
+extern U8 phx_auddmext[], phx_auddmext_e[];
+extern U8 phx_auddmint[], phx_auddmint_e[];
+d1227 5
+a1231 14
+static const struct aud {
+    const char *name;
+    U8 *start;
+    U8 *end;
+    U16 saddr;
+    U16 eaddr;
+    U8 type;
+} audio_pgms[] = {
+    { "OSYS ", &phx_audosys[0], &phx_audosys_e[0], 0, 0x3ff, 0 },
+    { "COMP ", &phx_audcomp[0], &phx_audcomp_e[0], 0x2800, 0x37ff, 0 },
+    { "DMEXT", &phx_auddmext[0], &phx_auddmext_e[0], 0x0800, 0x37ff, 1 },
+    { "DMINT", &phx_auddmint[0], &phx_auddmint_e[0], 0x3800, 0x39ff, 1 },
+    { 0, 0, 0, 0, 0}
+};
+d1233 6
+a1238 5
+static int send_to_audio1(int val) {
+    U32 start;
+    start = eer_rtc;
+    while ((*(VU16*)IO_SND_STS&0x80) == 0) {
+	if (eer_rtc-start > 2) return -1;	/* timed out */
+d1240 1
+a1240 2
+    *(VU16*)IO_H2SND_DTA = val;
+    return 0;
+d1242 5
+d1248 31
+a1278 5
+static int send_to_audio2(int val0, int val1) {
+    int ans;
+    ans = send_to_audio1(val0);
+    if (ans < 0) return ans;
+    return send_to_audio1(val1);
+d1280 24
+d1305 1
+a1305 7
+static int send_to_audio3(int val0, int val1, int val2) {
+    int ans;
+    ans = send_to_audio1(val0);
+    if (ans < 0) return ans;
+    ans = send_to_audio1(val1);
+    if (ans < 0) return ans;
+    return send_to_audio1(val2);
+d1307 43
+a1349 7
+    
+static int get_from_audio(void) {
+    U16 ans;
+    U32 start;
+    start = eer_rtc;
+    while ((*(VU16*)IO_SND_STS&0x40) == 0) {
+	if (eer_rtc-start > 2) return -1;	/* timed out */
+a1350 2
+    ans = *(VU16*)IO_SND2H_DTA;			/* read the audio data */
+    return ans;
+d1353 66
+a1418 6
+/*		aud_test(const struct menu_d *smp)
+ *	Perform a simple audio board test. Check for ready, etc.
+ *	Returns:
+ *		0 if success
+ *		1 if failure
+ */
+d1420 2
+a1421 2
+int audio_test(const struct menu_d *smp) {
+    int row, doit;
+d1423 6
+a1428 47
+    *(VU16*)IO_H2SND_CTL |= 5;		/* enable the sound processor and FIFO's */
+    row = AN_VIS_ROW-6;
+    st_insn(row++, "To make a BONG,", "Toggle SW12", INSTR_PAL);
+    st_insn(row++, "To start downloaded pgm,", "Toggle SW13", INSTR_PAL);
+    st_insn(row++, "To download pgm,", "Toggle SW14", INSTR_PAL);
+    st_insn(row++, "To look again,", t_msg_next, INSTR_PAL);
+    st_insn(row++, "To exit,", t_msg_action, INSTR_PAL);
+    doit = 1;
+    while ( 1 ) {
+	U32 ctls;
+	if (doit) {
+	    row = 6;
+	    txt_str(10, row++, "H2SND_CTL:", WHT_PAL);
+	    txt_chexnum(*(VU16*)IO_H2SND_CTL, 4, RJ_ZF, GRN_PAL);
+	    txt_str(10, row++, "H2SND_DTA:", WHT_PAL);
+	    txt_chexnum(*(VU16*)IO_H2SND_DTA, 4, RJ_ZF, GRN_PAL);
+	    txt_str(10, row++, "SND_STS:  ", WHT_PAL);
+	    txt_chexnum(*(VU16*)IO_SND_STS, 4, RJ_ZF, GRN_PAL);
+	    txt_str(10, row++, "SND2H_DTA:", WHT_PAL);
+	    txt_chexnum(*(VU16*)IO_SND2H_DTA, 4, RJ_ZF, GRN_PAL);
+	    txt_str(10, row++, "MAIN_STS: ", WHT_PAL);
+	    txt_chexnum(*(VU16*)IO_MAIN_STS, 4, RJ_ZF, GRN_PAL);
+	    txt_str(10, row++, "MAIN_CTL: ", WHT_PAL);
+	    txt_chexnum(*(VU16*)IO_MAIN_CTL, 4, RJ_ZF, GRN_PAL);
+	    doit = 0;
+	}
+	ctls = ctl_read_sw(SW_NEXT|SW_ACTION|SW14|SW13|SW12);
+	if ((ctls&SW_ACTION)) break;
+	if ((ctls&SW_NEXT)) doit = 1;
+	if ((ctls&SW14)) {
+	    U8 *src;
+	    U16 tmp;
+	    int len, itmp, errs;
+	    char *msg, emsg[AN_VIS_COL+1];
+
+	    doit = 1;
+	    *(VU16*)IO_H2SND_CTL &= ~1;	/* reset the sound processor */
+	    itmp = *(VU16*)IO_SND2H_DTA;	/* flush the data register */
+	    *(VU16*)IO_H2SND_CTL |= 1;
+	    errs = 1;			/* assume there were errors */
+	    msg = emsg;			/* assume message is in emsg */
+	    itmp = get_from_audio();
+	    do {
+		struct aud const *aud;
+		if (itmp < 0) {
+		    msg = "Audio board timed out after reset";
+		    break;
+d1430 6
+a1435 4
+		if (itmp != 0x0A) {
+		    nsprintf(emsg, sizeof(emsg)-1, "Audio board did not return a 0x000A after reset: %04X",
+		    	itmp&0xFFFF);
+		    break;
+d1437 17
+a1453 58
+		aud = audio_pgms;
+		while (aud->name) {
+		    U16 cksum;
+
+		    nsprintf(emsg, sizeof(emsg)-1, "Loading %s", aud->name);
+		    txt_str(-1, AN_VIS_ROW/2-1, emsg, RED_PALB);
+		    cksum = 0;				/* checksum the whole thing */
+
+		    len = aud->end - aud->start;
+		    itmp = aud->eaddr+1-aud->saddr;
+		    itmp *= aud->type ? 2:3;
+		    if (len != itmp) {
+			nsprintf(emsg, sizeof(emsg)-1, "len is %d, s/b %d",
+				itmp, len);
+			itmp = -1;
+			break;
+		    }
+		    itmp = send_to_audio1(0x1A);	/* download */
+		    if (itmp < 0) {
+			msg = "Audio board timed out accepting DWNLOAD cmd";
+			break;
+		    }
+		    len = aud->end - aud->start;	/* length in bytes */
+		    src = aud->start;			/* start */
+		    itmp = send_to_audio1(aud->saddr);	/* send start address */
+		    if (itmp < 0) {
+			msg = "Timed out after sending start addr";
+			break;
+		    }
+		    itmp = send_to_audio1(aud->eaddr);	/* send end address */
+		    if (itmp < 0) {
+			msg = "Timed out after sending end addr";
+			break;
+		    }
+		    itmp = send_to_audio1(aud->type);	/* send memory type */
+		    if (itmp < 0) {
+			msg = "Timed out after sending memory type";
+			break;
+		    }
+		    if (aud->type == 0) {
+			for (; len > 0; len -= 3) {
+			    tmp = *src++<<8;
+			    tmp |= *src++;
+			    cksum += tmp;
+			    itmp = send_to_audio1(tmp);
+			    if (itmp < 0) {
+				nsprintf( emsg, sizeof(emsg)-1, "Timed out sending msw after %d words",
+				    (src-aud->start)/3);
+				break;
+			    }
+			    tmp = 0xFF00 | *src++;
+			    itmp = send_to_audio1(tmp);
+			    if (itmp < 0) {
+				nsprintf( emsg, sizeof(emsg)-1, "Timed out sending lsw after %d words",
+				    (src-aud->start)/3);
+				break;
+			    }
+			    cksum += tmp;
+d1455 5
+a1459 11
+		    } else {
+			for (; len > 0; len -= 2) {
+			    tmp = *src++<<8;
+			    tmp |= *src++;
+			    cksum += tmp;
+			    itmp = send_to_audio1(tmp);
+			    if (itmp < 0) {
+				nsprintf( emsg, sizeof(emsg)-1, "Timed out after sending %d words",
+				    (src-aud->start)/3);
+				break;
+			    }
+d1461 22
+a1482 24
+		    }
+		    if (itmp < 0) break;
+		    itmp = get_from_audio();		/* get the answer */
+		    if (itmp < 0) {
+			msg = "Timed out waiting for checksum from audio";
+			break;
+		    }
+		    if (cksum != (U16)itmp) {
+			nsprintf(emsg, sizeof(emsg)-1, "Checksum mismatch. s/b %04X, is %04X",
+				cksum, itmp);
+			break;
+		    }
+		    itmp = get_from_audio();		/* get completion code */
+		    if (itmp < 0) {
+			msg = "Timed out waiting for completion from audio";
+			break;
+		    }
+		    if (itmp != 0x0A) {
+			nsprintf(emsg, sizeof(emsg)-1, "Audio board did not return a 0x000A at completion: %04X",
+			    itmp&0xFFFF);
+			break;
+		    }
+		    itmp = 0;				/* no errors */
+		    ++aud;
+d1484 41
+a1524 21
+		if (!itmp) errs = 0;			/* no errors */
+	    } while (0);
+	    if (!errs) msg = "Success";
+	    txt_str(-1, AN_VIS_ROW/2, msg, RED_PALB);
+	    for (itmp=eer_rtc; eer_rtc-itmp < 300;) {
+		if ((ctl_read_sw(0)&SW14) == 0) break;
+		prc_delay(0);
+	    }
+	    txt_clr_wid(10, AN_VIS_ROW/2-1, AN_VIS_COL-20);
+	    txt_clr_wid(10, AN_VIS_ROW/2, AN_VIS_COL-20);
+	}	    
+	if ((ctls&(SW13|SW12))) {
+	    int itmp;
+	    char *msg;
+
+	    if ((ctls&SW12)) {
+		itmp = send_to_audio3(0x5500, 0x807F, 0);
+	    } else {
+		itmp = send_to_audio1(0x2A);	/* start pgm */
+		if (itmp == 0) {
+		    itmp = send_to_audio2(0x55AA, 0x807F);
+d1526 7
+a1532 13
+	    }
+	    if (itmp < 0) {
+		msg = "Audio board timed out accepting cmd";
+		break;
+	    } else {
+		msg = "Success";
+	    }
+	    txt_str(-1, AN_VIS_ROW/2, msg, RED_PALB);
+	    for (itmp=eer_rtc; eer_rtc-itmp < 300;) {
+		if ((ctl_read_sw(0)&(SW13|SW12)) == 0) break;
+		prc_delay(0);
+	    }
+	    txt_clr_wid(10, AN_VIS_ROW/2, AN_VIS_COL-20);
+d1534 3
+a1536 3
+	prc_delay(0);
+    }
+    return 0;
+d1538 1
+@

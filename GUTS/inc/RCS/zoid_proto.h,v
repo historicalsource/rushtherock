@@ -1,0 +1,447 @@
+head	1.12;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.12
+date	97.01.10.22.26.02;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.01.31.20.50.32;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.01.25.19.03.26;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.01.18.23.25.58;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.01.18.23.19.28;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.01.13.00.51.03;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.01.12.22.15.15;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.10.26.19.24.25;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.10.12.22.05.34;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.10.06.20.06.46;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.10.05.01.37.55;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.09.26.04.10.14;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Zoid20 specific functions.
+@
+
+
+1.12
+log
+@Protected structure definition for TxtAlphaPtr.
+This is a "spring-cleaning" check-in, since Zoid was canceled.
+@
+text
+@/*		zoid_proto.h
+ *	Prototypes and definitions for routines which
+ *	are specific to GUTS running on Zoid hardware.
+ */
+
+/*		ztv_mod_latch()
+ *	Acts like prc_mod_latch(), but with respect to the (write only)
+ *	control latch on the ZTV board. In addition to the actual bits
+ *	in the latch, the shadow (ztv_latch_shad, below) also contains
+ *	"software" bits that are philosophically akin to the hardware
+ *	ones. The most important is B_Z_SOFT_REFRESH, which determines
+ *	whether the irq routine should do a software refresh of the
+ *	Z buffer and bitmap. This is only needed (or done) when the
+ *	render engine is turned off, and is only intended for use
+ *	in diagnostics. The only reason it would be turned _off_ is
+ *	during particularly obscure troubleshooting.
+ */
+
+extern U32 ztv_mod_latch(U32);
+
+/*		ztv_bufswap()
+ *	swap buffers and return an int contatining one or zero
+ *	in the bit corresponding to CURBUF when the swap has
+ *	finished. In other words, to swap and wait for the
+ *	swap to have finished, the following is the minimal
+ *	code:
+ *
+ *	int newbuf = ztv_bufswap();
+ *	while ( (ZTV_STAT & M_CURBUF) != newbuf) {;}
+ *
+ *	This routine will return -1 if the currently expected buffer
+ *	is not the current buffer, so the above code will hang, and
+ *	should probably be extended in some way to deal with the
+ *	error.
+ */
+extern int ztv_bufswap();
+
+/*		zre_init()
+ *	Attempt to kick-start the ZRE, from an unknown state.
+ *	Also reset ZMB. Returns -1 if ZRE cannot be initialized,
+ *	else 0. This is a relatively quick, low-level routine.
+ *	See zre_setup() for a more complete setup.
+ */
+extern int zre_init();
+
+/*		swap_and_wait()
+ *	Swaps buffers and waits for actual swap to take
+ *	effect. This routine will "complain" via text messages
+ *	if it encounters problems, and will return -1 if
+ *	it cannot swap. Else returns 0. Not recommended for
+ *	casual use, but rather for diagnostics, particularly
+ *	design diagnostics.
+ */
+extern int swap_and_wait();
+
+/*		zre_frame_end(swap_wait_flag)
+ *	Called to send the FRAME_END command and optionally
+ *	swap buffers when the frame has been done.
+ *	swap_wait_flag indicates how much we want done.
+ *	0 means just send FRAME_END.
+ *	1 means send FRAME_END and wait for FDONE, then swap.
+ *	>1 means wait for swap to actually take effect.
+ *
+ *	Returns 0 on success, -1 on timeout or abort
+ *
+ */
+extern int zre_frame_end();
+
+/*		zre_setup()
+ *	calls zre_init() to initialize hardware, then
+ *	sets up "reference" lines in both buffers
+ *	and clears screen, then writes a "backdrop"
+ *	(cyan rectangle) to the screen for visual confirmation.
+ */
+extern int zre_setup();
+
+/*		zover_init(on_off)
+ *	Initialize the modified CoJag that serves on
+ *	some Zoid20 stacks as a Zoid Overlay. If on_off
+ *	is zero, trun Zover off. If 1, turn Zover On, and
+ *	set up a preliminary object list etc. Returns
+ *	-1 if zover shut off or non-existent, else 0.
+ */
+extern int zover_init();
+
+/*		txt_select(which_method)
+ *	Zoid20 has several different methods for getting
+ *	text on the screen, none of them completely satisfactory.
+ *	Use txt_select() to select the least objectionable
+ *	at any given time. Returns previous setting.
+ */
+extern int txt_select( int );
+#define TXT_NONE (0)	/* Ignore text output */
+#define TXT_HOST (1)	/* Draw directly to screen */
+#define TXT_ZRE (2)	/* Poke trap commands via XTOT */
+#define TXT_ZMB (3)	/* Let Mathbox send trap commands */
+#define TXT_ZOVER (4)	/* Draw text on Zoid Overlay (neutered CoJag) */
+
+#ifndef __TxtAlphaPtr_TYPE_DEFINED
+#define __TxtAlphaPtr_TYPE_DEFINED
+typedef struct txt_alpha_ptr {
+    VU32 *screen;	/* pointer to array of U32's containing the chars to display */
+    VU32 *dirty;	/* pointer to array of dirty bits */
+    U32 texture_offset;	/* offset into texture memory for alpha's */
+    U32 color_offset;	/* offset into the color RAM for start of alpha palette */
+} TxtAlphaPtr;
+#endif
+/*		txt_vsptr(TxtAlphaPtr *new)
+ *	Zoid20 GUTS has a Virtual Screen into which the txt functions
+ *	write their data. The contents of the virtual screen are converted
+ *	to traps (if TXT_ZMB or TXT_ZRE option is in effect) or simply
+ *	updated to reflect the current state of the screen (if TXT_NONE,
+ *	TXT_HOST or TXT_ZOVER option is in effect).
+ *
+ *	The parameter to this function is a pointer to an AlphaPtr
+ *	structure that contains a pointer to the screen (an array of U32's
+ *	AN_VIS_ROW*AN_VIS_COL/2, 2 characters per entry due to a hardware
+ *	restriction in the mathbox where this entry is very likely to point),
+ *	a pointer to the array of dirty bits (an array of U32's each bit
+ *	representing a character on the virtual screen and each U32 containing
+ *	one half of a row of characters), an offset into the texture memory
+ *	to the start of the alpha textures and an offset into the coloram to
+ *	the start of the alpha palette.
+ *
+ *	txt_vsptr returns a pointer to the previously set value or 0 if
+ *	nothing previously set. If the new parameter is 0, it only returns
+ *	the previous value.
+ */
+extern TxtAlphaPtr *txt_vsptr(TxtAlphaPtr *new);
+
+#define ZAG_TXT2TRAP_USE_DIRTY	1	/* dirty bits decide what is displayed */
+#define ZAG_TXT2TRAP_CLR_DIRTY	2	/* clear dirty bit and char after display */
+
+/*		zag_text2traps(flag)
+ *	Converts the contents of the virtual screen (as indicated by
+ *	the value set in a previously called txt_vsptr()) to traps and
+ *	ships them to the TBUS. This function is only available on the
+ *	ZAG host when also being used as a mathbox. The flag parameter
+ *	is the OR of one or more of the ZAG_TXT2TRAP_??? flags defined
+ *	above. The function returns nothing. The function does nothing
+ *	if a txt_vsptr() function has not been previously called.
+ */
+extern void zag_text2traps(int flag);
+
+/*		zmb_init()
+ *	Initializes mathbox circuitry. Returns 0 if no errors, 1 if MB
+ *	code didn't start and -1 if 'holler' message timed out.
+ */
+extern int zmb_init (U32 *program, int length);
+
+/*		zre_text_init()
+ *	Downloads the alpha-numerics to the texture memory and sets
+ *	the color ram appropriately.
+ */
+extern int zre_text_init(
+unsigned int,			/* offset (16-bit words) in texRAM */
+unsigned int			/* offset (16-bit words) in colRAM */
+);
+
+/*		ztv_texture_write(dst_off,src,cnt)
+ *	Writes <cnt> 16-bit words of texture pointed to by src
+ *	to texture memory at destination offset dst_off (in 16-bit
+ *	texture words). Note that src is a pointer to U32, and dst_off
+ *	should be even, as texture memory may need to be read/written
+ *	32-bits at a time.
+ *
+ *	There are some special cases:
+ *	If (dst_off < 0), allocate some texture memory at an offset
+ *		with the same number of zero-LSBs as dst_off. i.e.
+ *		top allocate an area align on a 128-texel boundary,
+ *		dst_offs = -128.
+ *	If (src == 0), simply allocate the memory (if dst_off < 0)
+ *		or pattern it with data = addr (if dst_off >= 0)
+ *
+ *	Returns offset actually used, or < 0 on failure.
+ */
+extern int ztv_texture_write( int dst_off, const U32 *src, int size);
+
+/*		ztv_texture_read(dst, src_off, cnt)
+ *	Reads from texture memory into normal memory.
+ *	Again, src_off and cnt are expressed in terms of 16-bit texture
+ *	words, but dst points to a U32.
+ *
+ *	returns 0 for success, <0 for failure.
+ */
+extern int ztv_texture_read ( U32 *dst, int src_off, int cnt);
+
+/*		ztv_gamma_init( which, table )
+ *	Initialize gamma-correction RAM on ZTV. <which> selects
+ *	which display to initialize (normally zero, for first display),
+ *	while <table> points to a table of 32 U32's.
+ *
+ *	If (<table> == NULL), a default table is used. In a later
+ *	version, a dither pattern may be added to the table supplied.
+ */
+extern void ztv_gamma_init( int which, const U32 * table);
+
+#if HOST_BOARD == HCR4K
+/*		set_timer_rate()
+ *	Sets the rate of the cpu timer. Returns the old rate
+ */
+extern U32 set_timer_rate(
+U32 rate			/* 1/2 number of clock ticks per interrupt */
+);
+#endif
+/*		set_timer_ptr()
+ *	Registers a pointer to a local U32 which to increment on
+ *	each timer interrupt. Returns the previously registered pointer.
+ */
+extern U32 *set_timer_ptr(
+U32 *ptr			/* pointer to local variable */
+);
+
+/*		get_uptime()
+ *	Returns the most significant timer bits (number of timer interrupts
+ *	since boot) and the least significant timer bits into the variable
+ *	pointed to by the one and only parameter. The operation is atomic
+ *	and if the parameter is 0, only the interrupt count is returned.
+ */
+extern U32 get_uptime(
+U32 *ptr			/* pointer to local variable */
+);
+@
+
+
+1.11
+log
+@added ztv_gamma_init(), ztv_texture_write(), ztv_texture_read()
+declarations. Only the first of these routines exist right now.
+@
+text
+@d99 2
+d107 1
+a107 1
+
+@
+
+
+1.10
+log
+@Changed the type on TxtAlphaPtr.screen and dirty to the correct VU32
+type.
+@
+text
+@d158 38
+@
+
+
+1.9
+log
+@I didn't mean that last change.
+,
+,
+@
+text
+@d100 2
+a101 2
+    U32 *screen;	/* pointer to array of U32's containing the chars to display */
+    U32 *dirty;		/* pointer to array of dirty bits */
+@
+
+
+1.8
+log
+@Changed type on set_timer_ptr to VU32
+@
+text
+@d171 1
+a171 1
+VU32 *ptr			/* pointer to local variable */
+@
+
+
+1.7
+log
+@Corrected the comments on txt_vsptr function description.
+Change the type of the screen parameter in TxtAlphaPtr from U16
+to U32 since it may be pointing to the mathbox which can only
+be read and written using 32 bit accesses.
+Added a prototype for function zag_text2traps().
+@
+text
+@d171 1
+a171 1
+U32 *ptr			/* pointer to local variable */
+@
+
+
+1.6
+log
+@Added txt_vsptr function.
+@
+text
+@d100 1
+a100 1
+    U16 *screen;	/* pointer to array of U16's containing the chars to display */
+d114 12
+a125 8
+ *	structure that contains a pointer to the screen (an array of U16's
+ *	AN_VIS_ROW*AN_VIS_COL), a pointer to the array of dirty bits (an
+ *	array of U32's AN_VIS_ROW*AN_VIS_COL/sizeof(U32), each U32
+ *	representing a half row), an offset into the texture memory to the
+ *	start of the alpha textures and an offset into the coloram to the
+ *	start of the alpha palette. txt_vsptr returns a pointer to the
+ *	previously set value or 0 if nothing previously set. If the new
+ *	parameter is 0, it only returns the previous value.
+d128 14
+@
+
+
+1.5
+log
+@Added set_timer_ptr and get_uptime in R3K flavor too
+@
+text
+@a92 7
+/*		dbg_select(which_method)
+ *	Zoid20 has several different methods for getting
+ *	text on the screen, none of them completely satisfactory.
+ *	Use dbg_select() to select the least objectionable
+ *	at any given time. Returns previous setting.
+ */
+extern int dbg_select( int );
+d98 26
+@
+
+
+1.4
+log
+@Added some timer definitions
+@
+text
+@d128 1
+a128 1
+
+a145 2
+#endif
+
+@
+
+
+1.3
+log
+@Added prototype for dbg_select() allowing one to change this along with txt_select()
+@
+text
+@d120 28
+@
+
+
+1.2
+log
+@Added args to zre_text_init() prototype.
+@
+text
+@d93 7
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d109 4
+a112 1
+extern void zre_text_init(void);		/* no arguments to zmb_init */
+@

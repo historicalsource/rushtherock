@@ -1,0 +1,486 @@
+head	1.15;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.15
+date	96.03.20.03.42.17;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	95.12.09.23.59.59;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.12.02.02.32.34;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.11.20.17.56.15;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.11.19.06.07.27;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.11.10.18.44.41;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.10.21.20.25.09;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.10.17.23.21.41;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.10.17.22.30.10;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.10.17.22.27.21;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.10.12.22.04.46;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.10.12.20.30.00;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.10.12.20.23.29;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.10.12.20.21.39;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.10.12.20.03.39;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Definitions for the 4600 Mathbox/Host board
+@
+
+
+1.15
+log
+@Added support for the ASIC version of ZAG. Keyed on ZAG_VERSION. See
+os_rootr4k.mac for details.
+@
+text
+@.if ndf, _MBHOST_MAC_
+_MBHOST_MAC_ == 0
+.if ndf, _CONSTANTS_MAC_
+  .warn ;You should .include constants.mac before including mbhost.mac
+  .include constants.mac
+.endc
+.if ndf, _PPTYPES_MAC_
+  .warn ;You should .include types.mac before including mbhost.mac
+  .include pptypes.mac
+.endc
+;
+.if ndf,HOST_BOARD
+  .warn ;You need to define HOST_BOARD before including mbhost.mac
+.iff
+
+REM <	Senthil and Mark's 4600 mathbox/host board specific definitions>
+;
+; Big-Endian Byte offset is 32 (or 64) - (bit offset)>>3
+	HEX_CONST WORD0_OFFS 4
+	HEX_CONST WORD32_OFFS 0
+	HEX_CONST SHORT0_OFFS 2
+	HEX_CONST SHORT16_OFFS 0
+	HEX_CONST BYTE0_OFFS 3
+	HEX_CONST BYTE8_OFFS 2
+	HEX_CONST BYTE16_OFFS 1
+	HEX_CONST BYTE24_OFFS 0
+; Big-Endian Byte offset (in 64 bit address space) is (64 - (bit offset)>>3
+	HEX_CONST HWORD0_OFFS 4
+	HEX_CONST HWORD32_OFFS 0
+	HEX_CONST HSHORT0_OFFS 6
+	HEX_CONST HSHORT16_OFFS 4
+	HEX_CONST HSHORT32_OFFS 2
+	HEX_CONST HSHORT48_OFFS 0
+	HEX_CONST HBYTE0_OFFS 7
+	HEX_CONST HBYTE8_OFFS 6
+	HEX_CONST HBYTE16_OFFS 5
+	HEX_CONST HBYTE24_OFFS 4
+	HEX_CONST HBYTE32_OFFS 3
+	HEX_CONST HBYTE40_OFFS 2
+	HEX_CONST HBYTE48_OFFS 1
+	HEX_CONST HBYTE56_OFFS 0
+REMB
+REMM <The R4k virtual memory map appears as the	following:		>
+REME
+;  
+	HEX_CONST MEM_KUSEG	0x00000000 < -0x7FFFFFFF (  2GB, mapped, cached)	>
+	HEX_CONST MEM_KSEG0	0x80000000 < -0x9FFFFFFF phys 00000000-1FFFFFFF (512MB, unmapped, cached)	>
+	HEX_CONST MEM_KSEG1	0xA0000000 < -0xBFFFFFFF phys 00000000-1FFFFFFF (512MB, unmapped, uncached)	>
+	HEX_CONST MEM_KSSEG	0xC0000000 < -0xDFFFFFFF (512MB, mapped)		>
+	HEX_CONST MEM_KSEG3	0xE0000000 < -0xFFFFFFFF (512MB, mapped)		>
+;
+	HEX_CONST DRAM_BASE	0x00200000 < DRAM phys 0x80000000-0x803FFFFF >
+	HEX_CONST DRAM_BASEnc	0x00A00000 < DRAM phys 0x80000000-0x803FFFFF (uncached) >
+.if not_defined, DRAM_SIZE
+	HEX_CONST DRAM_SIZE	0x00400000 < DRAM size (4Mb) >
+.endc
+	HEX_CONST TBUS_BASE	0x01000004 < TBUS FIFO phys 0xA0000004-0xA0000FFF (uncached) >
+	HEX_CONST TBUS_SIZE	0x00001000 < TBUS size (4Kb) >
+	HEX_CONST RDRAM_BASE	0x20000000 < Random DRAM phys 0x20000000-0x203FFFFF >
+	HEX_CONST RDRAM_BASEnc	0x20800000 < Random DRAM phys 0x20000000-0x203FFFFF (uncached) >
+.if not_defined, RDRAM_SIZE
+	HEX_CONST RDRAM_SIZE	0x00400000 < DRAM size (4Mb) >
+.endc
+	HEX_CONST STREAMIO_BASE	0x30000000 < Stream I/O address 0x30000000-0x307FFFFF (uncached) >
+	HEX_CONST RRBUS_BASE	0x38000000 < Random ROM BUS phys 0x38000000-0x387FFFFF >
+	HEX_CONST RRBUS_BASEnc	0x38800000 < Random ROM BUS phys 0x38000000-0x387FFFFF (uncached) >
+.if not_defined, RRBUS_SIZE
+	HEX_CONST RRBUS_SIZE	0x00800000 < ROM BUS size (8Mb)					>
+.endc
+	HEX_CONST CTRL_BASE	0x60000000 < Control register phys 0x60000000 >
+REM < Bits within the latch itself >
+	HEX_CONST    CT0_FIFO_RST	      1	< D00: 0=reset FIFO, 1=enable FIFO>
+	HEX_CONST    CT0_FIFO_ENAB	      2	< D01: 0=normal FIFO, 1=enable FIFO readback>
+	HEX_CONST    CT0_ZERO_MAP	      8 < D03: 0=map physical 0x1FCXXXXX to DRAM >
+	HEX_CONST    CT0_FIFO_MTINT	0x10000	< D16: 0=disable and reset FIFO empty interrupt >
+	HEX_CONST    CT0_LED_CR1	0x20000 < D17: 0=turn on LED CR1 >
+	HEX_CONST    CT1_FIFO_FULLINT	      1 < D32: 0=disable and reset FIFO full interrupt >
+	HEX_CONST    CT1_LED_CR2	      2 < D33: 0=turn on LED CR2 >
+.if true, HOST_BOARD == HCR4K
+	HEX_CONST    CT1_XBUS_RST	0x10000 < D48: 0=assert XBUS reset >
+.iff
+	HEX_CONST    CT1_XBUS_INT	0x10000 < D48: 1=assert XBUS interrupt (pulse this) >
+.endc
+	HEX_CONST    CT1_LED_CR3	0x20000 < D49: 0=turn on LED CR3 >
+; The following are defined for the ASIC version of ZAG. Some are r/w, some are r/o, some are w/o
+	HEX_CONST    CTA_FIFO_RST	      1 < (RW) D00: 0=reset FIFO, 1=enable FIFO>
+	HEX_CONST    CTA_FIFO_ENAB	      2	< (RW) D01: 0=normal FIFO, 1=enable FIFO readback>
+	HEX_CONST    CTA_FIFO_FULLINT	      4 < (WO) D02: 0=disable and reset FIFO full interrupt >
+	HEX_CONST    CTA_FIFO_SIZE            4 < (RO) D02: 0=FIFO is 32k, 1=FIFO is 128k >
+	HEX_CONST    CTA_ZERO_MAP	      8 < (RW) D03: 0=map physical 0x1FCXXXXX to DRAM >
+	HEX_CONST    CTA_FIFO_MTINT	0x00010	< (WO) D04: 0=disable and reset FIFO empty interrupt >
+	HEX_CONST    CTA_FIFO_HALF_MT   0x00010 < (RO) D04: 0=FIFO 1/2 empty >
+	HEX_CONST    CTA_FIFO_ALMOST_FULL 0x020 < (RO) D05: 0=FIFO almost full >
+	HEX_CONST    CTA_TFULL		0x00040 < (RO) D06: 0=TFULL asserted on TBUS >
+	HEX_CONST    CTA_BRAM_WE	0x00080 < (RO) D07: 0=BRAM can be written >
+	HEX_CONST    CTA_CNTR_LSB	0x00100 < (RO) D08-D11: 4 lsb of FIFO counter >
+	HEX_CONST    CTA_CNTR_MSB0	0x01000 < (RO) D12: next 6 counter bits >
+	HEX_CONST    CTA_CNTR_MSB1	0x02000 < (RO) D13: next 7 counter bits >
+	HEX_CONST    CTA_EXTERN		0x04000 < (RO) D14: external input >
+.if true, HOST_BOARD == HCR4K
+	HEX_CONST    CTA_XBUS_RST	0x10000 < (WO) D16: 0=assert XBUS reset >
+.iff
+	HEX_CONST    CTA_XBUS_INT	0x10000 < (WO) D16: 1=assert XBUS interrupt (pulse this) >
+.endc
+	HEX_CONST    CTA_LED_CR3	0x20000 < (WO) D17: 0=turn on LED CR3 >
+.if true, HOST_BOARD == MB4600
+	HEX_CONST    CTA_XBUSINT_CLR	0x40000 < (WO) D18: 0=clear XBUS interrupt >
+.endc
+	HEX_CONST    CTA_LED_CR2	0x80000 < (WO) D19: 0=turn on LED CR2 >
+.if true, OUTPUT_LANG == LANG_C
+extern unsigned short bitshd;
+.endc
+REM < Bits within the latch shadow register >
+	HEX_CONST    CTS_FIFO_RST	   0x001 < D00: 0=reset FIFO, 1=enable FIFO>
+	HEX_CONST    CTS_FIFO_ENAB	   0x002 < D01: 0=normal FIFO, 1=enable FIFO readback>
+	HEX_CONST    CTS_ZERO_MAP	   0x004 < D02: 0=physical address 0x1fcXXXX maps to DRAM >
+	HEX_CONST    CTS_FIFO_MTINT	   0x008 < D03: 0=disable and reset FIFO empty interrupt >
+	HEX_CONST    CTS_LED_CR1	   0x010 < D04: 0=turn on LED CR1>
+	HEX_CONST    CTS_FIFO_FULLINT	   0x020 < D05: 0=disable and reset FIFO full interrupt >
+	HEX_CONST    CTS_LED_CR2	   0x040 < D06: 0=turn on LED CR2 >
+.if true, HOST_BOARD == HCR4K
+	HEX_CONST    CTS_XBUS_RST	   0x080 < D07: 0=assert XBUS reset >
+.iff
+	HEX_CONST    CTS_XBUS_INT	   0x080 < D07: 1=assert XBUS interrupt (pulse activated, os_shims prevents this bit from staying on) >
+.endc
+	HEX_CONST    CTS_LED_CR3	   0x100 < D08: 0=turn on LED CR3 >
+.if true, HOST_BOARD == MB4600
+	HEX_CONST    CTS_XBUSINT_CLR	   0x200 < D09: 0=reset xbus interrupt (slave only) >
+.endc
+	HEX_CONST PROM_BASE	0x9FC00000 < PROM phys 0x1FC00000-0x1FFFFFFF (cached)			>
+	DEC_CONST SWINT0_LVL	0		< Software interrupt 0 >
+	DEC_CONST SWINT1_LVL	1		< Software interrupt 1 >
+	DEC_CONST ICELESS_LVL	2		< ICELESS debugger interrupt >
+.if true, HOST_BOARD == HCR4K
+	DEC_CONST XBUS_LVL	3		< Any XBUS interrupt >
+	DEC_CONST XBUS0_LVL	8		< Fake levels >
+	DEC_CONST XBUS1_LVL	9
+	DEC_CONST XBUS2_LVL	10
+	DEC_CONST XBUS3_LVL	11
+.endc
+	DEC_CONST FIFO_EMPTY_LVL 5
+	DEC_CONST FIFO_FULL_LVL 6
+	DEC_CONST TIMER_LVL	7		< CPU timer interrupt >
+.if not_defined, NO_INTS
+NO_INTS == 0
+.endc
+.if true, NO_INTS == 0
+  .if true, NUCLEUS_OS == 0
+	HEX_CONST INTS_ON	0xFF01			< Enable all interrupts >
+  .iff
+	HEX_CONST INTS_ON	0x7F01			< Enable all interrupts >
+  .endc
+	HEX_CONST INTS_OFF	(INTS_ON&~1)		< Disable all interrupts >
+.iff
+	HEX_CONST INTS_ON	0x0301
+	HEX_CONST INTS_OFF	0x0300
+.endc
+;
+	HEX_CONST BRAM_BASE	0x28000000 < BRAM phys 0x18000000-0x1BFFFFFF (nocached)			>
+.if not_defined,BRAM_SIZE
+	HEX_CONST BRAM_SIZE	((2048-8)*8)   < BRAM size (almost 2k doublewords)					>
+.endc
+;
+.if true, HOST_BOARD == HCR4K
+	HEX_CONST XBUS_BASE	0xC0000000		< XBUS base >
+	HEX_CONST XBUS_SLOT0	XBUS_BASE+0x00000000	< XBUS Slot 0 >
+	HEX_CONST XBUS_SLOT1	XBUS_BASE+0x02000000	< XBUS Slot 1 >
+	HEX_CONST XBUS_SLOT2	XBUS_BASE+0x04000000	< XBUS Slot 2 >
+	HEX_CONST XBUS_SLOT3	XBUS_BASE+0x06000000	< XBUS Slot 3 >
+	HEX_CONST XBUS_SLOT4	XBUS_BASE+0x08000000	< XBUS Slot 4 >
+	HEX_CONST XBUS_SLOT5	XBUS_BASE+0x0A000000	< XBUS Slot 5 >
+	HEX_CONST XBUS_SLOT6	XBUS_BASE+0x0C000000	< XBUS Slot 6 >
+	HEX_CONST XBUS_SLOT7	XBUS_BASE+0x0E000000	< XBUS Slot 7 >
+	HEX_CONST XBUS_SLOT70	XBUS_BASE+0x0E000000	< XBUS Slot 7-0 >
+	HEX_CONST XBUS_SLOT71	XBUS_BASE+0x0E400000	< XBUS Slot 7-1 >
+	HEX_CONST XBUS_SLOT72	XBUS_BASE+0x0E800000	< XBUS Slot 7-2 >
+	HEX_CONST XBUS_SLOT73	XBUS_BASE+0x0EC00000	< XBUS Slot 7-3 >
+	HEX_CONST XBUS_SLOT74	XBUS_BASE+0x0F000000	< XBUS Slot 7-4 >
+	HEX_CONST XBUS_SLOT75	XBUS_BASE+0x0F400000	< XBUS Slot 7-5 >
+	HEX_CONST XBUS_SLOT76	XBUS_BASE+0x0F800000	< XBUS Slot 7-6 >
+	HEX_CONST XBUS_SLOT77	XBUS_BASE+0x0FC00000	< XBUS Slot 7-7 >
+.endc
+;
+	HEX_CONST BBRAM_BASE	BRAM_BASE
+	HEX_CONST BBRAM_SIZE	BRAM_SIZE	
+	HEX_CONST BRAM_UNLK	0x28400000 < BRAM unlock >
+;
+	STR_START diag_params
+	STR_ELT	  actual_msb	U32  1	<Actual data read from mem (upper 32 bits)>
+	STR_ELT	  actual_lsb	U32  1	<Actual data read from mem (lower 32 bits)>
+	STR_ELT	  expected_msb	U32  1  <Expected data (upper 32 bits)>
+	STR_ELT	  expected_lsb	U32  1	<Expected data (Lower 32 bits)>
+	STR_ELT	  bad_address	U32  1  <Failing address>
+	STR_ELT	  subtest	U32  1	<Subtest number>
+	STR_END	  diag_params
+;
+.if true, OUTPUT_LANG == LANG_C
+extern U32 *prc_smack_wdog(void);
+#define WDOG    *prc_smack_wdog()
+.endc
+REM <	Work RAM>
+	ARRAY	WRAM,	U32, 	DRAM_BASE, DRAM_SIZE < Working RAM	>
+REM <	EEPROM>
+  .ifndf EEPROM_SIZE
+	EEPROM_SIZE == BRAM_SIZE ; Guaranteed minimum
+  .endc
+	ARRAY	EEPROM	U8	BRAM_BASE+HBYTE56_OFFS	EEPROM_SIZE < EEPROM 		>
+REM <	BRAM>
+	ADDR	BRAM 	U8	BRAM_BASE+HBYTE56_OFFS	< BRAM	(non-cached)	>
+;
+.endc		; HOST_BOARD
+.endc		;_MBHOST_MAC_
+@
+
+
+1.14
+log
+@Put conditionals around the xxx_SIZE params so they can be
+overrdden in config.mac.
+@
+text
+@d85 25
+d127 3
+@
+
+
+1.13
+log
+@Moved the RDRAM_BASEnc address from 4 to 8.
+Added a STREAMIO_BASE address
+@
+text
+@d54 1
+d56 1
+d61 1
+d63 1
+d67 1
+d69 1
+d132 1
+d134 1
+@
+
+
+1.12
+log
+@Changed the name of smack_wdog to prc_smack_wdog
+@
+text
+@d58 1
+a58 1
+	HEX_CONST RDRAM_BASEnc	0x20400000 < Random DRAM phys 0x20000000-0x203FFFFF (uncached) >
+d60 1
+@
+
+
+1.11
+log
+@Added a new watchdog kicker.
+@
+text
+@d161 2
+a162 2
+extern U32 *smack_wdog(void);
+#define WDOG    *smack_wdog()
+@
+
+
+1.10
+log
+@Moved DRAM_BASEnc from 0x800000 to 0xA00000.
+@
+text
+@a123 5
+.if true, 0
+	HEX_CONST WDOG_BASE	0x70000000 < WDOG (cause TLBS miss)		>
+.iff
+	HEX_CONST WDOG_BASE	(DRAM_BASEnc+DRAM_SIZE-8) < WDOG (temporarily make it top of mem) >
+.endc
+d160 3
+a162 5
+.if not_defined,NO_WDOG
+NO_WDOG == 0
+.endc
+.if true, NO_WDOG == 0
+	VAR	WDOG	VU32	WDOG_BASE	< Watchdog kick >
+@
+
+
+1.9
+log
+@Added XBUSn_LVL for HCR4K host
+@
+text
+@d53 1
+a53 1
+	HEX_CONST DRAM_BASEnc	0x00800000 < DRAM phys 0x80000000-0x803FFFFF (uncached) >
+@
+
+
+1.8
+log
+@Changed the name of member in diags_params from address to bad_address
+@
+text
+@d101 4
+@
+
+
+1.7
+log
+@Ooops. Added the member detail on the diags_params struct
+@
+text
+@d157 1
+a157 1
+	STR_ELT	  address	U32  1  <Failing address>
+@
+
+
+1.6
+log
+@Added a diags_params struct
+@
+text
+@d153 6
+a158 6
+	STR_ELT	  actual_msb
+	STR_ELT	  actual_lsb
+	STR_ELT	  expected_msb
+	STR_ELT	  expected_lsb
+	STR_ELT	  address
+	STR_ELT	  subtest
+@
+
+
+1.5
+log
+@Removed the timer definitions
+@
+text
+@d151 10
+@
+
+
+1.4
+log
+@Changed type on uptime_t members to U32
+@
+text
+@d162 1
+a162 1
+ .endc
+a166 8
+REM <   Timer >
+	STR_START	uptime_t
+	STR_ELT		timer_ints <U32> 1 < Number of timer interrupts since boot >
+	STR_ELT		ticks      <U32> 1 < 1/2 Number of system ticks since last timer interrupt >
+	STR_END		uptime_t
+  .if true, OUTPUT_LANG == LANG_C
+extern struct uptime_t *get_uptime(struct uptime_t *);
+  .endc
+@
+
+
+1.3
+log
+@Added an extern declaration for get_uptime()
+@
+text
+@d169 2
+a170 2
+	STR_ELT		timer_ints <unsigned long> 1 < Number of timer interrupts since boot >
+	STR_ELT		ticks      <unsigned long> 1 < 1/2 Number of system ticks since last timer interrupt >
+@
+
+
+1.2
+log
+@Added a uptime_t struct
+@
+text
+@d172 3
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d167 5
+@

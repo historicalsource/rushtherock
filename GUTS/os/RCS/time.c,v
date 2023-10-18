@@ -1,0 +1,557 @@
+head	1.8;
+access;
+symbols
+	RUSH_1_06A:1.5
+	CJ_206:1.5
+	CJ2_05:1.5
+	CJ2_04:1.5
+	CJ2_03:1.4;
+locks; strict;
+comment	@ * @;
+
+
+1.8
+date	97.07.01.23.42.42;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	97.04.01.00.07.44;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.02.27.04.04.45;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.04.02.16.46.39;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.09.28.22.58.34;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.08.29.01.41.52;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.02.22.00.38.43;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.02.14;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@preliminary timer-queue processing
+@
+
+
+1.8
+log
+@Added RCS ID string
+@
+text
+@/*		time.c
+ *	Timer-queue manipulation routines
+ */
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+#if (0)
+#include <ctype.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <cruft.h>
+#include <ads_os.h>
+#else
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#endif
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+#ifndef NUCLEUS_OS
+#define NUCLEUS_OS (0)
+#endif
+
+#if NUCLEUS_OS
+extern void TMT_Timer_Interrupt();
+struct act_q *prc_q_action(struct act_q *__q_elt)
+{
+    return 0;
+}
+#endif
+#ifndef ONE_SECOND
+#define ONE_SECOND (1048576)
+#endif
+/*	__time_q is really a pointer to the first struct tq, not
+ *	a struct tq itself, but since the "next" field is first, and
+ *	we need a "tail" pointer, lying gives us cleaner code :-)
+ */
+
+struct tq __time_q;
+
+#ifndef INTS_OFF
+#define INTS_OFF (0x2700)	/* Only 68K systems ever leave it undefined */
+#endif
+
+/*		tq_maint
+ *	Simple timer "delta Q" hook. The user must call this periodically,
+ *	with the parameter usec indicating a "best guess" at how many
+ *	microseconds have elapsed since the last call. This routine will
+ *	be called from the hardware timer interrupt routine _unless_ that
+ *	vector has been "hijacked", so it should not be of interest to anyone
+ *	not doing so.
+ *		This code locks out interrupts, so that no timer events can
+ *	be added or deleted by any code running at a higher hardware priority
+ *	than itself. If this becomes an issue due to the inevitable increase
+ *	in latency, it could be avoided if we can guarantee that no timer
+ *	events will be posted by any code that could execute at a higher
+ *	hardware interrupt level at all.
+ */
+
+void tq_maint(unsigned long usec)
+{
+    int old_ipl;
+    struct tq *tqp;
+    unsigned long over_run = 0;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    tqp = __time_q.next;	/* first one is dummy */
+    while ( tqp ) {
+	if ( tqp->delta > usec ) {
+	    tqp->delta -= usec;
+	    break;
+	}
+	if ( usec ) over_run = usec - tqp->delta;
+	tqp->delta = over_run;	/* show over-run if any */
+	__time_q.next = tqp->next;
+	tqp->que = 0;
+	prc_q_action((struct act_q *)tqp);
+	usec = over_run;
+	tqp = __time_q.next;
+    }
+    prc_set_ipl(old_ipl);
+#if NUCLEUS_OS
+    TMT_Timer_Interrupt();
+#endif
+}
+
+/* 		tq_ins()
+ *	Insert an entry on the timer queue, which will cause an "action"
+ *	to occur "delta" microseconds in the future. The caller must
+ *	allocate the queue entry (in memory that will "live" until it
+ *	times out), and fill in the delta, func, and vars fields.  The
+ *	last two need only be filled in once, if the same element will
+ *	be used for the same action repeatedly. This routine will not
+ *	insert the same entry twice.  The delta field will be adjusted
+ *	by tq_ins() to account for any earlier events in the queue, so
+ *	should not be "watched" by user code.
+ *
+ *	Returns 0 if successful, -1 if unsuccessful.
+ */
+
+int
+tq_ins(tqp)
+struct tq *tqp;
+{
+    int old_ipl;
+    unsigned long del;
+    struct tq *tail,*wp;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+
+    tail = &__time_q;
+    if ( tqp->que ) {
+	/* already on some que, return error
+	 */
+	prc_set_ipl(old_ipl);
+	return -1;
+    }
+    del = tqp->delta;
+
+    while ( (wp = tail->next) != 0 ) {
+	if ( wp == tqp ) {
+	    /* the geek tried to insert the same queue element twice
+	     */
+	    prc_set_ipl(old_ipl);
+	    return -1;
+	}
+	if ( wp->delta > del ) {
+	    /* next delta is greater than ours, adjust and insert here
+	     */
+	    wp->delta -= del;
+	    break;
+	}
+	/* getting here means there is a next entry, and it is due to
+	 * expire before us, so deduct its delta from ours, and keep
+	 * moving down the chain;
+	 */
+	del -= wp->delta;
+	tail = wp;
+    }
+    /* tail points to the entry _before_ the correct insertion point.
+     * This is possibly the fake "struct tq" at __time_q, but we only
+     * dink with its first (only) element.
+     * wp is either 0 or points to the entry _after_ the insertion point.
+     */
+    tqp->delta = del;		/* store adjusted delta */
+    tqp->next = wp;		/* link to entry after us */
+    tqp->que = &__time_q;	/* show "on timer queue" */
+    tail->next = tqp;		/* insert us */
+    prc_set_ipl(old_ipl);
+    return 0;
+}
+
+/*		tq_del()
+ *	Delete an un-expired entry from the timer queue.
+ *
+ *	Returns 0 if successful, -1 if unsuccessful (entry not found
+ *	on queue.)
+ */
+
+int
+tq_del(tqp)
+struct tq *tqp;
+{
+    int old_ipl;
+    struct tq *tail,*wp;
+
+    tail = &__time_q;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+
+    if ( tail == tqp->que ) {
+	while ( (wp = tail->next) != 0 ) {
+	    if ( wp == tqp ) {
+		/* Found our entry
+		*/
+		wp = wp->next;	/* move wp to our successor */
+		tail->next = wp;	/* link predecessor (or __time_q) to next */
+		if ( wp ) wp->delta += tqp->delta;
+		tqp->que = 0;
+		prc_set_ipl(old_ipl);
+		return 0;
+	    }
+	    tail = wp;
+	}
+    }
+    prc_set_ipl(old_ipl);
+    return -1;
+}
+
+/*		sho_delay_q(col,row)
+ *	Display current delay q starting at (col,row)
+ */
+
+int sho_delay_q(col,row,prev)
+int col,row,prev;
+{
+    struct tq *tqp,*sqp,sample[AN_VIS_ROW_MAX];
+    int old_ipl,idx,active;
+    unsigned long delta,secs,frac;
+    idx = 0;
+    sqp = sample;
+    old_ipl = prc_set_ipl(INTS_OFF);
+    tqp = __time_q.next;		/* start with first real que elt */
+    while ( tqp ) {
+	*sqp++ = *tqp;
+	if ( ++idx >= AN_VIS_ROW ) break;
+	tqp = tqp->next;
+    }
+    prc_set_ipl(old_ipl);
+    active = idx;
+    if ( prev < active ) prev = active;
+    delta = 0;
+    sqp = sample;
+    for ( idx = 0 ; idx < prev ; ++idx ) {
+	if ( idx >= active ) {
+	    txt_clr_wid(col,row,29);
+	} else {
+	    delta += sqp->delta;
+	    secs = delta/ONE_SECOND;
+	    frac = delta-(secs*ONE_SECOND);
+	    txt_decnum(col,row++,secs,4,RJ_BF,WHT_PALB);
+	    txt_cstr(".",WHT_PALB);
+	    txt_cdecnum(frac,6,LJ_BF,WHT_PALB);
+	    txt_cstr(" $",WHT_PALB);
+	    txt_chexnum((unsigned long)sqp->func,6,RJ_ZF,WHT_PALB);
+	    txt_cstr("(",WHT_PALB);
+	    txt_chexnum((unsigned long)sqp->vars,8,RJ_ZF,WHT_PALB);
+	    txt_cstr(")",WHT_PALB);
+	    ++sqp;
+	}
+	++row;
+    }
+    return active;
+}
+
+static struct tq ttq[4];
+
+static void expire(void *arg)
+{
+    char *msg;
+    int col,row;
+
+    if ( (msg = arg) == 0 ) msg = "0Expired";
+    row = *msg++ - '0';
+    if ( row < 0 ) row = 0;
+    else if ( row > 9 ) row -= ('A'-'9');
+    if ( row >= AN_VIS_ROW ) row = AN_VIS_ROW-1;
+    col = 1;
+    while ( *msg ) {
+	txt_stamp(col++,row,(*msg++)+AN_A_STMP-'A',MHILITE_PAL);
+    }
+}
+
+static const char * const tmsg[] = { "1FIRST","2SECOND","3THIRD","4FOURTH" };
+void time_test(smp)
+const struct menu_d *smp;
+{
+    int idx;
+    struct tq *wp;
+    wp = ttq;
+    for ( idx = 3 ; idx >= 0 ; --idx ) {
+	wp->delta = ((idx*2)+1)*ONE_SECOND;
+	wp->func = expire;
+	wp->vars = (void *)tmsg[idx];
+	tq_ins(wp);
+	++wp;
+    }
+    wp = ttq;
+    idx = 0;
+    do {
+	idx = sho_delay_q(8,2,idx);
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) {
+	    tq_del(wp);
+	    wp->delta += 5*ONE_SECOND;
+	    wp->que = 0;
+	    tq_ins(wp);
+	    if ( ++wp > (ttq+3) ) wp = ttq;
+	}
+    } while (idx);
+}
+
+#if (0)
+#ifndef CLK_TICKS
+#define CLK_TICKS (100)
+#endif
+
+static void
+bell(vars)
+void *vars;
+{
+    if ( vars ) fputs((char *)vars,stderr);
+    fputs("\a",stderr);
+}
+
+const char alarm_help[] = "<delta>\n\tbeep terminal bell in <delta> seonds";
+
+int
+alarm_Cmd(argc,argv)
+int argc;
+char **argv;
+{
+    static struct tq atq,*tqp;
+    int old_ipl,status;
+    unsigned long delta;
+    char *rp;
+
+    if ( argc < 2 ) {
+	/* kluge to inspect timer queue */
+	delta = 0;
+	old_ipl = prc_set_ipl(INTS_OFF);
+	tqp = __time_q.next;		/* start with first real que elt */
+	while ( tqp ) {
+	    delta += tqp->delta;
+	    if ( tqp == &atq ) break;
+	    tqp = tqp->next;
+	}
+	prc_set_ipl(old_ipl);
+	if ( tqp ) {
+	    delta += (CLK_TICKS>>1);
+	    delta /= CLK_TICKS;
+	    fprintf(stdout,"Alarm set to go off in %d seconds\n",delta);
+	} else fputs("Alarm not set\n",stdout);
+	return 0;
+    }
+    delta = strtoul(*++argv,&rp,10);
+    if ( rp == *argv ) {
+	fprintf(stderr,"Usage: %s\n",alarm_help);
+	return EDOM;
+    } else {
+	status = tq_del(&atq);
+	if ( status == 0 ) {
+	    /* able to delete means alarm was previously set
+	     */
+	    fputs("re-",stdout);
+	}
+	atq.delta = delta * CLK_TICKS;
+	atq.func = bell;
+	atq.vars = (void *)"Your alarm is ringing\n";
+	atq.que = 0;
+	tq_ins(&atq);
+	fprintf(stdout,"setting alarm for %d seconds\n",delta);
+    }
+    return 0;
+}
+#endif
+@
+
+
+1.7
+log
+@Corrected delta adjustment in over run case in tq_maint().
+@
+text
+@d4 3
+@
+
+
+1.6
+log
+@Allowed for dynamic resolution. I.E. AN_VIS_COL et. al. can be made
+into ints instead of #defines. On 3dfx systems this is accompolished
+by defining the following in config.mac:
+DEC_CONST DYNAMIC_VIS_PIX 1
+DEC_CONST VIS_H_PIX_MAX whatever
+DEC_CONST VIS_V_PIX_MAX whatever
+After this, AN_VIS_COL, AN_VIS_ROW, VIS_V_PIX, VIS_H_PIX and
+SST_RESOLUTION become "extern int" instead of #defines.
+The new #defines AN_VIS_ROW_MAX and AN_VIS_COL_MAX are
+created (computed from VIS_H_PIX_MAX, VIS_V_PIX_MAX) so
+local arrays can be declared and this is the principle changed
+to this file.
+@
+text
+@d83 1
+a83 1
+	usec = 0;
+@
+
+
+1.5
+log
+@Added check in tq_del(tqp) to verify that tqp is on the queue.
+Also, when the structure is removed from the queue, zero out
+the que field.
+@
+text
+@d18 7
+d202 1
+a202 1
+    struct tq *tqp,*sqp,sample[AN_VIS_ROW];
+@
+
+
+1.4
+log
+@Published tq_maint, tq_ins, and tq_del in os_proto.h
+@
+text
+@d165 2
+d169 13
+a181 10
+    tail = &__time_q;
+    while ( (wp = tail->next) != 0 ) {
+	if ( wp == tqp ) {
+	    /* Found our entry
+	     */
+	    wp = wp->next;	/* move wp to our successor */
+	    tail->next = wp;	/* link predecessor (or __time_q) to next */
+	    if ( wp ) wp->delta += tqp->delta;
+	    prc_set_ipl(old_ipl);
+	    return 0;
+a182 1
+	tail = wp;
+@
+
+
+1.3
+log
+@Changed NUCLEUS_R3K to NUCLEUS_OS
+@
+text
+@d37 1
+a37 7
+/* extern */ struct tq {
+    struct tq *next;
+    struct tq *que;		/* should point to __time_q if on timer queue */
+    void (*func)(void *);
+    void *vars;
+    unsigned long delta;
+} __time_q;
+d43 13
+a55 9
+/* Simple timer "delta Q" hook. This code assumes that no timer events
+ * will be added or deleted by any code running at a higher hardware
+ * priority than itself. Since timer events should not be posted by
+ * any code that executes at hardware interrupt level at all, this
+ * should be a safe assumption. If needed, we could shut of all interrupts
+ * during the update scan, but that would add to latency.
+ *
+ * (Actually, for testing purposes, the following 'C' translation of
+ * the original 68K assembly _does_ disable IRQs during the scan.)
+d57 1
+d86 11
+a96 3
+ *	Insert an entry on the timer queue. The caller must allocate the
+ *	queue entry (in memory that will "live" until it times out). This
+ *	routine will not insert the same entry twice.
+d98 1
+d153 3
+d157 1
+@
+
+
+1.2
+log
+@added C version of timer queue, plus conditional support for NUCLEUS
+@
+text
+@d18 2
+a19 2
+#ifndef NUCLEUS_R3K
+#define NUCLEUS_R3K (0)
+d22 1
+a22 1
+#if NUCLEUS_R3K
+d81 1
+a81 1
+#if NUCLEUS_R3K
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d18 11
+d37 1
+a37 1
+extern struct tq {
+d46 1
+a46 1
+#define INTS_OFF (0x2700)
+d48 37
+@

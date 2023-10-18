@@ -1,0 +1,163 @@
+head	1.4;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	97.09.26.00.53.57;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.09.08.22.09.23;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.07.16.17.21.32;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.04.29.16.44.49;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@QIO DMA driver private definitions.
+@
+
+
+1.4
+log
+@Got rid of DMA_CLOSE_PENDING.
+@
+text
+@
+/*
+ *	qio_dma.h -- Forrest Miller -- April 1997
+ *
+ *	QIO DMA driver private definitions.
+ *
+ *
+ *		Copyright 1997 Atari Games Corporation
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#ifndef _QIO_DMA_H_
+#define _QIO_DMA_H_
+
+
+#define DMA_BLK_LEN 0xffe0
+
+typedef struct dma_device_init
+{
+ unsigned int vec;
+ VU32 *bctp;
+ VU32 *ctlp;
+ VU32 *dstp;
+ VU32 *srcp;
+} DmaDeviceInit;
+
+#ifdef GALILEO_BOOT_BASE
+
+#define DMA_NUM_CHANS 4
+
+#define DMA_CTL_INCR_SRC ( GALILEO_DMA_INC << GALILEO_DMA_SRCDIR_b )
+#define DMA_CTL_DECR_SRC ( GALILEO_DMA_DEC << GALILEO_DMA_SRCDIR_b )
+#define DMA_CTL_HOLD_SRC ( GALILEO_DMA_HOLD << GALILEO_DMA_SRCDIR_b )
+
+#define DMA_CTL_INCR_DST ( GALILEO_DMA_INC << GALILEO_DMA_DSTDIR_b )
+#define DMA_CTL_DECR_DST ( GALILEO_DMA_DEC << GALILEO_DMA_DSTDIR_b )
+#define DMA_CTL_HOLD_DST ( GALILEO_DMA_HOLD << GALILEO_DMA_DSTDIR_b )
+
+#define DMA_CTL_X_BYTE ( 0x101 << GALILEO_DMA_XFER_b )
+#define DMA_CTL_X_HALF ( 0x110 << GALILEO_DMA_XFER_b )
+#define DMA_CTL_X_WORD ( GALILEO_DMA_XFER4 << GALILEO_DMA_XFER_b )
+#define DMA_CTL_X_DBLE ( GALILEO_DMA_XFER8 << GALILEO_DMA_XFER_b )
+#define DMA_CTL_X_QUAD ( GALILEO_DMA_XFER16 << GALILEO_DMA_XFER_b )
+#define DMA_CTL_X_OCTW ( GALILEO_DMA_XFER32 << GALILEO_DMA_XFER_b )
+
+#define DMA_START ( ( 1 << GALILEO_DMA_NCHAIN_b ) \
+		  | ( 1 << GALILEO_DMA_BLOCK_b ) \
+		  | ( 1 << GALILEO_DMA_ENABLE_b ) )
+
+#define DMA_CONT ( ( 1 << GALILEO_DMA_NCHAIN_b ) \
+		 | ( 1 << GALILEO_DMA_BLOCK_b ) \
+		 | ( 1 << GALILEO_DMA_ENABLE_b ) )
+
+#define DMA_INT		( 1 << B_GIC_DM0 )
+
+#define DMA_INT_MASK	( DM0_NOTES | DM1_NOTES | DM2_NOTES | DM3_NOTES )
+
+#define DMA_INT_ACK(x)	do { \
+			x = *(VU32 *)GALILEO_INT_CAUSE & DMA_INT_MASK; \
+			if ( x ) *(VU32 *)GALILEO_INT_CAUSE = ~x; \
+			} while (0)
+
+# ifdef DMA_DEVICE_INIT
+STATIC const DmaDeviceInit dma_i[] = {
+ { DM0_INTVEC, (VU32 *)GALILEO_DMA0_BC, (VU32 *)GALILEO_DMA0_CTL, (VU32 *)GALILEO_DMA0_DST, (VU32 *)GALILEO_DMA0_SRC },
+ { DM1_INTVEC, (VU32 *)GALILEO_DMA1_BC, (VU32 *)GALILEO_DMA1_CTL, (VU32 *)GALILEO_DMA1_DST, (VU32 *)GALILEO_DMA1_SRC },
+ { DM2_INTVEC, (VU32 *)GALILEO_DMA2_BC, (VU32 *)GALILEO_DMA2_CTL, (VU32 *)GALILEO_DMA2_DST, (VU32 *)GALILEO_DMA2_SRC },
+ { DM3_INTVEC, (VU32 *)GALILEO_DMA3_BC, (VU32 *)GALILEO_DMA3_CTL, (VU32 *)GALILEO_DMA3_DST, (VU32 *)GALILEO_DMA3_SRC }
+};
+# endif
+
+#else
+# error ** You need new definitions if not using Galileo
+#endif	/* GALILEO_BOOT_BASE */
+
+#endif  /* _QIO_DMA_H_ */
+@
+
+
+1.3
+log
+@Removed GALILEO_DMA_INTMODE_b from DMA_START and DMA_CONT definitions.
+@
+text
+@a16 1
+#define DMA_CLOSE_PENDING 1
+@
+
+
+1.2
+log
+@Changed to load the parameters using the CPU, not the chained mode.
+@
+text
+@a49 1
+		  | ( 1 << GALILEO_DMA_INTMODE_b ) \
+a53 1
+		 | ( 1 << GALILEO_DMA_INTMODE_b ) \
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d26 2
+a27 1
+ VU32 *nxtp;
+d49 1
+a49 1
+#define DMA_START ( ( 0 << GALILEO_DMA_NCHAIN_b ) \
+d52 1
+a52 2
+		  | ( 1 << GALILEO_DMA_ENABLE_b ) \
+		  | ( 1 << GALILEO_DMA_FNEXT_b ) )
+d70 4
+a73 4
+ { DM0_INTVEC, (VU32 *)GALILEO_DMA0_BC, (VU32 *)GALILEO_DMA0_CTL, (VU32 *)GALILEO_DMA0_NXTRCD },
+ { DM1_INTVEC, (VU32 *)GALILEO_DMA1_BC, (VU32 *)GALILEO_DMA1_CTL, (VU32 *)GALILEO_DMA1_NXTRCD },
+ { DM2_INTVEC, (VU32 *)GALILEO_DMA2_BC, (VU32 *)GALILEO_DMA2_CTL, (VU32 *)GALILEO_DMA2_NXTRCD },
+ { DM3_INTVEC, (VU32 *)GALILEO_DMA3_BC, (VU32 *)GALILEO_DMA3_CTL, (VU32 *)GALILEO_DMA3_NXTRCD }
+@

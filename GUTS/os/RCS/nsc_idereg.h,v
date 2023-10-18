@@ -1,0 +1,485 @@
+head	1.12;
+access;
+symbols
+	RUSH_ROCK_1_0:1.12
+	RUSH_ROCK_1_0epst:1.12
+	MACE_1_0e:1.12
+	MACE_1_0d:1.12
+	RUSH_1_06A:1.12
+	AREA_52_00:1.11
+	MACE_1_0a:1.9;
+locks; strict;
+comment	@ * @;
+
+
+1.12
+date	97.07.18.02.33.11;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	97.05.28.23.05.36;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	97.05.28.21.58.10;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.12.04.02.41.36;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.11.09.00.43.56;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.10.07.16.40.45;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.10.02.00.33.10;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.05.29.18.55.11;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.05.15.04.01.48;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.05.14.21.00.32;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.05.07.20.20.25;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.05.07.00.08.36;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Phoenix NSC IDE chip definitions
+@
+
+
+1.12
+log
+@Added a flags field to the DeviceDesc struct.
+@
+text
+@#ifndef _NSC_IDEREG_H_
+#define _NSC_IDEREG_H_
+
+#ifndef NUM_HDRIVES
+# define NUM_HDRIVES	(1)        /* number of IDE devices supported */
+#endif
+
+typedef volatile struct nsc415_cmd {
+    unsigned long cmd;		/* command */
+    unsigned long prd_addr;	/* Prd table address */
+} NSC415Cmd;
+#define DMA_CMD_start	0x000001	/* start DMA */
+#define DMA_CMD_write	0x000008	/* write DMA */
+#define DMA_STS_busy	0x010000	/* DMA channel is busy */
+#define DMA_STS_error	0x020000	/* DMA got an error */
+#define DMA_STS_int	0x040000	/* Interrupt reported from drive */
+#define DMA_STS_dma1	0x200000	/* drive 1 is DMA capable */
+#define DMA_STS_dma2	0x400000	/* drive 2 is DMA capable */
+
+typedef volatile struct nsc415_pdt {
+    unsigned long phys;			/* point to physical memory (must be even) */
+    unsigned long byte_cnt;		/* number of bytes (must be even) */
+} NSC415Pdt;
+#define DMA_PDT_EOT	0x80000000	/* signal end of block */
+
+typedef struct ide_ctl IdeCtl;
+
+#ifndef IDE_CACHE_LINE_SIZE
+# define IDE_CACHE_LINE_SIZE (32)	/* assume 32 bytes per cache line */
+#endif
+
+#define IDE_PDTS_CACHE_LINE	(IDE_CACHE_LINE_SIZE/sizeof(NSC415Pdt))
+#define IDE_PDTS_DD		6
+#define IDE_DVC_FLAG_ST9420	1	/* device is an ST9420 */
+
+typedef struct device_desc{
+    struct ide_ctl *ideptr;	/* points to h/w */
+    volatile unsigned char *alt_sts;	/* points to alternate status byte */
+#if IDE_USE_DMA
+    NSC415Cmd *dma;		/* pointer to DMA control registers for this device */
+    NSC415Pdt pdt[IDE_PDTS_DD+IDE_PDTS_CACHE_LINE];	/* room for 6 PDT's aligned on a cache line boundary */
+    NSC415Pdt *pdts;		/* pointer to above array aligned on cache line boundary */
+    struct act_q complete_q;	/* queue for completion routine */
+    struct tq timer_q;		/* gross timer for I/O */
+    volatile int timeout;	/* timeout flag */
+    int doofus;			/* number of times I/O required use of kernel buffer */
+    int did_multsect;		/* amount issued for SET MULTIPLE command */
+#endif
+    U32 *lclbuff;		/* pointer to "kernel" buffer to using during I/O */
+    volatile int busy;		/* drive currently busy */
+    int select;			/* drive select bit */
+    int status;			/* status of device connected */
+    int cyls;			/* number of cylinders */
+    int heads;			/* number of heads */
+    int sectors;		/* number of sectors per track */
+    int spc;			/* sectors per cylinder */
+    int lba_capacity;		/* total number of sectors per disk */
+    int max_multsect;		/* maximum number of sectors on multi-sector r/w */
+    int flags;			/* special device flags */
+    int dma_ns;			/* nanosecs for DMA read/write */
+    int pio_ns;			/* nanosecs for PIO read/write */
+    int dma_timing;		/* value to stuff into the timing register */
+    int pio_timing;		/* value to stuff into the timing register */
+} DeviceDesc;
+
+/* structure returned by HDIO_GET_IDENTITY, as per ANSI ATA2 rev.2j spec */
+/* (VU) = Vendor Unique							 */
+typedef struct hd_driveid {
+	unsigned short	config;		/*  0 lots of obsolete bit flags */
+	unsigned short	cyls;		/*  1 "physical" cyls */
+	unsigned short	reserved2;	/*  2 reserved (word 2) */
+	unsigned short	heads;		/*  3 "physical" heads */
+	unsigned short	track_bytes;	/*  4 (VU) unformatted bytes per track */
+	unsigned short	sector_bytes;	/*  5 (VU) unformatted bytes per sector */
+	unsigned short	sectors;	/*  6 "physical" sectors per track */
+	unsigned short	vendor0;	/*  7 vendor unique */
+	unsigned short	vendor1;	/*  8 vendor unique */
+	unsigned short	vendor2;	/*  9 vendor unique */
+	unsigned char	serial_no[20];	/* 10-19 Serial number ([0,1] == 0, not specified) */
+	unsigned short	buf_type;	/* 20 (VU) */
+	unsigned short	buf_size;	/* 21 (VU) 512 byte increments; 0 = not_specified */
+	unsigned short	vs_bytes;	/* 22 number of vendor specific bytes on r/w longs */
+	unsigned char	fw_rev[8];	/* 23-26 Firmware revision */
+	unsigned char	model[40];	/* 27-46 Model number */
+	unsigned char	max_multsect;	/* 47lsb max sectors on a r/w multiple; 0=not_implemented */
+	unsigned char	vendor3;	/* 47msb (VU) */
+	unsigned short	reserved48;	/* 48 reserved */
+	unsigned char	vendor4;	/* 49lsb (VU) */
+	unsigned char	capability;	/* 49msb bits 0:DMA 1:LBA 2:IORDYsw 3:IORDYsup*/
+	unsigned short	reserved50;	/* 50 reserved */
+	unsigned char	vendor5;	/* 51lsb (VU) */
+	unsigned char	tPIO;		/* 51msb 0=slow, 1=medium, 2=fast */
+	unsigned char	vendor6;	/* 52lsb (VU) vendor unique */
+	unsigned char	tDMA;		/* 52msb 0=slow, 1=medium, 2=fast */
+	unsigned short	field_valid;	/* 53 bits 0:cur_ok 1:eide_ok */
+	unsigned short	cur_cyls;	/* 54 logical cylinders */
+	unsigned short	cur_heads;	/* 55 logical heads */
+	unsigned short	cur_sectors;	/* 56 logical sectors per track */
+	unsigned short	cur_capacity0;	/* 57 logical total sectors on drive (lsb) */
+	unsigned short	cur_capacity1;	/* 58   (2 words, misaligned int) (msb)    */
+	unsigned char	multsect;	/* 59lsb current multiple sector count */
+	unsigned char	multsect_valid;	/* 59msb when (bit0==1) multsect is ok */
+	unsigned int	lba_capacity;	/* 60+61 total number of sectors */
+	unsigned short	dma_1word;	/* 62 single-word dma info */
+	unsigned short	dma_mword;	/* 63 multiple-word dma info */
+	unsigned short  eide_pio_modes; /* 64 bits 0:mode3 1:mode4 */
+	unsigned short  eide_dma_min;	/* 65 min mword dma cycle time (ns) */
+	unsigned short  eide_dma_time;	/* 66 recommended mword dma cycle time (ns) */
+	unsigned short  eide_pio;       /* 67 min cycle time (ns), no IORDY  */
+	unsigned short  eide_pio_iordy; /* 68 min cycle time (ns), with IORDY */
+	unsigned short  reserved69;	/* 69 reserved */
+	unsigned short  reserved70;	/* 70 reserved */
+	/* unsigned short reservedxx[57];*/	/* reserved (words 71-127) */
+	/* unsigned short vendor7  [32];*/	/* vendor unique (words 128-159) */
+	/* unsigned short reservedyy[96];*/	/* reserved (words 160-255) */
+} DriveID;
+
+#if NSC415_MOVEABLE
+extern int PC87415_DEVICE_NUMBER;
+#define PC87415_DEVICE_NUMBER_HW        9	/* PCI device number on SA-1/PHXAD/Seattle/Flagstaff */
+#else
+#define PC87415_DEVICE_NUMBER           9	/* PCI device number on Phoenix */
+#endif
+#define NSC415_VENDOR_ID    0x100B
+#define NSC415_DEVICE_ID    0x0002
+#define NSC415_PART_ID      (((long)NSC415_DEVICE_ID << 16) + NSC415_VENDOR_ID)
+
+#define NSC415_DEFVAL_BAR4  0x0F00      /* default I/O address of BAR4 register */
+
+#if !_N415_CFIGREGS_TYPE_
+#define _N415_CFIGREGS_TYPE_ 1
+typedef struct                      /* PCI configuration registers */
+{
+    U16           n415_VendorID;      /* RO 00-01: vendor ID (value = 100Bh) */
+    U16           n415_DeviceID;      /* RW 02-03: device ID (value = 0002h) */
+
+    U16           n415_Command;       /* RW 04-05: command register */
+    U16           n415_Status;        /* RW 06-07: status register */
+
+    U8            n415_RevisionID;    /* R  08: revision ID (value = 00h) */
+    U8            n415_ProgIface;     /* RW 09: programming interface (PIF) */
+
+    U8            n415_SubClass;      /* R  0A: sub-class code (01 = IDE) */
+    U8            n415_ClassCode;     /* R  0B: class code (01 = storage) */
+    U8            n415_Unused1;       /*    0C: unused */
+    U8            n415_Latency;       /* RW 0D: latency time in PCI clocks */
+    U8            n415_HeadType;      /* R  0E: header type (value = 00h) */
+    U8            n415_BIST;          /* R  0F: ?? (value = 00h) */
+
+    U32           n415_BaseAddr0;     /* RW 10-13: base address register 0 */
+    U32           n415_BaseAddr1;     /* RW 14-17: base address register 1 */
+    U32           n415_BaseAddr2;     /* RW 18-1B: base address register 2 */
+    U32           n415_BaseAddr3;     /* RW 1C-1F: base address register 3 */
+    U32           n415_BaseAddr4;     /* RW 20-23: base address register 4 */
+
+    U8            n415_Unused2[24];   /*    24-3B: unused */
+    U8            n415_IntLine;       /* RW 3C: interrupt line (0Eh) */
+    U8            n415_IntPin;        /* R  3D: interrupt pin (value = 01) */
+    U8            n415_Unused3[2];    /*    3E-3F: unused */
+
+    U8            n415_Control[3];    /* RW 40-42: control register (000000h) */
+    U8            n415_WbuffStat;     /* R  43: write buffer status */
+
+    U8            n415_C1D1_Dread;    /* RW 44: channel 1 device 1 data read */
+    U8            n415_C1D1_Dwrite;   /* RW 45: channel 1 device 1 data write */
+    U8            n415_Unused4[2];    /*    46-47: unused */
+
+    U8            n415_C1D2_Dread;    /* RW 48: channel 1 device 2 data read */
+    U8            n415_C1D2_Dwrite;   /* RW 49: channel 1 device 2 data write */
+    U8            n415_Unused5[2];    /*    4A-4B: unused */
+
+    U8            n415_C2D1_Dread;    /* RW 4C: channel 2 device 1 data read */
+    U8            n415_C2D1_Dwrite;   /* RW 4D: channel 2 device 1 data write */
+    U8            n415_Unused6[2];    /*    4E-4F: unused */
+
+    U8            n415_C2D2_Dread;    /* RW 50: channel 2 device 2 data read */
+    U8            n415_C2D2_Dwrite;   /* RW 51: channel 2 device 2 data write */
+    U8            n415_Unused7[2];    /*    52-53: unused */
+
+    U8            n415_CmdCtrl_RdWrt; /* RW 54: command/control read/write */
+    U8            n415_SectorSize;    /* RW 55: sector size */
+}
+N415_CfigRegs;
+#endif			/* _N415_CFIGREGS_TYPE_ */
+
+#define NSC415_CTL_CH1_INTA	0x000010	/* Map channel 1 INT to INTA */
+#define NSC415_CTL_CH2_INTA	0x000020	/* Map channel 2 INT to INTA */
+#define NSC415_CTL_INTA_OFF	0x000040	/* Disable INTA interrupt */
+#define NSC415_CTL_WRTID_EN	0x000080	/* Enable write of ID registers */
+#define NSC415_CTL_CH1_INT_OFF	0x000100	/* Channel 1 interrupt disable */
+#define NSC415_CTL_CH2_INT_OFF	0x000200	/* Channel 2 interrupt disable */
+#define NSC415_CTL_BAR23_DISAB	0x000400	/* BAR 2 and 3 disable */
+#define NSC415_CTL_WDOG_ENAB	0x000800	/* Enable PCI Watchdog */
+#define NSC415_CTL_BUFFER_0	0x001000	/* Accesses to port 0 are buffered */
+#define NSC415_CTL_BUFFER_1	0x002000	/* Accesses to port 1 are buffered */
+#define NSC415_CTL_NON_IDE_0	0x004000	/* Port 0 has non-IDE device */
+#define NSC415_CTL_NON_IDE_1	0x008000	/* Port 10 has non-IDE device */
+#define NSC415_CTL_PREF0_EN	0x010000	/* Enable channel 1 prefetch */
+#define NSC415_CTL_PREF1_EN	0x020000	/* Enable channel 2 prefetch */
+#define NSC415_CTL_PWR_OFF	0x040000	/* Drive has power off function */
+#define NSC415_CTL_CH1_D1_DMA	0x100000	/* Use DRQ/DAK signaling CH1 drive 1 */
+#define NSC415_CTL_CH1_D2_DMA	0x200000	/* Use DRQ/DAK signaling CH1 drive 2 */
+#define NSC415_CTL_CH2_D1_DMA	0x400000	/* Use DRQ/DAK signaling CH2 drive 1 */
+#define NSC415_CTL_CH2_D2_DMA	0x800000	/* Use DRQ/DAK signaling CH2 drive 2 */
+
+#if !_N415_MASTREGS_
+# define _N415_MASTREGS_ 1
+typedef struct                      /* DMA bus mastering registers */
+{
+    U8            n415_Mast1_Cmd;     /* RW 00: bus master command (00h) */
+    U8            n415_Reserved1;     /*    01: reserved */
+    U8            n415_Mast1_Stat;    /* RW 02: bus master status (00h) */
+    U8            n415_Reserved2;     /*    03: reserved */
+    U32           n415_Mast1_Prd;     /* RW 04-07: PRD table address (00000000h) */
+
+    U8            n415_Mast2_Cmd;     /* RW 08: bus master command (00h) */
+    U8            n415_Reserved3;     /*    09: reserved */
+    U8            n415_Mast2_Stat;    /* RW 0A: bus master status (00h) */
+    U8            n415_Reserved4;     /*    0B: reserved */
+    U32           n415_Mast2_Prd;     /* RW 0C-0F: PRD table address (00000000h) */
+}
+N415_MastRegs;
+#endif				/* _N415_MASTREGS_ */
+
+#if !_NSC415_REGS_
+#define _NSC415_REGS_ 1
+typedef struct                  /* All of the NSC PC87415 registers */
+{
+    N415_CfigRegs   nsc_ConfigRegs;     /* configuration registers */
+    N415_MastRegs   nsc_BusMastRegs;    /* DMA bus mastering registers */
+}
+NSC415_Regs;
+#endif				/* NSC415_Regs */
+
+#define PHYS(x) ((U32)(x)&0x1FFFFFFF)
+
+#endif
+@
+
+
+1.11
+log
+@Added a PC87415_DEVICE_NUMBER_HW variable if the
+nsc chip is moveable.
+@
+text
+@d34 1
+d59 1
+@
+
+
+1.10
+log
+@Protected the struct definitions.
+@
+text
+@d118 1
+@
+
+
+1.9
+log
+@Added another field to DeviceDesc.
+@
+text
+@d116 3
+d120 1
+d127 2
+d181 1
+d203 2
+d220 1
+d222 2
+d230 1
+@
+
+
+1.8
+log
+@Moved a member of the device struct outside the DMA protect.
+@
+text
+@d46 1
+@
+
+
+1.7
+log
+@Added a doofus counter and kernel buffer pointer to the device
+struct. Made a couple members volatile.
+@
+text
+@a44 1
+    U32 *lclbuff;		/* pointer to "kernel" buffer to using during I/O */
+d47 1
+@
+
+
+1.6
+log
+@Added more definitions for DMA stuff.
+@
+text
+@d36 1
+a36 1
+    volatile struct ide_ctl *ideptr;	/* points to h/w */
+a41 1
+    NSC415Pdt *userpdt;		/* let 'em declare his own pdt */
+d43 1
+a43 2
+    struct act_q irq_q;		/* queue for irq routine */
+    volatile struct tq timer_q;	/* gross timer for I/O */
+d45 2
+@
+
+
+1.5
+log
+@The driver now works. It uses logical block addressing.
+@
+text
+@d9 1
+a9 4
+    unsigned char cmd;		/* command */
+    unsigned char fill0;	/* reserved */
+    unsigned char status;	/* status */
+    unsigned char fill1;	/* reserved */
+d12 7
+a18 7
+#define DMA_CMD_start	0x01	/* start DMA */
+#define DMA_CMD_write	0x08	/* write DMA */
+#define DMA_STS_busy	0x01	/* DMA channel is busy */
+#define DMA_STS_error	0x02	/* DMA got an error */
+#define DMA_STS_int	0x04	/* Interrupt reported from drive */
+#define DMA_STS_dma1	0x20	/* drive 1 is DMA capable */
+#define DMA_STS_dma2	0x40	/* drive 2 is DMA capable */
+d21 2
+a22 4
+    unsigned long phys;		/* point to physical memory (must be even) */
+    unsigned short byte_cnt;	/* number of bytes (must be even) */
+    unsigned filler:15;		/* reserved bits */
+    unsigned eot:1;		/* if 1, no more entries */
+d24 1
+d28 7
+d40 2
+a41 1
+    NSC415Pdt pdt[4];		/* give 'em a little scatter/gather ability */
+d174 20
+@
+
+
+1.4
+log
+@Conditionalled the DMA stuff. Note that this driver still does
+not work.
+@
+text
+@d30 2
+d50 2
+@
+
+
+1.3
+log
+@Still messing with DMA. It does not work yet.
+@
+text
+@d33 1
+d41 1
+@
+
+
+1.2
+log
+@Added some #defines.
+@
+text
+@d33 8
+a40 4
+    NSC415Cmd *dma;		/* pointer to DMA control registers */
+    NSC415Pdt pdt[4];		/* give 'em a little scatter ability */
+    void (*complete)(struct device_desc *);	/* pointer to user completion routine */
+    void (*irq)(struct device_desc *);	/* pointer to interrupt service routine */
+d47 4
+a50 5
+    int busy;			/* drive currently busy */
+    int dma_timing;		/* nanosecs for DMA read/write */
+    int pio_timing;		/* nanosecs for PIO read/write */
+    volatile int timeout;	/* timeout flag */
+    struct tq timer;		/* gross timer for I/O */
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d15 7
+d184 2
+@

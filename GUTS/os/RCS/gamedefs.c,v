@@ -1,0 +1,1017 @@
+head	1.22;
+access;
+symbols
+	CJ_206:1.16
+	CJ2_05:1.16
+	CJ2_04:1.15
+	CJ2_03:1.11;
+locks; strict;
+comment	@ * @;
+
+
+1.22
+date	97.07.02.16.12.53;	author albaugh;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	97.02.14.20.30.30;	author albaugh;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	97.01.29.21.34.50;	author albaugh;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	97.01.28.01.32.22;	author albaugh;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.01.14.22.59.22;	author albaugh;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	97.01.10.21.05.34;	author albaugh;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.11.07.20.06.58;	author albaugh;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.08.09.19.02.41;	author forrest;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.06.12.18.19.13;	author albaugh;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.01.08.23.22.52;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.11.22.17.31.18;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.10.31.22.02.27;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.08.01.21.21.40;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.07.27.23.17.45;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.06.22.23.05.54;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.06.14.17.57.42;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.06.14.17.06.48;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.05.10.16.48.17;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.05.02.20.16.48;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.02.27.22.12.06;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.01.31.02.47.56;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.25.19;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@A variety of game-specific definitions that don't quite fit anywhere else.
+@
+
+
+1.22
+log
+@Added RCS ID string
+@
+text
+@/*	GAMEDEFS.C
+ *		Copyright 1991,1992,1993,1994 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+*/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+
+/*	>>->	define your switches to match the real controls to the
+ *		internally used symbolic names of the switches. For
+ *		example, if you use the RED BUTTON for SW_ACTION then
+ *		you would define t_msg_action to be "Press RED BUTTON";
+ */
+
+#include <config.h>
+#include <eer_defs.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+
+#if (COJAG_GAME&COJAG_AREA51)
+	/* NEXT = Plyr 1 Start  ACTION = Plyr 2 Start */
+
+	/*	hold ACTION and press NEXT button			*/
+	const char t_msg_clear[] =	"hold right START and press left START";
+
+	/*	press NEXT button					*/
+	const char t_msg_next[] =		"press left START";
+
+	/*	press and hold NEXT button				*/
+	const char t_msg_nexth[] =		"press and Hold left START";
+
+	/*	press ACTION button					*/
+	const char t_msg_action[] =	"press right START";
+
+	/*	press and hold ACTION button				*/
+	const char t_msg_actionh[] =	"press and Hold right START";
+
+	/*	press EXTRA button					*/
+	const char t_msg_extra[] =	"press Button A";
+
+	/*	Use the control						*/
+
+	const char t_msg_control[] =	"use GUN";
+#define CONTROL_MESSAGES (1)
+#endif /* Area51 control messages */
+#if (COJAG_GAME&COJAG_HERO)
+	/* NEXT = Plyr 1 Start  ACTION = Plyr 1 Quick Punch  EXTRA = Plyr 1 A	*/
+
+	/*	hold ACTION and press NEXT button			*/
+	const char t_msg_clear[] =	"hold QUICK PUNCH and press START";
+
+	/*	press NEXT button					*/
+	const char t_msg_next[] =		"press START";
+
+	/*	press and hold NEXT button				*/
+	const char t_msg_nexth[] =		"press and Hold START";
+
+	/*	press ACTION button					*/
+	const char t_msg_action[] =	"press QUICK PUNCH";
+
+	/*	press and hold ACTION button				*/
+	const char t_msg_actionh[] =	"press and Hold QUICK PUNCH";
+
+	/*	press EXTRA button					*/
+	const char t_msg_extra[] =	"press Button A";
+
+	/*	Use the control						*/
+
+	const char t_msg_control[] =	"use Joystick";
+#define CONTROL_MESSAGES (1)
+#endif /* HERO (vicious Circle) control messages */
+#ifndef CONTROL_MESSAGES
+	/* NEXT = Plyr 1 Start  ACTION = Plyr 1 Fire  EXTRA = Plyr 1 A	*/
+
+	/*	hold ACTION and press NEXT button			*/
+	const char t_msg_clear[] =	"Hold FIRE and press START";
+
+	/*	press NEXT button					*/
+	const char t_msg_next[] =		"Press START";
+
+	/*	press and hold NEXT button				*/
+	const char t_msg_nexth[] =		"Press and Hold START";
+
+	/*	press ACTION button					*/
+	const char t_msg_action[] =	"Press FIRE";
+
+	/*	press and hold ACTION button				*/
+	const char t_msg_actionh[] =	"Press and Hold FIRE";
+
+	/*	press EXTRA button					*/
+	const char t_msg_extra[] =	"Press Button A";
+
+	/*	Use the control						*/
+
+	const char t_msg_control[] =	"Use Joystick";
+#endif /* Default control messages */
+	/* Choose then press ACTION button				*/
+	const char t_msg_ret_menu[] =	"To return to menu,";
+	const char t_msg_save_ret[] =	"To SAVE setting and exit,";
+	const char t_msg_restore[] =	"To RESTORE old setting,";
+
+
+/*	Following HACK copied from selftest.c, where it is
+ *	used to accomodate the bewildering array of ways
+ *	in which selftest switches could be read.
+ */
+#ifndef ST_SWITCH
+# if defined(TEST) && B_TEST >= 0
+#  define ST_SWITCH (!(TEST & (1<<B_TEST)))
+# else
+#  define ST_SWITCH (1)
+# endif
+#endif
+
+/*	>>->	Declare any functions that will be called
+		from the SELFTEST main menu.  Make sure you add any
+		files that contain custom selftest routines to the list
+		in the makefile!
+ */
+extern int adj_vol( const struct menu_d *);
+extern int snd_test( const struct menu_d *);
+extern	int	CoinOptions(const struct menu_d *);
+extern	int	cn_config(const struct menu_d *);
+extern	int	SwitchTest(const struct menu_d *);
+extern	int	st_mon_group(const struct menu_d *);
+extern	int	RAM_group();
+extern	int	ROMTest(const struct menu_d *);
+extern 	int	ANTest(const struct menu_d *);
+extern 	int	AN_stamp_test(const struct menu_d *);
+#if GUN_CNT>0
+extern 	int	gun_test(const struct menu_d *);
+extern	int	gun_wd_test( const struct menu_d * );
+#endif
+extern 	void	vid_group();
+extern	int	scope_loops(const struct menu_d *);
+#ifdef IDE_INTS_ON
+extern	int	ide_test(const struct menu_d *);
+#endif
+extern	int	time_test(const struct menu_d *);
+static int
+Statistics(smp)
+const struct menu_d *smp;
+{
+    eer_stats(1);	/* erase ok */
+    return 0;
+}
+
+
+static int
+GameOptions(smp)
+const struct menu_d *smp;
+{
+    eer_opt(pbase->p_optmenu);
+    return 0;
+}
+
+static const unsigned char gut_menu[] =
+#if !(COJAG_GAME&COJAG_AREA51)
+#ifdef EER_GUTS_OPT
+    "\021Debug Switches\000*Disabled\000Enabled\000"
+#ifdef GUTS_OPT_AUD_TEMPO
+    "\061Audio IRQ Rate\000*60Hz\000240Hz\000"
+#endif /* GUTS_OPT_AUD_TEMPO */
+#ifdef VID_SLAVE_SENSE
+#if VID_SLAVE_SENSE
+    "\031Video Slave Asserted\000Low (REV A)\000*High (REV 1)\000"
+#else
+    "\031Video Slave Asserted\000*Low (REV A)\000High (REV 1)\000"
+#endif /* Value of VID_SLAVE_SENSE */
+#else
+    "\031Cache\000*Enabled\000Disabled\000"
+#endif /* VID_SLAVE_SENSE defined? */
+#endif /* EER_GUTS_OPT */
+#endif /* !(COJAG_GAME&COJAG_AREA51) */
+    "\021Debug Switches\000*Disabled\000Enabled\000"
+#ifdef GUTS_OPT_AUD_TEMPO
+    "\061Audio IRQ Rate\000*60Hz\000240Hz\000"
+#endif /* GUTS_OPT_AUD_TEMPO */
+    "\041Development\000*No\000Yes\000"
+    "\051Audio Panic\000*Disable\000Enable\000"
+    "\071Show Panic dumps\000*Yes\000No\000"
+#if (AUD_AV_MSK==3) && (AUD_AV_SHF==0)
+/* Normal hiding place for attract volume ratio is bottom two bits */
+    "\002Attract Audio\000Mute\0001/3\000*2/3\000Full\000"
+#endif
+;
+
+static int
+guts_options(smp)
+const struct menu_d *smp;
+{
+    unsigned long gopts;
+    gopts = debug_mode&GUTS_OPT_DEVEL;
+#ifdef EER_GUTS_OPT
+    gopts |= eer_gets(EER_GUTS_OPT);
+#endif
+    gopts = DoOptions(gut_menu,gopts,SW_EXTRA);
+    debug_mode = gopts;
+#ifdef EER_GUTS_OPT
+    eer_puts(EER_GUTS_OPT,gopts & ~GUTS_OPT_DEVEL);
+#endif
+    return 0;
+}
+
+#ifdef HST_SERIAL_NUM
+extern void ser_show( int col, int row);
+extern void ser_display( int col, int row, int pal);
+#ifndef SERIAL_LEN
+#define SERIAL_LEN (8)
+#endif
+static int serial_hack(smp)
+const struct menu_d *smp;
+{
+    /* kluge to get incoming serial number on main menu screen */
+    ser_show(AN_VIS_COL-SERIAL_LEN-1,1);
+    /* Also display "permanent" Serial number */
+    if ( smp == 0 ) {
+	/* re-draw event, add legend */
+	txt_str((AN_VIS_COL>>1)-10,AN_VIS_ROW-1,"SERIAL#:",VERSION_PAL|BGBIT);
+    }
+    ser_display((AN_VIS_COL>>1)+2,AN_VIS_ROW-1,VERSION_PAL|BGBIT);
+    return 0;
+}
+#endif
+
+#if WANTS_VCR_TEST
+static int vcr_test(smp)
+const struct menu_d *smp;
+{
+    int cur = 0;
+    while ( 1 ) {
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) {
+	    cur = !cur;
+	    if ( cur ) {
+		txt_clr_str(-1,AN_VIS_ROW/2,"STOP",TITLE_PAL);
+		txt_str(-1,AN_VIS_ROW/2,"RECORD",MNORMAL_PAL);
+		vcr( VCR_RECORD );
+	    } else {
+		txt_clr_str(-1,AN_VIS_ROW/2,"RECORD",MNORMAL_PAL);
+		txt_str(-1,AN_VIS_ROW/2,"STOP",TITLE_PAL);
+		vcr( VCR_STOP );
+	    }
+	}
+	prc_delay(1);
+    }
+    vcr(VCR_STOP);
+    return 0;
+}
+#endif
+
+#ifdef WMS_TEST_SWITCH
+static int exit_test_menu(smp)
+const struct menu_d *smp;
+{
+ int flasher = 0;
+ int testsw = ST_SWITCH;
+ int busy;
+
+ ctl_read_sw(SW_NEXT);	/* Kill edge */
+ st_insn(st_bottom(),t_msg_ret_menu,t_msg_next,INSTR_PAL);
+ while ( (busy = eer_busy()) || testsw)
+ {
+  if ( (flasher&0xF) == 0)
+  {
+	unsigned long old_pos = txt_setpos(0L);
+	int pal = (flasher&0x10) ? RED_PALB : YEL_PALB;
+	if ( busy ) {
+	  txt_str(-1, (AN_VIS_ROW/2)+1, "WAITING FOR EEPROM", pal);
+	} else {
+	  txt_clr_str(-1, (AN_VIS_ROW/2)+1, "WAITING FOR EEPROM", pal);
+	}
+	testsw = ST_SWITCH;
+	if ( testsw ) {
+	  txt_str(-1,AN_VIS_ROW/2,"Please turn TEST switch off",pal);
+	} else {
+	  txt_clr_str(-1,AN_VIS_ROW/2,"Please turn TEST switch off",pal);
+	}
+	txt_setpos(old_pos);
+  }
+  ++flasher;
+  if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) return 0;
+  prc_delay0();
+ }
+ prc_reboot();
+ return 0;
+}
+#endif
+
+
+/*	>>->	Build your main SELFTEST menu here.  Add or delete
+ *		any tests you require for your game.
+ *
+ *	SPECIAL codes at the beginning of the label string:
+ *	 "\n" indicates skip an extra line before this item
+ *	and for linked games (such as SPACE)
+ *	 "\r" indicate skip this item if (DOUBLE == 0 || RIGHT != 0)
+ */
+const struct menu_d	mainMenu[] =
+{
+#ifdef HST_SERIAL_NUM
+    {	"SELECT TEST",		serial_hack	},
+#else
+    {	"SELECT TEST",		0		},
+#endif
+    {	"ADJUST VOLUME",	adj_vol		},
+    {	"\nSTATISTICS",		Statistics	},
+    {	"?DEBUG OPTIONS",	guts_options	},
+    {	"GAME OPTIONS",		GameOptions	},
+#ifndef EER_CNVAL
+    {	"COIN OPTIONS",		CoinOptions	},
+#else
+    {	"COIN OPTIONS",		cn_config	},
+#endif
+    {	"\nCONTROLS TEST",	SwitchTest	},
+#if GUN_CNT>0
+    {	"GUN TEST",		gun_test	},
+    {	"?GUN WD",		gun_wd_test	},
+#endif
+#ifdef IDE_INTS_ON
+    {	"DISK TEST",		ide_test	},
+#endif
+#if WANTS_VCR_TEST
+    {	"?VCR Check",		vcr_test	},
+#endif
+    {	"?SOUND TEST",		snd_test	},
+    {	"\nMEMORY TESTS",	RAM_group	},
+    {	"?SCOPE LOOPS",		scope_loops	},
+#if (0)
+    {	"ROM TEST",		ROMTest		},
+/* Below deleted to save room on MaxForce screen */
+    {	"?ALPHANUMERIC TEST",	ANTest		},
+    {	"?ALPHANUM STAMPS",	AN_stamp_test	},
+    {	"?\nTIMER TEST",	time_test	},
+#endif
+    {	"\nMONITOR TESTS",	st_mon_group	},
+#ifdef WMS_TEST_SWITCH
+    {	"\nEXIT TEST MENU",	exit_test_menu	},
+#endif
+    {0,0}
+};
+
+void
+no_op()
+{}
+
+/* >>->	You may want to get more clever with what your OS shows when no
+ * game is loaded and you flip out of self test.
+ */
+extern void erc_vbex();
+extern void ob_copy(int);
+
+#ifdef TEST
+static int ts_debounce;
+#endif
+
+void dummy_gamevb()
+{
+    ob_copy(1);
+#ifdef WDOG
+    WDOG = 0;
+#endif
+#ifdef TEST
+    if ( (TEST & (1<<B_TEST)) != 0 ) ts_debounce = 0;
+    else if ( ++ts_debounce > 8 ) prc_reboot();
+#endif
+    erc_vbex();
+}
+
+void
+dummy_main()
+{
+    int bongs = 0;
+    vid_set_vb(dummy_gamevb);
+    txt_str(-1,20,"No game",TITLE_PAL|AN_BIG_SET);
+    while (1) {
+	txt_str(-1,5,"ABCDEFGHIJKLMNOPQRSTUVWXYZ",TITLE_PAL&(~BGBIT));
+	txt_str(-1,7,"ABCDEFGHIJKLMNOPQRSTUVWXYZ",TITLE_PAL);
+	if ( bongs ) {
+	    --bongs;
+	    aud_put(15);
+	    if ( bongs ) prc_delay(100);
+	} else bongs = cn_bong();
+	prc_delay(0);
+    }
+}
+
+/* >>->	If your self test needs some sort of data (e.g. anim tables), here
+ * is a reasonable place to put it. For Beathead, we needed a set of pictures
+ * in RLE compressed form, and a set of palettes to use for the pictures.
+ */
+#if (0)
+#include <blit.h>	/* for struct BitMap and BlitInfo */
+const struct BlitInfo pix_table[] =
+{
+    { BASEPIXADDR+0x000, 0x10e, 0x08a, 0, 0, RLE_COMP, 0}, /* logo.cmp 0 */
+    { BASEPIXADDR+0x39fc, 0x070, 0x0f0, 0, 0, RLE_COMP,  8},/* scrblit1.cmp 1 */
+    { BASEPIXADDR+0x4c70, 0x070, 0x0f0, 0, 0, RLE_COMP,  8},/* scrblit2.cmp 2 */
+    { BASEPIXADDR+0x5dae, 0x150, 0x0f0, 0, 0, RLE_COMP,  7},/* hats.cmp 3 */
+    { BASEPIXADDR+0x7a78, 0x150, 0x0f0, 0, 0, RLE_COMP,  18},/* psychebk1.cmp 4 */
+    { 0, 0,0,0,0,0,0 }
+};
+
+struct pal_desc {
+    U16 offset;
+    S16 len;
+};
+
+extern struct pal_spec {
+    U16 *colors;
+    struct pal_desc pals[42];
+} pal_base;
+#endif
+
+/* >>->	Now specify the DEFAULT configuration block you want to use	*/
+/*	for this game							*/
+
+const struct pconfigb def_pbase =  {
+    dummy_main,		/* RESET vector	 for non-game	*/
+    0,			/* no game option menu (stats.c will use fakemenu) */
+    0,			/* no coin option menu (stats.c will use coinmenu) */
+    "",			/* no MAIN linktime, issue PBASE warning */
+    0,			/* trap type 0:STOP +:68K -:68010  */
+    NO_ROM_TEST+NO_RAM_TEST+NO_LOG_RESET	/* debug options */
+#ifdef GAME_SPECIFIC
+	,(int(*)())no_op
+#endif
+    ,0			/* would point to game oblist memory */
+    ,0			/* size of game oblist memory */
+};
+
+#ifndef CM_VCR_REC
+/* as of "the last straw", when Brian and Minh moved the VCR
+ * bit to two _different_ bits of two _different_ latches,
+ * I (MEA) have thrown in the towel and moved this function
+ * to jag_init.c, with much (but not all) of the other rev-related
+ * gunk.
+ */
+void
+vcr(vcr_on_flag)		
+U16 vcr_on_flag;
+{
+#ifdef LM_VCR_REC
+    prc_mod_latch(vcr_on_flag ? LM_VCR_REC : ~LM_VCR_REC);
+#endif
+#ifdef CTL_VCR
+    MISC_LATCHES[CTL_VCR] = !!vcr_on_flag;
+#endif
+}
+#endif
+
+/*
+ *	default_values()
+ *
+ * >>->	Now the routine that specifies any non-zero DEFAULT values for
+ *	information stored in EEPROM (or NVRAM). 
+ *
+ *	Only non-zero defaults need be set as the routine that
+ *	calls this totally clears all DEF_STAT(stat_map.mac)
+ *	defined values in EEROM shadow ram.
+ *
+ */
+#ifndef DEF_VOLUME
+#define DEF_VOLUME (0)
+#endif
+
+void
+default_values()
+{
+    const unsigned char *menu;
+    int ratio = 2;	/* for 2/3 attract volume, matches menu */
+
+    txt_str(-1,(AN_VIS_ROW/2)-1,"SETTING EEPROM DEFAULT VALUES",RED_PALB);
+    if ( (menu = pbase->p_optmenu) != 0 ) {
+	/* if game spec's a menu, use the *'d defaults */
+	eer_puts(EER_GMOPT,factory_setting(menu));
+    }
+    /* Also Restore coin defaults.
+     */
+    if ( (menu = pbase->p_coinmenu) == 0 ) menu = coinmenu;
+    eer_puts(EER_CNOPT,factory_setting(menu));
+#ifdef EER_GUTS_OPT
+    eer_puts(EER_GUTS_OPT,factory_setting(gut_menu));
+#ifdef AUD_AV_MSK
+    ratio = (factory_setting(gut_menu) >> AUD_AV_SHF) & AUD_AV_MSK;
+#endif
+#endif
+#ifdef EER_AUD_VOL
+    eer_puts(EER_AUD_VOL,DEF_VOLUME);
+#endif
+#ifdef EER_AUD_ATRVOL
+    eer_puts(EER_AUD_ATRVOL,(DEF_VOLUME*ratio)/AUD_AV_MSK);
+#endif
+    prc_delay(180);
+    txt_clr_str(-1,(AN_VIS_ROW/2)-1,"SETTING EEPROM DEFAULT VALUES",WHT_PALB);
+}
+
+@
+
+
+1.21
+log
+@added "hidden" test for Gun-kicker watchdog. Deleted
+alphanumerics tests from menu to make room. Modified
+for expanded serial number.
+@
+text
+@d1 9
+a9 1
+/*	GAMEDEFS.C							*/
+@
+
+
+1.20
+log
+@Attempt to cover all current possibilities for setting
+default attract-mode volume.
+@
+text
+@d127 1
+d203 3
+a205 1
+
+d210 1
+a210 1
+    ser_show(AN_VIS_COL-9,1);
+d285 1
+d313 1
+d326 1
+a326 1
+#endif
+a328 1
+#if (0)
+@
+
+
+1.19
+log
+@Tightened top-level menu, by deleting VCR test and removing
+leading on (Hidden) Alphanumerics test.
+@
+text
+@d462 1
+d475 2
+d478 1
+d481 3
+@
+
+
+1.18
+log
+@Added reminder to turn off test switch, for versions that
+use FOM's WMS_TEST_SWITCH, but are running on systems with
+switches, rather than buttons. Also correctly flashes
+the messages and allows user to bail out back to the
+self-test menu.
+@
+text
+@d218 1
+d242 1
+d313 1
+d315 1
+d322 1
+a322 1
+    {	"?\nALPHANUMERIC TEST",	ANTest		},
+@
+
+
+1.17
+log
+@Added (optional, keyed on EER_CNVAL) new coin-option screen.
+@
+text
+@d98 12
+d246 7
+a252 2
+ int debounce = 0;
+ while (eer_busy())
+d254 1
+a254 1
+  if ((debounce&0xF) == 0)
+d257 12
+a268 2
+	int pal = (debounce&0x10) ? RED_PALB : YEL_PALB;
+	txt_str(-1, AN_VIS_ROW-1, "WAITING FOR EEPROM", pal);
+d271 3
+@
+
+
+1.16
+log
+@Show more of the DEBUG OPTIONS. Move serial number trace
+to avoid screen title. Add Scope Loops (with handshake)
+@
+text
+@d106 1
+d269 1
+d271 3
+@
+
+
+1.15
+log
+@Added "exit_test_menu" etc. conditional on WMS_TEST_SWITCH.
+@
+text
+@d156 4
+d161 2
+d194 1
+a194 1
+    ser_show(AN_VIS_COL-10,1);
+d279 1
+@
+
+
+1.14
+log
+@Moved vcr() to jag_init, if CM_VCR_REC is defined, as it
+was getting just too wierd for a semi-generic file like this.
+@
+text
+@d223 20
+d282 3
+@
+
+
+1.13
+log
+@added simple screen to test action of VCR control.
+@
+text
+@d354 7
+d372 1
+a372 1
+
+@
+
+
+1.12
+log
+@modified messages for Hero (vicious circle). Moved Serial Number
+legend down into frame on main menu screen.
+@
+text
+@d199 24
+d250 1
+@
+
+
+1.11
+log
+@touched-up messages for <desired-result>,<switch name> form.
+added (conditional) support for serial number (keyed on
+HST_SERIAL_NUM). Fixed messages for Area51.
+@
+text
+@d39 29
+a67 1
+#else
+d91 1
+a91 1
+#endif
+d192 1
+a192 1
+	txt_str((AN_VIS_COL>>1)-10,AN_VIS_ROW-2,"SERIAL#:",VERSION_PAL|BGBIT);
+d194 1
+a194 1
+    ser_display((AN_VIS_COL>>1)+2,AN_VIS_ROW-2,VERSION_PAL|BGBIT);
+@
+
+
+1.10
+log
+@keyed optional tests on "features" such as IDE_INTS_ON
+and N_GUNS, rather than specific game names.
+@
+text
+@d19 1
+a19 1
+	const char t_msg_clear[] =	"Hold left START and press right START";
+d22 1
+a22 1
+	const char t_msg_next[] =		"Press left START";
+d25 1
+a25 1
+	const char t_msg_nexth[] =		"Press and Hold left START";
+d28 1
+a28 1
+	const char t_msg_action[] =	"Press right START";
+d31 1
+a31 1
+	const char t_msg_actionh[] =	"Press and Hold right START";
+d34 1
+a34 1
+	const char t_msg_extra[] =	"Press Button A";
+d38 1
+a38 1
+	const char t_msg_control[] =	"Use Joystick or GUN";
+d65 3
+a67 3
+	const char t_msg_ret_menu[] =	"to return to menu";
+	const char t_msg_save_ret[] =	"to SAVE setting and exit";
+	const char t_msg_restore[] =	"to RESTORE old Setting";
+d84 1
+a84 1
+#if N_GUNS>0
+d110 2
+a112 1
+static const unsigned char gut_menu[] =
+d116 1
+a116 1
+#endif
+d122 1
+a122 1
+#endif
+d125 7
+d133 1
+a133 1
+    "\041Development\000*No\000Yes\000";
+d140 4
+a143 1
+    gopts = eer_gets(EER_GUTS_OPT)|(debug_mode&GUTS_OPT_DEVEL);
+d146 1
+d148 19
+a170 1
+
+d181 3
+d185 1
+d192 1
+a192 1
+#if N_GUNS>0
+d198 3
+a200 2
+    {	"\nSOUND TEST",		snd_test	},
+    {	"\nRAM TESTS",		RAM_group	},
+d202 1
+d205 1
+d207 1
+@
+
+
+1.9
+log
+@added #ifdef TEST for odd test-bench cases
+@
+text
+@d84 1
+d86 1
+d89 1
+d91 1
+d158 1
+a158 1
+#if (COJAG_GAME&COJAG_AREA51)
+d161 1
+a161 1
+#if (COJAG_GAME&(COJAG_HERO|COJAG_AREA51|COJAG_RAGE))
+@
+
+
+1.8
+log
+@general cleanup of main selftest menu. Added debug option
+for audio irq at 240 or 60 Hz
+@
+text
+@d180 1
+d182 1
+d190 1
+d193 1
+@
+
+
+1.7
+log
+@safer way to indicate "Not Installed", no longer depends on selftest.c
+checking for NULL.
+@
+text
+@d15 1
+a15 1
+#if (COJAG_GAME&AREA51)
+d79 1
+a79 1
+extern	int	MonGroup(const struct menu_d *);
+d88 1
+a88 2
+extern int fish(const struct menu_d *);
+extern int time_test(const struct menu_d *);
+d109 3
+d122 1
+d154 1
+d156 2
+d159 1
+d163 4
+a166 8
+    {	"\nALPHANUMERIC TEST",	ANTest		},
+    {	"?\nALPHANUM STAMPS",	AN_stamp_test	},
+#if (0)
+    {	"\nFISH TEST",		fish		},
+#else
+    {	"\nTIMER TEST",		time_test	},
+#endif
+    {	"\nMONITOR TESTS",	MonGroup	},
+@
+
+
+1.6
+log
+@added test-switch debounce and reboot. Set MAIN linktime pointer to
+zero to allow more helpful "Not Loaded" message, including expected PBASE
+value.
+@
+text
+@d242 1
+a242 1
+    0,			/* no MAIN linktime, issue PBASE warning */
+@
+
+
+1.5
+log
+@corrected control labels for AREA51
+@
+text
+@a170 3
+
+const char	no_prog[] = "not installed";
+
+d177 2
+d185 2
+d242 1
+a242 1
+    no_prog,		/* MAIN linktime	*/
+@
+
+
+1.4
+log
+@added ide_test() to menu
+@
+text
+@d15 25
+d63 1
+@
+
+
+1.3
+log
+@protected from undefined DEF_VOLUME, WDOG. deleted redundant static declarations
+@
+text
+@d61 1
+d126 1
+@
+
+
+1.2
+log
+@stifle warning about implicit comparison to zero in if
+@
+text
+@a50 2
+static	int	Statistics(const struct menu_d *);
+static	int	GameOptions(const struct menu_d *);
+d155 1
+d157 1
+d219 2
+d247 4
+d268 1
+d270 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d251 1
+a251 1
+    if ( menu = pbase->p_optmenu ) {
+@

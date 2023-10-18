@@ -1,0 +1,105 @@
+head	1.3;
+access;
+symbols
+	RUSH_ROCK_1_0:1.3
+	XINU_ALPHA_0_0:1.3
+	MACE_1_0e:1.3
+	MACE_1_0d:1.3
+	RUSH_1_06A:1.1
+	AREA_52_00:1.3
+	MACE_1_0a:1.3;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	97.03.04.19.27.39;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.02.27.04.04.45;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.04.24.01.12.17;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Dummy function to null out matherr from GUTS.
+@
+
+
+1.3
+log
+@Executes a break on error if stub is loaded.
+@
+text
+@#include <config.h>
+#include <os_proto.h>
+#include <nsprintf.h>
+#include <math.h>
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+double __matherror (void *ptr, char *name, double arg1, double arg2, int type, double ret) {
+	char err[AN_VIS_COL_MAX+1];
+        struct ROM_VECTOR_STR *romv = (struct ROM_VECTOR_STR *)DRAM_BASEnc;
+
+	switch(type) {
+		case SING: 	nsprintf(err, sizeof(err), "%s(%g): SING error", name, arg1); break;
+		case DOMAIN:	nsprintf(err, sizeof(err), "%s(%g): DOMAIN error", name, arg1); break;
+		default:	nsprintf(err, sizeof(err), "%s(%g)",name,arg1); break;
+	}
+
+        if (romv->ROMV_STUB_INIT) {		/* if the stub is loaded, ... */
+            while (1) __asm__("BREAK");
+        } else {
+	    prc_panic(err);
+        }
+	return 0.0;
+}
+@
+
+
+1.2
+log
+@Allowed for dynamic resolution. I.E. AN_VIS_COL et. al. can be made
+into ints instead of #defines. On 3dfx systems this is accompolished
+by defining the following in config.mac:
+DEC_CONST DYNAMIC_VIS_PIX 1
+DEC_CONST VIS_H_PIX_MAX whatever
+DEC_CONST VIS_V_PIX_MAX whatever
+After this, AN_VIS_COL, AN_VIS_ROW, VIS_V_PIX, VIS_H_PIX and
+SST_RESOLUTION become "extern int" instead of #defines.
+The new #defines AN_VIS_ROW_MAX and AN_VIS_COL_MAX are
+created (computed from VIS_H_PIX_MAX, VIS_V_PIX_MAX) so
+local arrays can be declared and this is the principle changed
+to this file.
+@
+text
+@d15 1
+d22 6
+a27 1
+	prc_panic(err);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d6 7
+d14 1
+a14 1
+	char err[AN_VIS_COL+1];
+@

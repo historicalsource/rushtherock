@@ -1,0 +1,132 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	96.01.03.21.49.22;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Standalone diagnostics.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#!/bin/sh
+
+TARGET=$1
+PROG=$2
+PLEN=$3
+GUTS_ENTRY=$4
+RAM=$5
+RLEN=$6
+
+cat > ${TARGET} <<EOF
+
+GUTS_ENTRY	= ${GUTS_ENTRY};
+GUTS_ENTRY	= ${GUTS_ENTRY};
+COJAG_ENTRY	=  0;
+ROMULATOR_STARTc  = 0x9FC00000;
+ROMULATOR_ENDc    = 0x9FC20000;
+ROMULATOR_STARTnc = 0xBFC00000;
+ROMULATOR_ENDnc   = 0xBFE00000;
+
+DRAM_START   	= 0x00A00000;
+DRAM_END   	= 0x00A03FFF;
+
+OUTPUT_FORMAT("elf32-bigmips")
+OUTPUT_ARCH(mips)
+_DYNAMIC_LINK = 0;
+
+MEMORY {
+	junk 	: ORIGIN = 0x00010000,  LENGTH = 0
+	prog 	: ORIGIN = ${PROG},  LENGTH = ${PLEN}
+	ram  	: ORIGIN = ${RAM},   LENGTH = ${RLEN}
+	stuff	: ORIGIN = 0x00000000,	LENGTH = 0x10000000
+	data	: ORIGIN = 0x9FC00000, LENGTH = 16
+	garbage : ORIGIN = 0x00000000, LENGTH = 0
+}
+
+SECTIONS {
+  /* Read-only sections, merged into text segment: */
+  .text :
+  {
+	    _ftext = . ;
+	    startup = .;
+    	    CREATE_OBJECT_SYMBOLS
+	    *(.text)
+	    *(.rodata)
+	    *(.rodata1)
+	    *(.lit8)
+	    *(.lit4)
+		. = (. + 15 ) & -16;
+		ram_test_table32 = .;
+
+		LONG(DRAM_START); LONG(DRAM_END); LONG(0);
+		LONG(-1); LONG(-1); LONG(1);
+		. = (. + 15) & -16;
+		ram_test_table64 = .;
+
+		LONG(DRAM_START); LONG(DRAM_END); LONG(0);
+		LONG(-1); LONG(-1); LONG(-1);
+		. = (. + 15) & -16;
+		text_end = .;
+		*(.reginfo)
+		*(.data)
+    _etext = .;
+  } > prog
+
+  .init    ALIGN(8)  : { *(.init)    } =0
+  .fini    ALIGN(8)  : { *(.fini)    } =0
+  .ctors   ALIGN(8)  : { *(.ctors)   }
+  .dtors   ALIGN(8)  : { *(.dtors)   }
+
+  .bss     : {
+	    _gp = . + 0x8000;
+	    __bss_start = .;
+	    bss_start = .;
+	    _fbss = .;
+	    *(.sdata)
+	    _edata  =  .;
+	    . = (. + 15) & -16;
+	    *(.sbss)
+	    *(.scommon)
+	    *(.bss)
+	    *(COMMON)
+	    _end = . ;
+	    end = . ;
+	    bss_end = .;
+  } >ram
+
+  /* Debug sections.  These should never be loadable, but they must have
+     zero addresses for the debuggers to work correctly.  */
+  .line			0 : { *(.line)			}
+  .debug		0 : { *(.debug)			}
+  .debug_sfnames	0 : { *(.debug_sfnames)		}
+  .debug_srcinfo	0 : { *(.debug_srcinfo)		}
+  .debug_macinfo	0 : { *(.debug_macinfo)		}
+  .debug_pubnames	0 : { *(.debug_pubnames)	}
+  .debug_aranges	0 : { *(.debug_aranges)		}
+  .mdebug		0 : { *(.mdebug)		} >stuff
+}
+
+sbss_start = pm_end;
+sbss_size = (bss_end - sbss_start + 7) / 8;
+bss_size = (bss_end - bss_start + 7) / 8;
+gp_pointer = _gp;
+INIT_SP = ($RAM + $RLEN - 8) & -8;
+FREE_DRAM = $RAM + $RLEN;
+FREE_RAMROM = _etext + 16383 & -16384;
+SEARCH_DIR ( ./ )
+EOF
+
+@

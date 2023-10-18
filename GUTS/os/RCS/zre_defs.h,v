@@ -1,0 +1,128 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	95.12.12.18.01.38;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@misc zre defines.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/*		zre_defs.h
+ *	definitions which are only needed by programs that
+ *	actually use the ZRE. Some ZRE definitions are in
+ *	config.h, as they are needed ny, e.g. the RAM test.
+ *	These definitions get into config.h because config.mac
+ *	includes zoid20.mac, and config.h is generated from
+ *	config.mac automatically. SO--- Don't edit config.h
+ *	directly. It will be futile in the long run.
+ *
+ *	All comments starting with a '?' indicate my guess
+ *	as to the meaning of the name/value.
+ *
+ *	Mike Albaugh, March 1, 1995
+ *
+ *		Copyright 1995 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+/* These constants are used to build up TBUS commands. The bits
+ * in each are only shifted enough to position them in the _byte_
+ * which is built up and shifted up the eight MSbits of the 32-
+ * bit command. But in fact, these definition are only used to
+ * build the ones later in the file, so "never mind" :-)
+ */
+
+/* First the 3 MSBits, which select a particular SCI
+ */
+#define TRAPSEL (0)
+#define PERCSEL (1)
+#define TEXMAP_SEL (2)
+#define PIXOP_SEL (3)
+
+/* The next three bits select a particular register
+ * within an SCI. Note that the PERC and TEXMAP
+ * definitions differ from the documentation, due to
+ * a wiring error on the ZRE board.
+ */
+/* TRAP Preload regs */
+#define TRAP_PY (0)
+#define TRAP_PLH (1)
+#define TRAP_PRH (2)
+#define TRAP_PLX (3)
+#define TRAP_PDLX (4)
+#define TRAP_PRX (5)
+#define TRAP_PDRX (6)
+
+/* PERC Preload regs */
+#if (0)
+/* As defined */
+#define SCI_VN (0)
+#define SCI_VD (1)
+#define SCI_HN (2)
+#define SCI_HD (3)
+#else
+/* In reality */
+#define SCI_VN (1)
+#define SCI_VD (0)
+#define SCI_HN (3)
+#define SCI_HD (2)
+#endif
+
+/* TEXMAP Preload regs */
+#if (0)
+/* As defined */
+#define SCI_S (0)
+#define SCI_T (1)
+#define SCI_G (2)
+#define PTW (3)
+#define PTB (4)
+#define PLB (5)
+#else
+/* In reality */
+#define SCI_S (1)
+#define SCI_T (0)
+#define SCI_G (3)
+#define PTW (2)
+/* I'm guessing about the next two, as they are not listed
+ * on the pencilled-in corrections, but if A0 is inverted, they
+ * should also be swapped.
+ */
+#define PTB (5)
+#define PLB (4)
+#endif
+
+/* PIXOP Preload regs */
+#define SCI_R1 (0)
+#define SCI_G1 (1)
+#define SCI_B1 (2)
+#define SCI_R2 (3)
+#define SCI_G2 (4)
+#define SCI_B2 (5)
+#define SCI_Z (6)
+#define PPW (7)
+
+/* Selection of _which_ preload register is governed by
+ * the "PA" bits.
+ */
+#define PL0 (0)		/* ? Preload Left starting value */
+#define PR0 (1)		/* ? Preload Right starting value */
+#define PDL (2)		/* ? Preload Left Delta */
+#define PDR (3)		/* ? Preload Right Delta */
+
+@

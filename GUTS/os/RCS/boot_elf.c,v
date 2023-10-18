@@ -1,0 +1,466 @@
+head	1.8;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.8
+date	96.11.12.04.25.57;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.11.04.21.23.12;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.07.20.03.04.22;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.07.19.02.24.20;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.07.17.03.19.58;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.07.17.00.20.16;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.07.11.21.47.53;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.07.11.21.18.36;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Boot from hard disk.
+@
+
+
+1.8
+log
+@Added explicit code for FatalError function.
+@
+text
+@#include <config.h>
+#include <os_proto.h>
+#include <phx_proto.h>
+#include <string.h>
+#include "boot_elf.h"
+
+#if (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == SEATTLE)
+#define BOOT_SQUAWK 0
+#endif
+
+extern void flush_cache(void);
+typedef unsigned char uchar;
+
+static int endian;
+
+#define FLIP2(x) flip2((uchar *)&(x))
+#define FLIP4(x) flip4((uchar *)&(x))
+
+static void flip2(uchar *src) {
+   int t;
+   t = src[1];
+   src[1] = src[0];
+   src[0] = t;
+   return;
+}
+
+static void flip4(uchar *src) {
+   int t0, t1, t2, t3;
+   t0 = src[0];
+   t1 = src[1];
+   t2 = src[2];
+   t3 = src[3];
+   src[0] = t3;
+   src[1] = t2;
+   src[2] = t1;
+   src[3] = t0;
+   return;
+}
+
+# define ENDIAN (endian != 0)
+
+/* flip_eh - do big/little endian flops for the ELF header struct
+ * At entry:
+ *      neh - points to flipped internal ELF header struct (output)
+ *       eh - points to packed ELF header read from disk (input)
+ * At exit:
+ *      members of neh updated to contain adjusted copies of input
+ *
+ * Note that if neh is 0, the input is transformed in place
+ */
+
+static void flip_eh(Elf32_Ehdr *neh, Elf32_Ehdr *eh) {
+   if (eh != neh && neh != 0) {
+      memcpy((char *)neh, (char *)eh, sizeof(Elf32_Ehdr));
+   } else {
+      neh = eh;
+   }
+   if (ENDIAN) {
+      FLIP2(neh->e_type);
+      FLIP2(neh->e_machine);
+      FLIP4(neh->e_version);
+      FLIP4(neh->e_entry);
+      FLIP4(neh->e_phoff);
+      FLIP4(neh->e_shoff);
+      FLIP4(neh->e_flags);
+      FLIP2(neh->e_ehsize);
+      FLIP2(neh->e_phentsize);
+      FLIP2(neh->e_phnum);
+      FLIP2(neh->e_shentsize);
+      FLIP2(neh->e_shnum);
+      FLIP2(neh->e_shstrndx);
+   }
+   return;
+}
+
+/* flip_ph - do big/little endian flops for the program header struct
+ * At entry:
+ *      nph - points to flipped internal program header struct (output)
+ *       ph - points to packed program header read from disk (input)
+ *     size - size of the program header
+ * At exit:
+ *      members of nph updated to contain adjusted copies of input
+ *
+ * Note that if nph is 0, the input is transformed in place
+ */
+
+static void flip_ph(Elf32_Phdr *nph, Elf32_Phdr *ph, int size) {
+   if (ph != nph && nph != 0) {
+      memcpy((char *)nph->p_type, (char *)ph->p_type, size);
+   } else {
+      nph = ph;
+   }
+   if (ENDIAN) {
+      FLIP4(nph->p_type);
+      FLIP4(nph->p_offset);
+      FLIP4(nph->p_vaddr);
+      FLIP4(nph->p_paddr);
+      FLIP4(nph->p_filesz);
+      FLIP4(nph->p_memsz);
+      FLIP4(nph->p_flags);
+      FLIP4(nph->p_align);
+   }
+   return;
+}
+
+extern void copy_and_go(U32 *dst, U32 *src, U32 cnt);
+extern int copy_and_go_size(void);
+
+static void FatalError( const char *msg ) {
+    int opts;
+    opts = prc_delay_options(PRC_DELAY_OPT_TEXT2FB|PRC_DELAY_OPT_SWAP|PRC_DELAY_OPT_CLEAR);
+#ifdef WDOG
+    WDOG = 0;
+#endif
+    vid_clear();
+    prc_delay(0);
+    txt_str(-1, AN_VIS_ROW/2, "Fatal error detected:", RED_PAL);
+    txt_str(-1, AN_VIS_ROW/2+2, msg, RED_PAL);
+    while (1) prc_delay(0);
+}
+
+int boot_from_disk(U8 *buf) {
+   Elf32_Ehdr *leh;
+   Elf32_Phdr *lph;
+   U8 *free_space, *dst_space;
+   int ii;
+#if BOOT_SQUAWK
+   int banner=0, row;
+#endif
+   union {
+      unsigned short a;
+      unsigned char b[2];
+   } endian_test;
+   void (*copy)(U32 *dst, U32 *src, U32 cnt);
+         
+   leh = (Elf32_Ehdr *)buf;
+   if (leh->e_ident[0] != 0x7F || leh->e_ident[1] != 'E' ||
+       leh->e_ident[2] != 'L' || leh->e_ident[3] != 'F') {
+      FatalError( "File not in ELF format");
+      return -1;
+   }
+
+   endian_test.a = 1;
+   if (endian_test.b[0]) {		/* if little endian computer */
+      if (leh->e_ident[5] == 2) {	/* if big endian file */
+	 endian = 1;			/* flip required */
+      }
+   } else {				/* else big endian computer */
+      if (leh->e_ident[5] == 1) {	/* if little endian file */
+	 endian = 1;			/* flip required */
+      }
+   }
+
+   if (endian) {
+      FatalError( "File not in correct endianess");
+      return -1;
+   }
+
+   flip_eh(0, leh);			/* unpack and flip the ELF header if necessary */
+
+   lph = (Elf32_Phdr *)(buf + leh->e_phoff);
+
+   for (ii=0; ii < leh->e_phnum; ++ii, ++lph) {
+      flip_ph(0, lph, leh->e_phentsize);
+#if BOOT_SQUAWK
+      if (!banner) {
+/*                                   xx  xxxxxxxx  xxxxxxxx  xxxxxxxx  xxxxxxxx */
+         txt_str(2, AN_VIS_ROW/2+4, "Sec   Vaddr     Paddr     Size     Offset", WHT_PAL);
+         banner = 1;
+      }
+      txt_decnum(2, AN_VIS_ROW/2+5+ii, ii, 2, LJ_BF, GRN_PAL);
+      txt_cstr("  ", GRN_PAL);
+      txt_chexnum(lph->p_vaddr, 8, RJ_ZF, GRN_PAL);
+      txt_cstr("  ", GRN_PAL);
+      txt_chexnum(lph->p_paddr, 8, RJ_ZF, GRN_PAL);
+      txt_cstr("  ", GRN_PAL);
+      txt_chexnum(lph->p_filesz, 8, RJ_ZF, GRN_PAL);
+      txt_cstr("  ", GRN_PAL);
+      txt_chexnum(lph->p_offset, 8, RJ_ZF, GRN_PAL);
+#endif
+      if (!lph->p_offset || 		/* the section data must reside on disk */
+          !lph->p_filesz) continue;	/* and be non-zero length to be loaded */
+      if ((lph->p_vaddr|0x20000000) != DRAM_BASEnc) {
+	  FatalError( "File is not bootable");
+	  return -1;
+      }
+      free_space = (U8*)(((U32)(buf+lph->p_offset+lph->p_filesz)+3) & -4);
+      dst_space = (U8*)(lph->p_vaddr|0x20000000);
+#if BOOT_SQUAWK
+      {
+	  VU32 *ptr;
+	  row = AN_VIS_ROW/2+6+ii;
+	  ptr = (VU32*)(buf+lph->p_offset);
+	  txt_str(-1, row++, "LOADING...", YEL_PAL);
+#if 0
+	  for (ii=0; ii<4; ++ii) {
+	      txt_hexnum(6, row++, *ptr++, 8, RJ_ZF, GRN_PAL);
+	      txt_cstr("  ", GRN_PAL);
+	      txt_chexnum(*ptr++, 8, RJ_ZF, GRN_PAL);
+	      txt_cstr("  ", GRN_PAL);
+	      txt_chexnum(*ptr++, 8, RJ_ZF, GRN_PAL);
+	      txt_cstr("  ", GRN_PAL);
+	      txt_chexnum(*ptr++, 8, RJ_ZF, GRN_PAL);
+	  }
+#endif
+	  txt_hexnum(6, row++, (U32)free_space, 8, RJ_ZF, YEL_PAL);
+	  txt_cstr("  ", YEL_PAL);
+	  txt_chexnum((U32)&free_space, 8, RJ_ZF, YEL_PAL);
+    	  txt_cstr("  ", YEL_PAL);
+          txt_chexnum((U32)dst_space, 8, RJ_ZF, YEL_PAL);
+    	  txt_cstr("  ", YEL_PAL);
+          txt_chexnum((U32)(buf+lph->p_offset), 8, RJ_ZF, YEL_PAL);
+          txt_hexnum(6, row++, (U32)buf, 8, RJ_ZF, YEL_PAL);
+    	  txt_cstr("  ", YEL_PAL);
+          txt_chexnum(lph->p_filesz, 8, RJ_ZF, YEL_PAL);
+    	  txt_cstr("  ", YEL_PAL);
+          txt_chexnum((U32)dst_space+lph->p_filesz, 8, RJ_ZF, YEL_PAL);
+	  ++row;
+	  prc_delay(240);			/* give 'em time to see the message */
+      }
+#endif
+#if BOOT_SQUAWK
+      memcpy((U8*)RAMROM_BASE+0x00100000, (U32*)((U32)(buf+lph->p_offset)), lph->p_filesz);
+      while (1) { if (ctl_read_sw(0)&SW_NEXT) break; prc_delay(0); }
+#endif
+      prc_set_ipl(INTS_OFF);		/* no interrupts for the following */
+      flush_cache();
+      memcpy((U8*)((U32)free_space|0x20000000), (char *)copy_and_go, (copy_and_go_size()+3)&-4);
+      copy = (void (*)(U32 *dst, U32 *src, U32 cnt))free_space;
+      copy((U32*)dst_space, (U32*)((U32)(buf+lph->p_offset)), lph->p_filesz); 
+   }
+   return 0;
+}
+@
+
+
+1.7
+log
+@Added support and detection for SEATTLE and VEGAS host boards.
+@
+text
+@a5 1
+#include "boot_error.h"
+d109 13
+d139 1
+a139 1
+      FatalError( ERR, "File not in ELF format");
+d155 1
+a155 1
+      FatalError( ERR, "File not in correct endianess");
+d184 1
+a184 1
+	  FatalError( ERR, "File is not bootable");
+@
+
+
+1.6
+log
+@Added a flush_cache call before copying boot data.
+@
+text
+@d8 1
+a8 1
+#if HOST_BOARD == PHOENIX_AD
+@
+
+
+1.5
+log
+@*** empty log message ***
+@
+text
+@d12 1
+a12 1
+extern void begin(void);
+d210 4
+d215 1
+@
+
+
+1.4
+log
+@*** empty log message ***
+@
+text
+@d8 2
+a9 3
+#if 0 && HOST_BOARD == PHOENIX_AD
+#define BOOT_SQUAWK 1
+#define BOOT_TEST   1
+d12 1
+a14 2
+extern void flush_cache(void);
+
+d107 2
+a108 14
+static void copy_and_go(U32 *dst, U32 *src, U32 cnt) {
+   /* a0 ($4) = dst
+    * a1 ($5) = src
+    * a2 ($6) = cnt
+    * a3 ($7) = start address
+    * v0 ($2) = tmp
+    */
+   __asm__("move $7, $4;"
+    	   "copy_loop: lw $2, ($5); sw $2, ($4);"
+    	   "addu $5, 4; addu $4, 4; addu $6, -4;"
+    	   "bgtu $6, $0, copy_loop;"
+           "j $7");
+   return;
+}
+d113 1
+a113 1
+   U8 *free_space;
+d116 1
+a116 1
+   int banner=0;
+d175 2
+d180 1
+a180 1
+	  int row = AN_VIS_ROW/2+6+ii, ii;
+d183 1
+d193 14
+d211 1
+a211 19
+/* Reset all the hardware */
+#if HOST_BOARD == PHOENIX
+      *(VU32*)NSS_FIFO_RST = 0;	/* reset all the hardware */
+      *(VU32*)MISC_CONFIG = MISC_CONFIG_NSS_RESET;
+      *(VU32*)IO_RESET = 0;
+      *(VU32*)PCI_RESET = 0;
+#else
+# if !BOOT_TEST
+      *(VU32*)RESET_CTL = 0; /* (1<<B_RESET_EXP)|(1<<B_RESET_IOASIC)|(1<<B_RESET_IDE)|
+    			(1<<B_RESET_3DFX)|(1<<B_RESET_NSS)|(1<<B_RESET_WIDGET); */
+# else
+      *(VU32*)RESET_CTL = (1<<B_RESET_EXP)|(1<<B_RESET_IOASIC)|(1<<B_RESET_IDE)|
+    			(0<<B_RESET_3DFX)|(1<<B_RESET_NSS)|(1<<B_RESET_WIDGET);
+      *(VU32*)RESET_CTL = (1<<B_RESET_EXP)|(1<<B_RESET_IOASIC)|(1<<B_RESET_IDE)|
+    			(1<<B_RESET_3DFX)|(1<<B_RESET_NSS)|(1<<B_RESET_WIDGET);
+# endif
+#endif
+      free_space = (U8*)((U32)(buf+lph->p_offset+lph->p_filesz+3)&-4);
+      memcpy(free_space, (char *)copy_and_go, 100);
+d213 1
+a213 6
+      flush_cache();			/* flush all the caches */
+#if !BOOT_TEST
+      copy((U32*)(lph->p_vaddr|0x20000000), (U32*)(buf+lph->p_offset), lph->p_filesz); 
+#else
+      copy((U32*)(lph->p_vaddr|0x20000000), (U32*)RAMROM_BASE, 512*1024); 
+#endif
+@
+
+
+1.3
+log
+@Testing boot on PHX_AD.
+@
+text
+@d8 1
+a8 1
+#if HOST_BOARD == PHOENIX_AD
+@
+
+
+1.2
+log
+@Added boot from hard disk stuff.
+@
+text
+@d8 5
+d129 2
+a130 2
+#if BOOT_SQAWK
+   banner=0;
+d136 1
+d190 16
+a205 2
+      txt_str(-1, AN_VIS_ROW/2+6+ii, "LOADING...", YEL_PAL);
+      prc_delay(240);			/* give 'em time to see the message */
+a207 1
+      flush_cache();			/* flush all the caches */
+d215 1
+d218 6
+d227 7
+a233 1
+      copy_and_go((U32*)(lph->p_vaddr|0x20000000), (U32*)(buf+lph->p_offset), lph->p_filesz); 
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d5 2
+a6 2
+#include "hd_elf.h"
+#include "hd_error.h"
+d124 3
+a158 2
+/*                             xx  xxxxxxxx  xxxxxxxx  xxxxxxxx  xxxxxxxx */
+   txt_str(2, AN_VIS_ROW/2+4, "Sec   Vaddr     Paddr     Size     Offset", WHT_PAL);
+d161 6
+d176 1
+d179 5
+d186 1
+@

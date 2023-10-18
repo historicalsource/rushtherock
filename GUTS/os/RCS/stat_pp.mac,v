@@ -1,0 +1,985 @@
+head	1.6;
+access;
+symbols
+	RUSH_ROCK_1_0epst:1.6
+	RUSH_ROCK_1_0:1.6
+	MACE_1_0e:1.6
+	MACE_1_0d:1.6
+	RUSH_1_06A:1.6
+	AREA_52_00:1.6
+	MACE_1_0a:1.6
+	CJ_206:1.6
+	CJ2_05:1.6
+	CJ2_04:1.6;
+locks; strict;
+comment	@;; @;
+
+
+1.6
+date	96.07.08.21.02.41;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.06.20.21.11.06;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.03.07.18.59.21;	author dodd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.03.01.02.49.53;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.02.23.21.44.29;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.18.50.17;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@pre-processor to make (via MACPP) stat_map.mac into the various files
+that describe eeprom and statistics.
+@
+
+
+1.6
+log
+@Bumped "hard coded" number of histograms one could tie
+from eight to eleven. This problem needs a real solution.
+@
+text
+@; This file contains the macro definitions to produce the "stat_map" to be
+; included in eedrive.c. This is an array indexed by stat_number (assigned
+; by this file) and holding flags and offsets in the "home" and "run"
+; arrays. This file can also generate the #defines for EER_xxx, and will
+; do so if MAKE_EER_DEFS is defined. Likewise, it will produce the #defines
+; for HOME_BYTES etc in file stat_defs.h if MAKE_STAT_DEFS is defined, and
+; the actual contents of the stat_map[] if MAKE_STAT_MAP is defined. This
+; hack is needed because we need to #define some things for the structure
+; initialization _before_ we "know" them. Hopefully this will become clearer
+; as we go along...
+;
+; First, some initialization to decide what language the definitions will be
+; output in.
+;
+LANG_C 		== 0
+LANG_MAC	== 1 
+LANG_ASM	== 2
+LANG_TXT	== 3
+LANG_ASRxk	== 4
+;
+.if ndf, OUTPUT_LANG
+OUTPUT_LANG	== LANG_C
+.endc
+;
+;
+; Now some macros for outputting common constructs in the various languages:
+; DEC_CONST and HEX_CONST emit constant definitions in decimal and hexadecimal
+; respectively. Each takes a name and value, and an optional comment.
+; REM1 emits a comment (or remark) containing one parameter passed by (string) value.
+; It emits its three arguments (preamble, value, postamble) in order, appropriately
+; "encapsulated" for a comment.
+;
+;
+.MACRO	.REM. head pream val postamble
+head pream val postamble
+.endm
+;
+.if true, OUTPUT_LANG == LANG_ASM
+    .MACRO	DEC_CONST name val comment
+	.if	b,comment
+name	EQU	val
+	.iff
+name	EQU	val	; comment
+	.endc
+    .ENDM
+    .MACRO	HEX_OCONST name val comment
+	.if	b,comment
+name	EQU	$'val
+	.iff
+name	EQU	$'val	; comment
+	.endc
+    .ENDM
+;
+    .MACRO REM1	preamble val postamble
+    .REM. <*> preamble val postamble
+    .ENDM
+.endc			; was MOTOROLA
+;
+.if true, (OUTPUT_LANG == LANG_MAC) || (OUTPUT_LANG == LANG_ASRxk)
+    .MACRO	DEC_CONST name val comment
+	.if	b,comment
+name	=	val
+	.iff
+	    .if true, OUTPUT_LANG == LANG_ASRxk
+name	= 	val	;# comment
+	    .iff
+name	= 	val	; comment
+	    .endc
+	.endc
+    .ENDM
+    .MACRO	HEX_OCONST name val comment
+	.if	b,comment
+name	=	0x'val
+	.iff
+	    .if true, OUTPUT_LANG == LANG_ASRxk
+name	= 	0x'val	;# comment
+	    .iff
+name	=	0x'val	; comment
+	    .endc
+	.endc
+    .ENDM
+    .MACRO REM1	preamble val postamble
+	.if true, OUTPUT_LANG == LANG_ASRxk
+	    .REM. <;#> <preamble> <val> <postamble>
+	.iff
+	    .REM. <;> <preamble> <val> <postamble>
+	.endc
+    .ENDM
+.endc			; was MACXX
+;
+.if true, OUTPUT_LANG == LANG_C
+    .MACRO	HEX_OCONST name val comment
+	.if	b,comment
+#define name (0x'val)
+	.iff
+#define name (0x'val)	/* comment */
+	.endc
+    .ENDM
+    .MACRO	DEC_CONST name val comment
+	.if	b,comment
+#define name (val)
+	.iff
+#define name (val)	/* comment */
+	.endc
+    .ENDM
+    .MACRO	HEX_CONST name val comment
+name == val
+	HEX_OCONST name \\X(val) <'comment'>
+    .ENDM
+    .MACRO REM1	preamble val postamble
+/* preamble val postamble */
+     .ENDM
+.endc		; done with C output
+;
+;
+; A helper macro to define the number of check bytes needed for "databytes" data bytes.
+;
+.MACRO	CHECK_COMPUTE answer databytes
+...nb == databytes+1
+	.if	ndf,max_data
+max_data == ...nb
+	.endc
+	.if	lt,max_data-...nb
+max_data == ...nb
+	.endc
+...bmask == 1
+	.rept 16
+	.if	lt,...bmask-...nb
+...bmask == ...bmask+...bmask
+...nb == ...nb+1
+	.endc
+	.endr
+answer == ...nb - databytes
+.endm
+;
+; The following "helper" macro is used by DEF_STAT (below) to emit entries
+; in the "stat map". Each generates a C macro, whose exact definition is defered
+; until the macro "epilogue" is invoked, when the sizes of the required fields
+; are known. "epilogue" emits the definitions into "stat_defs.h", which is
+; included before stat_map.h, providing a "forward reference" without multiple
+; passes.
+;
+.MACRO	EMIT_MAP size,hpos,rpos,inc_able,name,comment
+	.if	df,MAKE_STAT_MAP
+	.if	ne,inc_able
+DEF_CTR(size,hpos,rpos," EER_'name: comment ")
+	.iff
+DEF_OPT(size,hpos,rpos," EER_'name: comment ")
+	.endc
+	.endc
+.endm
+;
+; Now initialize the variables that accumulate position and length of "stats"
+;
+	.radix 10.
+...SN == 0		; Stat number, increments per stat
+...NP == 0		; Nybble pointer, keeps track of next nybble in home[]
+...RP == 0		; Run pointer, keeps track of next byte in run[]
+...max_size == 0	; keeps track of largest size (in home) stat so far
+;
+; Now the macro that defines a "stat". That is, a scalar variable kept
+; in eeprom and referenced by number. The parameters are:
+;   name	appended to "EER_xxx" to reference stat for eer_gets,eer_puts,eer_incs
+;   size	given in bits, but rounded up to nearest nybble
+;   speed	one of:
+;	"fixed" (not "inc_able", only eer_gets() and eer_puts() can reference)
+;	"slow" (all in "home", size must be divisible by 4)
+;	"fast" (bottom eight bits in run[], top 4,8,... in home[])
+;	"wrap" (like fast, but when bottom eight bits wrap, move bucket. ONLY ONE!)
+;   comment	enclosed in <>, will be appropriately quoted in eer_defs.h et al.
+;
+.macro DEF_STAT name,size,speed,comment
+; First validate size
+	.if	ne,size&3
+	.ERROR  size ; must be integral number of nybbles
+...size	== (size+3)&3
+	.iff
+...size	== size
+	.endc
+;
+	.if	df,MAKE_EER_DEFS
+	DEC_CONST EER_'name \...SN <'comment'>
+	.endc
+	.if	df,MAKE_STAT_DEFS
+	.if	idn,name,ERRORS
+	DEC_CONST EER_ERRORS \...SN <'comment'>
+	.endc
+	.endc
+; Following is to catch bogus "speed"
+...handled == 0
+;
+	.if	idn,speed,fixed
+	.if	gt,...size-...max_size
+...max_size == ...size
+	.endc
+	EMIT_MAP \(...size/4)-1,\...NP,0,0,name,<'comment'>
+...NP	== ...NP+(...size/4)
+...handled == 1
+	.endc
+;
+	.if	idn,speed,slow
+	.if	gt,...size-...max_size
+...max_size == ...size
+	.endc
+	EMIT_MAP \(...size/4)-1,\...NP,0,1,name,<'comment'>
+...NP	== ...NP+(...size/4)
+...handled == 1
+	.endc
+;
+	.if	idn,speed,fast
+	.if	gt,...size-8-...max_size
+...max_size == ...size-8
+	.endc
+	.if	le,...size-8
+	.ERROR	...size ; size of fast counters must be greater than 8 bits
+...size == 12
+	.endc
+	EMIT_MAP \(...size/4)-3,\...NP,\...RP+1,1,name,<'comment'>
+...NP	== ...NP+(...size/4)-2
+...RP	== ...RP+1
+...handled == 1
+	.endc
+;
+	.if	idn,speed,wrap
+	.if	gt,...size-8-...max_size
+...max_size == ...size-8
+	.endc
+	.if	le,...size-8
+	.ERROR	...size ; size of fast counters must be greater than 8 bits
+...size	== 12
+	.endc
+	EMIT_MAP \(...size/4)-3,\...NP,\...RP+1,1,name,<'comment'>
+...NP	== ...NP+(...size/4)-2
+...RP	== ...RP+1
+	.if	df,MAKE_EER_DEFS
+	REM1	<	^^^^^^----- NOTE: bucket moves every> 256 <of these>
+	.endc
+	.if	df,MAKE_STAT_DEFS
+	DEC_CONST WRAP_VAL \...SN <bucket moves every 256 of these>
+	.endc
+...handled == 1
+	.endc
+	.if	eq,...handled
+	.ERROR	; Unrecognizeable Speed
+	.endc
+...SN	== ...SN+1
+	.endm
+;
+; The old macro for High-Score tables will just emit 'n' definitions for
+; equal sized tables, all with the same number of permanent entries.
+; Newer games with different-sized tables will use DEF_H_S_T
+;
+.MACRO	DEF_HST Tables,entries,Permanent,score_bytes,init_bytes
+	.iif	ndf,...tabnum,...tabnum == 0
+	.iif	nb,score_bytes,...scb == score_bytes
+	.iif	b,score_bytes,...scb == 3
+	.iif	nb,init_bytes,...ib == init_bytes
+	.iif	b,init_bytes,...ib == 2
+...ent_bytes == ...scb + ...ib
+...perm_bytes == ...ent_bytes * Permanent
+	.rept Tables
+	DEF_H_S_T \...tabnum,entries,Permanent,\...scb,\...ib
+...tabnum == ...tabnum + 1
+	.endr
+	.endm
+;
+; Emit a 'C' macro call into stat_map.h to define a high score table
+;
+.MACRO EMIT_H_S_T Total,Perm,Score,Init,posn,ram_offs,len
+DESC_HST(Total,Perm,Score,Init,posn,ram_offs,len)
+	.endm
+;
+;
+.MACRO	DEF_H_S_T name,ents,perm,scb,ib
+	.if	ndf,N_H_S_TS
+N_H_S_TS == 0
+; running total of ram (shadow) bytes used
+h_s_t_bytes == 0
+; running total of eeprom (perm + check) bytes used
+h_s_t_len == 0
+;
+; For compatability with old style eedrive, compression of initials
+; defaults to 1 (5-bit codes, space, A-Z).
+;
+	.iif	ndf,HST_INITIAL_COMPRESS,HST_INITIAL_COMPRESS == 1
+	.iif	ndf,HST_TIE_TO_NEWER,HST_TIE_TO_NEWER == 0
+	.endc
+	.if	ndf,HST_FLAVOR
+CURRENT_FLAVOR == CURRENT_FLAVOR+1
+HST_FLAVOR == CURRENT_FLAVOR
+	.endc
+	.if	ne,HST_FLAVOR-CURRENT_FLAVOR
+	.ERROR	; must group H_S_T entries together
+	.endc
+	.if	df,MAKE_EER_DEFS
+	DEC_CONST HST_'name \N_H_S_TS
+	.endc
+N_H_S_TS == N_H_S_TS+1
+perm_bytes == perm * (scb+ib)	
+	CHECK_COMPUTE hst_check (perm_bytes)
+	.if	ndf,max_check
+max_check == hst_check
+	.iff
+	.iif	lt,max_check-hst_check,max_check == hst_check
+	.endc
+	.if	ndf,max_inits
+max_inits == ib
+	.iff
+	.iif	lt,max_inits-(ib),max_inits == (ib)
+	.endc
+	.if	df,MAKE_STAT_MAP
+  EMIT_H_S_T \(ents),\(perm),\(scb),\(ib),\h_s_t_len,\h_s_t_bytes,\(perm_bytes+hst_check)
+	.endc
+;
+h_s_t_bytes == h_s_t_bytes + (ents*(scb+ib))
+h_s_t_len == h_s_t_len + perm_bytes + hst_check
+	.endm
+;
+; Emit a 'C' macro call into stat_map.h to define a histogram entry
+;
+.MACRO EMIT_HIST size,first,later,legend,posn,ram_offs,len,brothers
+DESC_HISTOGRAM(size,first,later,"legend",posn,ram_offs,len,brothers)
+	.endm
+.MACRO	DEF_HISTOGRAM name,buckets,first_bin,later_bins,legend
+	.if	ndf,N_HISTOGRAMS
+N_HISTOGRAMS == 0
+; running total of ram (shadow) bytes used
+histogram_bytes == 0
+; running total of eeprom (including check) bytes used
+histogram_len == 0
+	.endc
+	.if	ndf,HIST_FLAVOR
+CURRENT_FLAVOR == CURRENT_FLAVOR+1
+HIST_FLAVOR == CURRENT_FLAVOR
+	.endc
+	.if	ne,HIST_FLAVOR-CURRENT_FLAVOR
+	.ERROR	; must group Histogram entries together
+	.endc
+HIST_'name == N_HISTOGRAMS
+	.if	df,MAKE_EER_DEFS
+	DEC_CONST HIST_'name \N_HISTOGRAMS
+	.endc
+	.if	df,MAKE_STAT_DEFS
+	HEX_CONST name'_BROTHERS \(1<<N_HISTOGRAMS) <Default to "only child">
+	.endc
+N_HISTOGRAMS == N_HISTOGRAMS+1	
+	CHECK_COMPUTE hist_check (buckets)
+	.if	ndf,max_check
+max_check == hist_check
+	.iff
+	.iif	lt,max_check-hist_check,max_check == hist_check
+	.endc
+	.if	eq,first_bin
+; first_bin == 0 is code for "Game will supply evaluation func"
+	.if	df,MAKE_STAT_DEFS
+extern int later_bins();	/* bin evaluation func for 'name' histogram */
+	.endc
+	.if	df,MAKE_STAT_MAP
+  EMIT_HIST \(buckets),0,(int)'later_bins,<'legend'>,\histogram_len,\histogram_bytes,\(buckets+hist_check),name'_BROTHERS
+	.endc
+	.iff
+	.if	df,MAKE_STAT_MAP
+  EMIT_HIST \(buckets),\(first_bin),\(later_bins),<'legend'>,\histogram_len,\histogram_bytes,\(buckets+hist_check),name'_BROTHERS
+	.endc
+	.endc	; first_bin == 0
+;
+histogram_bytes == histogram_bytes + (buckets)
+histogram_len == histogram_len + (buckets) + hist_check
+	.endm
+;
+; Define the xxx_BROTHERS values for a group of histograms
+;
+.MACRO TIE_HISTOGRAMS ...a ...b ...c ...d ...e ...f ...g ...h ...i ...j ...k ...oops
+	.if	nb,...oops
+	.error	;more than eleven histograms to tie, bang on Mike Albaugh
+	.endc
+	.if	df,MAKE_STAT_DEFS
+accum == 0
+	.irp x, <...a ...b ...c ...d ...e ...f ...g ...h ...i ...j ...k>
+	accum == accum | (1 << HIST_'x)
+	.endr
+	.irp x, <...a ...b ...c ...d ...e ...f ...g ...h ...i ...j ...k>
+; Need to undef previous value for some cpp's
+#undef x'_BROTHERS
+	HEX_CONST x'_BROTHERS \accum <Bit mask for "brother" histograms>
+	.endr
+	.endc
+	.endm
+;
+; Emit a 'C' macro call into stat_map.h to define a user-record entry
+;
+.MACRO EMIT_USER posn,ram_offs,len,comment
+DESC_USER(posn,ram_offs,len) /* comment */
+	.endm
+.MACRO	DEF_user name,len,comment
+	.if	ndf,N_USER_RECS
+N_USER_RECS == 0
+; running total of ram (shadow) bytes used
+user_bytes == 0
+; running total of eeprom (including check) bytes used
+user_len == 0
+	.endc
+	.if	ndf,USER_FLAVOR
+CURRENT_FLAVOR == CURRENT_FLAVOR+1
+USER_FLAVOR == CURRENT_FLAVOR
+	.endc
+	.if	ne,USER_FLAVOR-CURRENT_FLAVOR
+	.ERROR	; must group USER entries together
+	.endc
+	.if	df,MAKE_EER_DEFS
+	DEC_CONST USER_REC_'name \N_USER_RECS
+	.endc
+N_USER_RECS == N_USER_RECS+1	
+	CHECK_COMPUTE user_check (len)
+	.if	ndf,max_check
+max_check == user_check
+	.iff
+	.iif	lt,max_check-user_check,max_check == user_check
+	.endc
+	.if	df,MAKE_STAT_MAP
+  EMIT_USER \user_len,\user_bytes,\(len),<'comment'>
+	.endc
+;
+user_bytes == user_bytes + (len)
+user_len == user_len + (len) + user_check
+	.endm
+;
+; Following provides a "signature" to determine whether this EEPROM has
+; been initialized in this game.
+.MACRO SIGNATURE string
+...sig_hash == 0
+	.irpc char,<'string'>
+...sig_hash == (...sig_hash*31)+''char
+	.endr
+	.endm
+; Following definition is used to check contiguity of entries describing
+; High_Score_Tables, Histograms, and User_Records
+CURRENT_FLAVOR == 0
+;
+; The following MACRO is invoked at the very end of the file "stat_map.mac".
+; It uses the info gathered by the previous lines to generate a bunch of
+; definitions for lengths, offsets, etc.
+.MACRO	EPILOGUE
+	.iif	ndf,N_TRIES,N_TRIES == 0
+	.iif	ndf,EEPROM_SIZE,EEPROM_SIZE == 512
+	.iif	ndf,STRIDE,STRIDE == 1
+	.iif	ndf,...sig_hash,...sig_hash == 0x600DF00D
+;
+; Initialize accumulators for "first xxx record" and length of eeprom used
+;
+total_eeprom == 0
+first_recno == 0
+;
+; First set of definitions are always used, but never emitted in stat_map.h
+;
+	.if	ndf,MAKE_STAT_MAP
+	DEC_CONST N_TRIES \N_TRIES,<number of retries on write>
+	DEC_CONST EEPROM_SIZE \EEPROM_SIZE,<in bytes>
+	DEC_CONST STRIDE \STRIDE <shift amount eeprom addressing>
+	.if	df,MAKE_STAT_DEFS
+	HEX_CONST SIGNATURE \...sig_hash <"unique" signature for this game>
+	.endc	; df,MAKE_STAT_DEFS
+	.endc	; ndf,MAKE_STAT_MAP
+;
+; Now a great deal of rigamarole to figure out the stat map proper.
+;
+	.if	gt,...SN
+; First some constants and routine declaration
+	.if	ndf,MAKE_STAT_MAP
+	DEC_CONST MAX_STAT \...SN-1,<Highest legit stat number>
+	.if	true, OUTPUT_LANG == LANG_ASM
+	xref	eer_gets,eer_puts,eer_incs,eer_init,eer_busy
+	.endc
+	.if	true, OUTPUT_LANG == LANG_MAC
+	.GLOBL	eer_gets,eer_puts,eer_incs,eer_init,eer_busy
+	.endc
+	.if	true, OUTPUT_LANG == LANG_C
+extern int eer_gets(/* unsigned int stat_num */); /* ret: val or -1 = error*/
+extern int eer_puts(/* unsigned int stat_num,val*/);/* ret: 0 = ok, -1 = error*/
+extern int eer_incs(/* unsigned int stat_num,val*/);/* ret: val or -1 = error */
+extern int eer_init();	/* returns total errors, if EER_ERROR defined */
+extern int eer_busy();	/* returns !0 if some write still in progress */
+	.endc	;LANG_C
+	.endc	;ndf,MAKE_STAT_MAP
+;
+; Now we round the nybble-pointer to even, to align "BUCKET_NUM" in a byte
+	.if	ne,...NP&1
+...NP	==	...NP+1
+	.if	ndf,MAKE_STAT_MAP
+	REM1	<You have> one <"orphan" nybble>
+	.endc	;ndf,MAKE_STAT_MAP
+	.endc	;...NP odd
+;
+	.if	gt,...RP	; If we have any "run" bytes
+; Account for the descriptor for "run"
+first_recno == 1
+; Reserve the space for "BUCKET_NUM" and total ram and eeprom lengths
+; for "run"
+;
+...NP	== ...NP+2
+	CHECK_COMPUTE run_check,\...RP
+	.if	ndf,max_check
+max_check == run_check
+	.iff
+	.iif	lt,max_check-run_check,max_check == run_check
+	.endc	;ndf,max_check
+	.endc	;gt,...RP
+;
+; reserve space for signature at end of home. (8 nybbles = 4 bytes)
+;
+...NP == ...NP+8
+home_bytes == ...NP/2
+	CHECK_COMPUTE home_check \home_bytes
+	.if	ndf,max_check
+max_check == home_check
+	.iff
+	.iif	lt,max_check-home_check,max_check == home_check
+	.endc
+;
+; Keep up our "running total", to get position of other types of record
+; e.g. histograms. We do not include "run" here because it "lives" at the
+; end of eeprom, after everything else
+;
+total_eeprom == (home_bytes + home_check)*2
+first_recno == first_recno + 2
+	.if	df,MAKE_STAT_DEFS
+	.if	gt,...RP
+	DEC_CONST BUCKET_NUM \(home_bytes-5)
+	DEC_CONST MAX_RUN \...RP-1,<in bytes>
+	DEC_CONST RUN_BYTES \...RP
+	DEC_CONST RUN_LEN \(...RP+run_check)
+	DEC_CONST RUN_REC 0
+	.endc	; gt,...RP
+	DEC_CONST SIGNAT_POSN \(home_bytes-4)
+	DEC_CONST MAX_HOME \...NP-1,<in NYBBLES>
+	DEC_CONST HOME_BYTES \home_bytes
+	DEC_CONST MAX_DATA \max_data <Largest record, in bytes>
+	DEC_CONST ALT_OFFS \(home_bytes+home_check)
+	DEC_CONST HOME_REC \(first_recno-2)
+	DEC_CONST ALT_REC \(first_recno-1)
+;	
+; Now determine the sizes of the fields needed to hold each component
+...bit	== 1
+...max_size == (...max_size>>2)-1	; get size in nybbles, offset 1
+	.rept	8
+...mask	== (1<<...bit)-1
+	.if	eq,(...NP-(...NP&...mask))
+	.if	ndf,npmask
+npmask	==	...mask
+hmsiz	==	...bit
+	DEC_CONST HOME_MASK \...mask
+	.endc
+	.endc
+	.if	eq,(...RP-(...RP&...mask))
+	.if	ndf,runmask
+runmask	==	...mask
+runsiz	==	...bit
+	DEC_CONST RUN_MASK \...mask
+	.endc
+	.endc
+	.if	eq,(...max_size-(...max_size&...mask))
+	.if	ndf,szmask
+szmask	==	...mask
+szsiz	==	...bit
+	DEC_CONST SIZ_MASK \...mask
+	.endc
+	.endc
+...bit	== ...bit+1
+	.endr
+	DEC_CONST RUN_POSN 0
+...hpos == runsiz
+	DEC_CONST HOME_POSN \runsiz
+...spos == (hmsiz+runsiz)
+	DEC_CONST SIZ_POSN \(hmsiz+runsiz)
+...ipos == (hmsiz+runsiz+szsiz)
+	DEC_CONST INC_ABLE \(1<<...ipos)
+	.if le,(...ipos+1-16)
+#define MAP_TYPE unsigned short
+	.iff
+#define MAP_TYPE unsigned long
+	.endc
+#define DEF_CTR(HSZ,HP,RP,LABEL) (INC_ABLE|(HSZ<<SIZ_POSN)|(HP<<HOME_POSN)|(RP)),
+#define DEF_OPT(HSIZE,HPOS,RPOS,LABEL) ((HSIZE<<SIZ_POSN)|(HPOS<<HOME_POSN)|(RPOS)),
+	.endc ; df,MAKE_STAT_DEFS
+	.endc ; gt,..SN
+;
+FLAVOR == 1
+	.rept	CURRENT_FLAVOR
+	.if	df,N_HISTOGRAMS
+	.if	eq,HIST_FLAVOR-FLAVOR
+	.if	ndf,MAKE_STAT_MAP
+	.if	df,MAKE_STAT_DEFS
+	DEC_CONST FIRST_HISTOGRAM_REC \first_recno <entry in master index>
+	DEC_CONST FIRST_HISTOGRAM_OFFSET \total_eeprom <eeprom offset>
+	DEC_CONST HISTOGRAM_LEN \histogram_len <eeprom bytes for histograms>
+	DEC_CONST HISTOGRAM_BYTES \histogram_bytes <ram bytes for histograms>
+	.endc	; df,MAKE_STAT_DEFS
+	DEC_CONST HIST_TABLES \N_HISTOGRAMS <number of histogram tables>
+	.if	true, OUTPUT_LANG == LANG_ASM
+	xref	eer_geth,eer_puth,eer_bumph,eer_clrhist
+	xref	eer_hist_title,eer_hist_line,eer_tally_hist
+	.endc
+	.if	true, OUTPUT_LANG == LANG_MAC
+	.GLOBL	eer_geth,eer_puth,eer_bumph,eer_clrhist
+	.GLOBL	eer_hist_title,eer_hist_line,eer_tally_hist
+	.endc
+	.if	true, OUTPUT_LANG == LANG_C
+extern int eer_geth(/* unsigned int table,bin */); /* ret: val or -1 = error */
+extern int eer_puth(/* unsigned int table,bin,val*/);/* ret: val or -1 = error*/
+extern int eer_bumph(/* unsigned int table,bin,bump*/);
+    /* bump bin of table, scale all "tied" histograms on > 255. */
+    /*  ret: val or -1 = error */
+extern int eer_clrhist(/* unsigned int table */); /* ret: 0 ok, -1 = error */
+extern int eer_hist_title
+  (/* int table, char *buff, int len, int *max, int *med, char *bar */);
+    /* returns title of histogram table in caller's buff, max length len */
+    /* optionally stores max bin value and median bin number. */
+    /* saves pointer to bar characters */
+    /* returns length of title, or -1 = error */
+extern int eer_hist_line(/* unsigned int bin, char *buff, int buflen */);
+    /* format a line into caller's buff, max length buflen */
+    /* ret: bin value or -1 = error */
+    /* uses table provided by eer_hist_title() */
+extern int eer_tally_hist(/* int table, int value */);
+    /* increment the appropriate bin of table, based on value. */
+    /* returns current value of bin or -1 = error. May scale histogram and */
+    /* any "tied" to it */
+	.endc	; LANG_C
+	.endc	; ndf,MAKE_STAT_MAP
+total_eeprom == total_eeprom + histogram_len
+first_recno == first_recno + N_HISTOGRAMS
+	.endc	; eq,HIST_FLAVOR-FLAVOR
+	.endc	; df,N_HISTOGRAMS
+;
+	.if	df,N_H_S_TS
+	.if	eq,HST_FLAVOR-FLAVOR
+	.if	ndf,MAKE_STAT_MAP
+	.if	df,MAKE_EER_DEFS
+	DEC_CONST HST_TIE_TO_NEWER \HST_TIE_TO_NEWER 
+	.endc
+	.if	df,MAKE_STAT_DEFS
+	DEC_CONST HST_INITIAL_COMPRESS \HST_INITIAL_COMPRESS 
+	DEC_CONST HST_TIE_TO_NEWER \HST_TIE_TO_NEWER 
+	DEC_CONST FIRST_HST_REC \first_recno <entry in master index>
+	DEC_CONST FIRST_HST_OFFSET \total_eeprom <start of h.s. table eeprom>
+	DEC_CONST HST_BYTES \h_s_t_bytes <#bytes in high-score table shadow>
+	DEC_CONST HST_TABLES \N_H_S_TS <number of high-score tables>
+	.endc	; df,MAKE_STAT_DEFS
+	.if	eq,HST_INITIAL_COMPRESS
+	DEC_CONST MAX_INITS \(max_inits) <Max # of initials in any H.S.T>
+	.iff
+	DEC_CONST MAX_INITS \((max_inits*3)/2) <Max # of initials in any H.S.T>
+	.endc
+; Declarations for High-score-table routines
+	.if	true, OUTPUT_LANG == LANG_ASM
+	xref	eer_hstr,eer_hstw,eer_rank
+	.endc
+	.if	true, OUTPUT_LANG == LANG_MAC
+	.GLOBL	eer_hstr,eer_hstw,eer_rank
+	.endc
+	.if	true, OUTPUT_LANG == LANG_C
+#ifndef __HST_ENT_TYPE_DEFINED
+#define __HST_ENT_TYPE_DEFINED
+extern struct hst_ent {
+    unsigned long score;
+    char initials[MAX_INITS+1];
+    } *eer_hstr(/*unsigned int rank,table */); /* ret: 0 if given bad param */
+#endif
+extern int
+eer_hstw(/* unsigned int rank, struct hst_ent *entptr, unsigned int table */);
+/* writes entry at "rank" in "table", rippling lower scores down */
+extern int eer_rank(/* unsigned int score,table */); /* ret: rank (0 is top) */
+	.endc	; LANG_C
+	.endc	; ndf,MAKE_STAT_MAP
+total_eeprom == total_eeprom + h_s_t_len
+first_recno == first_recno + N_H_S_TS
+	.endc	; eq,HST_FLAVOR-FLAVOR
+	.endc	; df,N_H_S_TS
+;
+	.if	df,N_USER_RECS
+	.if	eq,USER_FLAVOR-FLAVOR
+	.if	ndf,MAKE_STAT_MAP
+	.if	df,MAKE_STAT_DEFS
+	DEC_CONST FIRST_USER_REC \first_recno <entry in master index>
+	DEC_CONST FIRST_USER_OFFSET \total_eeprom <start of user-record eeprom>
+	DEC_CONST USER_BYTES \user_bytes <#bytes in user-record shadow>
+	DEC_CONST USER_RECS \N_USER_RECS <number of user records>
+	.endc	; df,MAKE_STAT_DEFS
+; Declarations for User-record routines
+	.if	true, OUTPUT_LANG == LANG_ASM
+	xref	eer_user_rd,eer_user_wrt,eer_user_free
+	xref	eer_user_purge,eer_user_refresh
+	.endc
+	.if	true, OUTPUT_LANG == LANG_MAC
+	.GLOBL	eer_user_rd,eer_user_wrt,eer_user_free
+	.GLOBL	eer_user_purge,eer_user_refresh
+	.endc
+	.if	true, OUTPUT_LANG == LANG_C
+extern unsigned char *eer_user_rd(/* int recno, int *lenpt */);
+  /* ret: 0 for error, else ptr to shadow. Optional len via lenpt */
+extern int eer_user_wrt(/* int recno */); /* ret: -1 for error, else 0 */
+extern void eer_user_flush(); /* write all "busy" user records */
+extern int eer_user_free(/* int recno */); /* "un-busy" ret: -1 for error, else 0 */
+extern void eer_user_purge(); /* free all "busy" user records */
+extern int eer_user_refresh(/* int recno */); /* re-fetch user data from EEPROM */
+ /* ret: 0 for bogus recno, else read status */
+	.endc	; LANG_C
+	.endc	; ndf,MAKE_STAT_MAP
+total_eeprom == total_eeprom + user_len
+first_recno == first_recno + N_USER_RECS
+	.endc	; eq,USER_FLAVOR-FLAVOR
+	.endc	; df,N_USER_RECS
+; Now loop back for next "flavor" of record as encountered in file
+FLAVOR	== FLAVOR + 1
+	.endr
+;
+	.if	df,MAKE_STAT_DEFS
+	DEC_CONST FIRST_BUCKET \total_eeprom <start of "running" area>
+	DEC_CONST MAX_CHECK \max_check
+	.endc
+; Calculate room for run "buckets"
+	.if	gt,...RP
+	.if	ndf,MAKE_STAT_MAP
+run_buckets == (EEPROM_SIZE-total_eeprom)/(...RP+run_check)
+	DEC_CONST LAST_BUCKET \(run_buckets-1)
+	.endc	; ndf,MAKE_STAT_MAP
+	.endc	; gt,...RP
+	.endm
+@
+
+
+1.5
+log
+@HEX_CONST now also defines its name for internal use too.
+This omission was not noticed before, but struck on Freeze.
+@
+text
+@d373 1
+a373 1
+.MACRO TIE_HISTOGRAMS ...a ...b ...c ...d ...e ...f ...g ...h ...oops
+d375 1
+a375 1
+	.error	;more than eight histograms to tie, bang on Mike Albaugh
+d379 1
+a379 1
+	.irp x, <...a ...b ...c ...d ...e ...f ...g ...h>
+d382 1
+a382 1
+	.irp x, <...a ...b ...c ...d ...e ...f ...g ...h>
+d385 1
+a385 1
+	DEC_CONST x'_BROTHERS \accum <Bit mask for "brother" histograms>
+@
+
+
+1.4
+log
+@Changed the macro for defining name'_BROTHERS from DEC_CONST to HEX_CONST
+in order to prevent compiler warners caused by Heros huge number of histograms.
+@
+text
+@d107 1
+@
+
+
+1.3
+log
+@Added protection around definintion of struct hst_ent
+@
+text
+@d343 1
+a343 1
+	DEC_CONST name'_BROTHERS \(1<<N_HISTOGRAMS) <Default to "only child">
+@
+
+
+1.2
+log
+@incorporated changes by DMS, mainly around use of "OUTPUT_LANG", to
+accomodate asr3k. Future directions: gas68k
+@
+text
+@d661 2
+d667 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d15 5
+a19 10
+C_OUTPUT == 0			; probably not C
+ .if	ndf,ASM_OUTPUT
+ASM_OUTPUT == 0
+ .if	ndf,MACXX_OUTPUT
+MACXX_OUTPUT == 0
+C_OUTPUT == 1			; owell it was C after all
+ .endc
+ .iff
+MACXX_OUTPUT == 0		; if it's ASM_ can't be MACXX
+ .endc
+d21 5
+d33 7
+a39 2
+	.if	ne,ASM_OUTPUT
+.MACRO	DEC_CONST name val comment
+d45 2
+a46 2
+ .ENDM
+.MACRO	HEX_OCONST name val comment
+d52 1
+a52 1
+ .ENDM
+d54 4
+a57 4
+.MACRO REM1	preamble val postamble
+* preamble val postamble
+ .ENDM
+	.endc			; was MOTOROLA
+d59 2
+a60 2
+	.if	ne,MACXX_OUTPUT
+.MACRO	DEC_CONST name val comment
+d64 3
+d68 1
+d70 2
+a71 2
+ .ENDM
+.MACRO	HEX_OCONST name val comment
+d73 1
+a73 1
+name	=	$'val
+d75 5
+a79 1
+name	=	$'val	; comment
+d81 9
+a89 5
+ .ENDM
+.MACRO REM1	preamble val postamble
+* preamble val postamble
+ .ENDM
+	.endc			; was MACXX
+d91 2
+a92 3
+	.if	ne,C_OUTPUT
+;
+.MACRO	HEX_OCONST name val comment
+d98 2
+a99 2
+ .ENDM
+.MACRO	DEC_CONST name val comment
+d105 2
+a106 2
+ .ENDM
+.MACRO	HEX_CONST name val comment
+d108 2
+a109 2
+ .ENDM
+.MACRO REM1	preamble val postamble
+d111 2
+a112 2
+ .ENDM
+	.endc		; done with C output
+d114 1
+d133 1
+a133 1
+	.endm
+d150 1
+a150 1
+	.endm
+d171 1
+a171 1
+	.macro DEF_STAT name,size,speed,comment
+d470 1
+a470 1
+	.if	ne,ASM_OUTPUT
+d473 1
+a473 1
+	.if	ne,MACXX_OUTPUT
+d476 1
+a476 1
+	.if	ne,C_OUTPUT
+d482 1
+a482 1
+	.endc	;ne,C_OUTPUT
+d598 1
+a598 1
+	.if	ne,ASM_OUTPUT
+d602 1
+a602 1
+	.if	ne,MACXX_OUTPUT
+d606 1
+a606 1
+	.if	ne,C_OUTPUT
+d627 1
+a627 1
+	.endc	; ne,C_OUTPUT
+d654 1
+a654 1
+	.if	ne,ASM_OUTPUT
+d657 1
+a657 1
+	.if	ne,MACXX_OUTPUT
+d660 1
+a660 1
+	.if	ne,C_OUTPUT
+d669 1
+a669 1
+	.endc	; ne,C_OUTPUT
+d686 1
+a686 1
+	.if	ne,ASM_OUTPUT
+d690 1
+a690 1
+	.if	ne,MACXX_OUTPUT
+d694 1
+a694 1
+	.if	ne,C_OUTPUT
+d703 1
+a703 1
+	.endc	; ne,C_OUTPUT
+@

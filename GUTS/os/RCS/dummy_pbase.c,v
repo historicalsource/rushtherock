@@ -1,0 +1,26 @@
+head	1.1;
+access;
+symbols
+	RUSH_1_06A:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	97.07.21.23.12.03;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Dummy PBASE definition.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@const unsigned long PBASE[2] = { 0, 0 };
+@

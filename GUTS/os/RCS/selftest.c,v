@@ -1,0 +1,2481 @@
+head	1.53;
+access;
+symbols
+	RUSH_ROCK_1_0:1.53
+	RUSH_ROCK_1_0epst:1.53
+	MACE_1_0e:1.45
+	MACE_1_0d:1.45
+	RUSH_1_06A:1.48
+	AREA_52_00:1.48
+	MACE_1_0a:1.45
+	CJ_206:1.41
+	CJ2_05:1.41
+	CJ2_04:1.39
+	CJ2_03:1.18;
+locks; strict;
+comment	@ * @;
+
+
+1.53
+date	97.10.02.02.39.51;	author shepperd;	state Exp;
+branches;
+next	1.52;
+
+1.52
+date	97.08.01.23.22.39;	author albaugh;	state Exp;
+branches;
+next	1.51;
+
+1.51
+date	97.08.01.22.24.07;	author albaugh;	state Exp;
+branches;
+next	1.50;
+
+1.50
+date	97.08.01.22.06.11;	author albaugh;	state Exp;
+branches;
+next	1.49;
+
+1.49
+date	97.07.31.22.32.06;	author forrest;	state Exp;
+branches;
+next	1.48;
+
+1.48
+date	97.07.01.22.48.44;	author albaugh;	state Exp;
+branches;
+next	1.47;
+
+1.47
+date	97.06.26.23.25.39;	author albaugh;	state Exp;
+branches;
+next	1.46;
+
+1.46
+date	97.05.13.17.14.39;	author shepperd;	state Exp;
+branches;
+next	1.45;
+
+1.45
+date	97.02.27.04.04.45;	author shepperd;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	97.01.28.01.27.48;	author albaugh;	state Exp;
+branches;
+next	1.43;
+
+1.43
+date	97.01.10.21.12.13;	author albaugh;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	96.11.20.22.33.21;	author albaugh;	state Exp;
+branches;
+next	1.41;
+
+1.41
+date	96.11.07.22.11.56;	author albaugh;	state Exp;
+branches;
+next	1.40;
+
+1.40
+date	96.11.04.21.23.12;	author shepperd;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	96.09.30.21.54.03;	author albaugh;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	96.09.24.23.33.58;	author albaugh;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	96.08.26.23.53.39;	author albaugh;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	96.08.24.23.05.12;	author shepperd;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	96.08.24.22.07.35;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	96.08.24.22.01.08;	author shepperd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	96.08.07.19.07.22;	author shepperd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	96.07.23.19.18.05;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	96.07.17.18.45.22;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	96.06.29.20.29.42;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	96.06.12.00.37.53;	author forrest;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	96.06.08.16.38.05;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.05.20.18.55.06;	author forrest;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.05.02.16.23.59;	author albaugh;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.05.01.21.01.12;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.04.22.22.09.19;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.04.20.02.36.38;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.04.17.01.24.32;	author albaugh;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	95.11.07.22.03.37;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	95.11.01.19.00.01;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	95.10.31.22.17.47;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	95.10.31.21.31.22;	author albaugh;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	95.10.20.21.44.49;	author albaugh;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	95.08.08.21.22.38;	author albaugh;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	95.07.28.01.45.03;	author albaugh;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	95.06.22.23.05.09;	author albaugh;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.06.21.16.07.26;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.06.14.17.58.16;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.06.14.17.09.18;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.05.17.01.14.39;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.05.08.22.16.13;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.05.02.20.15.44;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.04.27.23.41.43;	author birmingham;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.04.12.02.26.12;	author birmingham;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.04.11.22.47.48;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.02.23.21.36.10;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.02.08.21.14.38;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.01.31.00.31.12;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.06.25;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@"Main" harness for GUTS startup and menu-driven diagnostics/options
+@
+
+
+1.53
+log
+@Added env variables to grab 3 possible places to vector
+before starting either ST or game, before game or before
+ST.
+@
+text
+@/*
+ *	selftest.c
+ *
+ *		Copyright 1991 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id: selftest.c,v 1.52 1997/08/01 23:22:39 albaugh Exp shepperd $";
+#endif
+#define BRAVE_NEW_WORLD (1)
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <eer_defs.h>
+#include <string.h>
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+#ifndef ST_AUTO_INC
+#define ST_AUTO_INC (0)
+#endif
+
+#ifndef ST_SWITCH
+# if defined(TEST) && B_TEST >= 0
+#  define ST_SWITCH (!(TEST & (1<<B_TEST)))
+# else
+#  define ST_SWITCH (1)
+# endif
+#endif
+
+#if HOST_BOARD_CLASS && ((HOST_BOARD&HOST_BOARD_CLASS) == PHOENIX) 
+# define LINK_TIME GUTS_LINK_TIME
+#endif
+
+#ifndef BLAB
+# define BLAB(x)
+#endif
+
+#define	STATIC	static
+
+/* Unique selftest main menu	*/
+extern	struct menu_d	mainMenu[];
+
+/* The time the GUTS was linked. The definition used to depend on whether
+ * an ANSI compiler was used. Of course, both date.c and this file had to
+ * be compiled with the same compiler. In one small step for correctness
+ * versus backward compatibility, MEA deletes pre-ANSI behavior, 14JUN95
+ */
+
+extern const char LINK_TIME[];
+
+/* We will be moving all the PBASE stuff to this file. For now, we at
+ * least need to declare it (MEA 14JUN95).
+ */
+extern const struct pconfigp PBASE;
+#if HOST_BOARD_CLASS && ((HOST_BOARD&HOST_BOARD_CLASS) == PHOENIX) 
+/* Dave changed def_pbase (meaning Default Pbase) to guts_pbase to
+ * avoid namespace collisions in games where a) GUTS is a library
+ * and b) The game programmer did a careless cut-and-paste of
+ * gamedefs.c to make the game pbase. Of course, changing the name
+ * will not help, in that careless cut-and-pasters will now have two
+ * definitions of guts_pbase, but at least I (MEA) don't have to go
+ * edit all of Dave's games.
+ */
+extern const struct pconfigb guts_pbase;
+#define DEF_PBASE guts_pbase
+#else
+extern const struct pconfigb def_pbase;
+#define DEF_PBASE def_pbase
+#endif
+
+int debug_mode;				/* from EER_GUTS_OPT, enable debug sw */
+#ifndef LINKTIME_X
+# define LINKTIME_X	4
+#endif
+
+STATIC int
+PrintDate(row)
+int	row;
+{
+    /********************************************/
+    /* writes the creation dates at the row	*/
+    /* specified.			jfs	*/
+    /********************************************/
+	
+#if !NO_GAME_LINKTIME
+    if ( pbase->p_linktime && pbase->p_linktime[0] ) {
+	/* Game program's link time */
+	txt_str(LINKTIME_X,row, "MAIN: ",VERSION_PAL);
+	txt_cstr(pbase->p_linktime,VERSION_PAL);
+    } else {
+	txt_str(LINKTIME_X,row, "No game at 0x",ERROR_PAL);
+	txt_chexnum((U32)&PBASE,8,RJ_ZF,ERROR_PAL);
+    }
+    --row;
+#endif
+    txt_str(LINKTIME_X,row,	"GUTS: ",VERSION_PAL);
+    txt_cstr(LINK_TIME,VERSION_PAL);		/* os link date	*/
+    return --row;
+}
+
+/*		st_bottom()
+ *	Returns bottom-most line available for instructions, etc.
+ *	This value is what st_frame() or st_insn() last returned,
+ *	at this "nesting level". st_menu() will save/restore the
+ *	variable this uses, to facilitate nested menus.
+ */
+
+static int last_bottom;
+
+int st_bottom()
+{
+    if ( last_bottom == 0 ) {
+#if (GUN_CNT == 0) 
+	last_bottom = AN_VIS_ROW-2;	/* Just above border */
+#else
+	last_bottom = AN_VIS_ROW-3;	/* Leave room for gun arrow */
+#endif
+    }
+    return last_bottom;
+}
+
+/*		st_insn( row, action, switch, palette )
+ *	A nauseatingly simple little routine that I (MEA) got
+ *	tired of re-writing. Takes a row number, two text
+ *	strings, and a palette, and tries to combine the
+ *	two text strings on a single line, which it writes
+ *	centered on the specified row. If it cannot, it
+ *	writes the messages separately on two rows, the
+ *	specified row and the one _ABOVE_ it. This is
+ *	because instructions are typically on the bottom
+ *	of the screen, and I want them to "grow up" (good
+ *	advice for us all :-). Returns the number of the
+ *	row above the highest one used, to allow a series
+ *	of instructions to be assembled.
+ *
+ *	KLUGE WARNING: If row is negative, erases rather
+ *	than writing, using |row|. In this case, also
+ *	returns -|row| at end, after suitably modifying it.
+ *	This is to allow those very few screens which need
+ *	to modify instructions "on the fly" to do so.
+ */
+int st_insn( row, action, swt, palette)
+int row, palette;
+const char *action;
+const char *swt;
+{
+    char buf[AN_VIS_COL_MAX+1];
+    int len;
+
+    if ( row == 0 ) row = st_bottom();
+    strncpy(buf,action,AN_VIS_COL);
+    len = AN_VIS_COL-strlen(buf);
+    if ( (len-3) < strlen(swt) ) {
+	if ( row >= 0 ) {
+	    txt_str(-1,row--,swt,palette);
+	    txt_str(-1,row--,action,palette);
+	} else {
+	    /* erasing */
+	    row = -row;
+	    txt_clr_str(-1,row--,swt,palette);
+	    txt_clr_str(-1,row--,action,palette);
+	    row = -row;
+	}
+    } else {
+	strcat(buf," ");
+	strncat(buf,swt,len-1);
+	if ( row >= 0 ) {
+	    txt_str(-1,row--,buf,palette);
+	} else {
+	    /* erasing */
+	    row = -row;
+	    txt_clr_str(-1,row--,buf,palette);
+	    row = -row;
+	}
+    }
+    last_bottom = row;
+    return row;
+}
+
+/*		ExitInst(palette)
+ *	Writes instructions for exiting in specified palette.
+ *	Palette is changeable due to possible limitations in
+ *	color-bar test.
+ */
+void
+ExitInst(int palette)
+{
+#if J_UP
+    st_insn(AN_VIS_ROW-2, t_msg_ret_menu, t_msg_next, palette);
+#else
+    st_insn(AN_VIS_ROW-2, t_msg_ret_menu, t_msg_nexth, palette);
+#endif
+}
+
+#ifndef AN_UL_STMP
+/* If no corner stamps, use squares */
+#define AN_UL_STMP (AN_SQUARE)
+#define AN_LL_STMP (AN_SQUARE)
+#define AN_UR_STMP (AN_SQUARE)
+#define AN_LR_STMP (AN_SQUARE)
+#endif
+
+#ifndef AN_TOP_STMP
+/* If no horizontal "line" stamps, use squares */
+#define AN_BOT_STMP (AN_SQUARE)
+#define AN_TOP_STMP (AN_SQUARE)
+#endif
+#ifndef AN_LFT_STMP
+/* If no horizontal "line" stamps, use squares */
+#define AN_LFT_STMP (AN_SQUARE)
+#define AN_RGT_STMP (AN_SQUARE)
+#endif
+/*		BorderEdge()
+ *	Draws frame around screen.
+ */
+
+static void
+BorderEdge()
+{
+
+    m_int x,y;
+
+    for ( x = 0 ; x < AN_VIS_COL ; ++x ) {
+	/* draw top and bottom edges */
+	txt_stamp(x,0,AN_TOP_STMP,GRY_PAL);
+	txt_stamp(x,AN_VIS_ROW-1,AN_BOT_STMP,GRY_PAL);
+    }
+
+    for ( y = 0 ; y < AN_VIS_ROW ; ++y ) {
+	/* draw left and right edges */
+	txt_stamp(0,y,AN_LFT_STMP,GRY_PAL);
+	txt_stamp(AN_VIS_COL-1,y,AN_RGT_STMP,GRY_PAL);
+    }
+
+    txt_stamp(	0		,0		,AN_UL_STMP,GRY_PALB);
+    txt_stamp(AN_VIS_COL-1	,0		,AN_UR_STMP,GRY_PALB);
+    txt_stamp(	0		,AN_VIS_ROW-1	,AN_LL_STMP,GRY_PALB);
+    txt_stamp(AN_VIS_COL-1	,AN_VIS_ROW-1	,AN_LR_STMP,GRY_PALB);
+}
+
+/* If you need to inject some sort of special hoo-haw (e.g. the CoJag
+ * Revision-detect), do it in a macro you define as HDW_INIT(cold).
+ * If not, the following do-nothing is used instead. If you have much to
+ * do, just place it in another file and call it. For backward compatibility,
+ * games that define LM_INIT_BITS and do not define HDW_INIT will get the
+ * former default action.
+ *
+ * As of 1AUG1997, MEA changes default HDW_INIT(x) to hdw_init(x) because
+ * just about _all_ our boards have some sort of special hoo-haw to do.
+ * If you really need to do literally nothing, you could add the old
+ * definition to your config.mac:
+ *    #define HDW_INIT(cold) do {;} while (0)
+ * or you could just put a dummy hdw_init() in your xxx_stubs.c
+ * or xxx_shims.c file.
+ */
+#ifndef HDW_INIT
+#ifdef LM_INIT_BITS
+#define HDW_INIT(cold) do { prc_mod_latch(LM_INIT_BITS); } while (0)
+#else
+extern void hdw_init(int);
+#define HDW_INIT(cold) hdw_init(cold)
+#endif /* Def'd LM_INIT_BITS */
+#endif /* ndef'd HDW_INIT */
+
+#if (GUN_CNT > 0)
+extern int gun2idx PARMS((
+const struct menu_d * menu,
+int menu_size,
+int vpos
+));
+#define DOUBLE_CLICK (42)
+extern int gun_init();
+#endif
+#if REMOTE_STATS
+# if !defined(BR9600)
+#  define BR9600 IO_UART_CTL_9600_BAUD
+# endif
+extern int rmt_init(U16);
+#endif
+#if NET_LVL
+extern int net_init(void);
+#endif
+#ifndef MENU_FLAGS
+#define MENU_FLAGS (STF_DATE|STF_NOEXIT)
+#endif
+
+void
+SelfTest(cold_flag)
+unsigned long cold_flag;	/* non-zero if this is "cold boot" */
+{
+    struct menu_d *menu;
+    const struct st_envar *vec;
+
+    HDW_INIT(cold_flag);
+
+    if( PBASE.p_validate == PB_VALID ){
+        pbase = PBASE.p_configb;
+        }
+    else pbase = &DEF_PBASE;
+
+#if defined(PRC_DELAY_OPT_TEXT2FB)
+/*
+ * select a "default" prc_delay() action to copy text into the frame
+ * buffer, swap buffers, clear non-displayed buffer and wait.
+ */
+    prc_delay_options(PRC_DELAY_OPT_TEXT2FB|PRC_DELAY_OPT_SWAP|PRC_DELAY_OPT_CLEAR);
+#endif
+
+#if HOST_BOARD != ASCLEAP
+    BLAB("\nSelftest: Enabling interrupts...");
+    prc_set_ipl(INTS_ON);
+#endif
+    BLAB("\nSelftest: Initializing video subsystem...");
+    vid_init();
+#ifdef PSX_GAME
+    /* MEA has no idea why these can't be in hdw_init() or vid_init().
+    */
+    {
+	extern void guts_init();
+	extern void txt_set_mode( int );
+	guts_init();
+	txt_set_mode(TEXT_DRAW_REPLACE);
+    }
+#endif
+#if ST_AN_SET
+    /* If the default game alphanumerics are illegible,
+     * we use ST_AN_SET for selftest.
+     */
+    st_font(ST_AN_SET);
+#endif
+    BLAB("\nSelftest: Setting alphanumeric colors...");
+    setancolors();
+    BLAB("\nSelftest: Reading EEPROM or BRAM...");
+    while ( eer_init() < 0 ) {
+	txt_str(-1,AN_VIS_ROW/2,"DATABASE ERRORS",ERROR_PAL);
+	prc_delay(180);
+	vid_clear();
+	prc_delay(10);
+    }
+#ifdef EER_GUTS_OPT
+    debug_mode = eer_gets(EER_GUTS_OPT) & ~AUD_AV_MSK;
+#ifdef GAME_DEFAULT
+    debug_mode |= GAME_DEFAULT;
+#endif
+#endif
+    BLAB("\nSelftest: Checking for PostMortem dump...");
+    pm_dump();
+    BLAB("\nSelftest: Initializing audio...");
+    aud_init(1);
+#ifdef VCR_STOP
+    BLAB("\nSelftest: Turning off VCR...");
+    vcr(VCR_STOP);					/* turn off VCR	*/
+#endif
+#if GUN_CNT
+    BLAB("\nSelftest: Initializing guns...");
+    gun_init();
+#endif
+#if POT_CNT
+    BLAB("\nSelftest: Initializing POTS...");
+    pot_init(0);
+    prc_delay(2);			/* get first pot->switch conversion */
+#endif
+#if REMOTE_STATS
+    BLAB("\nSelftest: Initializing remote stats...");
+    rmt_init(BR9600);
+#endif
+#if NET_LVL
+    BLAB("\nSelftest: Initializing network...");
+    net_init();
+#endif
+    vec = st_getenv("PRE ST and GAME", 0);
+    if (vec && vec->value) {
+	BLAB("\nSelftest: Calling PRE ST and GAME ...");
+	((int (*)(void))(vec->value))();
+    }
+    if ( !ST_SWITCH && pbase->p_reset ) {
+	/* Test switch off on entry, go to game */
+#if ST_AN_SET
+	/* Let the game use an illegible font for default.
+	 */
+	st_font(0);
+#endif
+	BLAB("\nSelftest: Set default volumes...");
+	aud_setvol(-1);			/* Set game volume from EEPROM */
+	aud_setvol(-2);			/* But keep quiet for now */
+	BLAB("\nSelftest: Initialize coins...");
+	cn_init();
+
+	vec = st_getenv("PRE GAME", 0);
+	if (vec && vec->value) {
+	    BLAB("\nSelftest: Calling PRE GAME ...");
+	    ((int (*)(void))(vec->value))();
+	}
+#if defined(PRC_DELAY_OPT_TEXT2FB)
+	prc_delay_options(0);		/* no special options for game */
+#endif
+	BLAB("\nSelftest: Goto game...\n");
+	pbase->p_reset();
+	prc_reboot();		/* reset if game returns */
+    }
+
+/* Getting here means Test switch is on or no game, so run self-test */
+
+    BLAB("\nSelftest: Set selftest vblank interrupt...");
+    vid_set_vb(st_vblank);
+#if (0)
+    menu = (struct menu_d *)mainMenu;
+#else
+    {
+	const struct st_envar *mp;
+	mp = st_getenv("SELFTEST MENU",0);
+	if ( mp ) menu = (struct menu_d *)mp->value;
+	else {
+	    txt_str(-1, st_bottom(),"st_getenv() failed",ERROR_PAL);
+	    prc_delay(240);
+	    menu = (struct menu_d *)mainMenu; 
+	}
+    }
+#endif
+#ifdef DEBUG
+#ifdef HANDSHAKE
+    if( (ctl_read_sw(0) & HANDSHAKE) == HANDSHAKE ) {
+	/* "Secret Handshake" */
+	int bozo_time;
+	BLAB("\nSelftest: Do secret handshake...");
+	txt_str(-1,(AN_VIS_ROW/2)+1,"OK, I HEARD YOU",MNORMAL_PAL);
+	for ( bozo_time = 180 ; bozo_time >= 0 ; --bozo_time ) {
+	    if ( (ctl_read_sw(0) & HANDSHAKE) == 0 ) {
+		debug_mode |= GUTS_OPT_DEVEL;
+		break;
+	    }
+	    prc_delay0();
+	}
+	txt_clr_str(-1,(AN_VIS_ROW/2)+1,"OK, I HEARD YOU",MNORMAL_PAL);
+    }
+#endif /* HANDSHAKE */
+#endif /* DEBUG */
+
+    ctl_read_sw(-1);	/* kill all edges */
+
+    vec = st_getenv("PRE ST", 0);
+    if (vec && vec->value) {
+	BLAB("\nSelftest: Calling PRE ST ...");
+	((int (*)(void))(vec->value))();
+    }
+    BLAB("\nSelftest: Done booting\n");
+    while (1)		/* ::::::::::	MAIN LOOP :::::::::	*/
+    {
+	ctl_autorepeat(JOY_VERT,30,15); /* Autorepeat after 1/2secs @@ 1/4 */
+
+	st_menu(menu,sizeof(mainMenu[0]),MNORMAL_PAL, MENU_FLAGS);
+#if !(MENU_FLAGS&STF_NOEXIT)
+	/* Currently only one game (CalSpeed) requires that we
+	 * pop back directly from anywhere in the main menu
+	 * to the game, but this will probably change. We
+	 * wrap this call so as not to disturb existing games
+	 * which don't have/want this function, or supply it
+	 * themselves in gamedefs.c (MEA 1AUG97)
+	 */
+	exit_to_game(0);
+#endif
+    }
+}
+
+/*	All of this should be in ram_test.c, rather than selftest.c, since
+ *	there is a single MEMORY TEST item in the menu.
+ */
+struct rom_descrip {
+    char *name;
+    struct rdb	descript;
+};
+STATIC const struct rom_descrip rom_list[] = {
+/*
+ *	The seed value is actually +1 because we want to add up to 0,
+ *	while the cksum program sets to add to 0xFF
+ */
+/*             31-24 23-16 15-8 7-0 */
+/*	         3H   3P   3M   3K */
+#if (HOST_BOARD == LCR3K)
+#if (COJAG_GAME & COJAG_AREA51)
+    /* Horrible kluge to get checksums nominally working for Area 51, R3K.
+     * This whole section needs to be:
+     * 1) re-written.
+     * 2) Moved to a more logical file, maybe ram_test.c, despite the name...
+     * 3) Integrated with power-on diagnostics as in "The old days..."
+     */
+#if (COJAG_REV >= 3) /* Rev 3/4 Single-board CoJag with integral LCR3K */
+    { "HOST      22R  19R  22U  19U",	{(U32*)0x9FC00000, 0x200000, 0x01020304}},
+#else /* Rev2 Cojag with seperate LCR3K */
+    { "HOST      3H   3P   3M   3K",	{(U32*)0x9FC00000, 0x200000, 0x01020304}},
+#endif /* (COJAG_REV >= 3) */
+#else
+    { "HOST      3H   3P   3M   3K",	{(U32*)0x9FC00000, 0x32000, 0x01020304}},
+#endif /* Area 51 */
+#endif /* LCR3K */
+#if (HOST_BOARD == EC020cojag)
+    { "HOST      3H   3P   3M   3K",	{(U32*)0x800000, 0x200000, 0x01020304}},
+#endif
+#if (0)
+    { "TMEK0     24L  26L  28L  29L",	{0x00000, 0x80000, 0x01020304}}, */
+#endif
+    { 0, {0, 0, 0} }
+};
+
+STATIC int
+rom_test()
+{
+    const struct rom_descrip *rd;
+    m_int row,col;		/* For error message */
+    U32	cksums,check;		/* Returned from rom_cksum */
+    int	anyBadRoms,anyBad;
+    unsigned int palette;
+    m_int	x;
+
+    rd = &rom_list[0];
+    row = 3;
+    anyBadRoms = 0;
+
+#if (PROCESSOR == M68000 || PROCESSOR == M68010)
+    txt_str(AN_VIS_COL/2,row,"   H     L",WHT_PALB);
+#else
+    txt_str(AN_VIS_COL/3,row++,"  0    1    2    3 ",WHT_PALB);
+    txt_str(AN_VIS_COL/3,row++," HH   HL   LH   LL ",WHT_PALB);
+#endif
+
+    while (rd->name)
+    {
+#if 0		/* name does not include PCB locations	*/
+	x = (AN_VIS_COL/3) - 4 - strlen(rd->name);
+	if (x < 1)
+	    x = 1;
+	txt_str(x,row,rd->name,WHT_PALB);
+#else		/* name has PCB locations */
+	++row;
+	x = (AN_VIS_COL/3) - 9;
+	if (x < 1)
+	    x = 1;
+	txt_str(x,row++,rd->name,WHT_PALB);
+#endif
+
+	anyBad = -1;
+	while (anyBad)
+	{
+	    anyBad = 0;
+	    cksums = rom_cksum((const struct rdb *)&rd->descript);
+
+#if (PROCESSOR == M68000 || PROCESSOR == M68010)
+	    col = (AN_VIS_COL/2) + 6;
+	    for (x=0; x<2; col-=6,cksums>>=16,++x)
+	    {
+		if ((check = (cksums & 0xFFFF)) & 0xFF)
+#else
+	    col = (AN_VIS_COL/3) + 16;
+	    for (x=0; x<4; col-=5,cksums>>=8,++x)
+	    {
+		if ( (check = (cksums & 0xFF)) != 0 )
+#endif
+		{
+		    anyBadRoms = anyBad = -1;
+		    palette = RED_PALB;
+		}
+		else
+		    palette = GRY_PAL;
+#if (PROCESSOR == M68000 || PROCESSOR == M68010)
+		txt_hexnum(col,row,check,4,RJ_ZF,palette);
+#else
+		txt_hexnum(col,row,check,2,RJ_ZF,palette);
+#endif
+	    }
+
+	    /* Change our opinion of "badness" if user hits SW_ACTION, so
+	     * we can get on to further instructions
+	     */
+	    if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) anyBad = 0; /* lie */
+	}
+
+	++rd;			/* next specifier	*/
+	++row;			/* next text row	*/
+    }
+
+    return (anyBadRoms);
+}
+
+int
+ROMTest(smp)
+const struct menu_d *smp;
+{
+    int	i;
+    int bottom;
+
+    bottom = PrintDate(AN_VIS_ROW-6);
+#if (0)
+    /* following not needed, as rom_test() now looks for
+     * _edge_ to stop loop.
+     */
+    while (ctl_read_sw(0) & SW_ACTION)
+	prc_delay0();
+#endif
+
+    bottom = st_insn( bottom, "To STOP test LOOP,", t_msg_action, INSTR_PAL);
+
+    i = rom_test();
+    if (i == 0)
+	txt_str(-1,AN_VIS_ROW/2,"ALL ROMS are OK",GRN_PALB);
+
+    ctl_read_sw(SW_NEXT);			/* lose this edge	*/
+
+    ExitInst(INSTR_PAL);
+
+    while (1)
+    {
+	prc_delay0();
+	if (ctl_read_sw(SW_NEXT) & SW_NEXT)
+	    break;
+    }
+    return i;
+}
+
+#ifndef MENU_Y_DEFAULT
+#define MENU_Y_DEFAULT (3)
+#endif
+#ifndef MENU_X_DEFAULT
+#define MENU_X_DEFAULT (4)
+#endif
+
+/*		st_menu()
+ *	Menu-display harness for tests. Uses controls to select a
+ *	menu-line, then runs selected test passing pointer to line.
+ *	the size of a "menu line" struct must be passed to allow
+ *	different callers to have different additional information.
+ *
+ *	The general function is:
+ *	Present a menu of tests/function
+ *	User selects a line with Up/Down controls, selected line is highlited
+ *	SW_ACTION causes the corresponding function to be invoked
+ *		A zero return from the function will cause the menu line
+ *		to be incremented. A non-zero return will cause the line to
+ *		"stick" on the selected test.
+ *	SW_NEXT cause return of to the caller. The possible return values
+ *	are: -1 if SW_NEXT was pressed on some line before the last, else
+ *	0.
+ *	
+ *	If there is no UP/Down control (J_UP == 0), SW_NEXT serves a dual
+ *	purpose. Each press advances to the next test, while _holding_
+ *	the button returns to the previous caller (if any).
+ */
+static const struct menu_d * idx2menu PARMS((
+const struct menu_d * menu,
+int menu_size,
+int idx
+));
+
+#if !J_UP
+#ifndef EX_FRAMES
+#define EX_FRAMES 40
+#endif
+#endif
+
+int
+st_menu( menu, menu_size, txt_pal, options )
+const struct menu_d *menu;	/* caller's menu */
+int	menu_size;		/* size of an individual item */
+int	txt_pal;		/* palette to use for text */
+int 	options;		/* to pass to st_frame() for date, exit */
+{
+    const struct menu_d *wmp;	/* working menu pointer */
+    const struct menu_d *smp;	/* selected menu pointer */
+    const struct menu_d *title = menu; /* Title entry of this menu */
+    int		idx,oidx,widx;	/* line indices for display */
+    int		status;		/* return value from sub-test*/
+    int		vpos,top;	/* vertical position (working and top) */
+    int		redraw;
+    int		prev_bottom;
+    const char *label;
+#ifdef EX_FRAMES
+    int ex_cnt = EX_FRAMES;
+#endif
+    /* possible co-routine to call during poll */
+    int		(*coroutine) PARMS((const struct menu_d *));
+
+    idx = 0,oidx = -2;
+    redraw = 1;
+
+    /*	Save last_bottom, in case we are nesting.
+     */
+    prev_bottom = last_bottom;
+    last_bottom = 0;
+
+    /* extract menu title (if any), vertical position, and possible
+     * co-routine from first entry, then increment past it for the
+     * duration.
+     */
+    top = MENU_Y_DEFAULT;
+    if ( (label = menu->mn_label) != 0 ){
+	if ( *label == '?' ) ++label;
+	if ( *label == '\v' ) {
+	    top += label[1] - '0';
+	    label += 2;
+	}
+	if ( *label == 0 ) title = 0;
+    }
+    coroutine = menu->mn_call;
+    menu = (const struct menu_d *)((char *)menu + menu_size);
+    while ( 1 ) {
+	/* (re)paint entire menu */
+	wmp = menu;
+	smp = 0;
+	widx = 0;
+	vpos = top;
+	if ( redraw ) {
+	    int bottom;
+	    vid_clear();
+	    setancolors();
+	    bottom = st_frame( title, TITLE_PAL, INSTR_PAL, options );
+	    bottom = st_insn(bottom, "To run test,", t_msg_action, INSTR_PAL);
+	    bottom = st_insn(bottom, "To select test,",t_msg_control, INSTR_PAL);
+	    if ( coroutine ) coroutine(0);
+	    redraw = 0;
+	}
+	while ( oidx != idx ) {
+	    if ( (label = wmp->mn_label) == 0 ) {
+		oidx = idx;	/* done */
+		break;
+	    }
+	    if ( *label == '?' ) {
+		/* an item that should only be available
+		 * during development or after a
+		 * "secret handshake"
+		 */
+		++label;
+#ifdef DEBUG
+		if ( (debug_mode & GUTS_OPT_DEVEL) == 0 )
+#endif
+		{
+		    wmp = (const struct menu_d *)((char *)wmp + menu_size);
+		    ++widx;
+		    continue;
+		}
+	    }
+	    if ( *label == '\n' ) {
+		/* caller wants leading */
+		++vpos;
+		++label;
+	    }
+	    if ( widx == oidx && widx != idx ) {
+		/* de-highlight old line, if not same as current */
+		txt_clr_str(MENU_X_DEFAULT,vpos,label,MHILITE_PAL);
+		txt_str(MENU_X_DEFAULT,vpos,label,MNORMAL_PAL);
+	    }
+	    else if ( widx == idx ) {
+		/* this is the selected line, save struct pointer and
+		 * hilite line.
+		 */
+		smp = wmp;
+		txt_clr_str(MENU_X_DEFAULT,vpos,label,MNORMAL_PAL);
+		txt_str(MENU_X_DEFAULT,vpos,label,MHILITE_PAL);
+	    }
+	    else txt_str(MENU_X_DEFAULT,vpos,label,MNORMAL_PAL);
+	    ++vpos;
+	    wmp = (const struct menu_d *)((char *)wmp + menu_size);
+	    ++widx;
+	} /* end while (oidx != idx) for (re)paint of menu */
+
+	/* now check switches for selection */
+	while (oidx == idx) {
+	    unsigned long ctls;
+	    ctls = ctl_read_sw(SW_ACTION|SW_NEXT|JOY_VERT);
+	    if ( coroutine && (status = coroutine(smp)) != 0) {
+		last_bottom = prev_bottom;
+		return status;
+	    }
+#ifndef EX_FRAMES
+	    /* Traditional interpretation, any press on SW_NEXT
+	     * returns to caller, -1 if not at the bottom, 0 if
+	     * at the bottom. If in the "top level" menu (as
+	     * indicated by STF_NOEXIT), just advance to next item.
+	     */
+	    if ( ctls & SW_NEXT ) {
+		/* NEXT just advances menu pointer if at top level.
+		*/
+		if ( options & STF_NOEXIT ) ctls |= J_DOWN;
+		else {
+		    last_bottom = prev_bottom;
+		    return (idx == widx) ? 0 : -1;
+		}
+		ctls &= ~SW_ACTION;
+	    }
+#else
+	    /* Modified interpretation, _holding_ SW_NEXT causes
+	     * exit as above, while simply _pressing_ it causes
+	     * advance to next item.
+	     */
+	    if ( ctls & SW_NEXT ) {
+#if J_DOWN
+		ctls |= J_DOWN;
+#else
+		int wrap = 1;
+		while ( wmp == 0 ) {
+		    /* keep skipping forward until
+		     * we land on a usable item.
+		     */
+		    if ( ++idx == widx ) {
+			/* wrap to first, but not more than once */
+			idx = 0;
+			if ( --wrap < 0 ) prc_panic("Null Menu"); 
+		    }
+		    wmp = idx2menu(menu,menu_size,idx);
+		}
+#endif
+		ctls &= ~SW_ACTION;
+	    }
+	    else if ( ctl_read_sw(0) & SW_NEXT ) {
+		if ( --ex_cnt <= 0 ) {
+		    last_bottom = prev_bottom;
+		    return (idx == widx) ? 0 : -1;
+		}
+		ctls &= ~SW_ACTION;
+	    } else ex_cnt = EX_FRAMES;
+#endif
+	    if ( ctls & SW_ACTION ) {
+		/* run selected test */
+		vid_clear();
+		setancolors();
+		/* Call below changed (MEA, 22SEP95) to include STF_NOEXIT.
+		 * This avoids need for re-draw just to change wording
+		 * for exit. It requires every sub-test to call
+		 * ExitInst() (or equivalent st_insn()), but means fewer
+		 * extra st_frame() calls.
+		 */
+		st_frame( smp, TITLE_PAL, INSTR_PAL, STF_NOEXIT);
+		status = smp->mn_call(smp);
+		oidx = -2;
+		redraw = 1;
+		ctls = 0;
+#if ST_AUTO_INC
+		if ( !status ) ctls = J_DOWN;
+#endif
+	    }
+	    status = 1;
+	    wmp = 0;
+#if (GUN_CNT > 0)
+	    {
+		/* Temp gun control */
+		int gidx;
+#if DOUBLE_CLICK
+		static int old_gidx;
+		static unsigned long old_rtc;
+#endif
+		gidx = gun2idx(menu,menu_size,top);
+		if ( gidx >= 0 ) {
+		    wmp = idx2menu(menu,menu_size,idx=gidx);
+#if DOUBLE_CLICK
+		    if ( (gidx == old_gidx)
+			&& ((eer_rtc - old_rtc) < DOUBLE_CLICK)
+			&& (eer_rtc > (DOUBLE_CLICK<<1)) ) {
+			/* double-click/shot, run selected test */
+			old_gidx = -1;
+			vid_clear();
+			setancolors();
+			st_frame( smp, TITLE_PAL, INSTR_PAL, STF_NOEXIT);
+			status = smp->mn_call(smp);
+			oidx = -2;
+			redraw = 1;
+			ctls = 0;
+		    } else {
+			/* Single click/shot, just position */
+			old_gidx = gidx;
+			old_rtc = eer_rtc;
+		    }
+#endif
+		}
+	    }
+#endif
+#if J_UP
+	    if ( ctls & J_UP ) {
+		while ( wmp == 0 ) {
+		    /* keep skipping backward until
+		     * we land on a usable item.
+		     */
+		    if ( --idx < 0 ) {
+			/* wrap to last, but not more than once */
+			idx = widx-1;
+			if ( --status < 0 ) prc_panic("Null Menu"); 
+		    }
+		    wmp = idx2menu(menu,menu_size,idx);
+		}
+	    } else
+#endif
+#if J_DOWN
+	    if ( ctls & J_DOWN ) {
+		while ( wmp == 0 ) {
+		    /* keep skipping forward until
+		     * we land on a usable item.
+		     */
+		    if ( ++idx == widx ) {
+			/* wrap to first, but not more than once */
+			idx = 0;
+			if ( --status < 0 ) prc_panic("Null Menu"); 
+		    }
+		    wmp = idx2menu(menu,menu_size,idx);
+		}
+	    }
+#endif
+	    prc_delay0();
+	} /* end while waiting for line to change */
+    }
+}
+
+static const struct menu_d * idx2menu(menu, menu_size, idx)
+const struct menu_d * menu;
+int menu_size;
+int idx;
+{
+    int widx;
+    if ( idx < 0 ) return 0;
+    for ( widx = 0 ; widx < idx ; ++widx ) {
+	if ( menu->mn_label == 0 ) {
+	    /* we have run off the end */
+	    return 0;
+	}
+	menu = (const struct menu_d *)((char *)menu + menu_size);
+    }
+    if ( menu->mn_label == 0 ) return 0;
+    if ( menu->mn_label[0] == '?' ) {
+#ifdef DEBUG
+	if ( (debug_mode & GUTS_OPT_DEVEL) == 0 )
+#endif
+	{
+	    return 0;
+	} 
+   }
+   return menu;
+}
+
+/*		st_frame()
+ *	re-paints the border and title, as well as optional date, exit
+ *	instructions, etc. This is intended for use mainly by st_menu(),
+ *	but will also be needed by any test that messes up the screen and
+ *	thus needs to re-paint the boilerplate. Returns bottom-most row
+ *	available for further instructions.
+ */
+
+int st_frame( smp, tpal, ipal, options )
+const struct menu_d *smp;
+int	tpal;
+int	ipal;
+int	options;
+{
+    const char *label;
+    char title[AN_VIS_COL_MAX+2];
+    int	bottom;
+    int i;
+
+    BorderEdge();
+    last_bottom = 0;		/* Re-init */
+    bottom = st_bottom();
+
+    if ( options & STF_DATE ) {
+	/* show os/main dates */
+	bottom = PrintDate(bottom);
+    }
+    label = smp->mn_label;
+    if ( *label == '?' ) ++label;
+    if ( *label == '\v' ) label += 2;
+    if ( *label == '\n' ) ++label;
+    for ( i = 0 ; i < AN_VIS_COL ; ++i ) {
+	if ( label[i] == ' ' ) title[i] = '_';
+	else if ( (title[i] = label[i]) == '\0' ) break;
+    }
+    title[i] = '\0'; /* insurance */
+    if ( txt_width(title,tpal|AN_BIG_SET) > (AN_VIS_COL-2) ) {
+	/* oops, won't fit in BIG chars, take back those '_'s and
+	 * make it little.
+	 */
+	for ( i = 0 ; title[i] ; ++i ) if ( title[i] == '_' ) title[i] = ' ';
+    } else tpal |= AN_BIG_SET;
+    txt_str(-1,0,title,tpal);
+    if ( (options & STF_NOEXIT) == 0 ) {
+#if J_UP
+	bottom = st_insn(bottom, t_msg_ret_menu, t_msg_next, ipal);
+#else
+	bottom = st_insn(bottom, t_msg_ret_menu, t_msg_nexth, ipal);
+#endif
+    }
+    last_bottom = bottom;
+    return bottom;
+}
+
+/*		st_getenv(name,hook)
+ *	Finds the "environment variable" indicated by <name>
+ *	and returns a pointer to the (struct st_envar) that
+ *	specifes it. These structs are _not_ simply text
+ *	strings as in POSIX, for the convenience of routines
+ *	that may need to pass arbitrarily complex data. The
+ *	search starts at the (struct st_envar) specified by
+ *	<hook>, to allow multiple values for the same name
+ *	and allow the user to reject an entry and keep looking.
+ *	The "rev" field of the structure is intended to
+ *	facilitate such decisions. If <hook> is 0, the search
+ *	starts at the "top" of the chain specified by the game,
+ *	if any. After the game's chain is searched, any
+ *	defaults supplied by GUTS are searched.
+ */
+static const struct st_envar guts_env = {
+    "SELFTEST MENU",		/* Name */
+    (void *)&mainMenu,		/* Value pointer */
+    0,				/* Next */
+    0				/* Version */
+};
+
+const struct st_envar *
+st_getenv ( name, hook )
+const char *name;
+const struct st_envar *hook;
+{
+    const struct st_envar *curr = hook;
+    if ( curr == 0 ) {
+	/* Starting from scratch, look for game-supplied
+	 * list.
+	 */
+	const struct pconfigp *game_base = &PBASE + 1;
+	if ( game_base->p_validate == 0xFEEBF00D ) {
+	    curr = (const struct st_envar *)game_base->p_configb;
+	}
+	else curr = hook = &guts_env;
+    } else curr = curr->next;
+    /* At this point, we are pointing at the first st_envar
+     * to examine, if it exists. We _could_ have just walked
+     * off the end of the first (game) chain, and need to pick
+     * up with the GUTS chain, or we could have just walked off
+     * the end of the GUTS chain. The only real way to know this
+     * is to trace the GUTS chain and see if our entry hook
+     * is on it. If so, we are totally done. If not, start at
+     * &guts_env. This can happen at any time in the search,
+     * so we put the check first in the loop.
+     */
+    while (1) {
+	if ( !curr ) {
+	    /* end of the line, maybe. try to find hook
+	     * on guts list.
+	     */
+	    for ( curr = &guts_env ; curr ; curr = curr->next ) {
+		if ( curr == hook ) return 0;	/* been there */
+	    }
+	    curr = &guts_env;		/* restart search with GUTS defaults */
+	    hook = &guts_env;		/* Remember, for quick bail next time*/
+	}
+	if ( curr->name[0] == name[0] && !strcmp(curr->name,name) ) {
+	    break;
+	}
+	curr = curr->next;
+    }
+    return curr;
+}
+@
+
+
+1.52
+log
+@Changed default HDW_INIT to hdw_init(), to cut down on some
+of the squabbling #ifdefs in config.mac. This change correlates
+to the one where prc_init_vecs() is called from hdw_init() on
+phoenix-class boards, and the one where I took the (dangerous,
+but overridden in all sst config.macs) definition out of sst.mac.
+@
+text
+@d10 1
+a10 1
+const char FILE_ID_NAME[] = "$Id: selftest.c,v 1.51 1997/08/01 22:24:07 albaugh Exp albaugh $";
+d300 1
+d379 5
+a383 1
+
+d397 5
+a404 1
+
+d449 5
+@
+
+
+1.51
+log
+@Left off a ratzefratzen semicolon in the unused (CalSpeed)
+version. OOOOOPs
+@
+text
+@d10 1
+a10 1
+const char FILE_ID_NAME[] = "$Id: selftest.c,v 1.50 1997/08/01 22:06:11 albaugh Exp albaugh $";
+d255 8
+d268 2
+a269 1
+#define HDW_INIT(cold) do {;} while (0)
+@
+
+
+1.50
+log
+@Use new exit_to_game() function, but only if trying to exit
+directly by returning from top-level menu, so this change
+will not clobber existing games.
+@
+text
+@d10 1
+a10 1
+const char FILE_ID_NAME[] = "$Id: selftest.c,v 1.49 1997/07/31 22:32:06 forrest Exp albaugh $";
+d445 1
+a445 1
+	exit_to_game(0)
+@
+
+
+1.49
+log
+@Added definition of MENU_FLAGS if not defined elsewhere.
+Added usage of MENU_FLAGS in call to st_menu.
+@
+text
+@d10 1
+a10 1
+const char FILE_ID_NAME[] = "$Id: selftest.c,v 1.48 1997/07/01 22:48:44 albaugh Exp forrest $";
+d437 10
+a446 2
+	go_to_self_test = 0;
+	prc_reboot();
+@
+
+
+1.48
+log
+@Added RCS ID string
+@
+text
+@d10 1
+a10 1
+const char FILE_ID_NAME[] = "$Id$";
+d282 3
+d436 3
+a438 1
+	st_menu(menu,sizeof(mainMenu[0]),MNORMAL_PAL, STF_DATE|STF_NOEXIT);
+@
+
+
+1.47
+log
+@added fallbacks for games with no joystick. Could use work,
+but will do until it's my biggest problem :-)
+@
+text
+@d9 3
+@
+
+
+1.46
+log
+@Changed references to HOST_BOARD to use class instead of
+specific value.
+@
+text
+@d193 1
+d195 3
+d612 3
+d622 6
+d644 3
+a646 1
+
+d741 6
+d748 2
+a749 1
+		/* NEXT just advances menu pointer if at top level */
+d755 25
+d781 9
+a789 1
+	    else if ( ctls & SW_ACTION ) {
+d843 1
+d856 4
+a859 2
+	    }
+	    else if ( ctls & J_DOWN ) {
+d872 1
+d948 1
+d950 3
+@
+
+
+1.45
+log
+@Allowed for dynamic resolution. I.E. AN_VIS_COL et. al. can be made
+into ints instead of #defines. On 3dfx systems this is accompolished
+by defining the following in config.mac:
+DEC_CONST DYNAMIC_VIS_PIX 1
+DEC_CONST VIS_H_PIX_MAX whatever
+DEC_CONST VIS_V_PIX_MAX whatever
+After this, AN_VIS_COL, AN_VIS_ROW, VIS_V_PIX, VIS_H_PIX and
+SST_RESOLUTION become "extern int" instead of #defines.
+The new #defines AN_VIS_ROW_MAX and AN_VIS_COL_MAX are
+created (computed from VIS_H_PIX_MAX, VIS_V_PIX_MAX) so
+local arrays can be declared and this is the principle changed
+to this file.
+@
+text
+@d35 1
+a35 1
+#if (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE) || (HOST_BOARD == VEGAS)
+d60 1
+a60 1
+#if (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE) || (HOST_BOARD == VEGAS)
+@
+
+
+1.44
+log
+@Separated check for TOP/BOTTOM border stamps from check
+for LEFT/RIGHT border stamps. This is to accomodate games
+such as Area51, which need all the usable screen width they
+can get, but don't have TOP/BOTTOM stamps.
+@
+text
+@d16 7
+d152 1
+a152 1
+    char buf[AN_VIS_COL+1];
+d860 1
+a860 1
+    char title[AN_VIS_COL+2];
+@
+
+
+1.43
+log
+@Added st_getenv() to allow simpler over-ride of GUTS environment
+by game. Added st_bottom() to reduce number of redundant st_frame()
+calls.
+@
+text
+@d198 1
+a198 1
+/* If no "line" stamps, use squares */
+d201 3
+a206 1
+
+@
+
+
+1.42
+log
+@(re)enabled EC020cojag ROM descriptor.
+@
+text
+@d99 21
+d148 1
+d174 1
+d377 1
+d379 12
+d620 1
+d629 5
+d713 4
+a716 1
+	    if ( coroutine && (status = coroutine(smp)) != 0) return status;
+d720 4
+a723 1
+		else return (idx == widx) ? 0 : -1;
+d856 2
+a857 5
+#if (GUN_CNT == 0)
+    bottom = AN_VIS_ROW-2;	/* Just above border */
+#else
+    bottom = AN_VIS_ROW-3;	/* Leave room for gun arrow */
+#endif
+d882 1
+d884 67
+@
+
+
+1.41
+log
+@One more layer of kluge, get the PCB Reference designators
+a bit closer for Rev 3/4 CoJag.
+@
+text
+@d416 3
+a419 1
+    { "HOST      3H   3P   3M   3K",	{(U32*)0x800000, 0x200000, 0x01020304}},
+@
+
+
+1.40
+log
+@Added support and detection for SEATTLE and VEGAS host boards.
+@
+text
+@d407 3
+d411 1
+@
+
+
+1.39
+log
+@Accomodate "Phoenix Style" games use of guts_pbase instead
+of def_pbase.
+@
+text
+@d28 1
+a28 1
+#if (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+d53 1
+a53 1
+#if (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+@
+
+
+1.38
+log
+@Merge with PSX. Slightly cleaner PrintDate() handling.
+Find game's pconfigb in SelfTest(), not shims.
+@
+text
+@d53 12
+d66 2
+d255 1
+a255 1
+    else pbase = &def_pbase;
+@
+
+
+1.37
+log
+@Kluged ROM checksum table for Area51. See comments near rom_test().
+@
+text
+@d49 1
+a49 1
+/* We will be moving all the PBASE stuff to this file. Fo now, we at
+d53 1
+d60 1
+a60 1
+STATIC void
+a68 2
+    txt_str(LINKTIME_X,row,	"GUTS: ",VERSION_PAL);
+    txt_cstr(LINK_TIME,VERSION_PAL);		/* os link date	*/
+d72 1
+a72 1
+	txt_str(LINKTIME_X,row+1,	"MAIN: ",VERSION_PAL);
+d75 1
+a75 1
+	txt_str(LINKTIME_X,row+1,"No game at 0x",ERROR_PAL);
+d78 1
+d80 3
+d237 6
+d257 10
+d491 1
+a491 1
+    PrintDate(AN_VIS_ROW-6);
+a499 1
+    bottom = AN_VIS_ROW-4;
+d796 1
+a796 7
+#if !NO_GAME_LINKTIME
+	PrintDate(bottom-1);
+	bottom -= 2;
+#else
+	PrintDate(bottom);
+	bottom -= 1;
+#endif
+@
+
+
+1.36
+log
+@Changed the text in the BLAB statements slightly.
+@
+text
+@d367 9
+d377 2
+a378 1
+#endif
+@
+
+
+1.35
+log
+@One too many BLAB's.
+@
+text
+@d243 1
+a243 1
+    BLAB("\nEnabling interrupts...");
+d246 1
+a246 1
+    BLAB("\nInitializing video subsystem...");
+d254 1
+a254 1
+    BLAB("\nSetting alphanumeric colors...");
+d256 1
+a256 1
+    BLAB("\nReading EEPROM or BRAM...");
+d269 1
+a269 1
+    BLAB("\nChecking for PostMortem dump...");
+d271 1
+a271 1
+    BLAB("\nInitializing audio...");
+d274 1
+a274 1
+    BLAB("\nTurning off VCR...");
+d278 1
+a278 1
+    BLAB("\nInitializing guns...");
+d282 1
+a282 1
+    BLAB("\nInitializing POTS...");
+d287 1
+a287 1
+    BLAB("\nInitializing remote stats...");
+d291 1
+a291 1
+    BLAB("\nInitializing network...");
+d302 1
+a302 1
+	BLAB("\nSet default volumes...");
+d305 1
+a305 1
+	BLAB("\nInitialize coins...");
+d312 1
+a312 1
+	BLAB("\nGoto game...\n");
+d319 1
+a319 1
+    BLAB("\nSet selftest vblank interrupt...");
+d327 1
+a327 1
+	BLAB("\nDo secret handshake...");
+d343 1
+a343 1
+    BLAB("\nGoto selftest...\n");
+@
+
+
+1.34
+log
+@Added some boot up messages that are enabled with the definition
+of the cpp variable BLAB.
+@
+text
+@a340 1
+    BLAB("\nReset the switch reader code...");
+@
+
+
+1.33
+log
+@Added a conditional around the display of GAME link time.
+Allowed for the X position of link times to be moved in config.h
+Renamed OS: to GUTS: in the link time display.
+@
+text
+@d32 4
+d243 1
+d246 1
+d254 1
+d256 1
+d269 1
+d271 1
+d274 1
+d278 1
+d282 1
+d287 1
+d291 1
+d302 1
+d305 1
+d312 1
+d319 1
+d327 1
+d341 1
+d344 1
+@
+
+
+1.32
+log
+@Made the definition of BR9600 optional.
+@
+text
+@d51 3
+a53 1
+#define	LNK_X	4
+d64 1
+a64 1
+    txt_str(LNK_X,row,	"OS:   ",VERSION_PAL);
+d66 1
+d69 1
+a69 1
+	txt_str(LNK_X,row+1,	"MAIN: ",VERSION_PAL);
+d72 1
+a72 1
+	txt_str(LNK_X,row+1,"No game at 0x",ERROR_PAL);
+d75 1
+d747 1
+d750 4
+@
+
+
+1.31
+log
+@Changed the definition of ST_SWITCH macro (removed param parens).
+@
+text
+@d210 3
+a212 1
+#define BR9600 IO_UART_CTL_9600_BAUD
+@
+
+
+1.30
+log
+@Provided the reading of the selftest switch as a macro
+so it can be replaced with a function on systems where
+there is more involved that simply reading a h/w bit.
+@
+text
+@d22 1
+a22 1
+#  define ST_SWITCH() (!(TEST & (1<<B_TEST)))
+d24 1
+a24 1
+#  define ST_SWITCH() (1)
+d274 1
+a274 1
+    if ( !ST_SWITCH() && pbase->p_reset ) {
+@
+
+
+1.29
+log
+@Added call to rmt_init protected by REMOTE_STATS; added call to net_init protected by NET_LVL.
+@
+text
+@d20 8
+d274 1
+a274 2
+#if defined(TEST) && defined(B_TEST) && (B_TEST >= 0)
+    if ( (TEST & (1<<B_TEST) ) != 0 && pbase->p_reset ) {
+a291 1
+#endif
+@
+
+
+1.28
+log
+@Added support for PHOENIX_AD and FLAGSTAFF boards.
+@
+text
+@d201 7
+d258 6
+@
+
+
+1.27
+log
+@Added a GAME_DEFAULT symbol to define in config.mac to allow
+the game to always default selected GUTS options.
+@
+text
+@d20 2
+a21 2
+#if HOST_BOARD == PHOENIX
+#define LINK_TIME GUTS_LINK_TIME
+@
+
+
+1.26
+log
+@Temporary hack to test appropriate ROM space on LCR3K. We
+will need to remove such platform dependancies from selftest.c,
+but at least this change (deletion of old ROMTest entry) will
+keep us from _crashing_ LCR3Ks.
+@
+text
+@d236 3
+@
+
+
+1.25
+log
+@Moved the call to prc_delay_options() to startup so init() messages will show up
+on Phoenix systems. The options are set to 0 before game is called.
+@
+text
+@d317 4
+d322 2
+a323 1
+/*  { "TMEK0     24L  26L  28L  29L",	{0x00000, 0x80000, 0x01020304}}, */
+@
+
+
+1.24
+log
+@Renamed LINK_TIME to GUTS_LINK_TIME if PHOENIX system.
+@
+text
+@d209 8
+d261 5
+a271 8
+
+#if defined(PRC_DELAY_OPT_TEXT2FB)
+/*
+ * select a "default" prc_delay() action to copy text into the frame
+ * buffer, swap buffers and wait.
+ */
+    prc_delay_options(PRC_DELAY_OPT_TEXT2FB|PRC_DELAY_OPT_SWAP);
+#endif
+@
+
+
+1.23
+log
+@Misc fixes for Phoenix and SST.
+@
+text
+@d20 4
+@
+
+
+1.22
+log
+@fix typo in HDW_INIT(). Allow ST_AN_SET override. use #defined
+ERROR_PAL.
+@
+text
+@d254 10
+a263 1
+    /* Getting here means Test switch is on or no game, so run self-test */
+@
+
+
+1.21
+log
+@Removed the pm_dump() call with arguments.
+,
+@
+text
+@d182 1
+a182 1
+#define HDW_INIT(cold) do { prc_mod_latch(LM_INIT_BITS); while (0)
+d205 1
+d207 1
+d209 6
+d217 1
+a217 1
+	txt_str(-1,AN_VIS_ROW/2,"DATABASE ERRORS",RED_PALB);
+d241 5
+@
+
+
+1.20
+log
+@Re-removed the ROM_CHKSUM crap
+@
+text
+@a197 2
+extern struct pm_general pm_data;
+
+d217 1
+a217 1
+    pm_dump(&pm_data, PROCESSOR, 1);
+@
+
+
+1.19
+log
+@Changed the call to pm_dump() adding the additional arguments.
+@
+text
+@a292 6
+/* Below is egregious hack engendered by the inability to do
+ * much of interest in the FSF linker.
+ */
+extern char ROM_CKSUM;
+char * const rom_cksum_word = &ROM_CKSUM;
+
+@
+
+
+1.18
+log
+@deleted ROM_CKSUM egregious hack.
+@
+text
+@d198 2
+d219 1
+a219 1
+    pm_dump();
+d292 6
+@
+
+
+1.17
+log
+@added routine st_insn(), to simplify layout of instructions.
+added gun support, including double-click.
+remove about 10% of the wierdness of romTest().
+@
+text
+@a290 6
+/* Below is egregious hack engendered by the inability to do
+ * much of interest in the FSF linker.
+ */
+extern char ROM_CKSUM;
+char * const rom_cksum_word = &ROM_CKSUM;
+
+@
+
+
+1.16
+log
+@call to ide_init() conditional on IDE_INTS_ON. A better solution
+would be to make sure audio or whoever call it before use.
+@
+text
+@d61 57
+a117 1
+    
+d126 1
+a126 2
+    txt_str(-1,AN_VIS_ROW-3,t_msg_next,palette);
+    txt_str(-1,AN_VIS_ROW-2,t_msg_ret_menu,palette);
+d175 4
+a178 2
+ * If not, the following do-noting is used instead. If you have much to
+ * do, just place it in another file and call it.
+d181 3
+d185 11
+a203 4
+#ifdef LM_INIT_BITS
+    prc_mod_latch(LM_INIT_BITS);
+#endif
+
+d209 1
+a209 1
+	txt_str(-1,AN_VIS_ROW/2,"EEPROM ERRORS",RED_PALB);
+a217 3
+#ifdef IDE_INTS_ON
+    ide_init();
+#endif
+d222 3
+d230 1
+a230 1
+#ifdef TEST
+d272 3
+d284 4
+a287 6
+#if (PROCESSOR != M68EC020)
+    { "SL0",	{0x00000, 0x100000, 0x00010002}},
+#endif
+#if (PROCESSOR == M68EC020)
+    { "TMEK0     24L  26L  28L  29L",	{0x00000, 0x80000, 0x01020304}},
+#endif
+d291 5
+d311 1
+a311 1
+#if (PROCESSOR != M68EC020)
+d313 1
+a313 2
+#endif
+#if (PROCESSOR == M68EC020)
+d339 1
+a339 1
+#if (PROCESSOR != M68EC020)
+d344 1
+a344 2
+#endif
+#if (PROCESSOR == M68EC020)
+d356 1
+a356 1
+#if (PROCESSOR != M68EC020)
+d358 1
+a358 2
+#endif
+#if (PROCESSOR == M68EC020)
+d381 1
+d391 3
+a393 3
+    txt_clr_str(-1,AN_VIS_ROW-3,t_msg_action,INSTR_PAL);
+    txt_str(-1,AN_VIS_ROW-3,t_msg_action,INSTR_PAL);
+    txt_str(-1,AN_VIS_ROW-2,"to STOP test loop",INSTR_PAL);
+d418 1
+a418 9
+#if (COJAG_GAME&COJAG_AREA51)
+static int n_guns;
+extern int gun2idx PARMS((
+const struct menu_d * menu,
+int menu_size,
+int vpos
+));
+extern int gun_init();
+#endif
+a464 6
+#if (COJAG_GAME&COJAG_AREA51)
+    if ( options & STF_NOEXIT ) {
+	n_guns = gun_init();
+    }
+#endif
+
+a487 1
+	    char instbuf[AN_VIS_COL+1];
+d491 2
+a492 16
+	    if ( strlen(t_msg_action) < (AN_VIS_COL-2-sizeof("To run test, "))) {
+	       strcpy(instbuf,"To run test, ");
+	       strcat(instbuf,t_msg_action);
+	       txt_str(-1,bottom--,instbuf,INSTR_PAL);
+	    } else {
+	       txt_str(-1,bottom--,t_msg_action,INSTR_PAL);
+	       txt_str(-1,bottom--,"To run test",INSTR_PAL);
+	    }
+	    if ( strlen(t_msg_control) < (AN_VIS_COL-2-sizeof("To select test, "))) {
+	       strcpy(instbuf,"To select test, ");
+	       strcat(instbuf,t_msg_control);
+	       txt_str(-1,bottom--,instbuf,INSTR_PAL);
+	    } else {
+	       txt_str(-1,bottom--,t_msg_control,INSTR_PAL);
+	       txt_str(-1,bottom,"To select test",INSTR_PAL);
+	    }
+d554 7
+a560 1
+		st_frame( smp, TITLE_PAL, INSTR_PAL, 0);
+d571 1
+a571 1
+#if (COJAG_GAME&COJAG_AREA51)
+d575 4
+a578 1
+		fake_controls &= ~(GUN_UP|GUN_DOWN|GUN_LEFT|GUN_RIGHT);
+d582 19
+d681 5
+a685 1
+    bottom = AN_VIS_ROW-2;
+d709 1
+a709 3
+	txt_str(-1,bottom-1,t_msg_next,ipal);
+	txt_str(-1,bottom,t_msg_ret_menu,ipal);
+	bottom -= 2;
+@
+
+
+1.15
+log
+@updated ROM test (to about 1993), more work to come...
+deleted definition of HANDSHAKE (moved to config if
+applicable) Check for HANDSHAKE conditional on it
+being defined. deleted #if (0)'d code, brushed up
+some conditional compilation.
+@
+text
+@d151 1
+d153 1
+d155 1
+a155 1
+
+d157 1
+a157 1
+
+@
+
+
+1.14
+log
+@placed string.h after config.h to accomodate size_t kluge.
+This was needed because of gcc's builtin memcpy and memcmp.
+@
+text
+@d93 1
+a115 1
+
+a117 4
+extern void pm_dump();
+
+#define HANDSHAKE 	(J1_UP)
+
+d161 1
+a166 3
+#if (0)
+        ide_init();
+#endif
+d170 1
+d176 1
+d190 3
+a192 1
+#endif
+d229 1
+a229 1
+    U16	palette;
+d291 4
+a294 11
+	    if (anyBad)
+	    {
+		prc_delay0();
+		if (ctl_read_sw(0) & SW_ACTION)
+		{
+		    while ((ctl_read_sw(0) & SW_ACTION))
+			prc_delay0();
+
+		    anyBad = 0;		/* lie		*/
+		}
+	    }
+d311 4
+a314 1
+
+d317 2
+a318 2
+
+    txt_str(-1,AN_VIS_ROW-3,"                      ",GRN_PAL);
+a326 2
+    while (ctl_read_sw(0) & SW_NEXT)
+	prc_delay0();
+@
+
+
+1.13
+log
+@added COJAG_ to game name AREA51 to prevent symbol collision
+@
+text
+@a8 1
+#include <string.h>
+d14 1
+@
+
+
+1.12
+log
+@consider a NUL linktime, _or_ an empty string, to be "Not Installed"
+@
+text
+@d353 1
+a353 1
+#if (COJAG_GAME&AREA51)
+d408 1
+a408 1
+#if (COJAG_GAME&AREA51)
+d529 1
+a529 1
+#if (COJAG_GAME&AREA51)
+@
+
+
+1.11
+log
+@deleted pre-ANSI LINK_TIME, no-longer-used INSELF. Added code to print
+expected PBASE address if game's "Link Time" pointer is NULL.
+@
+text
+@d52 1
+a52 1
+    if ( pbase->p_linktime ) {
+@
+
+
+1.10
+log
+@moved ide_init() above aud_init, to allow disk-based
+audio initialization.
+@
+text
+@d22 7
+a28 4
+extern	struct menu_d	mainMenu[];		/* Unique selftest main menu	*/
+/* The time the GUTS was linked. The definition depends on whether an ANSI
+ * compiler was used. Of course, both date.c and this file must be compiled
+ * with the same compiler
+a30 1
+#if __STDC__
+d32 5
+a36 4
+#else
+extern	char	*LINK_TIME[];
+#endif
+extern	S16	INSELF;			/* Controls INT handler routing SelfTest/GAME */
+a50 1
+#if __STDC__
+d52 8
+a59 7
+#else
+    txt_str(LNK_X+6,row,LINK_TIME[0],VERSION_PAL);	/* os link date	*/
+    txt_str(LNK_X+22,row,LINK_TIME[1],VERSION_PAL);	/* os link date	*/
+#endif
+    txt_str(LNK_X,row+1,	"MAIN: ",VERSION_PAL);
+
+    txt_cstr(pbase->p_linktime,VERSION_PAL);		/* main link time*/
+a60 1
+    
+@
+
+
+1.9
+log
+@moved setancolors() from this file to XXX_text.c, where it
+belongs. Added "hook" for gun (or other absolute coord) device
+control of menu selection.
+@
+text
+@d153 1
+d168 1
+d170 1
+@
+
+
+1.8
+log
+@added hook for hdw-specific "rain dance" at beginning of
+SeflTest(). Consists of macro HDW_INIT and a plausible default.
+@
+text
+@a71 11
+void
+setancolors()
+{
+    SetANPal(GRY_PAL,GRY_SLT);
+    SetANPal(WHT_PAL,GRY_WHT);
+    SetANPal(YEL_PAL,GRY_YEL);
+    SetANPal(RED_PAL,GRY_RED);
+    SetANPal(GRN_PAL,GRY_GRN);
+    SetANPal(CYN_PAL,GRY_CYN);
+}
+
+d348 9
+a356 1
+
+d403 6
+d524 11
+@
+
+
+1.7
+log
+@moved call of ide_init() from jag_vid.c to this file.
+@
+text
+@d131 9
+d150 1
+@
+
+
+1.6
+log
+@prettier formatting for screen instructions
+@
+text
+@d168 1
+@
+
+
+1.5
+log
+@minor cleanup of palette selection. Added further instructions to
+st_menu(). changed st_frame() to allow this. Call slower aud_init()
+to ensure host_mos is properly inited.
+@
+text
+@d343 1
+a343 1
+#define MENU_Y_DEFAULT (5)
+d418 1
+d422 16
+a437 4
+	    txt_str(-1,bottom--,t_msg_action,INSTR_PAL);
+	    txt_str(-1,bottom--,"To run test",INSTR_PAL);
+	    txt_str(-1,bottom--,t_msg_control,INSTR_PAL);
+	    txt_str(-1,bottom,"To select test",INSTR_PAL);
+@
+
+
+1.4
+log
+@altered HANDSHAKE to allow use with debugger stub. minor spacing changes.
+@
+text
+@d102 1
+a102 1
+STATIC void
+d154 1
+a154 1
+    aud_init(0);
+d160 1
+a160 1
+    prc_delay(2);			/* get first pot->switch conversion	*/
+d179 1
+a179 1
+	txt_str(-1,(AN_VIS_ROW/2)+1,"OK, I HEARD YOU",WHT_PALB);
+d187 1
+a187 1
+	txt_clr_str(-1,(AN_VIS_ROW/2)+1,"OK, I HEARD YOU",WHT_PALB);
+a313 3
+#if (0)
+    txt_str(-1,0,"ROM_TEST",TITLE_PAL|AN_BIG_SET);
+#endif
+a330 1
+#if (1)
+a331 1
+#endif
+d417 1
+d420 5
+a424 1
+	    st_frame( title, TITLE_PAL, INSTR_PAL, options );
+d558 2
+a559 1
+ *	thus needs to re-paint the boilerplate.
+d562 1
+a562 1
+void st_frame( smp, tpal, ipal, options )
+d598 3
+a600 2
+	txt_str(-1,AN_VIS_ROW-3,t_msg_next,ipal);
+	txt_str(-1,AN_VIS_ROW-2,t_msg_ret_menu,ipal);
+d602 1
+@
+
+
+1.3
+log
+@changed PRIVATE to STATIC and fully-braced rom_list[]
+@
+text
+@d129 1
+a129 1
+#define HANDSHAKE 	(SW_ACTION|J1_UP)
+a161 1
+
+@
+
+
+1.2
+log
+@stifle some new warnings form gcc 2.*. non-fully bracketed structure
+initialization, implicit comparison ot zero in "if", and the "static"
+declaration of BorderEdge(), which somebody, somewhere, must be calling.
+@
+text
+@d10 1
+d20 1
+a20 1
+#define	PRIVATE	static
+d38 1
+a38 1
+PRIVATE void
+d102 1
+a102 1
+ void
+d205 1
+a205 1
+PRIVATE const struct rom_descrip rom_list[] = {
+d211 1
+a211 1
+    { "SL0",	0x00000, 0x100000, 0x00010002},
+d220 1
+a220 1
+PRIVATE int
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d101 1
+a101 1
+static void
+d213 1
+a213 1
+    { "TMEK0     24L  26L  28L  29L",	0x00000, 0x80000, 0x01020304},
+d215 1
+a215 1
+    { 0, 0, 0, 0 }
+d272 1
+a272 1
+		if (check = (cksums & 0xFF))
+@

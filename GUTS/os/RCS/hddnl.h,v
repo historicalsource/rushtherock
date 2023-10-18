@@ -1,0 +1,418 @@
+head	1.15;
+access;
+symbols
+	XINU_ALPHA_0_0:1.14
+	MACE_1_0e:1.12
+	MACE_1_0d:1.12
+	AREA_52_00:1.13
+	MACE_1_0a:1.12;
+locks; strict;
+comment	@ * @;
+
+
+1.15
+date	97.12.09.00.59.52;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	97.08.06.00.31.16;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	97.05.15.22.45.57;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	97.04.03.05.26.10;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	97.02.05.18.10.44;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	97.02.04.00.02.58;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	97.02.03.22.44.28;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.12.05.19.53.22;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.11.15.22.31.26;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.11.08.23.47.32;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.11.08.20.24.31;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.11.08.05.58.35;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.11.08.03.33.20;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.11.08.03.05.47;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.10.29.18.47.47;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Stuff for hard disk downloader.
+@
+
+
+1.15
+log
+@Added MOLE_O_BOOT.
+@
+text
+@#ifndef _MOLE_H_
+#define _MOLE_H_
+
+#ifndef _ICELESSPKT_H_
+#include <icelesspkt.h>
+#endif
+
+typedef enum mole_codes {
+    PKTcs = PKTcmd+1,		/* checksum goes at first byte after command */
+    MOLE_NOP=ICEnak+1,		/* do nothing */
+    MOLE_RESYNC,		/* resync to packet sequence number (also HELLO msg) */
+    MOLE_MOUNT,			/* mount the filesystem */
+    MOLE_INITFS,		/* init the filesystem */
+    MOLE_OPENFILE,		/* open a file/directory for I/O */
+    MOLE_RDFILE,		/* read file last opened */
+    MOLE_WRFILE,		/* write file last opened */
+    MOLE_WRFILEack,		/* write file last opened send ack when done */
+    MOLE_CLOSE,			/* close file last opened */
+    MOLE_OPENDIR,		/* open a directory */
+    MOLE_RDDIR,			/* read a directory */
+    MOLE_FSTAT,			/* get file stats */
+    MOLE_FSSTAT,		/* get filesystem stats */
+    MOLE_EOF,			/* reports end of input */
+    MOLE_RTEST,			/* receive test pattern */
+    MOLE_RTESTack,		/* receive test pattern */
+    MOLE_STEST,			/* send test pattern */
+    MOLE_CCHKSUM,		/* compute checksum on file */
+    MOLE_GOODBYE,		/* sign off */
+    MOLE_MAX,			/* maximum number of mole commands */
+    MOLE_ERR_NOTSUPP=1,		/* command not supported */
+    MOLE_ERR_INVCMD,		/* invalid command */
+    MOLE_ERR_OOS,		/* packet out of sequence */
+    MOLE_ERR_CS,		/* checksum error */
+    MOLE_ERR_INIT,		/* initfs error */
+    MOLE_ERR_INVARG,		/* invalid argument */
+    MOLE_ERR_MOUNT,		/* mount error */
+    MOLE_ERR_CANTINIT,		/* cannot init (volume already mounted) */
+    MOLE_ERR_NOIOQ,		/* no IOQ's left */
+    MOLE_ERR_OPEN,		/* error issuing qio_openspc */
+    MOLE_ERR_OPENDIR,		/* error issuing qio_open to check directory */
+    MOLE_ERR_MKDIR,		/* error issuing qio_open to create directory */
+    MOLE_ERR_CLOSE,		/* error doing close */
+    MOLE_ERR_NOMEM,		/* ran out of memory */
+    MOLE_ERR_WRITING,		/* error writing file */
+    MOLE_ERR_READING,		/* error reading file */
+    MOLE_ERR_DATA,		/* r/w test error */
+    MOLE_ERR_ARMOUNT,		/* volume is already mounted */
+    MOLE_ERR_OFFLINE,		/* drive is offline */
+    MOLE_ERR_DELETE,		/* error deleting */
+    MOLE_ERR_EOF,		/* end of file */
+    MOLE_ERR_HOMEB,		/* error updating home blocks */
+    MOLE_ERR_MAX
+} MoleCodes;
+
+/* Flag values for open(2) and fcntl(2)
+ * The kernel adds 1 to the open modes to turn it into some
+ * combination of FREAD and FWRITE.
+ */
+#define MOLE_O_RDONLY        0x0000	/* +1 == FREAD */
+#define MOLE_O_WRONLY        0x0001	/* +1 == FWRITE */
+#define MOLE_O_RDWR          0x0002	/* +1 == FREAD|FWRITE */
+#define MOLE_O_APPEND        0x0004
+#define MOLE_O_CREAT         0x0008
+#define MOLE_O_TRUNC         0x0010
+#define MOLE_O_EXCL          0x0020
+#define MOLE_V_COMPRESS	          6
+#define MOLE_O_COMPRESS	     (7<<MOLE_V_COMPRESS)
+#define MOLE_O_COMPRESS_OK   0x0200
+#define MOLE_O_FHBITS	     0x0400	/* read file headers (valid only with MOLE_O_RDONLY | MOLE_O_COMPRESS) */
+#define MOLE_O_FHBITS_OK     0x0800	/* ok to read file headers */
+#define MOLE_O_DELETE	     0x1000	/* Don't actually open the file, delete it */
+#define MOLE_O_BOOT	     0x2000	/* Make file into boot file */
+
+#define MAX_PKT_SIZE	(1440) /* maximum number of bytes per packet (1k user + seq + cmd + 2*cs) */
+
+typedef struct mole_stat_ext {
+    U8 size[4];			/* file size in bytes */
+    U8 alloc[4];		/* allocation amount */
+    U8 rptrs[4];		/* number of retrieval pointers */
+    U8 mode[4];			/* file mode */
+    U8 ctime[4];		/* file creation time */
+    U8 mtime[4];		/* file modification time */
+    U8 atime[4];		/* file access time */
+    U8 btime[4];		/* file backup time */
+} MoleStatExt;
+
+typedef struct mole_mount_int {
+    const char *phys;		/* physical device name */
+    const char *virt;		/* virtual device name */
+    int type;			/* filesystem type */
+} MoleMountInt;
+
+typedef struct mole_mount_ext {
+    U8 phys;			/* index to null terminated phys name */
+    U8 virt;			/* index to null terminated virtual name */
+    U8 type;			/* filesystem type */
+} MoleMountExt;
+
+#if 0		/* this is identical to FsysInitVol */
+typedef struct mole_initfs_int { /* internal (host/target) representation of initfs command */
+    int cluster;		/* number of sectors per cluster */
+    int index_sectors;		/* number of sectors to preallocate for index file */
+    int free_sectors;		/* number of sectors to preallocate for freelist file */
+    int root_sectors;		/* number of sectors to preallocate for root directory */
+    int default_extend;		/* number of sectors to extend a file by default */
+} MoleInitFSInt;
+#endif
+
+typedef struct mole_initfs_ext { /* network representation of initfs command */
+    U8 cluster;			/* number of sectors per cluster */
+    U8 index_sectors[4];	/* number of sectors to preallocate for index file */
+    U8 free_sectors[4];		/* number of sectors to preallocate for freelist file */
+    U8 root_sectors[4];		/* number of sectors to preallocate for root directory */
+    U8 default_extend[4];	/* number of sectors to extend a file by default */
+    U8 phys;			/* offset to null terminated physical device name */
+    U8 virt;			/* offset to null terminated virtual device name */
+} MoleInitFSExt;
+
+#if 0				/* this is actually FsysOpenT */
+typedef struct mole_mkfile_int {
+    const char *fname;		/* pointer to filename */
+    int mode;			/* I/O mode bits */
+    int fid;			/* FID to use to open (or FID of newly created file) */
+    int parent;			/* FID of parent */
+    size_t alloc;		/* file pre-allocation size in bytes */
+    size_t eof;			/* where EOF is */
+    int placement;		/* where on disk file is to be placed */
+    int copies;			/* number of copies of file */
+    int mkdir;			/* .ne. if to create directory */
+    U32 ctime;			/* file creation time */
+} MoleMkFileInt;
+#endif
+
+typedef struct mole_mkfile_ext {
+    U8 fname;			/* index into buffer to null terminated filename string */
+    U8 placement;		/* where on disk file is to be placed */
+    U8 copies;			/* number of copies of file */
+    U8 mkdir;			/* .ne. if to create directory */
+    U8 cookie[4];		/* channel to use for subsequent read/write */
+    U8 mode[4];			/* I/O mode bits */
+    U8 fid[4];			/* FID to use to open (or FID of newly created file) */
+    U8 parent[4];		/* FID of parent */
+    U8 alloc[4];		/* file pre-allocation size in bytes */
+    U8 eof[4];			/* where EOF is */
+    U8 ctime[4];		/* file creation time */
+    U8 mtime[4];		/* file modification time */
+    U8 atime[4];		/* file access time */
+    U8 btime[4];		/* file backup time */
+    U8 def_extend[2];		/* default file extension (in sectors) */
+} MoleMkFileExt;
+
+#define hddnlfhbits parent	/* use the 'parent' field to hold the fhbits */
+#define HDDNL_GETFH_ALLOC	0x0001	/* get allocation */
+#define HDDNL_GETFH_SIZE	0x0002	/* get size */
+#define HDDNL_GETFH_CTIME	0x0004	/* get c time */
+#define HDDNL_GETFH_MTIME	0x0008	/* get m time */
+#define HDDNL_GETFH_ATIME	0x0010	/* get a time */
+#define HDDNL_GETFH_BTIME	0x0020	/* get b time */
+#define HDDNL_GETFH_PERMS	0x0040	/* get perms */
+#define HDDNL_GETFH_OWNER	0x0080	/* get owner */
+#define HDDNL_GETFH_DIR		0x0100	/* get type (directory/non-directory) */
+#define HDDNL_GETFH_NRPS	0x0200	/* get (max) number of retrieval pointers */
+#define HDDNL_GETFH_COPIES	0x0400	/* get number of copies */
+#define HDDNL_GETFH_DEFEXT	0x0800	/* get default extension */
+#define HDDNL_GETFH_FIRSTRP	0x1000	/* get the first retrieval pointer */
+
+#endif
+@
+
+
+1.14
+log
+@Up'd MAX_PKT_SIZE to 1440.
+@
+text
+@d51 1
+d72 1
+@
+
+
+1.13
+log
+@Added HDDNL_GETFH_FIRSTRP.
+@
+text
+@d72 1
+a72 1
+#define MAX_PKT_SIZE	(1390+4) /* maximum number of bytes per packet (1k user + seq + cmd + 2*cs) */
+@
+
+
+1.12
+log
+@Support for uploads of directory information.
+@
+text
+@d163 1
+@
+
+
+1.11
+log
+@Added MOLE_O_COMPRESS_OK.
+@
+text
+@d49 2
+d68 3
+d149 14
+@
+
+
+1.10
+log
+@MOLE_O_COMPRESS is now a 3 bit mask.
+@
+text
+@d65 1
+@
+
+
+1.9
+log
+@Added MOLE_O_COMPRESS
+,
+@
+text
+@d63 2
+a64 1
+#define MOLE_O_COMPRESS	     0x0040     /* Data arriving compressed */
+@
+
+
+1.8
+log
+@Added a GOODBYE command.
+@
+text
+@d56 3
+a58 3
+#define MOLE_O_RDONLY        0               /* +1 == FREAD */
+#define MOLE_O_WRONLY        1               /* +1 == FWRITE */
+#define MOLE_O_RDWR          2               /* +1 == FREAD|FWRITE */
+d63 1
+@
+
+
+1.7
+log
+@Added MOLE_CCHKSUM and MOLE_ERR_OFFLINE.
+@
+text
+@d11 1
+a11 1
+    MOLE_RESYNC,		/* resync to packet sequence number */
+d28 1
+@
+
+
+1.6
+log
+@Removed checksum commands.
+@
+text
+@d27 1
+d47 1
+@
+
+
+1.5
+log
+@Added checksum commands.
+@
+text
+@a18 4
+    MOLE_UPD_CKSUM,		/* prepare to update checksum file */
+    MOLE_WRCSUM,		/* write checksum data */
+    MOLE_WRCSUMack,		/* write checksum data, send ack when done */
+    MOLE_CLOSECKSUM,		/* close checksum file */
+@
+
+
+1.4
+log
+@Moved some members of MoleMkFileExt
+@
+text
+@d19 4
+@
+
+
+1.3
+log
+@Added members to structs.
+@
+text
+@d123 3
+a131 3
+    U8 placement;		/* where on disk file is to be placed */
+    U8 copies;			/* number of copies of file */
+    U8 mkdir;			/* .ne. if to create directory */
+@
+
+
+1.2
+log
+@Added error message MOLE_ERR_ARMOUNT.
+@
+text
+@d70 2
+d133 3
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d45 1
+@

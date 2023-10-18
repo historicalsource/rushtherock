@@ -1,0 +1,221 @@
+head	1.1;
+access;
+symbols;
+locks
+	forrest:1.1; strict;
+comment	@ * @;
+
+
+1.1
+date	96.07.30.01.34.07;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Driver for the I/O ASIC uart on Phoenix/Flagstaff.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@
+/*
+ *	ioa_uart.c -- Forrest Miller -- July 1996
+ *
+ *	Driver for the I/O ASIC uart on Phoenix/Flagstaff.
+ *
+ *
+ *		Copyright 1996 Atari Games Corporation
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+/*
+ *	Functions:
+ *		static void ioa_uart_irq()
+ *		static void ioa_uart_act(void *status)
+ *		void ioa_uart_init()
+ */
+
+#include <config.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <intvecs.h>
+#include <ioa_uart.h>
+#include <uart.h>
+
+#define	STATIC	static
+
+
+STATIC struct act_q ioa_uart_q;
+STATIC struct ucb *ioa_ucb;
+
+
+/*
+ * ioa_uart_irq - Interrupt service routine saves the interrupt status,
+ *	     services the hardware, and queues the action routine.
+ */
+STATIC void ioa_uart_irq()
+{
+ U32 intr;	/* Bits which actually caused this interrupt */
+
+ intr = IO_STATUS & IO_CONTROL & UART_INT;
+
+ if ( intr )
+ {
+  struct ucb *ucbp = ioa_ucb;
+  if ( intr & UART_RCV )
+  {
+   int ii;
+
+   for ( ii = 0; ii < FIFO_SIZE; ++ii )
+   {
+    U32 rc = UART_RECEIVER;
+
+    if ( rc & CHAR_RCV )
+    {
+     if ( ucbp->flags & UF_RBF ) ++ucbp->dropped;
+     else
+     {
+      ucbp->rcv_buf[ ucbp->rcv_in++ ] = (U16)rc;
+      if ( ucbp->rcv_in == UART_RB_LEN ) ucbp->rcv_in = 0;
+      if ( ucbp->rcv_in == ucbp->rcv_out )
+      {
+       ucbp->flags |= UF_RBF;
+       intr |= ( UF_RBF << 16 );
+      }
+     }
+    }
+    else break;
+   }
+  }
+
+  if ( intr & UART_XMT )
+  {
+   if ( ucbp->xmt_cnt < ucbp->xmt_len )
+    UART_XMITTER = ucbp->xmt_buf[ ucbp->xmt_cnt++ ];
+   else
+   {
+    IO_CONTROL &= ~UART_XMT;
+    ucbp->flags |= UF_TXD;
+   }
+  }
+
+  if ( ioa_uart_q.que == 0 )
+  {
+   ioa_uart_q.param = (void *)intr;
+   prc_q_action(&ioa_uart_q);
+  }
+  else
+  {
+   intr |= (U32)ioa_uart_q.param;
+   ioa_uart_q.param = (void *)intr;
+  }
+ }
+}
+
+/*
+ * ioa_uart_act - Action routine
+ */
+STATIC void ioa_uart_act(void *status)
+{
+ struct ucb *ucbp = ioa_ucb;
+ if ( (U32)status & UART_RCV )
+ {
+  int n = ucbp->rcv_in - ucbp->rcv_out;
+  if ( n <= 0 ) n += UART_RB_LEN;
+  while ( n-- )
+  {
+   ( ucbp->rcv_cb )( ucbp->rcv_buf[ ucbp->rcv_out++ ] );
+   if ( ucbp->rcv_out == UART_RB_LEN ) ucbp->rcv_out = 0;
+  }
+  ucbp->flags &= ~( ( (U32)status >> 16 ) & UF_RBF );
+ }
+
+ if ( ( (U32)status & UART_XMT ) && ( ucbp->flags & UF_TXD ) )
+ {
+  ucbp->flags &= ~UF_TXD;
+  ( ucbp->xmt_cb )( ucbp->xmt_buf );
+ }
+}
+
+/*
+ * ioa_uart_init - Resets the UART, loads the interrupt vector, loads the
+ *		   action routine, initializes the UART and enables the
+ *		   receive interrupt.
+ */
+STATIC struct ucb *ioa_uart_init( struct ucb *ucbp )
+{
+#if 0
+ struct ucb *old_ucbp;
+
+ if ( ucbp )
+ {
+  old_ucbp = ioa_uart_init( (struct ucb *)0 );
+ } 
+ else
+ {
+  if ( ( old_ucbp = ioa_ucb ) )
+  {
+   U16 uart_control = UART_CONTROL;
+   while ( old_ucbp->xmt_cnt != old_ucbp->xmt_len ) ( old_ucbp->xmt_busy )();
+   UART_CONTROL = old_ucb->baud;
+   old_ucb->baud = uart_control & BAUD_MASK;
+   prc_set_vec(UART_INTVEC, old_ucb->old_irq);
+   ioa_ucb = (struct ucb *)0;
+  }
+ }
+#else
+ struct ucb *old_ucbp = 0;
+#endif
+
+
+ UART_CONTROL = 0;				/* Reset the UART */
+ prc_set_vec(UART_INTVEC, ioa_uart_irq);	/* Load the I/O ASIC Vector */
+ ioa_uart_q.action = ioa_uart_act;		/* Load the Action Routine */
+ UART_CONTROL = UART_ENABLE | ucbp->baud;	/* Init the UART */
+ IO_CONTROL |= UART_RCV;			/* Start the receiver */
+
+ ioa_ucb = ucbp;
+
+ return old_ucbp;
+}
+
+/*
+ * uart_init -  Resides here (temporarily) until it becomes necessary to
+ *		create a uart.c
+ */
+struct ucb *uart_init( struct ucb *ucbp )
+{
+ return ioa_uart_init( ucbp );
+}
+
+/*
+ * uart_write - Resides here (temporarily) until it becomes necessary to
+ *		create a uart.c
+ */
+int uart_write( int fd, char *buf, int n )
+{
+ struct ucb *ucbp = ioa_ucb;
+ int tmp = fd;
+
+ if ( ( buf ) && ( n ) )
+ {
+  ucbp->xmt_buf = buf;
+  ucbp->xmt_len = n;
+  ucbp->xmt_cnt = 0;
+
+  UART_XMITTER = ucbp->xmt_buf[ ucbp->xmt_cnt++ ];
+  IO_CONTROL |= UART_XMT;
+ }
+
+ tmp = 0;
+ return tmp;
+}
+@

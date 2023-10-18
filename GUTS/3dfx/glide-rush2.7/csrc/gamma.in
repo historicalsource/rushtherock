@@ -1,0 +1,15 @@
+#
+# Gamma Correction Table Generator Input File
+#
+# This file is used to set the gamma correction value used be gammagen
+# to generate the gamma correction table used in initialization of the
+# Glide Library.
+#
+# The gamma correction value is specified as follows:
+#
+# GAMMA=X.X
+#
+# X.X is a floating point value
+#
+
+GAMMA=1.7

@@ -1,0 +1,411 @@
+head	1.13;
+access;
+symbols
+	RUSH_ROCK_1_0:1.13
+	RUSH_ROCK_1_0epst:1.13
+	RUSH_ROCK_1_0boot:1.13
+	MACE_1_0e:1.13
+	MACE_1_0d:1.13
+	RUSH_1_06A:1.9
+	AREA_52_00:1.13
+	MACE_1_0a:1.10
+	CJ_206:1.8
+	CJ2_05:1.8
+	CJ2_04:1.8;
+locks; strict;
+comment	@;; @;
+
+
+1.13
+date	97.07.01.20.54.19;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	97.06.12.17.17.06;	author forrest;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	97.06.12.17.04.07;	author forrest;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	97.01.15.21.17.23;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.12.12.19.13.24;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.09.24.20.16.58;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.02.29.22.19.55;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.11.07.23.11.00;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.11.07.22.19.32;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.10.31.18.40.21;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.10.31.01.50.03;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.09.13.02.03.55;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.06.26.23.40.48;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@MACPP constants, macros and .defines required for use with most config.* processing
+@
+
+
+1.13
+log
+@Added a $Id$ to get file's version number.
+@
+text
+@; $Id$
+;
+.if ndf, _PPTYPES_MAC_
+_PPTYPES_MAC_	== 0
+ .if ndf,M68000
+   .warn ;You should .include constants.mac before .including pptypes.mac
+   .include constants.mac
+ .endc
+ .if ndf,PROCESSOR
+   .error ;You need to define PROCESSOR before .including pptypes.mac
+   HEX_CONST PROCESSOR 0
+ .endc
+.if true, OUTPUT_LANG == LANG_C
+#if !defined(_PPTYPES_H_)
+#define _PPTYPES_H_
+.endc
+ .if ndf,NO_LONGLONG
+   HEX_CONST NO_LONGLONG 1
+ .endc
+;
+;
+REM <	Actual Type Declarations>
+;
+ .if ne,ANSI_OK
+  .if true, ((NO_LONGLONG == 0) && ((PROCESSOR & -16) == MIPS4000))
+	TYPE	VS64	<volatile long long> 8
+	TYPE	VU64	<volatile unsigned long long> 8
+  .endc
+	TYPE	VS32	<volatile long> 4
+	TYPE	VS16	<volatile short> 2
+	TYPE	VS8	<volatile signed char> 1
+	TYPE	VS08	<volatile signed char> 1
+	TYPE	VU32	<volatile unsigned long> 4
+	TYPE	VU16	<volatile unsigned short> 2
+	TYPE	VU8	<volatile unsigned char> 1
+	TYPE	VU08	<volatile unsigned char> 1
+	TYPE	VF32	<volatile float> 4
+	TYPE	VF64	<volatile double> 8
+ .endc
+ .if eq,ANSI_OK
+  .if true, ((NO_LONGLONG == 0) && ((PROCESSOR & -16) == MIPS4000))
+	TYPE	VS64	< long long> 8
+	TYPE	VU64	< unsigned long long> 8
+  .endc
+	TYPE	VS32	< long> 4
+	TYPE	VS16	< short> 2
+	TYPE	VS8	< char> 1
+	TYPE	VS08	< char> 1
+	TYPE	VU32	< unsigned long> 4
+	TYPE	VU16	< unsigned short> 2
+	TYPE	VU8	< unsigned char> 1
+	TYPE	VU08	< unsigned char> 1
+	TYPE	VF32	< float> 4
+	TYPE	VF64	< double> 8
+ .endc
+ .if true ,(PROCESSOR == M68010) || (PROCESSOR == M68000)
+	TYPE	m_int	<short> 2 
+	TYPE	m_uint	<unsigned short> 2
+ .iff
+	TYPE	m_int	<int> 4 
+	TYPE	m_uint	<unsigned int> 4
+ .endc
+	TYPE	U8	<unsigned char> 1
+	TYPE	U08	<unsigned char> 1
+ .if ne,ANSI_OK
+	TYPE	S8	<signed char> 1
+	TYPE	S08	<signed char> 1
+ .iff
+	TYPE	S8	<char> 1
+	TYPE	S08	<char> 1
+ .endc
+	TYPE	U16	<unsigned short> 2
+	TYPE	S16	<short> 2
+	TYPE	U32	<unsigned long> 4
+	TYPE	S32	<long> 4
+	TYPE	F32	<float> 4
+	TYPE	F64	<double> 8
+ .if true, ((NO_LONGLONG == 0) && ((PROCESSOR & -16) == MIPS4000))
+	TYPE	U64	< unsigned long long> 8
+	TYPE	S64	< long long> 8
+ .endc
+	TYPE	RD_TYP	<struct rdb> 12
+	TYPE	RR_TYP	<struct rrb> 16
+	TYPE	MN_TYP	<struct menub> 8
+	TYPE	PB_TYP	<struct pconfigp> 8
+	TYPE	CR_TYP	<struct creditsb> 4
+;
+	.if	eq,OUTPUT_LANG-LANG_C
+struct menu_d {
+	char	*mn_label;		    /* menu item label		*/
+	int	(*mn_call)(const struct menu_d*); /* menu item routine call	*/
+};
+;
+struct menub {
+	char		*mn_label;	/* menu item label		*/
+	void		(*mn_call)();	/* menu item routine call	*/
+};
+;
+struct creditsb {
+	unsigned short	crd_whole;	/* Integer part of coins	*/
+	unsigned char	crd_num;	/* numerator			*/
+	unsigned char	crd_denom;	/* denominator			*/
+};
+REM <	General purpose Environment Table structure>
+	STR_START	st_envar
+	STR_ELT		name <const char *> 1 < for lookup>
+	STR_ELT		value <const void *> 1 < could point to anything>
+	STR_ELT		next <const struct st_envar *> 1 < chain >
+	STR_ELT		version <unsigned long> 1 < not yet used>
+	STR_END		st_envar
+	.endc
+;
+REM <	Structure to describe RAM area to test>
+	STR_START	rdb
+	STR_ELT		rd_base	<unsigned long *> 1 < Starting address >
+	STR_ELT		rd_len	<unsigned long>	1 < Length in bytes >
+	STR_ELT		rd_misc	<unsigned long>	1 < Which bits exist>
+	STR_END		rdb
+;
+REM <	Structure to describe the non-processor specific post mortem variables >
+.if not_defined, PM_TEXT_SIZE
+	DEC_CONST PM_TEXT_SIZE	80	<Up to 80 bytes of postmortem text>
+.endc
+	STR_START pm_general
+	STR_ELT	pm_msg		<const char *> 1 <Pointer to message>
+	STR_ELT pm_text		char PM_TEXT_SIZE <Local copy of text message>
+	STR_ELT	pm_stack	U32* 1	<Stack pointer in target's address space>
+	STR_ELT pm_stkupper	U32* 1  <Stack upper limit in target's address space>
+	STR_ELT pm_stklower	U32* 1  <Stack lower limit in target's address space>
+	STR_ELT pm_stkrelative	U32* 1  <Stack pointer in host's address space>
+	STR_ELT	pm_cntr		S32  1	<Post mortem flag>
+	STR_ELT	pm_pc		U32  1	<Program counter>
+	STR_ELT	pm_sr		U32  1	<Status register>
+	STR_ELT pm_regs		U32  32 <ASAP/R3K/R4K have 32. 68k only uses 16 of these>
+	STR_ELT pm_cause	U32  1	<R3K/R4K cause register>
+	STR_ELT pm_badvaddr	U32  1  <R3K/R4K bad virtual address register>
+	STR_END pm_general
+.if true, OUTPUT_LANG == LANG_C
+# define _PM_GENERAL_STRUCT_	0	/* Disable the definition in st_proto.h */
+# define PM_68K_SIZE	(sizeof(struct pm_general)-(18*4))
+# define PM_RxK_SIZE	(sizeof(struct pm_general))
+.iff
+ .if true, OUTPUT_LANG == LANG_ASRxK		;GNU assembler
+	DEC_CONST PM_68K_SIZE	(S_SIZ_PM_GENERAL-(18*4))
+	DEC_CONST PM_RxK_SIZE	(S_SIZ_PM_GENERAL)
+ .endc
+.endc
+;
+;
+REM <	Structure for optional return of RAM test results>
+	STR_START	rrb
+	STR_ELT		rr_addr <unsigned long *>	1 < Where it choked >
+	STR_ELT		rr_expected <unsigned long>	1 < What it wanted >
+	STR_ELT		rr_got	<unsigned long>		1 < What it got>
+	STR_ELT		rr_test_no	<int>		1 < Which test >
+	STR_END		rrb
+;
+	HEX_CONST B_NO_ROM_TEST	0	< bit # in p_debug_options to skip ROM checksum	>
+	HEX_CONST NO_ROM_TEST	(1<<B_NO_ROM_TEST)
+	HEX_CONST B_NO_RAM_TEST	1	< bit # in p_debug_options to skip RAM test	>
+	HEX_CONST NO_RAM_TEST	(1<<B_NO_RAM_TEST)
+	HEX_CONST B_NO_LOG_RESET 2	< bit # in p_debug_options to skip logging RESET>
+	HEX_CONST NO_LOG_RESET	(1<<B_NO_LOG_RESET)
+.if true, OUTPUT_LANG == LANG_C
+#endif			/* _PPTYPES_H_ */
+.endc
+.endc			;_PPTYPES_MAC_
+@
+
+
+1.12
+log
+@Made NO_LONGLONG default to 1.
+@
+text
+@d1 2
+@
+
+
+1.11
+log
+@Removed unconditional suppression of U64 and S64.
+@
+text
+@d16 1
+a16 1
+   HEX_CONST NO_LONGLONG 0
+d23 1
+a23 1
+  .if true, 0 && ((NO_LONGLONG == 0) && ((PROCESSOR & -16) == MIPS4000))
+d39 1
+a39 1
+  .if true, 0 && ((NO_LONGLONG == 0) && ((PROCESSOR & -16) == MIPS4000))
+@
+
+
+1.10
+log
+@added const qualifiers in st_envar struct. Should eliminate
+warnings when chaining.
+@
+text
+@d76 1
+a76 1
+ .if true, 0 && ((NO_LONGLONG == 0) && ((PROCESSOR & -16) == MIPS4000))
+@
+
+
+1.9
+log
+@Added st_envar struct for over-rideable "Environment" definitions.
+See selftest.c
+@
+text
+@d105 2
+a106 2
+	STR_ELT		value <void *> 1 < could point to anything>
+	STR_ELT		next <struct st_envar *> 1 < chain >
+@
+
+
+1.8
+log
+@Assure that S8, S08, VS8, and VS08 are _signed_, even
+on the Sony compiler.
+@
+text
+@d102 7
+d110 1
+@
+
+
+1.7
+log
+@Added types VU08, VS08, U08 and S08.
+@
+text
+@d29 2
+a30 2
+	TYPE	VS8	<volatile char> 1
+	TYPE	VS08	<volatile char> 1
+@
+
+
+1.6
+log
+@Made it _compile_ on 68k code. Don't know if it will _work_ on a 68k system yet.
+@
+text
+@d30 1
+d34 1
+d46 1
+d50 1
+d62 1
+d65 1
+d68 1
+@
+
+
+1.5
+log
+@Put some C protections around pm_general so pm.c can tell if it's defined or not.
+@
+text
+@a106 4
+.if true, OUTPUT_LANG == LANG_C
+#if !defined(_PM_GENERAL_STRUCT_)
+#define _PM_GENERAL_STRUCT_
+.endc
+d122 1
+a124 1
+#endif
+@
+
+
+1.4
+log
+@Added more fields to the pm_general struct.
+@
+text
+@d107 4
+d126 3
+a128 2
+#define PM_68K_SIZE	(sizeof(struct pm_general)-(18*4))
+#define PM_RxK_SIZE	(sizeof(struct pm_general))
+@
+
+
+1.3
+log
+@Reapply my changes that were lost earllier today. Thanks, Forrest.
+@
+text
+@d110 4
+a113 1
+	STR_ELT	pm_stack	U32* 1	<Stack pointer>
+@
+
+
+1.2
+log
+@Added VF32, F32, VF64 and F64 types
+@
+text
+@d103 25
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d33 2
+d47 2
+d67 2
+@

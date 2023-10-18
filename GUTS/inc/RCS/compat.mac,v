@@ -1,0 +1,116 @@
+head	1.3;
+access;
+symbols
+	CJ2_05:1.3
+	CJ2_04:1.3;
+locks; strict;
+comment	@;; @;
+
+
+1.3
+date	94.12.12.18.52.37;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	94.07.27.17.30.22;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.06.21.17.43.18;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Defines MOTO-style directives in terms of mac68K directives.
+@
+
+
+1.3
+log
+@fixed syntax of include to match both Tramiel tools and "Moto"
+@
+text
+@	.ENABL	DOLLAR_HEX
+	.MACRO SECTION NUMBER
+	.psect $$seg'NUMBER,SEGMENT=1,DATA=1
+	.ENDM
+	.MACRO .text
+	.psect text,SEGMENT=3,DATA=1
+	.ENDM
+	.MACRO .data
+	.psect data,SEGMENT=3,DATA=1
+	.ENDM
+	.MACRO .bss
+	.psect bss,SEGMENT=3,DATA=1
+	.ENDM
+	.DEFINE PAGE .page
+	.DEFINE page .page
+	.DEFINE END .END
+	.DEFINE TTL .title
+	.radix	10.
+	.DEFINE EQU :=
+	.DEFINE equ :=
+	.DEFINE .equ :=
+	.DEFINE SET =
+	.DEFINE xdef .globl
+	.DEFINE xref .globl
+	.DEFINE .extern .globl
+	.DEFINE xrefs .globs
+	.DEFINE EVEN .align 1
+	.DEFINE IF_GE .if ge,
+	.DEFINE IFNE .if ne,
+	.DEFINE IFEQ .if eq,
+	.DEFINE IFNDEF .if ndf,
+	.DEFINE ENDC .endc
+	.DEFINE ifne .if ne,
+	.DEFINE ifeq .if eq,
+	.DEFINE endc .endc
+	.macro	.phrase
+	.align	3
+	.endm
+	.macro	ORG val
+	.psect .ABS.
+	.=	val
+	.endm
+	.macro	__include file
+	.include file
+	.endm
+	.macro	include file
+	__include ^'file
+	.endm
+MACRO_STYLE	= 1
+	.dsabl	GBL
+	.text
+@
+
+
+1.2
+log
+@Bumped segment alignment to 3, to allow .phrase to work
+@
+text
+@d47 1
+a47 1
+	__include file
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d6 1
+a6 1
+	.psect text,SEGMENT=1,DATA=1
+d9 1
+a9 1
+	.psect data,SEGMENT=1,DATA=1
+d12 1
+a12 1
+	.psect bss,SEGMENT=1,DATA=1
+d36 3
+@

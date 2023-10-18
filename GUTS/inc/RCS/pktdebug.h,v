@@ -1,0 +1,56 @@
+head	1.2;
+access;
+symbols
+	XINU_ALPHA_0_0:1.2
+	MACE_1_0e:1.2
+	MACE_1_0d:1.2
+	AREA_52_00:1.2
+	MACE_1_0a:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	95.07.10.18.40.00;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.06.26.23.32.23;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Header file for use with ICELESS packet protocol debugging
+@
+
+
+1.2
+log
+@Added a 'busy' flag
+@
+text
+@typedef struct {
+   VU32 *dropped;		/* pointer to dropped packets */
+   VU32 *volatile count;	/* pointer to packet counts */
+   VU32 *volatile reason;	/* reason bits */
+#define REASON_PREMSYNC	1	/* premature sync bit */
+#define REASON_NOQUE	2	/* no queues */
+   int boards;			/* number of boards */
+   IcelessBoard * const *xbaddrs; /* pointer to array of pointers to ICELESS boards */
+   PktIOStruct * volatile * volatile current; 	/* pointer to current queue head */
+   PktIOStruct * volatile * volatile ready; 	/* pointer to ready queue head */
+   PktIOStruct * volatile * volatile queued; 	/* pointer to queued queue head */
+   int *busy;			/* packet scanner busy */
+} PktDebug;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 1
+@

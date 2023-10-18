@@ -1,0 +1,1108 @@
+head	1.8;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.8
+date	97.10.03.22.32.54;	author forrest;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	97.09.30.00.42.16;	author forrest;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.09.26.20.02.14;	author forrest;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	97.09.26.00.52.15;	author forrest;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	97.09.22.19.46.02;	author forrest;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.09.08.22.06.43;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.07.16.17.24.38;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.04.29.16.43.09;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Generic QIO DMA driver.  Users need to include dma.h
+@
+
+
+1.8
+log
+@Using extend_bss(0) instead of &bss_end.
+@
+text
+@
+/*
+ * $Id: qio_dma.c,v 1.7 1997/09/30 00:42:16 forrest Exp forrest $
+ *
+ *	qio_dma.c -- Forrest Miller -- April 1997
+ *
+ *	Generic QIO DMA driver.  Users need to include dma.h
+ *	Written for the Galileo, specifics in qio_dma.h
+ *	To support different devices, add specifics to qio_dma.h
+ *	Things to do:
+ *		Only word transfers have been tested.
+ *		Time tests have not been done.
+ *		Use chain mode instead of interrupt every transfer.
+ *		Add bypass of dma_parse for faster processing.
+ *
+ *
+ *		Copyright 1997 Atari Games Corporation
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+/*
+ *	Functions:
+ *		STATIC void dma_act( QioIOQ *ioq )
+ *		STATIC void dma_irq(void)
+ *		STATIC void dma_init( const QioDevice *qp )
+ *		STATIC void dma_timeout( void *arg )
+ *		STATIC void dma_ast( QioIOQ *ioq )
+ *		STATIC void dma_ioctl_ast( QioIOQ *ioq )
+ *		STATIC int dma_parse( QioIOQ *ioq, DmaIOCB *cbp )
+ *		STATIC int dma_ioctl(QioIOQ *ioq, unsigned int cmd, void *arg)
+ *		STATIC int dma_open(QioIOQ *ioq, const char *path)
+ *		STATIC void dma_cancel_ast(QioIOQ *ioq)
+ *		STATIC int dma_cancel(QioIOQ *ioq)
+ *		STATIC void dma_close_ast(QioIOQ *ioq)
+ *		STATIC int dma_close(QioIOQ *ioq)
+ *		void qio_dma_init()
+ *	If INCLUDE_DMA_TEST ...
+ *		STATIC void check( QioIOQ *ioq )
+ *		STATIC void complete( QioIOQ *ioq )
+ *		int dma_test( const struct menu_d *smp )
+ */
+
+/*
+ *	Structures:
+ *		STATIC DmaDevice dma_d[DMA_NUM_CHANS]
+ *		STATIC const QioFileOps dma_fops
+ *		STATIC const QioDevice dma_dvc[]
+ *	If INCLUDE_DMA_TEST ...
+ *		STATIC struct test_record trec[ NREC ]
+ *		DmaIOCB cb[]
+ */
+
+#include <config.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <phx_proto.h>
+#include <intvecs.h>
+#include <qio.h>
+#include <fcntl.h>
+#include <dma.h>
+#include <string.h>
+
+#define STATIC static
+
+#define DMA_DEVICE_INIT	/* This file only */
+#include <qio_dma.h>
+
+typedef struct dma_device
+{
+ VU32 *bctp;		/* pointer to byte count register */
+ VU32 *ctlp;		/* pointer to control register */
+ VU32 *dstp;		/* pointer to destination address register */
+ VU32 *srcp;		/* pointer to source address register */
+ QioMutex dma_m;	/* dma mutex */
+ QioIOQ *qio_q;		/* current dma info */
+} DmaDevice;
+
+STATIC DmaDevice dma_d[DMA_NUM_CHANS];
+
+
+/*
+ * dma_act - Runs at AST level from dma_irq.
+ *	     Runs at AST level from dma_timeout.
+ *	     Runs at AST level from dma_cancel_ast.
+ */
+STATIC void dma_act( QioIOQ *ioq )
+{
+ QioFile *file = qio_fd2file(ioq->file);
+ DmaDevice *dd = (DmaDevice *)file->dvc->private;
+ long size = (long)ioq->pparam0;
+
+ *dd->ctlp = 0;
+ ioq->iocount += size;
+
+ if ( ioq->private )
+ {
+  ioq->iocount -= *dd->bctp;
+  ioq->iostatus = (int)ioq->private;
+ }
+ else
+ {
+  if ( ( size = ioq->iparam1 - size ) )
+  {
+   ioq->iparam1 = size;
+   if ( size > DMA_BLK_LEN ) size = DMA_BLK_LEN;
+   ioq->pparam0 = (void *)size;
+   *dd->bctp = size;
+   *dd->ctlp = ioq->iparam2 | DMA_CONT;
+   return;
+  }
+  else
+  {
+   ioq->iostatus = DMA_SUCC|SEVERITY_INFO;
+  }
+ }
+ dd->qio_q = 0;
+ qio_freemutex(&dd->dma_m, ioq);
+ qio_freemutex(&file->mutex, ioq);
+ qio_complete(ioq);
+}
+
+
+/*
+ * dma_irq - Interrupt service routine saves the interrupt status,
+ *	     services the hardware, and queues the AST routine.
+ *	     Runs with interrupts disabled at ISR time.
+ */
+STATIC void dma_irq(void)
+{
+ U32 intr;	/* Bits which actually caused this interrupt */
+ int ii, jj;
+
+ DMA_INT_ACK(intr);
+
+ for ( ii = 0, jj = DMA_INT; ii < DMA_NUM_CHANS; ++ii, jj <<= 1 )
+ {
+  if ( intr & jj )
+  {
+   DmaDevice *dd = dma_d + ii;
+   QioIOQ *ioq = dd->qio_q;
+   if ( ( ioq->timeout ) && ( (long)ioq->pparam0 == ioq->iparam1 ) && ( ioq->timer.que ) )
+   {
+    tq_del(&ioq->timer);
+   }
+   if ( ioq->private == 0 )
+   {
+    ioq->aq.action = dma_act;
+    ioq->aq.param = (void *)ioq;
+    prc_q_ast(QIO_ASTLVL, &ioq->aq);
+   }
+  }
+ }
+}
+
+
+/*
+ * dma_init - Loads the interrupt vector, loads the unit runtime
+ *	      structure, and installs the device structure.
+ */
+STATIC void dma_init( const QioDevice *qp )
+{
+ const DmaDeviceInit *di = dma_i + qp->unit;
+ DmaDevice *dd = (DmaDevice *)qp->private;
+
+ if ( dd->bctp == di->bctp ) return;
+
+ prc_set_vec( di->vec, dma_irq );
+ dd->bctp = di->bctp;
+ dd->ctlp = di->ctlp;
+ dd->dstp = di->dstp;
+ dd->srcp = di->srcp;
+ qio_install_dvc( qp );
+}
+
+
+/*
+ * dma_timeout - Runs at action level after a timeout.
+ */
+STATIC void dma_timeout( void *arg )
+{
+ QioIOQ *ioq = ( QioIOQ *)arg;
+
+ ioq->private = (void *)(DMA_TIMEOUT|SEVERITY_INFO);
+ ioq->aq.action = dma_act;
+ ioq->aq.param = (void *)ioq;
+ prc_q_ast(QIO_ASTLVL, &ioq->aq);
+}
+
+
+/*
+ * dma_ast - Runs at AST level from dma_ioctl_ast.
+ */
+STATIC void dma_ast( QioIOQ *ioq )
+{
+ QioFile *file = qio_fd2file(ioq->file);
+ DmaDevice *dd = (DmaDevice *)file->dvc->private;
+
+ dd->qio_q = ioq;
+
+ if ( ioq->timeout )
+ {
+  ioq->timer.delta = ioq->timeout;
+  ioq->timer.func = dma_timeout;
+  ioq->timer.vars = (void *)ioq;
+  tq_ins(&ioq->timer);
+ }
+
+ *dd->bctp = (U32)ioq->pparam0;
+ *dd->dstp = (U32)ioq->pparam2;
+ *dd->srcp = (U32)ioq->pparam1;
+ *dd->ctlp = ioq->iparam2 | DMA_START;
+}
+
+
+STATIC void dma_ioctl_ast( QioIOQ *ioq )
+{
+ QioFile *file = qio_fd2file(ioq->file);
+ long size = ioq->iparam1;
+
+ if ( ioq->pparam0 ) prc_flush_pdcache( (char *)ioq->pparam0, size );
+ if ( ioq->iparam0 ) prc_flush_pdcache( (char *)ioq->iparam0, size );
+ if ( size > DMA_BLK_LEN ) size = DMA_BLK_LEN;
+ ioq->pparam0 = (void *)size;
+ qio_getmutex(file->dvc->mutex, dma_ast, ioq);
+}
+
+
+/*
+ * dma_parse - Validates the command block parameters,
+ */
+STATIC int dma_parse( QioIOQ *ioq, DmaIOCB *cbp )
+{
+ U32 addr;
+ int sts;
+ QioFile *file;
+
+ if ( ( cbp->src >= MEM_KSSEG ) || ( cbp->src < MEM_KSEG0 ) )
+  return ( ioq->iostatus = DMA_INVARG );
+ if ( cbp->src < MEM_KSEG1 )
+ {
+  if ( ( cbp->src % 32 ) || ( cbp->count % 32 ) )
+   return ( ioq->iostatus = DMA_INVARG );
+  addr = K0_TO_K1(cbp->src);
+ } else addr = cbp->src;
+ switch ( cbp->s_control )
+ {
+  default: return ( ioq->iostatus = DMA_INVARG );
+  case DMA_INCR:
+   if ( ( addr + cbp->count ) >= MEM_KSSEG ) return ( ioq->iostatus = DMA_INVARG );
+   ioq->pparam0 = (void *)( ( cbp->src < MEM_KSEG1 ) ? cbp->src : 0 );
+   ioq->iparam2 = DMA_CTL_INCR_SRC;
+   break;
+
+  case DMA_DECR:
+   if ( ( addr - cbp->count ) < MEM_KSEG1 ) return ( ioq->iostatus = DMA_INVARG );
+   ioq->pparam0 = (void *)( ( cbp->src < MEM_KSEG1 ) ? cbp->src - cbp->count : 0 );
+   ioq->iparam2 = DMA_CTL_DECR_SRC;
+   break;
+
+  case DMA_HOLD:
+   ioq->pparam0 = (void *)0;
+   ioq->iparam2 = DMA_CTL_HOLD_SRC;
+   break;
+ }
+ ioq->pparam1 = (void *)K1_TO_PHYS(addr);
+
+ if ( ( cbp->dst >= MEM_KSSEG ) || ( cbp->dst < MEM_KSEG0 ) )
+  return ( ioq->iostatus = DMA_INVARG );
+ if ( cbp->dst < MEM_KSEG1 )
+ {
+  if ( ( cbp->dst % 32 ) || ( cbp->count % 32 ) )
+   return ( ioq->iostatus = DMA_INVARG );
+  addr = K0_TO_K1(cbp->dst);
+ } else addr = cbp->dst;
+ switch ( cbp->d_control )
+ {
+  default: return ( ioq->iostatus = DMA_INVARG );
+  case DMA_INCR:
+   if ( ( addr + cbp->count ) >= MEM_KSSEG ) return ( ioq->iostatus = DMA_INVARG );
+   ioq->iparam0 = ( cbp->dst < MEM_KSEG1 ) ? cbp->dst : 0;
+   ioq->iparam2 |= DMA_CTL_INCR_DST;
+   break;
+
+  case DMA_DECR:
+   if ( ( addr - cbp->count ) < MEM_KSEG1 ) return ( ioq->iostatus = DMA_INVARG );
+   ioq->iparam0 = ( cbp->dst < MEM_KSEG1 ) ? cbp->dst - cbp->count : 0;
+   ioq->iparam2 |= DMA_CTL_DECR_DST;
+   break;
+
+  case DMA_HOLD:
+   ioq->iparam0 = 0;
+   ioq->iparam2 |= DMA_CTL_HOLD_DST;
+   break;
+ }
+ ioq->pparam2 = (void *)K1_TO_PHYS(addr);
+
+ switch ( cbp->x_control )
+ {
+  default: return ( ioq->iostatus = DMA_INVARG );
+  case DMA_BYTE: ioq->iparam2 |= DMA_CTL_X_BYTE; break;
+  case DMA_HALF: ioq->iparam2 |= DMA_CTL_X_HALF; break;
+  case DMA_WORD: ioq->iparam2 |= DMA_CTL_X_WORD; break;
+  case DMA_DBLE: ioq->iparam2 |= DMA_CTL_X_DBLE; break;
+  case DMA_QUAD: ioq->iparam2 |= DMA_CTL_X_QUAD; break;
+  case DMA_OCTW: ioq->iparam2 |= DMA_CTL_X_OCTW; break;
+ }
+ ioq->iparam1 = cbp->count;
+ ioq->private = 0;
+ file = qio_fd2file(ioq->file);
+ sts = qio_getmutex(&file->mutex, dma_ioctl_ast, ioq);
+ return sts;
+}
+
+
+STATIC int dma_ioctl(QioIOQ *ioq, unsigned int cmd, void *arg)
+{
+ int sts;
+
+ switch (cmd)
+ {
+  default:
+   ioq->iostatus = sts = DMA_NOTSUPP;
+   break;
+
+  case DMA_IOC_XFER:
+  {
+   DmaIOCB *cbp = (DmaIOCB *)arg;
+   if ( cbp->count )
+   {
+    sts = dma_parse( ioq, cbp );
+   }
+   else
+   {
+    sts = 0;
+    ioq->iostatus = DMA_SUCC|SEVERITY_INFO;
+    qio_complete(ioq);
+   }
+   break;
+  }
+ }
+
+ return sts;
+}
+
+
+STATIC int dma_open(QioIOQ *ioq, const char *path)
+{
+ QioFile *file = qio_fd2file(ioq->file);
+ file->private = 0;
+ file->pos = 0;
+ file->size = 0;
+ file->flags = 0;
+ file->next = 0;
+ ioq->iostatus = QIO_SUCC|SEVERITY_INFO;
+ qio_complete(ioq);
+ return 0;
+}
+
+
+STATIC void dma_cancel_ast(QioIOQ *ioq)
+{
+ QioIOQ *pioq;
+ QioFile *file = qio_fd2file(ioq->file);
+ DmaDevice *dd = (DmaDevice *)file->dvc->private;
+
+ ioq->iostatus = DMA_SUCC|SEVERITY_INFO;
+
+ while ( file->mutex.waiting )
+ {
+  struct act_q *paq = file->mutex.waiting;
+  file->mutex.waiting = paq->next;
+  paq->next = 0;
+  paq->que = 0;
+  pioq = (QioIOQ *)paq->param;
+  pioq->iostatus = DMA_CANCEL|SEVERITY_INFO;
+  qio_complete(pioq);
+ }
+
+ file->mutex.tail = 0;
+
+ if ( file->mutex.current )
+ {
+  int old_ipl = prc_set_ipl(INTS_OFF);
+  pioq = (QioIOQ *)file->mutex.current->param;
+  if ( dd->qio_q == pioq )
+  {
+   if ( pioq->timer.que ) tq_del(&pioq->timer);
+   if ( pioq->aq.que == 0 )
+    pioq->private = (void *)(DMA_CANCEL|SEVERITY_INFO);
+   prc_set_ipl(old_ipl);
+   if ( pioq->aq.que == 0 ) dma_act( pioq );
+  }
+  else
+  {
+   file->mutex.current = 0;
+   if ( pioq == (QioIOQ *)dd->dma_m.waiting->param )
+   {
+    dd->dma_m.waiting = dd->dma_m.waiting->next;
+    if ( dd->dma_m.waiting == 0 ) dd->dma_m.tail = 0;
+   }
+   else
+   {
+    struct act_q *paq = dd->dma_m.waiting;
+    while ( paq->next )
+    {
+     if ( pioq == (QioIOQ *)paq->next->param )
+     {
+      paq->next = paq->next->next;
+      if ( paq->next == 0 ) dd->dma_m.tail = paq;
+      break;
+     }
+     paq = paq->next;
+    }
+   }
+   prc_set_ipl(old_ipl);
+   if ( pioq )
+   {
+    pioq->aq.next = 0;
+    pioq->aq.que = 0;
+    pioq->iostatus = DMA_CANCEL|SEVERITY_INFO;
+    qio_complete(pioq);
+   }
+   else ioq->iostatus = DMA_INCONSISTENT|SEVERITY_WARN;
+  }
+ }
+ qio_complete(ioq);
+}
+
+
+STATIC int dma_cancel(QioIOQ *ioq)
+{
+ ioq->aq.action = dma_cancel_ast;
+ ioq->aq.param = (void *)ioq;
+ return prc_q_ast(QIO_ASTLVL, &ioq->aq);
+}
+
+
+STATIC void dma_close_ast(QioIOQ *ioq)
+{
+ QioFile *file = qio_fd2file(ioq->file);
+ QioIOQ canioq;
+
+ memset((void *)&canioq, 0, sizeof(QioIOQ));
+ canioq.file = ioq->file;
+ dma_cancel_ast(&canioq);
+ file->dvc = 0;				/* use the default close */
+ ioq->file = -1;			/* tell 'em fd is no good anymore */
+ qio_freefile(file);			/* put file back on freelist */
+ ioq->iostatus = canioq.iostatus;
+ qio_complete(ioq);
+}
+
+
+STATIC int dma_close(QioIOQ *ioq)
+{
+ ioq->aq.action = dma_close_ast;
+ ioq->aq.param = (void *)ioq;
+ return prc_q_ast(QIO_ASTLVL, &ioq->aq);
+}
+
+
+STATIC const QioFileOps dma_fops = {
+    0, 0, 0,
+    dma_ioctl,
+    dma_open,
+    dma_close,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    dma_cancel,
+    0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+STATIC const QioDevice dma_dvc[] = {
+   {"dma0",				/* device name (/dma0) */
+    4,					/* length of name */
+    &dma_fops,				/* list of operations allowed on this device */
+    &dma_d[0].dma_m,			/* mutex required for device */
+    0,					/* unit 0 */
+    (void *)(dma_d+0)}
+#if DMA_NUM_CHANS > 1
+   ,{"dma1",				/* device name (/dma1) */
+    4,					/* length of name */
+    &dma_fops,				/* list of operations allowed on this device */
+    &dma_d[1].dma_m,			/* mutex required for device */
+    1,					/* unit 1 */
+    (void *)(dma_d+1)}
+#endif
+#if DMA_NUM_CHANS > 2
+   ,{"dma2",				/* device name (/dma2) */
+    4,					/* length of name */
+    &dma_fops,				/* list of operations allowed on this device */
+    &dma_d[2].dma_m,			/* mutex required for device */
+    2,					/* unit 2 */
+    (void *)(dma_d+2)}
+#endif
+#if DMA_NUM_CHANS > 3
+   ,{"dma3",				/* device name (/dma3) */
+    4,					/* length of name */
+    &dma_fops,				/* list of operations allowed on this device */
+    &dma_d[3].dma_m,			/* mutex required for device */
+    3,					/* unit 3 */
+    (void *)(dma_d+3)}
+#endif
+};
+
+/*
+ * qio_dma_init
+ */
+void qio_dma_init( void )
+{
+ int ii;
+
+ for ( ii = 0; ii < DMA_NUM_CHANS; ++ii ) dma_init( dma_dvc + ii );
+}
+
+#if INCLUDE_DMA_TEST
+
+/*
+ * My (fom) original dma test from my gamedefs.c
+ *
+ * Feel free to improve these as you see fit.  Note that the source
+ * of data for these transfers is RAMROM_BASE, so if you don't have
+ * a ramrom, you will have to define a new FROM macro.  Note that a
+ * four megabyte chunk of bss ("da[ LEN ]" below) is defined as the
+ * destination.  This is not intended for use in a production game.
+ */
+
+STATIC int cache_failed, uncache_failed;
+STATIC int passed, timeout, other, cancel;
+STATIC char buff[80];
+
+#define FROM(x) (RAMROM_BASE+0x100000+x)
+#define LEN 0x100000
+#define DEST(x) ((int)&da[(x)/4])	/*(((int)extend_bss(0)+31)&-32)*/
+#define HALF (LEN/2)
+#define QTR (LEN/4)
+#define HPQ (HALF+QTR)
+#define EIGHTH (LEN/8)
+#define QPE (QTR+EIGHTH)
+#define HPE (HALF+EIGHTH)
+#define HQE (HPQ+EIGHTH)
+#define D2 (2*LEN)
+#define D3 (3*LEN)
+
+U32 pad[ 8 ];
+U32 da[ LEN ];
+U32 dap[ 8 ];
+
+DmaIOCB cb[] = {
+ { FROM(0),	 DEST(0),	  LEN,     '+', '+', 'w' }
+,{ FROM(0),	 DEST(LEN),	  HALF,    '+', '+', 'w' }
+,{ FROM(HALF),	 DEST(LEN+HALF),  HALF,    '+', '+', 'w' }
+,{ FROM(0),	 DEST(D2),	  QTR,     '+', '+', 'w' }
+,{ FROM(QTR),	 DEST(D2+QTR),    QTR,     '+', '+', 'w' }
+,{ FROM(HALF),	 DEST(D2+HALF),   QTR,     '+', '+', 'w' }
+,{ FROM(HPQ),	 DEST(D2+HPQ),    QTR,     '+', '+', 'w' }
+,{ FROM(0),	 DEST(D3),	  EIGHTH,  '+', '+', 'w' }
+,{ FROM(EIGHTH), DEST(D3+EIGHTH), EIGHTH,  '+', '+', 'w' }
+,{ FROM(QTR),	 DEST(D3+QTR),	  EIGHTH,  '+', '+', 'w' }
+,{ FROM(QPE),	 DEST(D3+QPE),	  EIGHTH,  '+', '+', 'w' }
+,{ FROM(HALF),	 DEST(D3+HALF),   EIGHTH,  '+', '+', 'w' }
+,{ FROM(HPE),	 DEST(D3+HPE),	  EIGHTH,  '+', '+', 'w' }
+,{ FROM(HPQ),	 DEST(D3+HPQ),	  EIGHTH,  '+', '+', 'w' }
+,{ FROM(HQE),	 DEST(D3+HQE),	  EIGHTH,  '+', '+', 'w' }
+};
+
+#define NREC ( sizeof(cb)/sizeof(DmaIOCB) )
+#define NFILE 4	/* number of files to be used with cb[] */
+
+STATIC struct test_record
+{
+ QioIOQ  ioq;
+ DmaIOCB *cb;
+ U32 ts, tf;
+} trec[ NREC ];
+
+STATIC volatile int test_runs, not_yet;
+
+STATIC void check( QioIOQ *ioq )
+{
+ U32 cache_res, ucache_res;
+ int ii;
+ struct test_record *tr = (struct test_record *)ioq;
+ int *pp = (int *)K0_TO_K1( tr->cb->src );
+ int *qq = (int *)K0_TO_K1( tr->cb->dst );
+
+ qio_errmsg( ioq->iostatus, buff, 80);
+
+ switch ( ioq->iostatus & ~SEVERITY_WARN )
+ {
+  case DMA_SUCC:
+	for ( ii = 0; ii < (tr->cb->count/4); ++ii, ++pp, ++qq )
+	{
+	 cache_res = *((U32 *)tr->cb->src + ii) ^ *((U32 *)K1_TO_K0(tr->cb->dst) + ii);
+	 ucache_res = *pp ^ *qq;
+	 if ( cache_res || ucache_res )
+	 {
+	  if ( cache_res ) ++cache_failed;
+	  if ( ucache_res ) ++uncache_failed;
+	  return;
+	 }
+	}
+	++passed;
+	break;
+  default:
+  case DMA_NOTSUPP:
+  case DMA_INVARG: ++other; break;
+  case DMA_TIMEOUT: ++timeout; break;
+  case DMA_CANCEL: ++cancel;
+ }
+}
+
+STATIC void complete( QioIOQ *ioq )
+{
+ struct test_record *tr = (struct test_record *)ioq;
+
+ tr->tf = prc_timer_ints();
+
+ not_yet = 0;
+
+ ++test_runs;
+}
+
+STATIC QioIOQ ioq[NFILE];
+
+int dma_test( const struct menu_d *smp )
+{
+    int ii, *pp = (int *)(FROM(0));
+    int iioq = -1;
+    QioIOQ *canioq = 0;
+    int closed_file = 0, start = 0;
+    int bottom = AN_VIS_ROW-2;
+
+    vid_clear();
+
+    bottom = st_insn(bottom, t_msg_ret_menu, t_msg_next, INSTR_PAL);
+
+    for ( ii = 0; ii < (LEN/4); ++ii ) *pp = (int)pp++;
+
+    qio_dma_init();
+
+    ctl_read_sw(SW_EDGES);
+
+    {
+     int col = 1, row = 1;
+     for ( ii = 0; ii < NREC; ++ii )
+     {
+      trec[ ii ].cb = &cb[ ii ];
+      cb[ ii ].dst = K0_TO_K1( cb[ ii ].dst );
+      if ( cb[ ii ].src == FROM(0) )
+      {
+       if ( qio_open( &trec[ ii ].ioq, "/dma0", 0 ) )
+       {
+        qio_errmsg( trec[ ii ].ioq.iostatus, buff, 80);
+        txt_str( col, row++, buff, RED_PAL );
+       }
+       ioq[ ++iioq ].file = trec[ ii ].ioq.file;
+      }
+      else trec[ ii ].ioq.file = ioq[ iioq ].file;
+      trec[ ii ].ioq.complete = complete;
+      trec[ ii ].ioq.timeout = ( cb[ ii ].count * 153 ) / 1000;
+     }
+    }
+
+    cache_failed = uncache_failed = passed = timeout = other = cancel = test_runs = 0;
+
+    while(1) {
+	int col = 1, row = 1;
+
+	for ( ii = 0; ii < NREC; ++ii )
+	{
+	 int inx = ( ii + start ) % NREC;
+ 	 trec[ inx ].ts = prc_timer_ints();
+	 qio_ioctl(&trec[ inx ].ioq, DMA_IOC_XFER, (void *)trec[ inx ].cb );
+	}
+	++start;
+
+	not_yet = 1;
+
+	if ( canioq ) qio_close( canioq );
+
+	while ( ( not_yet ) || ( test_runs % NREC ) ) prc_delay(0);
+
+	txt_str( col, row++, "File Time I/O cnt I/O sts", WHT_PAL );
+
+	for ( ii = 0; ii < NREC; ++ii )
+	{
+	 check( &trec[ ii ].ioq );
+	 txt_hexnum( col, row, trec[ ii ].ioq.file, 4, RJ_ZF, WHT_PAL );
+	 txt_cdecnum( trec[ ii ].tf-trec[ ii ].ts, 5, RJ_BF, WHT_PAL );
+	 txt_cdecnum( trec[ ii ].ioq.iocount, 8, RJ_BF, WHT_PAL );
+	 txt_clr_wid( col+18, row, AN_VIS_COL-col-18 );
+	 txt_str( col+18, row++, buff, WHT_PAL );
+	}
+
+	txt_str( col, ++row, "Tests:     ", WHT_PAL );
+	txt_cdecnum( test_runs, 10, LJ_BF, WHT_PAL );
+	txt_str( col, ++row, "Passed:    ", WHT_PAL );
+	txt_cdecnum( passed, 10, LJ_BF, WHT_PAL );
+	txt_str( col, ++row, "Cancel:    ", WHT_PAL );
+	txt_cdecnum( cancel, 10, LJ_BF, WHT_PAL );
+	txt_str( col, ++row, "Failed:", WHT_PAL );
+	txt_str( col, ++row, "Cache:     ", WHT_PAL );
+	txt_cdecnum( cache_failed, 10, LJ_BF, WHT_PAL );
+	txt_str( col, ++row, "Uncached:  ", WHT_PAL );
+	txt_cdecnum( uncache_failed, 10, LJ_BF, WHT_PAL );
+	txt_str( col, ++row, "Timeout:   ", WHT_PAL );
+	txt_cdecnum( timeout, 10, LJ_BF, WHT_PAL );
+	txt_str( col, ++row, "Other:     ", WHT_PAL );
+	txt_cdecnum( other, 10, LJ_BF, WHT_PAL );
+
+	for ( ii = 0; ii < LEN; ++ii ) *((U32 *)DEST(0) + ii ) = 0;
+	prc_flush_pdcache( (const char *)pad, sizeof(pad) );
+	prc_flush_pdcache( (const char *)da, sizeof(da) );
+	prc_flush_pdcache( (const char *)dap, sizeof(dap) );
+
+	if ( canioq )
+	{
+	 qio_open( canioq, "/dma0", 0 );
+	 for ( ii = 0; ii < NREC; ++ii )
+	  if ( trec[ ii ].ioq.file == closed_file )
+	   trec[ ii ].ioq.file = canioq->file;
+	 canioq = 0;
+	 txt_clr_wid( 17, bottom, 34 );
+	 st_insn(bottom,t_msg_action,"to continue",INSTR_PAL);
+	 while ( ( ctl_read_sw(SW_ACTION)&SW_ACTION ) == 0 ) prc_delay(0);
+	 txt_clr_wid( col, AN_VIS_ROW-4, 13 );
+	}
+	else st_insn(bottom,t_msg_action,"to test qio_cancel",INSTR_PAL);
+
+	if ( ctl_read_sw(SW_ACTION)&SW_ACTION )
+	{
+	 iioq %= NFILE;
+	 canioq = &ioq[ iioq ];
+	 closed_file = canioq->file;
+	 txt_str( col, AN_VIS_ROW-4, "Cancel:  ", WHT_PAL );
+	 txt_chexnum( ioq[ iioq++ ].file, 4, RJ_ZF, WHT_PAL );
+	}
+
+	if ( ctl_read_sw(SW_NEXT)&SW_NEXT ) break;
+
+	prc_delay(0);
+    }
+
+    for ( ii = 0; ii < NFILE; ++ii )
+    {
+      qio_close( &ioq[ ii ] );
+    }
+
+    return 0;
+}
+
+#endif /* INCLUDE_DMA_TEST */
+@
+
+
+1.7
+log
+@Added a check in dma_init which returns if already init'd.
+Added the Id string and some comments.
+Changed static to STATIC.
+@
+text
+@d3 1
+a3 1
+ * $Id$
+a529 2
+extern U8 bss_end, text_end;
+
+d536 1
+a536 1
+#define DEST(x) ((int)&da[(x)/4])	/*(((int)&bss_end+31)&-32)*/
+@
+
+
+1.6
+log
+@Fixed potential bug in dma_cancel_ast.
+@
+text
+@d3 2
+d34 2
+a37 2
+ *		STATIC void dma_cancel_ast(QioIOQ *ioq)
+ *		STATIC int dma_cancel(QioIOQ *ioq)
+d39 4
+d47 1
+a47 1
+ *		STATIC DmaDevice dma_d[DMA_NUM_CHANS];
+d50 3
+d168 2
+d532 3
+a534 3
+static int cache_failed, uncache_failed;
+static int passed, timeout, other, cancel;
+static char buff[80];
+d574 1
+a574 1
+static struct test_record
+d581 1
+a581 1
+static volatile int test_runs, not_yet;
+d583 1
+a583 1
+static void check( QioIOQ *ioq )
+d617 1
+a617 1
+static void complete( QioIOQ *ioq )
+d628 1
+a628 1
+static QioIOQ ioq[NFILE];
+@
+
+
+1.5
+log
+@Rewrote the dma_close routines.
+Enhanced the dma_test function.
+@
+text
+@d110 1
+d175 1
+a175 1
+ ioq->private = (void *)DMA_TIMEOUT;
+d380 2
+a381 1
+   pioq->private = (void *)(DMA_CANCEL|SEVERITY_INFO);
+d383 1
+a383 1
+   dma_act( pioq );
+@
+
+
+1.4
+log
+@Added dma_test.
+Fixed bugs in dma_close_ast and dma_cancel_ast.
+@
+text
+@d55 1
+a226 1
+ int old_ipl;
+a300 6
+ old_ipl = prc_set_ipl(INTS_OFF);
+ if ( file->flags & DMA_CLOSE_PENDING )
+ {
+  prc_set_ipl(old_ipl);
+  return DMA_CLOSING;
+ }
+a301 1
+ prc_set_ipl(old_ipl);
+a350 39
+STATIC void dma_close_ast(QioIOQ *ioq)
+{
+ QioFile *file = qio_fd2file(ioq->file);
+
+ if ( file->flags & DMA_CLOSE_PENDING )
+ {
+  qio_freemutex(&file->mutex, ioq);	/* mutex is owned by this function */
+  file->dvc = 0;			/* use the default close */
+  ioq->file = -1;			/* tell 'em fd is no good anymore */
+  qio_freefile(file);			/* put file back on freelist */
+  ioq->iostatus = QIO_SUCC|SEVERITY_INFO;
+  qio_complete(ioq);
+  return;
+ }
+
+ file->flags = DMA_CLOSE_PENDING;
+ qio_freemutex(&file->mutex, ioq);	/* if there is a waiting list */
+ qio_getmutex(&file->mutex, dma_close_ast, ioq);
+}
+
+
+STATIC int dma_close(QioIOQ *ioq)
+{
+ int sts;
+ QioFile *file = qio_fd2file(ioq->file);
+ int old_ipl = prc_set_ipl(INTS_OFF);
+
+ if ( file->flags & DMA_CLOSE_PENDING )
+ {
+  prc_set_ipl(old_ipl);
+  return DMA_CLOSING;
+ }
+
+ sts = qio_getmutex(&file->mutex, dma_close_ast, ioq);
+ prc_set_ipl(old_ipl);
+ return sts;
+}
+
+
+d422 8
+a429 1
+ int sts;
+d431 11
+a441 1
+ int old_ipl = prc_set_ipl(INTS_OFF);
+a442 5
+ if ( file->flags & DMA_CLOSE_PENDING )
+ {
+  prc_set_ipl(old_ipl);
+  return DMA_CLOSING;
+ }
+d444 3
+a446 1
+ ioq->aq.action = dma_cancel_ast;
+d448 1
+a448 4
+ sts = prc_q_ast(QIO_ASTLVL, &ioq->aq);
+ if (!ioq->iostatus && sts) ioq->iostatus = sts;
+ prc_set_ipl(old_ipl);
+ return sts;
+d512 3
+a514 1
+ * a ramrom, you will have to define a new FROM macro.
+d524 1
+a524 1
+#define LEN 0x100000		/*((((int)&text_end-0x80000000)+31)&-32)*/
+d598 1
+a598 2
+  case DMA_INVARG:
+  case DMA_CLOSING: ++other; break;
+d622 1
+d652 1
+d663 3
+a665 3
+	 trec[ ii ].ioq.timeout = 2000 * pot_raw( POT_GAS );
+ 	 trec[ ii ].ts = prc_timer_ints();
+	 qio_ioctl(&trec[ ii ].ioq, DMA_IOC_XFER, (void *)trec[ ii ].cb );
+d667 1
+d671 1
+a671 1
+	if ( canioq ) qio_cancel( canioq );
+a686 2
+	txt_str( col, ++row, "Timer:     ", WHT_PAL );
+	txt_cdecnum( trec[0].ioq.timeout, 10, LJ_BF, WHT_PAL );
+d710 4
+d726 1
+@
+
+
+1.3
+log
+@Implemented dma_cancel function.
+@
+text
+@d373 2
+a374 2
+ /* mutex may be owned by somebody else */
+ file->flags = DMA_CLOSE_PENDING;	/* if |= then que this, too */
+d403 2
+d451 9
+a459 4
+   pioq->aq.next = 0;
+   pioq->aq.que = 0;
+   pioq->iostatus = DMA_CANCEL|SEVERITY_INFO;
+   qio_complete(pioq);
+a461 1
+ ioq->iostatus = DMA_SUCC|SEVERITY_INFO;
+d539 234
+@
+
+
+1.2
+log
+@Changed to load the parameters using the CPU, not the chained mode.
+@
+text
+@d27 2
+a28 2
+ *		STATIC int dma_ast( QioIOQ *ioq )
+ *		STATIC int dma_ioctl_ast( QioIOQ *ioq )
+d32 1
+a32 1
+ *		STATIC int dma_close_ast(QioIOQ *ioq)
+d34 2
+d74 5
+d91 1
+a91 1
+  ioq->iostatus = DMA_TIMEOUT;
+d118 1
+d133 1
+a133 1
+   if ( ioq->timeout )
+d135 1
+a135 1
+    if ( (long)ioq->pparam0 == ioq->iparam1 ) tq_del(&ioq->timer);
+d141 1
+a141 1
+    prc_q_ast(0, &ioq->aq);
+d166 3
+d173 1
+a173 1
+ ioq->private = (void *)1;
+d176 1
+a176 1
+ prc_q_ast(0, &ioq->aq);
+d180 4
+a183 1
+STATIC int dma_ast( QioIOQ *ioq )
+a201 2
+
+ return 0;
+d205 1
+a205 1
+STATIC int dma_ioctl_ast( QioIOQ *ioq )
+d214 1
+a214 1
+ return qio_getmutex(file->dvc->mutex, (void (*)(QioIOQ *))dma_ast, ioq);
+d307 1
+a307 1
+ sts = qio_getmutex(&file->mutex, (void (*)(QioIOQ *))dma_ioctl_ast, ioq);
+d358 1
+a358 1
+STATIC int dma_close_ast(QioIOQ *ioq)
+d370 1
+a370 1
+  return 0;
+d375 1
+a375 1
+ return qio_getmutex(&file->mutex, (void (*)(QioIOQ *))dma_close_ast, ioq);
+d391 85
+a475 1
+ sts = qio_getmutex(&file->mutex, (void (*)(QioIOQ *))dma_close_ast, ioq);
+d486 3
+a488 1
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d63 2
+a64 1
+ VU32 *nxtp;		/* pointer to next record register */
+d152 2
+a153 1
+ dd->nxtp = di->nxtp;
+d184 3
+a186 1
+ *dd->nxtp = (U32)K0_TO_PHYS(&ioq->pparam0);
+a201 2
+ ioq->iparam0 = 0;
+ prc_flush_pdcache( (char *)ioq, sizeof( QioIOQ ) + 32 );
+@

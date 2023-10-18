@@ -1,0 +1,204 @@
+head	1.3;
+access;
+symbols
+	AREA_52_00:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	97.09.13.02.28.38;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.07.11.20.42.47;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.05.17.01.49.58;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Chameleon files
+@
+
+
+1.3
+log
+@Declared an __asm__ strip as volatile so gcc puts things in
+the right order. I don't know how it ever worked before.
+@
+text
+@/****************************************************************************/
+/*                                                                          */
+/* cham_nile3.c - Support functions for NILE3				    */
+/*                                                                          */
+/* Written by:  Jason Skiles, Michael J. Lynch                              */
+/* Version:     1.00                                                        */
+/* Date:        10/27/95                                                    */
+/*                                                                          */
+/* Modified 970508 by David Shepperd to conform to NILE 3 specs		    */
+/* Copyright (c) 1995 by Williams Electronics Games Inc.                    */
+/* All Rights Reserved                                                      */
+/* Copyright (c) 1997 by Atari Games, Corp.				    */
+/* All Rights Reserved                                                      */
+/*                                                                          */
+/* Use, duplication, or disclosure is strictly forbidden unless approved    */
+/* in writing by Atari Games, Corp.					    */
+/*                                                                          */
+/****************************************************************************/
+
+#include <config.h>
+#include <os_proto.h>
+#include <phx_proto.h>
+#include <intvecs.h>
+
+static const U32 pci_device_table[] = {
+	CHAM_PCICFG_NILE3,	/* Nile is device 0 */
+	CHAM_PCICFG_IDE,	/* IDE is device 1 */
+	CHAM_PCICFG_PLX,	/* On board PLX is device 2 */
+	CHAM_PCICFG_SLOT0,	/* PCI slot 0 is device 3 */
+	CHAM_PCICFG_SLOT1,	/* PCI slot 1 is device 4 */
+	CHAM_PCICFG_SLOT2	/* PCI slot 2 is device 5 */
+};
+#define n_elts(x) (sizeof(x)/sizeof(x[0]))    
+
+static void trap_buserr(U32 *regs) {
+    regs[EPC_REGNUM_W] += 4;	/* skip failing instruction */
+}
+
+#if 0
+static void dump_vec(void) {
+    U32 *ramv;
+    int ii;
+    extern struct ROM_VECTOR_STR romv_tbl;
+
+    ramv = (U32*)romv_tbl.ROMV_RAMVBR;
+    shims_printf("\n");
+    for (ii=0; ii < sizeof(struct RAM_VECTOR_STR)/sizeof(U32); ++ii, ++ramv) {
+	if (ii) shims_printf( (ii&3) ? ", " : "\n");
+	shims_printf("%2d=%08lX", ii, *ramv);
+    }
+    shims_printf("\n");
+}
+#endif
+	
+/****************************************************************************/
+/* get_pci_config_reg() - This function returns the value of the PCI config */
+/* register specified by "reg_num" from the PCI device specified by         */
+/* "dev_num".                                                               */
+/****************************************************************************/
+int get_pci_config_reg(int dev_num, int reg_num)
+{
+    U32	data, oldbe;
+    int oldps;
+    void (*oldvec)(void);
+
+    if (dev_num < 0 || dev_num >= n_elts(pci_device_table)) return 0;
+    oldps = prc_set_ipl(INTS_OFF);
+    oldvec = prc_set_vec(BUSERRD_INTVEC, (void (*)(void))trap_buserr);
+#if 0
+    dump_vec();
+#endif
+
+    oldbe = NILE3_INT_CTRL_T;
+/* disallow bus error interrupts */
+    NILE3_INT_CTRL_T = oldbe&~(NILE3_INT_CBEMSK|NILE3_INT_DBEMSK|NILE3_INT_PARMSK);
+    NILE3_PCI_CONFIG_ADDRESS_T = NILE3_PCI_CONFIG_ADD_ENAB | pci_device_table[dev_num] | (reg_num<<2);
+    __asm__ volatile ("move %0, $0; la $2, %1; lw %0, ($2)"
+    			: "=r" (data)	/* output */
+    			: "g" (NILE3_PCI_CONFIG_DATA_BASE)
+    			: "v0" );
+    NILE3_INT_CTRL_T = oldbe|NILE3_INT_CBECLR|NILE3_INT_DBECLR|NILE3_INT_PARCLR;
+    prc_set_vec(BUSERRD_INTVEC, oldvec);
+    prc_set_ipl(oldps);
+    return data;
+}
+
+/****************************************************************************/
+/* put_pci_config_reg() - This function writes the data specified by "data" */
+/* to the PCI configuration register specified by "reg_num" on the device   */
+/* specified by "dev_num".                                                  */
+/****************************************************************************/
+void put_pci_config_reg(int dev_num, int reg_num, int data)
+{
+    int oldps, oldbe;
+    void (*oldvec)(void);
+
+    if (dev_num < 0 || dev_num >= n_elts(pci_device_table)) return;
+    oldps = prc_set_ipl(INTS_OFF);
+    oldvec = prc_set_vec(BUSERRD_INTVEC, (void (*)(void))trap_buserr);
+/* disallow bus error interrupts */
+    oldbe = NILE3_INT_CTRL_T;
+    NILE3_INT_CTRL_T = oldbe&~(NILE3_INT_CBEMSK|NILE3_INT_DBEMSK|NILE3_INT_PARMSK);
+    NILE3_PCI_CONFIG_ADDRESS_T = NILE3_PCI_CONFIG_ADD_ENAB | pci_device_table[dev_num] | (reg_num<<2);
+    NILE3_PCI_CONFIG_DATA_T = data;
+    NILE3_INT_CTRL_T = oldbe|NILE3_INT_CBECLR|NILE3_INT_DBECLR|NILE3_INT_PARCLR;
+    prc_set_vec(BUSERRD_INTVEC, oldvec);
+    prc_set_ipl(oldps);
+    return;
+}
+
+/****************************************************************************/
+/* get_pci_slot_configuration_info() - This function filles the structure   */
+/* specified by "*to" with the 64 bytes of configuration data from the PCI  */
+/* device specified by "dev_num".                                           */
+/****************************************************************************/
+void get_pci_slot_configuration_info(int *to, int dev_num)
+{
+	int				i;
+
+	for(i = 0; i < 16; i++)
+	{
+		*to++ = get_pci_config_reg(dev_num, i);
+	}
+}
+@
+
+
+1.2
+log
+@Renamed device_table since gdb gets it confused with the
+(static) device_table defined in qio.c
+@
+text
+@d66 1
+a66 1
+    if (dev_num < 0 || dev_num > n_elts(pci_device_table)) return 0;
+d77 1
+a77 1
+    __asm__("move %0, $0; la $2, %1; lw %0, ($2)"
+d80 1
+a80 1
+    			: "v0");
+d97 1
+a97 1
+    if (dev_num < 0 || dev_num > n_elts(pci_device_table)) return;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d25 1
+a25 1
+static const U32 device_table[] = {
+d66 1
+a66 1
+    if (dev_num < 0 || dev_num > n_elts(device_table)) return 0;
+d76 1
+a76 1
+    NILE3_PCI_CONFIG_ADDRESS_T = NILE3_PCI_CONFIG_ADD_ENAB | device_table[dev_num] | (reg_num<<2);
+d97 1
+a97 1
+    if (dev_num < 0 || dev_num > n_elts(device_table)) return;
+d103 1
+a103 1
+    NILE3_PCI_CONFIG_ADDRESS_T = NILE3_PCI_CONFIG_ADD_ENAB | device_table[dev_num] | (reg_num<<2);
+@

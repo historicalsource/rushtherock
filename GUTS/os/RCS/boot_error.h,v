@@ -1,0 +1,72 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	96.11.12.04.26.29;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.07.11.22.37.43;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Boot support routines.
+@
+
+
+1.2
+log
+@This file is now obsolete and not used anymore.
+@
+text
+@#ifndef _ERROR_H
+#define _ERROR_H
+
+#define ERR			4
+
+#if 0
+/* /home/ghost/usr/people/bennetts/HOCKEY/Game/LIB/error.c */
+extern void FatalError(int errid, const char *msg);
+extern void InitError(void);
+extern void Error(S16 errid, const char *msg);
+extern void IncErrorColor(void);
+extern void Errorf(S16 errid, char const *fmt, ...);
+extern void FatalErrorf(S16 errid, char const *fmt, ...);
+extern void WarnMsg(char const *fmt, ...);
+extern void FatalMsg(char const *fmt, ...);
+extern void InitErrorSectors(void);
+extern void esectprint(const char *str);
+
+#define GENERIC			0
+#define MBOXTIMEOUT		1
+#define ANIMERROR		2
+#define MATHERROR		3
+#define MBOXERROR		5
+#define QUIETERROR		6
+#define CRITICALERR		7
+#endif
+
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d4 3
+d8 1
+a11 1
+extern void FatalError(S16 errid, const char *msg);
+a22 1
+#define ERR			4
+d26 1
+@

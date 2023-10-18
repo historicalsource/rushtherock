@@ -1,0 +1,188 @@
+head	1.1;
+access;
+symbols
+	AREA_52_00:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	97.05.30.17.07.20;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Chameleon support file
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/********************************************************************************/
+/* cham_fpga.c									*/
+/*										*/
+/* functions to load an image from the Altera Max+II software into the FPGA	*/
+/* for gun control on the Chameleon H/W						*/
+/*										*/
+/* Written By:	Andrew Dyer <adyer@@mcs.com>					*/
+/*              Midway Games, Inc.						*/
+/* Date:	Fri Apr  4 14:22:42 CST 1997					*/
+/*                                                                              */
+/* Copyright (c) 1997 by Midway Games Inc.                                      */
+/* All Rights Reserved                                                          */
+/*                                                                              */
+/* Use, duplication, or disclosure is strictly forbidden unless approved        */
+/* in writing by Midway Games Inc.                                              */
+/*                                                                              */
+/********************************************************************************/
+
+#include <config.h>
+#include <os_proto.h>
+#include <phx_proto.h>
+
+/* NOTE: The following constants are somewhat arbitrary             */
+/* these may of may not correspond with reality                     */
+
+/* number of times to retry an individual byte program cycle        */
+#define FPGA_RDY_RETRY 50
+
+/* The bit in the flex8000 that returns rdy/busy-                   */
+/* status when reading the device in passive parallel               */
+/* configuration mode                                               */
+#define FPGA_READY 0x80
+
+/* number of times to retry the final 'all ok' status check         */
+#define FPGA_CONF_DONE_TIMEOUT 0x10
+
+/* this array holds the data to be programmed into the device       */
+/* use the C preprocessor to stick the comma delineated             */
+/* version of the fpga data into this array                         */
+
+static const unsigned char fpgadata[] = {
+#include "cham_topgun.ttf"
+};
+
+/* -----------------------------------------------------------------*/
+/* fpgaload() - returns zero on success				    */
+/*              returns non-zero on failure			    */
+/* -----------------------------------------------------------------*/
+
+int cham_fpga(void) {
+  int i, j, tmp, oldctl, sts, oldipl;
+
+  /* make sure the PLX user IO for configuration are inputs         */
+  /* set all of the bits listed below to zero                       */
+
+  oldipl = prc_set_ipl(INTS_OFF);
+  oldctl = PLX_CNTRL_T;
+  PLX_CNTRL_T = oldctl &
+    	~( PLX_CNTRL_IO0_FUNC      |
+    	   PLX_CNTRL_IO0_IS_OUTPUT |
+	   PLX_CNTRL_IO1_FUNC      |
+	   PLX_CNTRL_IO1_IS_OUTPUT );
+
+  /* start the re-configuration by yanking nCONFIG pin (aka         */
+  /* gun_config-) low                                               */
+  i = RESET_CTL_T;
+
+  for (j=0; j < 2; ++j) {
+      RESET_CTL_T = i & ~RESET_GUN_CONF;
+
+      /* hold it fo' 2 usec */
+      prc_wait_n_usecs(2);
+
+      tmp = PLX_CNTRL_T;		/* read the status */
+
+      /* raise gun_config- */
+      RESET_CTL_T = i | RESET_GUN_CONF;
+
+      /* wait fo' 2 usec */
+      prc_wait_n_usecs(2);
+
+      /* once nSTATUS pin goes low, we're done */
+      if ( !(tmp & PLX_CNTRL_IO0_DATA) ) break;
+  }
+
+  if (j >= 2) {
+	sts = 1;		/* status pin didn't go low during reset */
+	goto clean_up;
+  }
+
+  if ( (tmp&PLX_CNTRL_IO1_DATA) ) {
+	sts = 2;		/* CONFIG_DONE is not deasserted during reset */
+	goto clean_up;
+  }
+
+  /* wait 5 usec to start to twiddle */
+  prc_wait_n_usecs(5);
+
+  /* check nSTATUS pin has gone high */
+  tmp = PLX_CNTRL_T;
+  if ( !(tmp & PLX_CNTRL_IO0_DATA) ) {
+	sts = 3;		/* status pin didn't go high after reset deasserted */
+	goto clean_up;
+  }
+
+  if ( (tmp&PLX_CNTRL_IO1_DATA) ) {
+	sts = 4;		/* CONFIG_DONE is not deasserted after reset deasserted */
+	goto clean_up;
+  }
+
+  /* loop through config data */
+  for (i=0; i<sizeof(fpgadata); i++) {
+    
+    /* write fpgadata[i] to fpga */
+    *(VU8*)GUN_BASE = fpgadata[i];
+
+    /* delay > 500 nsec */
+    prc_wait_n_usecs(1);
+
+#if 0
+    for (j=0; j<FPGA_RDY_RETRY; j++) {
+      /* read device status */
+      tmp = *(VU8 *)GUN_BASE;
+
+      /* check nSTATUS pin remains high */
+      tmp = PLX_CNTRL_T;
+      if ( !(tmp & PLX_CNTRL_IO0_DATA) ) {
+	    sts = 5;		/* status pin went low prematurely */
+	    goto clean_up;
+      }
+    }
+
+    if (j >= FPGA_RDY_RETRY) {
+	sts = 6;		/* CONFIG_DONE asserted prematurely */
+	goto clean_up;
+    }    
+#endif
+    /* delay 500 > nsec */
+    prc_wait_n_usecs(3);
+  }
+
+  /* done sending program data */
+
+  sts = 7;			/* CONFIG_DONE failed to assert */
+  for (i=0; i<=FPGA_CONF_DONE_TIMEOUT; i++) {
+    /* wait a usec */
+    prc_wait_n_usecs(1);
+
+    /* check for CONF_DONE to go high */
+    tmp = PLX_CNTRL_T;
+    if (tmp & PLX_CNTRL_IO1_DATA) {
+      sts = 0;			/* CONFIG_DONE asserted, we're done */
+      break;
+    }
+  }
+  
+clean_up:
+  PLX_CNTRL_T = oldctl;
+  prc_set_ipl(oldipl);
+  return sts;
+
+}
+
+@

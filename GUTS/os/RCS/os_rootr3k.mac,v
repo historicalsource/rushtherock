@@ -1,0 +1,2349 @@
+head	1.27;
+access;
+symbols
+	CJ_206:1.27
+	CJ2_05:1.25
+	CJ2_04:1.24;
+locks; strict;
+comment	@;; @;
+
+
+1.27
+date	96.11.11.20.03.20;	author albaugh;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.11.11.18.36.09;	author albaugh;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.11.07.20.41.28;	author albaugh;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.03.20.02.16.37;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.01.10.21.10.39;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	95.12.20.20.29.37;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	95.12.15.02.07.43;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	95.12.05.02.13.02;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	95.10.31.19.39.53;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	95.10.31.02.27.29;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	95.09.29.01.59.54;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	95.09.28.18.44.13;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	95.09.28.18.22.31;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	95.09.19.01.00.28;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.09.19.00.52.00;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.09.18.23.24.27;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.09.18.23.22.10;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.09.14.17.27.37;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.09.12.20.50.53;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.08.30.19.29.37;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.08.29.22.19.40;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.08.29.16.38.35;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.07.27.23.27.27;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.07.19.22.44.41;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.07.19.21.20.13;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.06.28.20.09.48;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.06.28.18.53.21;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@This file contains the assembly language startup code for the R3K host.
+@
+
+
+1.27
+log
+@Fixed error is power-up pm_dump suppression. pm_cntr is
+an _offset_, not an address.
+@
+text
+@;#		os_rootr3k.asm
+;#
+;#		Copyright 1991,1992,1993,1994,1995 Atari Games.
+;#	Unauthorized reproduction, adaptation, distribution, performance or 
+;#	display of this computer program or the associated audiovisual work
+;#	is strictly prohibited.
+;#
+;#	This file contains only the minimum needed to "wrap" a C program
+;#	(stub.c) and get it to run. 
+;#
+;#	Vectors and other "need to be ORG'd" values.
+;#	Exception code.
+;#	Start-up code in roughly the order it gets executed.
+;#	Subroutines for startup code.
+;#	Subroutines needed by C code, that need to be in assembly
+;#
+;#	Data tables tend to "live" just before the first routine to use them,
+;#	so they can be found and possibly deleted if the particular feature is
+;#	not needed on a particular hardware.
+;#
+;#	Similarly, .globls are "close to" the code that uses them
+;#
+;#	January 20, 1995	Dave Shepperd, modified for R30x1 processors
+;#
+;# NOTE: look for the >>-> symbol to find likely places to customize...
+;#
+
+OUTPUT_LANG 	==  4		; LANG_ASR3k
+
+	.include config.mac
+
+.macro MKOPT name value
+.if not_defined,name
+name == value
+name = value
+.endc
+.endm
+
+MKOPT	ICELESS_STUB			0	; 0=normal, 1=make ICELESS stub code
+MKOPT	NO_CHEAP_EXCEPTION		0	; 0=normal, 1=exclude cheap_exception code
+MKOPT	NUCLEUS_OS			0	; 0=normal, 1=make for Nucleus O/S 
+
+	.globl	ROM_VECTORS
+	.globl	startup, cpu_params
+
+	.bss
+cpu_params:
+	.space	CPU_FRAME_SIZE
+.if true, ICELESS_STUB == 0
+;#* Following variables save "death notes" for post_mortem dump by pm.c
+	.globl	pm_start, powerUp, pm_end, pm_data
+pm_start:
+POWERUP =	0xC0EDBABE
+powerUp:
+	.space	4
+pm_data:
+	DEC_CONST	PM_SIZE	PM_RxK_SIZE
+	.space	PM_SIZE
+	.align	2
+pm_end:
+	.globl	PM_SIZE
+PM_SIZE = . - cpu_params
+
+__cur_tcb:
+	.space	4
+.endc
+
+	.text
+
+;#***************************************************************
+;#  This is the start of the code.				*
+;#***************************************************************
+
+	.globl	sbss_size, sbss_start, INIT_SP, BootUp
+
+FRAME begin
+	.set	at
+	.set	noreorder
+	mtc0	r0, C0_CAUSE	;# clear software interrupts *
+	li	t0, SR_PE|SR_CU0|SR_CU1|SR_CU2|SR_CU3|SR_BEV
+	mtc0	t0, C0_SR	;# set SR to known state *
+	la	v0, 2f		;# get pointer to known address
+	li	v1, 0x20000000
+	or	v0, v1		;# make sure we're running out of non-cached memory
+	j	v0		;# jump to non-cached memory
+	nop
+2:
+	li	v0, 1
+	sw	v0, XB_RESET	;# reset the Xbus to kick all the hardware
+	sw	v0, HEALTH_LED	;# turn on the LED to signal we're alive
+.if true, ICELESS_STUB > 0
+	la	a0, 0xBFC00000	;# point to the reset vector
+	la	a1, startup	;# point to the beginning of our code
+	li	a2, 0xA0000000	;# make sure our address is non-cached
+	or	a1, a2
+	lw	a2, 0x180(a1)	;# get our exception entry instruction
+	sw	r0, 0x184(a0)	;# stuff a nop after the instruction
+	sw	a2, 0x180(a0)	;# replace his instruction with ours
+	addu	a0, 0x10	;# skip to his ROMV struct
+	addu	a1, 0x10	;# skip to our ROMV struct
+	lw	v0, ROMV_STACK(a0)	;# get his stack address
+	lw	a2, ROMV_RAMVBR(a1) ;# ptr to RAM vector table
+	lw	a3, ROMV_STACK(a1)	;# get "last" SRAM address 
+	srl	v0, v0, 24	;# get upper byte of his stack address
+	srl	v1, a3, 24	;# get upper byte of last SRAM address
+	and	v0, 0xFF	;# isolate the bytes
+	and	v1, 0xFF
+	bne	v0, v1, 4f	;# leave his stack alone if not in same address space as ours
+	sw	a2, ROMV_RAMVBR(a0) ;# Tell game to use our vector table
+	sw	a3, ROMV_STACK(a0)	;# tell the game where SRAM stops
+4:	la	a2, handle_exception
+	sw	a2, ROMV_STUB_EH(a0)
+	sw	r0, ROMV_STUB_REASON(a0) ;# make sure reason starts out 0
+.endc
+
+	mfc0	t2, C0_PRID	;# see what kind of CPU we are *
+	and	t0, ~SR_CU1	;# get an SR without FPU bit set
+
+	bne	t2, t1, not_3041	;# not a 3041 *	
+	nop
+
+	mtc0	t0, C0_SR		;# is a 3041, disable Coproc 1 *
+	li	t2, C0_CONF_DEFAULT_3041
+	li	t3, C0_BUSC_DEFAULT|(1<<C0_BUSC_BE_v)
+	mtc0	t2, C0_CONFIG
+	mtc0	t3, C0_BUSCTRL
+	mtc0	r0, C0_PORTSIZE		;# Technically, the BRAM is 8 bits wide and we could *
+					;# make it so here, but it is wired to bits 7-0 and *
+					;# the processor is running big endian, so it wouldn't *
+					;# appear anywhere. It would also make BRAM incompatible *
+					;# with a 3051, 3071 and 3081 processor which can't change *
+					;# the bus widths. So make all memory 32 bits wide *
+	b	prep_cache
+	add	t9, r0, 3041		;# it's a 3041 *
+
+not_3041:
+	li	t2, 0xAAAA5555
+	mtc1	r0, $f1			;# and a 0 in $f1 *
+	mtc1	t2, $f0			;# put a number in $f0 *
+	mfc1	t3, $f1
+	mfc1	t4, $f0
+	bne	r0, t3, its3051		;# if data doesn't match, no FPA, so it's a 3051 *
+	nop
+	bne	t2, t4, its3051		;# data doesn't match, no FPA, so it's a 3051 *
+	add	t9, r0, 3081		;# else it's a 3081 *
+	li	t2, C0_CONF_DEFAULT_3081
+	ctc1	r0, C1_FCSR		;# init the FPCSR to 0
+	b	prep_cache
+	mtc0	t2, C0_CONFIG		;# configure the 3081 *
+
+its3051:
+	mtc0	t0, C0_SR		;# disable Coproc 1 since there isn't one *
+	add	t9, r0, 3051		;# so it's a 3051 *
+	
+prep_cache:
+	mfc0	s3, C0_SR		;# get current copy of SR *
+	li	t0, SR_ISC|SR_SWC|SR_BEV ;# disable intr, isolate and swap caches *
+	and	s3, ~(SR_PE|SR_TS)	;# make sure we don't set PE *
+	bal	size_cache		;# go figure out how big the I cache is *
+	mtc0	t0, C0_SR		;# update SR *
+
+	move	t8, v0			;# t8 = size of I cache *
+	bal	clear_cache
+	move	a0, v0
+
+	li	t0, 3051
+	bne	t0, t9, 10f		;# We're not a 3051, so skip any test
+	li	t0, 16384		;# get cache size of 3871
+	bne	t0, t8, 10f		;# not a 3071
+	li	t0, C0_CONF_DEFAULT_3071
+	mtc0	t0, C0_CONFIG		;# init the config register for the 3071
+	li	t9, 3071		;# signal that we're a 3071
+
+10:	li	t0, SR_ISC|SR_BEV	;# make I cache and D cache normal *
+	bal	size_cache		;# figure out the size of the D cache *
+	mtc0	t0, C0_SR
+
+	move	t7, v0			;# t7 = size of D cache *
+	bal	clear_cache
+	move	a0, v0
+
+	mtc0	s3, C0_SR
+
+.if true, ICELESS_STUB > 0
+	la	sp, 0xBFC00010		;# point to the reset vector
+.iff
+	la	sp, ROM_VECTORS
+.endc
+	lw	sp, ROMV_STACK(sp)	;# get the value to which to init the stack
+	li	t0, -8
+	addiu	sp, -16			;# leave 4 empty slots on the stack
+	and	sp, t0			;# make it aligned on an eight byte boundary
+
+	li	a0, 200000		;# blink at about 0.1 seconds
+	bal	blink
+	nop
+
+	la	s0, test_mem		;# ptr to ram test area (cached)
+	la	s1, ram_test_table	;# ptr to ram test table
+	la	s8, 0xA0000000
+	or	s7, sp, s8		;# get uncached sp address
+20:	lw	a0, (s1)		;# pick up addresses to test
+	lw	a1, 4(s1)
+	beq	a0, r0, 30f		;# done
+	or	a0, s8			;# make sure the addresses are in non-cached mem
+	or	a1, s8
+
+.if true, ICELESS_STUB == 0
+	bgtu	a0, s7, 25f
+	nop
+	bltu	a1, s7, 25f
+	nop
+	move	a1, s7			;# else stop testing at sp value
+.endc
+
+25:	jalr	s0			;# goto ramtest in cache
+	nop
+
+	li	a0, 200000		;# blink at about 0.1 seconds
+	bal	blink
+	nop
+
+	b	20b
+	add	s1, 8
+
+;#*****************************************************************
+;#  First clear the GUTS BSS in case the memory test didn't do it *
+;#*****************************************************************
+
+30:	la	v0, sbss_start		;# prepare to clear bss
+	move	s0, v0
+	la	v1, sbss_size
+	move	s1, v1
+31:	sw	r0, (v0)
+	subu	v1, 1
+	bgt	v1, r0, 31b
+	addu	v0, 4
+
+	srl	a0, sp, 24		;# get upper byte of stack
+	srl	a1, s0, 24		;# get upper byte of bss
+	bne	a0, a1, 40f		;# don't clear, bss and stack are in different address spaces
+	nop
+.if true, ICELESS_STUB == 0
+;#	la	a0, pm_data
+;#	jal	pm_validate		;# see if there's a valid pm
+;#	nop
+;#	bne	v0, r0, 40f		;# there is, don't clear stack or game bss
+;#	nop
+;# The check in pm_validate is bogus. Use our own judgement, based on
+;# whether this appears to be a power-on reset, or something else
+	la	a0, powerUp
+	lw	v0, (a0)
+	li	v1, POWERUP
+	nop
+	beq	v0, v1, 40f		;# Don't clear stack or game bss if not powerup
+	nop
+;# If this _is_ a power-up, clear the pm_area to avoid false pm_dumps.
+	la	a1, pm_end
+311:	addiu	a0, a0, 4
+	bne	a0, a1, 311b
+	sw	r0, (a0)
+
+	la	a0, pm_data
+	li	v1, -42			;# Keep pm_dump from interpretting this as WDOG
+	sw	v1, pm_cntr(a0)
+.endc
+	sub	a0, sp, s0		;# compute size of bss and stack area
+	ble	a0, r0, 32f		;# stack is below the bss, leave it alone
+	srl	a0, 2			;# size in words
+	move	v1, a0
+		
+32:	nor	a0, r0, 3		;# get a bit mask
+	and	s0, a0			;# round address down to longword boundary
+35:	sw	r0, (s0)
+	subu	v1, 1
+	bgt	v1, r0, 35b
+	add	s0, 4
+	sw	r0, (s0)
+
+40:	la	t0, cpu_params
+	mfc0	t1, C0_PRID
+	la	t2, BootUp		;# begin at boot up code in non-cached mem
+	sw	t9, cpu_type(t0)
+	sw	t8, cpu_icache(t0)
+	sw	t7, cpu_dcache(t0)
+	sw	t1, cpu_prid(t0)
+	la	a0, HEALTH_LED
+	li	a1, 1
+
+
+	sw	a1, (a0)		;# leave with LED on
+	la	a0, XB_RESET
+	sw	r0, (a0)		;# unreset the Xbus
+	move	a0, r0			;# clear args to BootUp() *
+	move	a1, r0
+	move	a2, r0
+	jalr	t2			;# all the rest of the boot stuff is done in C
+	move	a3, r0
+	b	begin			;# If pgm returns, start over *
+	nop
+
+ENDFRAME begin
+
+;#************************************************
+;#* Figure out how much cache there is.
+;#* At entry:
+;#*	The ISC bit must be set in the SR
+;#* At exit:
+;#*	t0-t2, v1 trashed.
+;#*	v0 = size of cache or 0 if none
+;#*
+
+FRAME	size_cache, global=0
+	.set	noreorder
+	move	v0, r0			;# assume there's no cache *
+	li	v1, 0x5a5a5a5a
+	sw	v1, K0BASE		;# write to I space (doesn't actually write) *
+	lw	t1, K0BASE		;# see what we read back *
+	nop
+	mfc0	t2, C0_SR		;# get status *
+	nop
+	.set	reorder
+	and	t2, SR_CM		;# see what happened *
+	bne	t2, r0, 3f		;# cache miss, there is no cache *
+	bne	v1, t1, 3f		;# data not equal, no cache *
+	li	v0, MIN_CACHE_SIZE	;# set size to minimum *
+
+1:	sw	r0, K0BASE(v0)		;# clear cache to maximum available *
+	sll	v0, 1			;# double address *
+	ble	v0, MAX_CACHE_SIZE, 1b	;# loop until all cache is cleared *
+
+	li	v0, -1
+	sw	v0, K0BASE		;# store marker in cache *
+	li	v0, MIN_CACHE_SIZE
+
+2:	lw	v1, K0BASE(v0)		;# look for marker in cache *
+	bne	v1, r0, 3f
+	sll	v0, 1			;# address *2 *
+	ble	v0, MAX_CACHE_SIZE, 2b
+
+	move	v0, r0			;# must be no cache *
+3:	jr	ra			;# done *
+ENDFRAME size_cache
+
+;#************************************************
+;#* Clear the cache contents.
+;#* At entry:
+;#*	a0 = size of cache 
+;#* At exit:
+;#*	t0-t2, v1 trashed.
+;#*
+
+FRAME clear_cache, global=0
+	.set reorder
+	li	t0, K0BASE		;# get ptr to base of memory *
+	or	t1, t0, a0		;# get ptr to last cached address *
+1:	sb	r0, 0(t0)		;# clear 32 entries *
+	sb	r0, 4(t0)
+	sb	r0, 8(t0)
+	sb	r0, 12(t0)
+	sb	r0, 16(t0)
+	sb	r0, 20(t0)
+	sb	r0, 24(t0)
+	addu	t0, 32
+	sb	r0, -4(t0)
+	bne	t0, t1, 1b
+	jr	ra
+ENDFRAME clear_cache
+
+;#*************************************************
+;#* Clear the I cache contents
+;#* At entry:
+;#*	no requirements
+;#* At exit:
+;#* 	I cache invalidated
+
+FRAME zap_i_cache
+	.set reorder
+	la	a0, cpu_params
+	lw	a0, cpu_icache(a0)	;# get size of I cache
+	mfc0	a1, C0_SR
+	li	t0, ~(SR_IEC|SR_PE|SR_TS) ;# prepare to turn off IEC, PE and TS bits
+	and	t0, a1
+	li	t1, SR_ISC|SR_SWC|SR_BEV  ;# isolate and swap caches
+	or	t0, t1
+	mtc0	t0, C0_SR		;# disable and isolate caches
+	move	t3, ra			;# save our return address
+	bal	clear_cache		;# clear the I cache
+	mtc0	a1, C0_SR		;# restore SR
+	j	t3			;# return
+ENDFRAME zap_i_cache
+	
+.if defined,B_TEST
+ .if true, B_TEST < 0
+FRAME ctl_sw_asm			;# read the switches on the host board
+	move	v0, r0			;# clear a temp while we're checking
+	bc2t	10f			;# br if left switch is closed
+	
+	ori	v0, J2_LEFT		;# signal the left switch is pressed	
+10:	mfc0	t1, C0_CAUSE		;# while that is happening, grab the interrupt bits
+	bc3t	20f			;# br if right switch is closed
+
+	ori	v0, J2_RIGHT		;# signal the right switch is pressed
+20:	and	t2, t1, 0x100<<XBUS3_LVL	;# isolate the UP switch
+	and	t3, t1, 0x100<<ICELESS_LVL	;# isolate the DOWN switch
+	beq	t2, r0, 30f		;# br if switch is not active
+
+	ori	v0, J2_UP
+30:	beq	t3, r0, 40f		;# br if DOWN is not active
+
+	ori	v0, J2_DOWN
+40:	j	ra
+	nop
+	.set	reorder
+ENDFRAME ctl_sw_asm
+ .endc
+.endc
+
+.if true, NUCLEUS_OS == 0
+
+.macro .lreg op, prefix, reg, base, offset, index
+	op 	$'prefix''reg', (base+'offset')*4(index)
+.endm .lreg
+
+all_g_regs	=	1		;# all the General Purpose regs are stored
+fpu_regs	=	2		;# all the FPU registers are saved
+mmu_regs	=	4		;# all the MMU registers are saved
+
+.macro DO_STACK_STUFF	which_reg
+	la	k1, interrupt_stack
+	sltu	k0, k1, sp		;# if interrupt stack is less than sp
+	bne	k0, r0, 20f		;# then we're using the user's stack
+	la	k1, interrupt_stack_limit
+	sltu	k0, sp, k1		;# if sp is less than the bottom of our interrupt stack
+	bne	k0, r0, 20f		;# then we're using the user's stack
+	addiu	k0, sp, -1*NUM_REGS*4	;# else we're already on the interrupt stack
+	sltu	k1, k0, k1		;# if new sp is not less than the bottom of our interrupt stack
+	beq	k1, r0, 30f		;# we can continue
+	sw	sp, SP_REGNUM*4(k0)	;# save his sp in the new area
+
+.if true, 1
+10:	li	a0, 0x10000
+	bal	blink
+	nop
+	b	10b
+	nop
+.iff
+	la	k0, XBUS_BASE		;# interrupt stack underflow
+10:	b	10b			;# so spin writing to location XBUS_SLOT0
+	sw	r0, (k0)		;# until watchdog times out
+
+.endc
+
+20:	la	k0, interrupt_stack-(NUM_REGS*4)	;# switch to interrupt stack
+	sw	sp, SP_REGNUM*4(k0)	;# save his SP
+30:	mfc0	k1, which_reg		;# get the whatever	
+	move	sp, k0			;# move the new sp
+.endm
+
+.if true, (ICELESS_STUB == 0) && (NO_CHEAP_EXCEPTION == 0)
+;# cheap_exception - used for IRQ's (cheap means it only saves what is necessary
+;# for a C function to take control; no FPU or MMU registers are preserved)
+;#
+;# At entry:
+;#	no state has been saved.
+;# At exit:
+;#	state has been preserved and control returned to interrupted process
+;#
+;# This function performs the following:
+;#	the first 16 registers are saved to (sp)
+;#	the EPC, CAUSE, HI, LO and SR registers are saved to (sp)
+;#	The FPU is disabled
+;#	control is handed to the C function: interrupt_handler
+;#	the C function returns and registers and the state is restored.
+;#
+FRAME cheap_exception,global=1
+.set noreorder
+.set noat
+
+  .if true, ICELESS_STUB > 0
+	DO_STACK_STUFF C0_SR		;# Do stack stuff and exit with SR in K1
+  .iff
+	addiu	k0, sp, -1*NUM_REGS*4	;# for now, only have separate stacks with ICELESS stub
+	sw	sp, SP_REGNUM*4(k0)	;# save his SP
+	mfc0	k1, C0_SR		;# get the SR	
+	move	sp, k0			;# move the new sp
+  .endc
+	sw	k1, PS_REGNUM*4(sp)
+	li	k0, ~(SR_CU1|SR_PE|SR_IEC) ;# Prepare to turn off FPU
+	and	k0, k1
+	mtc0	k0, C0_SR		;# no FPU or other stuff
+...1 == 0				;# Save first 16 registers
+.rept	16
+.lreg	sw, <>, \...1, ZERO_REGNUM, \...1, sp
+...1 == ...1 + 1
+.endr
+.set at
+	mflo	t0
+	mfhi	t1
+	mfc0	t2, C0_CAUSE
+	mfc0	t3, C0_EPC
+	sw	t8, (ZERO_REGNUM+24)*4(sp)
+	sw	t9, (ZERO_REGNUM+25)*4(sp)
+	sw	s8, (ZERO_REGNUM+30)*4(sp)
+	sw	ra, RA_REGNUM*4(sp)
+	sw	t0, LO_REGNUM*4(sp)
+	sw	t1, HI_REGNUM*4(sp)
+	sw	t2, CAUSE_REGNUM*4(sp)
+	sw	t3, PC_REGNUM*4(sp)
+	move	s8, sp				;# remember this for later
+	li	t0, -8
+	addiu	sp, -16				;# leave 4 empty slots on the stack
+	and	sp, t0				;# make it aligned on an eight byte boundary
+	jal	interrupt_handler		;# goto C exception handler
+	move	a0, s8				;# point to register frame
+
+	mtc0	r0, C0_SR			;# disallow everything for the next transactions
+	move	sp, s8				;# restore the stack
+	lw	v0, PS_REGNUM*4(sp)		;# get his old PS
+	li	v1, ~(SR_PE|SR_IEC)		;# disallow interrupts
+	and	v0, v1
+	mtc0	v0, C0_SR
+	lw	t0, LO_REGNUM*4(sp)
+	lw	t1, HI_REGNUM*4(sp)
+	lw	t2, CAUSE_REGNUM*4(sp)
+	mtlo	t0
+	mthi	t1
+	mtc0	t2, C0_CAUSE
+	lw	t8, (ZERO_REGNUM+24)*4(sp)
+	lw	t9, (ZERO_REGNUM+25)*4(sp)
+	lw	s8, (ZERO_REGNUM+30)*4(sp)
+	lw	ra, RA_REGNUM*4(sp)
+.set noat
+...1 == 1				;# restore a bunch of regs
+.rept	15
+.lreg	lw, <>, \...1, ZERO_REGNUM, \...1, sp
+...1 == ...1 + 1
+.endr
+	lw	k1, PC_REGNUM*4(sp)
+	lw	sp, SP_REGNUM*4(sp)	;# restore the stack
+	j	k1			;# rti
+	rfe
+.set reorder
+.set at
+ENDFRAME cheap_exception
+.endc					; ICELESS_STUB == 0 && NO_CHEAP_EXCEPTION
+
+;# normal_exception - used for all exceptions other than some IRQ's
+;#
+;# At entry:
+;#	no state has been saved.
+;# At exit:
+;#	depends on what the exception_handler does, but normally an exception
+;#	is fatal and results in a 'software reset'. All state is preserved
+;#	and control is passed to the C function exception_handler with the
+;#	pointer to the saved state in a0. The function exception_handler
+;#	can either return with a pointer to the saved state in v0 or call or
+;#	jmp to return_to_user which will restore the state and return to
+;# 	the exception instruction.
+;#
+FRAME normal_exception
+	.set 	noat
+	.set	noreorder
+
+.if true, ICELESS_STUB > 0	
+	DO_STACK_STUFF C0_CAUSE		;# do stack stuff and exit with C0_CAUSE in k1
+.iff
+	mfc0	k1, C0_CAUSE		;# get cause bits as early as possible
+	addiu	k0, sp, -1*NUM_REGS*4	;# make room for all possible registers
+	sw	sp, SP_REGNUM*4(k0)	;# save unmodified sp
+	move	sp, k0			;# move stack
+.endc
+	sw	k1, CAUSE_REGNUM*4(sp)
+
+	li	k1, all_g_regs
+	sw	k1, ZERO_REGNUM*4(sp)
+
+...1 == 1
+.rept	26-...1				; Save registers $at through but not including $k0
+.lreg	sw, <>, \...1, ZERO_REGNUM, \...1, sp
+...1 == ...1 + 1
+.endr
+.set	at
+
+	sw	gp, (ZERO_REGNUM+28)*4(sp)
+	sw	s8, (ZERO_REGNUM+30)*4(sp)
+	sw	ra, (ZERO_REGNUM+31)*4(sp)
+
+	mfc0	t0, C0_SR
+	mfhi	t1
+	mflo	t2
+	mfc0	t3, C0_BADVADDR
+	mfc0	t4, C0_EPC
+
+	sw	t0, PS_REGNUM*4(sp)
+	sw	t1, HI_REGNUM*4(sp)
+	sw	t2, LO_REGNUM*4(sp)
+	sw	t3, BADVADDR_REGNUM*4(sp)
+	sw	t4, PC_REGNUM*4(sp)
+
+        li	t1, SR_TS
+        li	t2, SR_CU1
+        and	t1, t0		;# t1 = SR & SR_TS 
+        bne	t1, r0, 10f	;# br if no MMU 
+        and	t2, t0		;# t2 = SR & SR_CU1 
+
+        mfc0	t4, C0_INX
+        mfc0	t5, C0_TLBLO
+        sw	t4, FIRST_EMBED_REGNUM*4+0(sp)	;# save inx register 
+        mfc0	t4, C0_CTXT
+        sw	t5, FIRST_EMBED_REGNUM*4+8(sp)	;# save tlblo register         
+        mfc0	t5, C0_TLBHI
+        sw	t4, FIRST_EMBED_REGNUM*4+12(sp)	;# save ctx register 
+        sw	t5, FIRST_EMBED_REGNUM*4+16(sp)	;# save tlbhi 
+	li	t4, mmu_regs|all_g_regs
+	sw	t4, ZERO_REGNUM*4(sp)		;# signal we have saved the MMU regs
+
+10:	beq	t2, r0, 20f			;# FPU not enabled
+	nop
+
+        cfc1	t0, $0			;# get the FIR
+	li	t1, fpu_regs
+	beq	t0, r0, 20f		;# there's no FPU
+	nop
+	bal	save_fpregs
+	move	a0, sp
+
+20:	move	a0, sp			;# point to register frame
+	li	t0, -8
+	addiu	sp, -16			;# leave 4 empty slots on the stack
+	jal	exception_handler	;# goto C exception handler
+	and	sp, t0			;# align stack pointer on an eight byte boundary
+
+	b	returnToUser
+	move	a0, v0			;# returns with pointer to register frame
+	
+	.set	reorder
+ENDFRAME normal_exception
+
+;# Return to user:
+;# At entry:
+;#	a0 = pointer to register frame to restore
+;#	ZERO_REGNUM*4(a0) = bit mask of what registers to restore
+;#		all_g_regs = restore all general registers
+;#		mmu_regs = restore the mmu registers
+;#		fpu_regs = restore the FPU registers
+;#
+FRAME returnToUser
+.set noreorder
+.set at
+	move	k0, a0		;# point to the register stack 
+	lw	t1, PS_REGNUM*4(a0)	;# get the saved SR 
+        li	t0, -2		;# t0 = -2 
+        and	t1, t0		;# t1 = SR&-2 
+        mtc0	t1, C0_SR	;# SR = t1 
+	lw	t1, ZERO_REGNUM*4(a0)
+	li	t0, mmu_regs
+	and	t0, t1
+	beq	t0, r0, 10f	;# no MMU regs saved
+	li	t0, fpu_regs
+
+        lw	t4, FIRST_EMBED_REGNUM*4+0(a0)	;# get inx register 
+        lw	t5, FIRST_EMBED_REGNUM*4+8(a0)	;# get tlblo register         
+        mtc0	t4, C0_INX
+        lw	t4, FIRST_EMBED_REGNUM*4+12(a0)	;# get ctx register 
+        mtc0	t5, C0_TLBLO
+        lw	t5, FIRST_EMBED_REGNUM*4+16(a0)	;# get tlbhi 
+        mtc0	t4, C0_CTXT
+        mtc0	t5, C0_TLBHI
+
+10:	and	t0, t1
+	beq	t0, r0, 20f	;# no FPU regs saved
+	lw	t0, HI_REGNUM*4(a0)
+
+	bal	restore_fpregs
+	nop
+
+20:	lw	v1, LO_REGNUM*4(a0)
+	mthi	t0
+	lw	v0, CAUSE_REGNUM*4(a0)
+	mtlo	v1
+	mtc0	v0, C0_CAUSE
+
+.set	noat
+
+	move	k0, a0
+	lw	k1, PC_REGNUM*4(k0)
+...1 == 1
+.rept 25		;registers 1-25
+.lreg	lw, <>, \...1, ZERO_REGNUM, \...1, k0
+...1 == ...1 + 1
+.endr
+...1 == 28
+.rept 4			;registers 28-31
+.lreg	lw, <>, \...1, ZERO_REGNUM, \...1, k0
+...1 == ...1 + 1
+.endr
+	j	k1
+	rfe
+.set reorder
+.set at
+ENDFRAME returnToUser
+
+;# save_fpregs - saves the FP registers 
+;#
+;# At entry:
+;#	a0 - pointer to register frame
+;# At exit:
+;#	all FPU registers have been saved and the fpu_regs bit set
+;#	in the frame. $at, v0-v1 trashed
+;#
+
+FRAME save_fpregs
+	cfc1	v0, $31
+	lw	v1, ZERO_REGNUM*4(a0)
+	sw	v0, FCRCS_REGNUM*4(a0)
+	cfc1	v0, $0
+	or	v1, fpu_regs
+	sw	v1, ZERO_REGNUM*4(a0)
+.set noreorder
+...1 == 0
+.rept	32
+.lreg	swc1, f, \...1, FP0_REGNUM, \...1, a0
+...1 == ...1 + 1
+.endr
+	j	ra
+	sw	v0, FCRIR_REGNUM*4(a0)
+.set reorder
+ENDFRAME save_fpregs
+
+FRAME restore_fpregs
+.set noreorder
+...1 == 0
+.rept	32
+.lreg	lwc1, f, \...1, FP0_REGNUM, \...1, a0
+...1 == ...1 + 1
+.endr
+        lw	v0, FCRCS_REGNUM*4(a0)
+	j	ra
+        ctc1	v0, $31		;# set the FSR
+.set reorder
+ENDFRAME restore_fpregs
+.endc			;# NUCELUS_OS == 0
+
+FRAME prc_get_im
+	mfc0	v0, C0_SR
+	li	v1, SR_IMASK|SR_IEC
+	and	v0, v1
+	j	ra
+ENDFRAME prc_get_im
+
+FRAME	get_cause
+	.set noreorder
+	mfc0	v0, C0_CAUSE
+	j	ra
+	nop
+	.set reorder
+ENDFRAME get_cause
+
+FRAME	get_sr
+	.set noreorder
+	mfc0	v0, C0_SR
+	j	ra
+	nop
+	.set noreorder
+ENDFRAME get_sr
+
+;# blink(length) calls nc_blink (non-cached blink)to get
+;# stable timing. nc_blink turns the DIAG LED _off_
+;# for a time spec'd by <length> (in approx 250nSec units),
+;# Then _on_ for the same amount of time, _minimum_.
+;# The LED is left _on_. It is the caller's responsibility
+;# to make sure <length> is not long enough to allow
+;# a watchdog reset.
+
+FRAME nc_blink,global=0
+.set noreorder
+	la	v0, WDOG_BASE
+	sw	r0, (v0)	;# kick the DOG
+	sw	r0, HEALTH_LED-WDOG_BASE(v0)	;# turn off the LED
+	move	v1, a0
+10:	bne	v1, r0, 10b
+	sub	v1, 1
+	sw	r0, (v0)	;# kick the DOG
+	li	v1, 1
+	sw	v1, HEALTH_LED-WDOG_BASE(v0)	;# turn on the LED
+	move	v1, a0
+20:	bne	v1, r0, 20b
+	sub	v1, 1
+	j	ra
+	nop
+.set reorder
+ENDFRAME nc_blink
+
+FRAME blink
+	la	v0, nc_blink
+	li	v1, 0xA0000000
+	or	v0, v1		;# make sure address is in non-cached memory
+	j	v0
+ENDFRAME blink
+
+FRAME nc_pause,global=0
+.set noreorder
+	la	v0, WDOG_BASE
+	sw	r0, (v0)	;# kick the DOG
+	move	v1, a0
+10:	bne	v1, r0, 10b	;# these 2 instructions will take about .25 microseconds
+	subu	v1, 1
+	sw	r0, (v0)	;# kick the DOG
+	j	ra
+	nop
+.set reorder
+ENDFRAME nc_pause
+
+FRAME wait_n_usecs
+	sll	a0, 2		;# multiply input by 4 to get delay in microseconds
+	la	v0, nc_pause
+	li	v1, 0xA0000000
+	or	v0, v1		;# make sure address is in non-cached memory
+	j	v0
+ENDFRAME wait_n_usecs
+
+;# st_throb(pat) sends <pat> as a series of short and long
+;# pulses to the Diagnostic LED. The encoding is typical
+;# of Morse-code. If <pat> == 0, a "word-space" of LEDOFF
+;# is sent. Otherwise, <pat> must be at least 2, and the
+;# bits of <pat> are sent, lsb first, as a long LEDON if
+;# one, or a short LEDON if zero. Then a short LEDOFF is
+;# sent and <pat> is shifted right. if pat is now < 2, we
+;# return, after padding the inter-element (dit) space
+;# to an inter-character (dah) space.
+;# Uses:
+;#	a0	pat
+;#	a1	ptr to WDOG and HLED
+;#	a2	gross timer
+;#	a3	fine timer
+;#	v0	phase (1: send LEDON, 0: send LEDOFF)
+;#	v1	temp
+DIT	=	10
+DAH	=	30
+WSPACE	=	90
+FRAME nc_throb,global=0
+.set noreorder
+	li	a1, WDOG_BASE
+	li	a2, WSPACE
+	sw	r0, (a1)	;# Stroke the DOG
+	sgt	v0, a0, 1	;# Special-case pat for space
+	sw	v0, 8(a1)	;# Turn LED on/off
+10:	beq	v0, r0, 20f	;# If phase == 0, skip to timing off
+	andi	v1, a0, 1
+	beq	v1, r0, 15f
+	li	a2, DIT
+	li	a2, DAH
+15:	sw	v0, 8(a1)	;# LEDON
+;# Time pulse, two loops to make sure we hit WDOG enough
+20:	li	a3, 10000
+30:	bne	a3, r0, 30b
+	subu	a3, 1
+
+	sw	r0, (a1)	;# Stroke dog
+	bne	a2, r0, 20b	;# check gross timer
+	subu	a2, 1
+
+	sw	r0, 8(a1)	;# LEDOFF (possibly redundant)
+	beq	v0, r0, 40f	;# Check phase
+	xor	v0, v0, 1	;# Toggle phase.
+
+	sra	a0, a0, 1	;# Shift pat
+40:	sgt	v1, a0, 1
+	bne	v1, r0, 10b	;# Loop if ( pat > 1 )
+	li	a2, DIT		;# default inter-element time
+
+;# We get here at the end of a character. "trail off"
+;# with a "dah-space", by adding another dah-dit to the
+;# trailing space.
+	li	a2, DAH-DIT
+	li	v0, 0
+	bne	a0, r0, 20b
+	sra	a0, a0, 1	;# After last mark, pat is _exactly_ one
+
+	j	ra
+	nop
+.set reorder
+ENDFRAME nc_throb
+
+FRAME st_throb
+	la	v0, nc_throb
+	li	v1, 0xA0000000
+	or	v0, v1		;# make sure address is in non-cached memory
+	j	v0
+	nop
+ENDFRAME st_throb
+
+;# Quick and dirty RAM test.
+;# At entry:
+;#	a0 = starting address
+;#	a1 = ending address
+;# At exit:
+;#	trashes a0-a3, v0-v1, t0-t3
+;#	exits if no errors, else gets stuck waiting for watchdog to hit us
+
+FRAME	test_mem, global=0
+.set noreorder
+	li	a2, 0xA0000000
+	or	a0, a2		;# make sure we test non-cached RAM
+	or	a1, a2		;# make ending address in the same address space
+	nor	a2, r0, 3
+	and	a0, a2
+	and	a1, a2
+	la	a2, WDOG_BASE
+	sw	r0, (a2)	;# make sure we start with a clean timer
+
+	li	v0, 1		;# first walk a single bit
+10:	sw	v0, (a0)	;# write the long
+	lw	a3, (a0)	;# read it back
+	nop
+	bne	a3, v0, 100f	;# branch if there's an error
+	sll	v0, 1		;# shift test bit
+	bne	v0, r0, 10b	;# keep testing
+	nop
+
+	nor	v0, r0, r0	;# get all one's
+	move	v1, a0
+	sw	v0, (v1)	;# fill all of RAM with 1's
+20:	add	v1, 4
+	bne	v1, a1, 20b
+	sw	v0, (v1)
+	
+	sw	r0, (a2)	;# then read it all back to see if it worked
+	move	v1, a0
+	lw	a3, (v1)
+30:	nop
+	bne	a3, v0, 100f	;# fail
+	add	v1, 4
+	bne	v1, a1, 30b
+	lw	a3, (v1)
+		
+	sw	r0, (a2)	;# kick the dog
+	move	v1, a0
+	sw	v1, (v1)	;# put address into location
+40:	add	v1, 4
+	bne	v1, a1, 40b
+	sw	v1, (v1)
+	
+;	move	t0, ra		;# save some regs
+;	move	t1, v1
+;	move	t2, v0
+;	move	t3, a0
+;	li	a0, 0x800000
+;	bal	pause		;# wait quite a while
+;	nop
+;
+;	move	ra, t0		;# restore regs
+;	move	v1, t1
+;	move	v0, t2
+;	move	a0, t3
+
+	sw	r0, (a2)	;# then read it all back to see if it worked
+	lw	a3, (v1)
+50:	move	v0, v1		;# make a copy for beeper
+	bne	a3, v1, 100f	;# fail
+	add	v1, -4
+	bne	v1, a0, 50b
+	lw	a3, (v1)
+		
+	sw	r0, (a2)	;# kick the dog
+	move	v1, a0
+	sw	r0, (v1)	;# fill ram with 0's
+60:	add	v1, 4
+	bne	v1, a1, 60b
+	sw	r0, (v1)
+	
+	sw	r0, (a2)	;# then read it all back to see if it worked
+	move	v1, a0
+	move	v0, r0		;# v0 is "what we expect"
+	lw	a3, (v1)
+70:	nop
+	bne	a3, r0, 100f	;# fail
+	add	v1, 4
+	bne	v1, a1, 70b
+	lw	a3, (v1)
+		
+	jr	ra
+	nop
+
+;# If we get here, we aren't going to return, so we can thrash ra
+;# calling st_throb to report the error.
+
+100:	la	a0, WDOG_BASE
+	sw	r0, (a0)	;# make sure we get a nice long off signal
+	sw	r0, 8(a0)	;# turn off the LED
+	xor	a3, a3, v0	;# Light up the bad bits
+;# Now build an "error syndrome" on a per-byte basis. We
+;# Use t5 because we know st_throb does not mess with it.
+	andi	v1, a3, 0xFF
+	sne	t5, v1, r0	;# t5 gets 1 if LSByte (0..7) bad
+	sra	a3, a3, 8
+	andi	v1, a3, 0xFF
+	bne	v1, r0, 102f
+	sra	a3, a3, 8
+
+	ori	t5, t5, 2	;# 2 for bits 8..15
+102:	andi	v1, a3, 0xFF
+	bne	v1, r0, 104f
+	sra	a3, a3, 8
+
+	ori	t5, t5, 4	;# 4 for bits 16..23
+104:	andi	v1, a3, 0xFF
+	bne	v1, r0, 106f
+	ori	t5, t5, 0x10	;# Set the sentinal to stop shift
+
+	ori	t5, t5, 0x8	;# 8 for bits 24..31
+106:
+	la	t4, st_throb
+	jalr	t4
+	move	a0, r0		;# First LEDOFF for wordspace
+
+	move	t5, a0		;# Pseudo-morse error-syndrome
+	jalr	t4
+	nop
+
+110:	b	wait_forever	;# spin waiting for watchdog
+	nop
+.set reorder
+ENDFRAME test_mem
+
+.if true, NUCLEUS_OS == 0
+  .if true, ICELESS_STUB > 0
+	.globl	iceless_semaphore
+  .endc
+;# except - all exceptions enter at this point
+;# At entry:
+;#	an exception has occured. No state has been saved
+;# At exit:
+;#	exception is dispatched and handled (or not)
+;#
+FRAME except, global=1
+	.set 	noat
+	.set	noreorder
+
+  .if true, ICELESS_STUB > 0
+	la	k0, 5f			;# put ourself into cached memory for speed
+	j	k0
+	mfc0	k0, C0_CAUSE
+
+5:	la	k1, exception_funcs	;# point to our RAM based vector table
+	and	k0, 0x7C		;# isolate the cause bits
+
+   .if true, 0
+	beq	k0, r0, 10f		;# IRQ, check for ICELESS
+	nop
+	addu	k1, k0			;# compute pointer to exception vector
+	addu	k1, RAMV_TLBM-1		;# make it relative to the start of our exception list
+	lw	k1, (k1)		;# pick up user's vector
+	nop
+	bne	k1, r0, 15f		;# goto his handler
+	nop
+	b	normal_exception	;# else use ours
+	nop
+    .iff
+	bne	k0, r0, normal_exception ;# not an interrupt, do our stuff
+	nop
+    .endc
+
+10:	mfc0	k1, C0_SR		;# get status
+	mfc0	k0, C0_CAUSE		;# get cause
+	nop
+	and	k0, k1			;# see if ICELESS interrupt enabled
+	and	k0, 0x0400
+	bne	k0, r0, 20f		;# Got an ICELESS interrupt, see what to do
+	nop
+
+	la	k0, 0xBFC00010		;# point to game's parameter table
+	lw	k1, ROMV_EXCEPT(k0)	;# pickup ptr to user's exception handler
+	nop
+	bne	k1, r0, 15f		;# use his exception handler
+	nop
+	la	k0, exception_funcs	;# point to our exception table
+	lw	k1, RAMV_CHEAP(k0)	;# see if it's old code with a cheap exception handler
+	nop
+	bne	k1, r0, 15f		;# there is one, so go to it.
+	nop
+	lw	k1, RAMV_NORMAL(k0)	;# see if there's a normal exception
+	nop
+	bne	k1, r0, 15f		;# there is, so go to it.
+	nop
+	b	normal_exception	;# else use ours.
+	nop
+
+15:	li	k0, 0x20000000
+	or	k1, k0			;# make user's address non-cached for realism
+	j	k1			;# goto user's exception processing
+	nop
+
+20:	la	k0, iceless_semaphore	;# get pointer to our semaphore
+	lw	k0, (k0)		;# get the semaphore
+	nop
+	bne	k0, r0, 30f		;# if != 0, then turn off ICELESS and continue
+	nop
+	b	normal_exception
+	nop
+
+30:	mfc0	k0, C0_SR		;# get the SR
+	li	k1, 0x400
+	nor	k1, r0, k1		;# get a ~400
+	and	k0, k1			;# mask off the ICELESS IRQ
+	mfc0	k1, C0_EPC		;# get return address
+	mtc0	k0, C0_SR		;# restore the SR
+	jr	k1			;# just dismiss the interrupt
+	rfe
+
+  .iff
+
+   .if true, NO_CHEAP_EXCEPTION
+	la	k0, normal_exception
+	j	k0
+	mfc0	k0, C0_CAUSE
+   .iff
+	la	k0, 5f
+	j	k0
+	mfc0	k0, C0_CAUSE
+
+5:
+	nop
+	and	k0, 0x7C		;# isolate the cause bits
+	bne	k0, r0, normal_exception ;# Not an IRQ
+	nop
+
+	b	cheap_exception		;# do a cheap exception 
+	nop
+   .endc
+  .endc
+
+	.set at
+	.set reorder
+ENDFRAME except
+.endc
+
+/************************************************
+ * prc_get_ipl - get the current processor IPL
+ * At entry:
+ *	no requirements
+ * At exit:
+ *	v0 = contents of current SR
+ */
+FRAME prc_get_ipl
+	.set reorder
+	.set at
+	mfc0	v0, C0_SR
+	j	ra
+ENDFRAME prc_get_ipl
+
+/************************************************
+ * prc_get_cause - get the current processor CAUSE
+ * At entry:
+ *	no requirements
+ * At exit:
+ *	v0 = contents of current CAUSE
+ */
+FRAME prc_get_cause
+	.set reorder
+	.set at
+	mfc0	v0, C0_CAUSE
+	j	ra
+ENDFRAME prc_get_cause
+
+.if true, 0
+/************************************************
+ * prc_set_im - set the processor IPL
+ * At entry:
+ *	a0 = new ipl
+ *	(only bit 0, SR_IEC, is significant)
+ * At exit:
+ *	v0 = old contents of SR
+ *	t0-t4 trashed
+ * stores only the IEC bit in the SR
+ */
+
+FRAME prc_set_im
+	.set reorder
+	.set at
+	mfc0	v0, C0_SR		;# get current SR *
+	li	t1, SR_IMASK|0x3F	;# the only bits we allow him to change
+	nor	t2, r0, t1		;# clone and invert it
+	and	t3, t1, a0		;# isolate only the bits the user can change *
+	and	t4, v0, t2		;# clear some bits in the current SR *
+	and	t4, ~(SR_PE|SR_TS)	;# make sure we don't set PE or TS
+	or	t4, SR_CU2|SR_CU3|SR_BEV ;# but make sure we stay in BEV mode
+	or	t3, t4			;# form a new SR *
+	mtc0	t3, C0_SR
+	j	ra			;# return with old im in v0
+ENDFRAME prc_set_im
+.endc
+
+/************************************************
+ * prc_set_ipl - set the processor imterrupt mask
+ * At entry:
+ *	a0 = new ipl
+ *	(only bits 15-0 bits are significant)
+ * At exit:
+ *	v0 = old contents of SR
+ *	t0-t3 trashed
+ */
+
+FRAME prc_set_ipl
+	.set noreorder
+	mfc0	v0, C0_SR			;# get current SR
+	li	t0, 0xFFFF			;# get a mask of allowable bits to change
+	li	t1, ~(SR_PE|SR_TS|0xFFFF)	;# and the mask
+	and	t2, a0, t0			;# the user can only change these bits
+	and	t1, v0				;# clear out the old bits
+	or	t2, SR_CU2|SR_CU3|SR_BEV	;# make sure we stay in BEV mode
+	or	t2, t1				;# drop in the new bits
+	j	ra				;# return with old im in v0
+	mtc0	t2, C0_SR			;# set the new mask
+	.set reorder
+ENDFRAME prc_set_ipl
+
+.if true, ICELESS_STUB > 0
+.iff			;# ICELESS_STUB > 0
+
+FRAME nc_wait_no_wdog
+.set noreorder
+;# First cut trusts Dave's guess at .25 microseconds per loop,
+;# so we use a count of 10,000,000 to pause about 2.5 seconds.
+;# If watchdog has not hit us by then, jump to begin and hope
+;# for the best.
+	li	v1, 10000000
+10:	bne	v1, r0, 10b	;# these 2 instructions will take about .25 microseconds
+	subu	v1, 1
+	la	v1, begin
+	li	t0, 0xB0000000		;# make address non-cached
+	or	v1, t0
+	j	v1
+	nop
+.set reorder
+ENDFRAME nc_wait_no_wdog
+
+FRAME wait_forever
+	li	v0, 0xbfc00000		;# get ptr to reset vector
+	lw	v0, (v0)		;# get reset instruction
+	la	v1, begin		;# get pointer to begin
+	li	t0, 0xB0000000		;# make address non-cached
+	or	v1, t0
+	li	t1, 0x03FFFFFF
+	and	v0, t1			;# get address in jump instruction
+	sll	v0, 2			;# times 4
+	or	v0, t0			;# put in high order bits
+	bne	v0, v1, begin		;# stub is loaded, so simply pretend to reset
+	nop
+;# If the stub is not loaded, we wait for a while hoping
+;# Watchdog will reset us. If it doesn't, we have little
+;# to lose by resetting
+	la	v0, nc_wait_no_wdog
+	li	v1, 0xA0000000
+	or	v0, v1		;# make sure address is in non-cached memory
+	j	v0
+	nop
+ENDFRAME wait_forever
+
+; get_uptime - get number of ticks since boot
+; At entry:
+;	a0 = pointer to place to deposit lsbs
+; At exit:
+;	v0 = number of timer interrupts
+;
+FRAME get_uptime
+	.set noreorder
+	lw	v0, usclock
+	beq	a0, r0, 20f		;# no parameter supplied, we're done
+	nop
+	sw	r0, (a0)		;# 3K has no least significant bits
+20:	j	ra
+	nop
+	.set reorder
+ENDFRAME get_uptime
+
+FRAME prc_panic
+	.globl panic
+	.set noreorder
+panic:
+	mfc0	k0, C0_SR
+	la	k1, pm_data
+	mtc0	r0, C0_SR
+	sw	k0, pm_sr(k1)		;# failing SR
+	mfc0	k0, C0_CAUSE
+	sw	ra, pm_pc(k1)		;# failing address
+	sw	sp, pm_stack(k1)	;# failing stack pointer
+        sw      sp, pm_stkrelative(k1)  ;# relative sp is the same
+        sw      k0, pm_cause(k1)        ;# cause reg
+        la      k0, INIT_SP             ;# stack limits
+        sw      k0, pm_stkupper(k1)
+        la      k0, bss_end
+        sw      k0, pm_stklower(k1)
+	addu	k1, pm_regs
+	.set noat
+...1 == 0				;# Save all the registers
+.rept	32
+.lreg	sw, <>, \...1, ZERO_REGNUM, \...1, k1
+...1 == ...1 + 1
+.endr
+	.set at
+	addu	k1, -pm_regs
+	li	a1, AN_VIS_COL		;# copy up to n bytes to test area
+	addu	a2, k1, pm_text
+	sw	a2, pm_msg(k1)
+10:	lbu	k0, (a0)
+	nop
+	sb	k0, (a2)
+	addu	a1, -1
+	beq	k0, r0, 20f		;# found end of message
+	addu	a0, 1
+	bgt	a1, r0, 10b		;# room for more
+	addu	a2, 1
+	
+20:
+;# Following is a _B_I_G_ misunderstanding of what pm_cntr
+;# is supposed to be, and can lead to corruption of EEPROM
+;# pm_cntr.c is _supposed_ to be an indicator of which
+;# Error-counter in EEPROM (if any) to increment.
+;#	lw	k0, pm_cntr(k1)
+;#	nop
+;#	addu	k0, 1
+;#	sw	k0, pm_cntr(k1)
+
+	b	wait_forever
+	nop
+	.set reorder
+ENDFRAME prc_panic
+
+ .if true, VIDEO_BOARD == COJAG_V
+;# Any game that _needs_ to wait for video Blanking
+;# is _supposed_ to provide a routine, vid_waitvb(),
+;# as described in os_proto.h, to do so.
+;# The following stub is provided so os_shimsr3k.c
+;# does not have to be modified with another #ifdef
+FRAME soft_wait_vblank 
+	la	t0, vid_waitvb		;# point to actual wait loop
+	j	t0				;# go to it (ra still points to caller)
+	nop
+ENDFRAME soft_wait_vblank 
+
+.iff ;# true, VIDEO_BOARD == COJAG_V, encapsulated attempt at doing this in assembly
+
+;# Below is left in for posterity, or at least until we get working
+;# JackHammer boards.
+
+/************************************************
+ * soft_wait_vblanknc - wait n frames or a specific time
+ * At entry:
+ *	a0 = number of frames to count
+ *	a1 = address to check
+ *	a2 = bit to test
+ *	a3 = polarity to test
+ * At exit:
+ *	t0-t4 trashed
+ * routine runs in non-cached memory to get more consistent timing
+ */
+
+FRAME soft_wait_vblanknc,global=0
+5:	li	t4, 20000		;# wait about 18Ms for a VBLANK to pop up
+10:
+ .if true, VIDEO_BOARD == COJAG_V
+	lhu	t0, (a1)		;# get the vblank bit
+ .iff
+  .if true, (VIDEO_BOARD == ZOID10_V) || (VIDEO_BOARD == ZOID20_V)
+	lw	t0, (a1)
+  .iff
+	.error ;You need to define a VIDEO_BOARD before assembling os_rootr3k.asm
+  .endc
+ .endc
+	nop
+	and	t0, a2			;# isolate the bit
+	xor	t0, a3			;# set its polarity
+	beq	t0, r0, 20f		;# not there yet
+	addu	t4, -1			;# time it
+	bgez	t4, 10b			;# still time left
+	nop	
+
+20:	li	t4, 2000		;# wait about 2Ms for VBLANK to go away
+30:
+ .if true, VIDEO_BOARD == COJAG_V
+	lhu	t0, (a1)
+ .iff
+  .if true, VIDEO_BOARD == ZOID10_V
+	lw	t0, (a1)
+  .endc
+ .endc
+	nop
+	and	t0, a2			;# isolate the bit
+	xor	t0, a3			;# set the polarity
+	bne	t0, r0, 40f		;# it's gone
+	addu	t4, -1			;# time it
+	bgez	t4, 30b			;# time left
+	nop	
+
+40:	j	ra	
+	nop
+ENDFRAME soft_wait_vblanknc
+
+/************************************************
+ * soft_wait_vblank - wait 1 frame
+ * At entry:
+ *	no requirements
+ * At exit:
+ *	t0-t4 trashed
+ */
+
+FRAME soft_wait_vblank 
+ .if true, VIDEO_BOARD == COJAG_V
+	la	a1, TOM_INT1
+	li	a2, 1
+	li	a3, 0
+ .iff
+  .if true, (VIDEO_BOARD == ZOID10_V) || (VIDEO_BOARD == ZOID20_V)
+	la	a1, ZTV_STAT
+	li	a2, 1<<B_Z_VB
+	li	a3, 0
+  .iff
+	.error ;No video board defined for soft_wait_vb
+  .endc
+ .endc
+	la	t0, soft_wait_vblanknc		;# point to actual wait loop
+	or	t0, 0xA0000000			;# make it run in non-cached memory
+	j	t0				;# go to it (ra still points to caller)
+	nop
+ENDFRAME soft_wait_vblank 
+.endc ;# true, VIDEO_BOARD == COJAG_V, encapsulated attempt at doing this in assembly
+.ift
+	.globl	irq_table
+irq_table:
+	.word	0 ;#sw0intp
+	.word	0 ;#sw1intp
+	.word	0 ;#0			;# Iceless
+	.word	xbus0_irqp
+	.word	xbus1_irqp
+	.word	xbus2_irqp
+	.word	xbus3_irqp
+	.word	cputimerint
+
+.iftf			;# ICELESS_STUB > 0
+
+
+	.bss 
+beg_static:
+	.globl	usclock, _usclock, zclock, _zclock
+_usclock:
+usclock:
+	.space	4
+_zclock:
+zclock:
+	.space	4
+INSELF:
+	.space	4
+.iff			;# ICELESS_STUB > 0
+
+bitshd:
+	.space	4		;#* control bits
+	.globl	gameint
+gameint:
+	.space	4		;#* pointer to interrupt handler
+	.space	4
+sys_cntl:
+	.space	4
+sync:	.space	4
+RealFrame:
+	.space	4
+FrameField:
+	.space	4
+	.globl	MS4Field
+MS4Field:
+	.space	4
+thisBar:
+	.space	4
+lampShad:
+	.space	4		;# shadow for lamp port
+
+next4ms:
+	.space	4		;#* Phasing variable for 4ms VAD interrupt
+
+
+.ift			;# ICELESS_STUB > 0
+	.align	3		;# align to a quadword boundary
+	.globl	interrupt_stack_limit, interrupt_stack, _HISR_Stack, HISR_SIZE
+
+.if true, NUCLEUS_OS > 0
+HISR_SIZE = 0x1000
+.iff
+HISR_SIZE = 1024*3
+.endc
+
+interrupt_stack_limit:
+_HISR_Stack:
+	.space	HISR_SIZE	;# give ourselves n of interrupt stack
+interrupt_stack:
+.endc			;# ICELESS_STUB > 0
+@
+
+
+1.26
+log
+@Clear pm_* on power-up, as pm_validate() is bogus. Use vid_waitvb(),
+which has been made more robust, rather than hand-rolled soft_wait_vblank(),
+which is likely to fail.
+@
+text
+@d263 3
+@
+
+
+1.25
+log
+@added st_throb() to send pseudo-morse on DIAG LED.
+Use st_throb() to signal _which_ HOST SRAM is bad.
+made wait_forever() actually only wait long enough for
+any reasonable watchdog to trigger, then give-up and
+try faking a reset. Deleted erroneous (and dangerous)
+increment of pm_cntr.
+@
+text
+@d244 19
+a262 5
+	la	a0, pm_data
+	jal	pm_validate		;# see if there's a valid pm
+	nop
+	bne	v0, r0, 40f		;# there is, don't clear stack or game bss
+	nop			
+d1328 17
+d1425 1
+a1425 1
+
+@
+
+
+1.24
+log
+@Commented out the use of sw0intp and sw1intp
+@
+text
+@d751 8
+d806 71
+d943 1
+a943 1
+50:	nop
+d958 1
+d969 3
+d975 28
+a1002 1
+110:	b	110b		;# spin here waiting for watchdog
+d1004 3
+d1205 17
+d1234 7
+a1240 1
+10:	b	10b			;# else wait forever
+d1299 9
+a1307 4
+20:	lw	k0, pm_cntr(k1)
+	nop
+	addu	k0, 1
+	sw	k0, pm_cntr(k1)
+@
+
+
+1.23
+log
+@Fixed bug where the HI register was being clobbered at return from interrupt
+@
+text
+@d1257 3
+a1259 3
+	.word	sw0intp
+	.word	sw1intp
+	.word	0			;# Iceless
+@
+
+
+1.22
+log
+@Removed stub's call of game's exception handler
+@
+text
+@d656 1
+a656 1
+	lw	v0, HI_REGNUM*4(a0)
+d662 1
+a662 1
+	mthi	v0
+@
+
+
+1.21
+log
+@Fixed some floating point interface stuff.
+Fixed the clear of bss to depend on pm_validate returning true.\
+@
+text
+@d918 2
+d930 4
+a942 1
+.if true, 1
+a956 1
+.endc
+@
+
+
+1.20
+log
+@Added conditional NO_CHEAP_EXCEPTION to exclude cheap exception handler.
+@
+text
+@d99 5
+a103 3
+	lw	v0, ROMV_STACK+0x10(a0)	;# get his stack address
+	lw	a2, ROMV_RAMVBR+0x10(a1) ;# ptr to RAM vector table
+	lw	a3, ROMV_STACK+0x10(a1)	;# get "last" SRAM address 
+d109 5
+a113 3
+	sw	a2, ROMV_RAMVBR+0x10(a0) ;# Tell game to use our vector table
+	sw	a3, ROMV_STACK+0x10(a0)	;# tell the game where SRAM stops
+4:
+d147 1
+d226 4
+d231 1
+d233 6
+d240 11
+a250 3
+	srl	a1, v0, 24		;# get upper byte of bss
+	bne	a0, a1, 32f		;# bss and stack are in different address spaces
+	sub	a0, sp, v0		;# compute size of bss and stack area
+d255 3
+a257 3
+32:	nor	a0, r0, 3		;# round down to longword boundary
+	and	v0, a0
+35:	sw	r0, (v0)
+d260 2
+a261 4
+	add	v0, 4
+	sw	r0, (v0)
+
+	la	t0, cpu_params
+d263 1
+d443 1
+a443 1
+.if true, ICELESS_STUB == 0 && NO_CHEAP_EXCEPTION == 0
+d693 1
+a693 1
+;#	in the frame.
+d697 6
+a708 5
+	lw	t1, ZERO_REGNUM*4(a0)
+	li	t0, fpu_regs
+	or	t0, t1
+	sw	t0, ZERO_REGNUM*4(a0)
+        cfc1	t0, $31		;# get the FSR
+d710 1
+a710 1
+        sw	 t0, FCRCS_REGNUM*4(a0)
+d721 1
+a721 1
+        lw	t0, FCRCS_REGNUM*4(a0)
+d723 1
+a723 1
+        ctc1	t0, $31		;# set the FSR
+@
+
+
+1.19
+log
+@Added some additional members to pm_general struct
+@
+text
+@d32 4
+a35 3
+.if ndf, ICELESS_STUB
+ICELESS_STUB == 0
+ICELESS_STUB = 0
+d37 5
+a41 3
+.if ndf, NUCLEUS_OS
+NUCLEUS_OS == 0
+.endc
+d420 1
+a420 1
+.if true, ICELESS_STUB == 0
+d506 1
+a506 1
+.endc
+d956 5
+d965 2
+a966 1
+5:	nop
+d973 1
+@
+
+
+1.18
+log
+@Added numerous changes to accomodate the new vecs.mac and some R4K support.
+@
+text
+@d1098 6
+a1103 1
+	sw	k0, pm_cause(k1)	;# cause reg
+@
+
+
+1.17
+log
+@Removed reference to 'registers'
+@
+text
+@d40 1
+a40 1
+	.globl	irq_table, ROM_VECTORS, exception_table
+d46 1
+d48 1
+a48 2
+	.globl	pm_start, powerUp, pm_msg, pm_stack, pm_cntr, pm_pc
+	.globl	pm_sr, pm_regs, pm_end, pm_cause, pm_badvaddr
+d53 3
+a55 19
+pm_msg:
+	.space	4
+pm_text:
+	.space	AN_VIS_COL+1	;# Possible text string for "cause of death"
+	.align	2
+pm_stack:
+	.space	4
+pm_cntr:
+	.space	4
+pm_pc:
+	.space	4		;# Saved Program counter
+pm_sr:
+	.space	4
+pm_regs:
+	.space	(32)*4		;# 32 integer regs 
+pm_cause:
+	.space	4		;# cause register
+pm_badvaddr:
+	.space	4		;# Failing virtual address
+d63 1
+a77 1
+	li	t1, 0x700
+a78 1
+
+d86 1
+a95 1
+	lw	a2, ROMV_RAMVBR+0x10(a1);# ptr to RAM vector table (RAMVBR)
+d97 1
+a97 2
+	nop
+	srl	v0, v0, 24	;# get upper byte
+d99 3
+a101 3
+	nop
+	srl	v1, a3, 24	;# get upper byte
+	and	v0, 0xFF
+d103 2
+a104 2
+	bne	v0, v1, 3f	;# leave his alone if not in same address space as ours
+	sw	a2, ROMV_RAMVBR+0x10(a0);# tell the game where the "real" vector table is
+d106 1
+a106 1
+3:
+d417 1
+d503 1
+d755 2
+a756 2
+10:	bne	v1, r0, 10b
+	sub	v1, 1
+a757 3
+	move	v1, a0		;# wait about 0.1 seconds
+20:	bne	v1, r0, 20b
+	sub	v1, 1
+d763 2
+a764 1
+FRAME pause
+d769 1
+a769 1
+ENDFRAME pause
+d885 1
+a885 1
+	la	k0, 5f			;# put ourself into cached memory
+d889 12
+a900 4
+5:
+    .if true, 0
+	la	k1, 0xBfd80000		;# a scratch place to write to
+	sw	k0, (k1)		;# so the analyalser can see it
+d902 6
+a907 1
+	mfc0	k0, C0_SR
+a908 1
+	sw	k0, (k1)
+d910 3
+a912 1
+	mfc0	k0, C0_EPC
+d914 6
+a919 3
+	sw	k0, (k1)
+
+	mfc0	k0, C0_BADVADDR
+d921 1
+a921 12
+	sw	k0, (k1)
+	mfc0	k0, C0_CAUSE
+    .endc
+
+	la	k1, exception_table	;# pointer to fast exception table
+	and	k0, 0x7C		;# isolate the cause bits
+	bne	k0, r0, normal_exception ;# not an IRQ, always go to ICELESS break
+	add	k0, k1			;# compute entry into the table
+
+	mfc0	k0, C0_CAUSE		;# now check for ICELESS IRQ
+	sw	$at, (k1) 		;# save at for a couple tics
+	mfc0	$at, C0_SR
+d923 1
+a923 7
+	and	k0, $at
+	and	k0, 0x400		;# see if we've got an ICELESS IRQ
+	bne	k0, r0, normal_exception ;# it's an ICELESS interrupt
+	lw	$at, (k1)		;# restore $at
+
+	move	k0, k1
+10:	lw	k0, 4(k0)		;# get the table entry
+d925 2
+a926 1
+	beq	k0, r0, normal_exception ;# if 0, do normal exception
+d929 3
+a931 1
+	j	k0			;# else goto exception processing
+d937 4
+a940 2
+	beq	k0, r0, 10b		;# if 0, then do normal exception
+	move	k0, k1
+d942 1
+a942 1
+	mfc0	k0, C0_SR		;# get the SR
+d1070 17
+d1092 1
+a1092 1
+	la	k1, pm_regs
+d1094 1
+a1094 1
+	sw	k0, pm_sr		;# failing SR
+d1096 4
+a1099 3
+	sw	ra, pm_pc		;# failing address
+	sw	sp, pm_stack		;# failing stack pointer
+	sw	k0, pm_cause		;# cause reg
+d1107 1
+d1109 2
+a1110 2
+	la	a2, pm_text
+	sw	a2, pm_msg
+d1120 1
+a1120 1
+20:	lw	k0, pm_cntr
+d1123 1
+a1123 1
+	sw	k0, pm_cntr
+d1211 12
+d1224 1
+@
+
+
+1.16
+log
+@Removed the last reference to pm_instr
+@
+text
+@d41 1
+a41 1
+	.globl	startup, cpu_params, registers
+d1115 1
+@
+
+
+1.15
+log
+@Removed pm_instr from the pm area (not reported anymore)
+@
+text
+@a1094 1
+	sw	r0, pm_instr		;# no failing instruction
+@
+
+
+1.14
+log
+@Still more pm text stuff
+@
+text
+@d47 2
+a48 1
+	.globl	pm_start, powerUp, pm_msg, pm_stack, pm_cntr, pm_pc, pm_sr, pm_regs, pm_end
+a67 2
+.if true, ((PROCESSOR&-16) == MIPS3000) || ((PROCESSOR&-16) == MIPS4000)
+	.globl	pm_cause, pm_instr
+d70 2
+a71 3
+pm_instr:
+	.space	4		;# instruction that caused the fault
+.endc
+d1191 1
+a1191 1
+  .if true, VIDEO_BOARD == ZOID10_V
+d1195 2
+@
+
+
+1.13
+log
+@More pm text stuff
+@
+text
+@d1114 1
+a1114 1
+	blt	a1, r0, 10b		;# room for more
+@
+
+
+1.12
+log
+@More pm message stuff
+@
+text
+@d1087 1
+d1109 1
+d1122 2
+@
+
+
+1.11
+log
+@Copied the pm message to pm area rather than just keeping a pointer to it.
+@
+text
+@d53 2
+d1105 2
+a1106 1
+	la	a2, pm_msg
+@
+
+
+1.10
+log
+@Fixed stub's incorrectly setting game'
+s stack.
+@
+text
+@d53 2
+a54 1
+	.space	4		;# Possible text string for "cause of death"
+a1094 5
+	sw	a0, pm_msg		;# user's message
+	lw	k0, pm_cntr
+	addu	k0, 1
+	sw	k0, pm_cntr
+
+d1102 14
+@
+
+
+1.9
+log
+@Added lables sbss_start and sbss_size that the BSS clearer uses.
+This fixes a problem where the old BSS clear wiped the pm_ fields too.
+@
+text
+@d113 2
+a114 1
+	srl	v0, v0, 24	;# drop it down 3 bytes
+d116 2
+a117 1
+	srl	v1, a3, 24
+d194 1
+a194 1
+	la	sp, STACK_INIT
+d197 1
+a198 1
+.endc
+a235 2
+	nor	v1, r0, 3		;# round down to longword boundary
+	and	v0, v1
+d237 10
+@
+
+
+1.8
+log
+@Added a bss clear (in case there is no memory test)
+Made blink() first turn off the LED, then turn it on rather
+than the other way around.
+@
+text
+@d71 1
+d85 1
+a85 1
+	.globl	bss_size, bss_start, INIT_SP, BootUp
+d233 1
+a233 1
+30:	la	v0, bss_start		;# prepare to clear bss
+d236 1
+a236 1
+	la	v1, bss_size
+@
+
+
+1.7
+log
+@Made the B_TEST check for it being defined before testing it
+@
+text
+@d100 2
+d200 4
+d232 11
+a242 1
+30:	la	t0, cpu_params
+d732 1
+a732 2
+	li	v1, 1
+	sw	v1, 8(v0)	;# turn on the LED
+d737 3
+a739 2
+	sw	r0, 8(v0)	;# turn off the LED
+	move	v1, a0		;# wait about 0.1 seconds
+@
+
+
+1.6
+log
+@Added ZOID20_V to the list of valid video boards
+@
+text
+@d340 2
+a341 1
+.if true, B_TEST < 0
+d363 1
+@
+
+
+1.5
+log
+@moved the fake switches from J1_* to J2_* to avoid
+assembler error. CoJag's J1 is above the 16-bit
+MIPS limit on immediates.
+@
+text
+@d1098 1
+a1098 1
+  .if true, VIDEO_BOARD == ZOID10_V
+@
+
+
+1.4
+log
+@Removed the prc_set_im function
+@
+text
+@d345 1
+a345 1
+	ori	v0, J1_LEFT		;# signal the left switch is pressed	
+d349 1
+a349 1
+	ori	v0, J1_RIGHT		;# signal the right switch is pressed
+d354 1
+a354 1
+	ori	v0, J1_UP
+d357 1
+a357 1
+	ori	v0, J1_DOWN
+@
+
+
+1.3
+log
+@Undid some goofiness with set_prc_ipl
+@
+text
+@d109 2
+d112 4
+d118 1
+d764 1
+a764 1
+;#	trashes a0-a3, v0-v1
+d810 13
+d982 1
+d984 1
+a984 1
+ * prc_set_ipl - set the processor IPL
+d994 1
+a994 1
+FRAME prc_set_ipl
+d998 1
+a998 1
+	li	t1, 0xFFFF		;# the only bits we allow him to change
+d1007 2
+a1008 4
+ENDFRAME prc_set_ipl
+
+.if true, ICELESS_STUB > 0
+.iftf 			;# ICELESS_STUB > 0
+d1011 1
+a1011 1
+ * prc_set_im - set the processor imterrupt mask
+d1020 1
+a1020 1
+FRAME prc_set_im
+d1024 1
+a1024 6
+	li	t1, ~(SR_PE|0xFFFF)		;# and the mask
+.iff			;# ICELESS_STUB > 0
+	la	t2, master_imask
+	and	t3, t0, a0			;# get a composite mask of changeable bits
+	sw	t3, (t2)			;# save it
+.iftf			;# ICELESS_STUB > 0
+d1032 1
+a1032 1
+ENDFRAME prc_set_im
+d1034 1
+a1078 36
+
+	.globl	master_imask
+
+.if true, 0
+/************************************************
+ * prc_set_ipl - set the processor IPL
+ * At entry:
+ *	a0 = new ipl
+ *	(only bit 0, SR_IEC, is significant)
+ * At exit:
+ *	v0 = old contents of SR
+ *	t0-t4 trashed
+ * stores only the IEC bit in the SR
+ */
+
+FRAME prc_set_ipl
+	.set reorder
+	.set at
+	mfc0	v0, C0_SR		;# get current SR *
+	li	t0, -2			;# get a -2
+	and	t0, v0			;# disable all interrupts for this
+	mtc0	t0, C0_SR
+	li	t1, 0xFFFF-(0x100<<ICELESS_LVL)  ;# the only bits we allow him to change
+	lw	t2, master_imask	;# get the master Interrupt mask
+	nop
+	and	t1, t2			;# get the mask of only allowable bits to change	
+	nor	t2, r0, t1		;# clone and invert it
+	and	t3, t1, a0		;# isolate only the bits the user can change *
+	and	t4, v0, t2		;# clear some bits in the current SR *
+	and	t4, ~SR_PE		;# make sure we don't set PE 
+	or	t4, SR_CU2|SR_CU3|SR_BEV ;# but make sure we stay in BEV mode
+	or	t3, t4			;# form a new SR *
+	mtc0	t3, C0_SR
+	j	ra			;# return with old status in v0
+ENDFRAME prc_set_ipl
+.endc
+@
+
+
+1.2
+log
+@Removed a debug 'BLIT' I inadverently left in
+@
+text
+@a961 1
+.if true, ICELESS_STUB > 0
+d977 1
+a977 1
+	li	t1, SR_IMASK|0x3F	;# the only bits we allow him to change
+d988 1
+d1067 1
+d1099 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a510 4
+	sw	$1, (ZERO_REGNUM+1)*4(sp)
+	la	$1, XBUS_SLOT6
+	sw	k1, ($1)
+
+d514 2
+a515 2
+...1 == 2
+.rept	24
+@

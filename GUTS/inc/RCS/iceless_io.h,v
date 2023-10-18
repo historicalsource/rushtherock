@@ -1,0 +1,88 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	96.02.09.20.18.56;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.02.09.20.15.37;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Standard ICELESS I/O interface definitions.
+@
+
+
+1.2
+log
+@Removed prototypes for blink() and pause()
+@
+text
+@#if !defined(_ICELESS_IO_H_)
+#define _ICELESS_IO_H_
+
+# include <icelesspkt.h>
+
+# define ICELESS_MAX_BUFSIZ (1200)
+
+# if !defined(ICELESS_THREADS)
+#   define ICELESS_THREADS	1	/* set to the maximum number of threads (connections) allowed at the same time */
+# endif
+# if !defined(ICELESS_USE_FUNC)
+#   define ICELESS_USE_FUNC	0	/* if not zero, assign a completion routine to handle input */
+# endif
+# if !defined(ICELESS_DOUBLE_BUFFER)
+#   define ICELESS_DOUBLE_BUFFER 0	/* if not zero, double buffer the input */
+# endif
+
+# if !defined(ICELESS_BUFFER_SIZE)
+#  define ICELESS_BUFFER_SIZE ICELESS_MAX_BUFSIZ
+# endif
+
+# if !defined(ICELESS_IBUFFER_SIZE)
+#  define ICELESS_IBUFFER_SIZE 8	/* tiny buffers for now */
+# endif
+
+# if ICELESS_BUFFER_SIZE > ICELESS_MAX_BUFSIZ
+#  undef ICELESS_BUFFER_SIZE
+#  define ICELESS_BUFFER_SIZE ICELESS_MAX_BUFSIZE
+# endif
+
+typedef struct icelessio {
+   PktIOStruct pkt;		/* packet output stuff */
+   PktIOStruct ipkt0;		/* packet input stuff */
+   PktIOStruct ipkt1;		/* (double buffered input */
+   int sequence;		/* packet sequence number to use */
+   int oindx;			/* place to deposit next byte in output buffer */
+   int pktcnt;			/* total packet count sent */
+} IcelessIO;
+
+extern IcelessIO *iceless_open(int thread);
+extern int iceless_printf(IcelessIO *iop, char *fmt, ...);
+extern int iceless_iprintf(IcelessIO *iop, char *fmt, ...);
+extern int iceless_putc(IcelessIO *iop, char c);
+extern void iceless_flush(IcelessIO *iop);
+extern int iceless_write(IcelessIO *iop, char *buf, int len);
+extern int iceless_puts(IcelessIO *iop, char *str);
+
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a39 2
+extern void blink(int time);
+extern void pause(int time);
+@

@@ -1,0 +1,2886 @@
+head	1.28;
+access;
+symbols
+	CJ_206:1.22
+	CJ2_05:1.22
+	CJ2_04:1.20
+	CJ2_03:1.15;
+locks; strict;
+comment	@ * @;
+
+
+1.28
+date	97.07.01.22.23.15;	author albaugh;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	97.05.29.22.13.56;	author albaugh;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	97.02.14.20.29.00;	author albaugh;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	97.01.31.00.02.09;	author albaugh;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	97.01.28.22.57.26;	author albaugh;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.12.20.00.35.40;	author albaugh;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.10.24.21.50.19;	author albaugh;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.10.10.16.00.54;	author albaugh;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.10.01.22.53.18;	author albaugh;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.07.17.22.50.20;	author albaugh;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.06.20.21.37.43;	author albaugh;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.06.12.18.22.22;	author albaugh;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	95.11.01.21.21.04;	author birmingham;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	95.10.31.21.38.09;	author albaugh;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	95.09.18.17.06.13;	author albaugh;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.09.13.00.52.15;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.08.08.21.12.38;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.08.01.21.54.55;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.06.30.21.03.33;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.06.14.01.45.00;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.06.09.00.27.45;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.05.17.19.51.35;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.05.08.22.17.11;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.05.08.21.16.46;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.05.02.20.20.31;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.04.11.22.12.33;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.02.17.23.40.16;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.26.27;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@a somewhat Jaguar-specific "driver" for the GUN chip.
+@
+
+
+1.28
+log
+@Added RCS ID string
+@
+text
+@#define NAMCO_KICKER (1)
+/*
+ *	gun.c
+ *
+ *		Copyright 1994 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <os_proto.h>
+#include <st_proto.h>
+#include <eer_defs.h>
+#include <rectlib.h>
+#include <oblist.h>
+#include <string.h>
+#include <gun.h>
+#ifndef BPPIXEL
+#define BPPIXEL (2)
+#endif
+#define STATIC static
+/* Following is to allow the casual user to have some idea
+ * where the code changes to swap the guns from 0 == right
+ * (per hardware) to 0 == left (per numbering of start switches)
+ */
+#define GUNS_SWAPPED (1)
+
+/* Following is to test permanent allocation of the crosshair
+ * image DRAM. This is no longer a test. Area51 shipped with
+ * this enabled and MaxForce must also, due to interactions
+ * with the Williams requirement for a momentary-contact
+ * TEST button. Also, permanent allocation is needed to co-exist
+ * with the audio library.
+ */
+#define PERM_CH_IMG (1)
+#define PAD(x) unsigned short pad##x;
+
+#define GUN_STRUCT \
+    PAD(0) unsigned short v0;\
+    PAD(1) unsigned short h0;\
+    PAD(2) unsigned short v1;\
+    PAD(3) unsigned short h1;\
+    PAD(4) unsigned short stat;\
+    PAD(5) unsigned short unused;\
+    PAD(6) unsigned short thud_on;\
+    PAD(7) unsigned short thud_off;
+
+/* First rev gun-chip is straightforwardly mapped as a 16-bit entity on
+ * the lower half of a 32-bit BUS.
+ */
+struct gun_chip1 { GUN_STRUCT };
+
+#undef PAD
+#define PAD(x)
+
+/* Second-rev gun-chip is "folded" such that it cannot be legally
+ * accessed with 32-bit operations, but Brian won't move it.
+ */
+struct gun_chip2 { GUN_STRUCT };
+
+
+/*	Masks for relevant bits in hardware
+ */
+#define GUN_VERT_MASK (0xFF)
+#define GUN_HORZ_MASK (0x1FF)
+#define B_NEW_VAL (0)
+#define B_GUN_TRIG (2)
+#define B_RELOAD (4)
+#define GUN_STAT_MASK ((1<<B_NEW_VAL)|(1<<B_GUN_TRIG)|(1<<B_RELOAD))
+
+/* When packed into the return value from ctl_rd_gun(), the following shifts
+ * are used
+ */
+#define GUN_VERT_SHF (0)	/* Vertical posn in D0..7 */
+#define GUN_HORZ_SHF (8)	/* Horizontal posn in D8..16 */
+#define GUN_STAT_SHF (17)	/* Status bits in D17..25 */
+
+/* States for the process of reading the gun
+ */
+#define GS_IDLE (0)		/* Waiting for trigger pull */
+#define GS_WHITE (1)		/* White screen to sample */
+#define GS_DONE (2)		/* Sample captured, trigger still pulled */
+
+#if GUN_CNT
+STATIC struct gun_ctl {
+    U16 hpos;		/* from last new sample */
+    U16 vpos;
+    U16 status;		/* also used to edge-trigger TRIG sw */
+    S8 hoffset;		/* calibration fudge factors */
+    S8 voffset;
+    U16 s_hpos;		/* from last shot */
+    U16 s_vpos;
+    U8 active;		/* non-zero if read recently */
+    U8 thud_time;	/* Counts down during thud */
+    U8 thud_want;	/* Bumped by program	*/
+    U8 thud_done;	/* Bumped as thud started */
+} gun_stat[GUN_CNT];
+
+#if NAMCO_KICKER
+#define THUD_DUR (4)	/* fields per initial thud */
+#define THUD_SHORT (4)	/* fields per repeat thud */
+#define THUD_DWELL (1)	/* Point in countdown to shut off */
+#endif /* NAMCO_KICKER */
+#endif /* GUN_CNT */
+
+/* How long to keep watching in Vblank, if no ctl_rd_gun() for this
+ * gun.
+ */
+#ifndef GUN_ACTIVE_TIME
+#define GUN_ACTIVE_TIME (42)
+#endif
+
+void ctl_gun_thud( int which )
+{
+#if HAS_GUN_CHIP && NAMCO_KICKER
+    int thuds;
+    struct gun_ctl *cp;
+
+#if GUNS_SWAPPED
+    which ^= 1;
+#endif
+    if ( which >= GUN_CNT ) return;
+    cp  = gun_stat+which;
+    thuds = cp->thud_want + 1;
+    if ( thuds != cp->thud_done ) cp->thud_want = thuds;
+#endif
+}
+
+STATIC char did_flash;
+
+#ifdef GUN_CHIP1
+static void get_gun1( struct gun_chip2 *dst, void *p_src )
+{
+    volatile struct gun_chip1 *src;
+    src = (volatile struct gun_chip1 *)p_src;
+    dst->v0 = src->v0;
+    dst->h0 = src->h0;
+    dst->v1 = src->v1;
+    dst->h1 = src->h1;
+    dst->stat = src->stat;
+}
+#define HAS_GUN_CHIP (1)
+#endif
+
+#ifdef GUN_CHIP2
+static int stat_expect,stat_got;
+
+static void get_gun2( struct gun_chip2 *dst, void *p_src )
+{
+    volatile struct gun_chip2 *src;
+    int stat;
+    src = (volatile struct gun_chip2 *)p_src;
+    dst->v0 = src->v0;
+    dst->h0 = src->h0;
+    dst->v1 = src->v1;
+    dst->h1 = src->h1;
+    dst->stat = stat = src->stat;
+    stat = (stat >> 6)&7;
+    if ( stat == stat_expect ) {
+	stat_expect = (++stat)&7;
+	if ( stat_got < 100 ) ++stat_got;
+    } else stat_got = 0;
+#define HAS_GUN_CHIP (1)
+}
+#endif
+
+#if HAS_GUN_CHIP
+static void (*get_gun)( struct gun_chip2 *, void * );
+static void *hgp;
+static void draw_ch(PHRASE *img, int color_scheme);
+#endif
+
+#if GUN_CNT
+STATIC struct gun_tst {
+    U16 x[4];
+    U16 y[4];
+    m_int samp;
+} gun_trace[GUN_CNT];
+
+/* Following timer is to allow gun tracking in screens that use gun for
+ * selection during selftest.
+ */
+static m_uint bg_time;
+static m_uint gun_bkg;	/* color to set Background if gun active */
+static m_uint gun_arrows; /* Have we drawn arrows since last clear? */
+#endif
+
+#define ARROWS_ON (12)	  /* Lag before we decide to turn on arrows */
+
+void gun_thud(int which, int on)
+{
+#if HAS_GUN_CHIP && NAMCO_KICKER
+#if (0)
+    /* Test setup, using VCR control */
+    vcr( on ? VCR_RECORD : VCR_STOP );
+#endif
+    volatile struct gun_chip2 *gcp;
+    int trash;
+
+    gcp = (volatile struct gun_chip2 *) hgp;
+    if ( gcp ) {
+	trash = ( which ? gcp->v1 : gcp->v0 );
+	trash = ( on ? gcp->thud_on : gcp->thud_off );
+    }
+#endif
+}
+
+static unsigned long last_vb;
+void gun_wdog()
+{
+#if NAMCO_KICKER
+    long pause;
+    pause = eer_rtc - last_vb;
+    if ( pause > 8 ) {
+	gun_thud(0,0);
+	gun_thud(1,0);
+    }
+#endif
+}
+/*		gun_vb()
+ *	Called during Vertical blanking, reads the gun chip and stores the
+ *	result for reading at any time.
+ */
+int gun_vb()
+{
+    int	should_flash = 0;
+#if HAS_GUN_CHIP
+    struct gun_chip2 gtmp;
+    struct gun_chip2 *gp;
+    struct gun_ctl *cp;
+
+    int stat,n_stat,o_stat,idx;
+
+    int old_bg;
+    last_vb = eer_rtc;
+    if ( bg_time && (--bg_time == 0) ) {
+	old_bg = vid_set_bg(0);
+	if ( old_bg != gun_bkg) {
+	    /* Somebody _else_ has diddled the background.
+	     * Put it back, and reset timer to re-consider later.
+	    */
+	    vid_set_bg(old_bg);
+	    bg_time = 10;
+	}
+    }
+    cp = gun_stat;
+    gp = &gtmp;
+
+    /* copy chip to memory, then refer to memory copy, so
+     * the registers will be at least nominally consistent.
+     * This also encapsulates the differences between REV1
+     * and REV2 cojag, and "hides" the hardware address from
+     * the called routine so the optimizer cannot pessimize it.
+     */
+    if ( get_gun ) get_gun(gp,hgp);
+    else return 0;
+
+    stat = gp->stat;
+    n_stat = cp->status;
+    if ( stat & (1<<B_NEW_VAL) ) {
+	/* new value for gun 0 */
+	cp->vpos = (gp->v0 & GUN_VERT_MASK);
+	cp->hpos = 0x1FF ^ (gp->h0 & GUN_HORZ_MASK);
+	if ( did_flash && (n_stat & (1<<B_SHOOTING)) ) {
+	    /* we got a flash from us trying to shoot */
+	    m_int samp;
+	    samp = gun_trace[0].samp;
+	    n_stat &= ~(1<<B_SHOOTING);
+	    n_stat |= (1<<B_SHOT);
+	    cp->status = n_stat;
+	    gun_trace[0].x[samp] = cp->hpos;
+	    gun_trace[0].y[samp] = cp->vpos;
+	    cp->s_hpos = cp->hpos;
+	    cp->s_vpos = cp->vpos;
+	    gun_trace[0].samp = (samp+1) & 3;
+	}
+    }
+#ifdef B_RELOADED
+    else {
+	/* No new position loaded. If we just fired,
+	 * we will assume for now that the gun was
+	 * pointed off-screen, and call it a RELOAD
+	 */
+	if ( did_flash && (n_stat & (1<<B_SHOOTING)) ) {
+	    /* we got a flash from us trying to shoot */
+	    n_stat &= ~(1<<B_SHOOTING);
+	    n_stat |= (1<<B_RELOADED);
+	    cp->status = n_stat;
+	}
+    }
+#endif
+    n_stat = (++cp)->status;
+    if ( stat & (2<<B_NEW_VAL) ) {
+	/* new value for gun 1 */
+	cp->vpos = (gp->v1 & GUN_VERT_MASK);
+	cp->hpos = 0x1FF ^ (gp->h1 & GUN_HORZ_MASK);
+	if ( did_flash && (n_stat & (1<<B_SHOOTING)) ) {
+	    /* we got a flash from us trying to shoot */
+	    m_int samp;
+	    samp = gun_trace[1].samp;
+	    n_stat &= ~(1<<B_SHOOTING);
+	    n_stat |= (1<<B_SHOT);
+	    cp->status = n_stat;
+	    gun_trace[1].x[samp] = cp->hpos;
+	    gun_trace[1].y[samp] = cp->vpos;
+	    cp->s_hpos = cp->hpos;
+	    cp->s_vpos = cp->vpos;
+	    gun_trace[1].samp = (samp+1) & 3;
+	}
+    }
+#ifdef B_RELOADED
+    else {
+	/* No new position loaded. If we just fired,
+	 * we will assume for now that the gun was
+	 * pointed off-screen, and call it a RELOAD
+	 */
+	if ( did_flash && (n_stat & (1<<B_SHOOTING)) ) {
+	    /* we got a flash from us trying to shoot */
+	    n_stat &= ~(1<<B_SHOOTING);
+	    n_stat |= (1<<B_RELOADED);
+	    cp->status = n_stat;
+	}
+    }
+#endif
+    --cp;
+    for ( idx = 0 ; idx < GUN_CNT ; ++cp,++idx,stat>>=1 ) {
+	int rld_dbnce;
+	/* invert the bits that come in lo-true */
+	n_stat = stat ^ ((1<<B_GUN_TRIG) | (1<<B_RELOAD));
+#ifdef J1_TRIG
+	{
+	    U32 trig_bit;
+	    trig_bit = (idx & 1) ? J1_TRIG : J2_TRIG;
+	    if ( n_stat & (1<<B_GUN_TRIG) ) {
+		fake_controls |= trig_bit;
+	    } else {
+		fake_controls &= ~trig_bit;
+	    }
+	}
+#endif
+	n_stat &= GUN_STAT_MASK;
+	o_stat = cp->status;
+
+	if ( cp->active && (n_stat & ~(o_stat) & (1<<B_GUN_TRIG)) ) {
+	    /* If this gun is active, and the trigger is now pressed,
+	     * and it wasn't last frame, flash for shot detection.
+	     */
+	    if ( !did_flash ) {
+		o_stat |= (1<<B_SHOOTING);
+		should_flash = 1;
+	    } else {
+		/* Judgement call. If we just flashed, and this
+		 * trigger has just been pressed, and he got a valid
+		 * reading, call this sample his shot.
+		 */
+		if ( n_stat & (1<<B_NEW_VAL) ) {
+		    o_stat |= (1<<B_SHOT);
+		    o_stat &= ~(1<<B_SHOOTING);
+		    cp->s_hpos = cp->hpos;
+		    cp->s_vpos = cp->vpos;
+		} else {
+		    /* no "new val", so he was probably pointing off
+		     * screen. Clear SHOT and SHOOTING, and set
+		     * RELOADED. This avoid one player's RELOAD
+		     * getting clobbered by the other player's shot.
+		     */
+		    o_stat &= ~((1<<B_SHOT)|(1<<B_SHOOTING));
+#ifdef B_RELOADED
+		    o_stat |= (1<<B_RELOADED);
+#endif
+		}
+	    }
+	}
+
+	/* Run the active timer, so guns which are not read will not cause
+	 * flashes.
+	 */
+	if ( cp->active ) cp->active -= 1;
+#ifdef THUD_DUR
+	/* most simple-minded possible timing of gun-thud solenoid
+	 * ignores possible problems with triggering two guns at
+	 * once.
+	*/
+	if ( cp->thud_time && --cp->thud_time == THUD_DWELL ) {
+	    /* Timed out, reset solenoid driver */
+	    gun_thud(idx, 0);
+	}
+	if ( cp->thud_want != cp->thud_done ) {
+	    /* Want to start a thud */
+	    if ( cp->thud_time == 0 ) {
+		if ( ++cp->thud_done == cp->thud_want ) {
+		    /* This is an isolated shot */
+		    cp->thud_time = THUD_DUR;
+		} else {
+		    /* One of a sequence */
+		    cp->thud_time = THUD_SHORT;
+		}
+		gun_thud(idx, 1);
+	    }
+	}
+#endif
+	/* The previous state of the reload bit is kept one bit left
+	 * of the "current" debounced state. We turn off RELOAD bit
+	 * (stat & (1<<B_RELOAD) == 0) if it's been off (hardware RELOAD == 1)
+	 * for two frames. We turn it on if it's been on for two frames.
+	 * The hardware bit was already inverted above.
+	 */
+	rld_dbnce = (o_stat & ((o_stat >> 1) | n_stat))
+		  | (o_stat | ((o_stat >> 1) & n_stat));
+	/* update status to be new TRIG and NEW_VAL, debounced RELOAD, and
+	 * currrent RELOAD (shifted) for next-frame debounce.
+	 */ 
+	cp->status = (n_stat & ((1<<B_NEW_VAL)|(1<<B_GUN_TRIG)))
+		   | (rld_dbnce & (1<<B_RELOAD))
+		   | ((n_stat & (1<<B_RELOAD))<< 1)
+#ifdef B_RELOADED
+		   | (o_stat & ((1<<B_SHOOTING)|(1<<B_SHOT)|(1<<B_RELOADED)));
+#else
+		   | (o_stat & ((1<<B_SHOOTING)|(1<<B_SHOT)));
+#endif
+    }
+#endif
+    did_flash = should_flash;
+    return should_flash;
+}
+#define GUN_H (N_HDB1>>1)
+#define GUN_V (N_VDB>>1)
+#define CROSS_HACK (8)
+#define CROSS_HACK_TIME (20)
+
+extern int cojag_rev;
+
+#if GUN_CNT
+static PHRASE *ch_img[GUN_CNT];
+static OBJECT *ch_obj[GUN_CNT];
+static unsigned short hack_timer[GUN_CNT];
+static int ch_mode;
+
+void gun_hide()
+{
+    int idx;
+    OBJECT *obptr;
+    for ( idx = 0 ; idx < GUN_CNT ; ++idx ) {
+	hack_timer[idx] = 0;
+	obptr = ch_obj[idx];
+	if ( obptr ) {
+	    ob_set_flags(obptr, ob_get_flags(obptr) | OBFLAG_HIDDEN);
+	}
+    }
+    ob_build();
+    bg_time = 0;
+    gun_arrows = 0;
+    vid_set_bg(0);
+}
+
+void gun_show()
+{
+    int idx;
+    OBJECT *obptr;
+    for ( idx = 0 ; idx < GUN_CNT ; ++idx ) {
+	hack_timer[idx] = 0;
+	obptr = ch_obj[idx];
+	if ( obptr ) {
+	    ob_set_flags(obptr, ob_get_flags(obptr) & ~OBFLAG_HIDDEN);
+	}
+    }
+    ob_build();
+}
+#endif
+
+#define ARROW_BASE (0x22)
+
+#define ARROW_PAL (WHT_PAL)
+
+#if GUN_CNT
+static void draw_arrow(col,row,arrow_code)
+int col, row, arrow_code;
+{
+    txt_stamp(col,row,ARROW_BASE+(arrow_code&3),ARROW_PAL);
+    arrow_code >>= 4;
+    txt_stamp(col+1,row,ARROW_BASE+(arrow_code&3),ARROW_PAL);
+    arrow_code >>= 4;
+    txt_stamp(col,++row,ARROW_BASE+(arrow_code&3),ARROW_PAL);
+    arrow_code >>= 4;
+    txt_stamp(++col,row,ARROW_BASE+(arrow_code&3),ARROW_PAL);
+}
+#endif
+
+#define CH_WID (7)
+#define CH_HT (7)
+
+unsigned long ctl_rd_gun(which)
+int which;
+{
+#if GUN_CNT == 0
+    return 0;
+#else
+    unsigned long val;
+    struct gun_ctl *cp;
+    int cross_hack = 0;
+
+#if GUNS_SWAPPED
+    which ^= 1;
+#endif
+    if ( which & CROSS_HACK ) {
+	cross_hack = 1;
+	which &= ~CROSS_HACK;
+	if ( bg_time == 0 ) {
+	    int old_bg;
+	    old_bg = vid_set_bg(gun_bkg);
+	    if ( old_bg != 0 ) {
+		/* We were expecting zero. If it's not,
+		 * it means some test has set the background
+		 * specifically. If so, leave it alone.
+		*/
+		vid_set_bg(old_bg);
+	    } else bg_time = CROSS_HACK_TIME;
+	}
+	else bg_time = CROSS_HACK_TIME;
+	if ( ch_obj[which] == 0 ) gun_init();
+	if ( gun_arrows < ARROWS_ON && ++gun_arrows == ARROWS_ON ) {
+	    /* Arrows cleared since last drawn, re-draw.
+	     * We delay for a while to avoid painting the arrows
+	     * as the calls to gun_joy() "die off".
+	     */
+	    draw_arrow((AN_VIS_COL/2)-1,2,0x2310);
+	    draw_arrow((AN_VIS_COL/2)-1,AN_VIS_ROW-2,0x3201);
+	    draw_arrow(1,(AN_VIS_ROW/2)-1,0x1230);
+	    draw_arrow(AN_VIS_COL-3,(AN_VIS_ROW/2)-1,0x3012);
+	}
+    }
+    if ( which < 0 || which > 1 ) return 0;
+    cp = gun_stat+which;
+    cp->active = GUN_ACTIVE_TIME;
+    if ( cp->status & (1<<B_SHOT) ) {
+	/* if this is first notice of SHOT, return values latched for SHOT */
+	val = ((cp->s_vpos + cp->voffset - GUN_V) & GUN_VERT_MASK)
+	    | (((cp->s_hpos + cp->hoffset - GUN_H) & GUN_HORZ_MASK) << GUN_HORZ_SHF)
+	    | (cp->status << GUN_STAT_SHF);
+#if AUTO_THUD
+	ctl_gun_thud(which);
+#endif
+    } else {
+	/* else return "tracking" values */
+	val = ((cp->vpos + cp->voffset - GUN_V) & GUN_VERT_MASK)
+	    | (((cp->hpos + cp->hoffset - GUN_H) & GUN_HORZ_MASK) << GUN_HORZ_SHF)
+	    | (cp->status << GUN_STAT_SHF);
+    }
+    /* Clear the bits we only want to see once */
+#ifdef B_RELOADED
+    cp->status &= ~((1<<B_SHOT)|(1<<B_RELOADED));
+#else
+    cp->status &= ~(1<<B_SHOT);
+#endif
+    if ( cross_hack ) {
+	/* display crosshair for this gun, if we are reading it and
+	 * the ch_obj exists for it.
+	 */
+#if GUNS_SWAPPED
+	OBJECT *obptr = ch_obj[which^=1];
+#else
+        OBJECT *obptr = ch_obj[which];
+#endif
+	if ( obptr ) {
+	    int x,y;
+	    x = (val >>GUN_HORZ_SHF)&GUN_HORZ_MASK;
+	    y = val&GUN_VERT_MASK;
+	    ob_set_x(obptr, x - (CH_WID>>1) );
+	    ob_set_y(obptr, y - (CH_HT>>1));
+	    if ( !hack_timer[which] 			/* Was quiet */
+	      && (val & (1<<(B_NEW_VAL+GUN_STAT_SHF)))	/* New reading */
+	      && gun_arrows == ARROWS_ON )		/* Should be seen */
+	    {
+		/* We have a new value on a formerly quiet gun */
+		hack_timer[which] = CROSS_HACK_TIME;
+		ob_set_flags(obptr, ob_get_flags(obptr) & ~OBFLAG_HIDDEN);
+		draw_ch(ob_get_img(obptr),ch_mode+which);
+	    }
+	    if ( hack_timer[which] && --hack_timer[which] == 0 ) {
+		ob_set_flags(obptr, ob_get_flags(obptr) | OBFLAG_HIDDEN);
+	    }
+	    ob_build();
+	}
+    }
+#ifdef B_NEWSTYLE
+    if ( stat_got >= 100 ) val |= (1<<(B_NEWSTYLE+GUN_STAT_SHF));
+#endif
+    return val;
+#endif
+}
+
+/*		gun_retrigger(which)
+ *	resets the trigger status on the gun selected by <which>,
+ *	so that it will re-trigger if the actual trigger is still
+ *	held.
+ */
+void gun_retrigger(which)
+int which;
+{
+#if GUN_CNT
+#if GUNS_SWAPPED
+    which ^= 1;
+#endif
+    if ( which < 0 || which >= GUN_CNT ) return;
+    gun_stat[which].status &= ~(1<<B_GUN_TRIG);
+#endif
+}
+
+
+#if GUN_CNT
+/*		crosshair()
+ *	This was originally the ambitious drawer of
+ *	crosshairs at arbitrary positions enclosed
+ *	in #if (0) below. In reality, it was only ever
+ *	used to draw a crosshair in one of two colors
+ *	at the center of the screen, without an "old"
+ *	struct to save the original contents. Although
+ *	seemingly general, it suffered from assumptions
+ *	of screen size and needed the "side door" draw_pt,
+ *	left over from the ASAP Bit-map board. I have
+ *	re-coded it below to do what it needs to, without
+ *	side-doors. If anybody ever needs the old version,
+ *	say, for reference in porting to a straight-bitmap
+ *	hardware, it is saved here for a while.
+ */
+#if OLD_CROSSHAIR
+struct ch_stat {
+    S16 x;
+    S16 y;
+    U16 save[14];
+};
+
+STATIC void crosshair(x,y,color,old)
+int x,y,color;
+struct ch_stat *old;
+{
+    int l,r,t,b,px,py;
+    U16 *scrptr,*sav_scr,*sav_buf;
+
+    if ( old ) {
+	/* we want to save the background */
+	old->x = x;
+	old->y = y;
+    }
+    if ( x < 0 ) x = 0;
+    if ( x >= (AN_VIS_COL<<3) ) x = (AN_VIS_COL<<3)-1;
+    if ( y < 0 ) x = 0;
+    if ( y >= (AN_VIS_ROW<<3) ) x = (AN_VIS_ROW<<3)-1;
+    l = x - 3;
+    r = x + 3;
+    if ( l < 0 ) l = 0;
+    if ( r >= (AN_VIS_COL << 3) ) r = (AN_VIS_COL<<3)-1;
+    t = y - 3;
+    b = y + 3;
+    if ( t < 0 ) t = 0;
+    if ( b >= (AN_VIS_ROW << 3) ) b = (AN_VIS_ROW<<3)-1;
+
+    scrptr = (U16 *)(draw_pt[0]) + (t * (AN_TOT_COL<<3));
+    if ( old ) {
+	sav_scr = scrptr;
+	sav_buf = old->save;
+	for ( py = t ; py <= b ; ++py ) {
+	    if ( py == y ) for ( px = l ; px <= r ; ++px ) *sav_buf++ = scrptr[px];
+	    else *sav_buf++ = scrptr[x];
+	    scrptr += (AN_TOT_COL<<3);
+	}
+	scrptr = sav_scr;
+    }
+    for ( py = t ; py <= b ; ++py ) {
+	if ( py == y ) for ( px = l ; px <= r ; ++px ) scrptr[px] = color;
+	else scrptr[x] = color;
+	scrptr += (AN_TOT_COL<<3);
+    }
+}
+#else
+/*	New version takes old parameter so that calls below
+ *	are not litterd with #ifs. No longer depends on screen
+ *	being size #defined by AN_*, but still depends on 16-bit
+ *	pixels, for now. MEA 17JUN96
+ */
+STATIC void crosshair(x,y,color,old)
+int x,y,color;
+void *old;	/* not used. */
+{
+    int l,r,t,b,wid,px,py;
+    U16 *scrptr;
+    OBJECT *screen;
+
+    screen = vid_setscr((OBJECT *)0);
+    if ( !screen ) return ;
+    if ( x < 3 ) x = 3;
+    wid = ob_get_pixw(screen);
+    if ( x >= (wid-4) ) x = (wid-4);
+    if ( y < 3 ) y = 3;
+    b = ob_get_pixh(screen);
+    if ( y >= (b-4) ) y = (b-4);
+    l = x - 3;
+    r = x + 3;
+    t = y - 3;
+    b = y + 3;
+
+    scrptr = (U16 *)ob_get_img(screen);
+    scrptr += (t * wid);
+    for ( py = t ; py <= b ; ++py ) {
+	if ( py == y ) for ( px = l ; px <= r ; ++px ) scrptr[px] = color;
+	else scrptr[x] = color;
+	scrptr += wid;
+    }
+}
+#endif /* OLD_CROSSHAIR */
+#endif /* GUN_CNT */
+
+#ifndef BLU_MSK
+#define BLU_MSK (0x00FE)
+#endif
+#ifndef BLU_PAL
+#define BLU_PAL (0x6000)
+#endif
+
+#if GUN_CNT
+/* As of 10OCT1996, ch_color[] is set to allow use with
+ * VIDEO_MODE_MIX. As of 20DEC1996, second set of four
+ * colors covers MaxForce, new-style gun chip <-> Yellow
+ * Left-player gun.
+ */
+static const U16 ch_color[] = {
+ RED_MSK&~1, BLU_MSK, 0xF801, 0x7c1,
+ YEL_MSK&~1, BLU_MSK, 0xF83F, 0x7c1
+};
+
+static const U16 ch_pal[] = { RED_PAL, BLU_PAL, YEL_PAL, BLU_PAL };
+
+#define GUN_OFFSET_ROW (1)
+
+static void show_offset(idx)
+int idx;
+{
+    int dbh,dbv,hoff,voff;
+    m_int s_idx = idx;
+    int pal;
+#if GUNS_SWAPPED
+    s_idx ^= 1;
+#endif
+
+    pal = ch_pal[idx];
+    if ( stat_got >= 100 ) pal = ch_pal[idx+2];
+    dbv = GUN_OFFSET_ROW+(idx>>1);
+    dbh = idx ? (AN_VIS_COL - 10) : 1;
+    hoff = gun_stat[s_idx].hoffset;
+    voff = gun_stat[s_idx].voffset;
+    if ( hoff < 0 ) {
+	txt_str(dbh,dbv,"-",pal);
+	hoff = 0-hoff;
+    } txt_str(dbh,dbv," ",pal);
+    txt_cdecnum(hoff,3,RJ_ZF,pal);
+    if ( voff < 0 ) {
+	txt_cstr(" -",pal);
+	voff = 0-voff;
+    } else txt_cstr("  ",pal);
+    txt_cdecnum(voff,3,RJ_ZF,pal);
+}
+#endif
+
+static void show_trace(idx)
+int idx;
+{
+#if GUN_CNT
+    m_int col,row = 4;
+    m_int samp,cnt,s_idx = idx;
+    struct gun_tst *np;
+#if GUNS_SWAPPED
+    s_idx ^= 1;
+#endif
+    col = idx ? AN_VIS_COL-6 : 3;
+    np = gun_trace+s_idx;
+    samp = np->samp;
+    if ( stat_got >= 100 ) idx += 2;
+    for ( cnt = 0; cnt < 4 ; ++cnt ) {
+	txt_decnum(col,row,np->x[(samp+cnt)&3],4,RJ_ZF,ch_pal[idx]);
+	txt_decnum(col,row+1,np->y[(samp+cnt)&3],4,RJ_ZF,ch_pal[idx]);
+	row += 3;
+    }
+#endif
+}
+
+void gun_dump()
+{
+    show_trace(0);
+    show_trace(1);
+}
+
+#define CH_LINE_PHRASES (((CH_WID*BPPIXEL)+sizeof(PHRASE)-1)/sizeof(PHRASE))
+#define CH_LINE_U16S (CH_LINE_PHRASES*(sizeof(PHRASE)/sizeof(U16)))
+#define CH_PHRASES (CH_HT*CH_LINE_PHRASES)
+
+#if GUN_CNT
+static void draw_ch(img,color_scheme)
+PHRASE *img;
+int color_scheme;
+{
+    U16 *scrptr;
+    int x,y,midx,midy;
+    U16 color;
+
+    color_scheme &= 3;
+    if ( stat_got >= 10 ) color_scheme |= 4;
+    color = ch_color[color_scheme];
+    midx = (CH_WID-1)>>1;
+    midy = (CH_HT-1)>>1;
+    scrptr = (U16 *)img;
+    for ( y = 0 ; y < CH_HT ; ++y ) {
+	/* pre-clear _whole_ image line */
+	for ( x = 0 ; x < CH_LINE_U16S ; ++x ) scrptr[x] = 0;
+
+	if ( y == midy ) {
+	    for ( x = 0 ; x < CH_WID ; ++x ) scrptr[x] = color;
+	} else {
+	    scrptr[midx] = color;
+	}
+	scrptr += CH_LINE_U16S;
+    }
+}
+#endif
+#if (1)
+#define CRY_BKG (0x4CE0)
+#define RBG_BKG (0x03DF)
+#else
+#define CRY_BKG (0x88E0)
+#define RBG_BKG (0x8FDE)
+#endif
+
+/*		gun_v_init()
+ *	Split off rather late in the game, gun_v_init
+ *	is only to be called from vid_init, and exists
+ *	essentially to clean-up dangling pointers
+ *	to the dram_alloc'd objects that the gun test
+ *	code uses. As of 18OCT95, MEA changes it to also
+ *	permanently allocate the image space for the
+ *	cross_hairs, to avoid a tussle with Chuck Peplinski
+ *	about who owns what in dram_alloced area :-) This
+ *	change is controlled by the #define PERM_CH_IMG
+ */
+void gun_v_init()
+{
+#if GUN_CNT
+    m_int idx;
+    for ( idx = GUN_CNT-1 ; idx >= 0 ; --idx ) {
+#if PERM_CH_IMG
+	ch_img[idx] = dram_alloc(CH_PHRASES,0);
+#else
+	ch_img[idx] = 0;
+#endif
+	ch_obj[idx] = 0;
+    }
+#endif
+}
+
+#ifndef VMODE_MASK
+#define VMODE_MASK (6)
+#endif
+#ifndef M_VMODE_MIX
+#define M_VMODE_MIX (0x100)
+#endif
+
+
+int gun_init()
+{
+#if GUN_CNT
+    m_int idx,samp;
+    int mode_offs;
+    OBJECT *obptr;
+
+#ifdef GUN_CHIP1
+    get_gun = get_gun1;
+    hgp = (void *)GUN_CHIP1;
+#endif
+#ifdef GUN_CHIP2
+    if ( cojag_rev >= 2 ) {
+	get_gun = get_gun2;
+	hgp = (void *)GUN_CHIP2;
+    }
+#endif
+
+    /* Make sure kickers are off. */
+    gun_thud(0,0);
+    gun_thud(1,0);
+
+    mode_offs = vid_set_vmode(0) & (VMODE_MASK|M_VMODE_MIX);
+
+    if ( mode_offs == (VIDEO_MODE_CRY&VMODE_MASK) ) {
+	gun_bkg = CRY_BKG;
+	mode_offs = 0;
+    } else {
+	gun_bkg = RBG_BKG;
+	mode_offs = 2;
+    }
+    ch_mode = mode_offs;
+    for ( idx = GUN_CNT-1 ; idx >= 0 ; --idx ) {
+#ifdef EER_GUN0H
+	gun_stat[idx].hoffset = eer_gets(EER_GUN0H+(idx<<1));
+#endif
+#ifdef EER_GUN0V
+	gun_stat[idx].voffset = eer_gets(EER_GUN0V+(idx<<1));
+#endif
+	for ( samp = 0 ; samp < 4 ; ++samp ) {
+	    gun_trace[idx].x[samp] = VIS_H_PIX/2 + GUN_H;
+	    gun_trace[idx].y[samp] = VIS_V_PIX/2 + GUN_V;
+	}
+
+	/* Initialize gun-tracking objects, whether or not
+	 * we believe we are in selftest, as we cannot be
+	 * sure with the advent of Williams-style push-buttons.
+	 */
+	if ( (obptr = ch_obj[idx]) == 0 ) {
+	    ch_obj[idx] = obptr = ob_add(NBMAP_OBTYPE);
+	}
+	if ( obptr == 0 ) continue;
+	ob_set_img(obptr,(U8*)ch_img[idx]);	
+	ob_set_pixw(obptr,CH_LINE_U16S);
+	ob_set_pixh(obptr,CH_HT);
+	ob_set_pixdepth(obptr,4);
+	ob_set_dpitch(obptr,1);
+	ob_set_dwidth( obptr, ob_get_pixw( obptr ) >> (6 - ob_get_pixdepth(obptr) ));
+	ob_set_iwidth(obptr,(ob_get_dwidth(obptr)));
+	ob_set_flags(obptr, OBFLAG_TRANS);
+	ob_set_priority(obptr,0xFFFF);
+#if (1)
+	draw_ch(ch_img[idx],idx+mode_offs);
+#endif
+    }
+#endif /* GUN_CNT */
+    return GUN_CNT;
+}
+
+#define WHITE_BORDER (0xF8F8F8)
+extern U32 vid_set_border(U32);
+
+#define TST_CAL (0)
+#define TST_TRACK (1)
+
+#define TST_END TST_TRACK
+
+static const struct menu_d sub_tests[] = {
+    { "CALIBRATE", 0 },
+    { "TRACKING", 0}
+};
+
+extern int vid_set_vmode();
+#define H_EPS (4)
+#define V_EPS (4)
+#define RETRIG_TIME (10)
+#define N_SHOTS  (4)
+
+int gun_test( smp )
+const struct menu_d *smp;
+{
+#if GUN_CNT == 0
+    return -1;
+#else
+    int x,y,rewrite;
+    int		idx;
+    int 	old_pri,old_bg;
+    m_int	samp,which_test;
+    int bottom;
+    int was_done = 0;
+    struct gun_tst *np;
+    unsigned long gval;
+    m_uint retrig[GUN_CNT];
+    m_uint nshots[GUN_CNT];
+    OBJECT *txtscr;
+    RECT cliprect;
+    U32 old_bord;
+    int white_val,grey_val,vmode;
+
+    txtscr = vid_setscr(0);
+    old_pri = ob_get_priority(txtscr);
+    ob_set_priority(txtscr,0);
+    old_bg = vid_set_bg(0);
+    old_bord = vid_set_border(0L);
+    rect_set(&cliprect,0,0,VIS_H_PIX,VIS_V_PIX);
+    ob_set_mcliprect(&cliprect);
+    ob_set_mclipflag(1);
+    prc_delay(2);
+    gun_init();
+    vmode = vid_set_vmode(0) & (VMODE_MASK|M_VMODE_MIX);
+    if ( vmode == (VIDEO_MODE_CRY&VMODE_MASK) ) {
+	white_val = WHT_FUL;
+	grey_val = GRY_FUL;
+    } else {
+	white_val = 0xE7BD;
+	grey_val = 0x6319;
+    }
+
+    which_test = TST_CAL;
+    bottom = st_frame(sub_tests+which_test,TITLE_PAL,INSTR_PAL,STF_NOEXIT);
+    crosshair(VIS_H_PIX/2,VIS_V_PIX/2,GRY_FUL,0);
+    rewrite = 1;
+    while ( 1 ) {
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) {
+	    if ( ++which_test > TST_END ) which_test = TST_CAL;
+	    rewrite = 1;
+	}
+	if ( rewrite ) {
+	    vid_clear();
+	    if ( which_test == TST_TRACK ) {
+		/* wants white screen for tracking */
+		vid_set_border(WHITE_BORDER);
+		vid_set_bg(white_val);
+		bottom = st_insn(AN_VIS_ROW-2, t_msg_ret_menu,
+		  t_msg_next, INSTR_PAL);
+		st_insn(bottom, "To calibrate guns,",
+		  t_msg_action, INSTR_PAL);
+		gun_show();
+	    } else {
+		/* wants screen back */
+		int bottom;
+		bottom = st_frame(sub_tests+which_test,TITLE_PAL,INSTR_PAL,0);
+		bottom = st_insn(bottom, "For tracking screen,",
+			  t_msg_action, INSTR_PAL);
+		if ( which_test == TST_CAL ) {
+		    txt_str(-1,(AN_VIS_ROW)/4,
+		      "Aim each gun at crosshair below", INSTR_PAL);
+		    txt_str(-1,(AN_VIS_ROW*3)/4,
+		      "Hold trigger until flashing stops", INSTR_PAL);
+		    }
+		crosshair(VIS_H_PIX/2,VIS_V_PIX/2,grey_val,0);
+		gun_hide();
+		/* Make sure we do at least four shots every time
+		 * we enter the calibrate screen.
+		 */
+		for ( idx = GUN_CNT-1 ; idx >= 0 ; --idx ) {
+		    if ( debug_mode & GUTS_OPT_DEVEL )
+		      show_offset(idx);
+
+		    retrig[idx] = 0;
+		    nshots[idx] = 0;
+		}
+		vid_set_border(old_bord);
+		vid_set_bg(old_bg);
+	    }
+	    for ( idx = 0 ; idx < GUN_CNT ; ++idx ) {
+		if ( ( which_test != TST_TRACK )     &&
+		     ( debug_mode & GUTS_OPT_DEVEL ) )
+                    show_offset(idx);
+	    }
+	    rewrite = 0;
+	}
+	for ( idx = GUN_CNT-1 ; idx >= 0 ; --idx ) {
+	    int s_idx = idx;
+	    m_int h_delta, v_delta;
+#if GUNS_SWAPPED
+	    s_idx ^= 1;
+#endif
+	    gval = ctl_rd_gun(idx);
+	    h_delta = v_delta = 0;
+	    if ( gval & (1<<(B_SHOT+GUN_STAT_SHF)) ) {
+                if ( debug_mode & GUTS_OPT_DEVEL )
+		  show_trace(idx);
+
+		if ( which_test == TST_CAL ) {
+		    /* shooting in the calibration screen. We are assumed to be
+		     * pointing at the crosshair in the center of the screen,
+		     * so calculate the average error.
+		     */
+		    m_int hoff,voff,h_eps,v_eps;
+		    np = gun_trace+s_idx;
+		    hoff = voff = 0;
+		    for ( samp = 0 ; samp < 4 ; ++samp ) {
+			hoff += np->x[samp] - GUN_H - VIS_H_PIX/2;
+			voff += np->y[samp] - GUN_V - VIS_V_PIX/2;
+		    }
+		    hoff >>= 2;
+		    voff >>= 2;
+		    h_delta = -hoff - gun_stat[s_idx].hoffset;
+		    v_delta = -voff - gun_stat[s_idx].voffset;
+		    gun_stat[s_idx].hoffset = -hoff;
+		    gun_stat[s_idx].voffset = -voff;
+		    h_eps = v_eps = 0;
+		    for ( samp = 0 ; samp < 4 ; ++samp ) {
+			m_int h_del, v_del;
+			h_del = hoff - (np->x[samp] - GUN_H - VIS_H_PIX/2);
+			if ( h_del < 0 ) h_del = - h_del;
+			if ( h_del > h_eps ) h_eps = h_del;
+			v_del = voff - (np->y[samp] - GUN_V - VIS_V_PIX/2);
+			if ( v_del < 0 ) v_del = - v_del;
+			if ( v_del > v_eps ) v_eps = v_del;
+		    }
+		    if ( (h_eps > H_EPS) || (v_eps > V_EPS) || ( ++nshots[idx] < N_SHOTS) ) {
+			/* still too much variance in offsets, ask for another
+			 * flash.
+			 */
+			retrig[idx] = RETRIG_TIME;
+			if ( was_done & (1<<s_idx) ) {
+			    int col,pal;
+			    col = idx ? (AN_VIS_COL-6) : 2;
+			    pal = ch_pal[idx+(2*(stat_got >= 100))];
+			    txt_clr_str(col,AN_VIS_ROW>>1,"DONE",pal);
+			    was_done &= ~(1<<s_idx);
+			}
+		    } else {
+			retrig[idx] = 0;
+			if ( !(was_done & (1<<s_idx)) ) {
+			    int col,pal;
+			    col = idx ? (AN_VIS_COL-6) : 2;
+			    pal = ch_pal[idx+(2*(stat_got >= 100))];
+			    txt_str(col,AN_VIS_ROW>>1,"DONE",pal);
+			    was_done |= (1<<s_idx);
+			}
+		    }
+                    if ( debug_mode & GUTS_OPT_DEVEL )
+	  	      show_offset(idx);
+		}
+	    }
+	    if ( gval & (1<<(B_SHOT+GUN_STAT_SHF)) || (which_test == TST_TRACK) ) {
+		/* move cursor if in tracking test or this positon
+		 * resulted from a flash.
+		 */
+		y = gval & GUN_VERT_MASK;
+		x = (gval >> GUN_HORZ_SHF) & GUN_HORZ_MASK;
+		x -= CH_WID>>1;
+		ob_set_x(ch_obj[idx],x+h_delta);
+		y -= CH_HT>>1;
+		ob_set_y(ch_obj[idx],y+v_delta);
+	    }
+#if NAMCO_KICKER
+	    if ( ( gval & (1<<(B_SHOT+GUN_STAT_SHF)) )
+	      && ( which_test == TST_TRACK ) ) {
+		ctl_gun_thud(idx);
+		retrig[idx] = THUD_SHORT;
+	    }
+#endif
+	    if ( retrig[idx] && (--retrig[idx] == 0) ) gun_retrigger(idx);
+	}
+	ob_build();
+	prc_delay0();
+    }
+
+    gun_thud(0,0);
+    gun_thud(1,0);
+
+    for ( idx = GUN_CNT-1 ; idx >= 0 ; --idx ) {
+	eer_puts(EER_GUN0H+(idx<<1),gun_stat[idx].hoffset );
+	eer_puts(EER_GUN0V+(idx<<1),gun_stat[idx].voffset );
+    }
+    ob_set_priority(txtscr,old_pri);
+    gun_hide();
+    vid_set_bg(old_bg);
+    vid_set_border(old_bord);
+    ob_set_mclipflag(0);
+    return 0;
+#endif
+}
+
+/*	Below kluge is a quick hack to get Area51 Selftest to work with
+ *	only a gun and two start buttons.
+ */
+
+#if GUN_CNT
+static char gtimer[4];
+static const unsigned short gbits[] = {GUN_UP, GUN_DOWN, GUN_LEFT, GUN_RIGHT};
+#define PULSE (10)
+static struct shot_rec {
+    U32 gval;
+    U16 in;
+    U16 out;
+} last_shot[GUN_CNT];
+#endif
+
+void gun_joy()
+{
+#if GUN_CNT
+    unsigned long gstat,vpos,hpos;
+    int idx,bit,bitno;
+    for ( idx = GUN_CNT-1 ; idx >= 0 ; --idx ) {
+	gstat = ctl_rd_gun(idx|CROSS_HACK);
+	if ( gstat & (1<<(B_SHOT+GUN_STAT_SHF)) ) {
+	    last_shot[idx].gval = gstat;
+	    last_shot[idx].in += 1;
+	    bit = 0;
+	    vpos = (gstat >> GUN_VERT_SHF) & GUN_VERT_MASK;
+	    hpos = (gstat >> GUN_HORZ_SHF) & GUN_HORZ_MASK;
+	    if ( vpos < (VIS_V_PIX/3) ) bit |= GUN_UP;
+	    if ( vpos > ((VIS_V_PIX<<1)/3) ) bit |= GUN_DOWN;
+	    if ( hpos < (VIS_H_PIX/3) ) bit |= GUN_LEFT;
+	    if ( hpos > ((VIS_H_PIX<<1)/3) ) bit |= GUN_RIGHT;
+	    fake_controls |= bit;
+	    for ( bitno = n_elts(gbits)-1 ; bitno >= 0 ; --bitno ) {
+		if ( bit & gbits[bitno] ) gtimer[bitno] = PULSE;
+	    } /* end for bits in fake joystick */
+	} /* end if shot fired */
+    }	/* end for (each gun) */
+    for ( bitno = n_elts(gbits)-1 ; bitno >= 0 ; --bitno ) {
+	if ( gtimer[bitno] && ( gtimer[bitno] -= 1 ) == 0 ) {
+	    fake_controls &= ~(gbits[bitno]);
+	}
+    } /* end for bits in fake joystick */
+#endif
+}
+
+#ifndef MENU_X_DEFAULT
+#define MENU_X_DEFAULT (4)
+#endif
+
+int gun2idx PARMS((
+const struct menu_d * menu,
+int menu_size,
+int vpos
+))
+{
+#if GUN_CNT
+    int col,row;
+    const char *label;
+    int idx;
+    unsigned long ctls;
+
+    row = -1;
+    col = 0;
+    for ( idx = 0 ; idx < GUN_CNT ; ++idx ) {
+	ctls = 0;
+	if ( last_shot[idx].in != last_shot[idx].out ) {
+	    ctls = last_shot[idx].gval;
+	    last_shot[idx].out += 1;
+	}
+	if ( ctls & (1<<(B_SHOT+GUN_STAT_SHF)) ) {
+	    row = (ctls >> GUN_VERT_SHF) & GUN_VERT_MASK;
+	    col = (ctls >> GUN_HORZ_SHF) & GUN_HORZ_MASK;
+	    row = ((row+4-(CH_HT>>1)) >> 3);
+	    col = ((col+4-(CH_WID>>1)) >> 3);
+	    break;
+	}
+    }
+    if ( idx == GUN_CNT ) return -1;	/* No shots */
+    idx = 0;
+    while ( row >= vpos ) {
+	if ( (label = menu->mn_label) == 0 ) break;	/* end of list */
+	if ( *label == '?' ) {
+	    ++label;
+#ifdef DEBUG
+	    if ( (debug_mode & GUTS_OPT_DEVEL) == 0 )
+#endif
+	    {
+		menu = (const struct menu_d *)((char *)menu + menu_size);
+		++idx;
+		continue;
+	    }
+	}
+	if ( *label == '\n' ) { ++vpos; ++label; }
+	if ( vpos == row ) {
+#if ( MENU_X_DEFAULT <  0)
+	    int width;
+	    width = (strlen(label)+1)/2;
+	    if ( (col >= (AN_VIS_COL/2-width))
+	      && (col < (AN_VIS_COL/2+width)) )
+#else
+	    if ( (col >= MENU_X_DEFAULT)
+	      && (col < (MENU_X_DEFAULT+strlen(label))) )
+#endif
+	    {
+		/* Shot "hit" label for this menu item. Prevent it
+		 * from also registering as a joystick move.
+		*/
+		fake_controls &= ~(GUN_UP|GUN_DOWN|GUN_LEFT|GUN_RIGHT);
+		return idx;
+	    }
+	}
+	++idx;
+	menu = (const struct menu_d *)((char *)menu + menu_size);
+	++vpos;
+    }
+    /* row selected is not part of menu */
+#endif /* GUN_CNT */
+    return -1;
+}
+
+#if (0)
+/**********************************************************************************************
+
+    Following is first-cut method of using gun to select/modify
+    options in an option-setting menu. The definitions below should
+    be in a .h file, but this is still pretty experimental.
+
+**********************************************************************************************/
+/*	Some definitions for default placement on screen
+ */
+#if (GUN_CNT)
+/* If using gun to "fake" joystick, restrict screen area a bit */
+#define TOP_MARGIN (5)
+#define BOTTOM_MARGIN (9)
+#ifndef MENU_HDR_COL
+#define MENU_HDR_COL (6)
+#endif
+#else
+#define TOP_MARGIN (3)
+#define BOTTOM_MARGIN (8)
+#ifndef MENU_HDR_COL
+#define MENU_HDR_COL (4)
+#endif
+#endif
+
+#define MENU_OPTION_COL (MENU_HDR_COL+2)
+
+/*	First, a structure that encapsulates the state of an option-select
+ *	menu. By using this, we avoid passing a bunch of parameters, some
+ *	by reference. The structure itself is passed by reference, of course.
+ *	The items[] array is a set of pointers into a menu string as described
+ *	below. It serves two purposes: 1) speeds up access to an item by
+ *	index, to aid gun-driven operation. 2) potentially allows "editting"
+ *	the fields of a menu in response to changes in other fields. The
+ *	latter is so far a "future direction", and will take some care
+ *	in implementation.
+ */
+#ifndef MAX_MENU_ITEMS
+#define MAX_MENU_ITEMS (32)	/* Number of bits in U32 sets upper limit */
+#endif
+
+struct menu_state {
+    int	n_items;
+    int	select;
+    int top;
+    U32 bits;
+    const U8 *items[MAX_MENU_ITEMS+1];
+};
+
+/*	Possible values for the "action" parameter of show_menu(), which
+ *	are also used as possible returns for the "user control" coroutine.
+ */
+#define M_ACT_NONE (0)		/* No-operation */
+#define M_ACT_ERASE (1)		/* "modifier" for REDRAW and SELECTED */
+#define M_ACT_REDRAW (2)	/* redraw entire menu */
+#define M_ACT_ERASE_ALL (3)	/* erase entire menu */
+#define M_ACT_SELECTED (4)	/* draw (or erase) only selected item */
+
+int gun_mdriver( U32 original, struct menu_state *cur)
+{
+#if GUN_CNT == 0
+    return M_ACT_NONE;
+#else
+    U32 ctls;
+    U32 opt_bits;
+    int idx,row,col,select;
+    const char *label;
+
+    int nitems = cur->n_items;
+    opt_bits = cur->bits;
+    select = -1;
+    col = 0;
+    for ( idx = 0 ; idx < GUN_CNT ; ++idx ) {
+	ctls = 0;
+	if ( last_shot[idx].in != last_shot[idx].out ) {
+	    ctls = last_shot[idx].gval;
+	    last_shot[idx].out += 1;
+	}
+	if ( ctls & (1<<(B_SHOT+GUN_STAT_SHF)) ) {
+	    int h,v,may_select;
+	    v = (ctls >> GUN_VERT_SHF) & GUN_VERT_MASK;
+	    h = (ctls >> GUN_HORZ_SHF) & GUN_HORZ_MASK;
+	    row = TOP_MARGIN;
+	    may_select = cur->top;
+	    if ( may_select ) row += 2;
+	    while ( row < (AN_VIS_ROW-BOTTOM_MARGIN) ) {
+		if ( v > ((row<<3)-4) && v < ((row+2)<<3) ) {
+		    label = (const char *)cur->items[may_select]+1;
+		    col = (h+4)>>3;
+		    if ( col > MENU_HDR_COL && col < (MENU_HDR_COL + strlen(label)) )
+		    {
+			select = may_select;
+			break;
+		    }
+		}
+		if ( ++may_select >= cur->n_items ) break;
+		row += 3;
+	    }
+	}
+    }
+
+    ctls = 0;
+    if ( select >= 0 ) {
+	/* got one, force ignore of arrows */
+	fake_controls &= ~(GUN_UP|GUN_DOWN|GUN_LEFT|GUN_RIGHT);
+	ctl_read_sw(JOY_BITS);	/* Kill other edges */
+	if ( select == cur->select ) {
+	    /* hit current selection, increment value */
+	    ctls = J_RIGHT;
+	} else {
+	    cur->select = select;
+	    return M_ACT_REDRAW;
+	}
+    }
+    else ctls = ctl_read_sw(JOY_BITS);
+
+    if ( (ctls & JOY_BITS) == 0 ) return M_ACT_NONE;
+    if ( (ctls & J_UP) && (cur->select > 0) ) {
+	/* move up in menu, possibly scrolling.
+	 */
+	if ( --cur->select < cur->top ) cur->top = cur->select;
+	return M_ACT_REDRAW;
+    }
+    if ( (ctls & J_DOWN) && (cur->select < (nitems-1)) ) {
+	/* move down in menu.
+	 */
+	++cur->select;
+	return M_ACT_REDRAW;
+    }
+    /* below is written as a "while" so we "fast forward"
+     * over any illegal options.
+     */
+    while ( ctls & (J_LEFT|J_RIGHT) ) {
+	/* change value of current field */
+	int len,lsb;
+	U32 mask,new;
+	const U8 *mp;
+	mp = cur->items[cur->select];
+	lsb = *mp >> 3;
+	len = *mp & 7;
+	mask = (1L<<len)-1;
+	/* get current value of this field, and increment
+	 * or decrement it.
+	 */
+	new = (opt_bits >> lsb)&mask;
+	if ( ctls & J_LEFT ) --new;
+	else ++new;
+	/* Splice new value into opt_bits, so it will be correct
+	 * when we break;
+	 */
+	opt_bits &= ~(mask<<lsb);
+	opt_bits |= ((new&=mask)<<lsb);
+	cur->bits = opt_bits;
+	/* Scan for the corresponding label, to validate choice.
+	 */
+	while (*++mp) {;}	/* Skip to '\000' before 1st label */
+	while (new) {
+	    while (*++mp) {;}	/* skip to '\0' before nth label */
+	    --new;
+	}
+	if ( mp[1] != '\0' ) break;
+    }
+    return M_ACT_REDRAW;
+#endif
+}
+
+#else
+/**********************************************************************************************
+
+    Following is second-cut method of using gun to select/modify
+    options in an option-setting menu. The definitions are now in
+    st_proto.h, and the structure has changed.
+
+**********************************************************************************************/
+#define GUN_TOP_MARGIN (4)	/* Allow room for "arrows" */
+#define GUN_SIDE_MARGIN (5)
+
+int gun_mdriver( struct opt_menu_state *cur)
+{
+#if GUN_CNT == 0
+    return M_ACT_NONE;
+#else
+    U32 ctls;
+    U32 opt_bits;
+    int idx,row,col,select;
+    int rval = M_ACT_NONE;
+    const char *label;
+
+    int nitems = cur->n_items;
+    opt_bits = cur->bits;
+
+    if ( cur->margin_t < GUN_TOP_MARGIN ) {
+	cur->margin_t = GUN_TOP_MARGIN;
+	rval = M_ACT_REDRAW;
+    }
+    if ( cur->margin_l < GUN_SIDE_MARGIN ) {
+	cur->margin_l = GUN_SIDE_MARGIN;
+	rval = M_ACT_REDRAW;
+    }
+    if ( cur->margin_r < (AN_VIS_COL-GUN_SIDE_MARGIN) ) {
+	cur->margin_r = (AN_VIS_COL-GUN_SIDE_MARGIN);
+	rval = M_ACT_REDRAW;
+    }
+    if ( rval != M_ACT_NONE ) return rval;
+
+    select = -1;
+    col = 0;
+    for ( idx = 0 ; idx < GUN_CNT ; ++idx ) {
+	ctls = 0;
+	if ( last_shot[idx].in != last_shot[idx].out ) {
+	    ctls = last_shot[idx].gval;
+	    last_shot[idx].out += 1;
+	}
+	if ( ctls & (1<<(B_SHOT+GUN_STAT_SHF)) ) {
+	    int h,v,may_select;
+	    v = (ctls >> GUN_VERT_SHF) & GUN_VERT_MASK;
+	    h = (ctls >> GUN_HORZ_SHF) & GUN_HORZ_MASK;
+	    row = cur->margin_t;
+	    may_select = cur->top;
+	    if ( may_select ) row += 2;
+	    while ( row < (cur->margin_b) ) {
+		if ( v > ((row<<3)-4) && v < ((row+2)<<3) ) {
+		    label = (const char *)cur->items[may_select]+1;
+		    col = (h+4)>>3;
+		    if ( col > cur->margin_l && col < (cur->margin_l + strlen(label)) )
+		    {
+			select = may_select;
+			break;
+		    }
+		}
+		if ( ++may_select >= cur->n_items ) break;
+		row += 3;
+	    }
+	}
+    }
+
+    ctls = 0;
+    if ( select >= 0 ) {
+	/* got one, force ignore of arrows */
+	fake_controls &= ~(GUN_UP|GUN_DOWN|GUN_LEFT|GUN_RIGHT);
+	ctl_read_sw(JOY_BITS);	/* Kill other edges */
+	if ( select == cur->select ) {
+	    /* hit current selection, increment value */
+	    return M_ACT_INCVAL;
+	} else {
+	    cur->select = select;
+	    return M_ACT_REDRAW;
+	}
+    }
+    else ctls = ctl_read_sw(JOY_BITS);
+
+    if ( (ctls & JOY_BITS) == 0 ) return M_ACT_NONE;
+    if ( (ctls & J_UP) && (cur->select > 0) ) {
+	/* move up in menu, possibly scrolling.
+	 */
+	if ( --cur->select < cur->top ) cur->top = cur->select;
+	return M_ACT_REDRAW;
+    }
+    if ( (ctls & J_DOWN) && (cur->select < (nitems-1)) ) {
+	/* move down in menu.
+	 */
+	++cur->select;
+	return M_ACT_REDRAW;
+    }
+    if ( ctls & J_LEFT ) return M_ACT_DECVAL;
+    if ( ctls & J_RIGHT ) return M_ACT_INCVAL;
+    return M_ACT_REDRAW;
+#endif
+}
+#endif
+
+#if HAS_GUN_CHIP && NAMCO_KICKER
+void gun_wd_vb() { last_vb = eer_rtc; ob_copy(1); }
+
+int gun_wd_test( smp )
+const struct menu_d *smp;
+{
+    int bottom;
+    unsigned long ctl,old_trig;
+    void (*ovb)();
+    struct gun_chip2 *gcp;
+
+    bottom = st_bottom();
+    bottom = st_insn(bottom,"To turn on solenoid","Pull corresponding trigger",
+      INSTR_PAL);
+    gcp = (struct gun_chip2 *)hgp;
+    if ( gcp ) {
+	ovb = vid_set_vb(gun_wd_vb);
+	old_trig = gcp->stat;
+	while (1) {
+	    ctl = ctl_read_sw(SW_NEXT);
+	    if ( ctl & SW_NEXT ) break;
+	    ctl = gcp->stat;
+	    if ( (ctl ^ old_trig) & (2<<B_GUN_TRIG) ) {
+		if ( ctl & (2<<B_GUN_TRIG) ) gun_thud(1,0);
+		else gun_thud(1,1);
+	    }
+	    if ( (ctl ^ old_trig) & (1<<B_GUN_TRIG) ) {
+		if ( ctl & (1<<B_GUN_TRIG) ) gun_thud(0,0);
+		else gun_thud(0,1);
+	    }
+	    old_trig = ctl;
+	    prc_delay0();
+	}
+	vid_set_vb(ovb);
+    }
+    gun_thud(0,0);
+    gun_thud(1,0);
+    return 0;
+}
+#else
+int gun_wd_test( smp )
+const struct menu_d *smp;
+{
+    return 0;
+}
+#endif
+@
+
+
+1.27
+log
+@more "protection" to provide stubs for gun and kicker code
+when we don't have a gun.
+@
+text
+@d10 3
+@
+
+
+1.26
+log
+@Added support for NAMCO solenoid kicker, including new
+test for hardware watchdog (built into gun chip) as
+well as software watchdog called from rawvb.
+@
+text
+@d115 2
+a116 1
+#endif
+d118 1
+a118 1
+/* How long to keep watching in Vblank, if no gtl_rd_gun() for this
+d127 1
+a127 1
+#if NAMCO_KICKER
+a139 1
+#endif
+d157 1
+a159 1
+#ifdef GUN_CHIP2
+d204 1
+a204 1
+#if NAMCO_KICKER
+d1559 1
+a1559 1
+#if NAMCO_KICKER
+@
+
+
+1.25
+log
+@re-instituted initial draw_ch(), in hope of
+eliminating Killer's elusive "blue square".
+@
+text
+@d1 1
+d55 4
+a58 1
+    PAD(4) unsigned short stat;
+d105 4
+a108 1
+    U16 active;		/* non-zero if read recently */
+d110 29
+d202 30
+d247 1
+a247 1
+
+d391 23
+a413 1
+
+d546 1
+a546 1
+    cp->active = 42;
+d552 3
+d896 4
+d1138 7
+d1151 3
+d1556 47
+@
+
+
+1.24
+log
+@Re-work gun cursor kluges to identify new-style gun-chip and
+make left gun cursor yellow as soon as possible. They are
+still kluges, and this still needs work if we do another gun game.
+@
+text
+@d844 1
+a844 1
+#if (0)
+@
+
+
+1.23
+log
+@Added detection for MaxForce gun chip.
+@
+text
+@d40 5
+a44 1
+ * image DRAM.
+d146 1
+d361 1
+d481 1
+a481 1
+	OBJECT *obptr = ch_obj[which^1];
+d498 1
+d642 4
+a645 2
+/* As of 10/10/1996, ch_color[] is set to allow use with
+ * VIDEO_MODE_MIX.
+d718 1
+a718 1
+static void draw_ch(img,color)
+d720 1
+a720 1
+U16 color;
+d724 1
+d726 3
+d791 2
+d804 11
+d826 7
+a832 12
+    }
+#if (B_TEST >= 0)
+    if ( (TEST & (1<<B_TEST)) == 0 ) {
+	int mode_offs;
+	mode_offs = vid_set_vmode(0) & (VMODE_MASK|M_VMODE_MIX);
+
+	if ( mode_offs == (VIDEO_MODE_CRY&VMODE_MASK) ) {
+	    gun_bkg = CRY_BKG;
+	    mode_offs = 0;
+	} else {
+	    gun_bkg = RBG_BKG;
+	    mode_offs = 2;
+d834 12
+a845 16
+	if ( stat_got >= 100 ) mode_offs += 4;
+	for ( idx = GUN_CNT-1 ; idx >= 0 ; --idx ) {
+	/* TEST switch is on, init crosshair objects too.
+	 */
+	    OBJECT *obptr = 0;
+#if PERM_CH_IMG
+	    if ( (obptr = ch_obj[idx]) == 0 ) {
+		ch_obj[idx] = obptr = ob_add(NBMAP_OBTYPE);
+	    }
+#else
+	    if ( ch_img[idx] == 0 ) {
+		ch_img[idx] = dram_alloc(CH_PHRASES,0);
+		ch_obj[idx] = obptr = ob_add(NBMAP_OBTYPE);
+	    } else {
+		obptr = ch_obj[idx];
+	    }
+a846 12
+	    if ( obptr == 0 ) break;
+	    ob_set_img(obptr,(U8*)ch_img[idx]);	
+	    ob_set_pixw(obptr,CH_LINE_U16S);
+	    ob_set_pixh(obptr,CH_HT);
+	    ob_set_pixdepth(obptr,4);
+	    ob_set_dpitch(obptr,1);
+	    ob_set_dwidth( obptr, ob_get_pixw( obptr ) >> (6 - ob_get_pixdepth(obptr) ));
+	    ob_set_iwidth(obptr,(ob_get_dwidth(obptr)));
+	    ob_set_flags(obptr, OBFLAG_TRANS);
+	    ob_set_priority(obptr,0xFFFF);
+	    draw_ch(ch_img[idx],ch_color[idx+mode_offs]);
+	}
+d848 1
+a848 2
+#endif
+#endif
+@
+
+
+1.22
+log
+@re-worked gun_mdriver() for new scheme of option-menu
+callbacks.
+@
+text
+@d117 2
+d123 1
+d129 6
+a134 1
+    dst->stat = src->stat;
+d499 3
+d638 4
+a641 2
+static const U16 ch_color[] = { RED_MSK&~1, BLU_MSK, 0xF801, 0x7c1 };
+static const U16 ch_pal[] = { RED_PAL, BLU_PAL };
+d643 2
+d652 1
+d656 3
+d664 1
+a664 1
+	txt_str(dbh,dbv,"-",ch_pal[idx]);
+d666 2
+a667 2
+    } txt_str(dbh,dbv," ",ch_pal[idx]);
+    txt_cdecnum(hoff,3,RJ_ZF,ch_pal[idx]);
+d669 1
+a669 1
+	txt_cstr(" -",ch_pal[idx]);
+d671 2
+a672 2
+    } else txt_cstr("  ",ch_pal[idx]);
+    txt_cdecnum(voff,3,RJ_ZF,ch_pal[idx]);
+d689 1
+d813 1
+d1008 1
+a1008 1
+			    int col;
+d1010 2
+a1011 1
+			    txt_clr_str(col,AN_VIS_ROW>>1,"DONE",ch_pal[idx]);
+d1017 1
+a1017 1
+			    int col;
+d1019 2
+a1020 1
+			    txt_str(col,AN_VIS_ROW>>1,"DONE",ch_pal[idx]);
+@
+
+
+1.21
+log
+@Apply VIDEO_MODE_MIX fix to gun crosshairs, fix typo
+thus uncovered.
+@
+text
+@d832 1
+a832 4
+#if (0)
+#define TST_SHOT (2)
+#define TST_END TST_SHOT
+#endif
+d834 1
+a834 7
+#if (0)
+static const char * const scrn_insn[] = {
+    "For tracking screen",
+    "For shot test",
+    "To calibrate gun"
+};
+#endif
+a884 4
+#if (0)
+    for ( idx = GUN_CNT-1 ; idx >= 0 ; --idx ) {
+        if ( debug_mode & GUTS_OPT_DEVEL )
+  	  show_offset(idx);
+a885 4
+	retrig[idx] = 0;
+	nshots[idx] = 0;
+    }
+#endif
+d1156 1
+a1237 4
+#if (0)
+	    txt_hexnum(2,1,h,8,RJ_ZF,WHT_PALB);
+	    txt_hexnum(2,2,v,8,RJ_ZF,WHT_PALB);
+#endif
+a1244 5
+#if (0)
+		    txt_decnum(20,1,col,3,RJ_ZF,WHT_PALB);
+		    txt_decnum(20,2,(v+4)>>3,3,RJ_ZF,WHT_PALB);
+		    txt_stamp(col,(v+4)>>3,AN_BALL,RED_PAL);
+#endif
+a1247 5
+#if (0)
+			txt_stamp(col,row,AN_BALL,GRN_PAL);
+			txt_decnum(20,3,select,3,RJ_BF,GRN_PAL);
+			prc_delay(10);
+#endif
+a1266 4
+#if (0)
+	    txt_decnum(20,3,select,3,RJ_BF,GRN_PALB);
+	    prc_delay(10);
+#endif
+d1322 104
+@
+
+
+1.20
+log
+@Fix race-condition that would sometimes over-ride medium-grey
+background on color-bar test.
+@
+text
+@d617 1
+a617 1
+#define BLU_MSK (0x00FF)
+d624 4
+a627 1
+static const U16 ch_color[] = { RED_MSK, BLU_MSK, 0xF8, 0x7C0 };
+d874 1
+a874 1
+    int white_val,grey_val,mode_offs;
+d886 2
+a887 1
+    if ( vid_set_vmode(0) == VIDEO_MODE_CRY ) {
+a889 1
+	mode_offs = 0;
+a892 1
+	mode_offs = 2;
+@
+
+
+1.19
+log
+@Account for possibility of VIDEO_MODE_MIX, in selection of
+gun_bkg. OR in lsb to RGB version to ensure RGB.
+@
+text
+@d419 9
+a427 1
+	    vid_set_bg(gun_bkg);
+d429 1
+a429 1
+	bg_time = CROSS_HACK_TIME;
+@
+
+
+1.18
+log
+@Changed crosshair routine to remove need for global
+"side door" draw_pt.
+@
+text
+@d703 1
+a703 1
+#define RBG_BKG (0x03DE)
+d735 8
+d773 1
+d775 1
+a775 1
+	if ( vid_set_vmode(0) == VIDEO_MODE_CRY ) {
+@
+
+
+1.17
+log
+@prepared for revs 3 & 4, whering the gun does _not_ move,
+by checking cojag_rev >= 2, not == 2.
+@
+text
+@d504 18
+a527 1
+#if GUN_CNT
+d570 38
+a607 1
+#endif
+d871 2
+a872 2
+	white_val = 0xE7BC;
+	grey_val = 0x6318;
+@
+
+
+1.16
+log
+@made gun.c safe to compile with GUN_CNT == 0.
+@
+text
+@d691 1
+a691 1
+    if ( cojag_rev == 2 ) {
+@
+
+
+1.15
+log
+@Area51 production version, includes gun-driven option-menu
+selection, numerous minor tweaks to avoid fighting with
+audio for DRAM, auto-enable mint-green background, and
+various other stuff to allow gun-driven selftest.
+@
+text
+@d88 1
+d98 2
+a99 1
+} gun_stat[2];
+d136 1
+d149 2
+d343 2
+d379 1
+d385 1
+d397 1
+d405 3
+d484 1
+d495 1
+d501 1
+d510 1
+d553 1
+a553 1
+
+d561 3
+a563 2
+const U16 ch_color[] = { RED_MSK, BLU_MSK, 0xF8, 0x7C0 };
+const U16 ch_pal[] = { RED_PAL, BLU_PAL };
+d590 1
+d595 1
+d610 1
+d622 2
+d646 1
+d668 1
+d678 1
+d683 1
+d749 1
+d784 3
+d976 1
+d983 1
+d992 1
+d996 1
+d1022 1
+d1035 1
+a1043 3
+#if (0)
+	ctls = ctl_rd_gun(idx|CROSS_HACK);
+#else
+a1048 1
+#endif
+a1053 5
+#if (0)
+	    txt_decnum(2,3,col,2,RJ_BF,MNORMAL_PAL);
+	    txt_cstr(",",MNORMAL_PAL);
+	    txt_cdecnum(row,2,LJ_NF,MNORMAL_PAL);
+#endif
+d1078 1
+a1078 1
+	      && (col < (AN_VIS_COL/2+width)) ) {
+d1081 1
+a1081 1
+	      && (col < (MENU_X_DEFAULT+strlen(label))) ) {
+d1083 1
+d1096 1
+d1159 3
+d1280 1
+@
+
+
+1.14
+log
+@Simplified gun calibration screen use. Changed colors for guns
+from original green and cyan to red and blue.
+@
+text
+@d39 4
+d138 9
+a146 1
+} gun_trace[N_GUNS];
+d162 12
+d254 1
+a254 1
+    for ( idx = 0 ; idx < N_GUNS ; ++cp,++idx,stat>>=1 ) {
+d258 11
+d334 57
+d397 2
+a398 1
+    if ( which < 0 || which > 1 ) return 0;
+d402 20
+d441 29
+d484 1
+a484 1
+    if ( which < 0 || which >= N_GUNS ) return;
+d544 1
+a544 1
+const U16 ch_color[] = { RED_MSK, BLU_MSK, 0x3f, 0x7FF };
+a597 2
+#define CH_WID (7)
+#define CH_HT (7)
+d623 7
+d631 23
+a653 1
+extern int cojag_rev;
+d669 1
+a669 1
+    for ( idx = N_GUNS-1 ; idx >= 0 ; --idx ) {
+d681 42
+a722 1
+    return N_GUNS;
+d730 1
+d733 3
+a735 1
+
+d737 8
+a744 3
+    ", for tracking screen",
+    ", for shot test",
+    ", to calibrate gun"
+d746 1
+d760 2
+a761 4
+#if (0)
+    struct ch_stat old[N_GUNS];
+    struct gun_tst new[N_GUNS];
+#endif
+a762 1
+    char instr[AN_VIS_COL+1];
+d764 2
+a765 4
+    PHRASE *ch_img[N_GUNS];
+    OBJECT *ch_obj[N_GUNS];
+    m_uint retrig[N_GUNS];
+    m_uint nshots[N_GUNS];
+d776 1
+a776 1
+    rect_set(&cliprect,0,0,336,240);
+d779 1
+d790 2
+a791 3
+    for ( idx = N_GUNS-1 ; idx >= 0 ; --idx ) {
+	OBJECT *obptr;
+
+a794 12
+	ch_img[idx] = dram_alloc(CH_PHRASES,0);
+	ch_obj[idx] = obptr = ob_add(NBMAP_OBTYPE);
+	ob_set_img(obptr,(U8*)ch_img[idx]);	
+	ob_set_pixw(obptr,CH_LINE_U16S);
+	ob_set_pixh(obptr,CH_HT);
+	ob_set_pixdepth(obptr,4);
+	ob_set_dpitch(obptr,1);
+	ob_set_dwidth( obptr, ob_get_pixw( obptr ) >> (6 - ob_get_pixdepth(obptr) ));
+        ob_set_iwidth(obptr,(ob_get_dwidth(obptr)));
+	ob_set_flags(obptr, OBFLAG_TRANS);
+	ob_set_priority(obptr,1000);
+	draw_ch(ch_img[idx],ch_color[idx+mode_offs]);
+d798 1
+d800 1
+d815 5
+a819 3
+		strcpy(instr,t_msg_action);
+		strncat(instr,scrn_insn[which_test],AN_VIS_COL-strlen(instr));
+		txt_str(-1,AN_VIS_ROW-1,instr,INSTR_PAL);
+d823 3
+a825 4
+		bottom = st_frame(smp,TITLE_PAL,INSTR_PAL,0);
+		strcpy(instr,t_msg_action);
+		strncat(instr,scrn_insn[which_test],AN_VIS_COL-strlen(instr));
+		txt_str(-1,bottom,instr,INSTR_PAL);
+a826 1
+		    txt_str(-1,--bottom,"CALIBRATE",INSTR_PAL);
+d833 11
+d847 1
+a847 1
+	    for ( idx = 0 ; idx < N_GUNS ; ++idx ) {
+d854 1
+a854 1
+	for ( idx = N_GUNS-1 ; idx >= 0 ; --idx ) {
+d899 6
+d907 6
+a927 6
+#if 0
+		txt_decnum( (idx ? AN_VIS_COL-7 : 1),AN_VIS_ROW-2,
+		  gun_stat[s_idx].hpos,5,RJ_ZF,ch_pal[idx]);
+		txt_decnum( (idx ? AN_VIS_COL-7 : 1),AN_VIS_ROW-1,
+		  gun_stat[s_idx].vpos,5,RJ_ZF,ch_pal[idx]);
+#endif
+d935 1
+a935 1
+    for ( idx = N_GUNS-1 ; idx >= 0 ; --idx ) {
+a937 2
+	ob_del(ch_obj[idx]);		/* give back the objects */
+	dram_alloc(-CH_PHRASES,0);		/* and the image memory */
+d940 1
+a940 1
+    ob_build();	/* make the "ob_del()"s take */
+d954 5
+d964 2
+a965 2
+    for ( idx = N_GUNS-1 ; idx >= 0 ; --idx ) {
+	gstat = ctl_rd_gun(idx);
+d967 2
+d989 4
+d1005 11
+a1015 2
+    for ( idx = 0 ; idx < N_GUNS ; ++idx ) {
+	ctls = ctl_rd_gun(idx);
+d1019 2
+a1020 2
+	    row = ((row+4) >> 3);
+	    col = ((col+4) >> 3);
+d1029 1
+a1029 1
+    if ( idx == N_GUNS ) return -1;	/* No shots */
+d1044 18
+a1061 2
+	if ( *label == '\n' ) ++vpos;
+	if ( vpos == row ) return idx;
+d1069 180
+@
+
+
+1.13
+log
+@fixed "piggyback" hack to see RELOAD when trigger is pulled
+just after other gun causes flash, if no "new val". Previous
+version would lose the trigger pull in this case.
+@
+text
+@d395 9
+a403 2
+const U16 ch_color[] = { GRN_MSK, CYN_MSK, 0x3f, 0x7FF };
+const U16 ch_pal[] = { GRN_PAL, CYN_PAL };
+d526 1
+a526 1
+    ", for calibration screen"
+d529 4
+d550 2
+d577 4
+a580 1
+	show_offset(idx);
+d593 2
+d611 3
+d621 7
+a627 1
+		if ( which_test == TST_CAL ) txt_str(-1,--bottom,"CALIBRATE",INSTR_PAL);
+d633 3
+a635 1
+		if ( which_test != TST_TRACK ) show_offset(idx);
+d641 1
+d646 1
+a646 15
+	    if ( gval & (1<<(B_SHOT+GUN_STAT_SHF)) || (which_test == TST_TRACK) ) {
+		/* move cursor if in tracking test or this positon
+		 * resulted from a flash.
+		 */
+		y = gval & GUN_VERT_MASK;
+		x = (gval >> GUN_HORZ_SHF) & GUN_HORZ_MASK;
+		x -= CH_WID>>1;
+		ob_set_x(ch_obj[idx],x);
+		y -= CH_HT>>1;
+		ob_set_y(ch_obj[idx],y);
+		txt_decnum( (idx ? AN_VIS_COL-7 : 1),AN_VIS_ROW-2,
+		  gun_stat[s_idx].hpos,5,RJ_ZF,ch_pal[idx]);
+		txt_decnum( (idx ? AN_VIS_COL-7 : 1),AN_VIS_ROW-1,
+		  gun_stat[s_idx].vpos,5,RJ_ZF,ch_pal[idx]);
+	    }
+d648 3
+a650 1
+		show_trace(idx);
+d656 1
+a656 1
+		    m_int hoff,voff;
+d663 26
+a688 3
+		    gun_stat[s_idx].hoffset = -(hoff>>2);
+		    gun_stat[s_idx].voffset = -(voff>>2);
+		    show_offset(idx);
+d691 18
+@
+
+
+1.12
+log
+@added active timer to disallow un-paid guns causing a screen flash.
+@
+text
+@d254 10
+@
+
+
+1.11
+log
+@added flip fix to gun-retrigger. Protected some otherwise
+unused static variables within #ifdef HAS_GUN_CHIP
+@
+text
+@d92 1
+d237 4
+a240 2
+	if ( n_stat & ~(o_stat) & (1<<B_GUN_TRIG) ) {
+	    /* trigger now pressed, and wasn't last frame */
+d258 5
+d300 1
+@
+
+
+1.10
+log
+@Hold shot coordinates until read. Still allows tracking after shot.
+Fix gun-swap in "last four shots" trace log.
+Easier-to-read palettes for debug trace dump, simplified trace code.
+@
+text
+@d124 1
+d127 1
+d320 3
+@
+
+
+1.9
+log
+@added explicit include of rectlib.h, instead of the hidden one in oblist.h
+@
+text
+@d90 2
+d174 2
+d207 2
+d247 2
+d290 11
+a300 3
+    val = ((cp->vpos + cp->voffset - GUN_V) & GUN_VERT_MASK)
+	| (((cp->hpos + cp->hoffset - GUN_H) & GUN_HORZ_MASK) << GUN_HORZ_SHF)
+	| (cp->status << GUN_STAT_SHF);
+d372 1
+a372 1
+const U16 ch_pal[] = { GRN_PALB, CYN_PALB };
+d380 4
+a383 1
+
+d386 2
+a387 2
+    hoff = gun_stat[idx].hoffset;
+    voff = gun_stat[idx].voffset;
+d400 2
+a401 2
+static void show_trace(idx,col,row)
+int idx,col,row;
+d403 2
+a404 1
+    m_int samp,cnt;
+d406 5
+a410 1
+    np = gun_trace+idx;
+d421 2
+a422 2
+    show_trace(0,3,4);
+    show_trace(1,AN_VIS_COL-6,4);
+d477 2
+a478 2
+	    gun_trace[idx].x[samp] = VIS_H_PIX/2;
+	    gun_trace[idx].y[samp] = VIS_V_PIX/2;
+d608 1
+a608 1
+		show_trace(idx,(idx ? AN_VIS_COL-6 : 3),4);
+@
+
+
+1.8
+log
+@added kluge for MIPS or 68k style includes (jag_defs)
+@
+text
+@d25 1
+@
+
+
+1.7
+log
+@twist index for gun parameters to plaster over yet another
+documentation error.
+@
+text
+@d9 9
+a17 1
+
+d19 3
+a24 1
+#include <jag_defs.h>
+@
+
+
+1.6
+log
+@added functions to use gun as substitute joystick.
+@
+text
+@d22 5
+d267 3
+d355 1
+a355 1
+    dbh = idx ? 1 : AN_VIS_COL - 10;
+d552 4
+d567 4
+a570 4
+		txt_decnum( (idx ? 1 : AN_VIS_COL-7),AN_VIS_ROW-2,
+		  gun_stat[idx].hpos,5,RJ_ZF,ch_pal[idx]);
+		txt_decnum( (idx ? 1 : AN_VIS_COL-7),AN_VIS_ROW-1,
+		  gun_stat[idx].vpos,5,RJ_ZF,ch_pal[idx]);
+d573 1
+a573 1
+		show_trace(idx,(idx ? 3 : AN_VIS_COL-6),4);
+d580 1
+a580 1
+		    np = gun_trace+idx;
+d586 2
+a587 2
+		    gun_stat[idx].hoffset = -(hoff>>2);
+		    gun_stat[idx].voffset = -(voff>>2);
+@
+
+
+1.5
+log
+@track last four shots, even during game. Added joystick emulation.
+use RGB mode. Better default offsets for gun correction.
+@
+text
+@d632 52
+@
+
+
+1.4
+log
+@Split "reader" routine out to accomodate differences between
+REV 1 and REV 2 CoJag. Use lighter background in calibrate screen.
+Added code to detect and signal "off screen" shots, for RELOADED
+indication independant of non-existant RELOAD switch.
+@
+text
+@a22 17
+
+#ifndef XBUS_SLOT5
+#define XBUS_SLOT5 (0xFFAC0000)
+#endif
+
+#ifndef XIO_ADDR
+#define XIO_ADDR (XBUS_SLOT5)
+#endif
+
+#ifndef GUN_CHIP1
+#define GUN_CHIP1 (XIO_ADDR+(0x0380))
+#endif
+
+#ifndef GUN_CHIP2
+#define GUN_CHIP2 (0xFFF16000)
+#endif
+
+d32 1
+a32 1
+/* First rev gun-chip is starightforwardly mapped as a 16-bit entity on
+d109 6
+d149 2
+d154 3
+d180 2
+d185 3
+d253 2
+d263 2
+a264 2
+    val = ((cp->vpos + cp->voffset) & GUN_VERT_MASK)
+	| (((cp->hpos + cp->hoffset) & GUN_HORZ_MASK) << GUN_HORZ_SHF)
+d275 12
+d336 1
+a336 9
+struct gun_tst {
+    U16 x[4];
+    U16 y[4];
+    U16 nx,ny;
+    m_int samp;
+    m_int trig;
+};
+
+const U16 ch_color[] = { GRN_MSK, CYN_MSK };
+d362 20
+d414 1
+a414 1
+    m_int idx;
+d433 4
+d441 15
+d463 1
+d465 3
+a467 1
+    struct gun_tst new[N_GUNS],*np;
+d473 3
+d480 5
+a484 1
+    old_bg = vid_set_bg(WHT_FUL);
+d486 9
+a496 5
+	old[idx].x = -1;
+	for ( samp = 0 ; samp < 4 ; ++samp ) {
+	    new[idx].x[samp] = VIS_H_PIX/2-gun_stat[idx].hoffset;
+	    new[idx].y[samp] = VIS_V_PIX/2-gun_stat[idx].voffset;
+	}
+d509 1
+a509 1
+	draw_ch(ch_img[idx],ch_color[idx]);
+d511 1
+a511 4
+    strcpy(instr,t_msg_action);
+    strncat(instr," to toggle screen",AN_VIS_COL-strlen(instr));
+    txt_str(-1,AN_VIS_ROW-4,instr,INSTR_PAL);
+    which_test = 0;
+d513 1
+a513 1
+    memset(new,0,sizeof(new));
+a515 1
+	rewrite = 0;
+d517 9
+a525 8
+	    which_test ^= 1;
+	    if ( which_test ) {
+		/* wants white screen */
+		U32 *scptr;
+		scptr = (U32 *)ob_get_img(txtscr);
+		for ( idx = (VIS_H_PIX*VIS_V_PIX/2)-1 ; idx >= 0 ; --idx ) {
+		    *scptr++ = (WHT_FUL<<16)|WHT_FUL;
+		}
+a528 1
+		vid_clear();
+d530 7
+a536 2
+		txt_str(-1,AN_VIS_ROW-4,instr,INSTR_PAL);
+		crosshair(VIS_H_PIX/2,VIS_V_PIX/2,GRY_FUL,0);
+d539 1
+a539 2
+		old[idx].x = -1;
+		if ( !which_test ) show_offset(idx);
+d541 1
+a541 1
+	    rewrite = 1;
+a543 1
+	    np = new+idx;
+d545 1
+a545 1
+	    if ( gval & (1<<(B_SHOT+GUN_STAT_SHF)) || which_test ) {
+d549 3
+a551 5
+		np->ny = y = gval & GUN_VERT_MASK;
+		np->nx = x = (gval >> GUN_HORZ_SHF) & GUN_HORZ_MASK;
+		if ( x != old[idx].x || y != old[idx].y ) ++rewrite;
+		if ( x < 0 ) x = 0;
+		if ( x > (VIS_H_PIX-CH_WID)) x = VIS_H_PIX-CH_WID;
+d553 1
+a553 2
+		if ( y < 0 ) y = 0;
+		if ( y > (VIS_V_PIX-CH_HT)) y = VIS_V_PIX-CH_HT;
+d555 4
+a558 1
+		np->trig = (gval>>GUN_STAT_SHF) & (1<<B_SHOT);
+d560 17
+a576 27
+	}
+	ob_build();
+
+	if ( which_test ) {
+	    /* tracking test, no calibration */
+	    prc_delay0();
+	    continue;
+	}
+	/* Now update hoffset and voffset based on samples taken each
+	 * time triger is pressed
+	 */
+	np = new+N_GUNS;
+	for ( idx = N_GUNS-1 ; idx >= 0 ; --idx ) {
+	    m_int hoff,voff;
+	    --np;
+	    if ( np->trig & (1<<B_SHOT) ) {
+		/* getting here means that we have gotten a "flash"
+		 * reading and it is the first such reading after
+		 * an edge on the trigger.
+		 */
+		samp = np->samp;
+		np->x[samp] = x = gun_stat[idx].hpos;
+		np->y[samp] = y = gun_stat[idx].vpos;
+		hoff = voff = 0;
+		for ( samp = 0 ; samp < 4 ; ++samp ) {
+		    hoff += np->x[samp] - VIS_H_PIX/2;
+		    voff += np->y[samp] - VIS_V_PIX/2;
+a577 5
+		gun_stat[idx].hoffset = -(hoff>>2);
+		gun_stat[idx].voffset = -(voff>>2);
+		np->samp = (np->samp + 1) & 3;
+		show_offset(idx);
+		np->trig = 0;
+d580 1
+d593 2
+d598 34
+@
+
+
+1.3
+log
+@fixed parenthesis bug in #define of GUN_CHIP.
+Split out gun_init() to allow call from vid_init (or game)
+@
+text
+@d32 2
+a33 2
+#ifndef GUN_CHIP
+#define GUN_CHIP (XIO_ADDR+(0x0380))
+d36 3
+a38 12
+struct gun_chip {
+    unsigned short pad0;
+    unsigned short v0;
+    unsigned short pad1;
+    unsigned short h0;
+    unsigned short pad2;
+    unsigned short v1;
+    unsigned short pad3;
+    unsigned short h1;
+    unsigned short pad4;
+    unsigned short stat;
+};
+d40 23
+a69 2
+#define B_SHOOTING (5)
+#define B_SHOT (6)
+d77 1
+a77 1
+#define GUN_STAT_SHF (17)	/* Status bits in D17..22 */
+d95 31
+d133 3
+a135 3
+#ifdef GUN_CHIP
+    struct gun_chip gtmp;
+    volatile struct gun_chip *gp;
+a139 1
+    gp = (volatile struct gun_chip *)GUN_CHIP;
+d141 1
+d145 3
+d149 2
+a150 2
+    gtmp = *gp;
+    gp = &gtmp;
+d153 1
+a155 1
+	n_stat = cp->status;
+d158 1
+a158 1
+	if ( did_flash && (cp->status & (1<<B_SHOOTING)) ) {
+d165 15
+d181 1
+a181 3
+	/* new value for gun 0 */
+	++cp;
+	n_stat = cp->status;
+d184 1
+a184 1
+	if ( did_flash && (cp->status & (1<<B_SHOOTING)) ) {
+a189 1
+	--cp;
+d191 15
+d234 1
+a234 1
+	 * The hardware bit was aalready inverted above.
+d244 3
+d248 1
+d265 4
+d270 1
+a321 7
+#if (0)
+STATIC void crossback(old)
+struct ch_stat *old;
+{
+    int x,y;
+    int l,r,t,b,px,py;
+    U16 *scrptr,*sav_ptr;
+a322 24
+    if ( !old ) return;
+    x = old->x;
+    y = old->y;
+    if ( x < 0 ) x = 0;
+    if ( x >= (AN_VIS_COL<<3) ) x = (AN_VIS_COL<<3)-1;
+    if ( y < 0 ) x = 0;
+    if ( y >= (AN_VIS_ROW<<3) ) x = (AN_VIS_ROW<<3)-1;
+    l = x - 3;
+    r = x + 3;
+    if ( l < 0 ) l = 0;
+    if ( r >= (AN_VIS_COL << 3) ) r = (AN_VIS_COL<<3)-1;
+    t = y - 3;
+    b = y + 3;
+    if ( t < 0 ) t = 0;
+    if ( b >= (AN_VIS_ROW << 3) ) b = (AN_VIS_ROW<<3)-1;
+    scrptr = (U16 *)(draw_pt[0]) + (t * (AN_TOT_COL<<3));
+    sav_ptr = old->save;
+    for ( py = t ; py <= b ; ++py ) {
+	if ( py == y ) for ( px = l ; px <= r ; ++px ) scrptr[px] = *sav_ptr++;
+	else scrptr[x] = *sav_ptr++;
+	scrptr += (AN_TOT_COL<<3);
+    }
+}
+#endif
+d385 2
+d390 11
+d417 1
+a417 1
+    int 	old_pri;
+d430 1
+d457 1
+a457 1
+    crosshair(VIS_H_PIX/2,VIS_V_PIX/2,WHT_FUL,0);
+d473 1
+d475 1
+a475 1
+		st_frame(smp,TITLE_PAL,INSTR_PAL,0);
+d477 1
+a477 1
+		crosshair(VIS_H_PIX/2,VIS_V_PIX/2,WHT_FUL,0);
+d549 1
+@
+
+
+1.2
+log
+@slightly cleaner definition of GUN_CHIP definition
+@
+text
+@d17 1
+a22 1
+#define N_GUNS (2)
+d33 1
+a33 1
+#define GUN_CHIP XIO_ADDR+(0x0380)
+d334 14
+d366 1
+a369 2
+	gun_stat[idx].hoffset = eer_gets(EER_GUN0H+(idx<<1));
+	gun_stat[idx].voffset = eer_gets(EER_GUN0V+(idx<<1));
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d24 8
+d33 1
+a33 1
+#define GUN_CHIP (0xFFAC0380)
+@

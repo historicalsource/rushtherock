@@ -1,0 +1,157 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	95.12.22.19.29.25;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Some definitions for tbus specific stuff.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/*
+ * tbus.h
+ */
+
+/* TBUS contol registers */
+#define TBUS_CONTROL 0xE0000000
+#define TBUS_PLREG 0x1C000000
+#define TBUS_SCI_PA 0x03000000
+#define TBUS_DATA 0x00FFFFFF
+
+#define TB_TSTART	0xC0000000
+#define TB_EP		0x08000000
+#define TB_LR		0x04000000
+#define TB_LL		0x02000000
+#define TB_SP		0x01000000
+#define TB_FEND		0xE0000000
+
+/* TBUS preload registers */
+#define PLREG(x)	(x<<26)
+#define	SCIPA(x)	(x<<24)
+/* TRAP */
+#define PLTRAP		0x00000000
+#define PL_PY		(PLTRAP | PLREG(0))
+#define PL_PLH		(PLTRAP | PLREG(1))
+#define PL_PRH		(PLTRAP | PLREG(2))
+#define PL_PLX		(PLTRAP | PLREG(3))
+#define PL_PDLX		(PLTRAP | PLREG(4))
+#define PL_PRX		(PLTRAP | PLREG(5))
+#define PL_PDRX		(PLTRAP | PLREG(6))
+/* PERC */
+#define PLPERC		0x20000000
+#define PL_VN_PL0	(PLPERC | PLREG(1) | SCIPA(0))
+#define PL_VN_PR0	(PLPERC | PLREG(1) | SCIPA(1))
+#define PL_VN_PDL	(PLPERC | PLREG(1) | SCIPA(2))
+#define PL_VN_PDR	(PLPERC | PLREG(1) | SCIPA(3))
+#define PL_VD_PL0	(PLPERC | PLREG(0) | SCIPA(0))
+#define PL_VD_PR0	(PLPERC | PLREG(0) | SCIPA(1))
+#define PL_VD_PDL	(PLPERC | PLREG(0) | SCIPA(2))
+#define PL_VD_PDR	(PLPERC | PLREG(0) | SCIPA(3))
+#define PL_HN_PL0	(PLPERC | PLREG(3) | SCIPA(0))
+#define PL_HN_PR0	(PLPERC | PLREG(3) | SCIPA(1))
+#define PL_HN_PDL	(PLPERC | PLREG(3) | SCIPA(2))
+#define PL_HN_PDR	(PLPERC | PLREG(3) | SCIPA(3))
+#define PL_HD_PL0	(PLPERC | PLREG(2) | SCIPA(0))
+#define PL_HD_PR0	(PLPERC | PLREG(2) | SCIPA(1))
+#define PL_HD_PDL	(PLPERC | PLREG(2) | SCIPA(2))
+#define PL_HD_PDR	(PLPERC | PLREG(2) | SCIPA(3))
+/* TEXMAP */
+#define PLTEXMAP	0x40000000
+#define PL_S_PL0	(PLTEXMAP | PLREG(1) | SCIPA(0))
+#define PL_S_PR0	(PLTEXMAP | PLREG(1) | SCIPA(1))
+#define PL_S_PDL	(PLTEXMAP | PLREG(1) | SCIPA(2))
+#define PL_S_PDR	(PLTEXMAP | PLREG(1) | SCIPA(3))
+#define PL_T_PL0	(PLTEXMAP | PLREG(0) | SCIPA(0))
+#define PL_T_PR0	(PLTEXMAP | PLREG(0) | SCIPA(1))
+#define PL_T_PDL	(PLTEXMAP | PLREG(0) | SCIPA(2))
+#define PL_T_PDR	(PLTEXMAP | PLREG(0) | SCIPA(3))
+#define PL_G_PL0	(PLTEXMAP | PLREG(2) | SCIPA(0))
+#define PL_G_PR0	(PLTEXMAP | PLREG(2) | SCIPA(1))
+#define PL_G_PDL	(PLTEXMAP | PLREG(2) | SCIPA(2))
+#define PL_G_PDR	(PLTEXMAP | PLREG(2) | SCIPA(3))
+#define PL_PTW		(PLTEXMAP | PLREG(4))	/* see below for bitflags */
+#define PL_PTB		(PLTEXMAP | PLREG(3))	/* see below for bitflags */
+#define PL_PLB		(PLTEXMAP | PLREG(5))	/* see below for bitflags */
+/* PIXOP */
+#define PLPIXOP		0x60000000
+#define PL_R1_PL0	(PLPIXOP | PLREG(0) | SCIPA(0))
+#define PL_R1_PR0	(PLPIXOP | PLREG(0) | SCIPA(1))
+#define PL_R1_PDL	(PLPIXOP | PLREG(0) | SCIPA(2))
+#define PL_R1_PDR	(PLPIXOP | PLREG(0) | SCIPA(3))
+#define PL_G1_PL0	(PLPIXOP | PLREG(1) | SCIPA(0))
+#define PL_G1_PR0	(PLPIXOP | PLREG(1) | SCIPA(1))
+#define PL_G1_PDL	(PLPIXOP | PLREG(1) | SCIPA(2))
+#define PL_G1_PDR	(PLPIXOP | PLREG(1) | SCIPA(3))
+#define PL_B1_PL0	(PLPIXOP | PLREG(2) | SCIPA(0))
+#define PL_B1_PR0	(PLPIXOP | PLREG(2) | SCIPA(1))
+#define PL_B1_PDL	(PLPIXOP | PLREG(2) | SCIPA(2))
+#define PL_B1_PDR	(PLPIXOP | PLREG(2) | SCIPA(3))
+#define PL_R2_PL0	(PLPIXOP | PLREG(3) | SCIPA(0))
+#define PL_R2_PR0	(PLPIXOP | PLREG(3) | SCIPA(1))
+#define PL_R2_PDL	(PLPIXOP | PLREG(3) | SCIPA(2))
+#define PL_R2_PDR	(PLPIXOP | PLREG(3) | SCIPA(3))
+#define PL_G2_PL0	(PLPIXOP | PLREG(4) | SCIPA(0))
+#define PL_G2_PR0	(PLPIXOP | PLREG(4) | SCIPA(1))
+#define PL_G2_PDL	(PLPIXOP | PLREG(4) | SCIPA(2))
+#define PL_G2_PDR	(PLPIXOP | PLREG(4) | SCIPA(3))
+#define PL_B2_PL0	(PLPIXOP | PLREG(5) | SCIPA(0))
+#define PL_B2_PR0	(PLPIXOP | PLREG(5) | SCIPA(1))
+#define PL_B2_PDL	(PLPIXOP | PLREG(5) | SCIPA(2))
+#define PL_B2_PDR	(PLPIXOP | PLREG(5) | SCIPA(3))
+#define PL_Z_PL0	(PLPIXOP | PLREG(6) | SCIPA(0))
+#define PL_Z_PR0	(PLPIXOP | PLREG(6) | SCIPA(1))
+#define PL_Z_PDL	(PLPIXOP | PLREG(6) | SCIPA(2))
+#define PL_Z_PDR	(PLPIXOP | PLREG(6) | SCIPA(3))
+#define	PL_PPW		(PLPIXOP | PLREG(7)) /* see below for bitflags */
+
+
+#define PL_TEXMAP	PL_PTW
+#define PL_PTW_TEXTURE		(1<<23)
+#define PL_PTW_STATICMIP	(2<<21)
+#define PL_PTW_DYNAMICMIP	(3<<21)
+#define PL_PTW_BASECOL(rgb) (rgb)
+#define PL_PTW_BASECOLRGB(r,g,b) ((((r)&0x1F)<<10) | (((g)&0x1F)<<5) | ((b)&0x1F))
+#define PL_PTW_MSIZE(x)		(((x)&0xF)<<12)
+#define PL_PTW_SSIZE(x)		(((x)&0xF)<<8)
+#define PL_PTW_TSIZE(x)		(((x)&0xF)<<4)
+#define PL_PTW_PSIZE(x)		(((x)&0x3))
+
+#define PL_TEXBASE	PL_PTB
+#define PL_PTB_TEXBASE(x)	(((x)>>2) & 0x00FFFFFC)
+
+#define PL_TEXPAL	PL_PLB
+#define PL_PLB_TEXPAL(x) 	(((x)>>1) & 0x0001FFFE)
+
+#define	PL_PIXOP	PL_PPW
+#define PL_PPW_RGB1			(1<<21)
+#define PL_PPW_RGB2			(1<<20)
+#define PL_PPW_PRIORITY		(1<<19)
+#define PL_PPW_ZCOMPARE		(1<<18)
+#define PL_PPW_ZWRITE		(1<<17)
+#define PL_PPW_ZBUFFER		(PL_PPW_ZCOMPARE | PL_PPW_ZWRITE)
+#define PL_PPW_FRAMEWRITE	(1<<16)
+#define PL_PPW_TRANSPEN		(1<<13)
+#define PL_PPW_DITHER_ENABLE	(1<<12)
+#define PL_PPW_DITHER(pat)	((1<<12) | ((pat)&0xF)<<8)
+#define PL_PPW_TRANSLUCENCY(x)	((x)&0x1F)
+
+#define PL_TEMP_2SIDED		(1<<24)
+#define PL_TEMP_ALPHA		(1<<25)
+#define PL_TEMP_TEXTURE		(1<<26)
+#define PL_TEMP_TEXPAL		(1<<27)
+#define PL_TEMP_SMOOTHSHADE	(1<<28)
+#define PL_TEMP_VERTEXCOLOR	(1<<29)
+@

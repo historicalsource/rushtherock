@@ -1,0 +1,633 @@
+;
+REMB
+REMM	< options.h, options.i and optmenu.c are created from>
+REMM	< 	option_map.mac (see Makefile and option_pp.mac).>
+REMM	< Option values can be obtained with eer_gets(EER_GMOPT).>
+REME
+;
+;	The order in which the options are defined below determines the
+;	order in which they will be displayed on the "Game Options" screen
+;	in Self-Test.
+;
+;	Notes for DEF_OPTION:
+;	    Usage: DEF_OPTION NAME field_size <title>
+;		where:	NAME is the name of the option,
+;			field_size is the number of bits for this option,
+;			<title> is the string to be used for the title of
+;				the option in the Game Option screen.
+;	    This macro creates "#define"s for C and/or "equate"s for assembly.
+;		For C: GO_NAME and GOS_NAME where "NAME" is specified above.
+;		Typical C useage for a multi_bit option:
+;			((eer_gets(EER_GMOPT) & GO_NAME) >> GOS_NAME
+;		Typical C useage for a single_bit option:
+;			((eer_gets(EER_GMOPT) & GO_NAME)
+;
+;	    A question mark (?) as the first character of the option <title>
+;		indicates a Development Option. These options will be
+;		visible on the Game Options screen only if the Development
+;		option is set to YES in the Debug Options screen (i.e. the
+;		"special handshake" was used to enter Self-Test.
+;	    	Things work most cleanly if the first and last Options are
+;		NOT Development options!
+;
+;	Notes for SPEC_OPTION:
+;	    Usage: SPEC_OPTION NAME bit_position field_size <title>
+;		same as DEF_OPTION except:
+;			bit_position specifies the bit position.
+;				(0 is the LSB and 31 is the MSB)
+;
+;	Notes for MENU_CHOICE:
+;	    Usage: MENU_CHOICE <choice> [<name>]
+;		where:	<choice> is the string used for a "choice" for
+;				an option in the Game Option screen.
+;			<name> if it exists will create a '#define' and/or
+;				'equate' with the current choice value which
+;				can be used for compares with properly
+;				normalized (i.e. shifted) options.
+;		Example: 
+;		if( (((eer_gets(EER_GMOPT) & GO_NAME) >> GOS_NAME) == NAME_JAPANESE )
+;	    An asterisk (*) indicates the factory default for each option.
+;		Only one option should be set as the default.
+;	    You MUST have the proper number of "MENU_CHOICE" lines to
+;		specify ALL choices for that field size. I.e. if you
+;		specify an option with 3 bits you must have 8 MENU_CHOICE
+;		lines even of some of them are empty.
+;
+;
+MENU_START gamemenu
+;
+; This option's definition must be the same...
+;    ...as the definition in ../GUTS/stat_map.mac
+; ALL GAMES SHOULD HAVE THIS OPTION
+	SPEC_OPTION	FACTORY 31 1 <Reset Options to Factory Defaults>
+	MENU_CHOICE	<*No>
+	MENU_CHOICE	<Yes>
+;
+	DEF_OPTION	TOURNEY 2 <?Not Used>
+	MENU_CHOICE	<*>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+;
+; This option's definition must be the same...
+;    ...as the definition in ../GUTS/stat_map.mac
+; ALL GAMES SHOULD HAVE THIS OPTION
+	SPEC_OPTION	CLEARHS 30 1 <Clear High Scores Now>
+	MENU_CHOICE	<*No>
+	MENU_CHOICE	<Yes>
+;
+; ALL GAMES SHOULD HAVE THIS OPTION
+	SPEC_OPTION	AUTOCLEARHS 29 1 <Clear High Scores after 2000 games or 200 non H.S. games>
+	MENU_CHOICE	<No>
+	MENU_CHOICE	<*Yes>
+;
+	DEF_OPTION	CENSOR 1 <Censor High Score Table>
+	MENU_CHOICE	<No>
+	MENU_CHOICE	<*Yes>
+;
+	DEF_OPTION	ATTRACT_AUDIO 2 <Audio in Attract>
+	MENU_CHOICE	<None>
+	MENU_CHOICE	<Sound Effects Only>
+	MENU_CHOICE	<*Effects and Music>
+	MENU_CHOICE	<Music Only>
+;
+;
+; This option's definition must be the same...
+;    ...as the definition in ../GUTS/stat_map.mac
+; ALL GAMES SHOULD HAVE THIS OPTION OR SOMETHING SIMILAR
+;
+	DEF_OPTION	SPARE1 2 <?Not Used>
+	MENU_CHOICE	<*>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+;
+	DEF_OPTION	COLOR 3 <Car Color>
+	MENU_CHOICE	<*Red>
+	MENU_CHOICE	<Green>
+	MENU_CHOICE	<Blue>
+	MENU_CHOICE	<Purple>
+	MENU_CHOICE	<Yellow>
+	MENU_CHOICE	<Teal>
+	MENU_CHOICE	<Black>
+	MENU_CHOICE	<Orange>
+;
+	DEF_OPTION	DAMAGE 1 <Car Damage>
+	MENU_CHOICE	<Disabled>
+	MENU_CHOICE	<*Enabled>
+;
+	DEF_OPTION	MARKER 1 <?Not Used>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<*>
+;
+	DEF_OPTION	FORCE 2 <Steering Wheel Force>
+	MENU_CHOICE	<Light>
+	MENU_CHOICE	<*Normal>
+	MENU_CHOICE	<Hard>
+	MENU_CHOICE	<>
+;
+	DEF_OPTION	LANG 1 <Language>
+	MENU_CHOICE	<*English>	<LANG_ENGLISH>
+	MENU_CHOICE	<Japanese>	<LANG_JAPANESE>
+;
+	DEF_OPTION	METRIC 1 <Speed Units>
+	MENU_CHOICE	<*Miles Per Hour (MPH)>         <UNITS_ENGLISH>
+	MENU_CHOICE	<Kilometers per Hour (Km/h)>	<UNITS_METRIC>
+;
+	DEF_OPTION	SHIFTER 1 <Shifter>
+	MENU_CHOICE	<Disabled>
+	MENU_CHOICE	<*Enabled>
+;
+	DEF_OPTION	ADVERT 1 <Tournament Info Screen>
+	MENU_CHOICE	<*Off>
+	MENU_CHOICE	<On>
+;
+	DEF_OPTION	CHEATS 1 <?Cheat Modes>
+	MENU_CHOICE	<*Disabled>
+	MENU_CHOICE	<Enabled>
+;
+MENU_END
+;
+;&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+;
+;  reset all counters
+;
+	.radix 10.
+...OP == 0		; Option position, increments by size of option
+...MSK == 0		; Mask for current option, 1,3,7 or F allowed
+...CCH == 0		; Current CHoice
+...TCH == 0		; Total CHoices
+...TBITS == 32		; Total Bits available
+...PTRN == 0		; Bit mask for all options
+;
+;&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+;
+MENU_START trackmenu
+;
+; This option's definition must be the same...
+;    ...as the definition in ../GUTS/stat_map.mac
+; ALL GAMES SHOULD HAVE THIS OPTION
+	SPEC_OPTION	TRFACTORY 31 1 <Reset Options to Factory Defaults>
+	MENU_CHOICE	<*No>
+	MENU_CHOICE	<Yes>
+;
+	DEF_OPTION	FREE_GAME 1 <Free Game for Winner>
+	MENU_CHOICE	<*Off>
+	MENU_CHOICE	<On>
+;
+	DEF_OPTION	FREEDIFF 2 <Free Game Difficulty (Applies only if Free Game is On)>
+	MENU_CHOICE	<Easy>
+	MENU_CHOICE	<Medium>
+	MENU_CHOICE	<*Hard>
+	MENU_CHOICE	<Real Hard>
+;
+	DEF_OPTION	SPARE2 1 <:-- TRACK DIFFICULTY (A=Easiest, H=Hardest) ---------->
+	MENU_CHOICE	<*>
+	MENU_CHOICE	<>
+;
+	DEF_OPTION	T1DIFF 3 <Track 1 (A-H)>
+	MENU_CHOICE	<A *_______>
+	MENU_CHOICE	<B **______>
+	MENU_CHOICE	<*C ***_____>
+	MENU_CHOICE	<D ****____>
+	MENU_CHOICE	<E *****___>
+	MENU_CHOICE	<F ******__>
+	MENU_CHOICE	<G *******_>
+	MENU_CHOICE	<H ********>
+;
+	DEF_OPTION	T2DIFF 3 <Track 2 (A-H)>
+	MENU_CHOICE	<A *_______>
+	MENU_CHOICE	<B **______>
+	MENU_CHOICE	<C ***_____>
+	MENU_CHOICE	<*D ****____>
+	MENU_CHOICE	<E *****___>
+	MENU_CHOICE	<F ******__>
+	MENU_CHOICE	<G *******_>
+	MENU_CHOICE	<H ********>
+;
+	DEF_OPTION	T3DIFF 3 <Track 3 (A-H)>
+	MENU_CHOICE	<A *_______>
+	MENU_CHOICE	<B **______>
+	MENU_CHOICE	<C ***_____>
+	MENU_CHOICE	<*D ****____>
+	MENU_CHOICE	<E *****___>
+	MENU_CHOICE	<F ******__>
+	MENU_CHOICE	<G *******_>
+	MENU_CHOICE	<H ********>
+;
+	DEF_OPTION	T4DIFF 3 <Track 4 (A-H)>
+	MENU_CHOICE	<A *_______>
+	MENU_CHOICE	<B **______>
+	MENU_CHOICE	<C ***_____>
+	MENU_CHOICE	<*D ****____>
+	MENU_CHOICE	<E *****___>
+	MENU_CHOICE	<F ******__>
+	MENU_CHOICE	<G *******_>
+	MENU_CHOICE	<H ********>
+
+;
+	DEF_OPTION	T5DIFF 3 <Track 5 (A-H)>
+	MENU_CHOICE	<A *_______>
+	MENU_CHOICE	<B **______>
+	MENU_CHOICE	<C ***_____>
+	MENU_CHOICE	<*D ****____>
+	MENU_CHOICE	<E *****___>
+	MENU_CHOICE	<F ******__>
+	MENU_CHOICE	<G *******_>
+	MENU_CHOICE	<H ********>
+
+;
+	DEF_OPTION	T6DIFF 3 <Track 6 (A-H)>
+	MENU_CHOICE	<A *_______>
+	MENU_CHOICE	<B **______>
+	MENU_CHOICE	<C ***_____>
+	MENU_CHOICE	<*D ****____>
+	MENU_CHOICE	<E *****___>
+	MENU_CHOICE	<F ******__>
+	MENU_CHOICE	<G *******_>
+	MENU_CHOICE	<H ********>
+
+;
+	DEF_OPTION	T7DIFF 3 <Track 7 (A-H)>
+	MENU_CHOICE	<A *_______>
+	MENU_CHOICE	<B **______>
+	MENU_CHOICE	<C ***_____>
+	MENU_CHOICE	<*D ****____>
+	MENU_CHOICE	<E *****___>
+	MENU_CHOICE	<F ******__>
+	MENU_CHOICE	<G *******_>
+	MENU_CHOICE	<H ********>
+;
+;	DEF_OPTION	SPARE4 1 <:------------------------------------->
+;	MENU_CHOICE	<*>
+;	MENU_CHOICE	<>
+;
+;	DEF_OPTION	DRONET1 2 <Track 1 FREE GAME DIFFICULTY (A=Easiest, D=Hardest)>
+;	MENU_CHOICE	<A *___>
+;	MENU_CHOICE	<B **__>
+;	MENU_CHOICE	<*C ***_>
+;	MENU_CHOICE	<D ****>
+;
+;	DEF_OPTION	DRONET2 2 <Track 2 (A-D) (Note: applies only if free game is On)>
+;	MENU_CHOICE	<A *___>
+;	MENU_CHOICE	<B **__>
+;	MENU_CHOICE	<*C ***_>
+;	MENU_CHOICE	<D ****>
+;
+;	DEF_OPTION	DRONET3 2 <Track 3 (A-D)>
+;	MENU_CHOICE	<A *___>
+;	MENU_CHOICE	<B **__>
+;	MENU_CHOICE	<*C ***_>
+;	MENU_CHOICE	<D ****>
+;
+;	DEF_OPTION	DRONET4 2 <Track 4 (A-D)>
+;	MENU_CHOICE	<A *___>
+;	MENU_CHOICE	<B **__>
+;	MENU_CHOICE	<*C ***_>
+;	MENU_CHOICE	<D ****>
+;
+MENU_END
+
+;&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+;
+;  reset all counters
+;
+	.radix 10.
+...OP == 0		; Option position, increments by size of option
+...MSK == 0		; Mask for current option, 1,3,7 or F allowed
+...CCH == 0		; Current CHoice
+...TCH == 0		; Total CHoices
+...TBITS == 32		; Total Bits available
+...PTRN == 0		; Bit mask for all options
+;
+;&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+;
+MENU_START lapmenu
+;
+; This option's definition must be the same...
+;    ...as the definition in ../GUTS/stat_map.mac
+; ALL GAMES SHOULD HAVE THIS OPTION
+	SPEC_OPTION	LAFACTORY 31 1 <Reset Options to Factory Defaults>
+	MENU_CHOICE	<*No>
+	MENU_CHOICE	<Yes>
+
+;
+;	DEF_OPTION	SPARE3 1 <:------------------------------------->
+	DEF_OPTION	SPARE3 1 <:-- NUMBER OF LAPS (1-4) ----------------------------->
+	MENU_CHOICE	<*>
+	MENU_CHOICE	<>
+;
+	DEF_OPTION	TRK1LAPS 3 <Track 1 (1-8)>
+	MENU_CHOICE	<1 *_______>
+	MENU_CHOICE	<*2 **______>
+	MENU_CHOICE	<3 ***_____>
+	MENU_CHOICE	<4 ****____>
+	MENU_CHOICE	<5 *****___>
+	MENU_CHOICE	<6 ******__>
+	MENU_CHOICE	<7 *******_>
+	MENU_CHOICE	<8 ********>
+;
+	DEF_OPTION	TRK2LAPS 3 <Track 2 (1-8)>
+	MENU_CHOICE	<1 *_______>
+	MENU_CHOICE	<2 **______>
+	MENU_CHOICE	<*3 ***_____>
+	MENU_CHOICE	<4 ****____>
+	MENU_CHOICE	<5 *****___>
+	MENU_CHOICE	<6 ******__>
+	MENU_CHOICE	<7 *******_>
+	MENU_CHOICE	<8 ********>
+;
+	DEF_OPTION	TRK3LAPS 3 <Track 3 (1-8)>
+	MENU_CHOICE	<1 *_______>
+	MENU_CHOICE	<*2 **______>
+	MENU_CHOICE	<3 ***_____>
+	MENU_CHOICE	<4 ****____>
+	MENU_CHOICE	<5 *****___>
+	MENU_CHOICE	<6 ******__>
+	MENU_CHOICE	<7 *******_>
+	MENU_CHOICE	<8 ********>
+;
+	DEF_OPTION	TRK4LAPS 3 <Track 4 (1-8)>
+	MENU_CHOICE	<1 *_______>
+	MENU_CHOICE	<2 **______>
+	MENU_CHOICE	<*3 ***_____>
+	MENU_CHOICE	<4 ****____>
+	MENU_CHOICE	<5 *****___>
+	MENU_CHOICE	<6 ******__>
+	MENU_CHOICE	<7 *******_>
+	MENU_CHOICE	<8 ********>
+;
+	DEF_OPTION	TRK5LAPS 3 <Track 5 (1-8)>
+	MENU_CHOICE	<1 *_______>
+	MENU_CHOICE	<2 **______>
+	MENU_CHOICE	<*3 ***_____>
+	MENU_CHOICE	<4 ****____>
+	MENU_CHOICE	<5 *****___>
+	MENU_CHOICE	<6 ******__>
+	MENU_CHOICE	<7 *******_>
+	MENU_CHOICE	<8 ********>
+;
+	DEF_OPTION	TRK6LAPS 3 <Track 6 (1-8)>
+	MENU_CHOICE	<1 *_______>
+	MENU_CHOICE	<*2 **______>
+	MENU_CHOICE	<3 ***_____>
+	MENU_CHOICE	<4 ****____>
+	MENU_CHOICE	<5 *****___>
+	MENU_CHOICE	<6 ******__>
+	MENU_CHOICE	<7 *******_>
+	MENU_CHOICE	<8 ********>
+;
+	DEF_OPTION	TRK7LAPS 3 <Track 7 (1-8)>
+	MENU_CHOICE	<1 *_______>
+	MENU_CHOICE	<*2 **______>
+	MENU_CHOICE	<3 ***_____>
+	MENU_CHOICE	<4 ****____>
+	MENU_CHOICE	<5 *****___>
+	MENU_CHOICE	<6 ******__>
+	MENU_CHOICE	<7 *******_>
+	MENU_CHOICE	<8 ********>
+;
+MENU_END
+
+;&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+;
+;  reset all counters
+;
+	.radix 10.
+...OP == 0		; Option position, increments by size of option
+...MSK == 0		; Mask for current option, 1,3,7 or F allowed
+...CCH == 0		; Current CHoice
+...TCH == 0		; Total CHoices
+...TBITS == 32		; Total Bits available
+...PTRN == 0		; Bit mask for all options
+;
+;&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+;
+MENU_START tournmenu
+;
+; This option's definition must be the same...
+;    ...as the definition in ../GUTS/stat_map.mac
+; ALL GAMES SHOULD HAVE THIS OPTION
+	SPEC_OPTION	TOFACTORY 31 1 <Reset Options to Factory Defaults>
+	MENU_CHOICE	<*No>
+	MENU_CHOICE	<Yes>
+
+	SPEC_OPTION	SENDTOURN 0 1 <Send Tournament Setup Message to all Cabinets>
+	MENU_CHOICE	<*Send Only if Changes are Made>
+	MENU_CHOICE	<Send Even if Changes are not Made>
+;
+	SPEC_OPTION	CABINET1 16 1 <Red Cabinet>
+	MENU_CHOICE	<*Normal Play>
+	MENU_CHOICE	<Tournament>
+;
+	SPEC_OPTION	CABINET2 17 1 <Green Cabinet>
+	MENU_CHOICE	<*Normal Play>
+	MENU_CHOICE	<Tournament>
+;
+	SPEC_OPTION	CABINET3 18 1 <Blue Cabinet>
+	MENU_CHOICE	<*Normal Play>
+	MENU_CHOICE	<Tournament>
+;
+	SPEC_OPTION	CABINET4 19 1 <Purple Cabinet>
+	MENU_CHOICE	<*Normal Play>
+	MENU_CHOICE	<Tournament>
+;
+	SPEC_OPTION	CABINET5 20 1 <Yellow Cabinet>
+	MENU_CHOICE	<*Normal Play>
+	MENU_CHOICE	<Tournament>
+;
+	SPEC_OPTION	CABINET6 21 1 <Teal Cabinet>
+	MENU_CHOICE	<*Normal Play>
+	MENU_CHOICE	<Tournament>
+;
+	SPEC_OPTION	CABINET7 22 1 <Black Cabinet>
+	MENU_CHOICE	<*Normal Play>
+	MENU_CHOICE	<Tournament>
+;
+	SPEC_OPTION	CABINET8 23 1 <Orange Cabinet>
+	MENU_CHOICE	<*Normal Play>
+	MENU_CHOICE	<Tournament>
+;
+	SPEC_OPTION	JOININ 1 2 <Join In>
+	MENU_CHOICE	<*Any Player>
+	MENU_CHOICE	<Remote Box>
+	MENU_CHOICE	<Remote Box - 'Quick Mode'>
+	MENU_CHOICE	<>
+;
+	SPEC_OPTION	TRNTRACK 3 3 <Track>
+	MENU_CHOICE	<*1>
+	MENU_CHOICE	<2>
+	MENU_CHOICE	<3>
+	MENU_CHOICE	<4>
+	MENU_CHOICE	<5>
+	MENU_CHOICE	<6>
+	MENU_CHOICE	<7>
+	MENU_CHOICE	<Remote Box>
+;
+	SPEC_OPTION	TRNCAR 6 4 <Car>
+	MENU_CHOICE	<1>
+	MENU_CHOICE	<2>
+	MENU_CHOICE	<3>
+	MENU_CHOICE	<4>
+	MENU_CHOICE	<5>
+	MENU_CHOICE	<6>
+	MENU_CHOICE	<7>
+	MENU_CHOICE	<8>
+	MENU_CHOICE	<9>
+	MENU_CHOICE	<10>
+	MENU_CHOICE	<11>
+	MENU_CHOICE	<12>
+	MENU_CHOICE	<*Player Chooses>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+;
+	SPEC_OPTION	TRNSHIFT 10 2 <Shifter>
+	MENU_CHOICE	<Manual>
+	MENU_CHOICE	<Auto>
+	MENU_CHOICE	<*Player Chooses>
+	MENU_CHOICE	<>
+;
+	SPEC_OPTION	TRNLAPS 24 7 <Laps>
+	MENU_CHOICE	<*Normal (Set in 'Game Difficulty' screen)>
+	MENU_CHOICE	<1>
+	MENU_CHOICE	<2>
+	MENU_CHOICE	<3>
+	MENU_CHOICE	<4>
+	MENU_CHOICE	<5>
+	MENU_CHOICE	<6>
+	MENU_CHOICE	<7>
+	MENU_CHOICE	<8>
+	MENU_CHOICE	<9>
+	MENU_CHOICE	<10>
+	MENU_CHOICE	<11>
+	MENU_CHOICE	<12>
+	MENU_CHOICE	<13>
+	MENU_CHOICE	<14>
+	MENU_CHOICE	<15>
+	MENU_CHOICE	<16>
+	MENU_CHOICE	<17>
+	MENU_CHOICE	<18>
+	MENU_CHOICE	<19>
+	MENU_CHOICE	<20>
+	MENU_CHOICE	<21>
+	MENU_CHOICE	<22>
+	MENU_CHOICE	<23>
+	MENU_CHOICE	<24>
+	MENU_CHOICE	<25>
+	MENU_CHOICE	<26>
+	MENU_CHOICE	<27>
+	MENU_CHOICE	<28>
+	MENU_CHOICE	<29>
+	MENU_CHOICE	<30>
+	MENU_CHOICE	<31>
+	MENU_CHOICE	<32>
+	MENU_CHOICE	<33>
+	MENU_CHOICE	<34>
+	MENU_CHOICE	<35>
+	MENU_CHOICE	<36>
+	MENU_CHOICE	<37>
+	MENU_CHOICE	<38>
+	MENU_CHOICE	<39>
+	MENU_CHOICE	<40>
+	MENU_CHOICE	<41>
+	MENU_CHOICE	<42>
+	MENU_CHOICE	<43>
+	MENU_CHOICE	<44>
+	MENU_CHOICE	<45>
+	MENU_CHOICE	<46>
+	MENU_CHOICE	<47>
+	MENU_CHOICE	<48>
+	MENU_CHOICE	<49>
+	MENU_CHOICE	<50>
+	MENU_CHOICE	<51>
+	MENU_CHOICE	<52>
+	MENU_CHOICE	<53>
+	MENU_CHOICE	<54>
+	MENU_CHOICE	<55>
+	MENU_CHOICE	<56>
+	MENU_CHOICE	<57>
+	MENU_CHOICE	<58>
+	MENU_CHOICE	<59>
+	MENU_CHOICE	<60>
+	MENU_CHOICE	<61>
+	MENU_CHOICE	<62>
+	MENU_CHOICE	<63>
+	MENU_CHOICE	<64>
+	MENU_CHOICE	<65>
+	MENU_CHOICE	<66>
+	MENU_CHOICE	<67>
+	MENU_CHOICE	<68>
+	MENU_CHOICE	<69>
+	MENU_CHOICE	<70>
+	MENU_CHOICE	<71>
+	MENU_CHOICE	<72>
+	MENU_CHOICE	<73>
+	MENU_CHOICE	<74>
+	MENU_CHOICE	<75>
+	MENU_CHOICE	<76>
+	MENU_CHOICE	<77>
+	MENU_CHOICE	<78>
+	MENU_CHOICE	<79>
+	MENU_CHOICE	<80>
+	MENU_CHOICE	<81>
+	MENU_CHOICE	<82>
+	MENU_CHOICE	<83>
+	MENU_CHOICE	<84>
+	MENU_CHOICE	<85>
+	MENU_CHOICE	<86>
+	MENU_CHOICE	<87>
+	MENU_CHOICE	<88>
+	MENU_CHOICE	<89>
+	MENU_CHOICE	<90>
+	MENU_CHOICE	<91>
+	MENU_CHOICE	<92>
+	MENU_CHOICE	<93>
+	MENU_CHOICE	<94>
+	MENU_CHOICE	<95>
+	MENU_CHOICE	<96>
+	MENU_CHOICE	<97>
+	MENU_CHOICE	<98>
+	MENU_CHOICE	<99>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+	MENU_CHOICE	<>
+;
+	SPEC_OPTION	TRNDRONE 12 2 <Drones>
+	MENU_CHOICE	<Off>
+	MENU_CHOICE	<On>
+	MENU_CHOICE	<*Normal>
+	MENU_CHOICE	<>
+;
+	SPEC_OPTION	TRNCATCH 14 2 <Catchup>
+	MENU_CHOICE	<Off>
+	MENU_CHOICE	<On>
+	MENU_CHOICE	<*Normal>
+	MENU_CHOICE	<>
+;
+MENU_END

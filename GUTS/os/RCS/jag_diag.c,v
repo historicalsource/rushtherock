@@ -1,0 +1,437 @@
+head	1.3;
+access;
+symbols
+	CJ_206:1.2
+	CJ2_05:1.2
+	CJ2_04:1.2
+	CJ2_03:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	97.07.01.22.31.02;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.10.20.22.50.14;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.08.02.23.08.50;	author birmingham;	state Exp;
+branches;
+next	;
+
+
+desc
+@New file: Jaguar diagnostic code called by jag_init() on a
+coldboot.  When self test switch is on, it will test GPU RAM,
+then use the GPU to test all banks of DRAM, and print the
+results.
+@
+
+
+1.3
+log
+@Added RCS ID string
+@
+text
+@/*******************************************************************
+* JAG_DIAG.C | Copyright 1995, Time Warner Interactive, Inc.       *
+* ================================================================ *
+* Author: Brian T. McKee and Robert M. Birmingham -- June 19, 1995 *
+* ================================================================ *
+* This file contains the cold boot diagnostic code.                *
+*******************************************************************/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <os_proto.h>
+#include <st_proto.h>
+
+/************************************************/
+
+/* Defines that will need to be put in an 'h' file */
+
+/* Banks A and C are in physical bank 0 */
+#define	DRAM_BANKAH (*(VU32 *)(HOST_MEM_BASE + 0x000000))
+#define	DRAM_BANKAL (*(VU32 *)(HOST_MEM_BASE + 0x000004))
+#define	DRAM_BANKCH (*(VU32 *)(HOST_MEM_BASE + 0x200000))
+#define	DRAM_BANKCL (*(VU32 *)(HOST_MEM_BASE + 0x200004))
+
+/* Banks B and D are in physical bank 1 */
+#define	DRAM_BANKBH (*(VU32 *)(HOST_MEM_BASE + 0x400000))
+#define	DRAM_BANKBL (*(VU32 *)(HOST_MEM_BASE + 0x400004))
+#define	DRAM_BANKDH (*(VU32 *)(HOST_MEM_BASE + 0x600000))
+#define	DRAM_BANKDL (*(VU32 *)(HOST_MEM_BASE + 0x600004))
+
+void diag_init_oblist( PHRASE *baseptr );
+unsigned long g_ram_test( struct rdb *desc, struct rrb *result );
+
+/************************************************/
+
+#define  TIMEOUT  (1200)
+
+/************************************************/
+
+/*
+** ************************************
+** jag_diag():
+** Perform CoJag boot diagnostics.
+** ====================================
+** Usage:
+**   jag_diag( rev, drsiz0, drsiz1 );
+**
+**   int rev:     board revision number
+**   int drsiz0:  Size of DRAM bank 0
+**   int drsiz1:  Size of DRAM bank 1
+**
+** Returns:
+**   Nothing.
+** ************************************
+*/
+
+void jag_diag( revnum, drsiz0, drsiz1, drwid0, drwid1, memcon )
+int revnum;
+int drsiz0;
+int drsiz1;
+int drwid0;
+int drwid1;
+U32 memcon;
+{
+    int row = 0;         /* current text row */
+    int gpu_mem_err;     /* Return from test of GPU memory */
+    int dram_mem_err;    /* Return from test of DRAM */
+    int pause = TIMEOUT; /* Delay after tests are done */
+
+    struct rdb desc;     /* defines block of memory to test */
+    struct rrb result;   /* filled in with info from ram test code */
+
+
+    /* Pet the watchdog */
+    WDOG = 0;
+
+    /*
+    ** Use the host processor to test the GPU's RAM.
+    ** This must be done here because the GPU Task Manager
+    ** is initialized in the vid_init() function.
+    */
+
+    desc.rd_base = (U32 *)&G_RAM;
+    desc.rd_len = ((U32 *)&G_ENDRAM - desc.rd_base) * sizeof(U32);
+    desc.rd_misc = 0;
+    gpu_mem_err = f_ram_test( &desc, &result );
+
+    prc_set_ipl(INTS_ON);
+    vid_init();
+    setancolors();
+
+    /* perform dead test code only in self-test mode */
+    if( (TEST & (1<<B_TEST)) != 0 ) return;
+
+    /*
+    ** print the system configuration information from jag_init()...
+    */
+
+    vid_clear();
+    txt_str( -1, 0, "Cojag Power On Self Diagnostics", TITLE_PAL );
+
+    row = 2;
+    txt_str( 0, row++, "Cojag Revision: ", MNORMAL_PAL );
+    txt_cdecnum( revnum, 2, LJ_BF, MNORMAL_PAL );
+
+    row++;
+    txt_str( 0, row++, "Bank 0 DRAM : ", MNORMAL_PAL );
+    txt_cdecnum( drsiz0, 5, LJ_NF, MNORMAL_PAL );
+    txt_cstr( "K bytes, ", MNORMAL_PAL );
+    txt_cdecnum( (8 << drwid0 ), 2, LJ_NF, MNORMAL_PAL );
+    txt_cstr( " bits wide", MNORMAL_PAL );
+
+    txt_str( 0, row++, "Bank 1 DRAM : ", MNORMAL_PAL );
+    txt_cdecnum( drsiz1, 5, LJ_NF, MNORMAL_PAL );
+    txt_cstr( "K bytes, ", MNORMAL_PAL );
+    txt_cdecnum( (8 << drwid1), 2, LJ_NF, MNORMAL_PAL );
+    txt_cstr( " bits wide", MNORMAL_PAL );
+
+    row++;
+    txt_str( 0, row++, "Memcon Val is ", MNORMAL_PAL );
+    txt_chexnum( memcon, 8, LJ_NF, MNORMAL_PAL );
+
+    /* print result of GPU SRAM test */
+    row++;
+    txt_str( 0, row++, "GPU SRAM Memory Test: ", MNORMAL_PAL );
+
+    if( gpu_mem_err )
+        txt_cstr( "Failed.", RED_PAL );
+    else
+        txt_cstr( "Passed.", GRN_PAL );
+
+    if( drsiz0 )
+        {
+        row++;
+        txt_str( 0, row++, "Testing DRAM Bank 0...", MNORMAL_PAL );
+
+        /* Test part #1 of DRAM Bank #0 */
+        diag_init_oblist( (PHRASE *)((U32)&DRAM_BANKAH + 0xA0000) );
+
+        desc.rd_base = (U32 *)&DRAM_BANKAH;
+        desc.rd_len = 0x60000;
+        desc.rd_misc = ++row;
+        dram_mem_err = g_ram_test( &desc, &result );
+
+        if( !dram_mem_err )
+            {
+            /* Test part #2 of DRAM Bank #0 */
+            diag_init_oblist( (PHRASE *)&DRAM_BANKAH );
+
+            desc.rd_base = (U32 *)((U32)&DRAM_BANKAH + 0x60000);
+            desc.rd_len = (drsiz0 * 1024) - 0x60000;
+            desc.rd_misc = row;
+            dram_mem_err = g_ram_test( &desc, &result );
+            }
+
+        row += 4;
+
+        if( dram_mem_err )
+            txt_str( 2, row++, "Error in DRAM Bank 0", RED_PAL );
+        else
+            txt_str( 2, row++, "No errors in DRAM Bank 0", GRN_PAL );
+    	}
+
+    if( drsiz1 )
+        {
+        row++;
+        txt_str( 0, row++, "Testing DRAM Bank 1...", MNORMAL_PAL );
+        desc.rd_base = (U32 *)&DRAM_BANKBH;
+        desc.rd_len = drsiz1 * 1024;
+        desc.rd_misc = ++row;
+        dram_mem_err = g_ram_test( &desc, &result );
+
+        row += 4;
+
+        if( dram_mem_err )
+            txt_str( 2, row++, "Error in DRAM Bank 1", RED_PAL );
+        else
+            txt_str( 2, row++, "No errors in DRAM Bank 1", GRN_PAL );
+    	}
+
+    txt_str( -1, AN_VIS_ROW-1,t_msg_action, INSTR_PAL );
+
+    while( (ctl_read_sw(SW_ACTION) & SW_ACTION) == 0 )
+           {
+           if ( --pause <= 0 ) break;
+           prc_delay0();
+	   }
+
+}   /* End: jag_diag() */
+
+
+/*
+** *********************************
+** diag_int_oblist():
+** Initialize the object list memory
+** at the specified memory address.
+** *********************************
+*/
+
+#include <oblist.h>
+#include <blitlib.h>
+
+#define  DIAG_OBJECTS  (16)
+
+void diag_init_oblist( baseptr )
+PHRASE *baseptr;
+{
+    OLPMEM *aux1ptr;
+    OLPMEM *aux2ptr;
+    OLPMEM *olpptr;
+    OBJECT *usrptr;
+    OBJECT txt_object;
+    OBJECT *txt_obptr;
+    U16 *txt_dram;
+
+
+    /* make a copy of the text object before setting object memory */
+    txt_object = (*(OBJECT *)vid_setscr(0));
+
+    /* calculate object list pointers and initialize object list memory */
+    aux1ptr = (OLPMEM *)baseptr;
+    aux2ptr = (OLPMEM *)(aux1ptr + DIAG_OBJECTS);
+    olpptr = (OLPMEM *)(aux2ptr + DIAG_OBJECTS);
+    usrptr = (OBJECT *)(olpptr + DIAG_OBJECTS);
+    txt_dram = (U16 *)(usrptr + DIAG_OBJECTS);
+    ob_mem_init( aux1ptr, aux2ptr, olpptr, usrptr, DIAG_OBJECTS );
+
+    /* Clone the old text object and add it to our new object list */
+    txt_obptr = ob_clone( &txt_object );
+    blit_copy( (U8 *)txt_dram, ob_get_img( txt_obptr ), 336*240*2 );
+    ob_set_img( txt_obptr, txt_dram );
+    vid_setscr( txt_obptr );
+    ob_build();
+
+}   /* End: diag_init_oblist() */
+
+
+/*
+** ***************************************
+** g_ram_test():
+** Use the GPU to test a block of memory.
+** =======================================
+** Usage:
+**
+**   status = g_ram_test( desc, result );
+**
+**   struct rdb *desc:
+**   struct rrb *result:
+**
+** Returns:
+**   Status of block of memory tested.
+** *****=*********************************
+*/
+
+#include <gputask.h>
+
+#define MEMTST_BSS_TESTNUM (0)
+#define MEMTST_BSS_ADDR    (1)
+#define MEMTST_BSS_VALUE   (2)
+#define MEMTST_BSS_ERROR   (3)
+#define MEMTST_BSS_DONE    (4)
+#define MEMTST_BSS_ABORT   (5)
+
+unsigned long g_ram_test( desc, result )
+struct rdb *desc;
+struct rrb *result;
+{
+    U32 testnum = 0;
+    U32 addr = 0;
+    U32 expect = 0;
+    U32 got = 0;
+    U32 row;
+    U32 pause;
+
+
+    row = (U32)desc->rd_misc;
+    txt_str( 2, row, "Test number:", MNORMAL_PAL );
+    txt_str( 2, row+1, "Address:", MNORMAL_PAL );
+    txt_str( 2, row+2, "Value:", MNORMAL_PAL );
+    txt_str( 2, row+3, "Error:", MNORMAL_PAL );
+
+    /* initialize DONE and ABORT flags in task's BSS */
+    gpu_set_bss( GPU_MEMORY_TEST, MEMTST_BSS_DONE, 0 );
+    gpu_set_bss( GPU_MEMORY_TEST, MEMTST_BSS_ABORT, 0 );
+
+    /* push parameters on stack and run memory test */
+    gpu_push_stack( GPU_MEMORY_TEST, (U32)desc->rd_misc );
+    gpu_push_stack( GPU_MEMORY_TEST, (U32)desc->rd_len );
+    gpu_push_stack( GPU_MEMORY_TEST, (U32)H2TADDR( desc->rd_base ) );
+    gpu_run_task( GPU_MEMORY_TEST );
+
+    /*
+    ** Print values from memory test's BSS area as it is running.
+    */
+
+    do{
+      /* get BSS values */
+      testnum = gpu_get_bss( GPU_MEMORY_TEST, MEMTST_BSS_TESTNUM );
+      addr = gpu_get_bss( GPU_MEMORY_TEST, MEMTST_BSS_ADDR );
+      expect = gpu_get_bss( GPU_MEMORY_TEST, MEMTST_BSS_VALUE );
+      got = gpu_get_bss( GPU_MEMORY_TEST, MEMTST_BSS_ERROR );
+
+      txt_hexnum( 15, row, testnum, 8, RJ_ZF, MNORMAL_PAL );
+      txt_hexnum( 15, row+1, addr, 8, RJ_ZF, MNORMAL_PAL );
+      txt_hexnum( 15, row+2, expect, 8, RJ_ZF, MNORMAL_PAL );
+      txt_hexnum( 15, row+3, got, 8, RJ_ZF, MNORMAL_PAL );
+
+      /*
+      ** delay between loops, and look for button to abort current test.
+      */
+
+      pause = 15;
+
+      do{
+        if( (ctl_read_sw(SW_ACTION) & SW_ACTION) != 0 )
+            {
+            while( (ctl_read_sw(0) & SW_ACTION) != 0 );
+            gpu_set_bss( GPU_MEMORY_TEST, MEMTST_BSS_ABORT, 1 );
+            break;
+            }
+
+        prc_delay(0);
+
+        } while( --pause );
+
+      } while( !gpu_get_bss( GPU_MEMORY_TEST, MEMTST_BSS_DONE ) );
+
+    /* get final BSS values */
+    testnum = gpu_get_bss( GPU_MEMORY_TEST, MEMTST_BSS_TESTNUM );
+    addr = gpu_get_bss( GPU_MEMORY_TEST, MEMTST_BSS_ADDR );
+    expect = gpu_get_bss( GPU_MEMORY_TEST, MEMTST_BSS_VALUE );
+    got = gpu_get_bss( GPU_MEMORY_TEST, MEMTST_BSS_ERROR );
+
+    txt_hexnum( 15, row, testnum, 8, RJ_ZF, MNORMAL_PAL );
+    txt_hexnum( 15, row+1, addr, 8, RJ_ZF, MNORMAL_PAL );
+    txt_hexnum( 15, row+2, expect, 8, RJ_ZF, MNORMAL_PAL );
+    txt_hexnum( 15, row+3, got, 8, RJ_ZF, MNORMAL_PAL );
+
+    if( result )
+        {
+	result->rr_test_no = testnum;
+	result->rr_addr = (unsigned long *)addr;
+	result->rr_expected = expect;
+	result->rr_got = got;
+        }
+
+    return( expect ^ got );
+
+}   /* End: g_ram_test() */
+
+/*************************************************************************
+* End of file: JAG_DIAG.C                                                *
+*************************************************************************/
+@
+
+
+1.2
+log
+@Narrowed some messages to accomodate Area51's 320 wide screen.
+@
+text
+@d8 3
+a10 1
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d117 1
+a117 1
+    txt_str( 0, row++, "Bank 0 DRAM is ", MNORMAL_PAL );
+d121 1
+a121 1
+    txt_cstr( " bits wide.", MNORMAL_PAL );
+d123 1
+a123 1
+    txt_str( 0, row++, "Bank 1 DRAM is ", MNORMAL_PAL );
+d127 1
+a127 1
+    txt_cstr( " bits wide.", MNORMAL_PAL );
+@

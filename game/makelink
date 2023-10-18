@@ -1,0 +1,84 @@
+#!/bin/sh
+
+cat <<EOF
+
+OUTPUT_FORMAT("elf32-littlemips")
+OUTPUT_ARCH(mips)
+_DYNAMIC_LINK = 0;
+
+MEMORY {
+	prog 	: ORIGIN = ${PGM_BASE},  LENGTH = ${PGM_LEN}
+	stuff	: ORIGIN = 0x00000000,	LENGTH = 0x10000000
+	junk	: ORIGIN = 0x00000000,  LENGTH = 0
+}
+
+SECTIONS {
+  /* Read-only sections, merged into text segment: */
+  .text ${PGM_BASE} : {
+	    _ftext = . ;
+	    text_start = .;
+	    ${ROOT}(.rodata)
+	    *(.text)
+	    *(.rodata)
+	    *(.rodata1)
+	    *(.lit8)
+	    *(.lit4)
+	    *(.reginfo)
+    CREATE_OBJECT_SYMBOLS
+    _etext = .;
+  } 
+
+  .data : {
+    	    *(.data)
+	    *(.sdata)
+	    text_end = .;
+  } 
+
+  .init    ALIGN(8)  : { *(.init)    } =0
+  .fini    ALIGN(8)  : { *(.fini)    } =0
+  .ctors   ALIGN(8)  : { *(.ctors)   }
+  .dtors   ALIGN(8)  : { *(.dtors)   }
+
+  /* also: .hash .dynsym .dynstr .plt(if r/o) .rel.got */
+  /* Read-write section, merged into data segment: */
+
+  /* also (before uninitialized portion): .dynamic .got .plt(if r/w)
+     (or does .dynamic go into its own segment?) */
+  /* We want the small data sections together, so single-instruction offsets
+     can access them all, and initialized data all before uninitialized, so
+     we can shorten the on-disk segment size.  */
+  .bss : {
+	  _gp = . + 0x8000;
+	    __bss_start = . + 0;
+	    bss_start = . + 0;
+	    _fbss = . + 0;
+	    . = (. + 15) & -16;
+	    _edata  =  . + 0;
+	    *(.bss)
+	    *(.scommon)
+	    *(COMMON)
+	    . = (. + 7) & -8;
+	    bss_end = .;
+	    _end = . ;
+	    end = . ;
+  } 
+
+  /* Debug sections.  These should never be loadable, but they must have
+     zero addresses for the debuggers to work correctly.  */
+  .line			0 : { *(.line)			}
+  .debug		0 : { *(.debug)			}
+  .debug_sfnames	0 : { *(.debug_sfnames)		}
+  .debug_srcinfo	0 : { *(.debug_srcinfo)		}
+  .debug_macinfo	0 : { *(.debug_macinfo)		}
+  .debug_pubnames	0 : { *(.debug_pubnames)	}
+  .debug_aranges	0 : { *(.debug_aranges)		}
+  .mdebug		  : { *(.mdebug)		} >stuff
+}
+
+gp_pointer = _gp + 0;
+ramrom_size = text_end - text_start;
+INIT_SP = ${INIT_SP};
+
+SEARCH_DIR ( ./ )
+EOF
+

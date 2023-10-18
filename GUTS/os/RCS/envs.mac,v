@@ -1,0 +1,178 @@
+head	1.3;
+access;
+symbols;
+locks
+	shepperd:1.3; strict;
+comment	@;; @;
+
+
+1.3
+date	97.10.06.18.45.00;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.10.05.06.45.27;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.10.05.00.51.45;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Sample environment variable builder
+@
+
+
+1.3
+log
+@Added more comments and BSS_LIMIT and STACK_SIZE
+@
+text
+@;
+;	$Id: envs.mac,v 1.2 1997/10/05 06:45:27 shepperd Exp shepperd $
+;
+;		Copyright 1997 Atari Games.
+;	Unauthorized reproduction, adaptation, distribution, performance or 
+;	display of this computer program or the associated audiovisual work
+;	is strictly prohibited.
+;
+; This file is an example of how to create a compilable source file with an
+; initialized environment table. If the name of this file is envs.mac, the
+; build procedure would be:
+;
+;	macpp -out=environ.c envs.mac
+;
+; then compile environ.c and link the environ.o file with your other
+; game's .o files. (NOTE: Some makefile default rules get confused
+; if there is both a .c and .mac file of the same name. For this
+; reason, I recommend using a different output filename than that
+; of this file).
+;
+.include env_rules.mac		;Get the rules
+PROLOG				;This is required to be first 
+;
+; If you have special externs or typedefs or #include's,
+; (required to let you specify other initialisers for your
+; environment variables), put them here, before any ENV or
+; EPILOG directives. Note that config.h, os_proto.h and st_proto.h
+; have already been #include'd by the PROLOG above.
+;
+
+extern U8 INIT_SP[];		/* declare the initial SP */
+
+;
+; List the environment variables you want to define in any order in the
+; following list. Note that GUTS will search the table from the bottom
+; to the top, so if there are multiple instances of the same name, the
+; _last_ one in this list will win. The syntax is:
+;
+; ENV	Name	value	flags
+;
+; If 'Name', 'value' or 'flags' have _any_ whitespace in them, enclose
+; the entire parameter in angle brackets (<>'s). 'Name', 'value' and
+; 'flags' can be any valid C expression (i.e., 'Name' needs double quotes
+; if it is a string). The 'value' and 'flags' fields do not need to be
+; specified and will default to 0 if not.
+;
+; Examples:
+;	ENV "HDDNL_SECTORS_WRITE"	64 0
+;	ENV "JUNK_POOL_SIZE"		;value and flags default to 0
+;	ENV <"XINU GAME NAME"> <"string value"> ;flags default to 0
+;		(NOTE: 'Name' contains whitespace as does the 'value'
+;		 so they are both enclosed in angle brackets).
+;
+; The last entry must be an EPILOG directive. (There may be 0 or more
+; ENV directives ahead of it). The syntax of this directive is:
+;
+;	EPILOG Name	value	flags	table
+;
+; The parameters are identical to those on the ENV directive except
+; there is an additional parameter, 'table'. The EPILOG directive
+; actually establishes the name of first entry in the linked list,
+; which is what the 'table' parameter defines. You would use the
+; 'table' name provided on this directive in your game's PBASE entry
+; to point GUTS to your environment variable table. Note that the
+; 'table' parameter is the last parameter on the line, so 'value'
+; and 'flags' must be specified rather than letting them default
+; unless you either identify the parameter with its keyword or
+; include commas to indicate blank parameters.
+;
+; Examples:
+;
+;	EPILOG "XINU_POOL_SIZE" 0 0 env_list   	   ;all params spec'd
+;	EPILOG "XINU_POOL_SIZE",0,0,env_list       ;commas may be used too
+;	EPILOG "XINU_POOL_SIZE",,,env_list	   ;blank value and flags
+;	EPILOG "XINU_POOL_SIZE" table=env_list	   ;'table' set with keyword
+;
+; The following are the environment variables currently "looked up"
+; by various GUTS routines. Change the ones you want, leave the others
+; to default by commenting them out.
+;
+;ENV <"PRE ST and GAME">	;Function to call before either game or ST
+;ENV <"PRE GAME">		;Function to call just before game is called
+;ENV <"PRE ST">			;Function to call just before ST is called
+;ENV <"SELFTEST MENU">		;Pointer to selftest main menu
+ENV <"BSS_LIMIT"> INIT_SP	;Amount of BSS that prc_extend_bss will give
+ENV <"STACK_SIZE"> 65536	;Size of game+GUTS+interrupt stack. Under Xinu,
+;				;  the size of only the interrupt stack.
+;
+; For the following 3 pools, any _one_ may be defined to -1 indicating to
+; use all available memory up to the (BSS_LIMIT - STACK_SIZE) (its space will
+; be allocated after all the other pools). If XINU is being used and
+; XINU_POOL_SIZE is set to 0, Xinu will use the QIO pool for all its memory.
+; The QIO pool is used by the I/O subsystem and includes the filesystem
+; directory structures. The JUNK pool is what is used for generic malloc
+; and libc stdio functions, however, the JUNK pool is not used at all if Xinu
+; is being used. You may view the details of usage of all the pools by running gdb
+; and typing "print sbrk_pools". For each pool listed, the member 'free_size'
+; contains the amount of memory in bytes that remains unallocated and 'memory_size'
+; is the initial size of the pool. You should be able to set the xxx_POOL_SIZE
+; to 'memory_size-free_size' to reclaim unused memory.
+;
+;ENV <"QIO_POOL_SIZE">		;Size of QIO memory pool (-1 == use all memory)
+;ENV <"XINU_POOL_SIZE">		;Size of XINU memory pool (if 0, Xinu uses QIO pool)
+;ENV <"JUNK_POOL_SIZE">		;Size of general junk pool (plain malloc, et al)
+;
+EPILOG "HDDNL_SECTORS_PER_WRITE", 32, 0, def_environment
+@
+
+
+1.2
+log
+@*** empty log message ***
+@
+text
+@d2 1
+a2 1
+;	$Id: envs.mac,v 1.1 1997/10/05 00:51:45 shepperd Exp shepperd $
+d31 1
+a31 1
+/* No special includes or externs in this example file */
+d79 1
+a79 1
+; to default or comment them out.
+d81 1
+a81 1
+;ENV <"PRE ST and GAME">		;Function to call before either game or ST
+d85 18
+a102 1
+;ENV <"QIO_POOL_SIZE">		;Size of QIO memory pool
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d2 1
+a2 1
+;	$Id$
+d89 1
+a89 1
+EPILOG "HDDNL_SECTORS_PER_WRITE", 64, 0, def_environment
+@

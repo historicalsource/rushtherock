@@ -1,0 +1,144 @@
+head	1.4;
+access;
+symbols
+	RUSH_ROCK_1_0:1.4
+	RUSH_ROCK_1_0epst:1.4
+	MACE_1_0e:1.2
+	MACE_1_0d:1.2
+	RUSH_1_06A:1.2
+	AREA_52_00:1.4
+	MACE_1_0a:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	97.05.17.01.52.10;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.05.13.16.56.09;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.07.30.00.36.11;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.07.27.20.50.15;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Definitions for I/O ASIC uart on Phoenix/Flagstaff.
+@
+
+
+1.4
+log
+@Changed type of pointers to registers.
+@
+text
+@
+/*
+ *	ioa_uart.h -- Forrest Miller -- July 1996
+ *
+ *	Definitions for I/O ASIC uart on Phoenix/Flagstaff.
+ *
+ *
+ *		Copyright 1996 Atari Games Corporation
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+
+/*
+ * Interrupt Controller Definitions
+ */
+#if defined(IO_MAIN_STS_T)
+#define IO_STATUS  ( IO_MAIN_STS_T )
+#define IO_CONTROL ( IO_MAIN_CTL_T )
+#else
+#define IO_STATUS  ( *((VU16 *)IO_MAIN_STS) )
+#define IO_CONTROL ( *((VU16 *)IO_MAIN_CTL) )
+#endif
+
+#define UART_BRK ( IO_MAIN_UART_BRK_DETECT )
+#define UART_ERR ( IO_MAIN_UART_FRAME_ERROR | IO_MAIN_UART_OVER_RUN )
+#define UART_RCV ( IO_MAIN_UART_RCV_CHAR )
+#define UART_XMT ( IO_MAIN_UART_XMT_EMPTY )
+
+#define UART_INT ( IO_MAIN_UART_BRK_DETECT | IO_MAIN_UART_FRAME_ERROR \
+		   | IO_MAIN_UART_OVER_RUN | IO_MAIN_UART_RCV_FULL    \
+		   | IO_MAIN_UART_RCV_CHAR | IO_MAIN_UART_XMT_EMPTY )
+
+/*
+ * UART Definitions
+ */
+#define UART_ENABLE   ( IO_UART_CTL_INTERNAL_ENA )
+
+#if defined(IO_UART_CTL_T)
+#define UART_CONTROL  ( IO_UART_CTL_T )
+#define UART_XMITTER  ( IO_UART_TX_T )
+#define UART_RECEIVER ( IO_UART_RCV_T )
+#else
+#define UART_CONTROL  ( *((VU16 *)IO_UART_CTL) )
+#define UART_XMITTER  ( *((VU16 *)IO_UART_TX) )
+#define UART_RECEIVER ( *((VU16 *)IO_UART_RCV) )
+#endif
+
+#define CHAR_RCV ( IO_UART_RCV_CHAR )
+#define BRK      ( IO_UART_RCV_BREAK_DETECT )
+#define FRAME    ( IO_UART_RCV_FRAME_ERROR )
+#define OVERRUN  ( IO_UART_RCV_OVER_RUN )
+#define RCV_FULL ( IO_UART_RCV_FULL )
+
+#define FIFO_SIZE ( IO_UART_RCV_FIFO_SIZE )
+
+#define BAUD_MASK ( 0x7f )
+@
+
+
+1.3
+log
+@Uses xxx_T variables if they are defined instead of explicit
+casts. The variable types are different on Chameleon than they
+are on Phoenix class boards.
+@
+text
+@d22 2
+a23 2
+#define IO_STATUS  ( *((VU32 *)IO_MAIN_STS) )
+#define IO_CONTROL ( *((VU32 *)IO_MAIN_CTL) )
+d45 3
+a47 3
+#define UART_CONTROL  ( *((VU32 *)IO_UART_CTL) )
+#define UART_XMITTER  ( *((VU32 *)IO_UART_TX) )
+#define UART_RECEIVER ( *((VU32 *)IO_UART_RCV) )
+@
+
+
+1.2
+log
+@Added definition of BAUD_MASK.
+@
+text
+@d18 4
+d24 1
+d40 5
+d48 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d47 1
+@

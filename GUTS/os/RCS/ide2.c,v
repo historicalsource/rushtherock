@@ -1,0 +1,5370 @@
+head	1.35;
+access;
+symbols
+	CJ_206:1.30
+	CJ2_05:1.30
+	CJ2_04:1.27
+	CJ2_03:1.17;
+locks; strict;
+comment	@ * @;
+
+
+1.35
+date	97.07.01.22.23.15;	author albaugh;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	97.02.14.20.34.13;	author albaugh;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	97.02.05.02.15.21;	author albaugh;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	97.01.28.22.59.38;	author albaugh;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	97.01.15.21.18.06;	author albaugh;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	96.10.24.21.52.54;	author albaugh;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	96.10.24.17.22.51;	author albaugh;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	96.10.24.16.26.18;	author albaugh;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.08.28.22.48.32;	author albaugh;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.07.17.22.39.06;	author albaugh;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.07.17.18.11.48;	author albaugh;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.07.10.00.17.28;	author albaugh;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.06.20.20.41.26;	author birmingham;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.03.06.22.25.50;	author albaugh;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.01.11.21.42.39;	author birmingham;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	95.12.20.22.15.52;	author birmingham;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	95.12.19.22.13.18;	author birmingham;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	95.12.12.02.16.47;	author birmingham;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	95.10.31.23.53.06;	author birmingham;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	95.08.17.21.42.34;	author birmingham;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	95.08.16.20.17.51;	author birmingham;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	95.08.15.21.55.29;	author birmingham;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.08.15.00.04.02;	author birmingham;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.08.09.22.35.58;	author birmingham;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.07.18.18.14.27;	author birmingham;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.06.29.22.12.08;	author birmingham;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.06.28.17.22.10;	author birmingham;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.06.24.08.00.31;	author birmingham;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.06.16.19.34.48;	author birmingham;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.06.09.00.28.56;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.06.06.00.56.17;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.05.24.00.15.02;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.05.17.00.06.28;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.05.02.21.05.28;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.05.02.21.03.48;	author birmingham;	state Exp;
+branches;
+next	;
+
+
+desc
+@Revision 2 friendly IDE device drive, include start of
+IDE diagnostic.
+@
+
+
+1.35
+log
+@Added RCS ID string
+@
+text
+@/********************************************************
+* IDE.C | Copyright 1995, Time Warner Interactive, Inc. *
+* ===================================================== *
+* Author: Robert M. Birmingham -- January 23, 1995      *
+* ===================================================== *
+* This file contains the IDE device driver functions.   *
+********************************************************/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+
+#if (HOST_BOARD == ASCLEAP)
+extern VU32 uptime;
+#define eer_rtc (uptime * 60)
+static void no_panic( const char *msg ) {
+    int pause;
+    txt_str(-1,3,msg,ERROR_PAL);
+    for ( pause = 360 ; pause-- > 0 ; ) {
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	prc_delay(1);
+    }
+}
+#define prc_panic(msg) no_panic(msg)
+#endif
+
+/**************************************************************/
+
+#ifndef IDE_TYPE
+#define IDE_TYPE IDE_COJAG
+#endif
+
+/**************************************************************/
+
+#define ALLOW_CHECK_HCS  (1)   /* validate Head, Cylinder, Sector */
+
+/**************************************************************/
+/* define durations for timeout loops */
+
+#define DREQ_TIMEOUT	(2*60)     /* timeout for wait for DREQ */
+#define BUSY_TIMEOUT	(5*60)     /* timeout for ide_wait_bsy() */
+#define RESET_TIMEOUT	(10*60)    /* timeout for ide_soft_reset() */
+#define POWERUP_TIMEOUT (30*60)	   /* timeout for drive powerup */
+
+/**************************************************************/
+
+/*
+** Declare macros for enabling and disabling interrupts:
+*/
+
+#if (IDE_TYPE==IDE_COJAG)
+
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <gputask.h>
+#include <oblist.h>
+
+extern void jpoke( VU32 *where, U32 what );
+
+#define IDE_ENABLE_INTERRUPTS \
+ do{ jpoke( (VU32 *)&JINTCTRL, 0x10000 ); } while(0)
+
+#define IDE_DISABLE_INTERRUPTS \
+ do{ jpoke( (VU32 *)&JINTCTRL, 0x0 ); } while(0)
+
+extern int cojag_rev;
+
+#else
+
+#define IDE_ENABLE_INTERRUPTS
+#define IDE_DISABLE_INTERRUPTS
+
+#endif
+
+/**************************************************************/
+
+static VU8 *viapt;             /* pointer to VIA IDE controller */
+static U16 device_status;      /* status of device connected */
+static VU32 *read_pending_ptr;  /* indicates HD read operation is pending */
+static VU32 read_pending_flag;  /* used when dram_alloc() not present */ 
+static U16 num_heads;          /* number of heads */
+static U16 num_cylinders;      /* number of cylinders */
+static U16 num_sectors;        /* number of sectors per track */
+
+#ifndef __DriveID_TYPE_DEFINED
+#define __DriveID_TYPE_DEFINED
+/* structure returned by HDIO_GET_IDENTITY, as per ANSI ATA2 rev.2j spec */
+/* (VU) = Vendor Unique							 */
+typedef struct hd_driveid {
+	unsigned short	config;		/*  0 lots of obsolete bit flags */
+	unsigned short	cyls;		/*  1 "physical" cyls */
+	unsigned short	reserved2;	/*  2 reserved (word 2) */
+	unsigned short	heads;		/*  3 "physical" heads */
+	unsigned short	track_bytes;	/*  4 (VU) unformatted bytes per track */
+	unsigned short	sector_bytes;	/*  5 (VU) unformatted bytes per sector */
+	unsigned short	sectors;	/*  6 "physical" sectors per track */
+	unsigned short	vendor0;	/*  7 vendor unique */
+	unsigned short	vendor1;	/*  8 vendor unique */
+	unsigned short	vendor2;	/*  9 vendor unique */
+	unsigned char	serial_no[20];	/* 10-19 Serial number ([0,1] == 0, not specified) */
+	unsigned short	buf_type;	/* 20 (VU) */
+	unsigned short	buf_size;	/* 21 (VU) 512 byte increments; 0 = not_specified */
+	unsigned short	vs_bytes;	/* 22 number of vendor specific bytes on r/w longs */
+	unsigned char	fw_rev[8];	/* 23-26 Firmware revision */
+	unsigned char	model[40];	/* 27-46 Model number */
+	unsigned char	max_multsect;	/* 47lsb max sectors on a r/w multiple; 0=not_implemented */
+	unsigned char	vendor3;	/* 47msb (VU) */
+	unsigned short	reserved48;	/* 48 reserved */
+	unsigned char	vendor4;	/* 49lsb (VU) */
+	unsigned char	capability;	/* 49msb bits 0:DMA 1:LBA 2:IORDYsw 3:IORDYsup*/
+	unsigned short	reserved50;	/* 50 reserved */
+	unsigned char	vendor5;	/* 51lsb (VU) */
+	unsigned char	tPIO;		/* 51msb 0=slow, 1=medium, 2=fast */
+	unsigned char	vendor6;	/* 52lsb (VU) vendor unique */
+	unsigned char	tDMA;		/* 52msb 0=slow, 1=medium, 2=fast */
+	unsigned short	field_valid;	/* 53 bits 0:cur_ok 1:eide_ok */
+	unsigned short	cur_cyls;	/* 54 logical cylinders */
+	unsigned short	cur_heads;	/* 55 logical heads */
+	unsigned short	cur_sectors;	/* 56 logical sectors per track */
+	unsigned short	cur_capacity0;	/* 57 logical total sectors on drive (lsb) */
+	unsigned short	cur_capacity1;	/* 58   (2 words, misaligned int) (msb)    */
+	unsigned char	multsect;	/* 59lsb current multiple sector count */
+	unsigned char	multsect_valid;	/* 59msb when (bit0==1) multsect is ok */
+	unsigned int	lba_capacity;	/* 60+61 total number of sectors */
+	unsigned short	dma_1word;	/* 62 single-word dma info */
+	unsigned short	dma_mword;	/* 63 multiple-word dma info */
+	unsigned short  eide_pio_modes; /* 64 bits 0:mode3 1:mode4 */
+	unsigned short  eide_dma_min;	/* 65 min mword dma cycle time (ns) */
+	unsigned short  eide_dma_time;	/* 66 recommended mword dma cycle time (ns) */
+	unsigned short  eide_pio;       /* 67 min cycle time (ns), no IORDY  */
+	unsigned short  eide_pio_iordy; /* 68 min cycle time (ns), with IORDY */
+	unsigned short  reserved69;	/* 69 reserved */
+	unsigned short  reserved70;	/* 70 reserved */
+	/* unsigned short reservedxx[57];*/	/* reserved (words 71-127) */
+	/* unsigned short vendor7  [32];*/	/* vendor unique (words 128-159) */
+	/* unsigned short reservedyy[96];*/	/* reserved (words 160-255) */
+} DriveID;
+#endif
+/* declare a sector buffer -- for internal use only! */
+static U32 ide_sector_buffer[LONGS_PER_SECTOR];
+
+/**************************************************************/
+
+/* Prototypes for static functions in IDE.C */
+
+static U8 ide_send_command( int );
+static void ide_wait_bsy( void );
+static int ide_soft_reset( void );
+static void ide_hread_data( U32 *rdbuf, int nsectors );
+
+#if (ALLOW_CHECK_HCS)
+static int ide_check_hcs( int head, int cylinder, int sector, int count );
+#endif
+
+/**************************************************************/
+
+/*
+** *********************************
+** ide_force_reinit();
+** Forces re-initialization of the IDE
+** driver, so that dram_alloced() space
+** can be re-claimed, after being snuck
+** out from under the driver by a vid_init().
+** ==================================
+** Usage:
+**   ide_force_reinit();
+**
+** Returns:
+**   Nothing.
+** *********************************
+*/
+void ide_force_reinit() { viapt = 0; }
+
+/*
+** *********************************
+** ide_init():
+** Initialize the IDE device driver.
+** =================================
+** Usage:
+**   ide_init();
+**
+** Returns:
+**   Status of connected device.
+** *********************************
+*/
+
+static unsigned long init_rtc;
+U16 ide_init( void )
+{
+    U32 end_timer;
+    volatile struct ide_ctl *ide_dev;
+
+    /*
+    ** Set the pointer to the Via Technologies IDE
+    ** controller according to the attached hardware.
+    ** ----------------------------------------------
+    ** CoJag - Revision #1: Use (XBUS_SLOT2+0xd00000)
+    ** CoJag - Revision #2: Use (XBUS_SLOT2+0xe00000)
+    ** Stream I/O card:     Use (XBUS_SLOT76)
+    */
+
+#if (IDE_TYPE==IDE_COJAG)
+    if( cojag_rev >= 2 ) {
+        viapt = (VU8 *)(XBUS_SLOT2+0xe00000);
+	if ( cojag_rev == 4 ) {
+	    /* single-board silencer has IDE_RST (~) on
+	     * COJAG_2_CF_REG.
+	     * As of 24OCT96, MEA adds prc_mod_config() to
+	     * jag_init.c, so the vcr control can be more-or-less
+	     * properly shadowed, and the inverted CM_VOLCTRL_DATA
+	     * line properly handled.
+	     */
+	    extern int prc_mod_config(int);
+	    prc_mod_config(CM_IDE_RST);
+	}
+    } else
+        viapt = (VU8 *)(XBUS_SLOT2+0xd00000);
+#else
+    viapt = (VU8 *)(XBUS_SLOT76);
+#endif
+
+    init_rtc = eer_rtc;		/* Note when we started drive */
+
+    /* set pointer to base of IDE controller interface registers. */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+    prc_delay(2);
+
+    /* Initialize the device driver if there is an IDE controller connected. */
+    if( ide_dev->csr == 0xff )
+        {
+        device_status = IDE_DEVICE_INVALID;
+	txt_str(-1,6,"DISK DRIVE NOT CONNECTED",ERROR_PAL);
+	txt_str(-1,7,"OR NOT RESPONDING",ERROR_PAL);
+	viapt = 0;
+        }
+    else
+        {
+        device_status = IDE_DEVICE_CONNECTED;
+
+        /*
+        ** Set the pointer to the flag used to hold the status of the
+        ** most recent read request.  For CoJag systems, this variable
+        ** must be in DRAM since it needs to be accessed by the GPU.
+        ** Otherwise, use the variable already declared in the BSS.
+        */
+
+#if (IDE_TYPE==IDE_COJAG)
+        read_pending_ptr = (U32 *)dram_alloc( 1, 0 );
+#else
+        read_pending_ptr = (U32 *)&read_pending_flag;
+#endif
+
+        *read_pending_ptr = 0;
+        read_pending_flag = 0;
+
+        /*
+        ** Wait for the device to come out of power-up reset.
+        ** I can't call ide_wait_bsy() because the Alternate
+        ** Status Register isn't accessible until the control
+        ** registers have been set [see ide_reset()].
+        */
+
+        end_timer = eer_rtc;
+
+        while( (ide_dev->csr & IDE_STB_BUSY) &&
+               (eer_rtc - end_timer) <  (POWERUP_TIMEOUT)){;}
+
+        /*
+        ** Reset the drive and the states of the device driver variables.
+        ** All the reset code was moved to a function so that it can also
+        ** be called by the game.  This will hopefully allow the game to
+        ** sense when a drive has locked up then reset it and continue
+        ** normally.  Hard drives have been known to lock up during ESD
+        ** (Electrostatic Discharge) tests.  If someone shocked you with
+        ** 15,000 volts, you'd probably be upset too.
+        */
+
+        if( !(ide_dev->csr & IDE_STB_BUSY) )
+            {
+            ide_reset();
+            ide_wait_bsy();
+            }
+        else
+            {
+            prc_panic( "Drive timeout during ide_init()" );
+            }
+
+        }
+
+    /* return the status of the device connected */
+    return( device_status );
+
+}   /* End: ide_init() */
+
+static int via_reset_errors;
+
+/*
+** ************************************
+** ide_reset():
+** Reset the hard drive and the states
+** of the IDE device driver variables.
+** ====================================
+** Usage:
+**   ide_reset();
+**
+** Returns:
+**   Nothing.
+** ************************************
+*/
+
+#define REGSET(idx,data) (((idx)<<8)|(data&0xFF))
+static const U16 via_init[] = {
+    REGSET(1,0xB1),  /* enable read and write FIFO */
+#if IDE_TYPE == IDE_COJAG
+    REGSET(3,0x10),  /* set read timing to 2/1 clocks */
+    REGSET(4,0x55),  /* set write timing to 6/6 clocks */
+    REGSET(2,0x10),  /* set cmd. timing to 2/1 clocks */
+#else
+    REGSET(3,0x44),  /* set read timing to 5/5 clocks */
+    REGSET(4,0x55),  /* set write timing to 6/6 clocks */
+    REGSET(2,0x44),  /* set cmd. timing to 5/5 clocks */
+#endif
+    REGSET(15,0x11), /* enable alt status on local bus */
+};
+
+static int keyval;
+
+void ide_reset( void )
+{
+    int row = 2;
+    int vr_off = 0;
+    int idx,reg,data;
+
+    /* make sure interrupts are disabled by default */
+    IDE_DISABLE_INTERRUPTS;
+
+    /* reset the drive, just in case it's in an unknown state. */
+/* RMB: ide_soft_reset() requires alt. stat, put after timing register code */
+/* MEA: Checked with RMB, and he said that alt. stat. is in fact
+** (by experiment) actually there, and to leave this code here, despite
+** his comment above.
+*/
+    if( ide_soft_reset() == 0 )
+        {
+        prc_panic( "ide_soft_reset() failed!" );
+        }
+
+    keyval = 0;
+    /* Hunt for the VIA Technologies IDe chip, which could respond to any
+    ** of four key values at either of two addresses, due to pull-down
+    ** configuration resistors being swamped by some drives.
+    ** Once found, set a few VIA registers to speed up operation.
+    ** These values should be dependant on information from
+    ** the drive, but currently are not. (MEA 28AUG96)
+    */
+    while (keyval < 8)
+	{
+	vr_off = (keyval&4)<<5;
+#if DEBUG_VIA_SEARCH
+	txt_str(2,++row,"Try ",MNORMAL_PAL);
+	txt_cdecnum(keyval&3,1,RJ_ZF,MNORMAL_PAL);
+	txt_cstr(" at ",MNORMAL_PAL);
+	txt_chexnum(vr_off+VIA_REG_KEY_OFFSET,2,RJ_ZF,MNORMAL_PAL);
+#endif
+	viapt[VIA_REG_KEY_OFFSET+vr_off] = keyval&3; /* Try to unlock */
+	viapt[VIA_REG_INDEX_OFFSET+vr_off] = 1;
+
+	for ( idx = 0 ; idx < n_elts(via_init) ; ++idx )
+	    {
+	    int got;
+	    data = via_init[idx];
+	    reg = data>>8;
+	    viapt[VIA_REG_INDEX_OFFSET+vr_off] = reg;
+	    viapt[VIA_REG_DATA_OFFSET+vr_off] = (data &= 0xFF);
+	    got = viapt[VIA_REG_DATA_OFFSET+vr_off];
+	    if ( data != got )
+		{
+#if DEBUG_VIA_SEARCH
+		txt_str(12,row,"WR ",ERROR_PAL);
+		txt_chexnum(reg,2,RJ_ZF,ERROR_PAL);
+		txt_cstr(" = ",ERROR_PAL);
+		txt_chexnum(data,2,RJ_ZF,ERROR_PAL);
+		txt_cstr(", RD ",ERROR_PAL);
+		txt_chexnum(got,2,RJ_ZF,ERROR_PAL);
+#endif
+		break;
+		}
+	    }
+	    if ( idx >= n_elts(via_init) ) break;
+	    /* Geeked, try another key */
+	    ++keyval;
+	}
+    if ( keyval >= 8 )
+	{
+	txt_str(2,++row,"Unable to find VIA chip",ERROR_PAL);
+	++via_reset_errors;
+	}
+#if DEBUG_VIA_SEARCH
+    else if ( keyval )
+	{
+	txt_str(2,++row,"Found VIA chip at 0x",MNORMAL_PAL);
+	txt_chexnum(vr_off+VIA_REG_KEY_OFFSET,2,RJ_ZF,MNORMAL_PAL);
+	txt_cstr(", Key = ",MNORMAL_PAL);
+	txt_chexnum(keyval&3,1,RJ_ZF,MNORMAL_PAL);
+	prc_delay(240);
+	}	
+#endif
+
+    viapt[VIA_REG_KEY_OFFSET+vr_off] = 1;      /* lock via part */
+
+    /* clear the 'read operation' pending flag. */
+    *read_pending_ptr = 0;
+
+#if (IDE_TYPE==IDE_COJAG)
+    /* set the device pointer in the IDE interrupt's BSS area */
+    gpu_set_bss(GPU_IDE_INTERRUPT,IDE_BSS_DEVPTR,H2TADDR(viapt+IDE_REG_OFFSET));
+
+    /* Enable DSP -> GPU Interrupts */
+    G_FLAGS |= G_DSPENA;
+#endif
+
+}   /* End: ide_reset() */
+
+
+/*
+** ************************************************************
+** ide_check_devstat():
+** Repeatedly check for a connected hard drive until a valid
+** device is found or the defined timeout duration has elapsed.
+** Return the result of the test to the calling function.
+** ============================================================
+** Usage:
+**   status = ide_check_devstat();
+**
+** Returns:
+**   (U16)IDE_DEVICE_CONNECTED:  Device recognized.
+**   (U16)IDE_DEVICE_INVALID:    No device recognized.
+** ************************************************************
+*/
+
+U16 ide_check_devstat( void )
+{
+    U16 status;
+    U32 end_timer;
+    volatile struct ide_ctl *ide_dev;
+    VU8 *vp;
+
+    vp = viapt;
+    if ( !vp ) return ide_init();
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(vp + IDE_REG_OFFSET);
+
+    /*
+    ** Perform a loop that looks for an IDE hard drive until a
+    ** valid device is found or until the timeout has elapsed.
+    ** The test looks at the IDE status register, if it contains
+    ** the value (0xff) then it is assumed that no hard drive is
+    ** attached.
+    */
+
+    end_timer = eer_rtc;
+
+    do{
+      if( ide_dev->csr == 0xff )
+          status = IDE_DEVICE_INVALID;
+      else
+          status = IDE_DEVICE_CONNECTED;
+
+      } while( (status == IDE_DEVICE_INVALID)
+	&& ((eer_rtc - end_timer) < BUSY_TIMEOUT) );
+
+    return( status );
+
+}   /* End: ide_check_devstat() */
+
+
+/*
+** ***************************************************************
+** ide_read_sectors():
+** Send the command to read sectors to the IDE controller.
+** When the data is ready, the hard drive will interrupt
+** the GPU once for each sector of data requested.
+** ===============================================================
+** Usage:
+**   status = ide_read_sectors( rdbuf, head, cyl, sector, count );
+**
+**   U32 *rdbuf:  pointer to buffer to hold sector information.
+**   U16 head:      drive head read with.
+**   U16 cyl:       cylinder to read from.
+**   U16 sector:    sector number to read.
+**   U16 count:     number of sectors to read into buffer.
+**
+** Returns:
+**   Zero if no error occurred, otherwise a value
+**   indicating the type of error that occurred.
+** ***************************************************************
+*/
+
+U8 ide_read_sectors( rdbuf, head, cylinder, sector, count )
+U32 *rdbuf;
+U16 head;
+U16 cylinder;
+U16 sector;
+U16 count;
+{
+#if (IDE_TYPE==IDE_COJAG)
+    volatile struct ide_ctl *ide_dev;
+
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    /* check that the head, cylinder, and sector values are valid */
+#if (ALLOW_CHECK_HCS)
+    if( ide_check_hcs( head, cylinder, sector, count ) )
+        return(IDE_ERB_ABORTCMD);
+#endif
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+
+    /* Never send commands to the controller when its busy. */
+    ide_wait_bsy();
+
+    /* enable HD -> DSP -> GPU interrupts */
+    IDE_ENABLE_INTERRUPTS;
+
+    /*
+    ** Store the following information in the IDE interrupt's BSS area.
+    ** IDE_BSS_BUFPTR: Pointer to buffer for storing incoming data. 
+    ** IDE_BSS_CNTPTR: Number of sectors to read (decremented by interrupt).
+    ** IDE_BSS_RDPEND: Pointer to read pending flag for checking completion.
+    ** IDE_BSS_DEVPTR: Pointer to IDE Interface registers.
+    ** IDE_BSS_ERROR:  Error flag which must be cleared at start of read.
+    ** IDE_BSS_RDTYPE: read type, 0=normal read.
+    */
+
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_BUFPTR, H2TADDR(rdbuf) );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_CNTPTR, (U32)count );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_RDPEND, H2TADDR(read_pending_ptr) );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_DEVPTR, H2TADDR(ide_dev));
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_ERROR, (U32)0 );
+#if (COJAG_GAME & COJAG_AREA51)
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_RDTYPE, (U32)0 );
+#endif
+
+    /* set flag to indicate read is pending, cleared by GPU when finished */
+    *read_pending_ptr = 1;
+
+    /* send the command to read sectors */
+    ide_dev->drive_head = (DRIVE_HEAD_INFO | (U8)(head & 0x000f));
+    ide_dev->lcylinder = (U8)(cylinder & 0x00ff);
+    ide_dev->hcylinder = (U8)((cylinder >> 8) & 0x00ff);
+    ide_dev->overlaid.bdata.snum = (U8)sector;
+    ide_dev->overlaid.bdata.scnt = (U8)(count & 0x00ff);
+    ide_send_command( IDE_CMD_SREAD );
+#endif
+
+    /* return 'No Error' to calling function */
+    return(0);
+
+}   /* End: ide_read_sectors() */
+
+/*
+** ******************************************************************
+** ide_gread_sectors():
+** Use the GPU to read sectors from the specified location on the
+** hard drive into the read buffer.  The function will return one
+** the read request has been sent.  It is the caller's responsibility
+** to check the completion status before performing another request.
+** ==================================================================
+** Usage:
+**   status = ide_gread_sectors( rdbuf, head, cyl, sector, count );
+**
+**   U32 *rdbuf:    pointer to buffer to hold sector information.
+**   U16 head:      drive head read with.
+**   U16 cyl:       cylinder to read from.
+**   U16 sector:    sector number to read.
+**   U16 count:     number of sectors to read into buffer.
+**
+** Returns:
+**   Zero if no error occurred, otherwise a value
+**   indicating the type of error that occurred.
+** *******************************************************************
+*/
+
+/* define BSS slot positions */
+#define GPURD_BSS_BUFPTR (0)
+#define GPURD_BSS_COUNT  (1)
+#define GPURD_BSS_DEVPTR (2)
+#define GPURD_BSS_ERROR  (3)
+#define GPURD_BSS_RDPEND (4)
+
+U8 ide_gread_sectors( rdbuf, head, cylinder, sector, count )
+U32 *rdbuf;
+U16 head;
+U16 cylinder;
+U16 sector;
+U16 count;
+{
+#if (IDE_TYPE==IDE_COJAG)
+    volatile struct ide_ctl *ide_dev;
+
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    /* check that the head, cylinder, and sector values are valid */
+#if (ALLOW_CHECK_HCS)
+    if( ide_check_hcs( head, cylinder, sector, count ) )
+        return(IDE_ERB_ABORTCMD);
+#endif
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+
+    /* Never send commands to the controller when its busy. */
+    ide_wait_bsy();
+
+    /* disable HD -> DSP -> GPU interrupts */
+    IDE_DISABLE_INTERRUPTS;
+
+    /*
+    ** Store the following information in the GPU Read Task's BSS area.
+    ** GPURD_BSS_BUFPTR: Pointer to buffer for storing incoming data. 
+    ** GPURD_BSS_COUNT:  Number of sectors to read (decremented by interrupt).
+    ** GPURD_BSS_DEVPTR: Pointer to IDE Interface registers.
+    ** GPURD_BSS_ERROR:  Error flag which must be cleared at start of read.
+    ** GPURD_BSS_RDPEND: Flag cleared when read operation is complete.
+    */
+
+    gpu_set_bss( GPU_IDE_READ, GPURD_BSS_BUFPTR, H2TADDR(rdbuf) );
+    gpu_set_bss( GPU_IDE_READ, GPURD_BSS_COUNT, (U32)count );
+    gpu_set_bss( GPU_IDE_READ, GPURD_BSS_DEVPTR, H2TADDR(ide_dev));
+    gpu_set_bss( GPU_IDE_READ, GPURD_BSS_ERROR, (U32)0 );
+    gpu_set_bss( GPU_IDE_READ, GPURD_BSS_RDPEND, H2TADDR(read_pending_ptr) );
+
+    /* set flag to indicate read is pending, cleared by GPU when finished */
+    *read_pending_ptr = 1;
+
+    /* send the command to read sectors */
+    ide_dev->drive_head = (DRIVE_HEAD_INFO | (U8)(head & 0x000f));
+    ide_dev->lcylinder = (U8)(cylinder & 0x00ff);
+    ide_dev->hcylinder = (U8)((cylinder >> 8) & 0x00ff);
+    ide_dev->overlaid.bdata.snum = (U8)sector;
+    ide_dev->overlaid.bdata.scnt = (U8)(count & 0x00ff);
+    ide_send_command( IDE_CMD_SREAD );
+
+    ide_wait_bsy();
+
+    /* call GPU routine to read incoming data */
+    gpu_run_task( GPU_IDE_READ );
+#endif
+
+    /* return 'No Error' to calling function */
+    return(0);
+
+}   /* End: ide_gread_sectors() */
+
+#if (COJAG_GAME & COJAG_AREA51)
+/****************************************************************************/
+/* ide_read_decomp_sectors
+ * This routine will read the specified sectors from the IDE and decompress
+ * them into a frame buffer.
+ * The parms passed in specify the dram buffer, the ide read info, and the
+ * comressed frame info.
+ */
+U8 ide_read_decomp_sectors( rdbuf, head, cylinder, sector, count, cols, rows, colInc, rowInc )
+U32 *rdbuf;                                                                                 
+U16 head;
+U16 sector;
+U16 cylinder;
+U16 count;
+int cols;
+int rows;
+int colInc;
+int rowInc;
+{
+#if (IDE_TYPE==IDE_COJAG)
+    volatile struct ide_ctl *ide_dev;
+
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    /* check that the head, cylinder, and sector values are valid */
+#if (ALLOW_CHECK_HCS)
+    if( ide_check_hcs( head, cylinder, sector, count ) )
+        return(IDE_ERB_ABORTCMD);
+#endif /* ALLOW_CHECK_HCS */
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+
+    /* Never send commands to the controller when its busy. */
+    ide_wait_bsy();
+
+    /* enable HD -> DSP -> GPU interrupts */
+    IDE_ENABLE_INTERRUPTS;
+
+    /*
+    ** Store the following information in the IDE interrupt's BSS area.
+    ** IDE_BSS_BUFPTR: Pointer to buffer for storing incoming data. 
+    ** IDE_BSS_CNTPTR: Number of sectors to read (decremented by interrupt).
+    ** IDE_BSS_RDPEND: Pointer to read pending flag for checking completion.
+    ** IDE_BSS_DEVPTR: Pointer to IDE Interface registers.
+    ** IDE_BSS_ERROR:  Error flag which must be cleared at start of read.
+    ** IDE_BSS_RDTYPE: read type, 1=decomp read.
+    */
+
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_BUFPTR, H2TADDR(rdbuf) );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_CNTPTR, (U32)count );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_RDPEND, H2TADDR(read_pending_ptr) );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_DEVPTR, H2TADDR(ide_dev));
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_ERROR, (U32)0 );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_RDTYPE, (U32)1 );
+
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_CURCOL, (U32)cols );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_COLS,   (U32)cols );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_ROWS,   (U32)rows );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_COLINC, (U32)colInc );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_ROWINC, (U32)rowInc );
+
+    /* set flag to indicate read is pending, cleared by GPU when finished */
+    *read_pending_ptr = 1;
+
+    /* send the command to read sectors */
+    ide_dev->drive_head = (DRIVE_HEAD_INFO | (U8)(head & 0x000f));
+    ide_dev->lcylinder = (U8)(cylinder & 0x00ff);
+    ide_dev->hcylinder = (U8)((cylinder >> 8) & 0x00ff);
+    ide_dev->overlaid.bdata.snum = (U8)sector;
+    ide_dev->overlaid.bdata.scnt = (U8)(count & 0x00ff);
+    ide_send_command( IDE_CMD_SREAD );
+#endif
+
+    /* return 'No Error' to calling function */
+    return(0);
+
+}   /* End: ide_read_decomp_sectors() */
+#endif /* (COJAG_GAME & AREA51) */
+
+/*
+** ****************************************************************
+** ide_hread_sectors():
+** Use the host processor to read sectors from the specified
+** location on the hard drive into the read buffer.
+** ================================================================
+** Usage:
+**   status = ide_hread_sectors( rdbuf, head, cyl, sector, count );
+**
+**   U32 *rdbuf:    pointer to buffer to hold sector information.
+**   U16 head:      drive head read with.
+**   U16 cyl:       cylinder to read from.
+**   U16 sector:    sector number to read.
+**   U16 count:     number of sectors to read into buffer.
+**
+** Returns:
+**   Zero if no error occurred, otherwise a value
+**   indicating the type of error that occurred.
+** ****************************************************************
+*/
+
+U8 ide_hread_sectors( rdbuf, head, cylinder, sector, count )
+U32 *rdbuf;
+U16 head;
+U16 cylinder;
+U16 sector;
+U16 count;
+{
+    U8 ackint;
+    VU32 old_rtc;
+    VU32 timeout;
+    volatile struct ide_ctl *ide_dev;
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    /* check that the head, cylinder, and sector values are valid */
+#if (ALLOW_CHECK_HCS)
+    if( ide_check_hcs( head, cylinder, sector, count ) )
+        return(IDE_ERB_ABORTCMD);
+#endif
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+
+    /* don't set any IDE registers while the drive is busy */
+    ide_wait_bsy();
+
+    /* disable HD -> DSP -> GPU interrupts */
+    IDE_DISABLE_INTERRUPTS;
+
+    /* send the command to read sectors */
+    ide_dev->drive_head = (DRIVE_HEAD_INFO | (U8)(head & 0x000f));
+    ide_dev->lcylinder = (U8)(cylinder & 0x00ff);
+    ide_dev->hcylinder = (U8)((cylinder >> 8) & 0x00ff);
+    ide_dev->overlaid.bdata.snum = (U8)sector;
+    ide_dev->overlaid.bdata.scnt = (U8)(count & 0x00ff);
+    ide_send_command( IDE_CMD_SREAD );
+
+    /* wait for the data to be read in */
+    ide_wait_bsy();
+
+    /* if the command returned successfully, read the data into the buffer */
+    if( (*ide_alt_stat & IDE_STB_ERROR) == 0 )
+        {
+        while( count-- )
+               {
+               /*
+               ** Wait for the drive to indicate data is waiting to be read
+               ** I have added a timeout check so that if DREQ never gets set,
+               ** I can exit and return an error to the calling function.
+               ** This can happen when a drive goes bad.
+               */
+
+               timeout = 0;
+               old_rtc = eer_rtc;
+
+               while( ((*ide_alt_stat & IDE_STB_DATAREQ) != IDE_STB_DATAREQ) &&
+                      ((timeout = eer_rtc - old_rtc) < DREQ_TIMEOUT) );
+
+               /* exit if 'wait for DREQ' loop timed out! */
+               if( timeout >= DREQ_TIMEOUT ) break;
+
+               /* read the data from the hard drive */
+               ide_hread_data( rdbuf, 1 );
+               rdbuf += LONGS_PER_SECTOR;
+
+               /* Acknowledge that the sector has been read */
+               ackint = ide_dev->csr;
+               }
+
+        ide_wait_bsy();
+        }
+
+    /*
+    ** Make sure the read pending flag is clear.  This flag is normally
+    ** used by the GPU read ISR to let the host know when it is finished,
+    ** but I also clear it here so the game programmer can safely switch
+    ** between ide_read_sectors() and ide_hread_sectors() without having
+    ** to worry about adding/removing the poll loop normally used after
+    ** the ide_read_sectors() call.
+    */
+
+    *read_pending_ptr = 0;
+
+    /* If an error occurred -- return it, else return zero for no error */
+    if( *ide_alt_stat & IDE_STB_ERROR )
+        return( ide_dev->overlaid.bdata.precomp_error );
+    else
+        return(0);
+
+}   /* End: ide_hread_sectors() */
+
+
+/*
+** ************************************************
+** ide_hread_data():
+** Use the host processor to read in one sector of
+** data from the hard drive.
+** ================================================
+** Usage:
+**   status = ide_hread_data( rdbuf, nsectors );
+**
+**   U32 *rdbuf:    pointer to buffer to hold data.
+**   U16 nsectors:  number of sectors to read.
+**
+** Returns:
+**   Nothing.
+** ************************************************
+*/
+
+static void ide_hread_data( rdbuf, nsectors )
+U32 *rdbuf;
+U16 nsectors;
+{
+    U16 i;
+    U16 nloops;
+    VU32 *ide_data_reg;
+    volatile struct ide_ctl *ide_dev;
+
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+
+    /* set pointer to IDE controller data register */
+    ide_data_reg = &ide_dev->overlaid.ldata;
+
+    /* Calculate how many semi-unrolled loops to perform */
+    nloops = (LONGS_PER_SECTOR * nsectors) / 16;
+
+    /* read in the specified number of sectors */
+    for( i = 0; i < nloops; i++ )
+         {
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         }
+
+}   /* End: ide_hread_data() */
+
+
+/*
+** ********************************************************
+** ide_identify():
+** Send an IDENTIFY command to the IDE controller.
+** The data returned is read directly using the host
+** processor, not through an interrupt service routine.
+** ========================================================
+** Usage:
+**   status = ide_identify( rdbuf );
+**
+**   U32 *rdbuf:  pointer to buffer for holding drive info.
+**
+** Returns:
+**   Zero if no error occurred, otherwise a value
+**   indicating the type of error that occurred.
+** ********************************************************
+*/
+
+U8 ide_identify( rdbuf )
+U32 *rdbuf;
+{
+    U16 i;
+    U8 ackint;
+    VU32 old_rtc;
+    VU32 timeout;
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+    volatile struct ide_ctl *ide_dev;
+
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+
+    /* disable interrupts and send the identify command */
+    IDE_DISABLE_INTERRUPTS;
+
+    ide_send_command( IDE_CMD_IDENTIFY );
+
+    /*
+    ** Wait for the drive to indicate data is waiting to be read
+    ** I have added a timeout check so that if DREQ never gets set,
+    ** I can exit and return an error to the calling function.
+    ** This can happen when a drive goes bad.
+    */
+
+    timeout = 0;
+    old_rtc = eer_rtc;
+
+    while( ((*ide_alt_stat & IDE_STB_DATAREQ) != IDE_STB_DATAREQ) &&
+           ((timeout = eer_rtc - old_rtc) < DREQ_TIMEOUT) );
+
+    /* read ID information only if 'wait for DREQ' loop didn't timeout */
+    if( timeout < DREQ_TIMEOUT )
+        {
+        ide_hread_data( rdbuf, 1 );
+
+        /* Acknowledge HD interrupts (even though I'm not using them!) */
+        ackint = ide_dev->csr;
+
+#if SHORT0_OFFS
+        /*
+        ** On a BIGENDIAN machine, we need to word-swap the data provided
+	** by the IDENTIFY DRIVE command, so the caller can not care.
+        */
+
+        for( i = 0; i < LONGS_PER_SECTOR; i++, rdbuf++ )
+             {
+             *rdbuf = ((*rdbuf << 16) & 0xffff0000) |
+                      ((*rdbuf >> 16) & 0x0000ffff);
+             }
+#else
+	/*
+	** On a littleendian machine, we need to byte-swap the _ascii_
+	** portion of the data, because it is big-endian, despite
+	** the overwhelming majority of IDE hosts being little-endian.
+	*/
+	    {
+	    DriveID *id = (DriveID *) rdbuf;
+	    for ( i = 0 ; i < sizeof(id->serial_no) ; i += 2 )
+		{
+		int tmp = id->serial_no[i+1];
+		id->serial_no[i+1] = id->serial_no[i];
+		id->serial_no[i] = tmp;
+		}
+	    for ( i = 0 ; i < sizeof(id->fw_rev) ; i += 2 )
+		{
+		int tmp = id->fw_rev[i+1];
+		id->fw_rev[i+1] = id->fw_rev[i];
+		id->fw_rev[i] = tmp;
+		}
+	    for ( i = 0 ; i < sizeof(id->model) ; i += 2 )
+		{
+		int tmp = id->model[i+1];
+		id->model[i+1] = id->model[i];
+		id->model[i] = tmp;
+		}
+	    }
+#endif
+        }
+
+    /* If an error occurred -- return it, else return zero for no error */
+    if( *ide_alt_stat & IDE_STB_ERROR )
+        return( ide_dev->overlaid.bdata.precomp_error );
+    else
+        return(0);
+
+}   /* End: ide_identify() */
+
+
+/*
+** ****************************************************
+** ide_get_hdinfo():
+** Get the number of heads, cylinders, and sectors
+** from the hard drive and return them to the user.
+** ====================================================
+** Usage:
+**   ide_get_hdinfo( &nheads, &ncylinders, &nsectors );
+**
+** Returns:
+**   Status of connected IDE device.
+** ****************************************************
+*/
+
+int ide_get_hdinfo( nheads, ncylinders, nsectors )
+U16 *nheads;
+U16 *ncylinders;
+U16 *nsectors;
+{
+    /* initialize hard drive if it hasn't been done yet */
+    if( viapt == 0 )
+        {
+        ide_init();
+        }
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() != IDE_DEVICE_INVALID )
+        {
+	DriveID *id;
+	id = (DriveID *)ide_sector_buffer;
+        ide_identify( ide_sector_buffer );
+
+        num_heads = id->heads & 0xff;
+        num_cylinders = id->cyls;
+        num_sectors = id->sectors;
+
+        *nheads = num_heads;
+        *ncylinders = num_cylinders;
+        *nsectors = num_sectors;
+        }
+
+    return( device_status );
+
+}   /* End: ide_get_hdinfo() */
+
+
+/*
+** **************************************
+** ide_get_rdstatus():
+** Return status of 'read pending' flag.
+** ======================================
+** Usage:
+**   status = ide_get_rdstatus();
+**
+** Returns:
+**   TRUE/FALSE of read pending flag.
+** **************************************
+*/
+
+U32 ide_get_rdstatus( void )
+{
+    /* Don't do anything if there's no device! */
+    if( device_status == IDE_DEVICE_INVALID )
+        return(0);
+
+    return( *read_pending_ptr );
+
+}   /* End: ide_get_rdstatus() */
+
+
+/*
+** *************************************
+** ide_get_errstatus():
+** Return status of 'read error' flag.
+** =====================================
+** Usage:
+**   status = ide_get_errstatus();
+**
+** Returns:
+**   Status of IDE controller from ISR.
+** *************************************
+*/
+
+U32 ide_get_errstatus( void )
+{
+#if (IDE_TYPE==IDE_COJAG)
+    /* Don't do anything if there's no device! */
+    if( device_status == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    return( gpu_get_bss( GPU_IDE_INTERRUPT, IDE_BSS_ERROR ) );
+#else
+    return(0);
+#endif
+
+}   /* End: ide_get_errstatus() */
+
+
+/*
+** ****************************************************************
+** ide_write_sectors():
+** Write the data contained in the write buffer to the specified
+** location on the hard drive.
+** ================================================================
+** Usage:
+**   status = ide_write_sectors( wrbuf, head, cyl, sector, count );
+**
+**   U32 *wrbuf:   pointer to buffer containing sectors to write.
+**   U16 head:     drive head write with.
+**   U16 cyl:      cylinder to write to.
+**   U16 sector:   sector number to write to.
+**   U16 count:    number of sectors in buffer to write.
+**
+** Returns:
+**   Zero if no error occurred, otherwise a value
+**   indicating the type of error that occurred.
+** ****************************************************************
+*/
+
+U8 ide_write_sectors( wrbuf, head, cylinder, sector, count )
+U32 *wrbuf;
+U16 head;
+U16 cylinder;
+U16 sector;
+U16 count;
+{
+    U8 ackint;
+    U16 i;
+    volatile struct ide_ctl *ide_dev;
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+    VU32 *ide_data;
+    VU32 timeout,old_rtc;
+
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    /* check that the head, cylinder, and sector values are valid */
+#if (ALLOW_CHECK_HCS)
+    if( ide_check_hcs( head, cylinder, sector, count ) )
+        return(IDE_ERB_ABORTCMD);
+#endif
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+
+    /* set pointer to IDE controller's data register */
+    ide_data = &ide_dev->overlaid.ldata;
+
+    /* don't send write command while drive is busy! */
+    ide_wait_bsy();
+
+    /* disable GPU interrupt handler when using the host to write */
+    IDE_DISABLE_INTERRUPTS;
+
+    ide_dev->drive_head = (DRIVE_HEAD_INFO | (U8)(head & 0x000f));
+    ide_dev->lcylinder = (U8)(cylinder & 0x00ff);
+    ide_dev->hcylinder = (U8)((cylinder >> 8) & 0x00ff);
+    ide_dev->overlaid.bdata.snum = (U8)sector;
+    ide_dev->overlaid.bdata.scnt = (U8)(count & 0x00ff);
+    ide_send_command( IDE_CMD_SWRITE );
+    ide_wait_bsy();
+
+    if( (*ide_alt_stat & IDE_STB_ERROR) == 0 )
+        {
+        while( count-- )
+               {
+               while( (*ide_alt_stat & IDE_STB_DATAREQ) != IDE_STB_DATAREQ );
+
+               for( i = 0; i < LONGS_PER_SECTOR; i++ )
+                    {
+                    *ide_data = *wrbuf++;
+                    }
+
+               /* Acknowledge HD interrupts (even though I don't use them!) */
+               ackint = ide_dev->csr;
+               }
+
+        ide_wait_bsy();
+        }
+
+    /* make sure we're really done! */
+    timeout = 0;
+    old_rtc = eer_rtc;
+
+    while( (*ide_alt_stat & IDE_STB_DATAREQ) &&
+           ((timeout = eer_rtc - old_rtc) < 120) );
+
+    /* If an error occurred -- return it, else return zero for no error */
+    if( timeout >= DREQ_TIMEOUT )
+        return(0xff);
+
+    if( *ide_alt_stat & IDE_STB_ERROR )
+        return( ide_dev->overlaid.bdata.precomp_error );
+    else
+        return(0);
+
+}   /* End: ide_write_sectors() */
+
+
+/*
+** **************************************************************
+** ide_get_rpm():
+** Calculate the approximate RPM of the IDE hard drive and return
+** the result to the caller.
+** ==============================================================
+** Usage:
+**    rpm = ide_get_rpm();
+**
+** Returns:
+**    16-bit value with the approximate RPM of the hard drive.
+** **************************************************************
+*/
+
+U16 ide_get_rpm( void )
+{
+    U32 revolutions = 0;
+    U32 old_vcnt;
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+    VU16 trash;
+
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return(0);
+
+    ide_wait_bsy();
+
+    old_vcnt = eer_rtc;
+
+    while( (eer_rtc - old_vcnt) < 60 )
+           {
+           revolutions += 60;
+
+           /*
+           ** In order for this code to work on the R3K, I have to cause
+           ** some BUS traffic in between the loops that look at the index
+           ** pulse. I don't know why, ask Mike Albaugh.
+           */
+
+           trash = 0;
+           while( !(*ide_alt_stat & IDE_STB_INDEX) );
+           trash = 0;
+           while( *ide_alt_stat & IDE_STB_INDEX );
+           trash = 0;
+           }
+
+    return( revolutions );
+
+}   /* End: ide_get_rpm() */
+
+
+/*
+** **********************************************************
+** ide_check_hcs():
+** Check the head, starting cylinder, ending cylinder,
+** starting sector, and sector count arguments to make
+** sure they are supported by the attached device.
+** ==========================================================
+** Usage:
+**
+**   status = ide_check_hcs( head, cylinder, sector, count );
+**
+**   U16 head:      head number to check.
+**   U16 cylinder:  cylinder number to check.
+**   U16 sector:    sector number to check.
+**   U16 count:     sector count to check.
+**
+** Returns:
+**   Zero if no error occurred, otherwise a value
+**   indicating the type of error that occurred.
+** **********************************************************
+*/
+
+#if (ALLOW_CHECK_HCS)
+
+#ifdef USE_SPRINTF
+extern isprintf(char *, const char *, ...);
+static int ide_check_hcs( head, cylinder, sector, count )
+U16 head;
+U16 cylinder;
+U16 sector;
+U16 count;
+{
+    /*
+    ** Return error code if the head, starting cylinder,
+    ** ending cylinder, starting sector, or sector count
+    ** are invalid.
+    */
+
+    if( (head >= num_heads) || (cylinder >= num_cylinders) ||
+        ((cylinder + (count/num_sectors)) > num_cylinders) ||
+        (sector == 0) || (sector > num_sectors) || (count > 255) )
+        {
+	char temp[AN_VIS_COL+1];
+	int row = AN_VIS_ROW-7;
+
+	txt_clr_wid(0, row, AN_VIS_COL);
+        txt_str( 2, row++, "ide_check_hcs() -- Out of range", RED_PAL );
+	txt_clr_wid(0, row++, AN_VIS_COL);
+
+	if( head >= num_heads )
+	    {
+            sprintf(temp, "Head %d(0x%X), max=%d(0x%X)", head, head, num_heads, num_heads);
+	    txt_clr_wid(0, row, AN_VIS_COL);
+	    txt_str(-1, row++, temp, RED_PAL);
+	    }
+
+	if( cylinder >= num_cylinders )
+	    {
+	    isprintf(temp, "Cylinder %d(0x%X), max=%d(0x%X)", cylinder, cylinder, num_cylinders, num_cylinders);
+	    txt_clr_wid(0, row, AN_VIS_COL);
+	    txt_str(-1, row++, temp, RED_PAL);
+	    }
+
+	if( sector == 0 || sector > num_sectors )
+	    {
+	    isprintf(temp, "Sector %d(0x%X), min=1, max=%d(0x%X)", sector, sector, num_sectors, num_sectors);
+	    txt_clr_wid(0, row, AN_VIS_COL);
+	    txt_str(-1, row++, temp, RED_PAL);
+	    }
+
+	if( count > 255 )
+	    {
+	    isprintf(temp, "Count %d(0x%X), max=%255(0xFF)", count, count);
+	    txt_clr_wid(0, row, AN_VIS_COL);
+	    txt_str(-1, row++, temp, RED_PAL);
+	    }
+
+	txt_clr_wid(0, row++, AN_VIS_COL);
+        prc_delay(240);
+
+        return(IDE_ERB_ABORTCMD);
+        }
+    else
+        {
+        return(0);
+        }
+
+}   /* End: ide_check_hcs() */
+#else
+static int ide_check_hcs( head, cylinder, sector, count )
+U16 head;
+U16 cylinder;
+U16 sector;
+U16 count;
+{
+    /*
+    ** Return error code if the head, starting cylinder,
+    ** ending cylinder, starting sector, or sector count
+    ** are invalid.
+    */
+
+    if( (head >= num_heads) || (cylinder >= num_cylinders) ||
+        ((cylinder + (count/num_sectors)) > num_cylinders) ||
+        (sector == 0) || (sector > num_sectors) || (count > 255) )
+        {
+        txt_str( 2, 23, "ide_check_hcs() -- Out of range", RED_PAL );
+
+        txt_decnum( 2, 25, head, 8, RJ_ZF, RED_PAL );
+        txt_cstr( ":", RED_PAL );
+        txt_chexnum( head, 8, RJ_ZF, RED_PAL );
+
+        txt_decnum( 2, 26, cylinder, 8, RJ_ZF, RED_PAL );
+        txt_cstr( ":", RED_PAL );
+        txt_chexnum( cylinder, 8, RJ_ZF, RED_PAL );
+
+        txt_decnum( 2, 27, sector, 8, RJ_ZF, RED_PAL );
+        txt_cstr( ":", RED_PAL );
+        txt_chexnum( sector, 8, RJ_ZF, RED_PAL );
+
+        txt_decnum( 2, 28, count, 8, RJ_ZF, RED_PAL );
+        txt_cstr( ":", RED_PAL );
+        txt_chexnum( count, 8, RJ_ZF, RED_PAL );
+
+        prc_delay(120);
+
+        return(IDE_ERB_ABORTCMD);
+        }
+    else
+        {
+        return(0);
+        }
+
+}   /* End: ide_check_hcs() */
+#endif
+#endif
+
+
+/*
+** ***************************************************
+** ide_calc_checksum():
+** Calculate a simple checksum for the specified
+** number of bytes in the buffer passed.
+** ===================================================
+** Usage:
+**   checksum = ide_calc_checksum( bufptr, numbytes );
+**
+**   U8 *bufptr:   pointer to buffer to checksum.
+**   U16 numbytes: number of bytes to checksum.
+**
+** Returns:
+**   U32 checksum: checksum of numbytes in buffer.
+** ***************************************************
+*/
+
+U32 ide_calc_checksum( bufptr, numbytes )
+U8 *bufptr;
+U16 numbytes;
+{
+    U16 i;    
+    U32 checksum = 0;
+
+
+    for( i = 0; i < numbytes; i += 4 )
+         {
+         checksum += bufptr[i] << 3;
+         checksum += bufptr[i+1] << 2;
+         checksum += bufptr[i+2] << 1;
+         checksum += bufptr[i+3];
+         }
+
+    return( checksum );
+
+}   /* End: ide_calc_checksum() */
+
+
+/*
+** ******************************************************
+** ide_send_command():
+** Send the specified command to the IDE controller.
+** ======================================================
+** Usage:
+**   status = ide_send_command( cmd );
+**
+**   U8 cmd:  command to write to IDE controller.
+**
+** Returns:
+**   Zero if no error occurred, or the contents of the
+**   IDE controller ERROR register if there was an error.
+** ******************************************************
+*/
+
+static U8 ide_send_command( cmd )
+U8 cmd;
+{
+    volatile struct ide_ctl *ide_dev;
+
+
+    /* Don't do anything if there's no device! */
+    if( device_status == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+
+    /* wait until the drive is not busy, then send the command */
+    ide_wait_bsy();
+    ide_dev->csr = cmd;
+
+    return(0);
+
+}   /* End: ide_send_command() */
+
+
+/*
+** *****************************
+** ide_wait_bsy():
+** Idle while the drive is busy.
+** *****************************
+*/
+
+static void ide_wait_bsy( void )
+{
+    U32 end_timer;
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return;
+
+    end_timer = eer_rtc;
+    while( (*ide_alt_stat & IDE_STB_BUSY) &&
+           (eer_rtc - end_timer) <  BUSY_TIMEOUT){;}
+
+}   /* End: ide_wait_bsy() */
+
+
+/*
+** *********************************
+** ide_soft_reset():
+** Performs a soft reset operation.
+** =================================
+** Usage:
+**   ide_soft_reset():
+**
+** Returns:
+**   Status of reset operation.
+**   (0) if reset failed.
+**   (1) if reset was successful.
+** *********************************
+*/
+static int ide_soft_reset( void )
+{
+    U32 timer;
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+
+
+    /* set the SRST bit in the DEVICE CONTROL register */
+    *ide_alt_stat = 0x04;
+
+    prc_delay(0);
+
+    /* clear SRST bit after device */
+    *ide_alt_stat = 0x00;
+
+    /* wait for device to indicate it's not busy */
+    timer = RESET_TIMEOUT;
+
+    while( *ide_alt_stat & IDE_STB_BUSY )
+	   {
+	   if( --timer == 0 ) break;
+	   prc_delay(0);
+	   }
+
+    /* continue with reset only if previous code didn't timeout */
+    if( timer != 0 )
+	{
+	/* wait for the device to indicate it is ready */
+	timer = RESET_TIMEOUT;
+
+	while( (*ide_alt_stat & IDE_STB_READY) != IDE_STB_READY )
+	       {
+	       if( --timer == 0 ) break;
+	       prc_delay(0);
+	       }
+	}
+
+    /* return the success/failure of reset? */
+    if( timer == 0 )
+        return(0);
+    else
+        return(1);
+
+}   /* End: ide_soft_reset() */
+
+/*
+** ********************************************************
+** ide_test():
+** IDE hard drive test, called by self test.
+** ========================================================
+** Usage:
+**   retcode = ide_test( smp );
+**
+**   struct menu_d *smp:  pointer to self test menu struct.
+**
+** Returns:
+**   Zero?
+** ********************************************************
+*/
+
+#define TRKBUFSIZ (63 * BYTES_PER_SECTOR)
+
+#if (HOST_BOARD == ASCLEAP) && (IDE_TYPE!=IDE_COJAG)
+    /* ASCLEAP/Xinu version has small stack, so we have to put
+     * this in BSS.
+     */
+    U32 track_buffer[TRKBUFSIZ/4];
+#endif
+
+int ide_test( const struct menu_d *smp )
+{
+    char *bptr;
+    int row = 3;
+
+    DriveID *id;
+
+    U8 rderror;
+    U16 head;
+    U16 cyl;
+    U32 ctls;
+    U32 *trkbufptr;
+    U32 timer;
+
+    U32 kbytes_per_sec;
+    U32 total_kbytes;
+    U32 kbinc;
+    U32 field;
+    U32 iterations = 0;
+
+#if (IDE_TYPE!=IDE_COJAG) && (HOST_BOARD != ASCLEAP)
+    U32 track_buffer[TRKBUFSIZ/4];
+#endif
+
+
+    /* initialize device driver if necessary */
+    /* The CoJag version must init anyway, because
+     * ide_init establishes read_pending_ptr,
+     * which could be clobbered by RAM test.
+     */
+#if (IDE_TYPE != IDE_COJAG)
+    if( viapt == 0 )
+#endif
+        {
+        ide_init();
+        }
+
+    if ( keyval && (keyval < 8) )
+	{
+	int vr_off;
+	vr_off = VIA_REG_KEY_OFFSET+((keyval&4)<<5);
+	txt_str(2,2,"VIA chip at 0x",MNORMAL_PAL);
+	txt_chexnum(vr_off,2,RJ_ZF,MNORMAL_PAL);
+	txt_cstr(", Key = ",MNORMAL_PAL);
+	txt_chexnum(keyval&3,1,RJ_ZF,MNORMAL_PAL);
+	}
+    else if ( via_reset_errors )
+	{
+	txt_str(2,5,"VIA Reset errors:",ERROR_PAL);
+	txt_cdecnum(via_reset_errors,2,LJ_NF,ERROR_PAL);
+	prc_delay(240);
+	return 1;
+	}
+    ExitInst(INSTR_PAL);
+
+    /* allocate memory for the largest possible track buffer */
+#if (IDE_TYPE==IDE_COJAG)
+    trkbufptr = (U32 *)dram_alloc( TRKBUFSIZ >> 3, 0 );
+#else
+    trkbufptr = (U32 *)&track_buffer[0];
+#endif
+
+    /* Lose any unfortunate edges, and initialize ctls */
+    ctls = ctl_read_sw(SW_NEXT|SW_ACTION);
+
+    /* Show if the hard drive is connected */
+    txt_str( 2, row++, "Hard Drive Connected: ", MNORMAL_PAL );
+
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        {
+        txt_cstr( "No", RED_PAL );
+
+        /* Wait for SW_NEXT before returning to main menu */
+
+        do{
+	    prc_delay0();
+	    ctls = ctl_read_sw(SW_NEXT);
+          } while( !(ctls & SW_NEXT) );
+
+        return(0);
+        }
+
+    txt_cstr( "Yes", GRN_PAL );
+
+
+    /* show how data is being read (for now just HOST or GPU) */
+    txt_str( 2, row++, "Data read through: ", MNORMAL_PAL );
+
+#if (IDE_TYPE==IDE_COJAG)
+    txt_cstr( "GPU", MNORMAL_PAL );
+#else
+    txt_cstr( "Host", MNORMAL_PAL );
+#endif
+
+    if ( debug_mode & GUTS_OPT_DEVEL ) {
+	/* display pointer to IDE registers and sector buffer address */
+	txt_str( 2, row++, "Device Pointer: 0x", MNORMAL_PAL );
+	txt_chexnum( (U32)viapt, 8, RJ_ZF, MNORMAL_PAL );
+	txt_str( 2, row++, "Sector Pointer: 0x", MNORMAL_PAL );
+	txt_chexnum( (U32)ide_sector_buffer, 8, RJ_ZF, MNORMAL_PAL );
+    }
+
+    /* display drive identification */
+    row++;
+    ide_identify( ide_sector_buffer );
+
+    id = (DriveID*)ide_sector_buffer;
+    id->model[sizeof(id->model)-1] = '\0';
+    if ( sizeof(id->model) > (AN_VIS_COL-4) ) {
+	id->model[AN_VIS_COL-4] = '\0'; 
+    }
+    txt_str( 2, row++, (char *)id->model, MNORMAL_PAL );
+
+    /* display the number of heads, cylinders, and sectors */
+    row++;
+    ide_get_hdinfo( &num_heads, &num_cylinders, &num_sectors );
+    txt_decnum( 2, row, num_heads, 2, RJ_ZF, MNORMAL_PAL );
+    txt_cstr( " Heads  ", MNORMAL_PAL );
+    txt_cdecnum( num_cylinders, 4, RJ_ZF, MNORMAL_PAL );
+    txt_cstr( " Cylinders  ", MNORMAL_PAL );
+    txt_cdecnum( num_sectors, 2, RJ_ZF, MNORMAL_PAL );
+    txt_cstr( " SPT", MNORMAL_PAL );
+
+    /* print the date information from the last sector on the drive
+     * Actually, since we may want to substitute a larger drive
+     * in production, without re-mastering, we provide a way
+     * for the game to specify an ID sector.
+     */
+	{
+	const struct st_envar *idp;
+	unsigned long id_lba;
+	int head, cyl, sect;
+	idp = st_getenv("DISK ID LBA", 0);
+	if ( idp )
+	    {
+	    id_lba = (unsigned long)idp->value;
+	    cyl = id_lba/(num_heads*num_sectors);
+	    id_lba %= (num_heads*num_sectors);
+	    head = id_lba/num_sectors;
+	    sect = (id_lba%num_sectors) + 1;
+	    }
+	else
+	    {
+	    head = num_heads - 1;
+	    cyl = num_cylinders - 1;
+	    sect = num_sectors;
+	    }
+	rderror = ide_hread_sectors( ide_sector_buffer,
+		  head, cyl, sect, 1);
+	}
+
+    if( !rderror )
+        {
+        bptr = (char *)ide_sector_buffer;
+        bptr[AN_VIS_COL-4] = 0;
+        txt_str( 2, 20, bptr, MNORMAL_PAL );
+        }
+
+    /* test each cylinder on the drive */
+    row += 2;
+    txt_str( 2, row, "Head  Cylinder  Status  Throughput", MNORMAL_PAL );
+    txt_str( 27, row+1, "0000 KB/s", MNORMAL_PAL );
+
+    prc_delay0();		/* May need to flush text */
+    while(1){
+      int was_good = 0;
+      total_kbytes = 0;
+      kbytes_per_sec = 0;
+      kbinc = (BYTES_PER_SECTOR * num_sectors) / 1024;
+      field = eer_rtc;
+
+      txt_str( 2, row+3, "Tests completed: ", MNORMAL_PAL );
+      txt_cdecnum( iterations, 3, RJ_ZF, MNORMAL_PAL );
+
+      for( cyl = 0; cyl < num_cylinders; cyl++ )
+           {
+           txt_decnum( 10, row+1, cyl, 4, RJ_ZF, MNORMAL_PAL );
+           for( head = 0; head < num_heads; head++ )
+                {
+                txt_decnum( 3, row+1, head, 2, RJ_ZF, MNORMAL_PAL );
+
+#if (IDE_TYPE==IDE_COJAG)
+		rderror = ide_read_sectors( trkbufptr, head, cyl, 1, num_sectors );
+		if ( !rderror )
+		    {
+		    
+		    /* wait for read to complete, check switches for exit */
+		    timer = eer_rtc;
+
+		    while( ide_get_rdstatus() )
+			   {
+			   if( ctl_read_sw(SW_NEXT) & SW_NEXT ) goto done;
+			   if( (eer_rtc - timer) >= BUSY_TIMEOUT ) break;
+			   }
+
+		    if( ide_get_errstatus() || ((eer_rtc - timer) >= BUSY_TIMEOUT) )
+			rderror = 1;
+		    }
+#else
+                timer = 0; /* Not used */
+                rderror = ide_hread_sectors(trkbufptr,head,cyl,1,num_sectors);
+                if( ctl_read_sw(SW_NEXT) & SW_NEXT ) goto done;
+#endif
+
+                if( rderror )
+                    {
+                    txt_str( 19, row+1, "Bad ", RED_PAL );
+
+                    do{
+			prc_delay0();
+			ctls = ctl_read_sw(SW_ACTION|SW_NEXT);
+                      } while( !(ctls & (SW_ACTION|SW_NEXT)) );
+		    if ( ctls & SW_NEXT ) goto done;
+		    was_good = 0;
+                    }
+                else
+                    {
+                    kbytes_per_sec += kbinc;
+                    if ( !was_good ) txt_str( 19, row+1, "Good", GRN_PAL );
+		    was_good = 1;
+                    }
+
+                if( (eer_rtc - field) >= 60 )
+                    {
+                    total_kbytes += kbytes_per_sec;
+
+                    txt_decnum( 27, row+1, kbytes_per_sec, 4, RJ_ZF, GRY_PAL );
+
+                    kbytes_per_sec = 0;
+                    field = eer_rtc;
+		    prc_delay0();
+		    ctls = ctl_read_sw(SW_NEXT);
+		    if ( ctls & SW_NEXT ) break;
+                    }
+                }
+	   if ( ctls & SW_NEXT ) break;
+           }
+
+      iterations++;
+      if ( ctls & SW_NEXT ) break;
+      }      /* End: while(1) */
+
+done:
+
+#if (IDE_TYPE==IDE_COJAG)
+    /* deallocate memory used for track buffer */
+    dram_alloc( -(TRKBUFSIZ >> 3), 0 );
+#endif
+
+    return(0);
+
+}   /* End: ide_test() */
+
+/*************************************************************************
+* End of file: IDE.C                                                     *
+*************************************************************************/
+@
+
+
+1.34
+log
+@Added hook to spackle-over audio failure after RAM test.
+@
+text
+@d8 3
+@
+
+
+1.33
+log
+@More helpful error message when drive not connected.
+Also, re-clears viapt, so nobody assumes ide_init()
+was successful when it wasn't.
+@
+text
+@d170 17
+d457 1
+d459 2
+d463 1
+a463 1
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+@
+
+
+1.32
+log
+@Added some debug trace for IBM drive problem. Fixed two
+instances of bogus post-decrement/check_for_0 bug.
+@
+text
+@a185 1
+    int row = 2;
+d226 3
+a228 2
+	txt_str(2,++row,"DEVICE INVALID at powerup",ERROR_PAL);
+	prc_delay(30);
+@
+
+
+1.31
+log
+@Added st_envar hook to allow ID sector to be other than last
+on disk.
+@
+text
+@d181 1
+d186 1
+a186 1
+
+d217 2
+d221 1
+d227 2
+d1549 1
+a1549 1
+	   if( timer-- == 0 ) break;
+d1561 1
+a1561 1
+	       if( timer-- == 0 ) break;
+@
+
+
+1.30
+log
+@Don't display debug pointer addresses unless we get
+the secret handshake.
+@
+text
+@d1715 27
+a1741 5
+    /* print the date information from the last sector on the drive */
+    rderror = ide_hread_sectors( ide_sector_buffer,
+              num_heads - 1,
+              num_cylinders - 1,
+              num_sectors, 1);
+@
+
+
+1.29
+log
+@use prc_mod_config() to diddle COJAG_2_CF_REG. Requires
+jag_init.c rev 1.9 or later.
+@
+text
+@d1686 7
+a1692 5
+    /* display pointer to IDE registers and sector buffer address */
+    txt_str( 2, row++, "Device Pointer: 0x", MNORMAL_PAL );
+    txt_chexnum( (U32)viapt, 8, RJ_ZF, MNORMAL_PAL );
+    txt_str( 2, row++, "Sector Pointer: 0x", MNORMAL_PAL );
+    txt_chexnum( (U32)ide_sector_buffer, 8, RJ_ZF, MNORMAL_PAL );
+@
+
+
+1.28
+log
+@Move toward merger with ide2.c for psx. Use DriveID struct
+rather than mystic constants. Fix "Can't run disk test after
+extra vid_init()" bug.
+@
+text
+@d202 4
+d207 2
+a208 5
+	    int old_ipl;
+	    VU8 *cp = &COJAG_2_CF_REG;
+	    old_ipl = prc_set_ipl(INTS_OFF);
+	    *cp = ((*cp) ^ CM_VOLCTRL_DATA) | CM_IDE_RST;
+	    prc_set_ipl(old_ipl);
+@
+
+
+1.27
+log
+@Added search for VIA chip, needed with Quantum Tempest
+@
+text
+@d48 1
+d50 4
+a53 4
+#define DREQ_TIMEOUT  (2*60)     /* timeout for wait for DREQ */
+#define BUSY_TIMEOUT  (5*60)     /* timeout for ide_wait_bsy() */
+#define RESET_TIMEOUT (10*60)    /* timeout for ide_soft_reset() */
+#define POWERUP_TIMEOUT (30*60)  /* timeout for drive powerup */
+d90 2
+a91 2
+static U32 *read_pending_ptr;  /* indicates HD read operation is pending */
+static U32 read_pending_flag;  /* used when dram_alloc() not present */ 
+d150 1
+a150 1
+/* declare a sector buffer for internal use only! */
+d1596 2
+d1617 5
+d1623 1
+d1653 3
+a1663 1
+        while( (ctl_read_sw(0) & SW_ACTION) != 0 );
+d1665 3
+a1667 1
+        do{ ctls = ctl_read_sw(SW_NEXT);
+d1695 6
+a1700 3
+    bptr = (char *)(((U16 *)ide_sector_buffer) + 27);
+    bptr[35] = '\0';
+    txt_str( 2, row++, bptr, MNORMAL_PAL );
+d1730 1
+d1749 16
+a1764 14
+                ide_read_sectors( trkbufptr, head, cyl, 1, num_sectors );
+
+                /* wait for read to complete, check switches for exit */
+                timer = eer_rtc;
+
+                while( ide_get_rdstatus() )
+                       {
+                       if( ctl_read_sw(SW_NEXT) & SW_NEXT ) goto done;
+                       if( (eer_rtc - timer) >= (5*60) ) break;
+                       }
+
+                if( ide_get_errstatus() || ((eer_rtc - timer) >= (5*60)) )
+                    rderror = 1;
+
+d1775 3
+a1777 1
+                    do{ ctls = ctl_read_sw(SW_ACTION|SW_NEXT);
+d1797 3
+d1802 1
+d1806 1
+a1806 1
+
+a1807 6
+
+    /* Wait for SW_NEXT before returning to main menu */
+    while( (ctl_read_sw(0) & SW_ACTION) != 0 );
+
+    do{ ctls = ctl_read_sw(SW_NEXT);
+      } while( !(ctls & SW_NEXT) );
+@
+
+
+1.26
+log
+@Altered ide_read_decomp_sectors() to match actual JackHammer code.
+@
+text
+@d312 2
+d316 2
+a317 1
+    int reset_status;
+d325 5
+a329 1
+    if( (reset_status = ide_soft_reset()) == 0 )
+d334 7
+a340 4
+    /*
+    ** Set the registers in the Via Technologies IDE chip for
+    ** better performance.  These values will vary based on the
+    ** type of the hard drive connected.
+d342 11
+d354 1
+a354 11
+    viapt[VIA_REG_KEY_OFFSET] = 0;      /* unlock via part */
+    viapt[VIA_REG_INDEX_OFFSET] = 1;    /* point to mode reg. */
+    for ( idx = 0 ; idx < n_elts(via_init) ; ++idx )
+	{
+	int got;
+	data = via_init[idx];
+	reg = data>>8;
+	viapt[VIA_REG_INDEX_OFFSET] = reg;
+	viapt[VIA_REG_DATA_OFFSET] = (data &= 0xFF);
+	got = viapt[VIA_REG_DATA_OFFSET];
+	if ( data != got )
+d356 18
+a373 8
+	    txt_str(2,3,"Wrote viapt[",ERROR_PAL);
+	    txt_chexnum(reg,2,RJ_ZF,ERROR_PAL);
+	    txt_cstr("] with 0x",ERROR_PAL);
+	    txt_chexnum(data,2,RJ_ZF,ERROR_PAL);
+	    txt_cstr(", got 0x",ERROR_PAL);
+	    txt_chexnum(got,2,RJ_ZF,ERROR_PAL);
+	    ++via_reset_errors;
+	    break;
+d375 8
+d384 10
+a393 1
+    viapt[VIA_REG_KEY_OFFSET] = 1;      /* lock via part */
+d395 2
+d445 1
+a445 1
+    end_timer = eer_rtc + BUSY_TIMEOUT;
+d453 2
+a454 1
+      } while( (status == IDE_DEVICE_INVALID) && (eer_rtc < end_timer) );
+a1521 1
+
+a1565 1
+
+d1619 10
+a1628 1
+    if ( via_reset_errors )
+@
+
+
+1.25
+log
+@Added explicit disk-reset to ide_init, for Rev 4
+(Silencer, aka JackHammer) CoJag boards.
+@
+text
+@a507 1
+
+d606 9
+a614 2
+U8 ide_read_decomp_sectors( rdbuf, head, cylinder, sector, count, rows, cols, lowbit )
+U32 *rdbuf;
+d616 1
+a617 1
+U16 sector;
+d619 1
+d621 2
+a622 2
+int cols;
+int lowbit;
+d663 1
+a663 4
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_STATE, (U32)0 );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_COLS, (U32)cols );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_ROWS, (U32)rows );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_LOWBIT, (U32)lowbit );
+d665 4
+d686 1
+a686 1
+#endif
+@
+
+
+1.24
+log
+@Added (and started to use) struct hd_driveid, to clarify structure
+of ide_identify command. Changed ide_sector_buffer[] to U32's,
+as much code assumed it was long-aligned. Merged added functions
+for Silencer. Moved endian-ness hacks into ide_identify(), from
+various places. Allow ACTION _or_ NEXT to bail.
+@
+text
+@d196 1
+a196 1
+    if( cojag_rev >= 2 )
+d198 11
+a208 1
+    else
+@
+
+
+1.23
+log
+@Allow CoJag rev. versions greater than 2.
+@
+text
+@d95 54
+d150 1
+a150 1
+static U16 ide_sector_buffer[WORDS_PER_SECTOR];
+a323 1
+
+d469 1
+d477 3
+d584 1
+d596 73
+a867 1
+#if SHORT0_OFFS
+a868 1
+#endif
+d911 2
+a912 2
+        ** The data provided by the IDENTIFY DRIVE command is word swapped
+        ** and needs to be fixed up before returning to the caller.
+d920 27
+d949 1
+d987 7
+a993 5
+        ide_identify( (U32*)&ide_sector_buffer );
+
+        num_heads = ide_sector_buffer[3] & 0xff;
+        num_cylinders = ide_sector_buffer[1];
+        num_sectors = ide_sector_buffer[6];
+d1610 1
+a1610 1
+    txt_chexnum( (U32)&ide_sector_buffer, 8, RJ_ZF, MNORMAL_PAL );
+d1614 1
+a1614 14
+    ide_identify( (U32 *)&ide_sector_buffer );
+
+#if SHORT0_OFFS == 0
+	{
+	int i;
+	unsigned int tmp;
+
+	for ( i = 0 ; i < 18 ; ++i )
+	    {
+	    tmp = ide_sector_buffer[27+i];
+	    ide_sector_buffer[27+i] = (tmp>>8)|(tmp<<8);
+	    }
+	}
+#endif
+d1616 1
+a1616 1
+    bptr = (char *)&ide_sector_buffer[27];
+d1631 1
+a1631 1
+    rderror = ide_hread_sectors( (U32 *)&ide_sector_buffer,
+d1638 2
+a1639 2
+        bptr = (char *)&ide_sector_buffer;
+        bptr[36] = 0;
+d1660 1
+a1660 1
+	   txt_decnum( 10, row+1, cyl, 4, RJ_ZF, MNORMAL_PAL );
+d1690 3
+a1692 2
+                    do{ ctls = ctl_read_sw(SW_ACTION);
+                      } while( !(ctls & SW_ACTION) );
+@
+
+
+1.22
+log
+@added a few kluges for ASCLEAP/Xinu.
+Fixed a few endian-dependancies.
+More paranoid via-reg initialization
+less screen-update in disk-test
+@
+text
+@d142 1
+a142 1
+    if( cojag_rev == 2 )
+@
+
+
+1.21
+log
+@Moved the STREAM I/O slot to XBUS76
+@
+text
+@d23 14
+d217 1
+d233 15
+d251 1
+a251 1
+
+d270 1
+d272 20
+a291 20
+    viapt[VIA_REG_DATA_OFFSET] = 0xb1;  /* enable read and write FIFO */
+
+#if (IDE_TYPE==IDE_COJAG)
+    viapt[VIA_REG_INDEX_OFFSET] = 3;    /* point to read timing reg. */
+    viapt[VIA_REG_DATA_OFFSET] = 0x10;  /* set read timing to 2/1 clocks */
+    viapt[VIA_REG_INDEX_OFFSET] = 4;    /* point to write timing reg. */
+    viapt[VIA_REG_DATA_OFFSET] = 0x55;  /* set write timing to 6/6 clocks */
+    viapt[VIA_REG_INDEX_OFFSET] = 2;    /* point to cmd. timing reg. */
+    viapt[VIA_REG_DATA_OFFSET] = 0x10;  /* set cmd. timing to 2/1 clocks */
+#else
+    viapt[VIA_REG_INDEX_OFFSET] = 3;    /* point to read timing reg. */
+    viapt[VIA_REG_DATA_OFFSET] = 0x44;  /* set read timing to 2/1 clocks */
+    viapt[VIA_REG_INDEX_OFFSET] = 4;    /* point to write timing reg. */
+    viapt[VIA_REG_DATA_OFFSET] = 0x55;  /* set write timing to 6/6 clocks */
+    viapt[VIA_REG_INDEX_OFFSET] = 2;    /* point to cmd. timing reg. */
+    viapt[VIA_REG_DATA_OFFSET] = 0x44;  /* set cmd. timing to 2/1 clocks */
+#endif
+
+    viapt[VIA_REG_INDEX_OFFSET] = 0x0f; /* point to misc. control reg. */
+    viapt[VIA_REG_DATA_OFFSET] = 0x11;  /* enable alt status on local bus */
+d737 1
+d739 1
+d780 1
+d791 1
+a792 1
+
+d1367 7
+d1392 1
+a1392 1
+#if (IDE_TYPE!=IDE_COJAG)
+d1403 7
+d1457 13
+d1503 1
+d1514 1
+a1517 1
+                txt_decnum( 10, row+1, cyl, 4, RJ_ZF, MNORMAL_PAL );
+d1546 1
+d1551 2
+a1552 1
+                    txt_str( 19, row+1, "Good", GRN_PAL );
+@
+
+
+1.20
+log
+@Fixed problem in ide_init() where 'wait for drive ready' would
+timeout before the disk had spun-up.  This happened on initial
+power-up, not on reset since the drive was already spinning.
+The timeout value is now longer, and ide_init() will now panic
+if the timeout value elapses.
+@
+text
+@d124 1
+a124 1
+    ** Stream I/O card:     Use (XBUS_SLOT77)
+d133 1
+a133 1
+    viapt = (VU8 *)(XBUS_SLOT77);
+@
+
+
+1.19
+log
+@Added timeout to wait for DREQ in ide_hread_sectors().
+Added timeout to wait for DREQ in ide_identify().
+Added return error status code to ide_identify().
+@
+text
+@d35 4
+a38 3
+#define DREQ_TIMEOUT  (2*60)   /* timeout for wait for DREQ */
+#define BUSY_TIMEOUT  (5*60)   /* timeout for ide_wait_bsy() */
+#define RESET_TIMEOUT (10*60)  /* timeout for ide_soft_reset() */
+d174 1
+a174 1
+               (eer_rtc - end_timer) <  BUSY_TIMEOUT){;}
+d191 5
+@
+
+
+1.18
+log
+@New version of driver which can be conditionally compiled for the
+CoJag hardware or the Strem I/O hardware.  To set the destination
+hardware, refer to the defined constant IDE_TYPE in CONSTANTS.MAC.
+@
+text
+@d31 1
+a31 1
+#define ALLOW_CHECK_HCS  (0)
+d35 1
+a244 11
+
+#if (1)
+    viapt[VIA_REG_INDEX_OFFSET] = 3;    /* point to read timing reg. */
+    viapt[VIA_REG_DATA_OFFSET] = 0x44;  /* set read timing to 2/1 clocks */
+    viapt[VIA_REG_INDEX_OFFSET] = 4;    /* point to write timing reg. */
+    viapt[VIA_REG_DATA_OFFSET] = 0x55;  /* set write timing to 6/6 clocks */
+    viapt[VIA_REG_INDEX_OFFSET] = 2;    /* point to cmd. timing reg. */
+    viapt[VIA_REG_DATA_OFFSET] = 0x44;  /* set cmd. timing to 2/1 clocks */
+#else
+    vid_clear();
+
+a246 2
+    txt_hexnum( 2, 2, (U32)viapt[VIA_REG_DATA_OFFSET], 2, RJ_ZF, RED_PAL );
+
+a248 2
+    txt_hexnum( 2, 3, (U32)viapt[VIA_REG_DATA_OFFSET], 2, RJ_ZF, RED_PAL );
+
+a250 3
+    txt_hexnum( 2, 4, (U32)viapt[VIA_REG_DATA_OFFSET], 2, RJ_ZF, RED_PAL );
+
+    prc_delay(60);
+a252 2
+#endif
+
+d531 2
+d572 15
+a586 2
+               /* wait for the drive to indicate data is waiting to be read */
+               while( (*ide_alt_stat & IDE_STB_DATAREQ) != IDE_STB_DATAREQ );
+d588 1
+d653 1
+a653 1
+    nloops = (LONGS_PER_SECTOR * nsectors) >> 4;
+d702 2
+d720 12
+a731 2
+    /* wait for the drive to indicate data is waiting to be read */
+    while( (*ide_alt_stat & IDE_STB_DATAREQ) != IDE_STB_DATAREQ );
+d733 4
+a736 1
+    ide_hread_data( rdbuf, 1 );
+d738 2
+a739 2
+    /* Acknowledge HD interrupts (even though I'm not using them!) */
+    ackint = ide_dev->csr;
+d741 4
+a744 4
+    /*
+    ** The data provided by the IDENTIFY DRIVE command is word swapped
+    ** and needs to be fixed up before returning to the caller.
+    */
+d746 6
+a751 5
+    for( i = 0; i < LONGS_PER_SECTOR; i++, rdbuf++ )
+         {
+         *rdbuf = ((*rdbuf << 16) & 0xffff0000) |
+                  ((*rdbuf >> 16) & 0x0000ffff);
+         }
+d753 5
+a757 1
+    return(0);
+d943 1
+a944 1
+    timeout = 0;
+d950 1
+a950 1
+    if( timeout >= 5 )
+d1281 1
+d1293 1
+a1359 1
+    txt_str( 2, 1, "GPU", RED_PAL );
+a1361 1
+    txt_str( 2, 1, "HOST", RED_PAL );
+d1365 1
+d1383 10
+a1393 1
+    row++;
+@
+
+
+1.17
+log
+@Removed unused/old functions that noone cared about, cleaned up
+disk test.
+(And probably some other stuff)
+@
+text
+@a19 3
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+d22 6
+a27 2
+#include <gputask.h>
+#include <oblist.h>
+d31 1
+a31 1
+extern int cojag_rev;
+d40 27
+a66 15
+#define G_CPUENA (0x0010)  /* CPU Interrupt enable */
+#define G_DSPENA (0x0020)  /* DSP Interrupt enable */
+#define G_PITENA (0x0040)  /* Timer Interrupt enable */
+#define G_OLPENA (0x0080)  /* Object Processor Interrupt enable */
+#define G_BLTENA (0x0100)  /* Blitter Interrupt enable */
+
+#define G_CPUCLR (0x0200)  /* CPU Interrupt acknowledge */
+#define G_DSPCLR (0x0400)  /* DSP Interrupt acknowledge */
+#define G_PITCLR (0x0800)  /* Timer Interrupt acknowledge */
+#define G_OLPCLR (0x1000)  /* Object Processor Interrupt acknowledge */
+#define G_BLTCLR (0x2000)  /* Blitter Interrupt acknowledge */
+
+#ifndef JINTCTRL
+#define JINTCTRL  (*(VU16*)(JERRY_BASE+0x20))  /* Jerry's Interrupt ctrl reg */
+#define JINTCTRL2 (*(VU16*)(JERRY_BASE+0x22))  /* Trash*/
+d71 10
+a80 10
+static VU8 *viapt;               /* ptr to VIA IDE controller */
+static U16 ide_device_status;    /* status of device connected */
+static U16 *ide_sector_buffer;   /* sector buffer, for internal use only! */
+static U32 *ide_read_pending;    /* indicates HD read operation is pending */
+
+/* The following variables are filled in when ide_get_hdinfo() is called. */
+
+static U16 num_heads;            /* number of heads */
+static U16 num_cylinders;        /* number of cylinders */
+static U16 num_sectors;          /* number of sectors per track */
+d89 3
+a91 1
+static void ide_hread_data( U32 *readbuf, int nsectors );
+d93 1
+a93 2
+static void ide_enable_interrupts( void );
+static void ide_disable_interrupts( void );
+d112 1
+d117 6
+a122 6
+    ** Set the pointer to the Via Technologies' IDE controller
+    ** based on the revision number of the CoJag board.  There
+    ** are currently two board revisions.  Revision #1 registers
+    ** are located at (XBUS_SLOT2+0xd00000), and Revision #2
+    ** registers are located at (XBUS_SLOT2+0xe00000).
+    ** [Revision #2 also covers; Rev. A and Rev. B boards]
+d125 8
+a132 2
+    viapt = (VU8 *)(XBUS_SLOT2+0xd00000);
+    if ( cojag_rev == 2 ) viapt = (VU8 *)(XBUS_SLOT2+0xe00000);
+d134 1
+a134 1
+    /* set ptr to base of IDE controller interface registers. */
+d137 1
+a137 6
+    /*
+    ** If there is no IDE controller present, or if no drive is
+    ** attached, return without doing anything else.  If there
+    ** is a controller/drive, initialize the device driver.
+    */
+
+d140 1
+a140 1
+        ide_device_status = IDE_DEVICE_INVALID;
+d144 1
+a144 1
+        ide_device_status = IDE_DEVICE_CONNECTED;
+d147 4
+a150 4
+        ** Allocate memory for holding status of latest read request.
+        ** This must be in DRAM because it is changed by the GPU ISR.
+        ** If the value is zero, there is no pending read request.
+        ** if the value is one, then a read operation is in progress.
+d153 8
+a160 2
+        ide_read_pending = (U32 *)dram_alloc( 1, 0 );
+        *ide_read_pending = 0;
+d162 8
+a169 2
+        /* allocate a sector buffer, for internal IDE use only */
+        ide_sector_buffer = (U16 *)dram_alloc( BYTES_PER_SECTOR >> 3, 0 );
+d171 2
+a172 2
+        /* Wait for the device to come out of power-up reset */
+        ide_wait_bsy();
+d184 5
+a188 2
+        ide_reset();
+        ide_wait_bsy();
+d192 1
+a192 1
+    return( ide_device_status );
+d216 3
+d220 1
+d223 1
+a223 1
+        prc_panic("ide_soft_reset() failed!");
+d235 2
+d243 29
+a275 2
+    ide_disable_interrupts();
+
+d277 1
+a277 1
+    *ide_read_pending = 0;
+d279 1
+d281 1
+a281 3
+    gpu_set_bss( GPU_IDE_INTERRUPT,
+                 IDE_BSS_DEVPTR,
+                 H2TADDR(viapt+IDE_REG_OFFSET) );
+d285 1
+d291 1
+a291 1
+** **************************************************
+d293 4
+a296 5
+** Repeatedly check for a connected hard drive until
+** a valid device is found or the defined timeout
+** duration has occurred.  Return the result of the
+** test to the calling function.
+** ==================================================
+d301 3
+a303 3
+**   (U16)IDE_DEVICE_CONNECTED: Device recognized.
+**   (U16)IDE_DEVICE_INVALID:   No device recognized.
+** **************************************************
+d313 1
+a313 1
+    /* set ptr to base of IDE controller registers */
+d318 1
+a318 1
+    ** valid device is found or the timeout duration is reached
+a327 1
+          {
+a328 1
+          }
+a329 1
+          {
+a330 1
+          }
+d340 1
+a340 51
+** **********************************
+** ide_enable_interrupts():
+** Enable External -> DSP interrupts.
+** ==================================
+** Usage:
+**   ide_enable_interrupts();
+**
+** Returns:
+**   Nothing.
+** **********************************
+*/
+
+extern void jpoke( VU32 *where, U32 what );
+
+static void ide_enable_interrupts( void )
+{
+    /* Don't do anything if there's no device! */
+    if( ide_device_status == IDE_DEVICE_INVALID )
+        return;
+
+    jpoke( (VU32 *)&JINTCTRL, 0x10000 );
+
+}   /* End: ide_enable_interrupts() */
+
+
+/*
+** ***********************************
+** ide_disable_interrupts():
+** Disable External -> DSP interrupts.
+** ===================================
+** Usage:
+**   ide_disable_interrupts();
+**
+** Returns:
+**   Nothing.
+** ***********************************
+*/
+
+static void ide_disable_interrupts( void )
+{
+    /* Don't do anything if there's no device! */
+    if( ide_device_status == IDE_DEVICE_INVALID )
+        return;
+
+    jpoke( (VU32 *)&JINTCTRL, 0x0 );
+
+}   /* End: ide_disable_interrupts() */
+
+
+/*
+** *****************************************************************
+d343 3
+a345 3
+** When the data is ready, the hard drive will interrupt the
+** GPU once for each sector of data requested.
+** =================================================================
+d347 1
+a347 1
+**   status = ide_read_sectors( readbuf, head, cyl, sector, count );
+d349 1
+a349 1
+**   U32 *readbuf:  pointer to buffer to hold sector information.
+d358 1
+a358 1
+** *****************************************************************
+d361 2
+a362 2
+U8 ide_read_sectors( readbuf, head, cylinder, sector, count )
+U32 *readbuf;
+d368 1
+d377 1
+d380 1
+d382 1
+a382 1
+    /* set ptr to base of IDE controller registers */
+d389 1
+a389 1
+    ide_enable_interrupts();
+d400 1
+a400 1
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_BUFPTR, H2TADDR(readbuf) );
+d402 1
+a402 1
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_RDPEND, H2TADDR(ide_read_pending) );
+d407 1
+a407 1
+    *ide_read_pending = 1;
+d416 1
+d433 1
+a433 1
+**   status = ide_gread_sectors( readbuf, head, cyl, sector, count );
+d435 1
+a435 1
+**   U32 *readbuf:  pointer to buffer to hold sector information.
+d454 2
+a455 2
+U8 ide_gread_sectors( readbuf, head, cylinder, sector, count )
+U32 *readbuf;
+d461 1
+d470 1
+d473 1
+d475 1
+a475 1
+    /* set ptr to base of IDE controller registers */
+d482 1
+a482 1
+    ide_disable_interrupts();
+d493 1
+a493 1
+    gpu_set_bss( GPU_IDE_READ, GPURD_BSS_BUFPTR, H2TADDR(readbuf) );
+d497 1
+a497 1
+    gpu_set_bss( GPU_IDE_READ, GPURD_BSS_RDPEND, H2TADDR(ide_read_pending) );
+d500 1
+a500 1
+    *ide_read_pending = 1;
+d513 1
+d522 1
+a522 1
+** ******************************************************************
+d526 1
+a526 1
+** ==================================================================
+d528 1
+a528 1
+**   status = ide_hread_sectors( readbuf, head, cyl, sector, count );
+d530 1
+a530 1
+**   U32 *readbuf:  pointer to buffer to hold sector information.
+d539 1
+a539 1
+** ******************************************************************
+d542 2
+a543 2
+U8 ide_hread_sectors( readbuf, head, cylinder, sector, count )
+U32 *readbuf;
+d559 1
+d562 1
+d564 1
+a564 1
+    /* set ptr to base of IDE controller registers */
+d571 1
+a571 1
+    ide_disable_interrupts();
+d592 2
+a593 2
+               ide_hread_data( readbuf, 1 );
+               readbuf += LONGS_PER_SECTOR;
+d611 1
+a611 1
+    *ide_read_pending = 0;
+d623 1
+a623 1
+** **********************************************************
+d625 3
+a627 3
+** Use the host processor to read in one sector of data from
+** the hard drive.
+** ==========================================================
+d629 1
+a629 1
+**   status = ide_hread_data( readbuf, nsectors );
+d631 2
+a632 2
+**   U32 *readbuf:  ptr to buffer to hold sector information.
+**   U16 nsectors:  number of sectors to read in this call.
+d636 1
+a636 1
+** **********************************************************
+d639 2
+a640 2
+static void ide_hread_data( readbuf, nsectors )
+U32 *readbuf;
+d644 1
+d649 1
+a649 1
+    /* set ptr to base of IDE controller registers */
+d652 1
+a652 1
+    /* set ptr to IDE controller data register */
+d655 5
+a659 2
+    /* read in one sector of data using the active read function */
+    for( i = 0; i < (LONGS_PER_SECTOR * nsectors); i++ )
+d661 16
+a676 1
+         *readbuf++ = *ide_data_reg;
+d683 1
+a683 1
+** ******************************************************
+d686 3
+a688 3
+** The hard drive will interrupt the GPU when the
+** data is ready to be retrieved.
+** ======================================================
+d690 1
+a690 1
+**   status = ide_identify( readbuf );
+d692 1
+a692 1
+**   U32 *readbuf:  ptr to buffer for holding drive info.
+d697 1
+a697 1
+** ******************************************************
+d700 2
+a701 2
+U8 ide_identify( readbuf )
+U32 *readbuf;
+d713 1
+a713 1
+    /* set ptr to base of IDE controller registers */
+d717 2
+a718 1
+    ide_disable_interrupts();
+d724 1
+a724 1
+    ide_hread_data( readbuf, 1 );
+d734 1
+a734 1
+    for( i = 0; i < LONGS_PER_SECTOR; i++, readbuf++ )
+d736 2
+a737 2
+         *readbuf = ((*readbuf << 16) & 0xffff0000) |
+                    ((*readbuf >> 16) & 0x0000ffff);
+d773 1
+a773 1
+        ide_identify( (U32*)ide_sector_buffer );
+d784 1
+a784 1
+    return( ide_device_status );
+d805 1
+a805 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d808 1
+a808 1
+    return( *ide_read_pending );
+d828 1
+d830 1
+a830 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d834 3
+d844 2
+a845 2
+** Write a single or multiple, 512 byte sector(s) contained in
+** the write buffer to the specified location on the hard drive.
+d882 1
+d885 1
+d887 1
+a887 1
+    /* set ptr to base of IDE controller registers */
+d890 1
+a890 1
+    /* set ptr to IDE controller's data register */
+d897 1
+a897 1
+    ide_disable_interrupts();
+d927 1
+a927 1
+    while( (*ide_alt_stat & IDE_STB_DATAREQ) && ((timeout = eer_rtc - old_rtc) < 5) );
+d929 3
+d1017 3
+d1047 1
+a1047 1
+	    isprintf(temp, "Head %d(0x%X), max=%d(0x%X)", head, head, num_heads, num_heads);
+d1130 1
+d1142 1
+a1142 1
+**   U8 *bufptr:   ptr to buffer to checksum.
+d1194 1
+a1194 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d1197 1
+a1197 1
+    /* set ptr to base of IDE controller registers */
+d1219 1
+a1221 2
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+
+d1292 1
+a1292 1
+** ****************************************************
+d1295 1
+a1295 1
+** ====================================================
+d1299 1
+a1299 1
+**   struct menu_d *smp:  ptr to self test menu struct.
+d1303 1
+a1303 1
+** ****************************************************
+d1306 2
+d1312 2
+a1316 1
+    U32 trkbufsiz;
+d1326 4
+d1338 1
+d1340 7
+a1346 2
+    trkbufsiz = (63 * BYTES_PER_SECTOR);
+    trkbufptr = (U32 *)dram_alloc( trkbufsiz >> 3, 0 );
+d1353 8
+d1362 35
+a1396 1
+    else
+d1398 4
+a1401 1
+        txt_cstr( "Yes", GRN_PAL );
+d1403 10
+a1412 30
+        /* display ptr to IDE registers and sector buffer address */
+        row++;
+        txt_str( 2, row++, "Device Pointer: 0x", MNORMAL_PAL );
+        txt_chexnum( (U32)viapt, 8, RJ_ZF, MNORMAL_PAL );
+        txt_str( 2, row++, "Sector Pointer: 0x", MNORMAL_PAL );
+        txt_chexnum( (U32)ide_sector_buffer, 8, RJ_ZF, MNORMAL_PAL );
+
+        /* display drive identification */
+        row++;
+        ide_identify( (U32 *)ide_sector_buffer );
+
+        bptr = (char *)&ide_sector_buffer[27];
+        bptr[35] = '\0';
+        txt_str( 2, row++, bptr, MNORMAL_PAL );
+
+        /* display the number of heads, cylinders, and sectors */
+        row++;
+        ide_get_hdinfo( &num_heads, &num_cylinders, &num_sectors );
+        txt_decnum( 2, row, num_heads, 2, RJ_ZF, MNORMAL_PAL );
+        txt_cstr( " Heads  ", MNORMAL_PAL );
+        txt_cdecnum( num_cylinders, 4, RJ_ZF, MNORMAL_PAL );
+        txt_cstr( " Cylinders  ", MNORMAL_PAL );
+        txt_cdecnum( num_sectors, 2, RJ_ZF, MNORMAL_PAL );
+        txt_cstr( " SPT", MNORMAL_PAL );
+
+        /* print the date information from the last sector on the drive */
+        ide_read_sectors( (U32 *)ide_sector_buffer,
+                          num_heads - 1,
+                          num_cylinders - 1,
+                          num_sectors, 1);
+d1414 2
+a1415 2
+	/* wait for read to complete, check switches for exit */
+	timer = eer_rtc;
+d1417 18
+a1434 4
+	while( ide_get_rdstatus() )
+	       {
+	       if( (eer_rtc - timer) >= (5*60) ) break;
+	       }
+d1436 2
+a1437 6
+	if( !ide_get_errstatus() && ((eer_rtc - timer) < (5*60)) )
+	    {
+	    bptr = (char *)ide_sector_buffer;
+	    bptr[36] = 0;
+	    txt_str( 2, 20, bptr, MNORMAL_PAL );
+	    }
+d1439 5
+a1443 10
+        /* test each cylinder on the drive */
+        row += 2;
+        txt_str( 2, row, "Head  Cylinder  Status  Throughput", MNORMAL_PAL );
+        txt_str( 27, row+1, "0000 KB/s", MNORMAL_PAL );
+
+        while(1){
+          total_kbytes = 0;
+          kbytes_per_sec = 0;
+          kbinc = (BYTES_PER_SECTOR * num_sectors) / 1024;
+          field = eer_rtc;
+d1445 3
+a1447 2
+          txt_str( 2, row+3, "Tests completed: ", MNORMAL_PAL );
+          txt_cdecnum( iterations, 3, RJ_ZF, MNORMAL_PAL );
+d1449 4
+a1452 3
+          for( cyl = 0; cyl < num_cylinders; cyl++ )
+               {
+               for( head = 0; head < num_heads; head++ )
+d1454 3
+a1456 2
+                    txt_decnum( 3, row+1, head, 2, RJ_ZF, MNORMAL_PAL );
+                    txt_decnum( 10, row+1, cyl, 4, RJ_ZF, MNORMAL_PAL );
+d1458 3
+a1460 1
+                    ide_read_sectors( trkbufptr, head, cyl, 1, num_sectors );
+d1462 1
+a1462 2
+                    /* wait for read to complete, check switches for exit */
+                    timer = eer_rtc;
+d1464 2
+a1465 28
+                    while( ide_get_rdstatus() )
+                           {
+                           if( ctl_read_sw(SW_NEXT) & SW_NEXT ) goto done;
+                           if( (eer_rtc - timer) >= (5*60) ) break;
+                           }
+
+                    if( ide_get_errstatus() || ((eer_rtc - timer) >= (5*60)) )
+                        {
+                        txt_str( 19, row+1, "Bad ", RED_PAL );
+
+                        do{ ctls = ctl_read_sw(SW_ACTION);
+                          } while( !(ctls & SW_ACTION) );
+                        }
+                    else
+                        {
+                        kbytes_per_sec += kbinc;
+                        txt_str( 19, row+1, "Good", GRN_PAL );
+                        }
+
+                    if( (eer_rtc - field) >= 60 )
+                        {
+                        total_kbytes += kbytes_per_sec;
+
+                        txt_decnum( 27, row+1, kbytes_per_sec, 4, RJ_ZF, GRY_PAL );
+
+                        kbytes_per_sec = 0;
+                        field = eer_rtc;
+                        }
+d1467 2
+a1468 3
+               }
+
+          iterations++;
+d1470 1
+a1470 1
+          }      /* End: while(1) */
+d1472 1
+a1472 1
+        }   /* End: if( ide_check_devstat() ) */
+d1481 2
+d1484 2
+a1485 1
+    dram_alloc( -(trkbufsiz >> 3), 0 );
+@
+
+
+1.16
+log
+@Changed the ide_get_rpm() function so that it no longer needs
+a pointer to a variable updated during VBLANK.  It uses the GUTS
+variable 'eer_rtc' in its place.  I cleaned up the reset code.
+Added timeout code to ide_check_devstat() and ide_wait_busy() so
+they will never get stuck if the drive locks up.  I also changed
+the code at the beginning of the major I/O functions which look
+at the 'ide_device_status' flag (initialized in ide_init()) to
+get the actual drive status from ide_check_devstat().
+@
+text
+@d24 1
+d34 2
+a35 2
+#define BUSY_TIMEOUT  (5*60)
+#define RESET_TIMEOUT (5*60)
+a59 1
+static U16 ide_int_status;       /* current status for interrupts (OFF/ON) */
+d73 3
+d78 2
+a79 1
+int ide_soft_reset( void );
+d107 1
+a107 1
+    ** (Revision #2 also covers; Rev. A and Rev. B boards )
+d133 1
+a133 1
+        ** If the value is zero, there is not read request pending,
+d141 1
+a141 1
+        ide_sector_buffer = (U16 *)dram_alloc( 512 >> 3, 0 );
+d143 1
+a143 5
+        /*
+        ** If a valid device was found, wait for it to not be busy.
+        ** (It might be busy if it hasn't come out of reset yet.)
+        */
+
+d147 1
+a147 1
+        ** reset the drive and the states of the device driver variables.
+d186 4
+a189 1
+    reset_status = ide_soft_reset();
+d210 1
+a210 2
+    /* Initialize IDE interrupt status to OFF */
+    ide_int_status = IDE_INTS_OFF;
+d295 1
+a295 1
+void ide_enable_interrupts( void )
+d301 1
+a301 6
+    /* If interrupts are off, enable EXTERNAL->DSP interrupts */
+    if( ide_int_status == IDE_INTS_OFF )
+        {
+        jpoke( (VU32 *)&JINTCTRL, 0x10000 );
+        ide_int_status = IDE_INTS_ON;
+        }
+d319 1
+a319 1
+void ide_disable_interrupts( void )
+d325 1
+a325 6
+    /* If interrupts are on, disable EXTERNAL->DSP interrupts */
+    if( ide_int_status == IDE_INTS_ON )
+        {
+        jpoke( (VU32 *)&JINTCTRL, 0x0 );
+        ide_int_status = IDE_INTS_OFF;
+        }
+d331 1
+a331 1
+** *******************************************************************
+d333 4
+a336 4
+** Send the command to read sectors to the IDE controller.  When the
+** data is ready, the hard drive will interrupt the GPU once for each
+** sector of data requested.
+** ===================================================================
+d349 1
+a349 1
+** *******************************************************************
+a603 123
+** *******************************************************************
+** ide_hmread_sectors():
+** Use the host processor and the IDE READ MULTIPLE command to
+** read sectors from the specified location on the hard drive.
+** ===================================================================
+** Usage:
+**   status = ide_hmread_sectors( readbuf, head, cyl, sector, count );
+**
+**   U32 *readbuf:  pointer to buffer to hold sector information.
+**   U16 head:      drive head read with.
+**   U16 cyl:       cylinder to read from.
+**   U16 sector:    sector number to read.
+**   U16 count:     number of sectors to read into buffer.
+**
+** Returns:
+**   Zero if no error occurred, otherwise a value
+**   indicating the type of error that occurred.
+** *******************************************************************
+*/
+
+U8 ide_hmread_sectors( readbuf, head, cylinder, sector, count )
+U32 *readbuf;
+U16 head;
+U16 cylinder;
+U16 sector;
+U16 count;
+{
+    U8 ackint;
+    volatile struct ide_ctl *ide_dev;
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+    U16 block_size;
+
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    /* check that the head, cylinder, and sector values are valid */
+    if( ide_check_hcs( head, cylinder, sector, count ) )
+        return(IDE_ERB_ABORTCMD);
+
+    /* set ptr to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+
+    /* don't set any IDE registers while the drive is busy */
+    ide_wait_bsy();
+
+    /* disable HD -> DSP -> GPU interrupts */
+    ide_disable_interrupts();
+
+    /* set multiple mode */
+    block_size = 8;
+    ide_dev->overlaid.bdata.scnt = (U8)block_size;
+    ide_send_command( 0xc6 );
+    ide_wait_bsy();
+
+    if( *ide_alt_stat & IDE_STB_ERROR )
+        {
+        vid_clear();
+        txt_str( 2, 2, "Set multiple mode command failed", RED_PAL );
+        while(1);
+        }
+
+    /* send the command to read sectors */
+
+    ide_wait_bsy();
+    ide_dev->drive_head = (DRIVE_HEAD_INFO | (U8)(head & 0x000f));
+    ide_wait_bsy();
+    while( (*ide_alt_stat & IDE_STB_READY) != IDE_STB_READY )
+
+    ide_dev->lcylinder = (U8)(cylinder & 0x00ff);
+    ide_dev->hcylinder = (U8)((cylinder >> 8) & 0x00ff);
+    ide_dev->overlaid.bdata.snum = (U8)sector;
+    ide_dev->overlaid.bdata.scnt = (U8)(count & 0x00ff);
+    ide_send_command( 0xc4 );
+    ide_wait_bsy();
+
+    /* if the command returned successfully, read the data into the buffer */
+    if( (*ide_alt_stat & IDE_STB_ERROR) == 0 )
+        {
+        do{
+          /* wait for the drive to indicate data is waiting to be read */
+          while( (*ide_alt_stat & IDE_STB_DATAREQ) != IDE_STB_DATAREQ );
+
+          if( count < block_size ) block_size = count;
+          ide_hread_data( readbuf, block_size );
+          readbuf += (LONGS_PER_SECTOR * block_size);
+          count -= block_size;
+
+          /* Acknowledge that the sector has been read */
+          ackint = ide_dev->csr;
+
+          } while( count != 0 );
+
+        ide_wait_bsy();
+        }
+
+    /* disable multiple mode */
+    ide_dev->overlaid.bdata.scnt = 0;
+    ide_send_command( 0xc6 );
+    ide_wait_bsy();
+
+    /*
+    ** Make sure the read pending flag is clear.  This flag is normally
+    ** used by the GPU read ISR to let the host know when it is finished,
+    ** but I also clear it here so the game programmer can safely switch
+    ** between ide_read_sectors() and ide_hread_sectors() without having
+    ** to worry about adding/removing the poll loop normally used after
+    ** the ide_read_sectors() call.
+    */
+
+    *ide_read_pending = 0;
+
+    /* If an error occurred -- return it, else return zero for no error */
+    if( *ide_alt_stat & IDE_STB_ERROR )
+        return( ide_dev->overlaid.bdata.precomp_error );
+    else
+        return(0);
+
+}   /* End: ide_hmread_sectors() */
+
+
+/*
+a619 5
+#include <blit.h>
+#include <blitlib.h>
+
+#define  USEHOST  (1)
+
+d624 1
+a627 7
+#if USEHOST
+    U16 i;
+#else
+    U32 srcptr;
+    U32 dstptr;
+#endif
+
+a634 1
+#if USEHOST
+a639 18
+#else
+    /* convert host addresses to Tom addresses */
+    srcptr = (U32)H2TADDR( ide_data_reg );
+    dstptr = (U32)H2TADDR( readbuf );
+
+    blit_wait();
+
+    /* set up the blitter's source registers */
+    A2_FLAGS = WID128 | PIXEL32 | PITCH1 | XADD0;
+    A2_BASE = (U32)srcptr & 0xfffffff8;
+    A2_PIXEL = ((U32)srcptr & 0x7) >> 2;
+    A2_STEP = 0;
+
+    /* set up the blitter's destination registers */
+    A1_FLAGS = WID128 | PIXEL32 | PITCH1 | XADDPIX;
+    A1_BASE = (U32)dstptr & 0xfffffff8;
+    A1_PIXEL = ((U32)dstptr & 0x7) >> 2;
+    A1_STEP = 0;
+a640 4
+    B_COUNT = 0x00010000 | ((U32)(128 * nsectors));
+    B_CMD = SRCEN|LFU_REPLACE;
+#endif
+
+d645 1
+a645 1
+** ***************************************************************
+d647 4
+a650 3
+** Send an IDENTIFY command to the IDE controller. The hard drive
+** will interrupt the GPU when the data is ready to be retrieved.
+** ===============================================================
+d659 1
+a659 1
+** ***************************************************************
+a661 2
+#define HOST_IDENTIFY (1)
+
+d665 1
+a665 1
+#if HOST_IDENTIFY
+a667 2
+#endif
+
+a668 1
+    U16 i;
+d678 1
+a678 7
+#if HOST_IDENTIFY
+    /*
+    ** This is for host based reads on systems that don't support interrupts.
+    */
+
+#if (1)
+    /* enable only if on CoJag */
+a679 2
+#endif
+
+a688 4
+#else
+    /* enable HD -> DSP -> GPU interrupts */
+    ide_wait_bsy();
+    ide_enable_interrupts();
+a689 13
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_BUFPTR, H2TADDR(readbuf) );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_CNTPTR, (U32)count );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_RDPEND, H2TADDR(ide_read_pending) );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_DEVPTR, H2TADDR(ide_dev));
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_ERROR, (U32)0 );
+
+    *ide_read_pending = 1;
+
+    ide_send_command( IDE_CMD_IDENTIFY );
+
+    while( ide_get_rdstatus() );
+#endif
+
+d751 1
+a751 1
+** ***************************************
+d754 1
+a754 1
+** =======================================
+d760 1
+a760 1
+** ***************************************
+d831 1
+d881 2
+a882 1
+    while( *ide_alt_stat & IDE_STB_DATAREQ );
+d885 3
+d913 1
+a913 1
+    U32 end_vcnt;
+d924 1
+a924 1
+    end_vcnt = eer_rtc + 60;
+d926 1
+a926 1
+    while( eer_rtc < end_vcnt )
+a949 137
+** ide_verify_sector():
+** Read the specified sector on the hard drive and
+** compare it with the data in the verify buffer.
+** ==========================================================
+** Usage:
+**   result = ide_verify_sector( verify_buffer, 0, 0, 1 );
+**
+** Returns:
+**   status = 0:  verify buffer is same as specified sector.
+**   status != 0: verify buffer differs from sector data.
+** **********************************************************
+*/
+
+U16 ide_verify_sector( verify_buffer, head, cylinder, sector )
+U32 *verify_buffer;
+U16 head;
+U16 cylinder;
+U16 sector;
+{
+    U32 chksum1;
+    U32 chksum2;
+
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    /* check that the head, cylinder, and sector values are valid */
+    if( ide_check_hcs( head, cylinder, sector, 1 ) )
+        return(IDE_ERB_ABORTCMD);
+
+    ide_read_sectors( (U32*)ide_sector_buffer, head, cylinder, sector, 1 );
+    while( ide_get_rdstatus() );
+
+    chksum1 = ide_calc_checksum( (U8 *)verify_buffer, BYTES_PER_SECTOR );
+    chksum2 = ide_calc_checksum( (U8 *)ide_sector_buffer, BYTES_PER_SECTOR );
+
+    return( (U16)(chksum2 - chksum1) );
+
+}   /* End: ide_verify_sector() */
+
+
+/*
+** *********************************************************************
+** ide_hverify_sectors():
+** Use the host processor to read sectors from the specified location
+** on the hard drive and compare against the read buffer.
+** =====================================================================
+** Usage:
+**   status = ide_hverify_sectors( readbuf, head, cyl, sector, count );
+**
+**   U32 *readbuf:  pointer to buffer with expected sector information.
+**   U16 head:      drive head read with.
+**   U16 cyl:       cylinder to read from.
+**   U16 sector:    sector number to read.
+**   U16 count:     number of sectors to check.
+**
+** Returns:
+**   Zero if no error, or the number of longwords to fail comparison.
+** RMB BUG: This isn't true if there's no valid device, or hcs is invalid.
+** Is anyone ever going to use this function?
+** *********************************************************************
+*/
+
+U8 ide_hverify_sectors( readbuf, head, cylinder, sector, count )
+U32 *readbuf;
+U16 head;
+U16 cylinder;
+U16 sector;
+U16 count;
+{
+    U8 ackint;
+    volatile struct ide_ctl *ide_dev;
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+    int errors,i;
+
+    errors = 0;
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat() == IDE_DEVICE_INVALID )
+        return(IDE_ERB_ABORTCMD);
+
+    /* check that the head, cylinder, and sector values are valid */
+    if( ide_check_hcs( head, cylinder, sector, count ) )
+        return(IDE_ERB_ABORTCMD);
+
+    /* set ptr to base of IDE controller registers */
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+
+    /* don't set any IDE registers while the drive is busy */
+    ide_wait_bsy();
+
+    /* disable HD -> DSP -> GPU interrupts */
+    ide_disable_interrupts();
+
+    /* send the command to read sectors */
+    ide_dev->drive_head = (DRIVE_HEAD_INFO | (U8)(head & 0x000f));
+    ide_dev->lcylinder = (U8)(cylinder & 0x00ff);
+    ide_dev->hcylinder = (U8)((cylinder >> 8) & 0x00ff);
+    ide_dev->overlaid.bdata.snum = (U8)sector;
+    ide_dev->overlaid.bdata.scnt = (U8)(count & 0x00ff);
+    ide_send_command( IDE_CMD_SREAD );
+
+    /* wait for the data to be read in */
+    ide_wait_bsy();
+
+    /* if the command returned successfully, read the data into the buffer */
+    if( (*ide_alt_stat & IDE_STB_ERROR) == 0 )
+        {
+        while( count-- )
+               {
+               /* wait for the drive to indicate data is waiting to be read */
+               while( (*ide_alt_stat & IDE_STB_DATAREQ) != IDE_STB_DATAREQ );
+
+		/* read in one sector of data using the active read function */
+		for( i = 0; i < LONGS_PER_SECTOR; i++ )
+		     {
+		     errors = ( readbuf[i] != ide_dev->overlaid.ldata);
+		     }
+               readbuf += LONGS_PER_SECTOR;
+
+               /* Acknowledge the HD interrupt */
+               ackint = ide_dev->csr;
+               }
+
+        ide_wait_bsy();
+        }
+
+    /* If an error occurred -- return it, else return zero for no error */
+    if( *ide_alt_stat & IDE_STB_ERROR ) ++errors;
+    return(errors);
+
+}   /* End: ide_hverify_sectors() */
+
+
+/*
+** **********************************************************
+d969 62
+d1032 3
+a1034 1
+int ide_check_hcs( head, cylinder, sector, count )
+d1078 1
+d1135 1
+a1135 1
+U8 ide_send_command( cmd )
+d1164 1
+a1164 1
+void ide_wait_bsy( void )
+d1175 3
+a1177 2
+    end_timer = eer_rtc + BUSY_TIMEOUT;
+    while( (*ide_alt_stat & IDE_STB_BUSY) && (eer_rtc < end_timer) );
+d1191 3
+a1193 1
+**   Nothing.
+d1197 1
+a1197 1
+int ide_soft_reset( void )
+d1206 6
+a1211 1
+    /* wait for the device to indicate it's busy */
+d1213 5
+a1217 5
+    while( (*ide_alt_stat & IDE_STB_BUSY) != IDE_STB_BUSY )
+           {
+           if( timer-- == 0 ) break;
+           prc_delay(0);
+           }
+d1221 9
+a1229 24
+        {
+        /* clear SRST bit after device */
+        *ide_alt_stat = 0x00;
+
+        /* wait for device to indicate it's not busy */
+        timer = RESET_TIMEOUT;
+        while( *ide_alt_stat & IDE_STB_BUSY )
+               {
+               if( timer-- == 0 ) break;
+               prc_delay(0);
+               }
+
+        /* continue with reset only if previous code didn't timeout */
+        if( timer != 0 )
+            {
+            /* wait for the device to indicate it is ready */
+            timer = RESET_TIMEOUT;
+            while( (*ide_alt_stat & IDE_STB_READY) != IDE_STB_READY )
+                   {
+                   if( timer-- == 0 ) break;
+                   prc_delay(0);
+                   }
+            }
+        }
+d1258 1
+a1260 1
+    U16 sector;
+d1262 9
+a1270 1
+    int row = 3;
+d1279 4
+a1282 1
+    txt_str( 2, row++, "Hard Drive Status: ", MNORMAL_PAL );
+d1284 2
+d1288 1
+a1288 1
+        txt_cstr( "Not Connected", RED_PAL );
+d1292 1
+a1292 1
+        txt_cstr( "Good", GRN_PAL );
+d1296 1
+a1296 1
+        txt_str( 2, row++, "viapt = 0x", MNORMAL_PAL );
+d1298 1
+a1298 1
+        txt_str( 2, row++, "ide_sector_buffer = 0x", MNORMAL_PAL );
+d1304 1
+a1304 1
+        txt_str( 2, row++, "ID: ", MNORMAL_PAL );
+d1307 1
+a1307 1
+        txt_cstr( bptr, MNORMAL_PAL );
+d1319 22
+a1340 1
+        /* test each sector on the drive */
+d1342 8
+a1349 1
+        txt_str( 2, row, "Head    Cylinder    Sector    Status", MNORMAL_PAL );
+d1351 9
+a1359 24
+        for( head = 0; head < num_heads; head++ )
+             {
+             for( cyl = 0; cyl < num_cylinders; cyl++ )
+                  {
+                  for( sector = 1; sector <= num_sectors; sector++ )
+                       {
+                       txt_decnum( 3, row+1, head, 2, RJ_ZF, MNORMAL_PAL );
+                       txt_decnum( 12, row+1, cyl, 4, RJ_ZF, MNORMAL_PAL );
+                       txt_decnum( 24, row+1, sector, 2, RJ_ZF, MNORMAL_PAL );
+
+                       ide_read_sectors( (U32 *)ide_sector_buffer,
+                                         head, cyl, sector, 1 );
+
+                       /* wait for read to complete, check switches for exit */
+                       do{
+                         ctls = ctl_read_sw(SW_NEXT|SW_ACTION);
+
+                         if( ctls & SW_NEXT ) goto done;
+
+                         if( ctls & SW_ACTION )
+                             {
+                             txt_str( 33, row+1, "Done", GRN_PAL );
+                             goto wait;
+                             }
+d1361 1
+a1361 1
+                         } while( ide_get_rdstatus() );
+d1363 2
+a1364 3
+                       if( ide_get_errstatus() )
+                           {
+                           txt_str( 33, row+1, "Bad ", RED_PAL );
+d1366 1
+a1366 4
+                           do{ ctls = ctl_read_sw(SW_ACTION);
+                             } while( !(ctls & SW_ACTION) );
+                           }
+                       else
+d1368 2
+a1369 1
+                           txt_str( 33, row+1, "Good", GRN_PAL );
+d1371 27
+a1397 3
+                       }
+                  }
+             }
+d1399 1
+a1399 2
+        txt_str( 33, row+1, "Done", GRN_PAL );
+        }
+d1401 1
+a1401 1
+wait:
+d1410 3
+@
+
+
+1.15
+log
+@Added timout code to ide_soft_reset() so it doesn't get stuck
+if the drive locks up.  Reworked ide_reset() a little to avoid
+similar problems.
+@
+text
+@d31 1
+a31 15
+typedef struct device_block{
+    U16 status;
+    U16 config;
+    U16 num_heads;
+    U16 num_cylinders;
+    U16 num_spt;
+    U8 serialnum[21];
+    U8 firmware[8];
+    U8 modelnum[40];
+    U16 rdmulti;
+    U16 lba;
+    U16 cur_heads;
+    U16 cur_cylinders;
+    U16 cur_spt;
+    } IDE_DEVICE_BLOCK;
+d33 2
+a34 1
+#define  IDE_NUM_DEVICES  (1)
+a35 2
+IDE_DEVICE_BLOCK ide_device_list[IDE_NUM_DEVICES];
+
+d51 1
+a51 1
+#define JINTCTRL  (*(VU16*)(JERRY_BASE+0x20))  /* Jerry's Interrupt control reg*/
+d60 2
+a61 2
+static U16 *ide_sector_buffer;   /* sector buffer for internal use only! */
+static U32 *ide_read_pending;    /* pending status for latest HD read */
+d103 1
+d114 2
+a115 2
+    ** attached, don't do anything else and return.  If there is
+    ** a controller/drive, initialize the device driver.
+d129 2
+d148 2
+a149 2
+        ** All the reset code was moved to a function so that it can be
+        ** called by the game.  This will hopefully allow the game to
+d151 2
+a152 2
+        ** normally.  Hard drives have been known to lock up during
+        ** Electrostatic Discharge tests.  If someone shocked you with
+d227 4
+a230 4
+** Check the status of the IDE device connected.
+** This is mainly to find out if a hard drive exists
+** or not.  If no device is found, then none of the
+** ide library functions will attempt to perform I/O.
+d244 1
+d252 5
+a256 5
+    ** Attempt to read the IDE controller's status register.
+    ** If it returns an invalid value (0xff), then assume there
+    ** is no hard drive attached.  Otherwise, find out more
+    ** information about the hard drive attached and store the
+    ** results in a device structure (work in progress).
+d259 1
+a259 13
+    if( ide_dev->csr == 0xff )
+        {
+        status = IDE_DEVICE_INVALID;
+
+        vid_clear();
+        txt_hexnum( 2, 2, (U32)ide_dev->csr, 2, RJ_ZF, RED_PAL );
+        }
+    else
+        {
+        status = IDE_DEVICE_CONNECTED;
+
+        vid_clear();
+        txt_hexnum( 2, 2, (U32)ide_dev->csr, 2, RJ_ZF, RED_PAL );
+d261 9
+a269 5
+#if (0)
+        /*
+        ** If a valid device was found, wait for it to not be busy.
+        ** (It might be busy if it hasn't come out of reset yet.)
+        */
+d271 1
+a271 3
+        ide_wait_bsy();
+#endif
+        }
+a302 1
+
+a331 1
+
+d343 1
+a343 2
+** sector of data requested.  Interrupts will be enabled if they are
+** currently turned off.
+d371 1
+a371 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d413 1
+d423 3
+a425 1
+** hard drive into the read buffer.
+d442 1
+d460 1
+a460 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d503 1
+d506 1
+a506 12
+    /*
+    ** Add the following code to the GPU task so that I can return
+    ** immediately, and let the user worry about checking the done
+    ** flag.  This does bring up the question, should I put code at
+    ** at the beginning of gpu_run_task() that waits for any pending
+    ** GPU task to complete?
+    */
+
+#if (0)
+    while( !gpu_task_complete() );
+#endif
+
+d546 1
+a546 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+a631 10
+void debug( row, str )
+U32 row;
+void *str;
+{
+#if (0)
+    txt_str( 2, row, str, RED_PAL );
+#endif
+}
+
+
+d646 1
+a646 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d841 1
+a841 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d926 1
+a926 1
+    if( ide_device_status != IDE_DEVICE_INVALID )
+a936 8
+
+#if (0)
+        vid_clear();
+        txt_decnum( 0, 0, *nheads, 8, RJ_ZF, RED_PAL );
+        txt_decnum( 0, 1, *ncylinders, 8, RJ_ZF, RED_PAL );
+        txt_decnum( 0, 2, *nsectors, 8, RJ_ZF, RED_PAL );
+        prc_delay(240);
+#endif
+d961 1
+a961 5
+#if 0
+        return(IDE_ERB_ABORTCMD);
+#else
+        return(0);  /* I think this would be preferred? */
+#endif
+d1028 1
+a1028 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d1086 1
+a1086 1
+** *******************************************************************
+d1088 3
+a1090 4
+** Calculate the approximate RPM of the IDE hard drive and return the
+** result to the caller.  Note: You must supply this routine with the
+** address of a 32-bit value that is incremented during VBLANK.
+** ===================================================================
+d1092 1
+a1092 1
+**    rpm = ide_get_rpm( &vcnt );
+d1096 1
+a1096 1
+** *******************************************************************
+d1099 1
+a1099 2
+U16 ide_get_rpm( vcnt )
+U32 *vcnt;
+d1108 2
+a1109 6
+    if( ide_device_status == IDE_DEVICE_INVALID )
+#if 0
+        return(IDE_ERB_ABORTCMD);
+#else
+        return(0);  /* preferred? */
+#endif
+d1113 1
+a1113 1
+    end_vcnt = *vcnt + 60;
+d1115 1
+a1115 1
+    while( *vcnt < end_vcnt )
+d1163 1
+a1163 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d1198 2
+a1199 1
+** RMB FIX: This isn't true if there's no valid device, or hcs is invalid.
+d1218 1
+a1218 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d1427 3
+d1433 1
+a1433 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+d1436 2
+a1437 1
+    while( *ide_alt_stat & IDE_STB_BUSY );
+a1454 2
+#define TIMEOUT (5*60)
+
+d1465 1
+a1465 1
+    timer = TIMEOUT;
+d1479 1
+a1479 1
+        timer = TIMEOUT;
+d1490 1
+a1490 1
+            timer = TIMEOUT;
+d1541 1
+a1541 1
+    if( ide_device_status == IDE_DEVICE_INVALID )
+@
+
+
+1.14
+log
+@Added temporary debug code to ide_check_devstat().
+@
+text
+@d90 1
+a90 1
+void ide_soft_reset( void );
+d169 1
+d194 3
+d198 1
+a198 1
+    ide_soft_reset();
+a232 2
+    ide_wait_bsy();
+
+d284 1
+d291 1
+d1508 3
+a1510 1
+void ide_soft_reset( void )
+d1512 1
+d1520 6
+a1525 1
+    while( (*ide_alt_stat & IDE_STB_BUSY) != IDE_STB_BUSY );
+d1527 26
+a1552 2
+    /* clear SRST bit after device */
+    *ide_alt_stat = 0x00;
+d1554 5
+a1558 3
+    /* wait for device to indicate it's not busy and is ready. */
+    while( *ide_alt_stat & IDE_STB_BUSY );
+    while( (*ide_alt_stat & IDE_STB_READY) != IDE_STB_READY );
+@
+
+
+1.13
+log
+@Rewrote disk test routine called from self-test.
+@
+text
+@d271 3
+d278 3
+@
+
+
+1.12
+log
+@Added preliminary function for resetting the hard drive and the
+IDE device driver state.  Also changed ide_init() to call this
+new function (ide_init() previously did most of ide_reset()
+itself).
+@
+text
+@d164 2
+a165 1
+        ** Electrostatic Discharge tests.
+a168 2
+
+        ide_wait_bsy();
+d1536 4
+a1539 1
+    int status;
+d1541 10
+a1550 1
+    int row = 2;
+d1552 7
+d1560 70
+a1629 1
+    status = ide_init();
+d1631 4
+a1634 2
+    txt_str(2,++row,"ide_init() returns 0x",MNORMAL_PAL);
+    txt_chexnum(status,4,RJ_ZF,MNORMAL_PAL);
+d1636 2
+a1637 23
+    txt_str(2,++row," viapt = 0x",MNORMAL_PAL);
+    txt_chexnum((U32)viapt,8,RJ_ZF,MNORMAL_PAL);
+
+    txt_str(2,++row," ide_sector_buffer = 0x",MNORMAL_PAL);
+    txt_chexnum((U32)ide_sector_buffer,8,RJ_ZF,MNORMAL_PAL);
+
+    while (1) {
+	ctls = ctl_read_sw(SW_NEXT|SW_ACTION);
+	if ( ctls & SW_NEXT ) break;
+	if ( ctls & SW_ACTION ) {
+	    U16 nheads,ncylinders,nsectors;
+	    if ( (row + 4) > AN_VIS_ROW ) row = 5;
+	    txt_str(2,++row,"Trying to get info...",INSTR_PAL);
+	    status = ide_get_hdinfo( &nheads, &ncylinders, &nsectors);
+	    txt_str(2,++row,"Hds: ",MNORMAL_PAL);
+	    txt_cdecnum(nheads,6,LJ_NF,MNORMAL_PAL);
+	    txt_cstr(" Cyls: ",MNORMAL_PAL);
+	    txt_cdecnum(ncylinders,6,LJ_NF,MNORMAL_PAL);
+	    txt_cstr(" Sects: ",MNORMAL_PAL);
+	    txt_cdecnum(nsectors,6,LJ_NF,MNORMAL_PAL);
+	}
+	prc_delay0();
+    }
+d1639 5
+a1643 1
+    return 0;
+@
+
+
+1.11
+log
+@Added high-level function ide_gread_sectors() for reading
+data from the hard drive using the main-line GPU IDE task.
+Performed general cleanup.
+@
+text
+@d141 2
+a142 2
+        ** If a valid device was found, wait for it to not be busy.
+        ** (It might be busy if it hasn't come out of reset yet.)
+d145 2
+a146 1
+        ide_wait_bsy();
+d148 2
+a149 2
+        /* reset the drive, just in case it's in an unknown state. */
+        ide_soft_reset();
+d152 2
+a153 3
+        ** Set the registers in the Via Technologies IDE chip for
+        ** better performance.  These values will vary based on the
+        ** type of the hard drive connected.
+d156 1
+a156 15
+        viapt[VIA_REG_KEY_OFFSET] = 0;      /* unlock via part */
+        viapt[VIA_REG_INDEX_OFFSET] = 1;    /* point to mode reg. */
+        viapt[VIA_REG_DATA_OFFSET] = 0xb1;  /* enable read and write FIFO */
+        viapt[VIA_REG_INDEX_OFFSET] = 3;    /* point to read timing reg. */
+        viapt[VIA_REG_DATA_OFFSET] = 0x10;  /* set read timing to 2/1 clocks */
+        viapt[VIA_REG_INDEX_OFFSET] = 4;    /* point to write timing reg. */
+        viapt[VIA_REG_DATA_OFFSET] = 0x55;  /* set write timing to 6/6 clocks */
+        viapt[VIA_REG_INDEX_OFFSET] = 2;    /* point to cmd. timing reg. */
+        viapt[VIA_REG_DATA_OFFSET] = 0x10;  /* set cmd. timing to 2/1 clocks */
+        viapt[VIA_REG_INDEX_OFFSET] = 0x0f; /* point to misc. control reg. */
+        viapt[VIA_REG_DATA_OFFSET] = 0x11;  /* enable alt status on local bus */
+        viapt[VIA_REG_KEY_OFFSET] = 1;      /* lock via part */
+
+        /* Initialize IDE interrupt status to OFF */
+        ide_int_status = IDE_INTS_OFF;
+d159 6
+a164 2
+        ** Allocate memory for holding status of latest read request.
+        ** This must be in DRAM because it is changed by the GPU ISR.
+d167 1
+a167 10
+        ide_read_pending = (U32 *)dram_alloc( 1, 0 );
+        *ide_read_pending = 0;
+
+        /* allocate a sector buffer, for internal IDE use only */
+        ide_sector_buffer = (U16 *)dram_alloc( 512 >> 3, 0 );
+
+        /* set the device pointer in the IDE interrupt's BSS area */
+        gpu_set_bss( GPU_IDE_INTERRUPT,
+                     IDE_BSS_DEVPTR,
+                     H2TADDR(viapt+IDE_REG_OFFSET) );
+a168 3
+        /* Enable DSP -> GPU Interrupts */
+        G_FLAGS |= G_DSPENA;
+
+d176 57
+@
+
+
+1.10
+log
+@minor revisions, mostly paranoid stuff when trying to get Hero 3K
+working (changes probably made no difference).  Mostly added
+a few printouts for debugging purposes.
+@
+text
+@d147 1
+a147 1
+        /* reset the drive, evidence suggests it could be in an unknown state. */
+d157 1
+a157 1
+        viapt[VIA_REG_INDEX_OFFSET] = 1;    /* point to mode register register */
+d159 1
+a159 1
+        viapt[VIA_REG_INDEX_OFFSET] = 3;    /* point to read timing register */
+d161 1
+a161 1
+        viapt[VIA_REG_INDEX_OFFSET] = 4;    /* point to write timing register */
+d163 4
+a166 4
+        viapt[VIA_REG_INDEX_OFFSET] = 2;    /* point to command timing register */
+        viapt[VIA_REG_DATA_OFFSET] = 0x10;  /* set command timing to 2/1 clocks */
+        viapt[VIA_REG_INDEX_OFFSET] = 0x0f; /* point to misc. control register */
+        viapt[VIA_REG_DATA_OFFSET] = 0x11;  /* enable alt. status on local bus */
+d372 1
+d376 1
+a376 1
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_BUFPTR, (U32)readbuf );
+d378 2
+a379 1
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_RDPEND, (U32)ide_read_pending );
+d400 100
+a843 2
+    ide_disable_interrupts(); /* enable if on CoJag */
+
+d845 1
+a845 1
+    ** This code is for host based reads on systems that don't support interrupts.
+d848 5
+d867 4
+a870 4
+    /* store buffer location and sector count in IDE interrupt's BSS area */
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_BUFPTR, (U32)readbuf );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_CNTPTR, (U32)1 );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_RDPEND, (U32)ide_read_pending );
+d872 1
+d1273 1
+a1273 1
+               /* Acknowledge HD interrupts (even though I'm not using them!) */
+@
+
+
+1.9
+log
+@Rewrote ide_init() to fix some initialization problems when
+no hard drive is connected.  Added argument to ide_hread_data()
+to allow reading more than one sector per call.  Wrote a
+test function for doing reads in multimode, it's slower but I
+will continue looking into this.
+@
+text
+@d190 2
+d648 1
+a648 1
+#define  USEHOST  (0)
+d720 2
+d725 1
+a725 4
+    volatile struct ide_ctl *ide_dev;
+    U16 i;
+
+#if 0
+d730 2
+d741 2
+a742 16
+    /* enable HD -> DSP -> GPU interrupts */
+    ide_enable_interrupts();
+
+    /* store buffer location and sector count in IDE interrupt's BSS area */
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_BUFPTR, (U32)readbuf );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_CNTPTR, (U32)1 );
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_RDPEND, (U32)ide_read_pending );
+    *ide_read_pending = 1;
+
+    ide_send_command( IDE_CMD_IDENTIFY );
+
+    while( ide_get_rdstatus() );
+
+
+#if (0)
+    /* ide_disable_interrupts(); enable if on CoJag */
+d757 13
+d771 1
+d827 8
+d1219 20
+a1238 1
+        txt_str( 2, 28, "Head, Cylinder, or Sector - Out of Range", RED_PAL );
+@
+
+
+1.8
+log
+@Added function to perform a soft reset on the drive when in ide_init().
+Fixed a bug in ide_identify() which wasn't disabling interrupts in the
+code for non-680x0 based systems.  This would cause ide_get_hdinfo() to
+fail when called after something that turned interrupts on.
+@
+text
+@d88 1
+a88 1
+static void ide_hread_data( U32 *readbuf );
+d109 1
+a109 7
+    /* Initialize IDE interrupt status to OFF */
+    ide_int_status = IDE_INTS_OFF;
+
+    /*
+    ** Allocate memory for holding status of latest read request.
+    ** This must be in DRAM because it is changed by the GPU ISR.
+    */
+a110 5
+    ide_read_pending = (U32 *)dram_alloc( 1, 0 );
+    *ide_read_pending = 0;
+
+    /* allocate a sector buffer, for internal IDE use only */
+    ide_sector_buffer = (U16 *)dram_alloc( 512 >> 3, 0 );
+d113 3
+a115 3
+    ** Set the pointer to the IDE controller registers based
+    ** on the revision number of the CoJag board.  There are
+    ** currently two board revisions.  Revision #1 registers
+d123 3
+d127 3
+a129 2
+    ** Set the registers in the Via Technologies IDE chip for better performance.
+    ** These values will vary based on the type of the hard drive connected.
+d132 47
+a178 19
+    viapt[VIA_REG_KEY_OFFSET] = 0;      /* unlock via part */
+    viapt[VIA_REG_INDEX_OFFSET] = 1;    /* point to mode register register */
+    viapt[VIA_REG_DATA_OFFSET] = 0xb1;  /* enable read and write FIFO */
+    viapt[VIA_REG_INDEX_OFFSET] = 3;    /* point to read timing register */
+    viapt[VIA_REG_DATA_OFFSET] = 0x10;  /* set read timing to 2 & 1 clocks */
+    viapt[VIA_REG_INDEX_OFFSET] = 4;    /* point to write timing register */
+    viapt[VIA_REG_DATA_OFFSET] = 0x55;  /* set write timing to 6 & 6 clocks */
+    viapt[VIA_REG_INDEX_OFFSET] = 2;    /* point to command timing register */
+    viapt[VIA_REG_DATA_OFFSET] = 0x10;  /* set command timing to 2 & 1 clocks */
+    viapt[VIA_REG_INDEX_OFFSET] = 0x0f; /* point to misc. control register */
+    viapt[VIA_REG_DATA_OFFSET] = 0x11;  /* enable alt. status on local bus */
+    viapt[VIA_REG_KEY_OFFSET] = 1;      /* lock via part */
+
+    /* reset the drive, evidence suggests it could be in an unknown state. */
+    ide_soft_reset();
+
+    /* verify that there is a device connected. */
+    if( (ide_device_status = ide_check_devstat()) == IDE_DEVICE_INVALID )
+        return( IDE_DEVICE_INVALID );
+d180 2
+a181 2
+    /* set the device pointer in the IDE interrupt's BSS area */
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_DEVPTR, H2TADDR(viapt+IDE_REG_OFFSET) );
+d183 4
+a186 2
+    /* Enable DSP -> GPU Interrupts */
+    G_FLAGS |= G_DSPENA;
+d188 4
+d463 1
+a463 1
+               ide_hread_data( readbuf );
+d494 5
+a498 5
+** *********************************************************************
+** ide_hverify_sectors():
+** Use the host processor to read sectors from the specified location
+** on the hard drive and compare against the read buffer.
+** =====================================================================
+d500 1
+a500 1
+**   status = ide_hverify_sectors( readbuf, head, cyl, sector, count );
+d502 1
+a502 1
+**   U32 *readbuf:  pointer to buffer with expected sector information.
+d506 1
+a506 1
+**   U16 count:     number of sectors to check.
+d509 3
+a511 3
+**   Zero if no error, or the number of longwords to fail comparison.
+** RMB FIX: This isn't true if there's no valid device, or hcs is invalid.
+** *********************************************************************
+d514 11
+a524 1
+U8 ide_hverify_sectors( readbuf, head, cylinder, sector, count )
+d534 1
+a534 1
+    int errors,i;
+a535 1
+    errors = 0;
+d554 13
+d568 2
+d571 3
+d578 1
+a578 3
+    ide_send_command( IDE_CMD_SREAD );
+
+    /* wait for the data to be read in */
+d584 8
+a591 4
+        while( count-- )
+               {
+               /* wait for the drive to indicate data is waiting to be read */
+               while( (*ide_alt_stat & IDE_STB_DATAREQ) != IDE_STB_DATAREQ );
+d593 2
+a594 6
+		/* read in one sector of data using the active read function */
+		for( i = 0; i < LONGS_PER_SECTOR; i++ )
+		     {
+		     errors = ( readbuf[i] != ide_dev->overlaid.ldata);
+		     }
+               readbuf += LONGS_PER_SECTOR;
+d596 1
+a596 3
+               /* Acknowledge HD interrupts (even though I'm not using them!) */
+               ackint = ide_dev->csr;
+               }
+d601 16
+d618 4
+a621 2
+    if( *ide_alt_stat & IDE_STB_ERROR ) ++errors;
+    return(errors);
+d623 1
+a623 1
+}   /* End: ide_hverify_sectors() */
+d633 1
+a633 1
+**   status = ide_hread_data( readbuf );
+d636 1
+d646 1
+a646 1
+#define  USEHOST  (1)
+d648 1
+a648 1
+static void ide_hread_data( readbuf )
+d650 1
+d671 1
+a671 1
+    for( i = 0; i < LONGS_PER_SECTOR; i++ )
+d690 1
+a690 1
+    A1_BASE = (U32)dstptr & 0xfffffff8L;
+d694 1
+a694 1
+    B_COUNT = 0x00010000 | 128;
+d724 1
+a724 1
+#if 1
+a737 6
+/*
+#if (PROCESSOR <= M68EC020)
+*/
+
+#if (0)
+
+d751 7
+a757 2
+#else
+    ide_disable_interrupts();
+d764 1
+a764 1
+    ide_hread_data( readbuf );
+d1076 92
+@
+
+
+1.7
+log
+@Added function to validate head, cylinder, and sector arguments
+passed to various read/write functions.  Made the values returned
+by functions more consistent (still needs work).  Added return
+of device status to the ide_get_hdinfo() function for Chuck
+Peplinski.
+@
+text
+@d8 1
+d17 1
+d90 1
+a134 11
+    ** Check if there's a device actually connected.  If not, you
+    ** can still call the ide functions, they just won't do anything.
+    */
+
+    if( (ide_device_status = ide_check_devstat()) == IDE_DEVICE_INVALID )
+        return( IDE_DEVICE_INVALID );
+
+    /* set the device pointer in the IDE interrupt's BSS area */
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_DEVPTR, H2TADDR(viapt+IDE_REG_OFFSET) );
+
+    /*
+d152 10
+d214 1
+a214 1
+        ** If a valid device was found, wait for it not to be busy.
+d651 4
+a655 2
+    U16 i;
+    volatile struct ide_ctl *ide_dev;
+d657 1
+d660 1
+d668 5
+a672 1
+#if (PROCESSOR <= M68020)
+d680 1
+a680 1
+
+a681 1
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_RDPEND, (U32)ide_read_pending );
+d684 1
+d688 1
+d1152 34
+@
+
+
+1.6
+log
+@added kluge for MIPS or 68k style includes (jag_defs)
+also add ide_hverify_sectors for authoring tool
+@
+text
+@a26 2
+#define  IDE_NUM_DEVICES  (1)
+
+d45 2
+d76 12
+a87 3
+static U16 num_heads;
+static U16 num_cylinders;
+static U16 num_sectors;
+a146 1
+#if (1)
+a158 1
+#endif
+d242 2
+a243 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return;
+d272 2
+a273 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return;
+d304 2
+a305 2
+**   Zero if no error occurred, or the contents of the IDE controller
+**   ERROR register if there was an error.
+d320 6
+a325 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+a345 1
+    *ide_read_pending = 1;
+d349 2
+a350 21
+
+    if( head >= num_heads )
+        {
+        txt_str( 2, 4, "Head Range Error:", RED_PAL );
+        txt_decnum( 20, 4, head, 2, RJ_ZF, GRN_PAL );
+        prc_delay(120);
+        }
+
+    if( (cylinder + (count/num_sectors)) >= num_cylinders )
+        {
+        txt_str( 2, 5, "Cylinder Range Error:", RED_PAL );
+        txt_decnum( 24, 5, cylinder, 4, RJ_ZF, GRN_PAL );
+        prc_delay(120);
+        }
+
+    if( count > 255 )
+        {
+        txt_str( 2, 6, "Sector Count Range Error:", RED_PAL );
+        txt_decnum( 28, 6, count, 3, RJ_ZF, GRN_PAL );
+        prc_delay(120);
+        }
+d366 1
+a366 1
+** *********************************************************************
+d368 3
+a370 3
+** Use the host processor to read sectors from the specified location
+** on the hard drive into the read buffer.
+** =====================================================================
+d381 3
+a383 3
+**   Zero if no error occurred, or the contents of the IDE controller
+**   ERROR register if there was an error.
+** *********************************************************************
+a385 2
+void ide_hread_data( U32 *readbuf );
+
+d399 2
+a400 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+d402 4
+d437 1
+a437 1
+               /* Acknowledge HD interrupts (even though I'm not using them!) */
+d444 11
+d463 1
+d480 2
+a481 1
+**   Zero if no error occurred, or the number of longwords to fail comparison
+d498 1
+d500 2
+a501 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+d503 4
+d552 1
+d577 1
+a577 1
+void ide_hread_data( readbuf )
+d641 2
+a642 2
+**   Zero if no error occurred, or the contents of the
+**   IDE controller ERROR register if there was an error.
+d656 2
+a657 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+d708 1
+a708 1
+** ********************************************************
+d712 1
+a712 1
+** ========================================================
+d717 2
+a718 3
+**   Zero if no error occurred, or the contents of the
+**   IDE controller ERROR register if there was an error.
+** ********************************************************
+d721 1
+a721 1
+U8 ide_get_hdinfo( nheads, ncylinders, nsectors )
+d726 5
+a730 2
+    U8 status;
+
+d733 3
+a735 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+d737 8
+a744 1
+    status = ide_identify( (U32*)ide_sector_buffer );
+d746 1
+a746 3
+    *nheads = ide_sector_buffer[3] & 0xff;
+    *ncylinders = ide_sector_buffer[1];
+    *nsectors = ide_sector_buffer[6];
+a747 8
+
+    num_heads = *nheads;
+    num_cylinders = *ncylinders;
+    num_sectors = *nsectors;
+
+
+    return( status );
+
+d767 6
+a772 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+d780 1
+a780 1
+** ***************************************
+d783 1
+a783 1
+** =======================================
+d788 2
+a789 2
+**   TRUE/FALSE of read error flag.
+** ***************************************
+d795 2
+a796 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+d804 1
+a804 1
+** ********************************************************************
+d806 3
+a808 3
+** Write a single or multiple, 512 byte sector(s) contained in the
+** write buffer to the specified location on the hard drive.
+** ====================================================================
+d819 3
+a821 3
+**   Zero if no error occurred, or the contents of the
+**   IDE controller ERROR register if there was an error.
+** ********************************************************************
+d839 2
+a840 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+d842 4
+d921 6
+a926 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+d980 2
+a981 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+d983 4
+d999 49
+d1086 1
+a1086 1
+** *********************************************************
+d1089 1
+a1089 1
+** =========================================================
+d1098 1
+a1098 1
+** *********************************************************
+d1107 4
+a1113 3
+    /* Don't do anything if there's no device! */
+    if( ide_device_status == IDE_DEVICE_INVALID ) return(0);
+
+d1135 2
+a1136 1
+    if( ide_device_status == IDE_DEVICE_INVALID ) return;
+@
+
+
+1.5
+log
+@don't even _think_ of reading the error register, or even
+the alternate status register, if a transfer is in progress.
+@
+text
+@d8 9
+a16 2
+
+#define NEED_CORP_DEFS
+d18 1
+d20 1
+d454 83
+@
+
+
+1.4
+log
+@New version of IDE device driver.  Works on both 68K based
+CoJag systems and R3K based CoJag systems.  Generally
+cleaned up the code and incorrect comments.  Added extra
+functions to support host based disk reads in addition to
+the existing GPU based read routines.  Removed word-swap
+code from all disk I/O functions.  Modified ide_get_rpm()
+in order for it to work on R3K.  Changed read/write
+functions to accept pointers to (U32 *) buffers rather
+than (U16 *) buffers.
+@
+text
+@d67 4
+d129 1
+d142 1
+a298 1
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+d327 22
+d357 1
+a357 5
+    /* If an error occurred -- return it, else return zero for no error */
+    if( *ide_alt_stat & IDE_STB_ERROR )
+        return( ide_dev->overlaid.bdata.precomp_error );
+    else
+        return(0);
+d592 1
+a592 5
+    /* If an error occurred -- return it, else return zero for no error */
+    if( *ide_alt_stat & IDE_STB_ERROR )
+        return( ide_dev->overlaid.bdata.precomp_error );
+    else
+        return(0);
+d629 6
+a923 1
+    VU8 *ide_alt_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+d936 1
+a936 5
+    /* If an error occurred -- return it, else return zero for no error */
+    if( *ide_alt_stat & IDE_STB_ERROR )
+        return( ide_dev->overlaid.bdata.precomp_error );
+    else
+        return(0);
+@
+
+
+1.3
+log
+@Fixed ide_read_sectors to avoid looking at error register
+after sending a read command.
+@
+text
+@d9 1
+d55 1
+a55 1
+#define JINTCTRL  (*(VU16*)(JERRY_BASE+0x20))  /* Jerry's Interupt control reg*/
+a61 1
+
+d78 1
+a78 1
+**   Nothing.
+d88 1
+a88 1
+    ** Allocate memory for holding status of latest read request
+d102 2
+a103 2
+    ** are located at (0xffd00000), and Revision #2 registers
+    ** are located at (0xffe00000).
+d106 2
+a107 2
+    viapt = (VU8 *)0xFFD00000;
+    if ( cojag_rev == 2 ) viapt = (VU8 *)0xFFE00000;
+d134 2
+a135 2
+    viapt[VIA_REG_INDEX_OFFSET] = 0x0f; /* point to ??? register */
+    viapt[VIA_REG_DATA_OFFSET] = 0x11;  /* set ENABLE */
+d159 1
+a160 1
+**   (U16)IDE_DEVICE_CONNECTED: Device recognized.
+d190 2
+a191 1
+        ** Do other things to validate the device here.
+d194 1
+d203 1
+a203 1
+** *************************************************
+d205 2
+a206 2
+** Enable External -> DSP and DSP -> GPU interrupts.
+** =================================================
+d212 1
+a212 1
+** *************************************************
+d215 2
+d225 1
+a225 2
+        JINTCTRL = 1;
+        JINTCTRL2 = 0;
+d234 1
+a234 1
+** **************************************************
+d236 2
+a237 2
+** Disable External -> DSP and DSP -> GPU interrupts.
+** ==================================================
+d239 1
+a239 1
+**   ide_enable_interrupts();
+d243 1
+a243 1
+** **************************************************
+d254 1
+a254 2
+        JINTCTRL = 0;
+        JINTCTRL2 = 0;
+d263 1
+a263 1
+** *********************************************************************
+d265 5
+a269 5
+** Send a command to read sectors to the IDE controller.  When the data
+** is ready, the hard drive will interrupt the GPU once for each sector
+** of data requested.  Interrupts will be enabled if they are currently
+** turned off.
+** =====================================================================
+d271 1
+a271 1
+**   status = ide_read_sectors( readbuf, head, cyl, sec_num, sec_cnt );
+d273 1
+a273 1
+**   U16 *readbuf:  pointer to buffer to hold sector information.
+d276 2
+a277 2
+**   U16 sec_num:   sector number to read.
+**   U16 sec_cnt:   number of sectors to read into buffer.
+d280 3
+a282 2
+**   U8 status:  Contents of IDE controller ERROR register.
+** *********************************************************************
+d285 2
+a286 2
+U8 ide_read_sectors( readbuf, head, cylinder, sec_num, sec_cnt )
+U16 *readbuf;
+d289 2
+a290 2
+U16 sec_num;
+U16 sec_cnt;
+d293 1
+d308 8
+a315 1
+    /* store buffer location and sector count in IDE interrupt's BSS area */
+d317 1
+a317 2
+    gpu_set_bss( GPU_IDE_INTERRUPT, IDE_BSS_CNTPTR, (U32)sec_cnt );
+
+d326 2
+a327 2
+    ide_dev->overlaid.bdata.snum = (U8)sec_num;
+    ide_dev->overlaid.bdata.scnt = (U8)(sec_cnt & 0x00ff);
+d330 5
+a334 6
+    /*
+    ** Return the status from the IDE controller.  Note that this mostly
+    ** relates to whether the registers set above were valid, it does not
+    ** have anything to do with the actual read since that may still be
+    ** pending.
+    */
+a335 8
+    return(0);
+
+#if (0)
+    return( IDE_REG_ERROR );
+#else
+    return( ide_dev->overlaid.bdata.precomp_error );
+#endif
+
+d343 1
+a343 2
+** on the hard drive into the read buffer.  Make sure that the buffer
+** is large enough to hold the number of sectors requested!
+d346 1
+a346 1
+**   status = ide_hread_sectors( readbuf, head, cyl, sec_num, sec_cnt );
+d348 1
+a348 1
+**   U16 *readbuf:  pointer to buffer to hold sector information.
+d351 2
+a352 2
+**   U16 sec_num:   sector number to read.
+**   U16 sec_cnt:   number of sectors to read into buffer.
+d355 2
+a356 1
+**   U8 status:  Contents of IDE controller ERROR register.
+d360 1
+a360 2
+#include <blit.h>
+#include <blitlib.h>
+d362 2
+a363 4
+#define  USEHOST  (1)
+
+U8 ide_hread_sectors( readbuf, head, cylinder, sec_num, sec_cnt )
+U16 *readbuf;
+d366 2
+a367 2
+U16 sec_num;
+U16 sec_cnt;
+a368 1
+
+a369 10
+    U32 *rdptr;
+
+#if USEHOST
+    U16 i;
+    U32 data;
+#else
+    U32 srcptr;
+    U32 dstptr;
+#endif
+
+a370 1
+    VU32 *ide_data;
+a379 3
+    /* set ptr to IDE controller data register */
+    ide_data = &ide_dev->overlaid.ldata;
+
+d390 2
+a391 2
+    ide_dev->overlaid.bdata.snum = (U8)sec_num;
+    ide_dev->overlaid.bdata.scnt = (U8)(sec_cnt & 0x00ff);
+d400 1
+a400 4
+        rdptr = (U32 *)readbuf;
+
+#if USEHOST
+        while( sec_cnt-- )
+d405 2
+a406 4
+               /* read in one sector of data using the active read function */
+               for( i = 0; i < LONGS_PER_SECTOR; i++ )
+                    {
+                    data = *ide_data;
+a407 4
+                    *rdptr++ = ((data << 16) & 0xffff0000) |
+                               ((data >> 16) & 0x0000ffff);
+                    }
+
+a410 5
+#else
+        while( sec_cnt-- )
+               {
+               /* wait for the drive to indicate data is waiting to be read */
+               while( (*ide_alt_stat & IDE_STB_DATAREQ) != IDE_STB_DATAREQ );
+d412 2
+a413 3
+               /* convert host addresses to Tom addresses */
+               srcptr = (U32)H2TADDR( ide_data );
+               dstptr = (U32)H2TADDR( rdptr );
+d415 5
+a419 1
+               blit_wait();
+d421 1
+a421 5
+               /* set up the blitter's source registers */
+               A2_FLAGS = WID128 | PIXEL32 | PITCH1 | XADD0;
+               A2_BASE = (U32)srcptr & 0xfffffff8;
+               A2_PIXEL = ((U32)srcptr & 0x7) >> 2;
+               A2_STEP = 0;
+a422 5
+               /* set up the blitter's destination registers */
+               A1_FLAGS = WID128 | PIXEL32 | PITCH1 | XADDPIX;
+               A1_BASE = (U32)dstptr & 0xfffffff8L;
+               A1_PIXEL = ((U32)dstptr & 0x7) >> 2;
+               A1_STEP = 0;
+d424 15
+a438 2
+               B_COUNT = 0x00010000 | 128;
+               B_CMD = SRCEN|LFU_REPLACE;
+d440 2
+a441 1
+               rdptr += LONGS_PER_SECTOR;
+d443 13
+a455 3
+               /* Acknowledge HD interrupts (even though I'm not using them!) */
+               ackint = ide_dev->csr;
+               }
+a457 2
+        ide_wait_bsy();
+        }
+d459 2
+a460 1
+    return( ide_dev->overlaid.bdata.precomp_error );
+d462 2
+a463 1
+}   /* End: ide_hread_sectors() */
+d465 10
+d476 21
+d506 1
+a506 1
+**   U16 *readbuf:  ptr to buffer for holding drive info.
+d509 2
+a510 1
+**   U8 status:  Contents of IDE controller ERROR register.
+d515 1
+a515 1
+U16 *readbuf;
+d517 2
+d520 1
+d529 2
+a543 2
+#if (0)
+    return( IDE_REG_ERROR );
+d545 11
+a555 1
+    return( ide_dev->overlaid.bdata.precomp_error );
+d558 17
+d588 2
+a589 1
+**   U8 status:  Contents of IDE controller ERROR register.
+d604 1
+a604 1
+    status = ide_identify( ide_sector_buffer );
+d668 1
+a668 1
+**   status = ide_write_sectors( wrbuf, head, cyl, sec_num, sec_cnt );
+d670 1
+a670 1
+**   U16 *wrbuf:   pointer to buffer containing sectors to write.
+d673 2
+a674 2
+**   U16 sec_num:  sector number to write to.
+**   U16 sec_cnt:  number of sectors in buffer to write.
+d677 2
+a678 1
+**   U8 status:  Contents of IDE controller ERROR register.
+d682 2
+a683 2
+U8 ide_write_sectors( wrbuf, head, cylinder, sec_num, sec_cnt )
+U16 *wrbuf;
+d686 2
+a687 2
+U16 sec_num;
+U16 sec_cnt;
+a690 1
+    U32 *wrptr;
+d707 2
+d714 2
+a715 2
+    ide_dev->overlaid.bdata.snum = (U8)sec_num;
+    ide_dev->overlaid.bdata.scnt = (U8)(sec_cnt & 0x00ff);
+d721 1
+a721 3
+        wrptr = (U32 *)wrbuf;
+
+        while( sec_cnt-- )
+d727 1
+a727 4
+                    *ide_data = ((*wrptr << 16) & 0xffff0000) |
+                                       ((*wrptr >> 16) & 0x0000ffff);
+
+                    wrptr++;
+d740 5
+a744 1
+    return( ide_dev->overlaid.bdata.precomp_error );
+d770 1
+d776 2
+d784 7
+d792 1
+d794 1
+d818 1
+a818 1
+U16 *verify_buffer;
+d830 2
+a831 1
+    ide_read_sectors( ide_sector_buffer, head, cylinder, sector, 1 );
+d885 1
+a885 1
+**   error_status = ide_send_command( cmd );
+d890 2
+a891 1
+**   U8 status:  Contents of IDE controller ERROR register.
+d899 1
+d912 5
+a916 3
+    return(0);
+
+    return( ide_dev->overlaid.bdata.precomp_error );
+@
+
+
+1.2
+log
+@Added error function which works in conjunction with
+error handling code in GPUDISP.GAS ide interrupt handler.
+@
+text
+@d14 1
+a14 4
+#if (0)
+/* IDE definitions now in config.h, so they can know about host processor */
+#include <ide.h>
+#endif
+a18 3
+#if (1)
+const int cojag_rev = 1;
+#else
+a19 1
+#endif
+d54 2
+a55 2
+#define JINTCTRL  (*(VU16*)(0x0FFF10020))  /* Jerry's Interupt control reg*/
+#define JINTCTRL2 (*(VU16*)(0x0FFF10022))  /* Trash*/
+d60 2
+a80 1
+static VU8 *viapt;
+a83 6
+#if 0
+    /* Set the memory configuration so IDE interface works. */
+    MEMCON1 = 0x587d;
+    MEMCON2 = 0x35cc;
+#endif
+
+d98 7
+a105 3
+    /* Set the pointer to one of the two currently possible locations
+     * for the IDE chip.
+     */
+d121 2
+a122 3
+    ** Set the registers in the Via Technologies IDE chip for
+    ** better performance.  These values will vary based on
+    ** the type of the hard drive connected.
+a124 1
+
+a129 6
+
+#if 0
+/* timing stuff to change for Brian at some later date */
+    viapt[VIA_REG_DATA_OFFSET] = 0x21;  /* set read timing to 3 & 2 clocks */
+#endif
+
+a133 6
+
+#if 0
+/* timing stuff to change for Brian at some later date */
+    viapt[VIA_REG_DATA_OFFSET] = 0x21;  /* set command timing to 3 & 2 clocks */
+#endif
+
+d148 1
+a148 1
+** *************************************************
+d151 4
+a154 5
+** This is mainly to find out if a hard drive
+** exists or not.  If no device is found, then
+** none of the ide library functions will
+** attempt to perform any I/O.
+** =================================================
+d159 3
+a161 3
+**   (U16)0: No device recognized.
+**   (U16)1: Device recognized.
+** *************************************************
+d168 3
+d172 10
+a181 2
+ 
+   if( ide_dev->csr == 0xff )
+d183 1
+a183 1
+        status = 0;
+d187 1
+a187 1
+        status = 1;
+d218 1
+d221 2
+a222 3
+        /* Enable External -> DSP interrupts */
+        JINTCTRL = 1;    /* [0xf10020] */
+        JINTCTRL2 = 0;   /* [0xf10022] */
+d248 1
+d251 2
+a252 3
+        /* Disable External -> DSP interrupts */
+        JINTCTRL = 0;    /* [0xf10020] */
+        JINTCTRL2 = 0;   /* [0xf10022] */
+a289 1
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+d291 1
+d295 3
+d310 1
+a312 7
+#if (0)
+    IDE_REG_DRIVEHEAD = DRIVE_HEAD_INFO | (U8)(head & 0x000f);
+    IDE_REG_LCYLINDER = (U8)(cylinder & 0x00ff);
+    IDE_REG_HCYLINDER = (U8)((cylinder >> 8) & 0x00ff);
+    IDE_REG_SNUM = (U8)sec_num;
+    IDE_REG_SCOUNT = (U8)(sec_cnt & 0x00ff);
+#else
+a317 1
+#endif
+d326 3
+d334 1
+d339 141
+a498 1
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+d500 1
+d504 3
+d550 1
+a615 3
+**
+** Note: Writing sectors to the hard drive is not interrupt driven,
+** so you MUST disable interrupts before calling this function.
+d642 1
+a642 1
+    VU8 *ide_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+a643 2
+    ide_dev = (volatile struct ide_ctl *)(viapt + IDE_REG_OFFSET);
+    ide_data = &ide_dev->overlaid.ldata;
+d645 1
+d649 7
+d658 1
+a658 7
+#if (0)
+    IDE_REG_DRIVEHEAD = DRIVE_HEAD_INFO | (U8)(head & 0x000f);
+    IDE_REG_LCYLINDER = (U8)(cylinder & 0x00ff);
+    IDE_REG_HCYLINDER = (U8)((cylinder >> 8) & 0x00ff);
+    IDE_REG_SNUM = (U8)sec_num;
+    IDE_REG_SCOUNT = (U8)(sec_cnt & 0x00ff);
+#else
+a663 1
+#endif
+d667 1
+a667 1
+    if( (*ide_stat & IDE_STB_ERROR) == 0 )
+d673 1
+a673 1
+               while( (*ide_stat & IDE_STB_DATAREQ) != IDE_STB_DATAREQ );
+d691 1
+a691 1
+    while( *ide_stat & IDE_STB_DATAREQ );
+d718 1
+a718 1
+    VU8 *ide_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+d730 2
+a731 2
+           while( !(*ide_stat & IDE_STB_INDEX) );
+           while( *ide_stat & IDE_STB_INDEX );
+d834 3
+d838 1
+d842 1
+d846 2
+d862 2
+a863 1
+    VU8 *ide_stat = (viapt + IDE_REG_ALT_STATUS_OFFSET);
+d867 1
+a867 1
+    while( *ide_stat & IDE_STB_BUSY );
+d872 15
+d893 1
+d924 2
+a925 1
+}
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d473 1
+a473 1
+    return( gpu_get_bss( GPU_IDE_INTERRUPT, 5 ) );
+@

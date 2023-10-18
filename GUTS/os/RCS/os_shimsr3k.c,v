@@ -1,0 +1,3431 @@
+head	1.61;
+access;
+symbols
+	CJ_206:1.60
+	CJ2_05:1.60
+	CJ2_04:1.59;
+locks; strict;
+comment	@ * @;
+
+
+1.61
+date	97.07.01.22.40.48;	author albaugh;	state Exp;
+branches;
+next	1.60;
+
+1.60
+date	96.11.07.20.12.14;	author albaugh;	state Exp;
+branches;
+next	1.59;
+
+1.59
+date	96.06.17.21.01.51;	author albaugh;	state Exp;
+branches;
+next	1.58;
+
+1.58
+date	96.03.29.00.35.33;	author forrest;	state Exp;
+branches;
+next	1.57;
+
+1.57
+date	96.03.19.04.21.30;	author shepperd;	state Exp;
+branches;
+next	1.56;
+
+1.56
+date	96.03.01.23.21.12;	author forrest;	state Exp;
+branches;
+next	1.55;
+
+1.55
+date	96.03.01.23.01.35;	author forrest;	state Exp;
+branches;
+next	1.54;
+
+1.54
+date	96.02.29.05.10.02;	author shepperd;	state Exp;
+branches;
+next	1.53;
+
+1.53
+date	96.02.26.18.20.55;	author forrest;	state Exp;
+branches;
+next	1.52;
+
+1.52
+date	96.02.23.22.25.49;	author shepperd;	state Exp;
+branches;
+next	1.51;
+
+1.51
+date	96.02.23.21.04.05;	author shepperd;	state Exp;
+branches;
+next	1.50;
+
+1.50
+date	96.02.22.03.53.27;	author shepperd;	state Exp;
+branches;
+next	1.49;
+
+1.49
+date	96.02.21.03.51.47;	author shepperd;	state Exp;
+branches;
+next	1.48;
+
+1.48
+date	96.02.17.00.31.59;	author shepperd;	state Exp;
+branches;
+next	1.47;
+
+1.47
+date	96.02.16.18.05.17;	author shepperd;	state Exp;
+branches;
+next	1.46;
+
+1.46
+date	96.02.14.18.45.41;	author shepperd;	state Exp;
+branches;
+next	1.45;
+
+1.45
+date	96.02.10.03.39.02;	author shepperd;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	96.01.25.19.14.19;	author shepperd;	state Exp;
+branches;
+next	1.43;
+
+1.43
+date	96.01.23.21.46.02;	author shepperd;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	96.01.19.18.22.55;	author shepperd;	state Exp;
+branches;
+next	1.41;
+
+1.41
+date	96.01.19.04.13.41;	author shepperd;	state Exp;
+branches;
+next	1.40;
+
+1.40
+date	95.12.20.20.28.28;	author shepperd;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	95.12.16.03.31.13;	author shepperd;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	95.12.15.04.58.12;	author shepperd;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	95.12.15.02.05.01;	author shepperd;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	95.12.12.17.57.29;	author shepperd;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	95.12.12.03.09.15;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	95.12.12.02.03.00;	author shepperd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	95.12.12.01.59.56;	author shepperd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	95.12.11.21.51.30;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	95.12.11.21.23.22;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	95.12.08.21.21.21;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	95.12.07.21.13.44;	author forrest;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	95.12.07.20.45.08;	author forrest;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	95.12.05.02.13.02;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	95.12.02.22.18.58;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	95.11.29.23.31.06;	author forrest;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	95.11.19.06.06.43;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	95.11.15.21.27.32;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	95.11.14.04.17.06;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	95.11.10.23.33.46;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	95.11.10.18.46.13;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	95.11.10.03.02.51;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	95.11.08.22.38.34;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	95.11.06.21.09.51;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	95.11.01.20.37.48;	author forrest;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	95.10.31.20.37.33;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	95.10.31.19.40.27;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.10.31.02.29.16;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.10.17.01.37.17;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.10.12.00.42.01;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.09.28.18.44.52;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.09.28.18.12.38;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.09.12.20.55.48;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.07.28.20.22.13;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.07.19.22.45.55;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.07.17.23.48.12;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.07.10.19.34.41;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.06.28.21.13.49;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.06.28.18.32.36;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.06.28.17.50.57;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@These are the lowest level stubs and interfaces to asm to get the GUTS up on the hardware.  All of the C defined "prc" functions are here.
+@
+
+
+1.61
+log
+@Added RCS ID string
+@
+text
+@/*
+ *	os_shimsr3k.c (and os_shimsr4k.c)
+ *
+ *		Copyright 1995 Time Warner Interactive, Inc.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+
+#define LCD_GUTS_ONLY
+#include <config.h>
+#include <os_root.h>
+
+#if !defined(NO_PRC_DELAY)
+# define NO_PRC_DELAY 0
+#endif
+
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == MB4600)
+# define R4K_HOST 1
+#else
+# define R4K_HOST 0
+#endif
+
+#if (HOST_BOARD == LCR3K)
+# define R3K_HOST 1
+#else
+# define R3K_HOST 0
+#endif
+
+#if !defined(ICELESS_STUB)
+#define ICELESS_STUB 0
+#endif
+
+#if !defined(TINY_MODE)
+# define TINY_MODE 0
+#endif
+
+#if TINY_MODE
+# if ICELESS_STUB > 0
+#   undef ICELESS_STUB
+#   define ICELESS_STUB 0
+# endif
+#endif
+
+#if HOST_BOARD != MB4600 && VIDEO_BOARD == ZOID20_V
+#  include <zoid_proto.h>
+#endif
+
+#if (HOST_BOARD == MB4600) && (!ICELESS_STUB)
+#  if !TINY_MODE
+#    include <zmbcom.h>
+#  endif
+#  include <zmbdiags.h>
+#endif
+
+#if ICELESS_STUB > 0
+#  if (HOST_BOARD == HCR4K)
+extern void set_timer_rate(int);
+#  endif
+#endif
+
+extern int prc_set_ipl(int);
+
+#if TINY_MODE == 0
+# define NUM_ELTS(x) (sizeof(x)/sizeof(x[0]))
+
+extern void begin();
+extern int prc_get_ipl();
+
+# if VIDEO_BOARD == COJAG_V
+#  define NEED_CORP_DEFS
+#  include <config.h>
+# endif
+
+# ifndef mS_PER_TICK
+#  if VIDEO_BOARD == ZOID20_V
+#   define mS_PER_TICK 1
+#  else
+#   define mS_PER_TICK 4
+#  endif
+# endif
+
+# if ICELESS_STUB == 0
+
+#  define offsetof(s, m)    (int)(&(((s *)0)->m))
+
+#  if HOST_BOARD != MB4600
+#   include <eer_defs.h>
+#  endif
+
+#  include <os_proto.h>
+
+extern struct pconfigb def_pbase;
+struct pconfigb *pbase;
+extern void SelfTest(int cold);
+extern void eer_user_purge();
+#  if VIDEO_BOARD != ZOID20_V /* tmp - fom */
+extern void soft_wait_vblank();
+#  endif /* tmp - fom */
+
+# endif			/* ICELESS_STUB == 0 */
+
+# if ICELESS_STUB > 0
+#  include <icelesspkt.h>
+# endif
+
+# define POWERUP (0xC0EDBABE)
+extern unsigned long powerUp;
+# if R4K_HOST
+extern void blink3(int time);
+int prc_mod_latch(int new);
+# endif
+
+extern void pause(int);
+#endif			/* TINY_MODE == 0 */
+
+extern void wait_n_ticks(int);
+extern int isprintf(char *, const char *, ...);
+
+#define DO_XBUS_TEST 0
+
+#if DO_XBUS_TEST
+static void do_quick_lcd() {
+    int ii;
+    for (ii=0; ii<100; ++ii) {
+	wait_n_ticks(133000/2);
+	++lcd_time;
+	lcd_update();
+    }
+    return;
+}
+#endif
+
+unsigned short bitshd;
+
+void BootUp() {
+#if TINY_MODE == 0
+# if ICELESS_STUB == 0
+#  if HOST_BOARD != MB4600
+   extern struct pconfigp PBASE;
+   unsigned long cold_boot;
+#  else
+   extern void main(void);
+#  endif		/* HOST_BOARD != MB4600 */
+# endif			/* ICELESS_STUB == 0 */
+# if HOST_BOARD == MB4600
+   extern int s_main(void);
+# elif ICELESS_STUB != 0 
+   extern int main();
+# endif			/* ICELESS_STUB != 0 */
+
+# if HOST_BOARD == HCR4K
+
+  prc_mod_latch(CTS_ZERO_MAP|CTS_XBUS_RST);
+
+  set_timer_rate(65536);
+
+# endif
+
+# if HAS_LCD
+   lcd_reset();
+# endif
+
+# if defined(IOLEDS0SET)
+   IOLEDS0SET(0xFF);
+# endif
+
+# if HOST_BOARD == LCR3K
+   *(unsigned long *)XB_RESET = 0; /* unleash the hardware */
+# endif			/* HOST_BOARD == LCR3K */
+
+# if ICELESS_STUB == 0
+
+#  if HOST_BOARD != MB4600
+   pbase = &def_pbase;		/* for now, we just use our dummy pconfigb */
+   if ( PBASE.p_validate == PB_VALID && PBASE.p_configb ) pbase = PBASE.p_configb;
+#  endif		/* HOST_BOARD != MB4600 */
+
+#  if (INCLUDE_FEXCP && HOST_BOARD == HCR4K) || (HOST_BOARD == LCR3K && FLOATEXEC_LVL)
+   {
+       extern void init_fpu(void);
+#   if HOST_BOARD == LCR3K
+       extern struct cpu_params cpu_params;
+       if (cpu_params.cpu_type == 3081) init_fpu();
+#   else
+       init_fpu();
+#   endif
+   }
+#  endif
+
+#  if HOST_BOARD != MB4600
+   cold_boot = powerUp ^ POWERUP;
+   powerUp = POWERUP;
+
+   SelfTest(cold_boot);		/* now goto selftest */
+#  else
+   main();				/* just go to main on mathbox */
+#  endif
+# else		/* ICELESS_STUB == 0 */
+
+#  if HOST_BOARD == MB4600
+   s_main();
+#  else
+   main();
+#  endif	/* HOST_BOARD == MB4600 */
+# endif		/* ICELESS_STUB == 0 */
+#else		/* !TINY_MODE */
+   extern void s_main(void);
+   s_main();
+#endif		/* !TINY_MODE */
+}
+
+#if TINY_MODE || ICELESS_STUB == 0
+extern struct pm_general pm_data;
+extern U32 INIT_SP;
+extern U32 bss_end;
+#endif
+
+#if TINY_MODE == 0
+# if ICELESS_STUB == 0
+#  if ((PROCESSOR&-16) == MIPS4000)
+extern void flush_cache(void);
+void stub_start(void) {
+    flush_cache();		/* make sure any variables are written to memory */
+    begin();			/* doesn't return from here */
+}
+#  endif
+
+void prc_reboot() {		/* reboot */
+# if HOST_BOARD != MB4600
+   int cnt;
+# endif
+
+   prc_set_ipl(INTS_OFF);	/* disable interrupts */
+   /* Setting pm_cntr to -42 means that the reset which we
+    * are about to undergo is expected, so don't complain
+    * when we get to pm_dump().
+    */
+   pm_data.pm_cntr = -42;	/* this means something to Mike */
+   pm_data.pm_msg = 0;
+# if HOST_BOARD != MB4600
+   eer_user_purge();		/* clear any open user recs w/o writing them */
+   while(1) {
+      prc_delay(0);		/* wait until next vblank */
+      if (eer_busy() == 0) break; /* keep looping until all eeprom is written */
+   }
+   for (cnt=0; cnt < 40; ++cnt) vid_waitvb(0);	/* count frames */ 
+# endif
+# if HOST_BOARD == LCR3K
+   *((unsigned long *)XB_RESET) = 1;	/* wdog didn't kick in, so try it ourself */
+# endif
+# if ((PROCESSOR&-16) == MIPS4000)
+   flush_cache();		/* make sure our variables are written to memory */
+# endif
+   begin();			/* never comes back from here */
+}
+
+# if HOST_BOARD != MB4600 && !NO_PRC_DELAY
+
+void (*prc_delay_vec)(void);
+
+#  if VIDEO_BOARD == ZOID20_V /* tmp - fom */
+
+void prc_delay(int cnt)
+{
+ do
+  if (prc_delay_vec) (*prc_delay_vec)();
+  else
+   if (vid_waitvb(0) == 0)
+   {
+    eer_hwt();
+    ctl_upd_sw();
+   }
+ while (cnt-- > 0);
+}
+
+#  else /* if VIDEO_BOARD == ZOID20_V */ /* tmp - fom */
+
+void prc_delay(int cnt) {
+#  define IMASK  ((0x100<<VBI_LVL)|SR_IEC)
+   if ((prc_get_ipl()&IMASK) != IMASK) {	/* interrupts not enabled for vblank */
+      for (;cnt >= 0;--cnt) {
+	 extern void eer_hwt();
+   	 extern void soft_wait_vblank();
+	 soft_wait_vblank();
+	 eer_hwt();
+	 ctl_upd_sw();
+#  if HOST_BOARD == LCR3K
+	 WDOG = 1;			/* kick the dog */
+#  endif
+      }
+   } else {
+      extern volatile unsigned long eer_rtc;
+      int old_rtc;
+      for (; cnt >= 0; --cnt) {
+	 old_rtc = eer_rtc;
+	 while (old_rtc == eer_rtc);
+      }
+   }
+   return;
+}
+
+#  endif /* if VIDEO_BOARD == ZOID20_V */ /* tmp - fom */
+
+void prc_delay0() {
+   prc_delay(0);
+}
+# endif
+
+void prc_cache_init(int cache_on) {	/* cache is always on on this processor */
+   return;
+}
+# endif				/* ICELESS_STUB == 0 */
+#endif				/* TINY_MODE == 0 */
+
+int prc_mod_latch(int new) {
+#if R4K_HOST || defined(LATCH)
+   int old_sr;
+
+   if (new == 0) return bitshd;		/* just report what it currently is */
+   old_sr = prc_set_ipl(INTS_OFF);	/* disable interrupts */
+   if (new < 0) {		
+      bitshd &= new;		/* negative, we AND out the cooresponding bits */
+   } else {
+      bitshd |= new;		/* positive, we OR in the cooresponding bits */
+   }
+# if !R4K_HOST
+   LATCH = new = bitshd;
+# else
+   new = bitshd;
+   lcl_set_latch(new);
+#  ifdef CTS_XBUS_INT
+   if ((new&CTS_XBUS_INT) != 0) {
+      new = (bitshd &= ~CTS_XBUS_INT); 	/* make sure the XBUS_INT bit is not left on */
+      lcl_set_latch(new);
+   }
+#  endif
+# endif
+   prc_set_ipl(old_sr);		/* re-enable interrupts */
+#endif
+   return new;
+}
+
+#if ICELESS_STUB == 0
+void (*ms4vec)(void);
+#endif
+
+#if R3K_HOST
+static int sync;
+#else
+extern int adj_usclock();
+#endif
+
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == LCR3K)
+static U32 *his_zclock;
+
+U32 *set_timer_ptr(U32 *ptr) {
+    U32 *old;
+    old = his_zclock;
+    his_zclock = ptr;
+    return old;
+}
+#endif
+   
+#if TINY_MODE == 0
+# if HAS_LCD 
+static int biffle;
+# endif
+
+# if ICELESS_STUB == 0 && HOST_BOARD == HCR4K
+static struct pll {
+    int millisecs;
+    int prev_eerrtc;
+    int ticks;
+} pll_data;
+
+void (*volatile tpllvec)(void);
+
+void timer_pll() {
+    struct pll *pll;
+    pll =  &pll_data;
+    if (pll->prev_eerrtc == 0) {
+	if (eer_rtc < 5*60) return;
+	pll->prev_eerrtc = eer_rtc;
+	pll->millisecs = 0;
+	pll->ticks = 0;
+	return;
+    }
+    ++pll->millisecs;
+    if (eer_rtc == pll->prev_eerrtc) return;
+    pll->prev_eerrtc = eer_rtc;
+    ++pll->ticks;
+    if (pll->ticks < 60) return;
+    pll->ticks = 0;
+    if (pll->millisecs == 1000) {
+#if !LOOK_FOR_ACTION_Q_BUG
+	pll->prev_eerrtc = 0;			/* enable ourself to re-execute */
+	if (tpllvec == timer_pll) tpllvec = 0;	/* and remove ourself from execution */
+	return;
+#endif
+    } else {
+	int new_rate;
+	new_rate = (set_timer_rate(0)*pll->millisecs)/1000;
+	set_timer_rate(new_rate);
+    }
+    pll->millisecs = 0;
+    return;
+}
+# endif
+
+void cputimerint() {
+# if R3K_HOST
+   volatile int junk;   
+   unsigned long * volatile timr = (unsigned long *)TIMER_BASE;
+
+   junk = timr[0];		/* dismiss the interrupt */
+   timr[0] = mS_PER_TICK-1;	/* set the timer to ~xMs */
+
+   ++sync;
+   if ((sync&3) != 0) {
+#  if ICELESS_STUB == 0
+      ++usclock;
+#  endif
+      if (his_zclock) *his_zclock += 1;
+   }
+
+# else		/* R3K_HOST */
+   int adj;
+   adj = adj_usclock();
+#  if ICELESS_STUB == 0
+   usclock += adj;
+#   if (HOST_BOARD == HCR4K)
+   if (his_zclock) *his_zclock += adj;
+#   endif
+#   if (HOST_BOARD == HCR4K)
+#    if !LOOK_FOR_ACTION_Q_BUG
+   if (tpllvec) tpllvec();
+#    else
+   if (tpllvec) {
+	static volatile struct act_q pllq;
+        if (!pllq.que) {
+	    pllq.action = tpllvec;
+	    pllq.param = 0;
+	    prc_q_action((struct act_q *)&pllq);
+        }
+   }
+#    endif
+#   endif
+#  endif	/* ICELESS_STUB == 0 */
+# endif		/* R3K_HOST */
+
+
+# if HAS_LCD
+   ++lcd_time;
+   lcd_update();
+   XBUSMON0_LED = ~(biffle/256);
+   ++biffle;
+# endif
+
+#if HOST_BOARD == HCR4K /* moved from ztv_irq if R4K ... */
+    /* maintain the timer queue by running tq_maint() with an
+     * argument that says it has been 1000 microseconds since the
+     * last call.
+    */
+    tq_maint(1000);
+#endif                  /* ... fom 3/28/96 */
+
+}
+
+# if ICELESS_STUB == 0 
+/* prc_q_action takes a pointer to an "action" structure and puts it at the
+ * end of the queue, provided it is not already on a queue. Otherwise, it
+ * returns a pointer to the "queue head" for the queue it is already on
+ * (including this one).
+ */
+
+volatile struct act_q irq_action;
+
+struct act_q *prc_q_action(struct act_q *new) {
+   int old_sr;
+   volatile struct act_q *ans = 0;	/* assume success */
+   if (!new) return 0;		/* cover bonehead move */
+   old_sr = prc_set_ipl(INTS_OFF); /* has to work w/o interrupts */
+   if (new->que == 0) {		/* not currently on any queue */
+      ans = &irq_action;	/* point to head of action queue */
+      while (ans) {		/* while the pointer is not empty */
+	 if (ans->next == new ) {
+	    ans = &irq_action;	/* already in this queue */
+	    break;
+	 }
+	 if (ans->next == 0) {	/* found the last member */
+	    new->next = 0;
+	    new->que = (struct act_q *)&irq_action; /* say what queue we're on */
+	    ans->next = new;	/* we're the new last member */
+	    ans = 0;		/* return 0 to say it worked */
+	    break;
+	 }
+	 ans = ans->next;
+      }
+   } else {
+      if (new->que != &irq_action) {
+	 ans= new->que;
+      }
+   }
+   prc_set_ipl(old_sr);
+   return (struct act_q *)ans;
+}
+# else		/* ICELESS_STUB == 0 */
+
+int disable_int() {
+   int ii;
+   ii = prc_get_ipl();
+   prc_set_ipl(ii & ~SR_IEC);
+   return ii;
+}
+
+int enable_int(int ps) {
+   return prc_set_ipl(ps);
+}
+
+# endif		/* ICELESS_STUB == 0 */
+
+volatile int exception_count;
+volatile int interrupt_count;
+
+# if ICELESS_STUB == 0
+
+#  if HOST_BOARD != MB4600
+static volatile int inest;
+#  endif 
+
+# else		/* ICELESS_STUB == 0 */
+
+U32 last_int_disabl;
+
+# endif		/* ICELESS_STUB == 0 */
+
+# if ICELESS_STUB == 0 
+
+void process_action_q(int old_ps, int new_ps) {
+      struct act_q * volatile act;
+      void (*rtn)(void *);
+      static void (*savrtn)(void *);
+
+      while ((act=irq_action.next) != 0) {
+         void *param;
+	 irq_action.next = act->next;	/* pluck this entry from the queue */
+	 act->next = 0;			/* make sure we don't get in too big of a loop */
+	 act->que = 0;			/* timer action seems to want this cleared too */
+	 savrtn = rtn = (void (*)(void *))act->action;	/* remember the function */
+         param = act->param;		/* remember the parameter */
+	 if (rtn) {
+	     prc_set_ipl(new_ps);
+	     if (rtn != savrtn) {
+		prc_panic("Act_q_rtn clobbered");
+	     }
+	     rtn(param);		/* call his function if there is one */
+	     prc_set_ipl(old_ps);	/* restore the SR to pre-action schedule */
+	 }
+      } 				/* continue until the queue is empty */
+      return;
+}
+# endif
+
+# if ICELESS_STUB == 0 || HOST_BOARD == HCR4K
+extern void (*(*exception_tbl)[])();
+# endif
+
+# if ICELESS_STUB == 0
+void interrupt_handler(unsigned long *regs) {
+#  if HOST_BOARD == MB4600
+   regs[PS_REGNUM_W] &= ~SR_IMASK;	/* no interrupts allowed on MB right now */
+#  else
+   int which;
+   int new, ii, start, did;
+   void (*func)();
+
+#  if LOOK_FOR_ACTION_Q_BUG
+   static volatile int aq;
+   int oldinest;
+   oldinest = inest;
+   if (inest > 0 && !aq) {
+       __asm__("break");
+   }
+#  endif
+
+   ++interrupt_count;
+   ++inest;
+
+   start = 0;
+   do {
+       did = 0;			/* and assume we didn't do anything */
+       which = prc_get_cause() & regs[PS_REGNUM_W] &SR_IMASK;
+       for (ii=start, new=0x100<<ii; ii < 8; ++ii, new += new) {
+	  if ((new&which) != 0) {
+	     if (ii < 2) regs[CAUSE_REGNUM_W] &= ~new;	/* ACK the s/w interrupt */
+	     func = (*exception_tbl)[VN_IRQ0 + ii];
+	     if (func == 0) {
+		if (ii != ICELESS_LVL) {
+		   regs[PS_REGNUM_W] &= ~new; /* don't allow this interrupt anymore */
+		   prc_set_ipl(prc_get_ipl()&~new); /* remember the local value too */
+		}
+	     } else {
+		did = 1;
+#   if defined(FLOATEXEC_LVL)
+		if (ii == FLOATEXEC_LVL) {
+		    U32 (*fexc)(U32 *regs);
+		    fexc = (U32 (*)(U32*))func;
+		    fexc(regs);
+		    continue;
+		}
+#   endif
+		func();	/* go to user's interrupt routine */
+	     }
+	  }
+       }
+       start = 2;		/* next time we skip the s/w interrupt check */
+   } while (did);
+   if (inest == 1) {
+      int old_ps, new_ps;
+      old_ps = prc_get_ipl();	/* interrupts are disabled at this point */
+      new_ps = old_ps | SR_IE;	/* allow interrupts for action routine execution */
+#   if LOOK_FOR_ACTION_Q_BUG
+      ++aq;
+#   endif
+      process_action_q(old_ps, new_ps);
+#   if LOOK_FOR_ACTION_Q_BUG
+      if ((prc_get_ipl()&0x7) == 0x1) {
+	 __asm__("break;");	/* enable only ICELESS interrupts from here */
+      }
+      if (inest != 1) {
+	 __asm__("break;");	/* enable only ICELESS interrupts from here */
+      }
+      --aq;
+#   endif
+   }
+   --inest;
+#   if LOOK_FOR_ACTION_Q_BUG
+   if (oldinest != inest) {
+      __asm__("break");
+   }
+   if (inest > 0 && !aq) {
+      __asm__("break");
+   }
+#   endif
+#  endif			/* HOST_BOARD == MB4600 */
+   return;
+}
+# endif			/* ICELESS_STUB == 0 */
+#endif			/* TINY_MODE == 0 */
+
+#if ICELESS_STUB
+extern void handle_exception(unsigned long *);
+extern int got_attention(int);
+void (*exception_funcs[VN_MAX])();
+#else
+extern void wait_forever();
+#endif
+
+static const char * const pm_cause_msgs[] = {
+      "Interrupt",
+      "Write to read-only memory",
+      "Read from non-existant memory",
+      "Write to non-existant memory",
+      "Address alignment error on read",
+      "Address alignment error on write",
+      "Bus error on I fetch",
+      "Bus error on D fetch",
+      "SYCALL",
+      0,				/* breakpoint */
+      "Reserved Instruction",
+      "CoProcessor unusable",
+      "Arithmetic Overflow",
+# if (PROCESSOR & -16) == MIPS4000
+      "Trap exception",
+      "Reserved exception",
+      "Floating point exception",
+# endif
+      "Undefined exception"
+};
+
+# if 0
+/*************************************************************************
+ * gcc has assigned the following numbers on the BREAK instruction to report
+ * various conditions at runtime. We have also assigned one for "unhandled
+ * interrupt" for use on the RISQ, HCR4K and MB4600 boards. Some of these
+ * breakpoints are not likely to be used by the 4K compiler.
+ *
+ * If you want to add more, stick them just before "Multiply overflow".
+ *************************************************************************/
+
+static const char * const pm_break_msgs[] = {
+      "Debug breakpoint",			/* BREAK 0 */
+      "Kernel breakpoint",			/* BREAK 1 */
+      "Abort",					/* BREAK 2 */
+      "Taken BD emulation",			/* BREAK 3 */
+      "Not taken BD emulation",			/* BREAK 4 */
+      "Single step breakpoint",			/* BREAK 5 */
+      "Overflow check",				/* BREAK 6 */
+      "Divide by zero",				/* BREAK 7 */
+      "Range check",				/* BREAK 8 */
+#  if R4K_HOST
+      "Unhandled interrupt",			/* BREAK 9 */
+#  endif
+      "Multiply overflow",			/* BREAK 1023 (this MUST be second to last) */
+      "Breakpoint"				/* any other break (this MUST be last) */
+};
+# endif			/* 0 */
+
+#define NUM_ELEMS(array) (sizeof(array)/sizeof(array[0]))
+#define MAX_CAUSE_MSG (NUM_ELEMS(pm_cause_msgs) - 1)
+#define MAX_BREAK_MSG (NUM_ELEMS(pm_break_msgs) - 2)
+#define MULOVF_MSG    (NUM_ELEMS(pm_break_msgs) - 2)
+#define BREAK_MSG     (NUM_ELEMS(pm_break_msgs) - 1)
+
+const char *get_pm_msg(int cause) {
+   int ii;
+   const char *ans;
+
+   ii = (cause&0x7C)/4;
+   if (ii > MAX_CAUSE_MSG) ii = MAX_CAUSE_MSG;
+   if (ii == 9) {		/* if breakpoint */
+# if 0
+      U32 jj;
+      jj = pm_data.pm_instr;	/* get the failing instruction */
+      jj >>= 16;		/* get the code bits */
+      jj &= 0x3FF;		/* isolate them */
+      if (jj == 1023) {
+	 jj = MULOVF_MSG;
+      } else if (jj >= MAX_BREAK_MSG) {
+	 jj = BREAK_MSG;
+      }
+      ans = pm_break_msgs[jj];
+# else
+      ans = "Breakpoint";
+# endif
+   } else {
+      ans = pm_cause_msgs[ii];
+   }
+   return ans;
+}
+
+#if TINY_MODE || ICELESS_STUB == 0
+static void update_pm(U32 *regs) {
+# if REGISTER_SIZE == 4
+    memcpy((char *)(pm_data.pm_regs+1), (char *)(regs+1), 31*4);
+# else
+    {
+       int jj, kk;
+       for (jj=1, kk=AT_REGNUM_W; jj<32; ++jj, kk += 2) {
+  	  pm_data.pm_regs[jj] = regs[kk];
+       }
+    }
+# endif
+    pm_data.pm_regs[0] = 0;		/* r0 is always 0 */
+    pm_data.pm_cause = regs[CAUSE_REGNUM_W];	/* remember the cause */
+    pm_data.pm_stack = (U32*)regs[SP_REGNUM_W];
+    pm_data.pm_stkupper = &INIT_SP;
+    pm_data.pm_stklower = &bss_end;
+    pm_data.pm_stkrelative = pm_data.pm_stack;
+    pm_data.pm_badvaddr = regs[BADVADDR_REGNUM_W];
+    pm_data.pm_pc = regs[PC_REGNUM_W];
+    pm_data.pm_sr = regs[PS_REGNUM_W];
+#if (0)
+    /* Following is a _B_I_G_ misunderstanding of what pm_cntr
+     * is supposed to be, and can lead to corruption of EEPROM
+     * pm_cntr.c is _supposed_ to be an indicator of which
+     * Error-counter in EEPROM (if any) to increment.
+     */
+    ++pm_data.pm_cntr;
+#endif
+    pm_data.pm_msg = get_pm_msg(regs[CAUSE_REGNUM_W]);
+# if HOST_BOARD == LCR3K
+    HEALTH = 0;		/* turn off the GREEN LED */
+# endif
+# if (HOST_BOARD == MB4600)
+    {
+        ZmbDiagMsgs *m = (ZmbDiagMsgs *)&ZMB_COMM[ZMB_DIAGS];
+        m->msg = (U32)pm_data.pm_msg & 0x000FFFFF;
+        m->regs = (U32)pm_data.pm_regs & 0x000FFFF;
+        m->stack = regs[SP_REGNUM_W];
+        m->pc = regs[PC_REGNUM_W];
+        m->sr = regs[PS_REGNUM_W];
+        m->cause = regs[CAUSE_REGNUM_W];
+        m->badvaddr = regs[BADVADDR_REGNUM_W];
+        ZMB_COMM[ZMB_STATUS] = ZMB_FLAG_EXCEPT;
+        ZMB_COMM[ZMB_SENTINEL] = ZMB_FLAG_IDLE;
+        prc_mod_latch(CTS_XBUS_INT);
+    }
+# endif			/* (HOST_BOARD == MB4600) */
+}
+#endif			/* TINY_MODE || ICELESS_STUB == 0 */
+
+unsigned long *exception_handler(unsigned long *regs) {
+#if TINY_MODE == 0 && ICELESS_STUB == 0
+   int ii;
+   ++exception_count;
+   if ((ii=(regs[CAUSE_REGNUM_W]>>2)&0x1F) != 0) {
+#  if HOST_BOARD != MB4600
+      void (*func)();
+      func = (*exception_tbl)[ii+VN_TLBM-1];
+      if (func) {
+	  func();
+      } else {	 
+#  endif
+#endif
+#if TINY_MODE || (ICELESS_STUB == 0)
+        update_pm(regs);
+# if HOST_BOARD == MB4600
+	{
+	    int ii;
+	    VU32 *tmp, junk;
+	    tmp = (VU32 *)(RRBUS_BASE+0x00400000);	/* point to some random place */
+	    for (ii=0; ii < 16384/32; ++ii, tmp += 8) junk = *tmp; /* flush the data cache */
+	    while (1);
+	}
+# else
+	wait_forever();
+# endif
+#endif
+#if TINY_MODE == 0
+# if ICELESS_STUB == 0
+#  if HOST_BOARD != MB4600
+      }
+#  endif
+   } else {
+      interrupt_handler(regs);
+   }
+# else			/* ICELESS_STUB == 0 */
+   ++exception_count;
+#  if 1
+   if ((regs[CAUSE_REGNUM_W]&0x7C) == 0) {	/* if IRQ */
+      int which, sts;
+      which = (regs[CAUSE_REGNUM_W]&SR_IMASK) & (regs[PS_REGNUM_W]&SR_IMASK);
+      if ((which&0x400) != 0) {			/* if ICELESS IRQ */
+	 last_int_disabl = (U32)exception_handler;
+#   if !NO_INTS
+	 prc_set_ipl((regs[PS_REGNUM_W]&0xFB00)|1); /* re-enable other interrupts */
+#   endif
+	 sts = got_attention(TWI_THREAD);	/* read a packet, reset the attention flag */
+#   if !NO_INTS
+	 prc_set_ipl(regs[PS_REGNUM_W]);	/* restore the PS */
+#   endif
+	 if (sts) handle_exception(regs);	/* pretend we got an exception */
+      } else {
+	  int ii, new;
+	  for (new = 0x100, ii = 0; ii < 8; ++ii, new += new) {
+	     if ((new&which) != 0) {
+    		 extern void (*irq_table[])();
+	         void (*func)();
+		 func = irq_table[ii];
+		 if (func == 0) {
+		    regs[PS_REGNUM_W] &= ~new; /* don't allow this interrupt anymore */
+		 } else {
+		    func();		/* go to user's interrupt routine */
+		 }
+	      }
+	  }
+      }      
+      return regs;
+   }	 
+#  endif				/* 1 */
+#  if HOST_BOARD == HCR4K
+   if ((regs[CAUSE_REGNUM_W]&0x7C) == (15<<2)) {	/* Floating point exception? */
+      void (*func)();
+      func = (*exception_tbl)[VN_FPE];	/* yep. Have a handler? */
+      if (func) {
+	 func(regs);			/* yep, call it */
+	 return regs;			/* and exit */
+      }
+   }
+#  endif
+   handle_exception(regs);
+# endif					/* ICELESS_STUB == 0 */
+#endif					/* TINY_MODE == 0 */
+   return regs;
+}
+
+#if (TINY_MODE == 0) && (1 || ICELESS_STUB == 0)
+void eer_write_byte(volatile unsigned char *where, volatile unsigned char *unlock, int what) {
+   int old_sr;
+# if R4K_HOST
+   int tmp;
+# endif
+
+   old_sr = prc_set_ipl(INTS_OFF);
+# if R4K_HOST
+   tmp = *unlock;
+   *where = what;
+   tmp = *where;
+# else
+   *unlock = 0;
+   *where = what;
+# endif
+   prc_set_ipl(old_sr);
+   return;
+}
+#endif			/* 1 || ICELESS_STUB == 0 */
+
+void __main() {
+   return;
+}
+@
+
+
+1.60
+log
+@Documented meaning of pm_cntr == -42. Deleted erroneous
+(and dangerous) increment of pm_cntr.
+@
+text
+@d9 3
+@
+
+
+1.59
+log
+@Changed mis-named US_PER_TICK to mS_PER_TICK. Allowed
+default values to be over-ridden by config.
+@
+text
+@d235 4
+d764 6
+d771 1
+@
+
+
+1.58
+log
+@Moved tq_maint call to cputimerint if HCR4K.
+@
+text
+@d75 6
+a80 4
+# if VIDEO_BOARD == ZOID20_V
+#  define US_PER_TICK 1
+# else
+#  define US_PER_TICK 4
+d413 1
+a413 1
+   timr[0] = US_PER_TICK-1;	/* set the timer to ~xMs */
+@
+
+
+1.57
+log
+@Removed all references to unused cpp variable DIAG_MODE
+@
+text
+@d454 8
+@
+
+
+1.56
+log
+@Fixed previous change.
+@
+text
+@d89 1
+a89 3
+#  if !DIAG_MODE
+#   include <os_proto.h>
+#  endif
+d456 1
+a456 1
+# if ICELESS_STUB == 0 && DIAG_MODE == 0
+d494 1
+a494 1
+# else		/* ICELESS_STUB == 0 && DIAG_MODE == 0*/
+d507 1
+a507 1
+# endif		/* ICELESS_STUB == 0 && DIAG_MODE == 0 */
+d524 1
+a524 1
+# if ICELESS_STUB == 0 && DIAG_MODE == 0
+d858 1
+a858 1
+#if (TINY_MODE == 0) && (DIAG_MODE == 0) && (1 || ICELESS_STUB == 0)
+@
+
+
+1.55
+log
+@Got rid of static struct pconfigb no_game.
+@
+text
+@d175 1
+a175 1
+   pbase = def_pbase;		/* for now, we just use our dummy pconfigb */
+@
+
+
+1.54
+log
+@Made tpllvec volatile
+@
+text
+@a100 5
+#  if HOST_BOARD != MB4600
+static struct pconfigb no_game;
+extern struct pconfigp PBASE;
+#  endif
+
+d140 1
+d175 1
+a175 2
+   no_game = def_pbase;		/* clone the default pbase */
+   pbase = &no_game;		/* for now, we just use our dummy pconfigb */
+@
+
+
+1.53
+log
+@Added volatile to unsigned char *where in eer_write_byte().
+@
+text
+@d378 1
+a378 1
+void (*tpllvec)(void);
+@
+
+
+1.52
+log
+@Oops. The previous fix failed to deal with unhandled interrupts.
+@
+text
+@d866 1
+a866 1
+void eer_write_byte(unsigned char *where, volatile unsigned char *unlock, int what) {
+@
+
+
+1.51
+log
+@Added some debug code to help find the interrupt crash problem.
+@
+text
+@d594 1
+@
+
+
+1.50
+log
+@Declared inest as a volatile which is what it should have been.
+@
+text
+@d12 1
+a116 1
+extern void prc_set_led(int);
+a318 3
+# if R4K_HOST
+   extern void lcl_set_latch(int val);
+# endif
+a348 2
+extern int usclock;
+
+d441 6
+a446 4
+	static struct act_q pllq;
+	pllq.action = tpllvec;
+	pllq.param = 0;
+	prc_q_action(&pllq);
+d568 1
+a568 1
+   int new, ii;
+d571 9
+d583 14
+a596 10
+   which = (regs[CAUSE_REGNUM_W]&SR_IMASK) & (regs[PS_REGNUM_W]&SR_IMASK);
+   for (new = 0x100, ii = 0; ii < 8; ++ii, new += new) {
+      if ((new&which) != 0) {
+	 if (ii < 2) regs[CAUSE_REGNUM_W] &= ~new;	/* ACK the s/w interrupt */
+	 func = (*exception_tbl)[VN_IRQ0 + ii];
+	 if (func == 0) {
+	    if (ii != ICELESS_LVL) {
+	       regs[PS_REGNUM_W] &= ~new; /* don't allow this interrupt anymore */
+	    }
+	 } else {
+d598 6
+a603 6
+            if (ii == FLOATEXEC_LVL) {
+                U32 (*fexc)(U32 *regs);
+		fexc = (U32 (*)(U32*))func;
+		fexc(regs);
+		continue;
+	    }
+d605 6
+a610 5
+	    func();	/* go to user's interrupt routine */
+	 }
+      }
+   }
+
+d613 4
+a616 5
+      old_ps = regs[PS_REGNUM_W];
+#   if (PROCESSOR & -16) == MIPS3000
+      new_ps = (old_ps&0xFF00) | ((old_ps&0x3C)>>2);
+#   else
+      new_ps = old_ps&0xFF01;
+d619 9
+d630 8
+@
+
+
+1.49
+log
+@Added some conditional code that might help find this crash
+we are having.
+@
+text
+@d519 2
+a520 2
+int exception_count;
+int interrupt_count;
+d525 1
+a525 1
+static int inest;
+@
+
+
+1.48
+log
+@Fiddled with process_action_q et al in an effort to reduce the
+chances for error.
+@
+text
+@d402 1
+d406 1
+d442 1
+d444 8
+d537 1
+a537 1
+      volatile struct act_q *act;
+@
+
+
+1.47
+log
+@Added special case for FPE on the 4K processor.
+@
+text
+@d462 1
+a462 1
+struct act_q irq_action;
+d466 1
+a466 1
+   struct act_q *ans = 0;	/* assume success */
+d477 2
+a479 2
+	    new->next = 0;
+	    new->que = &irq_action; /* say what queue we're on */
+d491 1
+a491 1
+   return ans;
+a523 3
+#  if HOST_BOARD == HCR4K
+static old_cause;
+#  endif
+d526 1
+a526 1
+      struct act_q *act;
+d528 2
+a529 3
+#  if HOST_BOARD == HCR4K
+      extern int prc_get_cause(void);
+#  endif
+d531 1
+d535 10
+a544 7
+#  if HOST_BOARD == HCR4K
+	 old_cause = prc_get_cause();
+#  endif
+	 prc_set_ipl(new_ps);
+	 rtn = (void (*)(void *))act->action;	/* remember the function */
+	 if (rtn) rtn(act->param);	/* call his function if there is one */
+	 prc_set_ipl(old_ps);		/* restore the SR to pre-action schedule */
+@
+
+
+1.46
+log
+@Added a call to init_fpu() if 4K too.
+@
+text
+@d550 1
+a550 1
+# if ICELESS_STUB == 0
+d552 1
+d554 1
+d810 10
+@
+
+
+1.45
+log
+@Fixed bug in prc_q_action where it incorrectly returned non-zero on success.
+@
+text
+@d184 1
+a184 1
+#  if HOST_BOARD == LCR3K && FLOATEXEC_LVL
+d186 2
+a188 1
+       extern void init_fpu(void);
+d190 3
+d524 4
+d531 3
+a533 1
+
+d538 3
+@
+
+
+1.44
+log
+@Further protected the #include of zmbcom.h.
+@
+text
+@d452 6
+d462 4
+a465 3
+   struct act_q *ans = 0;
+   old_sr = prc_set_ipl(INTS_OFF);
+   if (new->que == 0) {		/* not on any queue */
+d472 2
+a473 2
+	 if (ans->next == 0) {
+	    ans->next = new;	/* put it on the queue */
+d475 2
+a476 2
+	    ans = &irq_action;
+	    new->que = ans;
+@
+
+
+1.43
+log
+@Removed MB4600 from conditional on the #include of zmbcom.h
+@
+text
+@d49 3
+a51 1
+#  include <zmbcom.h>
+@
+
+
+1.42
+log
+@Fixed the 1MS pll code.
+@
+text
+@d433 1
+a433 1
+#   if (HOST_BOARD == HCR4K || HOST_BOARD == MB4600)
+@
+
+
+1.41
+log
+@Added a cputimer phase lock loop to set the 1MS timer to run at 1000 per
+VB interval then remove itself from the system.
+Deleted some dead code in the cputimer routine.
+@
+text
+@d396 2
+a397 2
+	pll->prev_eerrtc = 0;
+	if (tpllvec == timer_pll) tpllvec = 0;	/* remove ourself from execution */
+d400 2
+a401 12
+	int dif, old_rate, new_rate, adj;
+	new_rate = old_rate = set_timer_rate(0);
+	dif = pll->millisecs-1000;
+	adj = (dif*100)/1000;
+	if (adj == 0) {
+	    new_rate += dif*10;
+	} else {
+	    if (adj >  25) adj =  25;
+	    if (adj < -25) adj = -25;
+	    adj += 100;
+	    new_rate = (old_rate*adj)/100;
+	}
+@
+
+
+1.40
+log
+@Added support for floating point exception handler in R3k code.
+@
+text
+@d370 49
+d443 2
+a444 2
+#   if 0
+   if (ms4vec) ms4vec();	/* call user's function (if any) */
+@
+
+
+1.39
+log
+@Removed the WDOG call in timerint.
+@
+text
+@d182 8
+@
+
+
+1.38
+log
+@Protected the inclusion os zmbcom.h with ICELESS_STUB
+@
+text
+@a399 3
+# ifdef WDOG
+   WDOG = 0;			/* kick the dog */
+# endif
+@
+
+
+1.37
+log
+@Removed all NUCLEUS_OS conditionals.
+Added some floating point exception handler support.
+@
+text
+@d48 1
+a48 1
+#if HOST_BOARD == MB4600
+@
+
+
+1.36
+log
+@Combat CRS and fix yesterday's kludge.
+@
+text
+@a28 4
+#if !defined(NUCLEUS_OS)
+#define NUCLEUS_OS 0
+#endif
+
+a41 4
+# if NUCLEUS_OS > 0
+#  undef NUCLEUS_OS
+#  define NUCLEUS_OS 0
+# endif
+a108 6
+# if NUCLEUS_OS > 0
+extern U32 TMD_HISR_Priority;
+extern U32 *TMD_HISR_Stack_Ptr;
+extern U32 _HISR_Stack[], TMD_HISR_Stack_Size, HISR_SIZE;
+# endif
+
+a173 6
+# if NUCLEUS_OS > 0
+   TMD_HISR_Priority = 0;
+   TMD_HISR_Stack_Ptr = _HISR_Stack;
+   TMD_HISR_Stack_Size = HISR_SIZE;
+# endif			/* NUCLEUS_OS > 0 */
+
+d456 1
+a456 1
+#  if NUCLEUS_OS == 0 && HOST_BOARD != MB4600
+d466 1
+a466 1
+# if ICELESS_STUB == 0 && NUCLEUS_OS == 0 && DIAG_MODE == 0
+a495 1
+#   if NUCLEUS_OS == 0
+a496 1
+#   endif
+a501 6
+#   if NUCLEUS_OS > 0
+         {
+	    int int_level = (ii < 2)?ii+6:ii-2;
+	    TCC_Dispatch_LISR(int_level);
+	 }
+#   else		/* NUCLEUS_OS > 0 */
+d508 8
+a519 1
+#   endif		/* NUCLEUS_OS > 0 */
+a520 1
+#   if NUCLEUS_OS == 0
+d524 1
+a524 1
+#    if (PROCESSOR & -16) == MIPS3000
+d526 1
+a526 1
+#    else
+d528 1
+a528 1
+#    endif
+a531 1
+#   endif			/* NUCLEUS_OS == 0 */
+@
+
+
+1.35
+log
+@Added a kludge around wait_forever, since it doesn't seem to work yet.
+@
+text
+@d715 2
+a716 2
+	    tmp = (VU32 *)DRAM_BASE;
+	    for (ii=0; ii < 16384/32; ++ii) junk = *tmp++;	/* flush the cache */
+@
+
+
+1.34
+log
+@Never mind. That didn't work.
+@
+text
+@d711 9
+d721 1
+@
+
+
+1.33
+log
+@Added a call to prc_init_vecs in BootUp
+@
+text
+@a205 1
+   prc_init_vecs();		/* set the local vectors */
+@
+
+
+1.32
+log
+@These #if's are gettig too twisty. Fixed the conditionals around his_zclock again.
+@
+text
+@d206 2
+a207 1
+   SelfTest(cold_boot);				/* now goto selftest */
+d405 1
+a405 1
+   if (his_zclock) *zhis_zclock += adj;
+@
+
+
+1.31
+log
+@Put MB4600 conditional around his_zclock
+@
+text
+@d366 1
+a366 1
+#if !TINY_MODE && (HOST_BOARD != MB4600)
+a367 1
+#endif
+a368 1
+#if (HOST_BOARD == HCR4K) || (HOST_BOARD == LCR3K)
+d403 3
+a405 1
+   if (his_zclock) *his_zclock += adj;
+@
+
+
+1.30
+log
+@Removed a bunch of #if 0'd out code.
+Removed all references to prc_set_vec().
+@
+text
+@d366 1
+a366 1
+#if !TINY_MODE
+@
+
+
+1.29
+log
+@Changed prc_reboot() to call vid_waitvb(0) instead of soft_wait_vblank().
+@
+text
+@d61 1
+a61 14
+#if ICELESS_STUB == 0
+# if HOST_BOARD != MB4600
+#  include <intvecs.h>
+# endif
+# if (HOST_BOARD == HCR4K)
+extern void xbus_irq(void);
+# else
+extern void xbus0_irq(void);
+extern void xbus1_irq(void);
+extern void xbus2_irq(void);
+extern void xbus3_irq(void);
+# endif
+void cputimerint(void);
+# else
+a160 5
+#if 0
+   int ii;
+   void (**u32p)();
+   void (**func)();
+#endif
+a171 35
+#if 0
+  prc_set_ipl(INTS_OFF);
+  while (1) {
+      int bits;
+      for (bits=0x04; bits < 0x10000000; bits += bits) {
+         VU32 *vup;
+         vup = ((bits&0x0E000000) == 0) ? (VU32*)(XBUS_SLOT1|bits) : (VU32*)(XBUS_SLOT0|bits) ;
+	 wait_n_ticks(100);
+	 *vup = 0xFFFFFFFF;
+      }
+  }
+#endif
+
+#if 0
+  {
+      VU32 *vup;
+      U8 bits;
+      extern void wait_n_ticks(int);
+      vup = (VU32 *)XBUS_SLOT77;
+      while (1) {
+	 for (bits=1; bits; bits += bits) {
+	    *vup = ~bits;
+	    wait_n_ticks(13000000/4);
+/*	    wait_n_ticks(100); */
+ 	 }
+         *vup = 0xFF;
+	 for (bits=1; bits; bits += bits) {
+	    IOLEDS0SET(bits);
+	    wait_n_ticks(13000000/4);
+ 	 }
+         IOLEDS0SET(0);
+      }
+  }
+#endif
+
+a179 60
+#if DO_XBUS_TEST
+  {
+     VU32 *vup;
+     int ii, jj, xbinc, loop;
+
+     ZMB_CSR = ((1<<B_ZMB_INTACK) | (1<<B_ZMB_HRESET)) & ~(1<<B_ZMB_RESET_N); /* plink reset on the MB to show we're alive */
+     wait_n_ticks(133000000/2);
+
+#define XB_FIRST	1
+#define XB_LAST		6
+#define XB_ASSUME	3
+#define XB_SIZE		(2*1024*1024/4)
+
+     xbinc = (XBUS_SLOT1-XBUS_SLOT0)/4;
+     for (ii=XB_FIRST, vup=(VU32 *)XBUS_SLOT0+ii*xbinc; ii < XB_LAST+1; ++ii, vup += xbinc) {
+	for (jj=0; jj < XB_SIZE; ++jj) {
+	    vup[jj] = ~(jj*4);
+	}
+	for (jj=0; jj < XB_SIZE; ++jj) {
+	    U32 tmp;
+	    tmp = vup[jj];
+	    if (tmp != ~(jj*4)) break;
+	}
+	if (jj >= XB_SIZE) break;
+     }
+     if (ii < XB_LAST+1) {
+	isprintf(lcd_buf, "Found 2MB memory in slot %d", ii);
+	isprintf(lcd_buf+40, "XBUS is ok");
+     } else {
+	isprintf(lcd_buf, "No memory found. Assuming slot %d", XB_ASSUME);
+	isprintf(lcd_buf+40, "XBUS is broken");
+	prc_set_led(1);
+	ii = XB_ASSUME;
+     }
+     do_quick_lcd();
+     for (loop=0;;++loop) {
+        isprintf(lcd_buf+80-6, "%6d", loop);
+        do_quick_lcd();
+	for (vup=(VU32 *)XBUS_SLOT0+ii*xbinc, jj=0; jj < XB_SIZE; ++jj) {
+	    vup[jj] = ~(jj*4);
+	}
+	for (jj=0; jj < XB_SIZE; ++jj) {
+	    U32 tmp;
+	    tmp = vup[jj];
+	    if (tmp != ~(jj*4)) {
+                extern void memset(char *, int, int);
+                memset(lcd_buf, ' ', 80);
+		isprintf(lcd_buf, "Failed @@ %d loop; slot %d, adr %07X", loop, ii, jj*4);
+		isprintf(lcd_buf+40, "data is %08X, s/b %08X", tmp, ~(jj*4));
+                do_quick_lcd();
+		while (1) {
+    		    *(VU32 *)(BRAM_UNLK+4) = ~(jj*4);
+		    tmp = vup[jj];
+		}
+	    }		
+	}
+     }
+  }
+#endif
+
+a180 1
+#  if 1
+a181 9
+#  else
+   ii = 0;
+   while (1) {
+      extern void wait_n_ticks(int);
+      IOLEDS0SET(++ii&0xFF);
+      prc_set_led(ii);
+      wait_n_ticks(4000000);
+   }
+#  endif
+a183 18
+# if 0 && HOST_BOARD == LCR3K
+   for (ii=0; ii<8; ii++)
+   {
+	   HEALTH = (ii&1) ? 0 : 1;
+	   pause(0x80000);
+   }
+   HEALTH = 0;
+# endif			/* HOST_BOARD == LCR3K */
+
+# if 0 && R4K_HOST
+   while (1) blink3(0x100000);
+# endif			/* R4K_HOST */
+
+# if 0 && R4K_HOST
+   prc_mod_latch(0xFFFF);		/* first set all the bits */
+   prc_mod_latch(~(CTS_LED_CR3|CTS_LED_CR2|CTS_WDOG)); 	/* then turn on all 3 LED's */
+# endif			/* R4K_HOST */
+
+a200 21
+
+# if HOST_BOARD == HCR4K
+   prc_set_vec(XBUS_INTVEC, xbus_irq);		/* load the patchable vectors */
+# else
+#  if HOST_BOARD == LCR3K
+   {
+       extern void normal_exception(), cheap_exception();
+       prc_set_vec(XBUS0_INTVEC, xbus0_irq);	/* load the patchable vectors */
+       prc_set_vec(XBUS1_INTVEC, xbus1_irq);	/* load the patchable vectors */
+       prc_set_vec(XBUS2_INTVEC, xbus2_irq);	/* load the patchable vectors */
+       prc_set_vec(XBUS3_INTVEC, xbus3_irq);	/* load the patchable vectors */
+       prc_set_vec(NORMAL_INTVEC, normal_exception); /* Do this until all the old stub's have been replaced */
+#   if !NO_CHEAP_EXCEPTION
+       prc_set_vec(CHEAP_INTVEC, cheap_exception);   /* ditto */
+#   endif
+   }
+#  endif
+# endif
+# if HOST_BOARD != MB4600
+   prc_set_vec(TIMER_INTVEC, cputimerint);
+# endif
+@
+
+
+1.28
+log
+@New prc_delay using prc_delay_vec and vid_waitvb() for VIDEO_BOARD == ZOID20_V.
+Mike Albaugh will bring jag_vid's vid_waitvb() up to date in the future.
+@
+text
+@d115 1
+d117 1
+d416 1
+a416 1
+   for (cnt=0; cnt < 40; ++cnt) soft_wait_vblank();	/* count frames */ 
+@
+
+
+1.27
+log
+@Added conditional NO_CHEAP_EXCEPTION to exclude cheap exception handler.
+@
+text
+@d428 18
+d469 2
+@
+
+
+1.26
+log
+@Removed the #include of xbusmon.h
+@
+text
+@d352 1
+d354 1
+@
+
+
+1.25
+log
+@Changed from get_sr() to prc_get_ipl().
+@
+text
+@d10 1
+a58 5
+#endif
+
+#if HAS_LCD
+# define GUTS_ONLY
+# include <xbusmon.h>
+@
+
+
+1.24
+log
+@Made get_pm_msg present in all configurations.
+@
+text
+@a430 1
+   extern int get_sr();
+d432 1
+a432 1
+   if ((get_sr()&IMASK) != IMASK) {	/* interrupts not enabled for vblank */
+@
+
+
+1.23
+log
+@Added a TINY_MODE and DIAG_MODE for use with R4K MB diagnostics.
+@
+text
+@a711 1
+#if TINY_MODE || (ICELESS_STUB == 0)
+a793 1
+#endif			/* TINY_MODE || ICELESS_STUB == 0 */
+@
+
+
+1.22
+log
+@Changed the type of exception_tbl to match what it really is.
+@
+text
+@d111 3
+a113 1
+#  include <os_proto.h>
+d386 6
+a393 1
+extern struct pm_general pm_data;
+d509 1
+d511 1
+d537 1
+a537 1
+# if ICELESS_STUB == 0
+d539 1
+a539 1
+# endif
+d556 1
+a556 1
+#if HAS_LCD
+d561 1
+a561 1
+#endif
+d563 1
+a563 1
+#ifdef WDOG
+d565 1
+a565 1
+#endif
+d568 1
+a568 1
+# if ICELESS_STUB == 0
+d599 1
+a599 1
+# else		/* ICELESS_STUB == 0 */
+d612 1
+a612 1
+# endif		/* ICELESS_STUB == 0 */
+d629 1
+a629 1
+# if ICELESS_STUB == 0 && NUCLEUS_OS == 0
+d647 1
+a647 1
+#if ICELESS_STUB == 0
+d651 1
+a651 1
+# if HOST_BOARD == MB4600
+d653 1
+a653 1
+# else
+d659 1
+a659 1
+#  if NUCLEUS_OS == 0
+d661 1
+a661 1
+#  endif
+d667 1
+a667 1
+#  if NUCLEUS_OS > 0
+d672 1
+a672 1
+#  else		/* NUCLEUS_OS > 0 */
+d683 1
+a683 1
+#  endif		/* NUCLEUS_OS > 0 */
+d685 1
+a685 1
+#  if NUCLEUS_OS == 0
+d689 1
+a689 1
+#   if (PROCESSOR & -16) == MIPS3000
+d691 1
+a691 1
+#   else
+d693 1
+a693 1
+#   endif
+d697 2
+a698 2
+#  endif			/* NUCLEUS_OS == 0 */
+# endif			/* HOST_BOARD == MB4600 */
+d701 2
+a702 1
+#endif			/* ICELESS_STUB == 0 */
+d704 1
+a704 1
+# if ICELESS_STUB
+d708 1
+a708 1
+# else
+d710 1
+a710 1
+# endif
+d712 1
+d735 1
+a735 1
+#if 0
+d755 1
+a755 1
+# if R4K_HOST
+d757 1
+a757 1
+# endif
+d761 1
+a761 1
+#endif
+d776 1
+a776 1
+#if 0
+d787 1
+a787 1
+#else
+d789 1
+a789 1
+#endif
+d795 1
+d797 43
+a839 2
+extern U32 INIT_SP;
+extern U32 bss_end;
+d842 1
+a842 1
+# if ICELESS_STUB == 0
+d853 7
+a859 40
+#if REGISTER_SIZE == 4
+	  memcpy((char *)(pm_data.pm_regs+1), (char *)(regs+1), 31*4);
+#else
+	  {
+	     int jj, kk;
+	     for (jj=1, kk=AT_REGNUM_W; jj<32; ++jj, kk += 2) {
+		pm_data.pm_regs[jj] = regs[kk];
+	     }
+          }
+#endif
+	  pm_data.pm_regs[0] = 0;		/* r0 is always 0 */
+	  pm_data.pm_cause = regs[CAUSE_REGNUM_W];	/* remember the cause */
+	  pm_data.pm_stack = (U32*)regs[SP_REGNUM_W];
+          pm_data.pm_stkupper = &INIT_SP;
+          pm_data.pm_stklower = &bss_end;
+          pm_data.pm_stkrelative = pm_data.pm_stack;
+	  pm_data.pm_badvaddr = regs[BADVADDR_REGNUM_W];
+	  pm_data.pm_pc = regs[PC_REGNUM_W];
+	  pm_data.pm_sr = regs[PS_REGNUM_W];
+	  ++pm_data.pm_cntr;
+	  pm_data.pm_msg = get_pm_msg(regs[CAUSE_REGNUM_W]);
+#  if HOST_BOARD == LCR3K
+	  HEALTH = 0;		/* turn off the GREEN LED */
+#  endif
+#  if HOST_BOARD == MB4600
+	  {
+	      ZmbDiagMsgs *m = (ZmbDiagMsgs *)&ZMB_COMM[ZMB_DIAGS];
+	      m->msg = (U32)pm_data.pm_msg & 0x000FFFFF;
+	      m->regs = (U32)pm_data.pm_regs & 0x000FFFF;
+	      m->stack = regs[SP_REGNUM_W];
+	      m->pc = regs[PC_REGNUM_W];
+	      m->sr = regs[PS_REGNUM_W];
+	      m->cause = regs[CAUSE_REGNUM_W];
+	      m->badvaddr = regs[BADVADDR_REGNUM_W];
+	      ZMB_COMM[ZMB_STATUS] = ZMB_FLAG_EXCEPT;
+	      ZMB_COMM[ZMB_SENTINEL] = ZMB_FLAG_IDLE;
+	      prc_mod_latch(CTS_XBUS_INT);
+	  }
+#  endif
+	  wait_forever();
+d868 1
+a868 1
+#if 1
+d874 1
+a874 1
+#  if !NO_INTS
+d876 1
+a876 1
+#  endif
+d878 1
+a878 1
+#  if !NO_INTS
+d880 1
+a880 1
+#  endif
+d899 1
+a899 1
+#endif
+d901 2
+a902 1
+# endif
+d906 1
+a906 1
+# if 1 || ICELESS_STUB == 0
+d918 1
+a918 1
+#else
+d925 1
+a925 2
+# endif			/* ICELESS_STUB == 0 */
+#endif			/* TINY_MODE == 0 */
+@
+
+
+1.21
+log
+@Added a stub_start for R4K which does a flush_cache() then jump to begin.
+@
+text
+@d639 1
+a639 1
+extern U32 *exception_tbl;
+d647 1
+a647 2
+   int (*func)();
+   U32 *t;
+d664 1
+a664 2
+         t = exception_tbl;
+	 func = (int (*)())(t[VN_IRQ0 + ii]);
+a793 1
+      U32 *t;
+d795 1
+a795 2
+      t = exception_tbl;
+      func = (void (*)())(t[ii+VN_TLBM-1]);
+@
+
+
+1.20
+log
+@Removed the previous patch. It sucked.
+@
+text
+@d387 7
+d413 3
+@
+
+
+1.19
+log
+@Added code to disable interrupts if no handler present.
+@
+text
+@d662 1
+a662 4
+	    ii = func();	/* go to user's interrupt routine */
+            if (ii == 0) {
+	       regs[PS_REGNUM_W] &= ~new; /* don't allow this interrupt anymore */
+            }
+@
+
+
+1.18
+log
+@Changed the text on the TLB exception messages.
+@
+text
+@d637 1
+a637 1
+   void (*func)();
+d656 1
+a656 1
+	 func = (void (*)())(t[VN_IRQ0 + ii]);
+d662 4
+a665 1
+	    func();		/* go to user's interrupt routine */
+@
+
+
+1.17
+log
+@Added some MB4600 conditionals.
+@
+text
+@a524 1
+#  if ICELESS_STUB == 0
+d527 1
+d696 3
+a698 3
+      "TLB Modification",
+      "TLB Load",
+      "TLB Store",
+@
+
+
+1.16
+log
+@Temporarily made intvecs.h not included when making MB4600.
+@
+text
+@d600 1
+a600 1
+#  if NUCLEUS_OS == 0
+d632 3
+d641 1
+a641 1
+# if NUCLEUS_OS == 0
+d643 1
+a643 1
+# endif
+d649 1
+a649 1
+# if NUCLEUS_OS > 0
+d654 1
+a654 1
+# else		/* NUCLEUS_OS > 0 */
+d666 1
+a666 1
+# endif		/* NUCLEUS_OS > 0 */
+d668 1
+a668 1
+# if NUCLEUS_OS == 0
+d672 1
+a672 1
+#  if (PROCESSOR & -16) == MIPS3000
+d674 1
+a674 1
+#  else
+d676 1
+a676 1
+#  endif
+d680 2
+a681 1
+# endif			/* NUCLEUS_OS == 0 */
+a782 2
+   void (*func)();
+   U32 *t;
+d785 3
+d793 1
+d834 1
+d836 1
+@
+
+
+1.15
+log
+@Renamed exception_table to exception_tbl to avoid problems with non-updated Makefiles et al.
+@
+text
+@d66 1
+d68 1
+@
+
+
+1.14
+log
+@Added some addtional members to pm_general struct
+@
+text
+@d627 1
+a627 1
+extern U32 *exception_table;
+d650 1
+a650 1
+         t = exception_table;
+d781 1
+a781 1
+      t = exception_table;
+@
+
+
+1.13
+log
+@Added numerous changes to accomodate the new vecs.mac and some R4K support.
+@
+text
+@d771 3
+d791 1
+a791 1
+	     for (jj=0, kk=1; jj<32; ++jj, kk += 2) {
+d799 3
+@
+
+
+1.12
+log
+@Added some R4K timer support
+@
+text
+@d55 27
+a86 1
+extern void (*ROMVBR[])();	/* ROM based vector table */
+a88 1
+extern struct ROM_VECTOR_STR ROM_VECTORS;	/* array of ROM vectors */
+a120 5
+static void (**irq_table)();
+
+# else			/* ICELESS_STUB == 0 */
+
+extern void (*irq_table[])();	/* RAM based vector table */
+d145 17
+a165 1
+   int ii;
+d172 2
+d176 1
+a183 4
+#if 0
+  bitshd = ~(CTS_FIFO_ENAB|CTS_XBUS_INT|CTS_FIFO_FULLINT|CTS_FIFO_MTINT) | CTS_ZERO_MAP;
+#endif
+
+d189 13
+d204 16
+a219 4
+      int junk;
+      vup = (VU32 *)XBUS_SLOT6;
+      while (1) *vup = 0;
+      while (1) junk = *vup;
+d226 65
+d341 12
+a352 8
+   u32p = (void (**)())&ROM_VECTORS.ROMV_RAMVBR;
+   func = irq_table = (void (**)())(*u32p);	/* get pointer to RAM vector table
+   						(do it this way because ICELESS may have
+   						patched it) */
+
+   u32p = (void (**)())&ROM_VECTORS.ROMV_SW0;
+   for (ii=0; ii < NUM_RVECS; ++ii) { /* clone the vectors to RAM */
+      *func++ = *u32p++;
+d354 6
+a369 4
+   for (ii=0; ii < NUM_RVECS; ++ii) { /* clone the vectors to RAM */
+      irq_table[ii] = ROMVBR[ii]; 
+   }
+
+d384 1
+a384 2
+extern const char *pm_msg;
+extern unsigned long pm_cntr;
+d392 2
+a393 2
+   pm_cntr = -42;		/* this means something to Mike */
+   pm_msg = 0;
+d482 1
+a482 1
+extern U32 usclock;
+a485 1
+extern U32 zclock;
+d488 2
+a490 1
+#endif
+d492 1
+a492 1
+#if HOST_BOARD == HCR4K
+d502 4
+a517 4
+      zclock += US_PER_TICK;
+#   if 0
+      if (ms4vec) ms4vec();	/* call user's function (if any) */
+#   endif
+d519 1
+d523 1
+d531 1
+d534 8
+d626 3
+d633 1
+d636 1
+a636 1
+# if ICELESS_STUB == 0 && NUCLEUS_OS == 0
+d641 1
+a641 2
+   for (ii = 0; ii < 8; ++ii) {
+      new = 0x100 << ii;
+d643 1
+d645 4
+a648 2
+         int int_level = (ii < 2)?ii+6:ii-2;
+         TCC_Dispatch_LISR(int_level);
+d650 2
+a651 5
+#  if ICELESS_STUB == 0
+	 func = (void (*)())irq_table[ii];
+#  else
+	 func = irq_table[ii];
+#  endif
+d663 1
+a663 1
+# if ICELESS_STUB == 0 && NUCLEUS_OS == 0
+d675 1
+a675 1
+# endif			/* ICELESS_STUB == 0 && NUCLEUS_OS == 0 */
+d678 1
+a678 21
+
+# if 0 && HOST_BOARD == HCR4K
+void xbusint() {
+   int which, ii, mask;
+   U32 *u32p;
+   struct IRQ_TABLE_STR *irq;
+   void (*func)();
+
+   irq = (struct IRQ_TABLE_STR *)ROM_VECTORS.ROMV_RAMVBR;
+   u32p = &irq->RAMV_XBUS0;
+   *(U32 *)XBUS_SLOT77 = (U32)u32p;
+   while ((which = *(U32 *)XBUS_SLOT0&0x0F) != 0x0F) {
+      for (ii=0, mask=1; ii<4; ++ii, mask += mask) {
+	 if ((which&mask) == 0) {
+	    func = (void (*)())(u32p[ii]);
+	    if (func) func();
+	 }
+      }
+   }
+}
+# endif
+d683 1
+a751 1
+      extern U32 pm_instr;
+d753 1
+a753 1
+      jj = pm_instr;		/* get the failing instruction */
+d773 3
+d777 24
+a800 13
+   if ((regs[CAUSE_REGNUM_W]&0x7C) != 0) {
+      extern U32 pm_regs[];
+      extern U32 pm_stack, pm_pc, pm_sr, pm_cause, pm_badvaddr;
+
+      pm_regs[0] = 0;		/* r0 is always 0 */
+      memcpy((char *)pm_regs, (char *)regs, 32*4);
+      pm_cause = regs[CAUSE_REGNUM_W];	/* remember the cause */
+      pm_stack = regs[SP_REGNUM_W];
+      pm_badvaddr = regs[BADVADDR_REGNUM_W];
+      pm_pc = regs[PC_REGNUM_W];
+      pm_sr = regs[PS_REGNUM_W];
+      ++pm_cntr;
+      pm_msg = get_pm_msg(regs[CAUSE_REGNUM_W]);
+d802 16
+a817 1
+      HEALTH = 0;		/* turn off the GREEN LED */
+d819 2
+a820 1
+      wait_forever();
+a824 2
+   int sts;
+
+d826 1
+d828 3
+a830 3
+      int irqs;
+      irqs = regs[CAUSE_REGNUM_W] & regs[PS_REGNUM_W];
+      if ((irqs&0x400) != 0) {			/* if ICELESS IRQ */
+d841 13
+a853 10
+#  if R4K_HOST
+	 if ((irqs&0x100) != 0) {
+	    handle_exception(regs);
+	    regs[CAUSE_REGNUM_W] &= ~0x100;	/* zap the cause bit */
+	 } else {
+	    interrupt_handler(regs);	/* do normal interrupt processing */
+	 }
+#  else
+	 interrupt_handler(regs);	/* do normal interrupt processing */
+#  endif
+d857 1
+@
+
+
+1.11
+log
+@Added support for R4k host and slave.
+@
+text
+@d22 6
+d51 4
+d119 1
+d125 2
+d144 5
+a149 1
+  extern void prc_set_led(int);
+d163 2
+a164 1
+  __asm__(".set noat; li $1, 66500; mtc0 $1, $11; mtc0 $0, $9; .set at;");
+a316 2
+unsigned short bitshd;
+
+d352 3
+d356 5
+d362 9
+d373 1
+a373 5
+# if ICELESS_STUB == 0 && HOST_BOARD != MB4600
+   extern U32 zclock;
+   extern U32 usclock;
+# endif		/* ICELESS_STUB == 0 && HOST_BOARD != MB4600 */
+# if !R4K_HOST
+a378 3
+# else
+   __asm__(" mfc0 $2, $11; mfc0 $3, $9; mtc0 $2, $11; sub $3, $2; mtc0 $3, $9;");
+# endif
+a380 3
+#ifdef WDOG
+   WDOG = 0;			/* kick the dog */
+#endif
+d382 1
+a382 1
+# if ICELESS_STUB == 0 && HOST_BOARD != MB4600
+d390 14
+@
+
+
+1.10
+log
+@Removed references to pm_instr
+@
+text
+@d131 14
+d146 2
+d149 1
+d151 9
+d176 1
+a176 1
+   prc_mod_latch(0xFF);			/* first set all the bits */
+d320 6
+d332 6
+a338 1
+# if !R4K_HOST
+d340 1
+a340 2
+   volatile int junk;   
+#  if ICELESS_STUB == 0
+d343 3
+a345 1
+#  endif	/* ICELESS_STUB == 0 */
+d350 6
+d357 5
+a361 1
+#  if ICELESS_STUB == 0
+d363 1
+a363 1
+   ctl_upd_sw();		/* check switches */
+d365 2
+a366 3
+   ++usclock;
+   zclock += US_PER_TICK;
+#  endif
+a367 1
+# endif		/* ICELESS_STUB == 0 */
+d498 1
+a498 1
+# if HOST_BOARD == HCR4K
+d522 1
+a522 1
+#else
+d679 3
+a681 1
+# else
+d683 1
+a684 1
+   *where = what;
+@
+
+
+1.9
+log
+@Added pm_badvaddr to pm area.
+@
+text
+@d502 1
+d528 1
+a535 2
+extern U32 pm_instr;
+
+d543 2
+d555 3
+d569 1
+a569 1
+      extern U32 pm_stack, pm_pc, pm_sr, pm_cause;
+d575 1
+a575 1
+      pm_badvadd = regs[BADVADDR_REGNUM_W];
+a577 1
+      pm_instr = *(U32*)pm_pc;	/* get instruction that caused the fault */
+@
+
+
+1.8
+log
+@Added numerous changes to accomodate the R4k processor
+@
+text
+@d30 19
+a48 1
+#define NUM_ELTS(x) (sizeof(x)/sizeof(x[0]))
+a51 1
+extern int prc_set_ipl(int);
+d55 1
+a55 1
+#if VIDEO_BOARD == COJAG_V
+d58 1
+a58 1
+#endif
+d60 5
+a64 5
+#if VIDEO_BOARD == ZOID20_V
+# define US_PER_TICK 1
+#else
+# define US_PER_TICK 4
+#endif
+d66 1
+a66 1
+#if ICELESS_STUB == 0
+d68 1
+a68 1
+# define offsetof(s, m)    (int)(&(((s *)0)->m))
+d70 3
+a72 3
+# if HOST_BOARD != MB4600
+#  include <eer_defs.h>
+# endif
+d74 1
+a74 1
+# include <os_proto.h>
+d82 1
+a82 1
+# if HOST_BOARD != MB4600
+d85 1
+a85 1
+# endif
+d88 1
+a88 1
+#else			/* ICELESS_STUB == 0 */
+d92 1
+a92 1
+#endif			/* ICELESS_STUB == 0 */
+d94 3
+a96 3
+#if ICELESS_STUB > 0
+#include <icelesspkt.h>
+#endif
+d98 1
+a98 1
+#if NUCLEUS_OS > 0
+d102 1
+a102 1
+#endif
+d104 1
+a104 1
+#define POWERUP (0xC0EDBABE)
+d106 1
+a106 1
+#if R4K_HOST
+d109 1
+a109 1
+#endif
+d112 1
+d115 1
+d117 2
+a118 2
+#if ICELESS_STUB == 0
+# if HOST_BOARD != MB4600
+d120 3
+a122 1
+# endif
+d125 2
+a126 2
+#endif
+#if HOST_BOARD == MB4600
+d128 1
+a128 1
+#elif ICELESS_STUB != 0 
+d130 1
+a130 1
+#endif
+d132 1
+a132 1
+#if defined(IOLEDS0SET)
+d134 3
+a136 2
+#endif
+#if 0 && HOST_BOARD == LCR3K
+d143 1
+a143 1
+#endif
+d145 1
+a145 1
+#if 0 && R4K_HOST
+d147 1
+a147 1
+#endif
+d149 1
+a149 1
+#if 0 && R4K_HOST
+d152 1
+a152 1
+#endif
+d154 1
+a154 1
+#if HOST_BOARD == LCR3K
+d156 1
+a156 1
+#endif
+d158 1
+a158 1
+#if NUCLEUS_OS > 0
+d162 1
+a162 1
+#endif
+d164 1
+a164 1
+#if ICELESS_STUB == 0
+d170 1
+a170 1
+#  endif
+d189 1
+a189 1
+#else
+d195 1
+a195 1
+# if HOST_BOARD == MB4600
+d197 1
+a197 1
+# else
+d199 6
+a204 2
+# endif
+#endif
+d207 2
+a208 1
+#if ICELESS_STUB == 0
+d213 1
+a213 1
+#if HOST_BOARD != MB4600
+d215 1
+a215 1
+#endif
+d220 1
+a220 1
+#if HOST_BOARD != MB4600
+d227 1
+a227 1
+#endif
+d234 3
+a236 1
+#if HOST_BOARD != MB4600 && !NO_PRC_DELAY
+d239 1
+a239 1
+# define IMASK  ((0x100<<VBI_LVL)|SR_IEC)
+d247 1
+a247 1
+# if HOST_BOARD == LCR3K
+d249 1
+a249 1
+# endif
+d265 1
+a265 1
+#endif
+d270 2
+a271 1
+#endif				/* ICELESS_STUB == 0 */
+d276 2
+a277 2
+# if defined(LATCH)
+#  if R4K_HOST
+d279 1
+a279 1
+#  endif
+d289 1
+a289 1
+#  if !R4K_HOST
+d291 1
+a291 1
+#  else
+d294 1
+a294 1
+#  endif
+d296 1
+a296 1
+# endif
+d300 1
+d307 1
+a307 1
+#  endif
+d314 1
+a314 1
+#    if 0
+d316 1
+a316 1
+#    endif
+d321 1
+a321 1
+# endif
+d323 1
+a323 1
+#if ICELESS_STUB == 0
+d354 1
+a354 1
+#else
+d367 1
+a367 1
+#endif
+d372 1
+a372 1
+#if ICELESS_STUB == 0
+d374 1
+a374 1
+# if NUCLEUS_OS == 0
+d376 1
+a376 1
+# endif 
+d378 1
+a378 1
+#else
+d382 1
+a382 1
+#endif
+d384 1
+a384 1
+#if ICELESS_STUB == 0 && NUCLEUS_OS == 0
+d400 1
+a400 1
+#endif
+d408 1
+a408 1
+#if ICELESS_STUB == 0 && NUCLEUS_OS == 0
+d410 1
+a410 1
+#endif
+d416 1
+a416 1
+#if NUCLEUS_OS > 0
+d419 1
+a419 1
+#else		/* NUCLEUS_OS > 0 */
+d434 1
+a434 1
+#endif		/* NUCLEUS_OS > 0 */
+d436 1
+a436 1
+#if ICELESS_STUB == 0 && NUCLEUS_OS == 0
+d440 1
+a440 1
+# if (PROCESSOR & -16) == MIPS3000
+d442 1
+a442 1
+# else
+d444 1
+a444 1
+# endif
+d448 1
+a448 1
+#endif			/* ICELESS_STUB == 0 && NUCLEUS_OS == 0 */
+d452 1
+a452 1
+#if HOST_BOARD == HCR4K
+d471 1
+a471 1
+#endif
+d473 1
+a473 1
+#if ICELESS_STUB
+d478 1
+a478 1
+#endif
+d494 1
+a494 1
+#if (PROCESSOR & -16) == MIPS4000
+d498 1
+a498 1
+#endif
+d521 1
+a521 1
+#if R4K_HOST
+d523 1
+a523 1
+#endif
+d560 1
+a560 1
+#if ICELESS_STUB == 0
+d570 1
+d583 1
+a583 1
+#else			/* ICELESS_STUB == 0 */
+d615 1
+a615 1
+#endif
+d619 1
+a619 1
+#if 1 || ICELESS_STUB == 0
+d636 2
+a637 1
+#endif
+@
+
+
+1.7
+log
+@if'd out the inclusion of eer_defs.h if building for MB4600
+@
+text
+@d12 4
+d38 1
+a38 1
+# if VIDEO_BOARD == COJAG_V
+d41 7
+a47 1
+# endif
+d53 3
+a55 3
+#if HOST_BOARD != MB4600
+# include <eer_defs.h>
+#endif
+d64 2
+d68 1
+a70 2
+# define US_PER_TICK 32
+
+d94 2
+d99 1
+d101 1
+d104 4
+a107 1
+#else
+d111 12
+d127 1
+a127 1
+#if R4K_HOST
+d143 2
+d147 3
+a150 1
+   if ( PBASE.p_validate == PB_VALID && PBASE.p_configb ) pbase = PBASE.p_configb;
+d154 1
+d159 1
+d162 5
+a166 1
+   SelfTest(cold_boot);				/* now goto selftest; for now, always cold */
+d173 3
+d177 1
+d186 1
+d188 1
+d193 1
+d200 1
+d207 1
+d236 1
+d279 2
+a280 2
+   junk = timr[0];
+   timr[0] = 0x1FFF;		/* assume it was the timer, set it for ~4Ms */
+d283 1
+d285 1
+d293 1
+a293 1
+static struct act_q irq_action;
+d353 18
+d407 8
+a414 15
+      struct act_q *act;
+      void (*rtn)(void *);
+      while ((act=irq_action.next) != 0) {
+	 irq_action.next = act->next;	/* pluck this entry from the queue */
+	 act->next = 0;			/* make sure we don't get in too big of a loop */
+	 act->que = 0;			/* timer action seems to want this cleared too */
+#if (PROCESSOR & -16) == MIPS3000
+	 prc_set_ipl((regs[PS_REGNUM_W]&0xFF00) | ((regs[PS_REGNUM_W]&0x3C)>>2));
+#else
+	 prc_set_ipl(regs[PS_REGNUM_W]&0xFF01);
+#endif
+	 rtn = (void (*)(void *))act->action;	/* remember the function */
+	 if (rtn) rtn(act->param);	/* call his function if there is one */
+	 prc_set_ipl(regs[PS_REGNUM_W]); /* restore the SR to pre-action schedule */
+      } 				/* continue until the queue is empty */
+d544 1
+a544 1
+#if HOST_BOARD == LCR3K
+d546 1
+a546 1
+#endif
+d551 1
+a551 1
+#else
+d560 1
+d562 1
+d564 1
+d566 1
+d569 8
+d578 1
+@
+
+
+1.6
+log
+@Removed a bunch of code surrounded with #if  0's
+Removed all references to prc_set_im and master_imask
+@
+text
+@d43 1
+d45 2
+@
+
+
+1.5
+log
+@Fixed the prc_mod_latch stuff I broke last time
+@
+text
+@a31 1
+extern int prc_set_im(int);
+a51 1
+unsigned long master_imask;
+a116 3
+#if 0
+   prc_set_im((0x100<<ICELESS_LVL)|SR_IEC); /* disable everything except ICELESS interrupts */
+#endif
+a120 1
+   master_imask = SR_IMASK|0x3F;	/* but assume all interrupts are ok to enable */
+a236 38
+/* The interrupt bits on the LCR3k board are:
+ *	bit 0 - (0x01) s/w interrupt
+ *	    1 - (0x02) s/w interrupt
+ *	    2 - (0x04) ICELESS interrupt (keep this at the highest prio)
+ *	    3 - (0x08) XBUS IRQ 0
+ *	    4 - (0x10) XBUS IRQ 1
+ *	    5 - (0x20) XBUS IRQ 2
+ *	    6 - (0x40) XBUS IRQ 3
+ *	    7 - (0x80) Cpu Timer interrupt
+ */
+
+#if 0
+static const char prio[256] = {
+/*  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F */
+   -1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2,	/* 00-0F */
+    4, 4, 4, 4, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 2, 2,	/* 10-1F */
+    5, 5, 5, 5, 2, 2, 2, 2, 5, 5, 5, 5, 2, 2, 2, 2,	/* 20-2F */
+    5, 5, 5, 5, 2, 2, 2, 2, 5, 5, 5, 5, 2, 2, 2, 2,	/* 30-3F */
+    6, 6, 6, 6, 2, 2, 2, 2, 6, 6, 6, 6, 2, 2, 2, 2,	/* 40-4F */
+    6, 6, 6, 6, 2, 2, 2, 2, 6, 6, 6, 6, 2, 2, 2, 2,	/* 50-5F */
+    6, 6, 6, 6, 2, 2, 2, 2, 6, 6, 6, 6, 2, 2, 2, 2,	/* 60-6F */
+    6, 6, 6, 6, 2, 2, 2, 2, 6, 6, 6, 6, 2, 2, 2, 2,	/* 70-7F */
+    7, 7, 7, 7, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2,	/* 80-8F */
+    7, 7, 7, 7, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2,	/* 90-9F */
+    7, 7, 7, 7, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2,	/* A0-AF */
+    7, 7, 7, 7, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2,	/* B0-BF */
+    7, 7, 7, 7, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2,	/* C0-CF */
+    7, 7, 7, 7, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2,	/* D0-DF */
+    7, 7, 7, 7, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2,	/* E0-EF */
+    7, 7, 7, 7, 2, 2, 2, 2, 7, 7, 7, 7, 2, 2, 2, 2	/* F0-7F */
+};
+
+static const U8 new_mask[] = {
+/*   0     1     2     3     4     5     6     7     */
+   0xFE, 0xFC, 0x00, 0xF4, 0xE4, 0xC4, 0x84, 0x04
+};    
+#endif
+
+a307 14
+#if 0			/* this won't work yet (under construction) */
+   which = prio[((regs[CAUSE_REGNUM_W]&SR_IMASK) & (regs[PS_REGNUM_W]&SR_IMASK)) >> 8];
+   if (which < 0) return;	/* spurious interrupt, ignore it */
+   func = irq_table+which;	/* get pointer to interrupt routine */
+      
+   if (func == 0) {		/* if there isn't one ... */
+      regs[PS_REGNUM_W] &= ~(0x100<<which); /* prevent this interrupt from happening again */
+      master_imask &= ~(0x100<<which); /* don't let prc_set_ipl set it either */
+   } else {
+      new = (new_mask[which]<<8); /* prepare to re-enable interrupts */
+      prc_set_im(new|SR_IEC);	/* enable other interrupts */
+      func();			/* goto interrupt handler */
+   }
+#else
+d315 1
+a315 1
+#else
+a323 3
+#  if ICELESS_STUB == 0
+	       master_imask &= ~new; 	/* don't let prc_set_ipl enable it either */
+#  endif
+a327 1
+#endif
+d330 2
+a331 1
+#endif
+d351 1
+a351 1
+#endif
+@
+
+
+1.4
+log
+@Removed the re-enable of ICELESS interrupts during exception processing
+@
+text
+@d79 1
+a79 1
+S32 prc_mod_latch(S32 new);
+d196 1
+a196 1
+S32 bitshd;
+d198 1
+a198 1
+S32 prc_mod_latch(S32 new) {
+d201 1
+a201 1
+   extern void lcl_set_latch(S32 val);
+d539 1
+d541 1
+d555 1
+d557 1
+d559 1
+a559 2
+      }
+      if ((irqs&0xFB00) != 0) {		/* if any other interrupts */
+@
+
+
+1.3
+log
+@Timer action wanted the ->que entry cleared in the q struct in order to be re-used.
+@
+text
+@d12 6
+d26 2
+d77 1
+a77 1
+#if HOST_BOARD == MB4600
+d79 1
+d92 1
+a92 1
+#if HOST_BOARD == MB4600
+d96 5
+d119 1
+d121 1
+d123 1
+a123 1
+   for (ii=0; ii < MAX_IRQS+MAX_EXCEPTIONS; ++ii) { /* clone the vectors to RAM */
+d132 1
+a132 1
+   for (ii=0; ii<(MAX_IRQS+MAX_EXCEPTIONS); ++ii) { /* clone the vectors to RAM */
+d196 3
+a198 1
+int prc_mod_latch(int new) {
+d200 2
+a201 3
+   static U32 bitshd;
+#  if HOST_BOARD == MB4600
+   extern void lcl_set_latch(int val);
+d204 2
+a205 1
+   if (new == 0) return bitshd;	/* just report what it currently is */
+d212 1
+a212 1
+#  if HOST_BOARD != MB4600
+d223 1
+a223 1
+# if HOST_BOARD != MB4600
+d353 1
+a353 1
+   which = prio[((regs[CAUSE_REGNUM]&SR_IMASK) & (regs[PS_REGNUM]&SR_IMASK)) >> 8];
+d358 1
+a358 1
+      regs[PS_REGNUM] &= ~(0x100<<which); /* prevent this interrupt from happening again */
+d366 1
+a366 1
+   which = (regs[CAUSE_REGNUM]&SR_IMASK) & (regs[PS_REGNUM]&SR_IMASK);
+d381 1
+a381 1
+	       regs[PS_REGNUM] &= ~new;	/* don't allow this interrupt anymore */
+d402 1
+a402 1
+	 prc_set_ipl((regs[PS_REGNUM]&0xFF00) | ((regs[PS_REGNUM]&0x3C)>>2));
+d404 1
+a404 1
+	 prc_set_ipl(regs[PS_REGNUM]&0xFF01);
+d408 1
+a408 1
+	 prc_set_ipl(regs[PS_REGNUM]);	/* restore the SR to pre-action schedule */
+d416 21
+d466 9
+d476 14
+a489 11
+      "Debug breakpoint",
+      "Kernel breakpoint",
+      "Abort",
+      "Taken BD emulation",
+      "Not taken BD emulation",
+      "Single step breakpoint",
+      "Overflow check",
+      "Divide by zero",
+      "Range check",
+      "Multiply overflow",
+      "Breakpoint"
+d491 1
+d526 1
+a526 1
+   if ((regs[CAUSE_REGNUM]&0x7C) != 0) {
+d532 4
+a535 4
+      pm_cause = regs[CAUSE_REGNUM];	/* remember the cause */
+      pm_stack = regs[SP_REGNUM];
+      pm_pc = regs[PC_REGNUM];
+      pm_sr = regs[PS_REGNUM];
+d538 1
+a538 1
+      pm_msg = get_pm_msg(regs[CAUSE_REGNUM]);
+d548 12
+a559 5
+   if ((regs[CAUSE_REGNUM]&0x7C) == 0) {
+      prc_set_ipl((regs[PS_REGNUM]&~0x400)|SR_IEC);	/* allow other interrupts during this */
+      last_int_disabl = (U32)exception_handler;
+      sts = got_attention(TWI_THREAD);	/* reset the attention flag */
+      if (sts == 0) return regs;	/* just dismiss this interrupt */
+d567 1
+a567 1
+void eer_write_byte(unsigned char *where, unsigned char *unlock, int what) {
+d569 4
+d574 3
+d578 1
+@
+
+
+1.2
+log
+@Fixed IRQ re-enable during action routine dispatch.
+Fixed action routine dispatch.
+@
+text
+@d382 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a43 1
+extern int prc_set_im(int);
+d69 3
+d83 4
+d110 1
+a110 1
+   master_imask = SR_IMASK|SR_IEC;	/* but assume all interrupts are ok to enable */
+a327 1
+   extern int prc_set_im(int);
+d330 3
+d334 1
+a334 1
+#if 0
+a336 3
+#if ICELESS_STUB == 0 && NUCLEUS_OS == 0
+   ++inest;
+#endif
+a348 3
+#if ICELESS_STUB == 0 && NUCLEUS_OS == 0
+   ++inest;
+#endif
+d376 2
+a377 3
+   if (--inest <= 0) {
+      struct act_q *act, *nxt;
+      int old_ps;
+d379 8
+a386 7
+      inest = 0;
+      act = irq_action.next;
+      irq_action.next = 0;	/* zap the queue in case these routines requeue themselves */
+      old_ps = prc_set_im(regs[PS_REGNUM]&0xFF01);
+      while (act) {
+	 void *param;
+	 nxt = act->next;	/* remember whos next */
+d388 3
+a390 7
+	 param = act->param;
+	 act->next = 0;		/* zap the old */
+	 act->que = 0;
+	 if (rtn) rtn(param);	/* call his function */
+	 act = nxt;		/* do the next one */
+      }
+      prc_set_im(old_ps);
+d392 1
+d418 5
+d439 5
+a443 4
+#define MAX_CAUSE_MSG (sizeof(pm_cause_msgs)/sizeof(char *) - 1)
+#define MAX_BREAK_MSG (sizeof(pm_break_msgs)/sizeof(char *) - 2)
+#define MULOVF_MSG    (sizeof(pm_break_msgs)/sizeof(char *) - 2)
+#define BREAK_MSG     (sizeof(pm_break_msgs)/sizeof(char *) - 1)
+@

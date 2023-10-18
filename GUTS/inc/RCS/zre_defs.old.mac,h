@@ -1,0 +1,296 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	95.07.21.02.14.00;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Config.mac definitions for the ZOID Render Engine (ZRE)
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@;	zre_defs.mac
+;
+;	definitions which are only needed by programs that
+;	actually use the ZRE. Some ZRE definitions are in
+;	config.h, as they are needed ny, e.g. the RAM test.
+;	These definitions get into config.h because config.mac
+;	includes zoid20.mac, and config.h is generated from
+;	config.mac automatically. SO--- Don't edit config.h
+;	directly. It will be futile in the long run.
+;
+;	All comments starting with a '?' indicate my guess
+;	as to the meaning of the name/value.
+;
+;	Mike Albaugh, March 1, 1995
+;
+;		Copyright 1995 Atari Games.
+;	Unauthorized reproduction, adaptation, distribution, performance or 
+;	display of this computer program or the associated audiovisual work
+;	is strictly prohibited.
+;
+ .if true, OUTPUT_LANG == LANG_C
+#if !defined(_ZRE_DEFS_H_)
+#define _ZRE_DEFS_H_
+ .endc
+.if ndf, _CONSTANTS_MAC_
+  .include constants.mac
+.endc
+.if ndf, _PPTYPES_MAC_
+  .include pptypes.mac
+.endc
+;
+REMB
+REMM < Enumerate the three possibilies for the connections to the >
+REMM < PERC and TEXMAP SCIs. >
+REMM < Correct per documentation >
+REME
+	DEC_CONST PER_SPEC	0
+REM  < A0 was inverted. Consistent with Mokris pencil marks, but unlikely >
+	DEC_CONST A0_INVERT	1
+REM  < A0 and A1 swapped on PCB. Consistent with Mokris verbal description >
+	DEC_CONST A0_A1_SWAP	2
+REMB
+REMM < Just plain twisted, as in fact the addresses do not go to the chips. >
+REMM < Instead, a set of eight enables derived from the addresses goes to the >
+REMM < chips, but they go to the wrong pins on some chips >
+REME
+	DEC_CONST PERC_ADDRS	A0_INVERT
+	DEC_CONST TEXMAP_ADDRS	A0_INVERT
+REMB
+REMM < These constants are used to build up TBUS commands. The bits >
+REMM < in each are only shifted enough to position them in the _byte_ >
+REMM < which is built up and shifted up the eight MSbits of the 32- >
+REMM < bit command. But in fact, these definition are only used to >
+REMM < build the ones later in the file, so "never mind" :-) >
+REMM <>
+REMM < First the 3 MSBits, which select a particular SCI >
+REME
+	HEX_CONST SCI_SHF	29.
+	HEX_CONST TRAP_SEL	(0<<SCI_SHF)
+	HEX_CONST PERC_SEL	(1<<SCI_SHF)
+	HEX_CONST TEXMAP_SEL	(2<<SCI_SHF)
+	HEX_CONST PIXOP_SEL	(3<<SCI_SHF)
+;
+REM < Not really SCIs, but occupy same bits of TBUS word. >
+	HEX_CONST TSTART_OP	(6<<SCI_SHF)
+	HEX_CONST FEND_OP	(7<<SCI_SHF)
+REMB
+REMM < The next three bits select a particular register >
+REMM < within an SCI. Note that the PERC and TEXMAP >
+REMM < definitions differ from the documentation, due to >
+REMM < a wiring error on the ZRE board. >
+REME
+REM  < TRAP Preload regs >
+	HEX_CONST PLREG_SHF 	26.
+	HEX_CONST TRAP_PY 	(TRAP_SEL|(0<<PLREG_SHF))
+	HEX_CONST TRAP_PLH	(TRAP_SEL|(1<<PLREG_SHF))
+	HEX_CONST TRAP_PRH	(TRAP_SEL|(2<<PLREG_SHF))
+	HEX_CONST TRAP_PLX	(TRAP_SEL|(3<<PLREG_SHF))
+	HEX_CONST TRAP_PDLX	(TRAP_SEL|(4<<PLREG_SHF))
+	HEX_CONST TRAP_PRX 	(TRAP_SEL|(5<<PLREG_SHF))
+	HEX_CONST TRAP_PDRX	(TRAP_SEL|(6<<PLREG_SHF))
+;
+REM < PERC Preload regs >
+ .if eq,PERC_ADDRS-PER_SPEC
+REM < As defined >
+	HEX_CONST SCI_VN	(0<<PLREG_SHF)
+	HEX_CONST SCI_VD	(1<<PLREG_SHF)
+	HEX_CONST SCI_HN	(2<<PLREG_SHF)
+	HEX_CONST SCI_HD	(3<<PLREG_SHF)
+  .endc
+ .if eq,PERC_ADDRS-A0_INVERT
+	HEX_CONST SCI_VN	(1<<PLREG_SHF)
+	HEX_CONST SCI_VD	(0<<PLREG_SHF)
+	HEX_CONST SCI_HN	(3<<PLREG_SHF)
+	HEX_CONST SCI_HD	(2<<PLREG_SHF)
+ .endc
+ .if eq,PERC_ADDRS-A0_A1_SWAP
+	HEX_CONST SCI_VN	(0<<PLREG_SHF)
+	HEX_CONST SCI_VD	(2<<PLREG_SHF)
+	HEX_CONST SCI_HN	(1<<PLREG_SHF)
+	HEX_CONST SCI_HD	(3<<PLREG_SHF)
+ .endc
+	HEX_CONST PERC_VN	(PERC_SEL|SCI_VN)
+	HEX_CONST PERC_VD	(PERC_SEL|SCI_VD)
+	HEX_CONST PERC_HN	(PERC_SEL|SCI_HN)
+	HEX_CONST PERC_HD	(PERC_SEL|SCI_HD)
+REM < TEXMAP Preload regs >
+ .if eq,TEXMAP_ADDRS-PER_SPEC
+REM < As defined >
+	HEX_CONST SCI_S		(0<<PLREG_SHF)
+	HEX_CONST SCI_T		(1<<PLREG_SHF)
+	HEX_CONST SCI_G		(2<<PLREG_SHF)
+	HEX_CONST PTW		(3<<PLREG_SHF)
+	HEX_CONST PTB		(4<<PLREG_SHF)
+	HEX_CONST PLB		(5<<PLREG_SHF)
+  .endc
+ .if eq,TEXMAP_ADDRS-A0_INVERT
+	HEX_CONST SCI_S		(1<<PLREG_SHF)
+	HEX_CONST SCI_T		(0<<PLREG_SHF)
+	HEX_CONST SCI_G		(3<<PLREG_SHF)
+	HEX_CONST PTW		(2<<PLREG_SHF)
+REMB
+REMM < I'm guessing about the next two, as they are not listed >
+REMM < on the pencilled-in corrections, but if A0 is inverted, they >
+REMM < should also be swapped. >
+REME
+;
+	HEX_CONST PTB		(5<<PLREG_SHF)
+	HEX_CONST PLB		(4<<PLREG_SHF)
+ .endc
+ .if eq,TEXMAP_ADDRS-A0_A1_SWAP
+	HEX_CONST SCI_S		(0<<PLREG_SHF)
+	HEX_CONST SCI_T		(2<<PLREG_SHF)
+	HEX_CONST SCI_G		(1<<PLREG_SHF)
+	HEX_CONST PTW		(3<<PLREG_SHF)
+REMB
+REMM < I'm guessing about the next two, as they are not listed >
+REMM < on the pencilled-in corrections, but if A0 and A1 are >
+REMM < swapped, they should also move >
+REME
+	HEX_CONST PTB		(6<<PLREG_SHF)
+	HEX_CONST PLB		(4<<PLREG_SHF)
+ .endc
+REM < PIXOP Preload regs >
+	HEX_CONST PIXOP_R1	(PIXOP_SEL|(0<<PLREG_SHF))
+	HEX_CONST PIXOP_G1	(PIXOP_SEL|(1<<PLREG_SHF))
+	HEX_CONST PIXOP_B1	(PIXOP_SEL|(2<<PLREG_SHF))
+	HEX_CONST PIXOP_R2	(PIXOP_SEL|(3<<PLREG_SHF))
+	HEX_CONST PIXOP_G2	(PIXOP_SEL|(4<<PLREG_SHF))
+	HEX_CONST PIXOP_B2	(PIXOP_SEL|(5<<PLREG_SHF))
+	HEX_CONST PIXOP_Z 	(PIXOP_SEL|(6<<PLREG_SHF))
+	HEX_CONST PIXOP_PPW	(PIXOP_SEL|(7<<PLREG_SHF))
+;
+REM < Selection of _which_ preload register is governed by the "PA" bits. >
+;
+	HEX_CONST PA_SHF	24.
+	HEX_CONST PL0		(0<<PA_SHF)	< ? Preload Left starting value >
+	HEX_CONST PR0		(1<<PA_SHF)	< ? Preload Right starting value > 
+	HEX_CONST PDL		(2<<PA_SHF)	< ? Preload Left Delta >
+	HEX_CONST PDR		(3<<PA_SHF)	< ? Preload Right Delta >
+	HEX_CONST FRAC_BITS	12		< SCIs use 12.12 fixed-point >
+	HEX_CONST PARM_MASK	0xFFFFFF	< Bottom 24 bits of each word are parameter >
+;
+.if true, OUTPUT_LANG != LANG_C
+;
+; At the most primitive level, we need to decide how the assembler du jour
+; specifies a 32-bit data value.
+;
+	.macro	U32 val eol
+ .if true, ((PROCESSOR & -16) == MIPS3000)
+	.word	val
+ .iff
+  .if true, ((PROCESSOR & -16) == MIPS4000)
+ 	.hword	val
+  .iff
+	.long	val
+  .endc
+ .endc
+ 	.endm
+;
+; MACRO to set up the basic _screen_ geometry of the trap.
+;	Given top and bottom Y, and x-coordinates of each corner,
+;	generates pre-loads for:
+; 	Y	Loaded into TRAP_PY, the starting (top) Y coordinate, integer
+; 	Height	assumed to be the same for left and right, here, loaded
+;		into TRAP_PLH (left Height) and TRAP_PRH (right height) integer
+;	Left X	X coord of top left pixel, in fixed point
+;	Right X	X coord of top right pixel, in fixed point
+;	dx/dy	for both left and right edges, in fixed point
+;
+	.macro TRAP_SETUP TOP_Y, UL_X, UR_X, BOT_Y, LL_X, LR_X
+	U32	TRAP_PY|TOP_Y
+	U32	TRAP_PLH|(TOP_Y-BOT_Y)
+	U32	TRAP_PRH|(TOP_Y-BOT_Y)
+	U32	TRAP_PLX|(UL_X<<FRAC_BITS)
+dx_dy = 0
+	.if	ne,UL_X-LL_X
+	.if	eq,TOP_Y-BOT_Y
+	.error	"Cannot have Delta_X without Delta_Y"
+	.iff
+dx_dy =	(((LL_X-UL_X)<<FRAC_BITS)/(TOP_Y-BOT_Y))
+	.endc
+	.endc
+	U32	TRAP_PDLX|(dx_dy&PARM_MASK)
+	U32	TRAP_PRX|(UR_X<<FRAC_BITS)
+dx_dy = 0
+	.if	ne,UR_X-LR_X
+	.if	eq,TOP_Y-BOT_Y
+	.error	"Cannot have Delta_X without Delta_Y"
+	.iff
+dx_dy =	(((LR_X-UR_X)<<FRAC_BITS)/(TOP_Y-BOT_Y))
+	.endc
+	.endc
+	U32	TRAP_PDRX|(dx_dy&PARM_MASK)
+	.endm
+;
+; Following is a placeholder for PERC setup. Until I understand
+; how the perspective correction works, I can only mimic the
+; sample, which loads zeroes into a whole slew of registers. This
+; seemingly has the effect of giving the same (What?) Z value to
+; all corners.
+	.macro	NULL_PERC
+	U32	PERC_VN|PL0
+	U32	PERC_VN|PR0
+	U32	PERC_VN|PDL
+	U32	PERC_VN|PDR
+	U32	PERC_VD|PL0
+	U32	PERC_VD|PR0
+	U32	PERC_VD|PDL
+	U32	PERC_VD|PDR
+	U32	PERC_HN|PL0
+	U32	PERC_HN|PR0
+	U32	PERC_HN|PDL
+	U32	PERC_HN|PDR
+	U32	PERC_HD|PL0
+	U32	PERC_HD|PR0
+	U32	PERC_HD|PDL
+	U32	PERC_HD|PDR
+	.endm
+.if true,0
+; 	A simple, solid-color trap is produced by the following. I do not
+; understand it all, but [RGB]1_[LR]0 seem to be the left and right stating
+; values, while [RGB]1_D[LR] again seem to be the "deltas", but I do not know
+; d(color)/d(what) they represent, nor can I guess the format. If they are
+; like the spatial coordinates, both deltas and initial values should be
+; 12.12 fixed point, or more likely 6.12, with (hopefully) saturation at
+; the end-points. But the one sample I have has the initial values at the
+; "bottom" of the parameters, and likewise the deltas, which would not,
+; presumably, make a visible difference across a 3-pixel trap.
+;	As for [RGB]2_*, they _may_ represent the color gradient at the
+; bottom of the trap. Further experimentation is needed
+; Following is sample "TRAP#1" used by Pete Mokris for initial test
+; of ZRE. It is _alleged_ to be a 3 by 3 trap with upper left corner
+; at 0x100,0x100
+;			TOP_Y  UL_X   UR_X   BOT_Y  LL_X   LR_X
+	TRAP_SETUP	0x100, 0x100, 0x102, 0xFD, 0x100, 0x102
+	NULL_PERC
+; I have no idea what the "official translation" for the following is, as
+; the definitions for the TEXMAP registers on one pencil-corrected sheet
+; conflict with the altered value on the other pencil-corrected sheet. The
+; original had:
+;	U32		0x4c007c00	; TEXMAP_TWORD
+; while the penciled correction shows:
+	U32		0x50007c00	; TEXMAP_TWORD
+; But no reading of the changes in TEXMAP registers can account for that
+; change, and there is no such register "TEXMAP_TWORD"
+;	
+ .endc
+ .endc
+.if true, OUTPUT_LANG == LANG_C
+#endif			/* _ZRE_DEFS_H_ */
+.endc
+@

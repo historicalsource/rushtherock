@@ -1,0 +1,311 @@
+head	1.7;
+access;
+symbols
+	RUSH_1_06A:1.3
+	AREA_52_00:1.7;
+locks; strict;
+comment	@;; @;
+
+
+1.7
+date	97.05.17.19.27.24;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.05.04.02.58.17;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	97.05.04.02.51.56;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	97.01.03.23.07.19;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.08.18.21.29.34;	author forrest;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.08.14.17.26.34;	author forrest;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.07.31.13.45.43;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Definitions for WMS I/O ASIC.
+@
+
+
+1.7
+log
+@IOASIC_BASIC_TYPE is always VU16 no matter what BUS_SCALE is
+set to.
+@
+text
+@.if ndf, _IOASIC_MAC_
+  _IOASIC_MAC_ == 0
+  .if ndf, IOASIC_BASE
+    .error ;You must define IOASIC_BASE before including ioasic.mac
+    HEX_CONST IOASIC_BASE 0
+  .endc
+  .if ndf, BUS_SCALE
+    .error ;You must define BUS_SCALE before including ioasic.mac
+    HEX_CONST BUS_SCALE 0
+  .endc
+;
+.define IOASIC_BASIC_TYPE VU16
+	.macro IO_ASIC_REG sym, comments
+	 HEX_CONST sym	IOASIC_BASE+(...n*BUS_SCALE)	<comments>
+	VAR	'sym'_T	IOASIC_BASIC_TYPE	sym	<comments>
+	 ...n == ...n + 1
+	.endm
+;
+	...n == 0
+;
+	IO_ASIC_REG		IO_DIPSW		< bits 15:0 (ro) = dip switches >
+	HEX_CONST IO_DIPSW0	0x00000001		< dip switch 0 >
+	HEX_CONST IO_DIPSW1	0x00000002		< dip switch 1 >
+	HEX_CONST IO_DIPSW2	0x00000004		< dip switch 2 >
+	HEX_CONST IO_DIPSW3	0x00000008		< dip switch 3 >
+	HEX_CONST IO_DIPSW4	0x00000010		< dip switch 4 >
+	HEX_CONST IO_DIPSW5	0x00000020		< dip switch 5 >
+	HEX_CONST IO_DIPSW6	0x00000040		< dip switch 6 >
+	HEX_CONST IO_DIPSW7	0x00000080		< dip switch 7 >
+	HEX_CONST IO_DIPSW8	0x00000100		< dip switch 8 >
+	HEX_CONST IO_DIPSW9	0x00000200		< dip switch 9 >
+	HEX_CONST IO_DIPSW10	0x00000400		< dip switch 10 >
+	HEX_CONST IO_DIPSW11	0x00000800		< dip switch 11 >
+	HEX_CONST IO_DIPSW12	0x00001000		< dip switch 12 >
+	HEX_CONST IO_DIPSW13	0x00002000		< dip switch 13 >
+	HEX_CONST IO_DIPSW14	0x00004000		< dip switch 14 >
+	HEX_CONST IO_DIPSW15	0x00008000		< dip switch 15 >
+;
+	IO_ASIC_REG		IO_MISC			< bits 15:0 (ro) = misc inputs >
+	HEX_CONST IO_MISC0	0x00000001		< miscellaneos input 0 >
+	HEX_CONST IO_MISC1	0x00000002		< miscellaneos input 1 >
+	HEX_CONST IO_MISC2	0x00000004		< miscellaneos input 2 >
+	HEX_CONST IO_MISC3	0x00000008		< miscellaneos input 3 >
+	HEX_CONST IO_MISC4	0x00000010		< miscellaneos input 4 >
+	HEX_CONST IO_MISC5	0x00000020		< miscellaneos input 5 >
+	HEX_CONST IO_MISC6	0x00000040		< miscellaneos input 6 >
+	HEX_CONST IO_MISC7	0x00000080		< miscellaneos input 7 >
+	HEX_CONST IO_MISC8	0x00000100		< miscellaneos input 8 >
+	HEX_CONST IO_MISC9	0x00000200		< miscellaneos input 9 >
+	HEX_CONST IO_MISC10	0x00000400		< miscellaneos input 10 >
+	HEX_CONST IO_MISC11	0x00000800		< miscellaneos input 11 >
+	HEX_CONST IO_MISC12	0x00001000		< miscellaneos input 12 >
+	HEX_CONST IO_MISC13	0x00002000		< miscellaneos input 13 >
+	HEX_CONST IO_MISC14	0x00004000		< miscellaneos input 14 >
+	HEX_CONST IO_MISC15	0x00008000		< miscellaneos input 15 >
+;
+	IO_ASIC_REG		IO_PLAYER_21		< bits 15:0 (ro) = player 1 and player 2 inputs >
+	HEX_CONST IO_PLYR1_0	0x00000001		< player 1 switch 0 >
+	HEX_CONST IO_PLYR1_1	0x00000002		< player 1 switch 1 >
+	HEX_CONST IO_PLYR1_2	0x00000004		< player 1 switch 2 >
+	HEX_CONST IO_PLYR1_3	0x00000008		< player 1 switch 3 >
+	HEX_CONST IO_PLYR1_4	0x00000010		< player 1 switch 4 >
+	HEX_CONST IO_PLYR1_5	0x00000020		< player 1 switch 5 >
+	HEX_CONST IO_PLYR1_6	0x00000040		< player 1 switch 6 >
+	HEX_CONST IO_PLYR1_7	0x00000080		< player 1 switch 7 >
+	HEX_CONST IO_PLYR2_0	0x00000100		< player 2 switch 0 >
+	HEX_CONST IO_PLYR2_1	0x00000200		< player 2 switch 1 >
+	HEX_CONST IO_PLYR2_2	0x00000400		< player 2 switch 2 >
+	HEX_CONST IO_PLYR2_3	0x00000800		< player 2 switch 3 >
+	HEX_CONST IO_PLYR2_4	0x00001000		< player 2 switch 4 >
+	HEX_CONST IO_PLYR2_5	0x00002000		< player 2 switch 5 >
+	HEX_CONST IO_PLYR2_6	0x00004000		< player 2 switch 6 >
+	HEX_CONST IO_PLYR2_7	0x00008000		< player 2 switch 7 >
+;
+	IO_ASIC_REG		IO_PLAYER_43		< bits 15:0 (ro) = player 3 and player 4 inputs >
+	HEX_CONST IO_PLYR3_0	0x00000001		< player 3 switch 0 >
+	HEX_CONST IO_PLYR3_1	0x00000002		< player 3 switch 1 >
+	HEX_CONST IO_PLYR3_2	0x00000004		< player 3 switch 2 >
+	HEX_CONST IO_PLYR3_3	0x00000008		< player 3 switch 3 >
+	HEX_CONST IO_PLYR3_4	0x00000010		< player 3 switch 4 >
+	HEX_CONST IO_PLYR3_5	0x00000020		< player 3 switch 5 >
+	HEX_CONST IO_PLYR3_6	0x00000040		< player 3 switch 6 >
+	HEX_CONST IO_PLYR3_7	0x00000080		< player 3 switch 7 >
+	HEX_CONST IO_PLYR4_0	0x00000100		< player 4 switch 0 >
+	HEX_CONST IO_PLYR4_1	0x00000200		< player 4 switch 1 >
+	HEX_CONST IO_PLYR4_2	0x00000400		< player 4 switch 2 >
+	HEX_CONST IO_PLYR4_3	0x00000800		< player 4 switch 3 >
+	HEX_CONST IO_PLYR4_4	0x00001000		< player 4 switch 4 >
+	HEX_CONST IO_PLYR4_5	0x00002000		< player 4 switch 5 >
+	HEX_CONST IO_PLYR4_6	0x00004000		< player 4 switch 6 >
+	HEX_CONST IO_PLYR4_7	0x00008000		< player 4 switch 7 >
+;
+	IO_ASIC_REG		IO_UART_CTL		< bits 15:0 (rw) = UART control bits >
+.if not_defined,IO_XTAL_FREQ
+	DEC_CONST IO_XTAL_FREQ	16667000		< XTAL frequency for IOASIC >
+.endc
+	HEX_CONST IO_UART_CTL_BAUD_MASK		0x7f	< Register Baud Rate Field >
+	DEC_CONST IO_UART_CTL_38_4_BAUD		(IO_XTAL_FREQ/(32*38400))-1 < Code for 38.4K Baud >
+	DEC_CONST IO_UART_CTL_19_2_BAUD		(IO_XTAL_FREQ/(32*19200))-1 < Code for 19.2K Baud >
+	DEC_CONST IO_UART_CTL_9600_BAUD		(IO_XTAL_FREQ/(32*9600))-1  < Code for 9600 Baud >
+	DEC_CONST IO_UART_CTL_4800_BAUD		(IO_XTAL_FREQ/(32*4800))-1  < Code for 4800 Baud >
+	HEX_CONST IO_UART_CTL_GP_OUT		0x0080	< General Purpose Output Bit >
+	HEX_CONST IO_UART_CTL_INTERNAL_ENA	0x0200	< 1 = Enable UART; 0 = Clear UART >
+	HEX_CONST IO_UART_CTL_ENABLE_ERRORS	0x0400	< 1 = Enable Overrun and Framing Errors and Break Detect >
+	HEX_CONST IO_UART_CTL_ENABLE_LOOP_BACK	0x0800	< 1 = Enable Internal Loop-back Mode >
+	HEX_CONST IO_UART_CTL_DISABLE_XMITTER	0x1000	< 1 = Prevents data from being sent to the wire >
+	HEX_CONST IO_UART_CTL_FORCE_BREAK_OUT	0x2000	< 1 = Force Transmitter Data Output True (BREAK) >
+	HEX_CONST IO_UART_CTL_IGNORE_CTS_IN	0x4000	< 1 = Ignore CTS Input >
+	HEX_CONST IO_UART_CTL_FORCE_CTS_OUT	0x8000	< 1 = Force CTS False; 0 = Receiver controls CTS >
+;
+	IO_ASIC_REG		IO_UART_TX		< bits  7:0 (rw) = UART transmit register >
+	IO_ASIC_REG		IO_UART_RCV		< bits 15:0 (ro) = UART receive/status registers >
+	HEX_CONST IO_UART_RCV_CHAR_MASK		0x00ff	< Character Mask >
+	HEX_CONST IO_UART_RCV_BREAK_DETECT	0x0100	< Break Detect Status >
+	HEX_CONST IO_UART_RCV_FRAME_ERROR	0x0200	< Framing Error Status >
+	HEX_CONST IO_UART_RCV_OVER_RUN		0x0400	< Overrun Error Status >
+	HEX_CONST IO_UART_RCV_FULL		0x0800	< Receiver FIFO Full >
+	HEX_CONST IO_UART_RCV_CHAR		0x1000	< Received Character Ready >
+	HEX_CONST IO_UART_XMT_EMPTY		0x2000	< Transmitter Empty >
+	HEX_CONST IO_UART_RCV_CTS_IN		0x4000	< CTS In True >
+	HEX_CONST IO_UART_RCV_CTS_OUT		0x8000	< CTS Out True >
+	HEX_CONST IO_UART_RCV_FIFO_SIZE		4	< Internal Receiver FIFO Size >
+;
+	IO_ASIC_REG		IO_METER		< bits  4:0 (rw) = meter control register >
+	IO_ASIC_REG		IO_H2SND_CTL		< bits 15:0 (rw) = Host to Sound control register >
+	HEX_CONST IO_H2SND_CTL_SND_ENA		0x0001	< Resets (0) or Enables (1) the Sound Sub-System >
+	HEX_CONST B_IO_H2SND_CTL_SND_ENA	0	< Resets (0) or Enables (1) the Sound Sub-System bit number >
+	HEX_CONST IO_H2SND_CTL_FIFO_ENA_STS	0x0002	< FIFO Disable (0) or Enable (1) Status to DSP >
+	HEX_CONST IO_H2SND_CTL_FIFO_ENA		0x0004	< Clears (0) or Enables (1) the Sound System FIFOs >
+	HEX_CONST IO_H2SND_CTL_FIFO_STS_LATCH	0x0008	< Flow Through (0) or Latch (1) the FIFO Status Bits >
+	HEX_CONST IO_H2SND_CTL_FLAG_MASK	0xFF00	< Host Flag bits written by Host and read by DSP >
+;
+	IO_ASIC_REG		IO_H2SND_DTA		< bits 15:0 (rw) = Host to Sound data register >
+	IO_ASIC_REG		IO_SND_STS		< bits 15:0 (ro) = Host Sound status >
+	HEX_CONST IO_SND_STS_SND_ENA		0x0001	< IO_H2SND_CTL_SND_ENA >
+	HEX_CONST IO_SND_STS_FIFO_ENA_STS	0x0002	< IO_H2SND_CTL_FIFO_ENA_STS >
+	HEX_CONST IO_SND_STS_FIFO_ENA		0x0004	< IO_H2SND_CTL_FIFO_ENA >
+	HEX_CONST IO_SND_STS_FIFO_EMPTY		0x0008	< FIFO Not Empty (0) / Empty (1) Status Flag >
+	HEX_CONST IO_SND_STS_FIFO_HALF		0x0010	< FIFO Not Half Full (0) / Half Full (1) Status Flag >
+	HEX_CONST IO_SND_STS_FIFO_FULL		0x0020	< FIFO Not Full (0) / Full (1) Status Flag >
+	HEX_CONST IO_SND_STS_DATA_FROM		0x0040	< Sound to Host Data Empty (0) / Full (1) Status bit >
+	HEX_CONST B_IO_SND_STS_DATA_FROM	6	< Sound to Host Data Empty (0) / Full (1) Status bit number >
+	HEX_CONST IO_SND_STS_DATA_TO		0x0080	< Host to Sound Data Full (0) / Empty (1) Status bit >
+	HEX_CONST B_IO_SND_STS_DATA_TO		7	< Host to Sound Data Full (0) / Empty (1) Status bit number >
+	HEX_CONST IO_SND_STS_FLAG_MASK		0xFF00	< Sound System Flag bits written by DSP and read by Host >
+;
+	IO_ASIC_REG		IO_SND2H_DTA		< bits 15:0 (ro) = Sound to Host data register >
+	IO_ASIC_REG		IO_H2MIC_CMD		< bits  3:0 (rw) = Host to microcontroller control >
+	IO_ASIC_REG		IO_MIC2H_DTA		< bits  7:0 (ro) = MIC to host data register >
+	IO_ASIC_REG		IO_MAIN_STS		< bits 15:0 (ro) = Main status register >
+	IO_ASIC_REG		IO_MAIN_CTL		< bits 15:0 (rw) = Main control register >
+	HEX_CONST IO_MAIN_GLOBAL_INT		0x0001	< Global Interrupt Enable >
+	HEX_CONST IO_MAIN_FRC_HOST_INT		0x0002	< Force Host Interrupt >
+	HEX_CONST IO_MAIN_MC_ACK		0x0004	< Microcontroller Acknowledge >
+	HEX_CONST IO_MAIN_FIFO_EMPTY		0x0008	< FIFO Empty Flag >
+	HEX_CONST IO_MAIN_FIFO_HALF		0x0010	< FIFO Half Full >
+	HEX_CONST IO_MAIN_FIFO_FULL		0x0020	< FIFO Full Flag >
+	HEX_CONST IO_MAIN_STH_DATA_FULL		0x0040	< Sound to Host Data Full >
+	HEX_CONST IO_MAIN_HTS_DATA_EMPTY	0x0080	< Host to Sound Data Empty >
+	HEX_CONST IO_MAIN_UART_BRK_DETECT	0x0100	< UART Break Detect >
+	HEX_CONST IO_MAIN_UART_FRAME_ERROR	0x0200	< UART Frame Error >
+	HEX_CONST IO_MAIN_UART_OVER_RUN		0x0400	< UART Over Run >
+	HEX_CONST IO_MAIN_UART_RCV_FULL		0x0800	< UART Receiver Full >
+	HEX_CONST IO_MAIN_UART_RCV_CHAR		0x1000	< UART Received Character >
+	HEX_CONST IO_MAIN_UART_XMT_EMPTY	0x2000	< UART Transmitter Empty >
+	HEX_CONST IO_MAIN_UART_CTS_IN		0x4000	< UART CTS In (Status Register) >
+	HEX_CONST IO_MAIN_UART_CTS_OUT		0x8000	< UART CTS Out (Status Register) >
+	HEX_CONST IO_MAIN_LED_ON		0x4000	< LED O/P On (Control Register) >
+	HEX_CONST IO_MAIN_TI320cx_MODE		0x8000	< TI-320cx Mode (Control Register) >
+;
+.endc 		;_IOASIC_MAC_
+@
+
+
+1.6
+log
+@Corrected typo made in previous change.
+@
+text
+@d12 1
+a12 3
+.define IOASIC_BASIC_TYPE VU32
+.iif true,BUS_SCALE <= 1,.define IOASIC_BASIC_TYPE VU8
+.iif true,BUS_SCALE == 2,.define IOASIC_BASIC_TYPE VU16
+@
+
+
+1.5
+log
+@Changed some warnings into errors.
+Changed the definition macro to also make a xxx_T variable
+which is the 'typed' flavor of the constant.
+@
+text
+@d12 1
+a12 1
+.define IOASIC_TYPE VU32
+a14 1
+;
+@
+
+
+1.4
+log
+@Computes baud rates from the value set by the new variable
+IO_XTAL_FREQ. The default for this value is 16667000, the value
+of the xtal on Phoenix-AD, Flagstaff, Seattle and some Phoenix
+boards. Most older Phoenix boards have a value of 16384000.
+@
+text
+@d4 1
+a4 1
+    .warn ;You should define IOASIC_BASE before including ioasic.mac
+d8 1
+a8 1
+    .warn ;You should define BUS_SCALE before including ioasic.mac
+d12 4
+d18 1
+@
+
+
+1.3
+log
+@Added some bit definitions for the CAGE Sound Sub-System.
+@
+text
+@d92 3
+d96 4
+a99 4
+	HEX_CONST IO_UART_CTL_38_4_BAUD		12	< Code for 38.4K Baud >
+	HEX_CONST IO_UART_CTL_19_2_BAUD		25	< Code for 19.2K Baud >
+	HEX_CONST IO_UART_CTL_9600_BAUD		51	< Code for 9600 Baud >
+	HEX_CONST IO_UART_CTL_4800_BAUD		103	< Code for 4800 Baud >
+@
+
+
+1.2
+log
+@Added IO_H2SND_CTL_etc and IO_SND_STS_etc bit masks.
+@
+text
+@d122 1
+d137 1
+d139 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d121 6
+d129 10
+@

@@ -1,0 +1,327 @@
+head	1.3;
+access;
+symbols
+	CJ_206:1.2
+	CJ2_05:1.2
+	CJ2_04:1.2
+	CJ2_03:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	97.07.01.22.48.44;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.06.09.00.25.24;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.08.26;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Raster operations for Jaguar
+@
+
+
+1.3
+log
+@Added RCS ID string
+@
+text
+@/**********************************************************************
+* RASTLIB.C | Raster Library Functions | Author: Robert M. Birmingham *
+* =================================================================== *
+* This module contains functions for performing raster-op functions   *
+* with the Jaguar's Blitter hardware.                                 *
+* =================================================================== *
+* Copyright 1994, Atari Games.                                        *
+**********************************************************************/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <blit.h>
+#include <rectlib.h>
+#include <rastlib.h>
+
+
+/*
+** ********************************************************************
+** rst_copy():
+** Copy the source rectangle 'srect' from the source raster area
+** 'sraster' to the destination rectangle 'drect' in the destination
+** raster area 'draster'.  The source and destination rasters must
+** have the same pixel type, but can have different width and height
+** definitions.  The source rectangle can be a different size than
+** the destination rectangle and will be scaled to fit the destination.
+** Note that there is additional processing that must be done in order
+** to scale a bitmap, therefore scaled copies will be significantly
+** slower than normal (non-scaled) copies.
+** ====================================================================
+** Usage:
+**   rst_copy( draster, sraster, drect, srect, logic, ext );
+**
+**   RASTER *draster:  ptr to dest. raster def.
+**   RASTER *sraster:  ptr to source raster def.
+**   RECT *drect:      ptr to dest rect. area.
+**   RECT *srect:      ptr to source rect. area.
+**   U32 logic;        logic mode to use for copy.
+**   U32 ext;          extended information for logic mode.
+**
+** Returns:
+**   Nothing.
+** ********************************************************************
+*/
+
+void rst_copy( draster, sraster, drect, srect, logic_mode, extended )
+RASTER *draster;
+RASTER *sraster;
+RECT *drect;
+RECT *srect;
+U32 logic_mode;
+U32 extended;
+{
+    static const U32 logic_table[] = {
+        SRCEN|LFU_REPLACE|UPDA1|UPDA2,
+        SRCEN|LFU_REPLACE|UPDA1|UPDA2|DCOMPEN,
+        SRCEN|LFU_REPLACE|UPDA1|UPDA2|DCOMPEN|DSTEN|CMPDST,
+        SRCEN|LFU_REPLACE|UPDA1|UPDA2,
+        };
+
+    U32 pixel;
+    U32 xinc;
+    U32 step;
+
+
+    /* handle normal blits and scaled blits separately for speed */
+    if( srect->w == drect->w )
+        {
+        /* set up the blitter's source registers */
+        A2_FLAGS = sraster->blitwid|sraster->blitpix|PITCH1|XADDPIX;
+        A2_BASE = H2TADDR( (sraster->imageptr &  0xfffffff8L) );
+        pixel = ((sraster->imageptr & 7L) << 3) >> (sraster->blitpix >> 3);
+        A2_PIXEL = ((U32)srect->y << 16) | ((U32)srect->x + pixel);
+        A2_STEP = 0x00010000L | ((U32)(-srect->w) & 0x0000ffffL);
+        B_COUNT = (U32)(srect->h << 16) | (U32)srect->w;
+
+        /* set up the blitter's destination registers */
+        A1_FLAGS = draster->blitwid|draster->blitpix|PITCH1|XADDPIX;
+        A1_BASE = H2TADDR( (draster->imageptr & 0xfffffff8L) );
+        pixel = ((draster->imageptr & 7L) << 3) >> (draster->blitpix >> 3);
+        A1_PIXEL = ((U32)drect->y << 16) | ((U32)drect->x + pixel);
+        A1_STEP = 0x00010000L | ((U32)(-srect->w) & 0x0000ffffL);
+
+        B_PATD1 = extended;
+        B_PATD2 = extended;
+        B_CMD = logic_table[logic_mode & 0x0003];
+        }
+    else
+        {
+        /* source */
+        A1_FLAGS = sraster->blitwid|sraster->blitpix|PITCH1|XADDINC;
+        A1_BASE = H2TADDR( (sraster->imageptr & 0xfffffff8L) );
+        pixel = ((sraster->imageptr & 7L) << 3) >> (sraster->blitpix >> 3);
+        A1_PIXEL = ((U32)srect->y << 16) | ((U32)srect->x + pixel);
+        xinc = ((int)srect->w << 16) / drect->w;
+        step = ((int)srect->h << 16) / drect->h;
+        A1_INC = (xinc >> 16) & 0x0000ffffL;
+        A1_FINC = xinc & 0x0000ffffL;
+        A1_STEP = (step & 0xffff0000L) | ((U32)-srect->w & 0x0000ffffL);
+        A1_FSTEP = (step << 16) & 0xffff0000;
+
+        /* destination */
+        A2_FLAGS = draster->blitwid|draster->blitpix|PITCH1|XADDPIX;
+        A2_BASE = H2TADDR( (draster->imageptr & 0xfffffff8) );
+        pixel = ((draster->imageptr & 7L) << 3) >> (draster->blitpix >> 3);
+        A2_PIXEL = ((U32)drect->y << 16) | ((U32)drect->x + pixel);
+        A2_STEP = 0x00010000L | ((U32)(-drect->w) & 0x0000ffffL);
+        B_COUNT = (U32)(drect->h << 16) | (U32)drect->w;
+
+        B_PATD1 = extended;
+        B_PATD2 = extended;
+        B_CMD = DSTA2|UPDA1F|logic_table[logic_mode & 0x0003];
+        }
+
+}   /* End: rst_copy() */
+
+
+/*
+** *********************************************
+** rst_clear():
+** Set a rectangular area in the RASTER passed
+** to the specified color.
+** =============================================
+** Usage:
+**   rst_clear( draster, drect, color )
+**
+**   RASTER *draster:  destination raster area.
+**   RECT *drect:      destination rectangle.
+**   U32 color:        color to set in dest.
+**
+** Returns:
+**   Nothing.
+** *********************************************
+*/
+
+void rst_clear( draster, drect, color )
+RASTER *draster;
+RECT *drect;
+U32 color;
+{
+    U32 pixel;
+
+
+    /* set up the blitter's destination registers */
+    A1_FLAGS = draster->blitwid|draster->blitpix|PITCH1|XADDPIX;
+    A1_BASE = H2TADDR( (draster->imageptr & 0xfffffff8L) );
+    pixel = ((draster->imageptr & 7L) << 3) >> (draster->blitpix >> 3);
+    A1_PIXEL = ((U32)drect->y << 16) | ((U32)drect->x + pixel);
+    A1_STEP = 0x00010000L | ((U32)(-(drect->w)) & 0x0000ffffL);
+    B_COUNT = (U32)(drect->h << 16) | (U32)drect->w;
+    B_PATD1 = color;
+    B_PATD2 = color;
+    B_CMD = PATDSEL|UPDA1;
+
+}   /* End: rst_clear() */
+
+
+/*
+** ****************************************************
+** rst_set():
+** Set the elements of a RASTER structure.
+** ====================================================
+** Usage:
+**   rst_set( rstptr, imgptr, pixw, pixh, bwid, bpix );
+**
+**   RASTER *rstptr:  ptr to RASTER structure to set.
+**   void *imgptr:    ptr to raster's image data.
+**   U16 pixw:        width of raster in pixels.
+**   U16 pixh:        height of raster in pixels.
+**   U16 bwid:        Blitter flag for raster width.
+**   U16 bpix:        Blitter flag for pixel size.
+**
+** Returns:
+**   Nothing.
+** ****************************************************
+*/
+
+void rst_set( rstptr, imgptr, pixelw, pixelh, blitwid, blitpix )
+RASTER *rstptr;
+void *imgptr;
+U16 pixelw;
+U16 pixelh;
+U16 blitwid;
+U16 blitpix;
+{
+    rstptr->imageptr = (U32)imgptr;
+    rstptr->pixelw = pixelw;
+    rstptr->pixelh = pixelh;
+    rstptr->blitwid = blitwid;
+    rstptr->blitpix = blitpix;
+
+}   /* End: rst_set() */
+
+
+/*
+** **********************************************
+** rst_size():
+** Calculate the size of the specified RASTER
+** definition in bytes and return the result to
+** the caller.
+** ==============================================
+** Usage:
+**   numbytes = rst_size( rastptr );
+**
+**   RASTER *rastptr:  ptr to RASTER definition.
+**
+** Returns:
+**   The size of the specified RASTER in bytes.
+** **********************************************
+*/
+
+U32 rst_size( rastptr )
+RASTER *rastptr;
+{
+    U32 numpixels;
+
+
+    numpixels = (U32)rastptr->pixelw * (U32)rastptr->pixelh;
+
+    switch( rastptr->blitpix )
+            {
+            case PIXEL16:
+                 return( numpixels << 1 );
+                 break;
+
+            case PIXEL8:
+                 return( numpixels );
+                 break;
+
+            case PIXEL4:
+                 return( numpixels >> 1 );
+                 break;
+
+            case PIXEL2:
+                 return( numpixels >> 2 );
+                 break;
+
+            case PIXEL1:
+                 return( numpixels >> 3 );
+                 break;
+
+            case PIXEL32:
+                 return( numpixels << 2);
+                 break;
+
+            default:
+                 return( 0 );
+                 break;
+            }
+
+}   /* End: rst_size() */
+
+/*************************************************************************
+* End of file: RASTLIB.C                                                 *
+*************************************************************************/
+@
+
+
+1.2
+log
+@added kluge for MIPS or 68k style includes (jag_defs)
+@
+text
+@d9 3
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d9 9
+a17 1
+
+d19 1
+d21 1
+@

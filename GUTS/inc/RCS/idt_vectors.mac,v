@@ -1,0 +1,143 @@
+head	1.4;
+access;
+symbols
+	RUSH_ROCK_1_0:1.4
+	RUSH_ROCK_1_0epst:1.4
+	RUSH_ROCK_1_0boot:1.4
+	MACE_1_0e:1.4
+	MACE_1_0d:1.4
+	RUSH_1_06A:1.3
+	AREA_52_00:1.4
+	MACE_1_0a:1.3
+	CJ_206:1.3
+	CJ2_05:1.3
+	CJ2_04:1.3;
+locks; strict;
+comment	@;; @;
+
+
+1.4
+date	97.07.01.20.54.19;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.10.31.02.25.33;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.07.20.16.32.40;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.07.06.20.19.36;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Generic IDT vector table used by os_root and stub
+@
+
+
+1.4
+log
+@Added a $Id$ to get file's version number.
+@
+text
+@; $Id$
+	MK_VECTOR   IRQ0	U32 1	< Interrupt 0>
+	MK_VECTOR   IRQ1	U32 1	< Interrupt 1>
+	MK_VECTOR   IRQ2	U32 1	< Interrupt 2>
+	MK_VECTOR   IRQ3	U32 1	< Interrupt 3>
+	MK_VECTOR   IRQ4	U32 1	< Interrupt 4>
+	MK_VECTOR   IRQ5	U32 1	< Interrupt 5>
+	MK_VECTOR   IRQ6	U32 1	< Interrupt 6>
+	MK_VECTOR   IRQ7	U32 1	< Interrupt 7>
+	MK_VECTOR   TLB		U32 1	< TLB exception >
+	MK_VECTOR   TMP		U32 1	<Not used anymore, remains only for compatibility with old stub>
+	MK_VECTOR   NORMAL	U32 1	<Not used anymore, remains only for compatibility with old stub>
+	MK_VECTOR   CHEAP	U32 1	<Not used anymore, remains only for compatibility with old stub>
+	MK_VECTOR   TLBM	U32 1	<TLB modification exception address>
+	MK_VECTOR   TLBL	U32 1	<TLB Load exception address>
+	MK_VECTOR   TLBS	U32 1	<TLB store exception address>
+	MK_VECTOR   ADDRL	U32 1	<Address exception on load or I-fetch>
+	MK_VECTOR   ADDRS	U32 1	<Address exception on store>
+	MK_VECTOR   BUSERRI	U32 1	<Bus error on I-fetch>
+	MK_VECTOR   BUSERRD	U32 1	<Bus error on data load>
+	MK_VECTOR   SYSCALL	U32 1	<SYSCALL exception>
+	MK_VECTOR   BREAK	U32 1	<Breakpoint exception>
+	MK_VECTOR   RESERV	U32 1	<Reserved instruction exception>
+	MK_VECTOR   COPROC	U32 1	<Coprocessor unusable exception>
+	MK_VECTOR   OVERFL	U32 1	<Integer overflow exception>
+.if true, (PROCESSOR&-16) == MIPS4000
+	MK_VECTOR   TRAPV	U32 1	<Trap exception>
+	MK_VECTOR   FILL0	U32 1	<Reserved entry>
+	MK_VECTOR   FPE		U32 1	<Floating point exception>
+.endc
+@
+
+
+1.3
+log
+@Made numerous changes to support R4k.
+@
+text
+@d1 1
+@
+
+
+1.2
+log
+@Removed some extraneous vectors
+@
+text
+@d1 12
+a12 18
+	MK_VECTOR   SW0		U32 1	<S/W 0 interrupt entry address>
+	MK_VECTOR   SW1		U32 1	<S/W 1 interrupt entry address>
+	MK_VECTOR   ICELESS	U32 1	<ICELESS interrupt entry address>
+.if true, HOST_BOARD == LCR3K
+	MK_VECTOR   XBUS0	U32 1	<XBUS 0 interrupt entry address>
+	MK_VECTOR   XBUS1	U32 1	<XBUS 1 interrupt entry address>
+	MK_VECTOR   XBUS2	U32 1	<XBUS 2 interrupt entry address>
+	MK_VECTOR   XBUS3	U32 1	<XBUS 3 interrupt entry address>
+.iff
+	MK_VECTOR   XBUS	U32 1	<Any XBUS interrupt>
+	MK_VECTOR   UNDEF	U32 1	<Undefine interrupt>
+	MK_VECTOR   TBUS_EMPTY	U32 1 <TBUS FIFO empty >
+	MK_VECTOR   TBUS_FULL	U32 1	<TBUS FIFO full >
+.endc
+	MK_VECTOR   CPUTIME	U32 1	<CPU timer interrupt entry address>
+	MK_VECTOR   TEMP	U32 1	<Place holder for interrupt temp use>
+	MK_VECTOR   GENRAL	U32 1	<General exception handler address>
+	MK_VECTOR   IRQ		U32 1	<IRQ interrupt entry address>
+d16 1
+a16 1
+	MK_VECTOR   ADDRR	U32 1	<Address exception on load or I-fetch>
+a28 4
+	MK_VECTOR   XBUS0	U32 1	<XBUS 0 interrupt entry address>
+	MK_VECTOR   XBUS1	U32 1	<XBUS 1 interrupt entry address>
+	MK_VECTOR   XBUS2	U32 1	<XBUS 2 interrupt entry address>
+	MK_VECTOR   XBUS3	U32 1	<XBUS 3 interrupt entry address>
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a0 9
+	MK_VECTOR   RAMVBR	U32 1	<pointer to RAM vector table>
+	MK_VECTOR   ROMVBR	U32 1	<pointer to ROM vector table>
+	MK_VECTOR   STACK	U32 1	<Last usable address in SRAM>
+	MK_VECTOR   ENTRY	U32 1	<reset entry point>
+	MK_VECTOR   PKTINIT	U32 1	<Packet init>
+	MK_VECTOR   PKTPOLL	U32 1	<Packet poll>
+	MK_VECTOR   PKTRECV	U32 1	<Packet recv>
+	MK_VECTOR   PKTSEND	U32 1	<Packet send>
+	MK_VECTOR   TLB		U32 1	<TLB exception entry address>
+@

@@ -1,0 +1,2162 @@
+head	1.39;
+access;
+symbols
+	CJ_206:1.38
+	CJ2_05:1.38
+	CJ2_04:1.21
+	CJ2_03:1.7;
+locks; strict;
+comment	@ * @;
+
+
+1.39
+date	97.07.01.23.42.42;	author albaugh;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	96.11.07.22.12.51;	author albaugh;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	96.11.07.20.49.10;	author albaugh;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	96.09.10.21.39.25;	author forrest;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	96.08.13.23.57.45;	author forrest;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	96.07.25.00.04.17;	author forrest;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	96.07.22.17.14.22;	author forrest;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	96.07.22.15.44.58;	author forrest;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	96.07.18.02.33.41;	author forrest;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	96.07.16.18.16.36;	author forrest;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	96.07.16.16.28.47;	author forrest;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	96.06.03.03.10.55;	author forrest;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.05.30.21.44.40;	author forrest;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.05.06.21.24.22;	author forrest;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.05.06.01.09.36;	author forrest;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.04.25.00.13.00;	author forrest;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.04.19.19.16.06;	author forrest;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.04.18.00.14.36;	author forrest;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.03.19.21.36.52;	author grisafi;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.03.15.22.13.52;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.03.15.21.15.30;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.02.29.23.46.25;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.02.28.01.50.42;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.02.27.23.25.17;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.02.27.20.43.30;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.02.23.22.27.15;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.02.23.02.46.50;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.01.10.03.28.13;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.01.09.04.34.03;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.01.09.03.35.22;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.01.09.02.30.26;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.11.01.18.47.22;	author birmingham;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.10.31.21.32.49;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.08.01.21.19.19;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.07.27.17.33.07;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.06.21.16.06.23;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.05.31.18.05.23;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.02.17.18.05.17;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.01.42;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Test/display/debounce/process switches and other controls
+@
+
+
+1.39
+log
+@Added RCS ID string
+@
+text
+@/*	COJag Switch test		*/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <string.h>
+#include <eer_defs.h>
+
+#if !defined(B_TEST)
+# define B_TEST (-1)
+#endif
+
+#if (HOST_BOARD == LCR3K) && (B_TEST < 0)
+       U32 fixup_ctl_sw();
+extern U32 ctl_sw_asm();
+#endif
+
+#ifndef AN_BALL
+#define AN_BALL (AN_A_STMP+'O'-'A')
+#endif
+#ifndef AN_DOT
+#define AN_DOT (AN_A_STMP+'.'-'A')
+#endif
+
+#define	OFF	('X'-'A'+AN_A_STMP)			/* BUTTON GRAPHICS	*/
+#define	ON	('O'-'A'+AN_A_STMP)
+
+#if SST_GAME	/* for now */
+# define J1_X	54
+# define J1_Y	26
+#else	/* for now */
+#if J3_BITS == 0
+# define J1_X	(AN_VIS_COL/5)
+# define J1_Y 	(16)
+# define J2_X	((3*AN_VIS_COL)/5)
+# define J2_Y	(16)
+#else
+# define J1_X	(AN_VIS_COL/6)
+# define J1_Y 	(16)
+# define J2_X	(2*AN_VIS_COL/6)
+# define J2_Y	(16)
+# define J3_X	(3*AN_VIS_COL/6)
+# define J3_Y 	(16)
+# define J4_X	(4*AN_VIS_COL/6)
+# define J4_Y	(16)
+#endif
+#endif	/* for now */
+
+unsigned long fake_controls;
+
+typedef struct
+{
+	U32	mask;
+	U8	x,y;
+	const char * const label;
+} S_BTN;
+
+#ifdef CN_STATUS
+#define CN_X (10)
+#if SST_GAME			/* for now */
+#define CN_Y (12)
+#else				/* for now */
+#define CN_Y (9)
+#endif				/* for now */
+static const S_BTN	cnsw[] =
+{
+    { (1<<B_COINL),	CN_X, CN_Y, "LFT"},
+    { (1<<B_COINR),	CN_X+5, CN_Y, "RGT"},
+#ifdef BC_AUX_LFT
+    { (1<<BC_AUX_LFT),	CN_X+10, CN_Y, "AUXL"},
+#endif
+#ifdef BC_AUX_RGT
+    { (1<<BC_AUX_RGT),	CN_X+15, CN_Y, "AUXR"},
+#endif
+    { 0, 0, 0, 0 }
+};
+#endif
+
+static const S_BTN	btn[] =
+{
+#if (COJAG_GAME&COJAG_AREA51)
+# define FIRST_NON_DEBUG (6)
+#else
+# define FIRST_NON_DEBUG (0)
+#endif
+#ifdef J1_FIRE
+	{J1_FIRE,J1_X+4,J1_Y+2,"FIRE"},
+#endif
+#ifdef J1_A
+	{J1_A,J1_X+4,J1_Y-1,"A"},
+#endif
+#ifdef J1_B
+	{J1_B,J1_X+7,J1_Y-1,"B"},
+#endif
+#ifdef J2_FIRE
+	{J2_FIRE,J2_X+4,J2_Y+2,"FIRE"},
+#endif
+#ifdef J2_A
+	{J2_A,J2_X+4,J2_Y-1,"A"},
+#endif
+#ifdef J2_B
+	{J2_B,J2_X+7,J2_Y-1,"B"},
+#endif
+#ifdef J1_TRIG
+	{J1_TRIG,J1_X+7,J1_Y+4,"TRIGGER"},
+	{J1_START,J1_X-1,J1_Y+4,"START"},
+#else
+# if J1_START
+	{J1_START,J1_X+9,J1_Y+2,"START"},
+# endif
+#endif
+#ifdef J2_TRIG
+	{J2_TRIG,J2_X+7,J2_Y+4,"TRIGGER"},
+	{J2_START,J2_X-1,J2_Y+4,"START"},
+#else
+# ifdef J2_START
+	{J2_START,J2_X+9,J2_Y+2,"START"},
+# endif
+#endif
+#if (SST_GAME & SST_RUSH)	/* for now */
+	{SW_START,57,26,"START"},
+	{SW_VIEW1,4,26,"VIEW1"},
+	{SW_VIEW2,10,26,"VIEW2"},
+	{SW_VIEW3,16,26,"VIEW3"},
+	{SW_MUSIC,10,23,"MUSIC"},
+	{SW_REVERSE,48,26,"REVERSE"},
+	{SW_FIRST,56,32," 1"},
+	{SW_SECOND,56,36," 2"},
+	{SW_THIRD,59,32," 3"},
+	{SW_FOURTH,59,36," 4"},
+#endif				/* for now */
+#if SST_GAME && ((SST_GAME & SST_RUSH) == 0)			/* for now */
+	{J_UP,54,23,"UP"},
+	{J_DOWN,54,31,"DOWN"},
+	{J_LEFT,49,27,"LEFT"},
+	{J_RIGHT,58,27,"RIGHT"},
+	{SW_WHITE,20,27,"WHITE"},
+	{SW_GREEN,10,27,"GREEN"},
+	{SW15,5,20,"TEST"},
+	{SW14,10,20,"SW14"},
+	{SW13,15,20,"SW13"},
+	{SW12,20,20,"SW12"},
+	{SW11,25,20,"SW11"},
+	{SW10,30,20,"SW10"},
+	{SW09,35,20,"SW09"},
+	{SW08,40,20,"SW08"},
+	{SW01,45,20,"SW01"},
+#endif				/* for now */
+	{0,0,0,0},
+};
+
+#define EX_FRAMES (60)
+#define RES_FRAMES (90)
+
+/*		st_joy_disp()
+ *	Just to have a single place to change how we draw the little
+ *	"tic-tac-toe" display of a joystick used in swt_test.c and
+ *	possibly snd_test.c and pots.c.
+ */
+
+void st_joy_disp( cx, cy, sw )
+int cx;			/* center X coordinate */
+int cy;			/* center Y cordinate */
+unsigned long sw;	/* Switch bits */
+{
+    int row,col;
+    int bits;		/* LSB is top left. 1 == BALL */
+
+    bits = 0x10;
+    if ( sw & J_LEFT ) bits >>= 1;
+    else if ( sw & J_RIGHT ) bits <<= 1;
+    if ( sw & J_UP ) bits >>= 3;
+    else if ( sw & J_DOWN ) bits <<= 3;
+    /* paint the pattern from left-to-right, top-to-bottom */
+    for ( row = 0; row < 3 ; ++row ) {
+#if (0)
+	txt_clr_wid(cx-1,cy-1+row,3);
+#endif
+	for ( col = 0 ; col < 3 ; ++col ) {
+	    txt_stamp(col+cx-1,row+cy-1,(bits & 1) ? AN_BALL : AN_DOT,WHT_PAL);
+	    bits >>= 1;
+	}
+    }
+}
+
+enum num_swts {
+	SWT_INPUTS,
+        SWT_LAST,
+	SWT_SW,
+	SWT_DEBUG,
+	SWT_MAX
+};
+
+#if (SST_GAME & SST_RUSH)   /* for now */
+
+#define FORCE_MSG " use COIN switches, START and VIEW1 buttons"
+#define LAMPS (*(volatile char *)(XBUS_SLOT4+0x0000080))
+#define SWFORCE (*(volatile char *)(XBUS_SLOT5+0x0000080))
+#define LSCLK 0x1f
+#define MSCLK 0xe0
+#define SWMIN (S16)(-127)
+#define SWMAX (S16)(126)
+#define SWCEN (S16)(0)
+
+unsigned long gopts;
+int SWInit;
+S16 sw_val;
+S16 swpos;
+S16 last_sw_val;
+S16 last_swpos;
+
+char xor(char *start_val)
+{
+    char save_val,end_val;
+    int i;
+    U8 mask_val;
+    
+    end_val = 0;
+    save_val = *start_val;
+    mask_val = 1;
+
+    for (i = 1; i <= 8; i++) {
+        if (!(mask_val & save_val)) {
+            end_val |= mask_val;
+        }
+        mask_val = 1<<i;
+    }
+    return(end_val);
+}
+
+void SetSWForce(S16 force)
+{
+  SWFORCE = ~force;
+  txt_hexnum(38,25,~force,2,2,RED_PAL);
+}
+
+void wheelforce(U32 sw)
+{
+ if (sw & J_UP) sw_val += 0x10;
+ else if (sw & J_DOWN) sw_val -= 0x10;
+ else if (sw & SW_COINL) sw_val++;
+ else if (sw & SW_COINR) sw_val--;
+ if ( sw & SW_MUSIC )
+ {
+  SWInit = 1;
+  SetSWForce(sw_val);
+ }
+ else if ( SWInit )
+ {
+  SWInit = 0;
+  SetSWForce(SWCEN);	/* Init SW */
+ }
+}
+
+# if USE_XBUSMON_CTLMODLATCH == 0
+static U32 cntr_bitshd;
+
+U32 ctl_mod_latch(int x)
+{
+ if ( x )
+ {
+    U32 old;
+    int oldipl = prc_set_ipl(INTS_OFF);
+    old = cntr_bitshd;
+    if (x < 0) {
+	cntr_bitshd &= x;
+    } else {
+	cntr_bitshd |= x;
+    }
+    LAMPS = cntr_bitshd;
+    prc_set_ipl(oldipl);
+    return old;
+ }
+ return cntr_bitshd;
+}
+# endif
+
+#endif   /* for now */
+
+int
+SwitchTest(smp)
+const struct menu_d *smp;
+{
+	m_int	ex_cnt;
+	int bottom, row;
+	int debugging;
+	U32 prev_swt[SWT_MAX];
+
+#if (POT_CNT)
+	m_int	res_cnt;
+	S16 prev[POT_CNT];
+#endif
+
+#if (SST_GAME & SST_RUSH)   /* for now */
+	m_int	age_cnt = 0;
+#endif   /* for now */
+
+	debugging = debug_mode & GUTS_OPT_DEVEL;
+	row = 4;
+	if ( debugging ) {
+	    prev_swt[SWT_LAST] = 1;
+	    txt_str(3,row++,"ADDRESS    NAME     RAW DATA",WHT_PAL);
+	    txt_str(3,row++,"-------- ---------  --------",WHT_PAL);
+#ifdef JAMMA
+	    txt_hexnum(3,row,(unsigned long)&JAMMA,8,0,WHT_PAL);
+	    txt_str(3+8+1, row++,     "JAMMA", WHT_PAL);
+#endif
+#if (SST_GAME & SST_RUSH)	/* for now */
+	    txt_hexnum(3,row,(unsigned long)&START,8,0,WHT_PAL);
+	    txt_str(3+8+1, row++,     "TEST", WHT_PAL);
+	    txt_hexnum(3,row,(unsigned long)&INPUTS,8,0,WHT_PAL);
+	    txt_str(3+8+1, row++,     "INPUTS", WHT_PAL);
+	    txt_hexnum(3,row,(unsigned long)&DIAG0,8,0,WHT_PAL);
+	    txt_str(3+8+1, row++,     "DIAG0", WHT_PAL);
+	    txt_hexnum(3,row,(unsigned long)&DIAG4,8,0,WHT_PAL);
+	    txt_str(3+8+1, row++,     "DIAG4", WHT_PAL);
+#else				/* for now */
+# ifdef INPUTS
+	    txt_hexnum(3,row,(unsigned long)&INPUTS,8,0,WHT_PAL);
+	    txt_str(3+8+1, row++,     "INPUTS", WHT_PAL);
+# endif
+# ifdef EXTEND
+	    txt_hexnum(3,row,(unsigned long)&EXTEND,8,0,WHT_PAL);
+	    txt_str(3+8+1, row++,     "EXTEND", WHT_PAL);
+# endif
+# ifdef MISC
+	    txt_hexnum(3,row,(unsigned long)&MISC,8,0,WHT_PAL);
+	    txt_str(3+8+1, row++,     "MISC", WHT_PAL);
+# endif
+# ifdef DIAG
+	    txt_hexnum(3,row,(unsigned long)&DIAG,8,0,WHT_PAL);
+	    txt_str(3+8+1, row++,     "DIAG", WHT_PAL);
+# endif
+#endif				/* for now */
+	}
+#ifdef CN_STATUS
+	txt_str(CN_X-7,++row,"COINS",WHT_PAL);
+#endif
+
+	bottom = st_insn(AN_VIS_ROW-2,t_msg_ret_menu,t_msg_nexth,INSTR_PAL);
+
+#if POT_CNT
+	prev[0] = -32767;
+
+	bottom = st_insn(bottom,"To reset limits,",t_msg_actionh,INSTR_PAL);
+	res_cnt = 0;
+#endif
+
+#if (SST_GAME & SST_RUSH)   /* for now */
+
+	gopts = eer_gets(EER_GUTS_OPT);
+	last_sw_val = last_swpos = -1;
+	SetSWForce(SWCEN);	/* Init SW */
+	SWInit = 0;
+	sw_val = 0;		/* Set value for wheel force test */
+
+	txt_str(27,19,"STEERING WHEEL", WHT_PAL);
+	txt_str(24,21,"POSITION  FORCE TEST", WHT_PAL);
+	txt_str(24,25,"SET FORCE", RED_PAL);
+
+	bottom = st_insn(bottom,"To age pots,","press REVERSE button",INSTR_PAL);
+	bottom = st_insn(bottom,"To test wheel force,",t_msg_extra,INSTR_PAL);
+	bottom = st_insn(bottom,"To set wheel force,",FORCE_MSG,INSTR_PAL);
+
+#endif   /* for now */
+
+	prc_delay0();
+
+	prev_swt[SWT_SW] = ~ctl_read_sw(0);
+
+	for(ex_cnt = EX_FRAMES ; ex_cnt > 0 ;)
+	{
+		U32	sw;
+		VU16	*swp;
+		const S_BTN	*p;
+		int	pal;
+
+		pal = 0;
+		swp = 0;		/* Quiet warnings in degenerate case */
+		row = 4;
+		if ( debugging ) {
+		    row += 3;
+# ifdef JAMMA
+		    swp = (VU16 *)&JAMMA;
+		    sw = (*swp <<16) | swp[1];
+		    txt_hexnum(3+8+1+10+1,row++,sw,8,0,RED_PAL);	/* display raw data */
+# endif
+# ifdef READ_RAW_SWITCHES
+		    sw = READ_RAW_SWITCHES(0);
+# else
+#  ifdef INPUTS
+		    swp = (VU16 *)&INPUTS;
+		    sw = (*swp <<16) | swp[1];
+#  endif
+# endif
+#if (SST_GAME & SST_RUSH)	/* for now */
+{
+		int dbg = READ_RAW_SWITCHES(1);
+		    if (prev_swt[SWT_LAST] || prev_swt[SWT_INPUTS] != sw || prev_swt[SWT_DEBUG] != dbg) {
+			txt_hexnum(3+8+1+10+1,row++,START&0xffff,8,0,RED_PAL);	/* display raw data */
+			txt_hexnum(3+8+1+10+1,row++,INPUTS&0xffff,8,0,RED_PAL);	/* display raw data */
+			txt_hexnum(3+8+1+10+1,row++,DIAG0&0xffff,8,0,RED_PAL);	/* display raw data */
+			txt_hexnum(3+8+1+10+1,row++,DIAG4&0xffff,8,0,RED_PAL);	/* display raw data */
+			prev_swt[SWT_INPUTS] = sw;
+			prev_swt[SWT_DEBUG] = dbg;
+		    }
+}
+#else				/* for now */
+# if SST_GAME
+#  ifdef INPUTS
+	    txt_hexnum(3+8+1+10+1,row++,INPUTS,8,0,RED_PAL);	/* display raw data */
+#  endif
+#  ifdef EXTEND
+	    txt_hexnum(3+8+1+10+1,row++,EXTEND,8,0,RED_PAL);	/* display raw data */
+#  endif
+#  ifdef MISC
+	    txt_hexnum(3+8+1+10+1,row++,MISC,8,0,RED_PAL);	/* display raw data */
+#  endif
+#  ifdef DIAG
+	    txt_hexnum(3+8+1+10+1,row++,DIAG,8,0,RED_PAL);	/* display raw data */
+#  endif
+# else
+#  if defined(READ_RAW_SWITCHES) || defined(INPUTS)
+		    if (prev_swt[SWT_LAST] || prev_swt[SWT_INPUTS] != sw) {
+			txt_hexnum(3+8+1+10+1,row,sw,8,0,RED_PAL);	/* display raw data */
+			prev_swt[SWT_INPUTS] = sw;
+		    }
+		    ++row;
+#  endif
+# endif
+#endif				/* for now */
+		    prev_swt[SWT_LAST] = 0;
+		}
+/* This would be a great place to add use of ST_E_CRPT, if we thought we
+ * would ever again read coins via JSA III.
+ */
+#ifdef CN_STATUS
+		sw = ~(CN_STATUS);
+
+		/* coin switches...	*/
+		for( p=&cnsw[0]; p->mask != 0; p++ )
+		{
+			txt_stamp( p->x,row+2,(sw & p->mask)? ON:OFF,RED_PAL );
+			if( p->label )
+				txt_str( p->x-1,row+1,p->label,WHT_PAL );
+		}
+		row += 3;
+#endif
+		sw = ctl_read_sw(0);
+		if (sw != prev_swt[SWT_SW]) {
+#if (COJAG_GAME&COJAG_AREA51)
+		    if ( debugging ) 
+#endif
+		    {
+#if J1_BITS && J1_X
+			if ((sw&J1_BITS) != (prev_swt[SWT_SW]&J1_BITS))
+			    st_joy_disp(J1_X,J1_Y,(sw & J1_BITS));
+#endif
+#if J2_BITS && J2_X
+			if ((sw&J2_BITS) != (prev_swt[SWT_SW]&J2_BITS))
+			    st_joy_disp(J2_X,J2_Y,(sw & J2_BITS));
+#endif
+#if J3_BITS && J3_X
+			if ((sw&J3_BITS) != (prev_swt[SWT_SW]&J3_BITS))
+			    st_joy_disp(J3_X,J3_Y,(sw & J3_BITS));
+#endif
+#if J4_BITS && J4_X
+			if ((sw&J4_BITS) != (prev_swt[SWT_SW]&J4_BITS))
+			    st_joy_disp(J4_X,J4_Y,(sw & J4_BITS));
+#endif
+
+		    }
+		    /* misc buttons...	*/
+		    p = btn;
+		    if ( !debugging ) p += FIRST_NON_DEBUG;
+		    for( ; p->mask != 0; p++ )
+		    {
+			if ((sw&p->mask) != (prev_swt[SWT_SW]&p->mask)) {
+			    cwrite( p->x,p->y,(sw & p->mask)? ON:OFF,RED_PAL );
+			    if( p->label )
+				    txt_str( p->x-1,p->y-1,p->label,WHT_PAL );
+			}
+		    }
+
+#ifdef LB_CABLIGHT
+		    /* if left trigger AND thumb depressed, turn on strobe... */
+		    if( (sw & (J1_TRIG|J1_THUMB)) == (J1_TRIG|J1_THUMB) )
+		    {
+			    prc_mod_latch(1 << (LB_CABLIGHT+16));
+			    pal = YEL_PAL;
+		    }
+		    else
+		    {
+			    prc_mod_latch(~(1 << (LB_CABLIGHT+16)));
+			    pal = WHT_PAL;
+		    }
+		    if ( (sw & (J1_TRIG|J1_THUMB)) != (prev_swt[SWT_SW]&(J1_TRIG|J1_THUMB)) ) {
+			txt_str(27,3," CAB LIGHT",pal);
+			txt_str(27,4,"(lt trg-thm)",pal);
+		    }
+#endif
+		    prev_swt[SWT_SW] = sw;
+		}
+
+#if (SST_GAME & SST_RUSH)   /* for now */
+
+		if (sw & SW_VIEW1) ctl_mod_latch(LA_VIEW1); else ctl_mod_latch(~LA_VIEW1);
+		if (sw & SW_VIEW2) ctl_mod_latch(LA_VIEW2); else ctl_mod_latch(~LA_VIEW2);
+		if (sw & SW_VIEW3) ctl_mod_latch(LA_VIEW3); else ctl_mod_latch(~LA_VIEW3);
+		if (sw & SW_MUSIC) ctl_mod_latch(LA_MUSIC); else ctl_mod_latch(~LA_MUSIC);
+		if (sw & SW_START) ctl_mod_latch(LA_ABORT); else ctl_mod_latch(~LA_ABORT);
+		if (sw & SW_REVERSE) ctl_mod_latch(LA_REVERSE); else ctl_mod_latch(~LA_REVERSE);
+		if (sw & SW_FIRST) ctl_mod_latch(LA_NOT_LDR); else ctl_mod_latch(~LA_NOT_LDR);
+
+# if POT_CNT
+		    swpos = pot_raw(POT_WHEEL);
+# endif
+
+		if (last_swpos != swpos) {
+		    txt_hexnum(27,23,swpos,2,0,WHT_PAL);
+		    last_swpos = swpos;   }
+
+		wheelforce( ctl_read_sw(J_UP|J_DOWN|SW_COINL|SW_COINR) );
+
+		if (last_sw_val != sw_val) {
+		    txt_hexnum(38,23,sw_val,2,0,WHT_PAL);
+		    last_sw_val = sw_val;   }
+
+# if POT_CNT
+		if ( ++age_cnt == 60 ) {
+		    pot_age();
+		    age_cnt = 0;
+		}
+# endif
+
+		if ( ( sw & SW_REVERSE ) == 0 ) age_cnt = 0;
+
+#endif   /* for now */
+
+#if POT_CNT
+		pot_display(prev);
+
+		/* if trigger HELD, reset the pots... */
+
+		if ( sw & SW_ACTION ) {
+			if ( ++res_cnt > RES_FRAMES ) {
+			    pot_init(-1);
+			    res_cnt = 0;
+			}
+		} else res_cnt = 0;
+#endif
+
+		prc_delay0();
+
+		/* if SW_NEXT held for 2 seconds, exit switch test */
+		if ( sw & SW_NEXT ) --ex_cnt;
+		else ex_cnt = EX_FRAMES;
+	}
+#if POT_CNT
+	pot_save();
+#endif
+#if (SST_GAME & SST_RUSH)   /* for now */
+	ctl_mod_latch(0x80000000);	/* turn off lamps */
+	ctl_mod_latch(LA_NOT_LDR);	/* turn off inverted lamp */
+#endif   /* for now */
+	ctl_read_sw(JOY_ALL);	/* kill edges */
+	return 0;
+}
+
+unsigned long dbswitch;		/* user visible debounced switches */
+
+struct switch_state {
+    /* First the successively "cooked" form of the switches */
+    unsigned long prev;		/* previous sample of switches */
+    unsigned long db;		/* Debounced switches */
+    unsigned long edge;		/* "New" switch closures (since off OR read) */
+    /* now the timers for auto-repeat */
+    unsigned long rpt;		/* mask for which switches auto-repeat */
+    unsigned short timer;
+    unsigned short init;	/* auto-repeat initial delay */
+    unsigned short delay;	/* auto-repeat successive delay */
+} sw_state,db_state;
+
+/*	Gang debounce routine for up to 32 switches. Called by sf_swtch
+ *	for both debug and player switches. Returns new debounced state.
+ */
+static unsigned long
+debounce_swtch(sw,new)
+struct switch_state *sw;
+U32 new;			/* new raw switches, high-true */
+{
+    unsigned long dying,old,changes,stable;
+    old = sw->prev;
+    sw->prev = new;
+
+/*  The following code is a 'C' translation of the 68000 assembly
+ *  in lipson/joy_sw.asm. It contains several oddities....
+ */
+    changes = old ^ new;
+    stable = ~changes;
+    dying = (changes & sw->db);		/* ones where changing to off? */
+    sw->db = dying | (new & stable);	/* debounce = dying 1s or stable ones*/
+    sw->edge &= sw->db;
+    if ( (dying & sw->rpt) == 0 && (sw->db & sw->rpt) ) {
+	/* at least one of our auto-repeat switches is on, and
+	 * none are dying, run the timer.
+	 */
+	if ( --(sw->timer) == 0 ) {
+	    sw->timer = sw->delay;	/* re-init to "later" delay */
+	    sw->edge &= ~sw->rpt;	/* re-trigger selected switches */
+	}
+    } else sw->timer = sw->init;	/* all off or dying?, init timer */
+    return sw->db;
+}
+
+#if (POT_CNT)
+extern void pot_vbread();
+extern U32 PotsToSwitches();
+#endif
+
+#if (HOST_BOARD == LCR3K) && (B_TEST < 0)
+U32 fixup_ctl_sw() {
+    U32 raw;
+    raw = ctl_sw_asm();			/* get switches from hardware */
+    if ((raw&(J2_UP|J2_DOWN)) == (J2_UP|J2_DOWN)) {
+       raw &= ~(J2_UP|J2_DOWN);
+       raw |= SW_ACTION;
+    }
+    if ((raw&(J2_LEFT|J2_RIGHT)) == (J2_LEFT|J2_RIGHT)) {
+       raw &= ~(J2_LEFT|J2_RIGHT);
+       raw |= SW_NEXT;
+    }
+    return raw;
+}
+#endif
+
+#if (COJAG_GAME&COJAG_AREA51)
+extern void gun_joy();	/* Should be U32, return controls */
+static int gun_kluge_timer;
+#define GUN_LAG (5)
+#endif
+
+U32 (*read_raw_sw_vec)(int which);
+
+/* switch reading routine called from VBINT during self-test
+ */
+unsigned long
+ctl_upd_sw()
+{
+    U32 raw;
+    if (read_raw_sw_vec) {
+	debounce_swtch(&db_state, read_raw_sw_vec(1));
+	return debounce_swtch(&sw_state, read_raw_sw_vec(0));
+    }
+#ifdef READ_RAW_SWITCHES
+    raw = READ_RAW_SWITCHES(1);
+    debounce_swtch(&db_state, raw);
+    raw = READ_RAW_SWITCHES(0);
+#else
+    {
+	VU16 *swp;
+
+# ifdef DIAG
+	swp = (VU16 *)&DIAG;
+	raw = (swp[0] <<16) | swp[1];
+	(void) debounce_swtch(&db_state,~raw);
+# endif
+# ifdef JAMMA
+	swp = (VU16 *)&JAMMA;
+# else
+	swp = (VU16 *)&INPUTS;
+# endif
+	raw = (swp[0] <<16) | swp[1];
+	raw = ~raw;			/* Switches are low_true, invert them */
+    }
+#endif
+
+#if (POT_CNT)
+# if 0
+    raw &= ~JOY_BITS;
+# endif
+    raw |= fake_controls;		/* merge in the pots */
+#endif
+#if (COJAG_GAME&COJAG_AREA51)
+    /* We are violating the "single writer" rule here, but the
+     * other writer (ctl_read_sw()) never reads, so this should
+     * be safe.
+    */
+    if ( gun_kluge_timer && --gun_kluge_timer ) gun_joy();
+    raw |= fake_controls;		/* merge in the gun "switches" */
+#endif
+    return dbswitch = debounce_swtch(&sw_state,raw);
+}
+
+void
+ctl_autorepeat(switches,initial,later)
+unsigned long switches;
+int initial,later;
+{
+    sw_state.rpt = switches;
+    sw_state.init = initial;
+    sw_state.delay = later;
+}
+
+/*		ctl_read_sw(MASK)
+*
+*	for bits that are TRUE in MASK
+*		code returns edge state, and clears the edge state
+*
+*	for bits that are FALSE in MASK
+*		code returns level state
+*/
+#define EARLY_ON (1)
+
+unsigned long
+ctl_read_sw(edge_mask)
+unsigned long edge_mask;
+{
+    unsigned long edges,val;
+
+    struct switch_state *sw = &sw_state;
+#ifdef EARLY_ON
+    val = sw->db | sw->prev;
+#else
+    val = sw->db;
+#endif
+    if ( edge_mask != 0) {
+	edges = (sw->edge ^ val) & edge_mask;
+	sw->edge |= edges;
+	val = (val & ~edge_mask) | edges;
+    }
+#if GUN_UP
+    if ( edge_mask & (GUN_UP|GUN_DOWN|GUN_LEFT|GUN_RIGHT) ) gun_kluge_timer = GUN_LAG;
+#endif
+    return val;
+}
+
+/*	More-or-less the same thing, but for the debug (Diagnostic)
+ *	switches.
+ */
+unsigned long
+ctl_read_debug(edge_mask)
+unsigned long edge_mask;
+{
+    unsigned long edges,val;
+
+    struct switch_state *sw = &db_state;
+
+#if (HOST_BOARD != PHOENIX) && (HOST_BOARD != PHOENIX_AD) && (HOST_BOARD != FLAGSTAFF)
+    val = debug_mode & GUTS_OPT_DBG_SW;
+    if ( val == 0 ) return val;
+#endif
+ 
+    val = sw->db;
+    if ( edge_mask != 0) {
+	edges = (sw->edge ^ val) & edge_mask;
+	sw->edge |= edges;
+	val = (val & ~edge_mask) | edges;
+    }
+    return val;
+}
+@
+
+
+1.38
+log
+@Still dinking with coin-switch positions.
+@
+text
+@d2 3
+a4 1
+
+@
+
+
+1.37
+log
+@Moving coin-switches around to avoid Forrest-induced over-write.
+@
+text
+@d337 1
+a337 1
+	txt_str(CN_X-7,row,"COINS",WHT_PAL);
+@
+
+
+1.36
+log
+@Removed references to ZOID_GAME and QUADRATURE and the old-style steering wheel code.
+@
+text
+@d299 1
+a301 1
+	    row = 4;
+d337 1
+a337 1
+	txt_str(CN_X-7,CN_Y-1,"COINS",WHT_PAL);
+d380 1
+d382 1
+a382 1
+		    row = 6;
+d443 1
+a443 1
+			txt_stamp( p->x,p->y,(sw & p->mask)? ON:OFF,RED_PAL );
+d445 1
+a445 1
+				txt_str( p->x-1,p->y-1,p->label,WHT_PAL );
+d447 1
+@
+
+
+1.35
+log
+@Don't turn off debug switches if PHOENIX/PHOENIX_AD/FLAGSTAFF.
+@
+text
+@d60 1
+a60 1
+#if ( ZOID_GAME & ZOID_RUSH ) || SST_GAME	/* for now */
+d81 2
+a82 21
+#if (ZOID_GAME&(ZOID20_HOCKEY|ZOID20_MACE)) &&  defined(J1_START) && \
+    						defined(J2_START) && \
+    						defined(J3_START) && \
+    						defined(J4_START)
+#  define FIRST_NON_DEBUG (0)
+	{J1_START, J1_X-1, J1_Y+4, "START"},
+	{J2_START, J2_X-1, J2_Y+4, "START"},
+	{J3_START, J3_X-1, J3_Y+4, "START"},
+	{J4_START, J4_X-1, J4_Y+4, "START"},
+	{J1_SHOOT, J1_X-1, J1_Y+6, "SHOOT"},
+	{J2_SHOOT, J2_X-1, J2_Y+6, "SHOOT"},
+	{J3_SHOOT, J3_X-1, J3_Y+6, "SHOOT"},
+	{J4_SHOOT, J4_X-1, J4_Y+6, "SHOOT"},
+	{J1_PASS,  J1_X-1, J1_Y+8, "PASS"},
+	{J2_PASS,  J2_X-1, J2_Y+8, "PASS"},
+	{J3_PASS,  J3_X-1, J3_Y+8, "PASS"},
+	{J4_PASS,  J4_X-1, J4_Y+8, "PASS"},
+	{J1_BURST, J1_X-1, J1_Y+10, "BURST"},
+	{J2_BURST, J2_X-1, J2_Y+10, "BURST"},
+	{J3_BURST, J3_X-1, J3_Y+10, "BURST"},
+	{J4_BURST, J4_X-1, J4_Y+10, "BURST"},
+d84 3
+a86 6
+# if (COJAG_GAME&COJAG_AREA51)
+#  define FIRST_NON_DEBUG (6)
+# else
+#  define FIRST_NON_DEBUG (0)
+# endif
+# ifdef J1_FIRE
+d88 2
+a89 2
+# endif
+# ifdef J1_A
+d91 2
+a92 2
+# endif
+# ifdef J1_B
+d94 2
+a95 2
+# endif
+# ifdef J2_FIRE
+d97 2
+a98 2
+# endif
+# ifdef J2_A
+d100 2
+a101 2
+# endif
+# ifdef J2_B
+d103 2
+a104 2
+# endif
+# ifdef J1_TRIG
+d107 2
+a108 2
+# else
+#  if J1_START
+a109 1
+#  endif
+d111 2
+a112 1
+# ifdef J2_TRIG
+d115 2
+a116 2
+# else
+#  ifdef J2_START
+a117 1
+#  endif
+d120 1
+a120 1
+#if (ZOID_GAME & ZOID_RUSH) || (SST_GAME & SST_RUSH)	/* for now */
+d194 1
+a194 1
+#if (ZOID_GAME & ZOID_RUSH) || (SST_GAME & SST_RUSH)   /* for now */
+a197 1
+# if (SST_GAME & SST_RUSH)
+a198 5
+#define QUADRATURE (*(volatile U8 *)(XBUS_SLOT5+0x000680)) 
+# else
+#define SWFORCE (*(volatile char *)(XBUS_SLOT71+0x0000080+3))
+#define QUADRATURE (*(volatile U8 *)(XBUS_SLOT71+0x000680+3)) 
+# endif
+a232 7
+# ifdef GUTS_OPT_SWFORCE
+        char opval, oopval;
+        U16 time;
+
+ if ( gopts & GUTS_OPT_SWFORCE )
+ {
+# endif
+a234 33
+# ifdef GUTS_OPT_SWFORCE
+ } else { 
+        opval = force & LSCLK;   /* Set up LSBs of force */
+	oopval = xor(&opval);
+	txt_hexnum(24,27,opval,2,2,RED_PAL);
+	txt_hexnum(24,28,oopval,2,2,RED_PAL);
+
+        SWFORCE = oopval;
+	for (time = 200; time-- != 0;);
+        opval |= MSCLK;         /* Make clock line high */
+        oopval =  xor(&opval);
+	txt_hexnum(27,27,opval,2,2,RED_PAL);
+	txt_hexnum(27,28,oopval,2,2,RED_PAL);
+
+        SWFORCE = oopval;
+	for (time = 200; time-- != 0;);
+        opval = (char)((S16)(force >> 5));     /* Set up MSBs of force */
+        opval &= LSCLK;         /* DATA ONLY */
+        opval |= MSCLK;         /* Keep clock high */
+        oopval =  xor(&opval);
+	txt_hexnum(30,27,opval,2,2,RED_PAL);
+	txt_hexnum(30,28,oopval,2,2,RED_PAL);
+
+        SWFORCE = oopval;
+	for (time = 200; time-- != 0;);
+        opval &= LSCLK;
+        oopval =  xor(&opval);
+	txt_hexnum(33,27,opval,2,2,RED_PAL);
+	txt_hexnum(33,28,oopval,2,2,RED_PAL);
+
+        SWFORCE = oopval;
+	}
+# endif
+d294 1
+a294 1
+#if (ZOID_GAME & ZOID_RUSH) || (SST_GAME & SST_RUSH)   /* for now */
+d308 1
+a308 1
+#if (ZOID_GAME & ZOID_RUSH) || (SST_GAME & SST_RUSH)	/* for now */
+d349 1
+a349 1
+#if (ZOID_GAME & ZOID_RUSH) || (SST_GAME & SST_RUSH)   /* for now */
+d395 1
+a395 1
+#if (ZOID_GAME & ZOID_RUSH) || (SST_GAME & SST_RUSH)	/* for now */
+d503 1
+a503 1
+#if (ZOID_GAME & ZOID_RUSH) || (SST_GAME & SST_RUSH)   /* for now */
+a512 3
+# ifdef GUTS_OPT_SWINPUT
+		if ( gopts & GUTS_OPT_SWINPUT ) {
+# endif
+a515 5
+# ifdef GUTS_OPT_SWINPUT
+		} else {
+		    swpos = QUADRATURE;
+		}
+# endif
+d560 1
+a560 1
+#if (ZOID_GAME & ZOID_RUSH) || (SST_GAME & SST_RUSH)   /* for now */
+@
+
+
+1.34
+log
+@Made ctl_mod_latch return cntr_bitshd with no calls to prc_set_ipl if input 0.
+@
+text
+@d824 1
+d827 1
+@
+
+
+1.33
+log
+@Turn off inverted lamps.
+@
+text
+@d327 4
+a330 1
+U32 ctl_mod_latch(int x) {
+d342 2
+@
+
+
+1.32
+log
+@Added ctl_mod_latch function to RUSH dependent code.
+@
+text
+@d634 1
+@
+
+
+1.31
+log
+@Added to Jx_BITS conditionals the test for Jx_X for now.
+@
+text
+@d220 1
+d324 18
+d569 8
+d632 3
+@
+
+
+1.30
+log
+@More changes for RUSH.
+@
+text
+@d498 1
+a498 1
+#if J1_BITS
+d502 1
+a502 1
+#if J2_BITS
+d506 1
+a506 1
+#if J3_BITS
+d510 1
+a510 1
+#if J4_BITS
+@
+
+
+1.29
+log
+@Changes for RUSH.
+@
+text
+@d395 1
+a395 1
+# if BOOT_COPY_SELF == 0
+d409 1
+a409 1
+# endif
+d561 1
+a561 1
+# if BOOT_COPY_SELF == 0
+d571 1
+a571 1
+# endif
+@
+
+
+1.28
+log
+@Got rid of InitSW; changed setswforce to SetSWForce.
+@
+text
+@d144 4
+a147 4
+	{SW_START,54,23,"START"},
+	{SW_VIEW1,4,20,"VIEW1"},
+	{SW_VIEW2,10,20,"VIEW2"},
+	{SW_VIEW3,16,20,"VIEW3"},
+d149 5
+a153 5
+	{SW_REVERSE,46,32,"REVERSE"},
+	{SW_FIRST,53,30," 1"},
+	{SW_SECOND,53,34," 2"},
+	{SW_THIRD,56,30," 3"},
+	{SW_FOURTH,56,34," 4"},
+d261 1
+d267 1
+d270 1
+d302 1
+d354 1
+a354 1
+	    txt_hexnum(3,row,(unsigned long)&TEST,8,0,WHT_PAL);
+d385 1
+a385 1
+	bottom = st_insn(AN_VIS_ROW-3,t_msg_ret_menu,t_msg_nexth,INSTR_PAL);
+d395 1
+a395 1
+
+d409 1
+a409 1
+
+d444 1
+a444 1
+			txt_hexnum(3+8+1+10+1,row++,TEST&0xffff,8,0,RED_PAL);	/* display raw data */
+d550 1
+d552 2
+d555 2
+d560 2
+a561 1
+
+d571 2
+a572 1
+
+d577 1
+@
+
+
+1.27
+log
+@Changed definitions of SWFORCE and QUADRATURE.
+@
+text
+@d259 1
+a259 1
+void setswforce(S16 force)
+a300 5
+void InitSW(void)
+{
+        setswforce(SWCEN);
+}
+
+d310 1
+a310 1
+  setswforce(sw_val);
+d315 1
+a315 1
+  InitSW();
+d394 1
+a394 1
+	InitSW();
+@
+
+
+1.26
+log
+@Another check for SST_GAME & SST_RUSH.
+@
+text
+@d221 2
+a222 2
+#define SWFORCE (*(volatile char *)(XBUS_SLOT5+0x0000080+3))
+#define QUADRATURE (*(volatile U8 *)(XBUS_SLOT5+0x000680+3)) 
+@
+
+
+1.25
+log
+@Added checks for SST_GAME & SST_RUSH.
+@
+text
+@d220 4
+d226 1
+@
+
+
+1.24
+log
+@First pass controls for phoenix.  See SST_GAME.
+@
+text
+@d143 1
+a143 1
+#if ( ZOID_GAME & ZOID_RUSH )	/* for now */
+d155 1
+a155 1
+#if SST_GAME			/* for now */
+d217 1
+a217 1
+#if ZOID_GAME == ZOID_RUSH   /* for now */
+d335 1
+a335 1
+#if ZOID_GAME == ZOID_RUSH   /* for now */
+d349 1
+a349 1
+#if ( ZOID_GAME & ZOID_RUSH )	/* for now */
+d390 1
+a390 1
+#if ZOID_GAME == ZOID_RUSH   /* for now */
+d436 1
+a436 1
+#if ( ZOID_GAME & ZOID_RUSH )	/* for now */
+d544 1
+a544 1
+#if ZOID_GAME == ZOID_RUSH   /* for now */
+@
+
+
+1.23
+log
+@Moved pot_raw prototype to os_proto.h
+@
+text
+@a12 5
+#if HAS_UIO || TEST_UIO
+VU32 uio_switches[2];
+extern int ctl_uio_get(int which, U8 *, int);
+#endif
+
+d28 4
+d47 1
+d60 1
+a60 1
+#if ( ZOID_GAME & ZOID_RUSH )	/* for now */
+d155 17
+d211 1
+a211 2
+	SWT_UIO,
+        SWT_LAST=SWT_UIO+2,
+a343 3
+#if HAS_UIO || TEST_UIO
+    	    txt_cstr("    +4", WHT_PAL);
+#endif
+a344 5
+#if HAS_UIO || TEST_UIO
+    	    txt_cstr(" --------", WHT_PAL);
+	    txt_hexnum(3,row,(U32)uio_switches,8,0,WHT_PAL);
+	    txt_str(3+8+1, row++,     "UIO swts", WHT_PAL);
+#endif
+d363 12
+a435 25
+#if HAS_UIO || TEST_UIO
+# if TEST_UIO && !HAS_UIO
+		    {
+			U8 tmp[8];
+			int sts;
+			sts = ctl_uio_get(0, tmp, sizeof(tmp));
+			if (sts != sizeof(tmp)) {
+			    uio_switches[0] = uio_switches[1] = 0;
+			} else {
+			    uio_switches[0] = ~((tmp[0]<<24) | (tmp[1]<<16))&0xFFFF0000;
+			    uio_switches[1] = ~((tmp[2]<<24) | (tmp[3]<<16) | (tmp[4]<<8) | tmp[5]);
+			}
+		    }
+# endif
+		    if (prev_swt[SWT_LAST] || 
+                        (prev_swt[SWT_UIO+0] != uio_switches[0]) || 
+		    	(prev_swt[SWT_UIO+1] != uio_switches[1])) {
+			txt_hexnum(3+8+1+10+1, row, uio_switches[0], 8, RJ_ZF, RED_PAL); /* display raw data */
+			txt_cstr(" ", RED_PAL);
+			txt_chexnum(uio_switches[1], 8, RJ_ZF, RED_PAL);	/* display raw data */
+			prev_swt[SWT_UIO+0] = uio_switches[0];
+			prev_swt[SWT_UIO+1] = uio_switches[1];
+		    }
+		    ++row;
+#endif
+d449 15
+a463 1
+# if defined(READ_RAW_SWITCHES) || defined(INPUTS)
+d469 1
+d682 1
+a682 22
+#if HAS_UIO 
+    {
+	int sts;
+	U8 tmp[8];
+	sts = ctl_uio_get(0, tmp, sizeof(tmp));
+	if (sts != sizeof(tmp)) {
+	    raw = 0;
+	} else {
+	    raw = ~((tmp[0]<<24) | (tmp[1]<<16))&0xFFFF0000;
+	}
+	uio_switches[0] = debounce_swtch(&db_state, raw);
+	if (sts != sizeof(tmp)) {
+	    raw = 0;
+	} else {
+	    raw = ~((tmp[2]<<24) | (tmp[3]<<16) | (tmp[4]<<8) | tmp[5]);
+	}
+	uio_switches[1] = dbswitch = debounce_swtch(&sw_state,raw);
+	return dbswitch;
+    }
+#endif
+#if !HAS_UIO
+# ifdef READ_RAW_SWITCHES
+d686 1
+a686 1
+# else
+d690 1
+a690 1
+#  ifdef DIAG
+d694 2
+a695 2
+#  endif
+#  ifdef JAMMA
+d697 1
+a697 1
+#  else
+d699 1
+a699 1
+#  endif
+d703 1
+a703 1
+# endif
+d705 2
+a706 2
+# if (POT_CNT)
+#  if 0
+d708 1
+a708 1
+#  endif
+d710 2
+a711 2
+# endif
+# if (COJAG_GAME&COJAG_AREA51)
+d718 1
+a718 1
+# endif
+a719 1
+#endif
+@
+
+
+1.22
+log
+@Integrated RUSH controls.  Its ugly, but that's the way it is, for now.
+@
+text
+@a211 2
+extern U16 pot_raw(S16);
+
+@
+
+
+1.21
+log
+@Removed kludge for 'player 1 fire' = 'player 2 start'
+@
+text
+@d7 1
+d60 3
+d64 1
+d73 1
+a73 1
+    { (1<<BC_AUX_RGT),	CN_X+14, CN_Y, "AUXR"},
+d143 12
+d201 106
+d321 4
+d343 11
+a353 1
+#ifdef INPUTS
+d356 2
+a357 1
+#endif
+d372 18
+a400 1
+
+d443 13
+d463 1
+d534 29
+d564 1
+a564 1
+		    pot_display(prev);
+d566 1
+a566 1
+		    /* if trigger HELD, reset the pots... */
+d568 1
+a568 1
+		    if ( sw & SW_ACTION ) {
+d573 1
+a573 1
+		    } else res_cnt = 0;
+d575 1
+a575 1
+		}
+d719 1
+d721 1
+@
+
+
+1.20
+log
+@Corrected spelling on the read_raw_sw_vec.
+@
+text
+@a530 1
+    if ( raw & J1_FIRE ) raw |= J2_START;	/* Kluge for bench */
+@
+
+
+1.19
+log
+@Added read_raw_sw_vec soft vector. Called at ctl_upd_sw if set.
+@
+text
+@d473 2
+a474 2
+	debounce_swtch(&db_state, read_sw_vec(1));
+	return debounce_swtch(&sw_state, read_sw_vec(0));
+@
+
+
+1.18
+log
+@Protected the use of Jx_START in ZOID games.
+@
+text
+@d464 2
+d472 4
+@
+
+
+1.17
+log
+@Changed the #ifdef Jx_BITS to be #if Jx_BITS
+@
+text
+@d76 4
+a79 1
+#if (ZOID_GAME&(ZOID20_HOCKEY|ZOID20_MACE))
+@
+
+
+1.16
+log
+@Added UIO controls test support and specific hockey test.
+@
+text
+@d32 1
+a32 1
+#if !J3_BITS
+d314 1
+a314 1
+#ifdef J1_BITS
+d318 1
+a318 1
+#ifdef J2_BITS
+d322 1
+a322 1
+#ifdef J3_BITS
+d326 1
+a326 1
+#ifdef J4_BITS
+@
+
+
+1.15
+log
+@Added some preliminary support for UIO switch reading/testing.
+@
+text
+@d32 15
+a46 4
+#define J1_X	(AN_VIS_COL/5)
+#define J1_Y 	(16)
+#define J2_X	((3*AN_VIS_COL)/5)
+#define J2_Y	(16)
+d62 8
+a69 4
+    { (1<<BC_AUX_LFT),	CN_X, CN_Y, "AUXL"},
+    { (1<<BC_AUX_RGT),	CN_X+5, CN_Y, "AUXR"},
+    { (1<<B_COINL),	CN_X+10, CN_Y, "LFT"},
+    { (1<<B_COINR),	CN_X+14, CN_Y, "RGT"},
+d76 18
+a93 2
+#if (COJAG_GAME&COJAG_AREA51)
+#define FIRST_NON_DEBUG (6)
+d95 6
+a100 3
+#define FIRST_NON_DEBUG (0)
+#endif
+#ifdef J1_FIRE
+d102 2
+a103 2
+#endif
+#ifdef J1_A
+d105 2
+a106 2
+#endif
+#ifdef J1_B
+d108 2
+a109 2
+#endif
+#ifdef J2_FIRE
+d111 2
+a112 2
+#endif
+#ifdef J2_A
+d114 2
+a115 2
+#endif
+#ifdef J2_B
+d117 2
+a118 2
+#endif
+#ifdef J1_TRIG
+d121 2
+a122 2
+#else
+# if J1_START
+d124 1
+d126 1
+a126 2
+#endif
+#ifdef J2_TRIG
+d129 2
+a130 2
+#else
+# ifdef J2_START
+d132 1
+d176 2
+d233 2
+d269 2
+a270 2
+			    uio_switches[0] = (tmp[0]<<24) | (tmp[1]<<16);
+			    uio_switches[1] = (tmp[2]<<24) | (tmp[3]<<16) | (tmp[4]<<8) | tmp[5];
+d309 1
+d311 1
+a311 1
+		if ( debugging ) 
+d313 1
+a313 1
+		{
+d315 2
+a316 1
+		st_joy_disp(J1_X,16,(sw & J1_BITS));
+d319 10
+a328 1
+		st_joy_disp(J2_X,16,(sw & J2_BITS));
+d331 12
+a342 10
+		}
+		/* misc buttons...	*/
+		p = btn;
+		if ( !debugging ) p += FIRST_NON_DEBUG;
+		for( ; p->mask != 0; p++ )
+		{
+			cwrite( p->x,p->y,(sw & p->mask)? ON:OFF,RED_PAL );
+			if( p->label )
+				txt_str( p->x-1,p->y-1,p->label,WHT_PAL );
+		}
+d345 15
+a359 13
+		/* if left trigger AND thumb depressed, turn on strobe... */
+		if( (sw & (J1_TRIG|J1_THUMB)) == (J1_TRIG|J1_THUMB) )
+		{
+			prc_mod_latch(1 << (LB_CABLIGHT+16));
+			pal = YEL_PAL;
+		}
+		else
+		{
+			prc_mod_latch(~(1 << (LB_CABLIGHT+16)));
+			pal = WHT_PAL;
+		}
+		txt_str(27,3," CAB LIGHT",pal);
+		txt_str(27,4,"(lt trg-thm)",pal);
+d361 1
+d363 1
+a363 1
+		pot_display(prev);
+d365 1
+a365 1
+		/* if trigger HELD, reset the pots... */
+d367 6
+a372 6
+		if ( sw & SW_ACTION ) {
+		    if ( ++res_cnt > RES_FRAMES ) {
+			pot_init(-1);
+			res_cnt = 0;
+		    }
+		} else res_cnt = 0;
+d374 1
+a374 1
+
+d475 1
+a475 1
+	    raw = (tmp[0]<<24) | (tmp[1]<<16);
+d481 1
+a481 1
+	    raw = (tmp[2]<<24) | (tmp[3]<<16) | (tmp[4]<<8) | tmp[5];
+@
+
+
+1.14
+log
+@Removed the uio read from ctl_upd_sw under when TEST_UIO active..
+@
+text
+@d13 2
+a14 2
+VU32 uio_switches[4];
+extern int ctl_uio_get(int, U8 *, int);
+d140 1
+a140 1
+        SWT_LAST=SWT_UIO+4,
+d162 1
+a162 1
+	    txt_str(3,row++,"ADDRESS    RAW DATA",WHT_PAL);
+d164 1
+a164 1
+    	    txt_cstr("    +4       +8      +12", WHT_PAL);
+d166 1
+a166 1
+	    txt_str(3,row++,"-------------------",WHT_PAL);
+d168 1
+a168 1
+    	    txt_cstr("---------------------------", WHT_PAL);
+d170 1
+a170 1
+	    txt_str(14+8*4+3, row++, "(UIO swts)", WHT_PAL);
+d174 1
+a174 1
+	    txt_str(14+8, row++, "  (JAMMA)", WHT_PAL);
+d178 1
+a178 1
+	    txt_str(14+8, row++, "  (INPUTS)", WHT_PAL);
+d211 1
+a211 1
+		    txt_hexnum(14,row++,sw,8,0,RED_PAL);	/* display raw data */
+d222 13
+d237 2
+a238 4
+		    	(prev_swt[SWT_UIO+1] != uio_switches[1]) || 
+		    	(prev_swt[SWT_UIO+2] != uio_switches[2]) || 
+		    	(prev_swt[SWT_UIO+3] != uio_switches[3])) {
+			txt_hexnum(14, row, uio_switches[0], 8, RJ_ZF, RED_PAL); /* display raw data */
+a240 4
+			txt_cstr(" ", RED_PAL);
+			txt_chexnum(uio_switches[2], 8, RJ_ZF, RED_PAL);	/* display raw data */
+			txt_cstr(" ", RED_PAL);
+			txt_chexnum(uio_switches[3], 8, RJ_ZF, RED_PAL);	/* display raw data */
+a242 2
+			prev_swt[SWT_UIO+2] = uio_switches[2];
+			prev_swt[SWT_UIO+3] = uio_switches[3];
+d248 1
+a248 1
+			txt_hexnum(14,row,sw,8,0,RED_PAL);	/* display raw data */
+d415 3
+a417 3
+
+	sts = ctl_uio_get(0, (U8*)uio_switches, sizeof(uio_switches));
+	if (sts != sizeof(uio_switches)) {
+d420 1
+a420 1
+	    raw = uio_switches[1];
+d422 2
+a423 2
+	debounce_swtch(&db_state, raw);
+	if (sts != sizeof(uio_switches)) {
+d426 1
+a426 1
+	    raw = uio_switches[0];
+d428 2
+d469 1
+a470 1
+    return dbswitch = debounce_swtch(&sw_state,raw);
+@
+
+
+1.13
+log
+@Added some preliminary support for UIO switches.
+@
+text
+@d407 1
+a407 1
+#if HAS_UIO || TEST_UIO
+a411 1
+# if HAS_UIO
+a422 1
+# endif
+@
+
+
+1.12
+log
+@Put conditional around reference to DIAG
+@
+text
+@d12 5
+d137 7
+d151 1
+d160 1
+d163 3
+d167 5
+d208 1
+a208 1
+#ifdef JAMMA
+d212 2
+a213 2
+#endif
+#ifdef READ_RAW_SWITCHES
+d215 2
+a216 2
+#else
+# ifdef INPUTS
+d219 1
+d221 19
+d241 8
+a248 3
+#if defined(READ_RAW_SWITCHES) || defined(INPUTS)
+		    txt_hexnum(14,row++,sw,8,0,RED_PAL);	/* display raw data */
+#endif
+d407 22
+a428 1
+#ifdef READ_RAW_SWITCHES
+d432 3
+a434 2
+#else
+    VU16 *swp;
+d436 13
+a448 9
+# ifdef DIAG
+    swp = (VU16 *)&DIAG;
+    raw = (swp[0] <<16) | swp[1];
+    (void) debounce_swtch(&db_state,~raw);
+# endif
+# ifdef JAMMA
+    swp = (VU16 *)&JAMMA;
+# else
+    swp = (VU16 *)&INPUTS;
+a449 3
+    raw = (swp[0] <<16) | swp[1];
+    raw = ~raw;			/* Switches are low_true, invert them */
+#endif
+d451 1
+a451 1
+#if (POT_CNT)
+d454 2
+a455 2
+#endif
+#if (COJAG_GAME&COJAG_AREA51)
+d463 1
+@
+
+
+1.11
+log
+@Missed a conditional around JAMMA in ctl_upd_sw().
+@
+text
+@d361 1
+a361 1
+    raw = READ_RAW_SWITCHES(0);
+d367 1
+d371 1
+@
+
+
+1.10
+log
+@Removed an extra space in front of the (INPUTS) comment.
+@
+text
+@d370 1
+d372 3
+@
+
+
+1.9
+log
+@Replaced raw switch reads with a READ_RAW_SWITCH() macro if defined.
+Added a row++ to the display of raw switch inputs on the display
+and labelled the line with INPUTS or JAMMA (in case there are both).
+@
+text
+@d152 1
+a152 1
+	    txt_str(14+8, row++,  "  (JAMMA)", WHT_PAL);
+d156 1
+a156 1
+	    txt_str(14+8, row++, "   (INPUTS)", WHT_PAL);
+@
+
+
+1.8
+log
+@made use of GUN depend on GUN_UP being non-zero,
+rather than on GUN_UP being defined. (MEA)
+@
+text
+@d61 1
+d63 2
+d66 2
+d69 2
+d72 2
+d75 2
+d78 1
+d83 1
+d85 1
+d91 1
+d93 1
+d137 1
+a137 1
+	int bottom;
+d147 3
+a149 2
+	    txt_str(3,4,"ADDRESS    RAW DATA",WHT_PAL);
+	    txt_str(3,5,"-------------------",WHT_PAL);
+d151 2
+a152 1
+	    txt_hexnum(3,6,(unsigned long)&JAMMA,8,0,WHT_PAL);
+d155 2
+a156 1
+	    txt_hexnum(3,7,(unsigned long)&INPUTS,8,0,WHT_PAL);
+d184 2
+d187 8
+a194 4
+		swp = (VU16 *)&JAMMA;
+		sw = (*swp <<16) | swp[1];
+		if ( debugging ) {
+		    txt_hexnum(14,6,sw,8,0,RED_PAL);	/* display raw data */
+d197 5
+a201 1
+		    txt_hexnum(14,7,sw,8,0,RED_PAL);	/* display raw data */
+a202 1
+#endif
+d360 4
+a363 3
+#if (HOST_BOARD == LCR3K) && (B_TEST < 0)
+
+    raw = fixup_ctl_sw();
+d373 1
+a377 1
+#endif
+@
+
+
+1.7
+log
+@use st_insn() instead of hand-rolled instructions.
+made positions of some things more dependant on screen size,
+for better generality. Customized slightly for Area51, by deleting
+most switches, unused in Area51, from non-handshake screen if
+compiled for Area51.
+@
+text
+@d399 1
+a399 1
+#ifdef GUN_UP
+@
+
+
+1.6
+log
+@protection around uses of possibly-not-defined JAMMA, INPUTS, CN_STATUS
+This _should_ all be mooted by a better organized, table-driven test,
+possibly borrowed from Zoid GUTS. In my spare time :-)
+@
+text
+@d27 1
+a27 1
+#define J1_X	(8)
+d29 1
+a29 1
+#define J2_X	(26)
+d56 3
+d60 1
+a61 1
+	{J1_START,J1_X+9,J1_Y+2,"START"},
+a64 1
+	{J2_START,J2_X+9,J2_Y+2,"START"},
+d67 12
+d121 1
+a121 1
+	char instruct[AN_VIS_COL+2];
+a142 1
+	instruct[AN_VIS_COL] = '\0';
+d144 1
+a144 1
+	txt_str(-1,AN_VIS_ROW-3,t_msg_nexth,INSTR_PAL);
+a147 4
+	instruct[AN_VIS_COL] = '\0';
+	strncpy(instruct,t_msg_actionh,AN_VIS_COL);
+	ex_cnt = strlen(instruct);
+	strncat(instruct," TO RESET LIMITS",AN_VIS_COL-ex_cnt);
+d149 1
+a149 1
+	txt_str(-1,AN_VIS_ROW-3,instruct,INSTR_PAL);
+d190 5
+a194 1
+
+d196 1
+d200 2
+d320 6
+d351 5
+d399 3
+@
+
+
+1.5
+log
+@added provision for stand-alone LCR3K bring-up. This
+is part of merge with Zoid Guts, and is best viewed
+as a "work in progress".
+@
+text
+@d119 1
+d121 2
+d124 1
+d126 1
+d128 1
+a128 1
+
+d155 2
+d165 1
+@
+
+
+1.4
+log
+@added COJAG_ to game name AREA51 to prevent symbol collision
+@
+text
+@d8 9
+d280 16
+d302 4
+d318 1
+@
+
+
+1.3
+log
+@added hack to allow AREA51 bench-setup to work with either START_2 or FIRE_1
+as SW_ACTION. Conditional on (COJAG_GAME&AREA_51), so it should not
+bother anybody else.
+@
+text
+@d290 1
+a290 1
+#if (COJAG_GAME&AREA51)
+@
+
+
+1.2
+log
+@deleted pre-clear of joystick diagram, to elminate "shadowing"
+@
+text
+@d290 4
+a293 1
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d83 1
+d85 1
+@

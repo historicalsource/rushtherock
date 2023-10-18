@@ -1,0 +1,522 @@
+head	1.6;
+access;
+symbols
+	CJ_206:1.6
+	CJ2_05:1.6
+	CJ2_04:1.6
+	CJ2_03:1.5;
+locks; strict;
+comment	@ * @;
+
+
+1.6
+date	96.07.17.23.20.55;	author birmingham;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.06.09.00.26.24;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.04.27.22.15.25;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.04.25.20.09.40;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.03.22.21.31.34;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.21.23;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Graphics decompression for CoJag (Jaguar) hardware.
+@
+
+
+1.6
+log
+@Added nd16_decomp() function for 16-bit null packed decompression.
+(This decompression function is not consistent with the normal decomp_xxx
+library because it doesn't have an IMAGE_DESC header).
+@
+text
+@/*********************************************************************
+* DECOMP.C | Author: Robert M. Birmingham | October 4, 1994          *
+* ================================================================== *
+* G.U.T.S video decompression interface: Copyright 1994, Atari Games *
+*********************************************************************/
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <os_proto.h>
+#include <decomp.h>
+#include <gputask.h>
+
+#define  DECOMP_TABSIZ  8
+
+typedef struct{
+    U16 id;
+    void (*fncptr)();
+    } DECOMP_ENTRY;
+
+static U16 num_decomp_entries;
+static DECOMP_ENTRY decomp_table[DECOMP_TABSIZ];
+
+/************************************************************************/
+
+static void raw_decomp( IMAGE_DESC *, void *destptr );
+static void npack1_decomp( IMAGE_DESC *, void *destptr );
+static void rle1_decomp( IMAGE_DESC *, void *destptr );
+
+/************************************************************************/
+
+/*
+** *********************************************************
+** decomp_init():
+** Clear the table of available decompression functions and
+** pre-register the built in GUTS decompression functions.
+** This routine should be called during game initialization.
+** It may also be called in order to remove all of the user
+** registered decompression functions.
+** =========================================================
+** Usage:
+**   decomp_init();
+**
+** Returns:
+**   Nothing.
+** *********************************************************
+*/
+
+void decomp_init( void )
+{
+    U16 i;
+
+
+    /* clear the id and function pointer fields of the table */
+    for( i = 0; i < DECOMP_TABSIZ; i++ )
+         {
+         decomp_table[i].id = 0;
+         decomp_table[i].fncptr = 0;
+         }
+
+    /* clear value used to keep track of total entries registered */
+    num_decomp_entries = 0;
+
+    /* register the built in decompression routines */
+    decomp_register( DECOMP_RAW, raw_decomp );
+    decomp_register( DECOMP_NPK, npack1_decomp );
+    decomp_register( DECOMP_RLE, rle1_decomp );
+
+}   /* End: decomp_init() */
+
+
+/*
+** ***************************************************
+** decomp_register():
+** Add a new decompression function to the table of
+** supported decompression functions.
+** ===================================================
+** Usage:
+**   error = decomp_register( id, fncptr );
+**
+**   U16 id:            type of algorithm to register.
+**   void (*fncptr)():  ptr to decompression function.
+**
+** Returns:
+**   (0):  if entry was successfully added to table.
+**   (-1): if entry was not added to table.
+** ***************************************************
+*/
+
+int decomp_register( id, fncptr )
+U16 id;
+void (*fncptr)( void );
+{
+    U16 i;
+
+
+    /* if table isn't full, register the new decomp. entry */
+    if( num_decomp_entries < DECOMP_TABSIZ )
+        {
+        /* scan for en empty position in the table and insert the new entry */
+        for( i = 0; i < DECOMP_TABSIZ; i++ )
+             {
+             if( decomp_table[i].fncptr == 0 )
+                 {
+                 decomp_table[i].id = id;
+                 decomp_table[i].fncptr = fncptr;
+                 num_decomp_entries++;
+                 return(0);
+                 }
+             }
+        }
+
+    /*
+    ** return an error code if the decomp. table is full or,
+    ** if the scan for an empty slot failed (this shouldn't
+    ** happen but just in case...).
+    */
+
+    return(-1);
+
+}   /* End: decomp_register() */
+
+
+/*
+** ***************************************************
+** decomp_unregister():
+** Delete an entry from the table of available
+** decompression functions based on the ID passed
+** by the user.
+** ===================================================
+** Usage:
+**   error = decomp_unregister( id );
+**
+**   U16 id:   id of decompression entry to delete.
+**
+** Returns:
+**   (0):  if entry was successfully deleted.
+**   (-1): if entry was not found in the table.
+** ***************************************************
+*/
+
+int decomp_unregister( id )
+U16 id;
+{
+    U16 i;
+
+
+    /* don't bother to scan the table if there are no entries */
+
+    if( num_decomp_entries == 0 )
+        {
+        /* scan the table for the specified id and delete if found */
+        for( i = 0; i < DECOMP_TABSIZ; i++ )
+             {
+             if( id == decomp_table[i].id )
+                 {
+                 decomp_table[i].id = 0;
+                 decomp_table[i].fncptr = 0;
+                 num_decomp_entries--;
+
+                 return(0);
+                 }
+             }
+        }
+
+    /*
+    ** return an error code if the decomp. table is empty or,
+    ** if the specified id could not be found.
+    */
+
+    return(-1);
+
+}   /* End: decomp_unregister() */
+
+
+/*
+** **************************************************
+** decomp_image():
+** Decompress the image represented by the descriptor
+** passed.  The image will be decompressed into the
+** supplied destination buffer.
+** ==================================================
+** Usage:
+**   decomp_image( imgdes, destptr );
+**
+**   IMAGE_DESC *imgdes:  ptr to image descriptor
+**   void *destptr:       ptr to destination buffer.
+**
+** Returns:
+**   Nothing.
+** **************************************************
+*/
+ 
+void decomp_image( imgdes, dest_buffer )
+IMAGE_DESC *imgdes;
+void *dest_buffer;
+{
+    U16 i;
+
+    /* locate the desired decompression function in the table and call it */
+    for( i = 0; i < DECOMP_TABSIZ; i++ )
+         {
+         if( imgdes->id == decomp_table[i].id )
+             {
+             (*decomp_table[i].fncptr)( imgdes, dest_buffer );
+             break;
+             }
+         }
+
+}   /* End: decomp_image() */
+
+
+/*
+** *******************************************
+** raw_decomp():
+** Copy raw data from the source to the dest.
+** ===========================================
+** Usage:
+**   Only callable from img_decompress().
+**
+** Returns:
+**   Nothing.
+** *******************************************
+*/
+
+void raw_decomp( imgdes, destptr )
+IMAGE_DESC *imgdes;
+void *destptr;
+{
+#if 0
+    blit_copy( destptr, imgdes->imageptr, imgdes->blength );
+#endif
+
+}   /* End: raw_decomp() */
+
+
+/*
+** *************************************************
+** npack1_decomp():
+** Decompress a 'null packed' type compressed image.
+** =================================================
+** Usage:
+**   Only callable from img_decompress().
+**
+** Returns:
+**   Nothing.
+** *************************************************
+*/
+
+void npack1_decomp( imgdes, destptr )
+IMAGE_DESC *imgdes;
+void *destptr;
+{
+    gpu_push_stack( GPU_NPACK_DECOMP, (U32)imgdes->paloffset );
+    gpu_push_stack( GPU_NPACK_DECOMP, (U32)imgdes->width * (U32)imgdes->height );
+    gpu_push_stack( GPU_NPACK_DECOMP, (U32)H2TADDR( destptr ) );
+    gpu_push_stack( GPU_NPACK_DECOMP, (U32)H2TADDR( imgdes->imageptr ) );
+    gpu_run_task( GPU_NPACK_DECOMP );
+
+}   /* End: npack1_decomp() */
+
+
+/*
+** *******************************************
+** rle1_decomp():
+** Decompress a 'rle1' type compressed image.
+** ===========================================
+** Usage:
+**   Only callable from img_decompress().
+**
+** Returns:
+**   Nothing.
+** *******************************************
+*/
+
+void rle1_decomp( imgdes, destptr )
+IMAGE_DESC *imgdes;
+void *destptr;
+{
+#if 0
+    extern gpu_rle1();
+    U32 *gpu_stack;
+
+
+    gpu_stack = (U32 *)gpu_calc_stackptr( (GPU_HEADER *)&gpu_rle1, (U32)&G_RAM );
+
+    gpu_stack = gpu_push( gpu_stack, (U32)H2TADDR( imgdes->palptr ) );
+    gpu_stack = gpu_push( gpu_stack, (U32)H2TADDR( destptr ) );
+    gpu_stack = gpu_push( gpu_stack, (U32)H2TADDR( imgdes->imageptr ) );
+
+    gpu_load( (GPU_HEADER *)&gpu_rle1, (U32)&G_RAM, 1 );
+#endif
+
+}   /* End: rle1_decomp() */
+
+
+/*
+** ***************************************
+** nd16_decomp():
+** decompress a 16-bit null packed image.
+** =======================================
+** Usage:
+**
+** Returns:
+**   Nothing.
+** ***************************************
+*/
+
+void nd16_decomp( dstptr, srcptr, pixels )
+U16 *dstptr;
+U16 *srcptr;
+int pixels;
+{
+    gpu_push_stack( GPU_ND16, (U32)pixels );
+    gpu_push_stack( GPU_ND16, (U32)H2TADDR( srcptr ) );
+    gpu_push_stack( GPU_ND16, (U32)H2TADDR( dstptr ) );
+    gpu_run_task( GPU_ND16 );
+
+}   /* End: nd16_decomp() */
+
+/*************************************************************************
+* End of file: DECOMP.C                                                  *
+*************************************************************************/
+@
+
+
+1.5
+log
+@added kluge for MIPS or 68k style includes (jag_defs)
+@
+text
+@d305 25
+@
+
+
+1.4
+log
+@Generally cleaned up some of the messier functions...
+No new features were added.  I did remove the blit_copy
+call in raw_decomp since it wasn't appropriate.
+@
+text
+@d6 9
+a14 1
+
+d16 3
+a19 1
+#include <jag_defs.h>
+@
+
+
+1.3
+log
+@Changed call to Null Pack Decompression to use
+new GPU library.
+@
+text
+@a10 1
+#include <blitlib.h>
+d13 1
+a13 1
+#define  DECOMP_TABSIZ  16
+d20 1
+a20 1
+static U16 decomp_entries;
+d61 1
+a61 1
+    decomp_entries = 0;
+d74 2
+a75 2
+** Add a new decompression function to the table
+** of supported decompression functions.
+d96 5
+a100 7
+    /* return an error if the decomp. table is full */
+    if( decomp_entries >= DECOMP_TABSIZ ) return(-1);
+
+    /* scan for en empty position in the table and insert the new entry */
+    for( i = 0; i < DECOMP_TABSIZ; i++ )
+         {
+         if( decomp_table[i].fncptr == 0 )
+d102 7
+a108 5
+             decomp_table[i].id = id;
+             decomp_table[i].fncptr = fncptr;
+             decomp_entries++;
+
+             return(0);
+d110 1
+a110 1
+         }
+d112 6
+a117 1
+    /* if we get here, the table is full, return error code */
+d147 1
+a147 2
+    /* return an error if the decomp. table is empty */
+    if( decomp_entries == 0 ) return(-1);
+d149 4
+a152 4
+    /* scan for en empty position in the table and insert the new entry */
+    for( i = 0; i < DECOMP_TABSIZ; i++ )
+         {
+         if( id == decomp_table[i].id )
+d154 5
+a158 3
+             decomp_table[i].id = 0;
+             decomp_table[i].fncptr = 0;
+             decomp_entries--;
+d160 2
+a161 1
+             return(0);
+d163 1
+a163 1
+         }
+d165 5
+a169 1
+    /* return error code if the id could not be found */
+d229 1
+d231 1
+@
+
+
+1.2
+log
+@removed palptr added paloffset for new gpuj1 which
+does decompression w/palette remapping.
+@
+text
+@d12 1
+a12 1
+#include <gpu.h>
+d241 5
+a245 12
+    extern gpuj1();
+    U32 *gpu_stack;
+
+
+    gpu_stack = (U32 *)gpu_calc_stackptr( (GPU_HEADER *)&gpuj1, (U32)&G_RAM );
+
+    gpu_stack = gpu_push( gpu_stack, (U32)imgdes->paloffset );
+    gpu_stack = gpu_push( gpu_stack, (U32)imgdes->width * (U32)imgdes->height );
+    gpu_stack = gpu_push( gpu_stack, (U32)H2TADDR( destptr ) );
+    gpu_stack = gpu_push( gpu_stack, (U32)H2TADDR( imgdes->imageptr ) );
+
+    gpu_load( (GPU_HEADER *)&gpuj1, (U32)&G_RAM, 1 );
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d247 2
+a248 2
+    gpu_stack = gpu_push( gpu_stack, (U32)imgdes->width*(U32)imgdes->height );
+    gpu_stack = gpu_push( gpu_stack, (U32)H2TADDR( imgdes->palptr ) );
+@

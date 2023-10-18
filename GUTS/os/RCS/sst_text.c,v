@@ -1,0 +1,3585 @@
+head	1.38;
+access;
+symbols
+	RUSH_ROCK_1_0:1.38
+	RUSH_ROCK_1_0epst:1.38
+	MACE_1_0e:1.35
+	MACE_1_0d:1.35
+	RUSH_1_06A:1.37
+	AREA_52_00:1.38
+	MACE_1_0a:1.35;
+locks; strict;
+comment	@ * @;
+
+
+1.38
+date	97.07.17.03.27.19;	author shepperd;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	97.06.27.21.20.18;	author albaugh;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	97.06.26.23.23.53;	author albaugh;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	97.04.02.18.33.36;	author albaugh;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	97.03.25.20.58.58;	author albaugh;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	97.03.11.00.18.44;	author shepperd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	97.03.07.02.10.24;	author albaugh;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	97.02.27.04.04.45;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	96.12.05.04.20.07;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	96.11.06.17.23.14;	author albaugh;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	96.09.23.20.11.28;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.09.23.18.06.10;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.08.06.17.16.32;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.07.13.21.51.36;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.07.12.05.26.56;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.07.12.05.17.11;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.07.12.04.57.41;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.07.12.03.47.55;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.07.12.03.23.09;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.06.14.00.39.12;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.06.08.03.31.15;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.06.08.00.59.59;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.06.08.00.50.24;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.06.07.23.59.54;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.06.06.02.29.03;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.05.24.01.46.21;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.05.15.03.31.39;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.05.14.20.59.46;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.05.08.16.54.31;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.05.07.20.16.19;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.05.05.22.24.32;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.05.05.20.59.36;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.04.30.22.00.55;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.04.30.21.30.43;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.04.26.20.24.02;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.04.24.01.13.22;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.04.20.02.36.38;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.04.17.20.49.03;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@First pass at 3dfx text routines.
+@
+
+
+1.38
+log
+@Added $Id$.
+@
+text
+@/* $Id$
+ *
+ *	Switchable method text-output routines for 3DFX
+ *
+ *	These routines were derived, in part, from the Jaguar text
+ *	routines written by Robert Birmingham.
+ *
+ *		Copyright 1994,1995,1996 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+/* Stuff that needs fixing:
+ *
+ * Don't know yet.
+ */
+
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <string.h>
+#include <phx_proto.h>
+#include <glide.h>
+#include <wms_proto.h>
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+#define BPPIXEL (2)	/* 2 bytes/pixel, but it is faster to write as single U32 */
+
+#define FIFO_LIMIT (0xA004)
+
+#ifndef AN_TOT_COL
+# define AN_TOT_COL AN_VIS_COL
+#endif
+#ifndef CHAR_BITS
+# define CHAR_BITS	8
+#endif
+
+#define SCREENW (VIS_H_PIX)
+#define STATIC static
+#define U32_BITS (sizeof(U32)*(CHAR_BITS))
+#define DIRTY_U32_PER_ROW	((AN_VIS_COL_MAX+U32_BITS-1)/U32_BITS)
+
+STATIC U16 fake_screen[AN_VIS_ROW_MAX][AN_VIS_COL_MAX];
+STATIC U32 dirty_bits[AN_VIS_ROW_MAX*DIRTY_U32_PER_ROW];
+static struct txt_alpha_ptr default_screen, *where_is_vs;
+
+extern U32 sst_memfifo_min;
+
+int (*vid_str)(int col, int row, const char *string, int font);
+void (*vid_stamp)(int col, int row, int stampno, int pal_font);
+void (*vid_tclr)(int col, int row, int width);
+void (*vid_refresh)(int);
+
+int (*dbg_str)(int col, int row, const char *string, int font);
+void (*dbg_stamp)(int col, int row, int stampno, int pal_font);
+void (*dbg_tclr)(int col, int row, int width);
+
+/* txt_vsptr - set the pointer to the virtual screen
+ * At entry:
+ *	new - pointer to new TxtAlphaPtr struct to use or 0
+ *		(if new->screen == 0, clears the current pointer)
+ * At exit:
+ *	returns the old contents of where_is_vs
+ */
+struct txt_alpha_ptr *txt_vsptr(struct txt_alpha_ptr *new) {
+    struct txt_alpha_ptr *old;
+    old = where_is_vs;			/* save previous value */
+    if (new) {				/* if user supplied a value ...*/
+	if (new->screen) {		/* and the screen member is not 0...*/
+	    where_is_vs = new;		/* his value becomes the new one */
+	} else {
+	    where_is_vs = 0;		/* else there is no virtual screen anymore */
+	}
+    }					/* if new == 0, just return previous value */
+    return old;				/* always return previous value */
+}
+
+/*	If the "hardware" does not define the bit-depth for alphanumerics,
+ *	assume the fairly-standard two bits of System I.
+ */
+#ifndef AN_BIT_DEPTH
+#define AN_BIT_DEPTH (2)
+#endif
+/*	If the "hardware" does not define the width for alphanumerics,
+ *	assume the fairly-standard eight pixels of System I.
+ */
+#ifndef AN_STMP_WID
+#define AN_STMP_WID (8)
+#endif
+/*	If the "hardware" does not define the height for alphanumerics,
+ *	assume the fairly-standard eight lines of System I.
+ */
+#ifndef AN_STMP_HT
+#define AN_STMP_HT (8)
+#endif
+static U16 an_pal[(AN_PAL_MSK>>AN_PAL_SHF)+1][1<<AN_BIT_DEPTH];
+
+#define STAMPOUT_TYPE	0
+
+#if STAMPOUT_TYPE == 0
+#define stampout( scrptr, colors, scan) \
+   do {					\
+      U32 t; 				\
+      t = colors[scan&3];	\
+      scan >>= 2;			\
+      *scrptr++ = t | (colors[scan&3]<<16);	\
+      scan >>= 2;			\
+      t = colors[scan&3];	\
+      scan >>= 2;			\
+      *scrptr++ = t | (colors[scan&3]<<16);	\
+      scan >>= 2;			\
+      t = colors[scan&3];	\
+      scan >>= 2;			\
+      *scrptr++ = t | (colors[scan&3]<<16);	\
+      scan >>= 2;			\
+      t = colors[scan&3];	\
+      scan >>= 2;			\
+      *scrptr++ = t | (colors[scan&3]<<16);	\
+      scan >>= 2;			\
+   } while (0)
+#define stampout_nbg( scrptr, colors, scan)	\
+   do {						\
+      U16 *scp16 = (U16*)scrptr;		\
+      int ii, jj;				\
+      for (ii=0; ii < 8; ++ii, ++scp16, scan >>= 2) { \
+	 jj = scan&3;				\
+	 if (jj) *scp16 = colors[jj];		\
+      }						\
+      scrptr = (U32*)scp16;			\
+   } while (0)
+#endif
+
+#if STAMPOUT_TYPE == 1
+static int stmp_y;
+static void stampout( U32 *scrptr, U16 *colors, int scan) {
+    U32 t; 
+    int jj;
+    if (stmp_y == 0) {
+	txt_hexnum(8+10+00, 7, colors[0], 4, RJ_ZF, WHT_PAL);
+	txt_hexnum(8+10+10, 7, colors[1], 4, RJ_ZF, WHT_PAL);
+	txt_hexnum(8+10+20, 7, colors[2], 4, RJ_ZF, WHT_PAL);
+	txt_hexnum(8+10+30, 7, colors[3], 4, RJ_ZF, WHT_PAL);
+    }
+    txt_hexnum(8, 8+stmp_y, (U32)scrptr, 8, RJ_ZF, WHT_PAL);
+    for (jj=0; jj < 4; ++jj) {
+	t = colors[scan&3]<<16;
+	scan >>= 2;
+	t |= colors[scan&3];
+	scan >>= 2;
+	txt_hexnum(8+10+jj*10, 8+stmp_y, t, 8, RJ_ZF, WHT_PAL);
+    }
+    ++stmp_y;
+    return;
+} 
+#endif
+
+static struct posn {
+    short row;
+    short col;
+} p_posn;
+
+U32 txt_setpos(U32 cookie) {
+    int oldcol, oldrow;
+    oldcol = p_posn.col;
+    oldrow = p_posn.row;
+    if (cookie >= AN_VIS_ROW*AN_VIS_COL) {
+	cookie -= AN_VIS_ROW*AN_VIS_COL;
+	p_posn.row = cookie/AN_VIS_COL;
+	p_posn.col = cookie%AN_VIS_COL;
+    }
+    return AN_VIS_ROW*AN_VIS_COL + oldrow*AN_VIS_COL + oldcol;
+}
+
+extern unsigned short an_stamps,an_norm_a,an_end;
+#define AN_STAMPS &an_stamps
+#define AN_A_OFFSET ((&an_norm_a-&an_stamps)>>3)
+struct bigchar {
+    unsigned char tl,bl,tr,br;
+};
+
+#include <txt_tab.h>
+
+const int BIG_OFFSET = 0xA6;
+
+void
+txt_clr_wid(col, row, width)
+int col, row, width;
+{
+    struct txt_alpha_ptr *which;
+    VU32 *dirty;
+    VU16 *screen;
+    which = txt_vsptr(0);
+    if ( which == 0 || which->screen == 0 ) return;
+    if ( row < 0 ) {
+	col = p_posn.col;	
+	row = p_posn.row;
+    }
+    if ( row >= AN_VIS_ROW ) row = AN_VIS_ROW-1;
+    if (col < 0 ) {
+	/* wants to center */
+	col = (AN_VIS_COL+1) >> 1;
+	if ( col < 0 ) col = 0;
+    }
+    if ( col > (AN_VIS_COL-1) ) col = AN_VIS_COL-1;
+    if ( (col+width) >= AN_VIS_COL ) {
+	width = AN_VIS_COL-col;
+    }
+    dirty = which->dirty;
+    if ( dirty ) {
+	U32 dbits;
+	int start,twid,skip;
+
+	start = col;
+	twid = width;
+	dbits = 0;
+	dirty += row*((AN_VIS_COL+U32_BITS-1)/U32_BITS);
+	skip = (start/U32_BITS);
+	dirty += skip;
+	skip -= (skip*32);
+	while ( twid > 0 ) {
+	    dbits = (twid >= U32_BITS) ? -1U : ((1<<twid)-1);
+	    *dirty &= ~(dbits<<(start&0x1F));
+	    twid -= (32-(start&0x1F));
+	    start = 0;
+	    ++dirty;
+	}
+    } else {
+	screen = (VU16 *) which->screen;
+	screen += ((row*(AN_VIS_COL))+col);
+	memset((void *)screen,0,width*sizeof(VU16));
+    }
+    if ( dbg_tclr ) dbg_tclr(col, row, width);
+    if ( vid_tclr ) vid_tclr(col, row, width);
+}
+
+int
+txt_cstr(string,psmask)
+const char	*string;
+int	psmask;
+{
+    return txt_str(0,-1,string,psmask);
+}
+
+void
+txt_clr_str(x,y,string,pal)
+int x,y,pal;
+const char *string;
+{
+    int endy;
+    int height = txt_height(string,pal);
+    int width = txt_width(string,pal);
+    if ( x < 0 ) {
+	/* wants to center */
+	x = (AN_VIS_COL+1-width) >> 1;
+	if ( x < 0 ) {
+	    x = 0;
+	    width = AN_VIS_COL;
+	}
+    }
+    /* We changed AN_BIG_SET to be bottom-justified,
+     * but missed it here. Clearing should be on row
+     * 'y' and 'height-1' lines above it. For compatibility
+     * with older code, we make sure this does not "push"
+     * AN_BIG_SET text above the top of the screen.
+     */
+    endy = y - (height - 1);
+    if ( endy < 0 ) {
+	y = height-1;
+	endy = 0;
+    }
+    for (  ; y >= endy ; --y ) {
+	txt_clr_wid(x,y,width);
+    }
+}
+
+int
+txt_width(text,set)
+const char *text;
+int set;
+{
+    int width = 0;
+    int letter;
+    const struct bigchar *bt = BTABLE;
+
+    if ( (set & SETMSK) != AN_BIG_SET ) width = strlen(text);
+    else while ( (letter = *text++) != '\0') {
+	if ( ( letter = trantab[letter] ) < 0 ) ++width;
+	else width += 1 + (bt[letter].tr != 0);
+    }
+    return width;
+}
+
+int txt_height(txt,set)
+const char *txt;
+int set;
+{
+    if ( (set & SETMSK) == AN_BIG_SET ) return 2;
+    return 1;
+}
+
+int
+txt_decnum(col,row,val,wid,form,palset)
+int		col;	/* coord. of UL corner of first character of txt */
+int 		row;	/* (0,0) is upper left corner of screen		*/
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    char num[20];
+    utl_cdec(val,num,wid,form);
+    return txt_str(col,row,num,palset);    
+}
+
+void
+txt_cdecnum(val,wid,form,palset)
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    txt_decnum(0,-1,val,wid,form,palset);
+}
+
+int
+txt_hexnum(col,row,val,wid,form,palset)
+int		col;	/* coord. of UL corner of first character of txt */
+int 		row;	/* (0,0) is upper left corner of screen		*/
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    char num[20];
+    utl_chex(val,num,wid,form);
+    return txt_str(col,row,num,palset);
+}
+
+void
+txt_chexnum(val,wid,form,palset)
+unsigned long	val;	/* value to output				*/
+int		wid;	/* Size of output field				*/
+int		form;	/* one of:
+    			 * RJ_ZF (0) Right Justify with ZERO Fill
+    			 * RJ_BF (1) Right Justify with BLANK Fill
+    			 * LJ_BF (2) Left Justify with BLANK Fill
+    			 * LJ_NF (3) Left Justify with NO Fill
+    			 *						*/
+int		palset;	/* Palette and Character Set selection		*/
+{
+    txt_hexnum(0,-1,val,wid,form,palset);
+}
+
+/*		SetANPal(f_and_b)
+ *	Sets one AlphaNumeric palette to have the colors specified
+ *	in f_and_b. The lower 16 bits of f_and_b specify the foreground
+ *	color (in game's coding) while the upper 16 bits specify the
+ *	background color. If we ever get more than 1 bit deep text on
+ *	Jaguar, an alias color will be synthesized "halfway between"
+ *	the two. We are not actually using the CLUT capability of the
+ *	Jaguar for text, as we have a CRY bitmap to draw into and do
+ *	not want to waste CLUT space on text.
+ */
+
+void
+SetANPal( palette, colors)
+int palette;
+U32 colors;
+{
+    U32 fg, bg, anti_alias;
+
+    bg = colors >> 16;
+    fg = (colors & 0xFFFF);
+
+    palette &= AN_PAL_MSK;
+    palette >>= AN_PAL_SHF;
+    anti_alias = (fg & ~(RED_LSB|GRN_LSB|BLU_LSB))>>1;
+    anti_alias += (GRY_FUL & ~(RED_LSB|GRN_LSB|BLU_LSB))>>1;
+    an_pal[palette][0] = bg;
+    an_pal[palette][(1<<AN_BIT_DEPTH)-1] = fg;
+#if AN_BIT_DEPTH > 1
+#if (SST_GAME & SST_JUKO)
+    an_pal[palette][1] = 0x421;		/* near-black Border on BIG alphas */;
+#else
+    an_pal[palette][1] = GRY_FUL;		/* Border on BIG alphas */;
+#endif
+    an_pal[palette][2] = anti_alias;
+#endif
+}
+
+/*		txt_mod_pal( palette, mask, xfer )
+ *	Hack added for Juko Thread. The idea is to allow the
+ *	game to modify the text palettes, but without total anarchy.
+ *	Copies those palette entries from xfer to the internal
+ *	palette where there is a 'one' bit in mask. For example:
+ *
+ *	if my_pal[] is an array of U16's,
+ *
+ *	txt_mod_pal( RED_PAL, 0x2, my_pal);
+ *
+ *	will copy color 1 (0x2 == (1<<1)) to the palette selected
+ *	by RED_PAL. Returns the number of colors in the palette.
+ *	If mask is 0, copies _from_ the palette to *xfer, which
+ *	_must_ be big enough to hold them. Since mask is a U32,
+ *	a 32-entry array should suffice. For most platforms, using
+ *	the System-I derived 2-bit deep character set:
+ *	0 is the background
+ *	1 is the border (for big chars) or Drop-shadow (for 8x8s)
+ *	2 is the anti-alias color
+ *	3 is the foreground
+ */
+int
+txt_mod_pal( int palette, U32 mask, U16 *xfer)
+{
+    U16 *mine;
+    int idx,limit;
+
+    if ( palette < 0 || (palette >> AN_PAL_SHF) > (AN_PAL_MSK>>AN_PAL_SHF) ) {
+	/* Palette out of range. */
+	return -1;
+    }
+    palette &= AN_PAL_MSK;
+    palette >>= AN_PAL_SHF;
+    mine = an_pal[palette];
+    limit = sizeof(an_pal[0])/sizeof(an_pal[0][0]);
+    if ( mask ) {
+	for ( idx = 0 ; idx < limit ; ++idx ) {
+	    if ( mask & 1 ) mine[idx] = xfer[idx];
+	    if ( (mask >>= 1) == 0 ) break;
+	}
+    } else {
+	for ( idx = 0 ; idx < limit ; ++idx ) {
+	    xfer[idx] = mine[idx];
+	}
+    }
+    return limit;
+}
+
+/* 	While bringing up new hardware, we may want to output
+ *	text to both the remote terminal and the screen. The
+ *	set of pointers below is used for this purpose.
+ */
+
+static int def_font;
+
+/*		txt_str( col, row, txtptr, color )
+ *	Writes text at the specifed row and column, in
+ *	the specified "color", which may also include
+ *	font selection.
+ */
+int
+txt_str(col,row,string,palette)
+int	col,row;
+const char	*string;
+int	palette;
+{
+    struct posn *p = &p_posn;
+    int width;
+    int old_col = p->col;
+    char tbuf[AN_VIS_COL_MAX+1];
+    struct txt_alpha_ptr *which;
+    VU16 *screen;
+    VU32 *dirty;
+    void (*do_stamp)(int col, int row, int stampno, int pal_font);
+
+    width = txt_width(string,palette);
+    if ( row < 0 ) {
+	col = p->col;
+	row = p->row;
+    } else if ( col < 0 ) {
+	col = (AN_VIS_COL+1 - width) >> 1;
+	if ( col < 0 ) col = 0; 
+    }
+    old_col = p->col = col;
+    p->row = row;
+    /* Set up local pointer for "draw one stamp in video",
+     * which we should always have. Then over-ride it if
+     * we also have a (possibly more efficient) "output
+     * whole string" routine.
+     */
+    do_stamp = vid_stamp;
+    if ( vid_str ) do_stamp = 0;
+    if ( (col + width) >= AN_VIS_COL ) {
+	/* Nip over-long strings in the bud here, so
+	 * we don't have to check in every vid_str() 
+	 * routine.
+	 * KLUGE: This will not work well for BIG character
+	 * set, or for "width" expressed in anything but
+	 * monospaced character cells. For now, we will
+	 * ignore the problem, as this is a "proof of concept."
+	 */
+	int allow;
+	if (col > AN_VIS_COL) col = AN_VIS_COL;
+	allow = AN_VIS_COL-col;
+	if (allow) memcpy(tbuf,string,allow);
+	tbuf[allow] = '\0';
+	string = tbuf;
+	width = allow;
+    }
+    p->col = old_col + width;
+    if ( (row < 0) || (row >= AN_VIS_ROW) ) return 0;
+    if ( dbg_str ) dbg_str(col,row,string,palette);
+    which = txt_vsptr(0);
+    if ( !which ) return 0;
+    if ( !vid_str ) txt_select(TXT_HOST);	/* default to host mode */
+    screen = which->screen;
+    if ( screen ) {
+	/* Output stamps to fake screen _regardless_ of
+	 * ultimate video output method. We do this here
+	 * to avoid duplication of code, and consequent
+	 * version drift, and because BIG characters take
+	 * a bit of processing. Not to mention that we
+	 * seem to have gone completely over to frame-buffered
+	 * video wherein we _need_ a record of what text to
+	 * repeatedly output.
+	 */
+	int stamp,idx;
+	int color;
+	color = palette & COLMSK;
+	if ( (palette & SETMSK) == AN_BIG_SET ) {
+	    /* Big characters are built from 2 or 4 stamps
+	     * each.
+	     */
+	    int tc;		/* translated character */
+	    VU16 *lp = (VU16*)screen;
+	    const char *txtptr = string;
+	    width = 0;
+	    if ( row < 1 ) row = 1;	/* Strike a blow for bottom-justified */
+	    lp += (row*AN_TOT_COL);
+	    while ( (stamp = *txtptr) != '\0' ) {
+		tc = trantab[stamp];
+		idx = col+width;
+		if ( idx >= AN_VIS_COL ) {
+		    /* Trying to write past right edge of screen,
+		     * because each ascii character may be more
+		     * than one stamp wide.
+		     */
+		    break;
+		}
+		if ( tc < 0 ) {
+		    /* NEW: Treat characters for which no
+		     * BIG graphics exist as regular ascii
+		     * in default font.
+		     */
+		    width += 1;
+		    lp[idx] = (stamp+=(AN_A_OFFSET-'A'))|color;
+		    lp[idx-AN_TOT_COL] = color;
+		    if ( do_stamp ) do_stamp(idx,row,stamp,color);
+		    ++txtptr;
+		    continue;
+		}
+		stamp = BTABLE[tc].tl + BIG_OFFSET;
+		lp[idx-AN_TOT_COL] = stamp | color;
+		if ( do_stamp ) do_stamp(idx,row-1,stamp,color);
+		stamp = BTABLE[tc].bl + BIG_OFFSET;
+		lp[idx] = stamp | color;
+		if ( do_stamp ) do_stamp(idx,row,stamp,color);
+		++width;
+		++txtptr;
+		if ( BTABLE[tc].tr == 0 ) continue;
+		++idx;
+		stamp = BTABLE[tc].tr + BIG_OFFSET;
+		lp[idx-AN_TOT_COL] = stamp | color;
+		if ( do_stamp ) do_stamp(idx,row-1,stamp,color);
+		stamp = BTABLE[tc].br + BIG_OFFSET;
+		lp[idx] = stamp | color;
+		if ( do_stamp ) do_stamp(idx,row,stamp,color);
+		++width;
+	    }
+	} else {
+	    /* Non-Big characters... */
+	    int offset = AN_A_OFFSET-'A';
+	    const char *txtptr = string;
+	    VU16 *lp = (VU16 *)which->screen;
+	    lp += (row*AN_TOT_COL);
+	    idx = col;
+	    while ( (stamp = *txtptr++) != '\0' ) {
+		if ( stamp == ' ') stamp = 0;
+		else stamp += offset;
+		if ( do_stamp ) do_stamp(idx,row,stamp,color);
+		lp[idx++] = (stamp|color);
+	    }
+	}
+	dirty = which->dirty;
+	if ( dirty ) {
+	    U32 dbits;
+	    int start,twid,skip;
+	    
+	    start = col;
+	    twid = width;
+	    dbits = 0;
+	    dirty += row*((AN_VIS_COL+U32_BITS-1)/U32_BITS);
+	    skip = (start/U32_BITS);
+	    dirty += skip;
+	    skip -= (skip*32);
+	    while ( twid > 0 ) {
+		dbits = (twid >= U32_BITS) ? -1U : ((1<<twid)-1);
+		dbits <<= (start&0x1F);
+		*dirty |= dbits;
+		if ( (palette & SETMSK) == AN_BIG_SET ) {
+		    /* Need to "dirty" the row above, too. */
+		    dirty[-((AN_VIS_COL+U32_BITS-1)/U32_BITS)] |= dbits;
+		}
+		twid -= (32-(start&0x1F));
+		start = 0;
+		++dirty;
+	    }
+	}
+    }
+    /* If we have a routine for doing a whole string at once, we
+     * have not been doing the stamps. Do the whole string now.
+     */
+    if ( vid_str ) {
+	width = vid_str(col,row,string,palette);
+    }
+    return width;
+}
+
+/*	Routine:	txt_stamp(x,y,letter,psmask)
+*	Inputs:		int	x,y
+*			int	letter,psmask
+*	Purpose:	To output a single character to the apha screen. Ignores
+*			character-set translation, so psmask must only be color
+*/
+void
+txt_stamp(x,y,letter,psmask)
+int	x,y;
+int	letter,psmask;
+{
+    struct txt_alpha_ptr *which;
+    VU16 *lp;
+    VU32 *dirty;
+    which = txt_vsptr(0);
+    if ( which == 0 || which->screen == 0 ) return;
+    if ( y < 0 ) {
+	y = p_posn.col;	
+	x = p_posn.row;
+    }
+    if ( y >= AN_VIS_ROW ) y = AN_VIS_ROW-1;
+    if (x < 0 ) {
+	/* wants to center */
+	x = (AN_VIS_COL+1) >> 1;
+	if ( x < 0 ) x = 0;
+    }
+    if ( x >= AN_VIS_COL ) x = AN_VIS_COL-1;
+    psmask &= COLMSK;
+    lp = (VU16 *)which->screen;
+    lp += (y*AN_TOT_COL);
+    lp[x] = letter|psmask;
+    dirty = which->dirty;
+    if ( dirty ) {
+	/* We have a bit-array to maintain.
+	 */
+	dirty += (y*((AN_TOT_COL+(U32_BITS-1))/U32_BITS));
+	dirty[x>>5] |= (1<<(x&0x1F));
+    }
+    if ( dbg_stamp ) dbg_stamp(x,y,letter,psmask);
+    if ( vid_stamp ) vid_stamp(x,y,letter,psmask);
+}
+
+void st_font(font_num)
+int font_num;
+{
+    def_font = font_num;
+}
+
+int vstxt_str(int col, int row, const char *txt, int palset);
+
+#if DEVELOPMENT
+#define pdesc(val) { #val, val }
+static const struct pt {
+    const char * const name;
+    U32 palette;
+} pts[] = {
+    pdesc(GRY_PAL),
+    pdesc(BLU_PAL),
+    pdesc(GRN_PAL),
+    pdesc(CYN_PAL),
+    pdesc(RED_PAL),
+    pdesc(VIO_PAL),
+    pdesc(YEL_PAL),
+    pdesc(WHT_PAL),
+    pdesc(GRY_PALB),
+    pdesc(BLU_PALB),
+    pdesc(GRN_PALB),
+    pdesc(CYN_PALB),
+    pdesc(RED_PALB),
+    pdesc(VIO_PALB),
+    pdesc(YEL_PALB),
+    pdesc(WHT_PALB),
+    pdesc(WHT_PALB|AN_BIG_SET)
+};
+
+int st_text_group( const struct menu_d *smp ) {
+
+    int row = 4;
+    int strnum;
+    int col;
+    setancolors();
+
+    row = 9;
+    for ( strnum = 0 ; strnum < n_elts(pts) ; ++strnum ) {
+	txt_str(3,row,pts[strnum].name,pts[strnum].palette);
+	txt_chexnum(pts[strnum].palette,8,RJ_ZF,MNORMAL_PAL);
+	row += txt_height(pts[strnum].name,pts[strnum].palette);
+    }
+    ++row;
+    for ( col = 1 ; col < (AN_VIS_COL-2) ; ++col ) {
+	txt_stamp(col,row,col+AN_A_STMP-1,MNORMAL_PAL);
+    }
+    while ( 1 ) {
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) sst_bufswap();
+	txt_hexnum(-1,2,eer_rtc&0xFF,3,RJ_ZF,MNORMAL_PAL);
+	txt_hexnum(-1,3,(*(U32 *)SST_BASE>>10)&3,1,RJ_ZF,MNORMAL_PAL);
+	prc_delay(10);
+    }
+    return 0;
+}
+
+#define XP (0x80000000)
+#define RED_GRN ((RED_MSK<<16)|GRN_MSK)
+const U32 st_text_palettes[] = {
+    BLK_SLT, BLK_BLU, BLK_GRN, BLK_CYN,			/* 0x00 */
+    BLK_RED, BLK_VIO, BLK_YEL, BLK_WHT,			/* 0x04 */
+    GRY_SLT, GRY_BLU, GRY_GRN, GRY_CYN,			/* 0x08 */
+    GRY_RED, GRY_VIO, GRY_YEL, GRY_WHT,			/* 0x0C */
+    BLK_SLT|XP, BLK_BLU|XP, BLK_GRN|XP, BLK_CYN|XP,	/* 0x10 */
+    BLK_RED|XP, BLK_VIO|XP, BLK_YEL|XP, BLK_WHT|XP,	/* 0x14 */
+    RED_GRN|XP						/* 0x18 */
+};
+#define RG_PAL (0x18)
+
+const char * const z20_pmsg[] = {
+    "BLK_SLT", "BLK_BLU", "BLK_GRN", "BLK_CYN",
+    "BLK_RED", "BLK_VIO", "BLK_YEL", "BLK_WHT",
+    "GRY_SLT", "GRY_BLU", "GRY_GRN", "GRY_CYN",
+    "GRY_RED", "GRY_VIO", "GRY_YEL", "GRY_WHT",
+    "BLK_SLT|XP", "BLK_BLU|XP", "BLK_GRN|XP", "BLK_CYN|XP",
+    "BLK_RED|XP", "BLK_VIO|XP", "BLK_YEL|XP", "BLK_WHT|XP",
+    "RED_GRN|XP"
+};
+
+const int z20_nelts_st_text_palettes = n_elts(st_text_palettes);
+#endif /* DEVELOPMENT */
+
+int sst_text_init( unsigned int tex_offs, unsigned int col_offs)
+{
+    struct txt_alpha_ptr *which;
+
+    which = txt_vsptr(0);
+    if ( which == 0 || which->screen == 0 ) {
+	/* as good a time as any... */
+	which = &default_screen;
+	which->screen = &fake_screen[0][0];
+	which->dirty = dirty_bits;
+	which->texture_offset = tex_offs;
+	which->color_offset = col_offs;
+	txt_vsptr(which);
+    }
+
+    return 0;
+}
+
+#define ASCII_OFFSET (((&an_norm_a-&an_stamps)>>3)-'A')
+
+void sst_text2fb_ptr(VU32 *scrptr, int flags) {
+    VU16 *colptr, *vs, stamp;
+    struct txt_alpha_ptr *which;
+    int	row, col;
+    U32 db;
+    U32 *dp, *prev, dirty;
+
+    which = txt_vsptr(0);
+    if ( which == 0 || (vs=which->screen) == 0 ) return;
+
+    for ( row = 0 ; row < AN_VIS_ROW ; ++row ) {
+	U32 x, y, *pixelptr;
+	/* convert cell row into screen y offset bytes */
+	y = (VIS_V_PIX-8 - (U32)(row << 3)) * TOT_H_PIX * BPPIXEL;
+	prev = dp = which->dirty + row*DIRTY_U32_PER_ROW;
+	dirty = 0;
+	db = 0;
+	for ( col = 0 ; col < AN_VIS_COL ; ++col, db <<= 1, ++vs) {
+	    if (!db) {
+		prev = dp;
+		if ((dirty = *dp++) == 0) {
+		    col += 32-1;
+		    if (col > AN_VIS_COL-1) {
+			vs += (AN_VIS_COL&31)-1;
+		    } else {
+			vs += 32-1;
+		    }
+		    continue;
+		}
+		db = 1;
+	    }
+	    if (!(dirty&db)) continue;
+	    if ((stamp = *vs) != 0 ) {
+		U16 *stamps;
+		int subrow, bg;
+
+		if ((flags&T2FB_FLAG_FIFO)) {
+		    bg = (*(VU32*)SST_BASE>>12)&0xFFFF;
+		    if (bg < sst_memfifo_min) sst_memfifo_min = bg;
+		    if (bg < FIFO_LIMIT) while ( ((*(VU32*)SST_BASE>>12)&0xFFFF) < FIFO_LIMIT ) { ; } /* wait for 3dfx board */
+		}
+
+		if ((flags&T2FB_FLAG_CLEAR)) {
+		    *prev &= ~db;
+		}
+		/* convert cell column into screen x offset in bytes */
+		x = (U32)(col << 3) * BPPIXEL;
+		/* calculate the starting screen memory address for the text */
+		pixelptr = (U32*)((U32)scrptr + x + y);
+#ifdef DRSHBIT
+		colptr = an_pal[(stamp & (AN_PAL_MSK-DRSHBIT)) >> AN_PAL_SHF];
+		bg = stamp&(BGBIT|DRSHBIT);
+		stamp = stamp&((1<<AN_PAL_SHF)-1);
+		stamps = AN_STAMPS+(stamp<<3)+7;
+		if ( bg & DRSHBIT ) {
+		    /* stamps with drop-shadows have to be
+		     * painted top-to-bottom.
+		     */
+		    unsigned int above;		/* "remember" pixels above */
+		    unsigned int curr;		/* Current line */
+		    unsigned int mask;
+		    stamps -= (AN_STMP_HT-1);
+		    above = 0;
+		    pixelptr += (TOT_H_PIX*AN_STMP_HT*BPPIXEL)/sizeof(U32);
+		    bg &= ~DRSHBIT;
+		    for ( subrow = AN_STMP_HT-1 ; subrow >= 0 ; --subrow ) {
+			unsigned int scan;
+			curr = *stamps++;
+			/* Form mask with ones where the current line
+			 * has non-background. "01" is code for "outline"
+			 * color of font.
+			 */
+			mask = (curr | (curr>>1)) & 0x5555;
+
+			/* We will "inherit" Similar mask for line above.
+			 * combine the two to form word with "01" wherever
+			 * a non-zero pixel is above-left, or left
+			 * of the pixel "marked".
+			 */
+			above = ((above << 2)|(mask << 2));
+
+			/* set possibly-shadowed pixels to outline color */
+			scan = (above & ~mask);
+			above = mask;	/* "inherit" for next time */
+			mask |= (mask << 1);
+			scan |= (mask & curr);
+			if (bg) stampout(pixelptr, colptr, scan);
+			else stampout_nbg(pixelptr, colptr, scan); 
+			pixelptr += (-TOT_H_PIX-AN_STMP_WID)/2;
+		    }
+		    continue;
+		}
+		/* If we did not have a drop-shadow, we did not
+		 * hit the "continue" above, so we draw a regular
+		 * stamp.
+		 */
+#else
+		colptr = an_pal[(stamp & AN_PAL_MSK) >> AN_PAL_SHF];
+		bg = stamp&BGBIT;
+		stamp = stamp&((1<<AN_PAL_SHF)-1);
+		stamps = AN_STAMPS+(stamp<<3)+7;
+#endif
+		if (bg) {
+		    for ( subrow = AN_STMP_HT-1 ; subrow >= 0 ; --subrow ) {
+			U16 scan;
+			scan = *stamps--;
+			stampout(pixelptr, colptr, scan);
+			pixelptr += (TOT_H_PIX-AN_STMP_WID)/2;  /* update dest. ptr into screen memory */
+		    }
+		} else {
+		    for ( subrow = AN_STMP_HT-1 ; subrow >= 0 ; --subrow ) {
+			U16 scan;
+			scan = *stamps--;
+			stampout_nbg(pixelptr, colptr, scan);
+			pixelptr += (TOT_H_PIX-AN_STMP_WID)/2;  /* update dest. ptr into screen memory */
+		    }
+		}
+	    }
+	}
+    }
+}
+
+/*		sst_text2fb()
+ *	scans a "fake screen" and writes text to frame buffer.
+ */
+
+void sst_text2fb(int flag) {
+#if GLIDE_VERSION >= 203
+    GrState grstate;
+#else
+    GrLfbWriteMode_t oldmode;
+#endif
+
+#if GLIDE_VERSION >= 203
+    grGlideGetState(&grstate);
+    grDisableAllEffects();
+#endif
+
+    grLfbBegin();
+    grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+#if GLIDE_VERSION < 203
+    oldmode =
+#endif
+        grLfbWriteMode(GR_LFBWRITEMODE_555);
+    grLfbConstantAlpha( 0xFF );
+    grLfbConstantDepth( GR_WDEPTHVALUE_NEAREST );
+    grAlphaTestFunction( GR_CMP_ALWAYS );
+
+    sst_text2fb_ptr(grLfbGetWritePtr( GR_BUFFER_BACKBUFFER ), flag|T2FB_FLAG_FIFO);
+
+    grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+    grLfbEnd();
+#if GLIDE_VERSION >= 203
+    grGlideSetState(&grstate);
+#else
+    grLfbWriteMode(oldmode);
+#endif
+}
+
+void sst_tclr(int col, int row, int wid) {
+    VU32 *dirty;
+    VU16 *vs;
+    struct txt_alpha_ptr *which;
+
+    which = txt_vsptr(0);
+    if ( which == 0 || (vs=which->screen) == 0 ) return;
+    dirty = which->dirty;
+
+    if (row >= AN_VIS_ROW) return;
+    if (col >= AN_VIS_COL) return;
+    if (col+wid > AN_VIS_COL) wid = AN_VIS_COL-col;
+    if (!dirty) {
+	memset((char *)vs+row*AN_VIS_COL, 0, wid);
+    } else {
+	U32 dbits;
+	int start,twid,skip;
+
+	start = col;
+	twid = wid;
+	dbits = 0;
+	dirty += row*((AN_VIS_COL+U32_BITS-1)/U32_BITS);
+	skip = (start/U32_BITS);
+	dirty += skip;
+	skip -= (skip*32);
+	while ( twid > 0 ) {
+	    dbits = (twid >= U32_BITS) ? -1U : ((1<<twid)-1);
+	    *dirty &= ~(dbits<<(start&0x1F));
+	    twid -= (32-(start&0x1F));
+	    start = 0;
+	    ++dirty;
+	}
+    }
+}
+
+#ifndef AN_STMP_CNT
+#ifndef CHAR_BIT
+#define CHAR_BIT (8)
+#endif
+
+#define AN_STMP_CNT \
+ (((&an_end-&an_stamps)*(CHAR_BIT*sizeof(an_stamps)))/(AN_STMP_WID*AN_STMP_HT*AN_BIT_DEPTH))
+#endif
+
+#define	AN_COL_CNT	16
+#define	AN_COL_SEP 	2
+#define	AN_LFT_COL		((AN_VIS_COL - (AN_COL_CNT * AN_COL_SEP))/2)
+
+#define	AN_ROW_CNT	10
+#define	AN_ROW_SEP 	2
+#define	AN_TOP_ROW	((AN_VIS_ROW - (AN_ROW_CNT * AN_ROW_SEP))/2)
+#define AN_STMP_ROW_CNT ((AN_STMP_CNT+(AN_COL_CNT-1))/AN_COL_CNT)
+#define	AN_MAX_ROWS	(AN_STMP_ROW_CNT - AN_ROW_CNT)
+
+#if DEVELOPMENT
+int
+AN_stamp_test(smp)
+const struct menu_d *smp;
+{
+    U32	edges;
+    m_int	i,j,update;
+    m_uint	stamp,textPal;
+    m_int	baserow;
+    m_int	addrow;
+    int		bottom;
+    struct txt_alpha_ptr *which;
+
+    vid_clear();
+    setancolors();
+
+    SetANPal(MNORMAL_PAL,GRY_WHT);
+
+    bottom = st_frame(smp,TITLE_PAL,INSTR_PAL,0);
+    bottom = st_insn(bottom,"To see more characters,",t_msg_control,INSTR_PAL);
+
+    which = txt_vsptr(0);
+    
+    for (i=0; i < AN_COL_CNT; i++)		/* display col #'s	*/
+	txt_hexnum(AN_LFT_COL + (i * AN_COL_SEP),AN_TOP_ROW - 2,i,1,RJ_ZF,
+	MNORMAL_PAL);
+    
+    baserow = 0;
+    
+    ctl_autorepeat(JOY_VERT,30,15);	/* Autorepeat after 1/2secs @@ 1/4 */
+
+    update = 1;
+
+    textPal = MNORMAL_PAL;
+    while (1)
+    {
+	prc_delay0();
+	edges = ctl_read_sw(JOY_ALL|SW_EXTRA);	/* get edges	*/
+
+	if (edges & SW_NEXT)
+	    break;			/* done with this test...	*/
+
+	if (edges & SW_ACTION)
+	{
+	    textPal ^= BGBIT;
+	    if ( (textPal & BGBIT) == 0 ) textPal += AN_NXT_PAL; 
+	    update = 1;
+	}
+
+	if (ctl_read_sw(0) & SW_EXTRA)		/* SHIFT key?		*/
+	    addrow = AN_ROW_CNT;
+	else
+	    addrow = 1;
+#if J_UP
+	if (edges & J_UP)
+	{
+	    update = (baserow != 0);
+	    if ((baserow -= addrow) < 0)
+		baserow = 0;
+	}
+	else
+#endif
+#if J_RIGHT
+	if (edges & J_RIGHT)
+	{
+	    update = (baserow != 0);
+	    if ((baserow -= addrow) < 0)
+		baserow = 0;
+	}
+	else
+#endif
+#if J_DOWN
+	if (edges & J_DOWN)
+	{
+	    update = (baserow != AN_MAX_ROWS);
+	    if ((baserow += addrow) > AN_MAX_ROWS)
+		baserow = AN_MAX_ROWS;
+	}
+#endif
+#if J_LEFT
+	if (edges & J_LEFT)
+	{
+	    update = (baserow != AN_MAX_ROWS);
+	    if ((baserow += addrow) > AN_MAX_ROWS)
+		baserow = AN_MAX_ROWS;
+	}
+#endif
+	if (update)
+	{
+	    stamp = (baserow * AN_COL_CNT);
+	    for (j=0; j < AN_ROW_CNT; j++)
+	    {
+		m_int x,y;
+
+		x = AN_LFT_COL - 3;
+		y = AN_TOP_ROW + (j * AN_ROW_SEP);
+		txt_hexnum(x,y,stamp/16,2,RJ_ZF,MNORMAL_PAL);
+
+		for (i=0,x = AN_LFT_COL; i < AN_COL_CNT; i++,x += AN_COL_SEP) {
+		    txt_stamp(x,y,stamp,textPal);
+		    if ( stamp++ >= AN_STMP_CNT ) {
+			txt_clr_wid(x,y,(AN_COL_CNT-i)*AN_COL_SEP);
+			break;
+		    }
+		}
+	    }
+	    txt_str(3,3,"Pal: ",MNORMAL_PAL);
+	    txt_chexnum(textPal,8,RJ_ZF,MNORMAL_PAL);
+	    txt_str(3,AN_VIS_ROW-5,"tv: ",MNORMAL_PAL);
+	    txt_chexnum((U32)which,8,RJ_ZF,MNORMAL_PAL);
+	    if ( which ) {
+		txt_cstr(" fs: ",MNORMAL_PAL);
+		txt_chexnum((U32)which->screen,8,RJ_ZF,MNORMAL_PAL);
+		txt_cstr(" db: ",MNORMAL_PAL);
+		txt_chexnum((U32)which->dirty,8,RJ_ZF,MNORMAL_PAL);
+	    }
+	    update = 0;	/* done with update	*/
+	}
+    }
+    return 0;
+}
+#endif
+
+/*		txt_select(which_method)
+ *	Zoid20 (and 3Dfx) has several different methods for getting
+ *	text on the screen, none of them completely satisfactory.
+ *	Use txt_select() to select the least objectionable
+ *	at any given time. Returns previous setting.
+ */
+
+static int which_txt;
+
+int txt_select ( method )
+int method;
+{
+    int old_method;
+
+    old_method = vid_str ? which_txt:TXT_HOST;
+    switch (method) {
+	case TXT_HOST :
+	case TXT_VSCREEN :
+	    vid_str = 0;
+	    vid_stamp = 0;
+	    vid_tclr = sst_tclr;
+	    vid_refresh = sst_text2fb;
+	    break;
+	case TXT_NONE :
+	    vid_str = 0;
+	    vid_stamp = 0;
+	    vid_tclr = 0;
+	    vid_refresh = 0;
+	    break;
+	default :
+	    method = old_method;
+	    break;
+    }
+    which_txt = method;
+    return old_method;
+}
+
+#if DEVELOPMENT
+int sst_text_test( const struct menu_d *smp ) {
+    int do_it, start, ii, jj, old_prc;
+    U32 ctls;
+    char msg[52];
+    int (*old_dbg_str)(int col, int row, const char *string, int font);
+    void (*old_dbg_stamp)(int col, int row, int stampno, int pal_font);
+    void (*old_dbg_tclr)(int col, int row, int width);
+
+    do_it = 1;
+    start = 0;
+
+    old_dbg_str = dbg_str;
+    old_dbg_stamp = dbg_stamp;
+    old_dbg_tclr = dbg_tclr;
+    dbg_str = 0;
+    dbg_stamp = 0;
+    dbg_tclr = 0;
+    old_prc = prc_delay_options(PRC_DELAY_OPT_SWAP|PRC_DELAY_OPT_TEXT2FB|PRC_DELAY_OPT_CLEAR);
+
+    while ( ((ctls = ctl_read_sw(SW_NEXT|SW_ACTION)) & SW_NEXT) == 0 ) {
+	if ( ctls & SW_ACTION ) do_it = 1;
+	if ( do_it ) {
+	    int row;
+	    jj = start;
+	    for (row=6; row < AN_VIS_ROW-6; ++row) {
+		for (ii=0; ii < 26; ++ii) {
+		    int c;
+		    c = 'A' + ii + jj;
+		    if (c > 'Z') c = c-'Z' -1 + 'A';
+		    msg[ii*2] = c;
+		    msg[ii*2+1] = ' ';
+		}
+		msg[ii*2] = 0;
+		txt_str(-1, row, msg, WHT_PAL);
+		++jj;
+		if (jj > 25) jj = 0;
+	    }
+	    do_it = 0;
+	    ++start;
+	    if (start > 25) start = 0;
+	}
+	prc_delay(0);
+    }
+    dbg_str = old_dbg_str;
+    dbg_stamp = old_dbg_stamp;
+    dbg_tclr = old_dbg_tclr;
+    prc_delay_options(old_prc);
+    return 0;
+}
+#endif /* DEVELOPMENT */
+
+@
+
+
+1.37
+log
+@Fixed long-standing bug in AN_Stamp_test (too many stamps).
+Deleted Zoid leftovers. Wrapped seldom-used (not referenced)
+tests in #if DEVELOPMENT.
+@
+text
+@d1 1
+a1 1
+/*		sst_text.c
+@
+
+
+1.36
+log
+@Added "fallback" for systems with only partial joystick.
+This could use work, and ideally should move to "two button"
+functionality.
+@
+text
+@a191 6
+#if HOST_BOARD == ASCLEAP
+#define CLR_CHUNK (8)
+#else
+#define CLR_CHUNK (6)
+#endif
+
+d691 1
+d767 1
+d983 3
+a985 38
+# include <nsprintf.h>
+
+int AN_stamp_test(const struct menu_d *smp);
+
+#if 0
+int sst_text_test(const struct menu_d *smp)
+{
+    int tidx,row;
+    int old_text;
+    struct txt_alpha_ptr *which;
+
+    which = txt_vsptr(0);
+    if ( which == 0 || which->screen == 0 ) {
+	/* as good a time as any... */
+	which = &default_screen;
+	which->screen = &fake_screen[0][0];
+	which->dirty = 0;
+	which->texture_offset = 0;
+	which->color_offset = 0x8000;
+	txt_vsptr(which);
+    }
+    if ( smp->mn_label[0] == 'A' ) return AN_stamp_test(smp);
+
+    zre_text_init(which->texture_offset,which->color_offset);
+    memset(fake_screen,0,sizeof(fake_screen));
+
+    old_text = txt_select(TXT_ZRE);
+
+    old_ztv = ztv_mod_latch(0);
+    old_csr = *csr;
+    if ( (old_csr & (1<<B_ZRE_REON)) == 0 ) {
+	int status = zre_init();
+	if ( status < 0 ) return status;
+    }
+    ztv_mod_latch(1<<B_Z_XACC);
+    *csr |= (1<<B_ZRE_XTOT);
+#ifdef ZIG
+    *csr &= (xtot_bit| ~(1<<B_ZRE_XTOT));
+d988 2
+a989 35
+    tidx = -1;
+    row = 2;
+    while (1) {
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	if ( row++ >= (AN_VIS_ROW-5) ) row = 2; 
+	if ( ++tidx >= n_elts(st_text_palettes) ) tidx = 0;
+	if ( smp->mn_label[0] == 'P' ) {
+	    txt_str(10,tidx+2,z20_pmsg[tidx],(tidx<<AN_PAL_SHF)|BGBIT);
+	} else {
+	    txt_str(10,row,"Hello, World",tidx<<AN_PAL_SHF);
+	}
+	zre_bkg();
+	txt_2_traps(fake_screen);
+	/* End frame and swap when done. Returns non-zero if it
+	 * takes to long to do.
+	 */
+	if ( zre_frame_end(3) ) {
+	    int spinner;
+	    char msg[AN_VIS_COL+2];
+	    Isprintf(SPRINTF_WHERE(msg, sizeof(msg)),"Frame End Timeout: ZRE_CSR=0x%4X ZTV_CSR=0x%4X",
+		ZRE_CSR&0xFFFF,*ztv_base & 0xFFFF);
+	    txt_str(-1,2,msg,ERROR_PAL);
+	    for ( spinner = 42 ; spinner > 0 ; --spinner ) {
+		if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) return 1;
+		prc_delay(1);
+	    }
+	    txt_clr_str(-1,2,msg,ERROR_PAL);
+	}
+	if ( smp->mn_label[0] == 'S' ) prc_delay(10);
+    }
+    txt_select(old_text);
+    *csr = old_csr;
+    if ( (old_ztv & (1<<B_Z_XACC)) == 0 ) ztv_mod_latch(~(1<<B_Z_XACC));
+    return 0;
+}
+a991 5
+extern int bm_rect();
+
+#ifndef AN_STMP_CNT
+#define AN_STMP_CNT ((&an_end-&an_stamps)/4)
+#endif
+d999 2
+a1000 1
+#define	AN_MAX_ROWS	((AN_STMP_CNT / AN_COL_CNT) - AN_ROW_CNT)
+d1002 1
+a1014 11
+#ifdef ZTV
+    int old_text;
+    /* Put AlphaNumeric Textures above the Cube-Movie
+     * texture, colors above the kluge for ZIG Direct
+     * textures.
+     */
+    zre_text_init(0x10000,0x8000);
+
+    old_text = txt_select(TXT_ZRE);
+#endif
+
+d1102 4
+a1105 1
+		    ++stamp;
+a1120 3
+#ifdef ZTV
+    txt_select(old_text);
+#endif
+d1123 1
+a1124 1
+
+d1126 1
+a1126 1
+ *	Zoid20 has several different methods for getting
+d1162 1
+d1212 1
+a1212 1
+
+@
+
+
+1.35
+log
+@Fixed palette-validation bug in txt_mod_pal() (currently
+only used by Juko).
+@
+text
+@d1141 1
+a1141 1
+
+d1149 11
+d1166 9
+a1174 1
+
+@
+
+
+1.34
+log
+@Added txt_mod_pal(), to allow game to mess with palettes.
+This was for Juko, but may be more generally useful.
+@
+text
+@d446 1
+a446 1
+    if ( palette < 0 || palette >= ((AN_PAL_MSK>>AN_PAL_SHF)+1) ) {
+@
+
+
+1.33
+log
+@Added T2FB_FLAGS_xxx to sst_text2fb().
+@
+text
+@d419 48
+@
+
+
+1.32
+log
+@Added support for Drop-Shadow on text. Keyed on definition
+of DRSHBIT (should be 0x4000) in config.mac and/or friends.
+@
+text
+@a744 6
+#define T2FB_FLAG_FIFO	1
+
+#if 0 && (SST_GAME&SST_HOCKEY)
+extern int aud_dyn_adjvol(int which);
+#endif
+
+d750 1
+a750 1
+    U32 *dp, dirty;
+a754 4
+#if 0 && (SST_GAME&SST_HOCKEY)
+    aud_dyn_adjvol(1);
+#endif
+
+d759 1
+a759 1
+	dp = which->dirty + row*DIRTY_U32_PER_ROW;
+d764 1
+d787 3
+d871 1
+a871 1
+void sst_text2fb(int swap) {
+d893 1
+a893 1
+    sst_text2fb_ptr(grLfbGetWritePtr( GR_BUFFER_BACKBUFFER ), T2FB_FLAG_FIFO);
+@
+
+
+1.31
+log
+@Allowed for dynamic resolution. I.E. AN_VIS_COL et. al. can be made
+into ints instead of #defines. On 3dfx systems this is accompolished
+by defining the following in config.mac:
+DEC_CONST DYNAMIC_VIS_PIX 1
+DEC_CONST VIS_H_PIX_MAX whatever
+DEC_CONST VIS_V_PIX_MAX whatever
+After this, AN_VIS_COL, AN_VIS_ROW, VIS_V_PIX, VIS_H_PIX and
+SST_RESOLUTION become "extern int" instead of #defines.
+The new #defines AN_VIS_ROW_MAX and AN_VIS_COL_MAX are
+created (computed from VIS_H_PIX_MAX, VIS_V_PIX_MAX) so
+local arrays can be declared and this is the principle changed
+to this file.
+@
+text
+@d410 3
+d414 1
+d800 48
+d852 1
+@
+
+
+1.30
+log
+@Conditionalled out the use of a variable.
+@
+text
+@d27 7
+d48 1
+a48 1
+#define DIRTY_U32_PER_ROW	((AN_VIS_COL+U32_BITS-1)/U32_BITS)
+d50 2
+a51 2
+STATIC U16 fake_screen[AN_VIS_ROW][AN_VIS_COL];
+STATIC U32 dirty_bits[AN_VIS_ROW*DIRTY_U32_PER_ROW];
+d436 1
+a436 1
+    char tbuf[AN_VIS_COL+1];
+@
+
+
+1.29
+log
+@Fixed txt_clr_str() to agree with txt_str() on position
+of AN_BIG_SET text.
+@
+text
+@a817 1
+    GrLfbWriteMode_t oldmode;
+d820 2
+d831 4
+a834 1
+    oldmode = grLfbWriteMode(GR_LFBWRITEMODE_555);
+@
+
+
+1.28
+log
+@*** empty log message ***
+@
+text
+@d266 12
+a277 1
+    for ( endy = y + height ; y < endy ; ++y ) {
+@
+
+
+1.27
+log
+@Added a call to aud_dyn_adjvol() for hockey only games.
+@
+text
+@d725 1
+a725 1
+#if SST_GAME&SST_HOCKEY
+d739 1
+a739 1
+#if SST_GAME&SST_HOCKEY
+@
+
+
+1.26
+log
+@Broke text2fb() into two parts so some of it can be used by the
+3dfx diagnostic routines.
+@
+text
+@d725 4
+d738 4
+@
+
+
+1.25
+log
+@Moved FIFO_LIMIT down to A000
+@
+text
+@d723 1
+a723 3
+/*		sst_text2fb()
+ *	scans a "fake screen" and writes text to frame buffer.
+ */
+d725 1
+a725 2
+void sst_text2fb(int swap) {
+    VU32 *scrptr;
+a730 4
+    GrLfbWriteMode_t oldmode;
+#if GLIDE_VERSION >= 203
+    GrState grstate;
+#endif
+a734 16
+#if GLIDE_VERSION >= 203
+    grGlideGetState(&grstate);
+    grDisableAllEffects();
+#endif
+
+    grLfbBegin();
+    grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+    oldmode = grLfbWriteMode(GR_LFBWRITEMODE_555);
+    grLfbConstantAlpha( 0xFF );
+    grLfbConstantDepth( GR_WDEPTHVALUE_NEAREST );
+    grAlphaTestFunction( GR_CMP_ALWAYS );
+
+    scrptr = grLfbGetWritePtr( GR_BUFFER_BACKBUFFER );
+
+    *(VU32*)(BRAM_UNLK+0x1000) = 0x0;
+    FLUSH_WB();
+d760 5
+a764 3
+		bg = (*(VU32*)SST_BASE>>12)&0xFFFF;
+		if (bg < sst_memfifo_min) sst_memfifo_min = bg;
+		if (bg < FIFO_LIMIT) while ( ((*(VU32*)SST_BASE>>12)&0xFFFF) < FIFO_LIMIT ) { ; } /* wait for 3dfx board */
+d792 26
+a817 2
+    *(VU32*)(BRAM_UNLK+0x1008) = 0x0;
+    FLUSH_WB();
+@
+
+
+1.24
+log
+@This actually worked.
+@
+text
+@d29 2
+d785 1
+a785 1
+		if (bg < 0x9004) while ( ((*(VU32*)SST_BASE>>12)&0xFFFF) < 0x9004 ) { ; } /* wait for 3dfx board */
+@
+
+
+1.23
+log
+@See previous messages.
+@
+text
+@d733 1
+a733 1
+#if 0 && GLIDE_VERSION >= 203
+d740 1
+a740 1
+#if 0 && GLIDE_VERSION >= 203
+d815 1
+a815 1
+#if 0 && GLIDE_VERSION >= 203
+@
+
+
+1.22
+log
+@More guessing about why text doesn't appear.
+@
+text
+@d733 1
+a733 1
+#if GLIDE_VERSION >= 203
+d740 1
+a740 1
+#if GLIDE_VERSION >= 203
+d815 1
+a815 1
+#if GLIDE_VERSION >= 203
+@
+
+
+1.21
+log
+@More guessing why the text doesn't show up.
+@
+text
+@d733 3
+d740 5
+a750 6
+    /*
+    ** G-shading, no texture mapping.
+    */
+    guColorCombineFunction( GR_COLORCOMBINE_ITRGB );
+    grTexCombineFunction( GR_TMU0, GR_TEXTURECOMBINE_ZERO);
+    grTexCombineFunction( GR_TMU1, GR_TEXTURECOMBINE_ZERO);
+d815 3
+d819 1
+@
+
+
+1.20
+log
+@Added a call go grAlphaTestFunction() in text2fb().
+@
+text
+@d743 6
+@
+
+
+1.19
+log
+@Call sst_bufswap() instead of grBufferSwap().
+@
+text
+@d742 1
+@
+
+
+1.18
+log
+@Set the 3dfx HWM to 0x9004.
+@
+text
+@d668 1
+a668 1
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) grBufferSwap( 1 );
+@
+
+
+1.17
+log
+@Changed min fifo size to 9000.
+@
+text
+@a752 1
+	while ( ((*(VU32*)SST_BASE>>12)&0xFFFF) < 0x9000 ) { ; } /* wait for 3dfx board */
+d774 1
+@
+
+
+1.16
+log
+@Wait for room in sst fifo before writing text.
+@
+text
+@d753 1
+a753 1
+	while ( ((*(VU32*)SST_BASE>>12)&0xFFFF) < 0x3000 ) { ; } /* wait for 3dfx board */
+@
+
+
+1.15
+log
+@Adde some temporary test code to check the SST fifo level.
+@
+text
+@d753 1
+@
+
+
+1.14
+log
+@Changed grBufferSwap(0) to grBufferSwap(1). This will very likely break
+other stuff, but it will work for the time being.
+@
+text
+@d45 2
+d771 4
+@
+
+
+1.13
+log
+@Fixed oversized string cropping.
+@
+text
+@d666 1
+a666 1
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) grBufferSwap( 0 );
+@
+
+
+1.12
+log
+@Fixed more GLIDE problems.
+@
+text
+@d421 1
+a421 1
+    if ( row == -1 ) {
+d424 1
+a424 1
+    } else if ( col == -1 ) {
+d446 4
+a449 2
+	int allow = AN_VIS_COL+1-(col+width);
+	memcpy(tbuf,string,allow);
+d455 1
+@
+
+
+1.11
+log
+@Corrected some GLIDE interface problems.
+@
+text
+@d733 1
+a733 1
+    grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+d794 1
+a794 1
+    grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+@
+
+
+1.10
+log
+@Added a txt_setpos() function.
+,
+@
+text
+@d733 1
+a733 1
+    grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+d735 2
+d794 1
+a794 1
+    grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+a796 1
+    if (swap) grBufferSwap(0);
+d1077 1
+a1077 1
+    int do_it, start, ii, jj;
+d1093 1
+a1112 1
+	    grBufferClear( 0x4210, 0, GR_WDEPTHVALUE_NEAREST );
+d1122 1
+@
+
+
+1.9
+log
+@Fixed BG bit processing.
+Fixed disappearing text.
+,
+@
+text
+@d158 12
+@
+
+
+1.8
+log
+@Saved and restored WriteMode in text2fb.
+@
+text
+@d14 5
+d117 10
+d721 1
+a721 1
+    grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+a723 8
+#if 0
+    /*
+    ** G-shading, no texture mapping.
+    */
+    guColorCombineFunction( GR_COLORCOMBINE_ITRGB );
+    grTexCombineFunction( GR_TMU0, GR_TEXTURECOMBINE_ZERO);
+#endif
+
+d751 1
+a751 1
+		int subrow;
+d757 1
+d760 14
+a773 5
+		for ( subrow = AN_STMP_HT-1 ; subrow >= 0 ; --subrow ) {
+		    U16 scan;
+		    scan = *stamps--;
+		    stampout(pixelptr, colptr, scan);
+		    pixelptr += (TOT_H_PIX-AN_STMP_WID)/2;  /* update dest. ptr into screen memory */
+d780 1
+a780 1
+    grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+@
+
+
+1.7
+log
+@Added call to grGlideGetState and grGlideSetState in text2fb().
+@
+text
+@d700 1
+a700 1
+    GrState oldstate;
+a704 1
+    grGlideGetState(&oldstate);
+d707 3
+a709 1
+    grLfbWriteMode(GR_LFBWRITEMODE_555);
+d715 1
+d765 1
+a765 1
+    grGlideSetState(&oldstate);
+@
+
+
+1.6
+log
+@Fixed _more_ dirty-bit bugs, around shifts by >= 32
+@
+text
+@d700 1
+d705 1
+d763 1
+@
+
+
+1.5
+log
+@FIxed dirty bits bugs
+@
+text
+@d196 1
+a196 1
+	    dbits = (1<<twid)-1;
+d521 2
+a522 1
+		dbits = ((1<<twid)-1)<<(start&0x1F);
+d790 1
+a790 1
+	    dbits = (1<<twid)-1;
+@
+
+
+1.4
+log
+@All new stuff.
+@
+text
+@d521 2
+a522 2
+		dbits = (1<<twid)-1;
+		*dirty |= (dbits<<(start&0x1F));
+d635 1
+a635 1
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) grBufferSwap( 1 );
+d714 2
+d756 2
+d760 1
+a760 1
+    if (swap) grBufferSwap(1);
+d763 35
+d1021 3
+d1025 1
+d1030 1
+@
+
+
+1.3
+log
+@Changed write to FRONTBUFFER to writes to BACKBUFFER.
+@
+text
+@d24 7
+d33 2
+a34 1
+# define DIRTY_U32_PER_ROW	((AN_VIS_COL+31)/32)
+d40 9
+d154 4
+a157 110
+#if 0
+/*		sst_txt_str( col, row, txtptr, color )
+ *	Draws text directly into SST Frame buffer memory.
+ */
+int sst_txt_str( int col, int row, const char *txtptr, int color ) {
+    U32 x, y;
+    const char *txtbase = txtptr;
+    FxU32 *scrptr;
+    U16 *stamps;
+    U16 *colptr, colors[1<<AN_BIT_DEPTH];
+    m_int width, stamp;
+    int	scan,offset;
+    int next_line = TOT_H_PIX;
+
+    if ( row < 0 ) {
+	col = p_posn.col;	
+	row = p_posn.row;
+    }
+    p_posn.row = row;			/* we do not wrap to lower rows */
+    if (col < 0 ) {
+	/* wants to center */
+	col = (AN_VIS_COL+1-txt_width(txtptr,color)) >> 1;
+	if ( col < 0 ) col = 0;
+    }
+
+    /* convert cell column into screen x offset in bytes */
+    x = (U32)(col << 3) * BPPIXEL;
+    /* convert cell row into screen y offset bytes */
+    /* For ZTV, the Y coordinate needs to be inverted */
+    y = (VIS_V_PIX-8 - (U32)(row << 3)) * TOT_H_PIX * BPPIXEL;
+    /* calculate the starting screen memory address for the text */
+
+    grLfbBegin();
+    grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+    grLfbWriteMode(GR_LFBWRITEMODE_555);
+    /*
+    ** G-shading, no texture mapping.
+    */
+    guColorCombineFunction( GR_COLORCOMBINE_ITRGB );
+    grTexCombineFunction( GR_TMU0, GR_TEXTURECOMBINE_ZERO);
+
+    scrptr = grLfbGetWritePtr( GR_BUFFER_BACKBUFFER );
+    scrptr = (U32*)((U32)scrptr + x + y);
+    colptr = an_pal[(color&AN_PAL_MSK)>>AN_PAL_SHF];
+    memcpy(colors, colptr, sizeof(colors));
+
+    if ( (color & BGBIT) == 0 ) colors[0] = 0x8000;
+
+    colptr = colors;
+    stmp_y = 0;
+
+#if 0
+    if ( (color & SETMSK) == AN_BIG_SET ) {
+	/* big characters, for now we use the un-reduced but possibly-slim
+	 * SYSTEM I character set.
+	 */
+	int tc;		/* translated character */
+	width = 0;
+	while ( (stamp = *txtptr) != '\0' ) {
+	    tc = trantab[stamp];
+	    if ( tc < 0 ) {
+		width += 2;
+		scrptr += -(next_line*AN_STMP_HT);
+		for ( row = (2*AN_STMP_HT)-1 ; row >= 0 ; --row ) {
+		    scan = 0;
+		    stampout( scrptr, colors, scan);
+		    scrptr += (next_line-AN_STMP_WID)/2;
+		}
+		++txtptr;
+		scrptr += ((2*AN_STMP_WID)-(next_line*AN_STMP_HT));
+		continue;
+	    }
+	    stamps = AN_STAMPS+((BTABLE[tc].tl+BIG_OFFSET)<<3)+7;
+	    for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+		scan = *stamps--;
+		stampout(scrptr,colors,scan);
+		scrptr += next_line-AN_STMP_WID;  /* update dest. ptr into screen memory */
+	    }
+	    scrptr += -(next_line*2*AN_STMP_HT);
+	    stamps = AN_STAMPS+((BTABLE[tc].bl+BIG_OFFSET)<<3)+7;
+	    for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+		scan = *stamps--;
+		stampout(scrptr,colors,scan);
+		scrptr += next_line-AN_STMP_WID;  /* update dest. ptr into screen memory */
+	    }
+	    width += 1;
+	    scrptr += (AN_STMP_WID/* -(SCREENW*2*AN_STMP_HT) */ );
+	    ++txtptr;
+	    if ( BTABLE[tc].tr == 0 ) continue;
+	    stamps = AN_STAMPS+((BTABLE[tc].tr+BIG_OFFSET)<<3)+7;
+	    for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+		scan = *stamps--;
+		stampout(scrptr,colors,scan);
+		scrptr += next_line-AN_STMP_WID;  /* update dest. ptr into screen memory */
+	    }
+	    scrptr += -(next_line*2*AN_STMP_HT);
+	    stamps = AN_STAMPS+((BTABLE[tc].br+BIG_OFFSET)<<3)+7;
+	    for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+		scan = *stamps--;
+		stampout(scrptr,colors,scan);
+		scrptr += next_line-AN_STMP_WID;  /* update dest. ptr into screen memory */
+	    }
+	    width += 1;
+	    scrptr += (AN_STMP_WID/* -(SCREENW*2*AN_STMP_HT) */ );
+	}
+	p_posn.col += width;
+	grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+	grLfbEnd();
+	return width;
+    }
+d160 3
+a162 26
+    offset = AN_A_OFFSET-'A';
+
+    /* print characters until NULL terminator is reached */
+    while( (stamp = *txtptr) != '\0' ) {
+	if ( stamp == ' ') stamp = 0;
+	else stamp += offset;
+	stamps = AN_STAMPS+(stamp<<3)+7;
+	for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+	    scan = *stamps--;
+	    stampout(scrptr, colors, scan);
+	    scrptr += (next_line-AN_STMP_WID)/2;  /* update dest. ptr into screen memory */
+	}
+	txtptr++;
+	scrptr += ((AN_STMP_WID-(next_line*AN_STMP_HT))/2);
+   }
+
+    width = txtptr - txtbase;
+    p_posn.col = col + width;
+    grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+    grLfbEnd();
+    grBufferSwap( 1 );
+    return width;
+}   /* End: sst_txt_str() */
+
+void sst_txt_stamp( col, row, stamp, color )
+int col,row,stamp,color;
+d164 5
+a168 9
+#if 0
+    U32 x, y;
+    U32 *scrptr;
+    unsigned int scan;
+    U16 *stamps;
+    U16 *colptr;
+    int zctl;
+    int next_line = TOT_H_PIX;
+
+d173 1
+d179 27
+a205 15
+
+    zctl = ztv_mod_latch(0);
+    if ( zctl & (1<<B_Z_XACC) ) {
+	/* host can't write into bitmap anyway, Check for ZRE active and
+	 * hijack ZTV if not. If ZRE _is_ active, just return
+	 * Note that although the signal name is IDLE, the '1' state
+	 * is "busy".
+	 */
+	if ( ztv_base == &ZTV_CTL ) {
+	    if ( ZRE_CSR & (1<<B_ZRE_IDLE) ) return;
+	} else {
+	    /* ZIG is exactly backwards */
+	    if ( (ZRE_CSR & (1<<B_ZRE_IDLE)) == 0 ) return;
+	}
+	ztv_mod_latch(~(1<<B_Z_XACC));
+d207 2
+a208 95
+
+    wait_for_hblank = zctl & (1<<B_Z_HBL_WAIT);
+    if (!wait_for_hblank) ztv_mod_latch((1<<B_Z_DSM_OFF));
+
+    ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+    /* convert cell column into screen x offset */
+    x = (U32)(col << 3) * BPPIXEL;
+    /* convert cell row into screen y offset bytes */
+    /* For ZTV, the Y coordinate needs to be inverted */
+    y = (VIS_V_PIX-8 - (U32)(row << 3)) * TOT_H_PIX * BPPIXEL;
+#ifdef B_Z_ONE_BANK
+    /* Enon-o-zig has only one bank of memory, every other line */
+    if ( zctl & (1<<B_Z_ONE_BANK) ) {
+	next_line <<= 1;
+	y <<= 1;
+    }
+#endif
+    /* calculate the starting screen memory address for the text */
+#ifdef ZIG
+    scrptr = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+    scrptr += (x + y)/sizeof(U32);
+#else
+    scrptr = (U32 *)(ZTV_BITMAP_ADDR + x + y);
+#endif
+    stamps = AN_STAMPS+(stamp<<3)+AN_STMP_WID-1;
+    colptr = an_pal[(color&AN_PAL_MSK)>>AN_PAL_SHF];
+
+    for ( row = AN_STMP_HT-1 ; row >= 0 ; --row ) {
+	scan = *stamps--;
+#if (1)
+	stampout(scrptr,colptr,scan);
+#else
+	for ( col = AN_STMP_WID-1 ; col >= 0 ; --col ) {
+	    *scrptr++ = colptr[scan&3];
+	    scan >>= 2; 
+	}
+#endif
+	scrptr += next_line-AN_STMP_WID;  /* update dest. ptr into screen memory */
+    }
+    if ( (zctl & (1<<B_Z_DSM_OFF)) == 0 ) {
+	ztv_mod_latch(~(1<<B_Z_DSM_OFF));
+    }
+    if ( zctl & (1<<B_Z_XACC) ) ztv_mod_latch(1<<B_Z_XACC);
+    if ( zctl & (1<<B_Z_ZBUFF_EN) ) ztv_mod_latch(1<<B_Z_ZBUFF_EN);
+#endif
+}
+
+#if HOST_BOARD == ASCLEAP
+#define CLR_CHUNK (8)
+#else
+#define CLR_CHUNK (6)
+#endif
+
+void
+sst_txt_clr_wid(col,row,width)
+int col,row,width;
+{
+    U32 *scrptr,*lptr;
+    m_int v,h;
+    m_int x,y;
+    int next_line = TOT_H_PIX;
+
+    if ( col < 0 ) {
+	/* wants to center */
+	col = (AN_VIS_COL+1-width) >> 1;
+	if ( col < 0 ) {
+	    col = 0;
+	    width = AN_VIS_COL;
+	}
+    }
+/* convert cell column into screen x offset */
+    x = (U32)(col << 3) * BPPIXEL;
+
+/* convert cell row into screen y offset bytes */
+/* For ZTV, the Y coordinate needs to be inverted */
+    y = (VIS_V_PIX-8 - (U32)(row << 3)) * TOT_H_PIX * BPPIXEL;
+
+    width *= (BPPIXEL*AN_STMP_WID)/2;
+
+/* calculate the starting screen memory address for the text */
+    grLfbBegin();
+    grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+    grLfbWriteMode(GR_LFBWRITEMODE_555);
+    scrptr = grLfbGetWritePtr( GR_BUFFER_BACKBUFFER );
+    scrptr = (U32*)((U32)scrptr + x + y);
+
+    for ( v = 7 ; v >= 0 ; --v ) {
+	lptr = scrptr;
+	for ( h = width ; h ; --h ) {
+	    *lptr++ = 0;
+	}
+	scrptr += next_line*BPPIXEL/sizeof(*scrptr);
+    }
+    grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+    grLfbEnd();
+a209 1
+#endif
+d251 2
+a252 2
+	if ( ( letter = trantab[letter] ) < 0 ) letter = trantab[' ']; 
+	width += 1 + (bt[letter].tr != 0);
+a370 24
+int (*vid_str)(int col, int row, const char *string, int font);
+void (*vid_stamp)(int col, int row, int stampno, int pal_font);
+void (*vid_tclr)(int col, int row, int width);
+
+int (*dbg_str)(int col, int row, const char *string, int font);
+void (*dbg_stamp)(int col, int row, int stampno, int pal_font);
+void (*dbg_tclr)(int col, int row, int width);
+
+/*		notxt_*()
+ *	"placeholder" routines for the situation where
+ *	user has called txt_select(0), to disable text
+ *	output.
+ */
+static int
+notxt_str (int col, int row, const char *string, int font)
+{
+    return txt_width(string, font);
+}
+static void
+notxt_stamp (int col, int row, int stampno, int pal_font)
+{ return; }
+static void
+notxt_clr_wid (int col, int row, int width) { return; }
+
+d387 6
+a392 1
+    if ( dbg_str ) dbg_str(col,row,string,palette);
+d403 26
+d430 109
+a538 2
+    if ( vid_str ) width = vid_str(col,row,string,palette);
+    p->col = old_col + width;
+a541 8
+void
+txt_clr_wid(col, row, width)
+int col, row, width;
+{
+    if ( dbg_tclr ) dbg_tclr(col, row, width);
+    if ( vid_tclr ) vid_tclr(col, row, width);
+}
+
+d553 27
+a591 8
+const struct ksym {
+    const char * const name;
+    U32 val;
+} syms[] = {
+    { "No Video Text", (U32)notxt_str },
+    { "SST", (U32)vstxt_str },
+    { 0, 0 }
+};
+a616 1
+    const struct ksym *kp;
+a622 9
+    txt_str(3,row,"vid_str = 0x",MNORMAL_PAL);
+    txt_chexnum((U32)vid_str,8,RJ_ZF,MNORMAL_PAL);
+    for ( kp = syms ; kp->name ; ++kp ) {
+	if ( kp->val == (U32)vid_str ) break;
+    }
+    if ( kp->name ) {
+	txt_cstr(" -> ",MNORMAL_PAL);
+	txt_cstr(kp->name,MNORMAL_PAL);
+    }
+a687 93
+int vstxt_str(int col, int row, const char *txt, int palset) {
+    VU16 *lp;
+    U32 stamp;
+    struct txt_alpha_ptr *which;
+    const char *src = txt;
+    U32 *dp, db, dirty;
+
+    which = txt_vsptr(0);
+    if ( which == 0 || which->screen == 0 ) return 0;
+    lp = which->screen + (row*AN_VIS_COL + col);
+    dp = which->dirty + (row*DIRTY_U32_PER_ROW + col/32);
+    db = 1<<(col&31);
+    dirty = 0;
+    while ( ( stamp = *src++) != 0 ) {
+	if ( stamp == ' ' ) stamp = 0;
+	else stamp += ASCII_OFFSET;
+	*lp++ = (stamp | palset);
+	dirty |= db;
+	db <<= 1;
+	if (!db) {
+	    db = 1;
+#if USE_DIRTY
+	    *dp++ |= dirty;
+#endif
+	    dirty = 0;
+	}
+    }
+#if USE_DIRTY
+    if (dirty) *dp |= dirty;
+#endif
+    return src - txt - 1;
+}
+
+void
+vstxt_clr_wid(col, row, width)
+int col, row, width;
+{
+    VU16 *lp;
+    struct txt_alpha_ptr *which;
+    U32 *dp, db;
+    int strt;
+
+    if (!width) return;
+    which = txt_vsptr(0);
+    if ( which == 0 || which->screen == 0 ) return;
+    if (width > AN_VIS_COL) width = AN_VIS_COL;
+    lp = which->screen + (row*AN_VIS_COL + col);
+    memset((void *)lp, 0, width*sizeof(*lp));
+    dp = which->dirty + (row*DIRTY_U32_PER_ROW + col/32);
+    strt = col&31;
+    db = 1<<strt;
+
+    if (db != 1) {
+	if (strt + width > 31) {
+#if USE_DIRTY
+	    *dp++ &= db-1;
+#endif
+	    width -= 32-strt;
+	} else {
+	    U32 upper;
+	    upper = 1<<(strt+width);
+#if USE_DIRTY
+	    *dp &= (0-upper)|(db-1);
+#endif
+	    width = 0;
+	}
+    }
+    while (width > 31) {
+#if USE_DIRTY
+	*dp++ = 0;
+#endif
+	width -= 32;
+    }
+#if USE_DIRTY
+    if (width) *dp &= -1<<width;
+#endif
+}
+
+void vstxt_stamp(int col, int row, int stampno, int pal_font) {
+    VU16 *lp;
+    struct txt_alpha_ptr *which;
+    U32 *dp;
+
+    which = txt_vsptr(0);
+    if ( which == 0 || which->screen == 0 ) return;
+    lp = which->screen + (row*AN_VIS_COL + col);
+    *lp = stampno | pal_font;
+    dp = which->dirty  + (row*DIRTY_U32_PER_ROW + col/32);
+#if USE_DIRTY
+    *dp |= 1<<(col&31);
+#endif
+}
+
+a721 1
+#if 0
+d725 3
+a727 1
+		    if (col < AN_VIS_COL-1) {
+a728 2
+		    } else {
+			vs += 32-1-(col-AN_VIS_COL);
+a734 1
+#endif
+d743 2
+a744 1
+		stamps = AN_STAMPS+((stamp&0x7F)<<3)+7;
+a853 2
+#if 0
+    VU32 *csr = &ZRE_CSR;
+d859 2
+a860 1
+    int old_text,bottom;
+d862 2
+d871 1
+d876 2
+a877 10
+#if (0) /* HOST_BOARD == ASCLEAP */
+    txt_str(2,4,"Stamp Base: 0x",MNORMAL_PAL);
+    txt_chexnum(stamp_base,8,RJ_ZF,MNORMAL_PAL);
+    txt_cstr(" Color Base: 0x",MNORMAL_PAL);
+    txt_chexnum(color_base,8,RJ_ZF,MNORMAL_PAL);
+    for ( i = 420 ; i >= 0 ; --i ) {
+	if ( ctl_read_sw(SW_ACTION|SW_NEXT) & (SW_NEXT|SW_ACTION) ) break;
+	prc_delay0();
+    }
+#endif
+d879 1
+a879 1
+    bottom = st_insn(bottom,t_msg_control,"to see more characters",INSTR_PAL);
+d881 1
+a881 1
+    SetANPal(MNORMAL_PAL,GRY_WHT);
+d898 1
+a898 3
+#if HOST_BOARD == ASCLEAP
+	zre_bkg();
+#endif
+a905 2
+	    txt_str(3,3,"Pal: ",MNORMAL_PAL);
+	    txt_chexnum(textPal,8,RJ_ZF,MNORMAL_PAL);
+a939 2
+		    txt_zstamp(x,y,stamp,textPal);
+#if (0)
+a940 1
+#endif
+d944 10
+a955 18
+	txt_2_traps(fake_screen);
+	while ( (*csr & (1<<B_ZRE_TFULL) ) == 0 ) {;}
+
+	/* End frame and swap when done. Returns non-zero if it
+	 * takes to long to do.
+	 */
+	if ( zre_frame_end(3) ) {
+	    int spinner;
+	    char msg[AN_VIS_COL+2];
+	    Isprintf(SPRINTF_WHERE(msg,sizeof(msg)), "Frame End Timeout: ZRE_CSR=0x%4X ZTV_CSR=0x%4X",
+		ZRE_CSR&0xFFFF,*ztv_base & 0xFFFF);
+	    txt_str(-1,2,msg,ERROR_PAL);
+	    for ( spinner = 42 ; spinner > 0 ; --spinner ) {
+		if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) return 1;
+		prc_delay(1);
+	    }
+	    txt_clr_str(-1,2,msg,ERROR_PAL);
+	}
+d957 1
+d963 1
+d981 3
+a983 1
+#if 0
+a986 11
+	    break;
+#endif
+	case TXT_NONE :
+	    vid_str = notxt_str;
+	    vid_stamp = notxt_stamp;
+	    vid_tclr = notxt_clr_wid;
+	    break;
+	case TXT_VSCREEN :
+	    vid_str = vstxt_str;
+	    vid_stamp = vstxt_stamp;
+	    vid_tclr = vstxt_clr_wid;
+@
+
+
+1.2
+log
+@Misc fixes for Phoenix and SST.
+@
+text
+@d178 1
+a178 1
+    scrptr = grLfbGetWritePtr( GR_BUFFER_FRONTBUFFER );
+d887 1
+a887 1
+    scrptr = grLfbGetWritePtr( GR_BUFFER_FRONTBUFFER );
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 2
+/*		z20_text.c
+ *	Switchable method text-output routines for Zoid20.
+d3 1
+a3 4
+ *	This includes the "fallback" routines that draw alphanumrics directly
+ *	into the bitmap of the Zoid20 ZTV2 board. These routines are
+ *	derived, in part, from the Jaguar text routines written by
+ *	Robert Birmingham.
+d5 2
+a6 3
+ *	It also includes the ZRE-driven routines formerly in zre_text.c
+ *	This first version uses the XBUS port to zre to cause one trap
+ *	per character to be written.
+d8 1
+a8 1
+ *		Copyright 1994,1995 Atari Games.
+d18 3
+a20 2
+#include <zre_defs.h>
+#include <zoid_proto.h>
+d22 1
+a22 7
+/*	Following definition is needed because gcc bitches about pointer
+ *	arithmetic when the MSB of the address is set, which it is for
+ *	the XBUS on the HCR4K
+ */
+#ifndef ZTV_BITMAP_OFFSET
+#define ZTV_BITMAP_OFFSET ((ZTV_BITMAP_ADDR-(U32)&ZTV_CTL)/sizeof(ZTV_CTL))
+#endif
+a23 1
+#define BPPIXEL (4)	/* ZTV2 has pixels on 32-bit boundaries */
+d26 1
+a26 2
+
+STATIC U32 fake_screen[AN_VIS_ROW][AN_VIS_COL];
+d28 3
+a30 8
+static struct txt_alpha_ptr default_screen,*where_is_vs;
+
+#ifdef ZIG
+#undef ZRE_XTOT
+extern VU32* zre_xtot;
+extern U32 xtot_bit;
+#define ZRE_XTOT (*zre_xtot)
+#endif
+d70 3
+a72 1
+static U32 an_pal[(AN_PAL_MSK>>AN_PAL_SHF)+1][1<<AN_BIT_DEPTH];
+d74 2
+a75 61
+#define WITHOUT_HBLANK(scrptr,colors,scan,pixcnt) \
+    *scrptr++ = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *scrptr++ = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *scrptr++ = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *scrptr++ = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *scrptr++ = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *scrptr++ = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *scrptr++ = colors[scan&K3];		\
+    scan >>= 2; 			\
+    *scrptr++ = colors[scan&K3];		\
+    scan >>= 2
+
+extern VU32 *ztv_base;
+
+#ifdef B_Z_HBLANK
+static int wait_for_hblank;
+#define stampout(scrptr,colors,scan,pixcnt) \
+   do { if (wait_for_hblank) { 					\
+    U32 lobby[AN_STMP_WID],*lp;					\
+    int old_ipl;						\
+    VU32 *zp = ztv_base;					\
+    VU32 *cp = ztv_base;					\
+    U32	cval = ztv_mod_latch(0);				\
+    lp = lobby;							\
+    for ( pixcnt = AN_STMP_WID-1 ; pixcnt >= 0 ; --pixcnt ) {	\
+	*lp++ = colors[scan&K3];			\
+	scan >>= 2; 						\
+    }								\
+    lp = lobby;							\
+    old_ipl = prc_set_ipl(INTS_OFF);				\
+    while ( !(*zp & (1<<B_Z_VIDB)) ) {;}			\
+    while ( *zp & (1<<B_Z_VIDB) ) {;}				\
+    *cp = cval | (1<<B_Z_DSM_OFF);				\
+    scrptr[0] = lp[0];						\
+    scrptr[1] = lp[1];						\
+    scrptr[2] = lp[2];						\
+    scrptr[3] = lp[3];						\
+    *cp = cval & ~(1<<B_Z_DSM_OFF);				\
+    prc_set_ipl(old_ipl);					\
+    old_ipl = prc_set_ipl(INTS_OFF);				\
+    while ( !(*zp & (1<<B_Z_VIDB)) ) {;}			\
+    while ( *zp & (1<<B_Z_VIDB) ) {;}				\
+    *cp = cval | (1<<B_Z_DSM_OFF);				\
+    scrptr[4] = lp[4];						\
+    scrptr[5] = lp[5];						\
+    scrptr[6] = lp[6];						\
+    scrptr[7] = lp[7];						\
+    *cp = cval & ~(1<<B_Z_DSM_OFF);				\
+    prc_set_ipl(old_ipl);					\
+    scrptr += AN_STMP_WID;					\
+   } else {							\
+    WITHOUT_HBLANK(scrptr,colors,scan,pixcnt);			\
+   } } while (0)
+#else
+#define stampout(scrptr,colors,scan,pixcnt) \
+d77 17
+a93 1
+    WITHOUT_HBLANK(scrptr,colors,scan,pixcnt);			\
+d97 24
+d137 3
+a139 6
+/*		zbtxt_str( col, row, txtptr, color )
+ *	Draws text directly into Zoid TV Bitmap memory.
+ *	This is the "ultimate fallback" routine, as it
+ *	is the slowest method, but does not require
+ *	a buffer-swap to view the text, and does not
+ *	require the ZRE and ZMB to exist, let alone work.
+d141 1
+a141 6
+int zbtxt_str( col, row, txtptr, color )
+int col;
+int row;
+const char *txtptr;
+int color;
+{
+d144 1
+a144 1
+    U32 *scrptr;
+d146 2
+a147 2
+    U32 *colptr,colors[1<<AN_BIT_DEPTH];
+    m_int width,stamp,pixcnt;
+a148 2
+    int zctl;
+    int	K3 = 3;
+a161 20
+    zctl = ztv_mod_latch(0);
+    if ( zctl & (1<<B_Z_XACC) ) {
+	/* host can't write into bitmap anyway, Check for ZRE active and
+	 * hijack ZTV if not. If ZRE _is_ active, just return
+	 * Note that although the signal name is IDLE, the '1' state
+	 * is "busy".
+	 */
+	if ( ztv_base == &ZTV_CTL ) {
+	    if ( ZRE_CSR & (1<<B_ZRE_IDLE) ) return 0;
+	} else {
+	    /* ZIG is exactly backwards */
+	    if ( (ZRE_CSR & (1<<B_ZRE_IDLE)) == 0 ) return 0;
+	}
+	ztv_mod_latch(~(1<<B_Z_XACC));
+    }
+
+    wait_for_hblank = zctl & (1<<B_Z_HBL_WAIT);
+    if (!wait_for_hblank) ztv_mod_latch((1<<B_Z_DSM_OFF));
+
+    ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+a166 7
+#ifdef B_Z_ONE_BANK
+    /* Enon-o-zig has only one bank of memory, every other line */
+    if ( zctl & (1<<B_Z_ONE_BANK) ) {
+	next_line <<= 1;
+	y <<= 1;
+    }
+#endif
+d168 12
+a179 6
+#ifdef ZIG
+    scrptr = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+    scrptr += (x + y)/sizeof(U32);
+#else
+    scrptr = (U32 *)(ZTV_BITMAP_ADDR + x + y);
+#endif
+d181 4
+a184 2
+    memcpy(colors,colptr,sizeof(colors));
+    if ( (color & BGBIT) == 0 ) colors[0] = 0x80008000;
+d186 3
+d202 2
+a203 4
+		    stampout(scrptr,colors,scan,pixcnt);
+		    scan = 0;
+		    stampout(scrptr,colors,scan,pixcnt);
+		    scrptr += next_line-(2*AN_STMP_WID);
+d212 1
+a212 1
+		stampout(scrptr,colors,scan,pixcnt);
+d219 1
+a219 1
+		stampout(scrptr,colors,scan,pixcnt);
+d229 1
+a229 1
+		stampout(scrptr,colors,scan,pixcnt);
+d236 1
+a236 1
+		stampout(scrptr,colors,scan,pixcnt);
+d243 2
+a244 5
+	if ( (zctl & (1<<B_Z_DSM_OFF)) == 0 ) {
+	    ztv_mod_latch(~(1<<B_Z_DSM_OFF));
+	}
+	if ( zctl & (1<<B_Z_XACC) ) ztv_mod_latch(1<<B_Z_XACC);
+	if ( zctl & (1<<B_Z_ZBUFF_EN) ) ztv_mod_latch(1<<B_Z_ZBUFF_EN);
+d247 2
+d258 2
+a259 2
+	    stampout(scrptr,colors,scan,pixcnt);
+	    scrptr += next_line-AN_STMP_WID;  /* update dest. ptr into screen memory */
+d262 1
+a262 1
+	scrptr += (AN_STMP_WID-(next_line*AN_STMP_HT));
+d267 3
+a269 5
+    if ( (zctl & (1<<B_Z_DSM_OFF)) == 0 ) {
+	ztv_mod_latch(~(1<<B_Z_DSM_OFF));
+    }
+    if ( zctl & (1<<B_Z_XACC) ) ztv_mod_latch(1<<B_Z_XACC);
+    if ( zctl & (1<<B_Z_ZBUFF_EN) ) ztv_mod_latch(1<<B_Z_ZBUFF_EN);
+d271 1
+a271 1
+}   /* End: zbtxt_str() */
+d273 1
+a273 1
+void zbtxt_stamp( col, row, stamp, color )
+d276 1
+d281 1
+a281 1
+    U32 *colptr;
+a282 1
+    int	K3 = 3;
+d340 1
+a340 1
+	stampout(scrptr,colptr,scan,col);
+d354 1
+d356 1
+d364 1
+a364 1
+zbtxt_clr_wid(col,row,width)
+a369 1
+    int zctl;
+d380 6
+a385 1
+    zctl = ztv_mod_latch(0);
+d387 1
+a387 14
+    if ( zctl & (1<<B_Z_XACC) ) {
+	/* host can't write into bitmap anyway, Check for ZRE active and
+	 * hijack ZTV if not. If ZRE _is_ active, just return
+	 * Note that although the signal name is IDLE, the '1' state
+	 * is "busy".
+	 */
+	if ( ztv_base == &ZTV_CTL ) {
+	    if ( ZRE_CSR & (1<<B_ZRE_IDLE) ) return;
+	} else {
+	    /* ZIG is exactly backwards */
+	    if ( (ZRE_CSR & (1<<B_ZRE_IDLE)) == 0 ) return;
+	}
+	ztv_mod_latch(~(1<<B_Z_XACC));
+    }
+d389 6
+a394 2
+    wait_for_hblank = zctl & (1<<B_Z_HBL_WAIT);
+    if (!wait_for_hblank) ztv_mod_latch((1<<B_Z_DSM_OFF));
+a395 20
+    ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+    x = (U32)(col << 3) * BPPIXEL;            /* convert cell column into screen x offset */
+    width *= ((BPPIXEL*AN_STMP_WID)/sizeof(*scrptr));
+    /* convert cell row into screen y offset bytes */
+    /* For ZTV, the Y coordinate needs to be inverted */
+    y = (VIS_V_PIX-8 - (U32)(row << 3)) * TOT_H_PIX * BPPIXEL;
+#ifdef B_Z_ONE_BANK
+    /* Enon-o-zig has only one bank of memory, every other line */
+    if ( zctl & (1<<B_Z_ONE_BANK) ) {
+	next_line <<= 1;
+	y <<= 1;
+    }
+#endif
+    /* calculate the starting screen memory address for the text */
+#ifdef ZIG
+    scrptr = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+    scrptr += (x + y)/sizeof(U32);
+#else
+    scrptr = (U32 *)(ZTV_BITMAP_ADDR + x + y);
+#endif
+a396 5
+	int old_ipl;
+	int chunk;
+	VU32 *zp = ztv_base;
+	U32 zval;
+	int cval = zctl & ~((1<<B_Z_XACC)|(1<<B_Z_ZBUFF_EN)|(1<<B_Z_DSM_OFF));
+d398 4
+a401 61
+        if (wait_for_hblank) {
+	    h = 0;
+	    while ( h < width ) {
+		chunk = width-h;
+		if (chunk > CLR_CHUNK) chunk = CLR_CHUNK;
+		h += chunk;
+#if HOST_BOARD == ASCLEAP
+		old_ipl = prc_set_ipl(INTS_OFF);
+		while ( !(*zp & (1<<B_Z_VIDB)) ) {;}
+		while ( (zval = *zp) & (1<<B_Z_VIDB) ) {;}
+		*zp = cval | (1<<B_Z_DSM_OFF);    
+		/* This code will hopefully not outlive ZOID20,
+		 * So we _assume_ that chunk will always be
+		 * even!!! (MEA 14MAR96)
+		 */
+		do {
+		    *lptr++ = 0;
+		    *lptr++ = 0;
+		    chunk -= 2;
+		} while ( chunk > 0 );
+		if ( zval & (1<<B_Z_VB) ) *zp = cval;
+		else {
+		    /* In VBLANK, we can do quite a few more
+		     * pixels. For now, just go for 7 more "chunks"
+		     */
+		    chunk = width-h;
+		    if (chunk > (CLR_CHUNK*7)) chunk = CLR_CHUNK*7;
+		    h += chunk;
+		    do {
+			*lptr = 0;
+			lptr[1] = 0;
+			lptr += 2;
+			chunk -= 2;
+		    } while ( chunk > 0 );
+		    /* now wait for _next_ HBLANK, to safely
+		     * turn DSM back on, and "take a breather".
+		     */
+		    while ( (zval = *zp) & (1<<B_Z_VIDB) ) {;}
+		    *zp = cval;
+		}
+#else
+		old_ipl = prc_set_ipl(INTS_OFF);
+		while ( !(*zp & (1<<B_Z_VIDB)) ) {;}
+		while ( (zval = *zp) & (1<<B_Z_VIDB) ) {;}
+		*zp = cval | (1<<B_Z_DSM_OFF);    
+		while ( chunk-- ) *lptr++ = 0;
+		*zp = cval;
+#endif
+		prc_set_ipl(old_ipl);
+	    }
+        } else
+	{
+	    lptr = scrptr;
+	    for ( h = width ; h ; --h ) {
+		*lptr++ = 0;
+	    }
+        }
+	scrptr += next_line*(BPPIXEL/sizeof(*scrptr));
+    }
+    if ( (zctl & (1<<B_Z_DSM_OFF)) == 0 ) {
+	ztv_mod_latch(~(1<<B_Z_DSM_OFF));
+d403 2
+a404 2
+    if ( zctl & (1<<B_Z_XACC) ) ztv_mod_latch(1<<B_Z_XACC);
+    if ( zctl & (1<<B_Z_ZBUFF_EN) ) ztv_mod_latch(1<<B_Z_ZBUFF_EN);
+d406 1
+a529 2
+extern void zover_ANPal( int, U32 );
+
+a539 6
+extern const int vid_init_verbose;
+extern int holler(int col, int row, const char *msg, U32 csr);
+#ifndef TOO_LONG
+#define TOO_LONG (17000000L)
+#define LOOP_TIME (300)
+#endif
+d546 1
+a546 7
+    U32 fg,bg,anti_alias;
+    VU32 *csr = &ZRE_CSR;
+    int idx,offset;
+    U32 *dst;
+    U32 data;
+    S32 spinner;
+    struct txt_alpha_ptr *which;
+a547 1
+    zover_ANPal( palette, colors);
+d555 2
+a556 2
+    an_pal[palette][0] = bg | (bg<<16);
+    an_pal[palette][(1<<AN_BIT_DEPTH)-1] = fg | (fg<<16);
+d558 2
+a559 2
+    an_pal[palette][1] = GRY_FUL|(GRY_FUL<<16);	/* Border on BIG alphas */;
+    an_pal[palette][2] = anti_alias|(anti_alias<<16);
+a560 28
+
+    /* Duplicate the palette in the appropriate part of the
+     * ZRE's color RAM.
+     */
+    /* It would be exceptionally rude to steal the
+     * Texture color RAM while it was still painting.
+     */
+    if ( ztv_base == &ZTV_CTL )	data = 0;
+    else data = (1<<B_ZRE_IDLE);
+    for ( spinner = TOO_LONG ; spinner >= 0 ; spinner -= LOOP_TIME ) {
+	if ( (*csr & (1<<B_ZRE_IDLE) ) == data ) break;
+    }
+    if ( vid_init_verbose && (spinner < 0) ) {
+	holler(2, 2, "IDLE NOT HAPPENING; CSR=0x",*csr);
+	return;
+    }
+
+    which = txt_vsptr(0);
+    if ( which == 0 ) return;
+    offset = which->color_offset + (palette<<2);
+
+    *csr |= (1<<B_ZRE_TLEN);	/* _DIS_able Texture pipe */
+    dst = (U32*)ZRE_COLRAM_ADDR+offset;
+    for ( idx = 3 ; idx > 0 ; --idx ) {
+	dst[idx] = an_pal[palette][idx];
+    }
+    dst[idx] = an_pal[palette][idx]|0x8000;
+    *csr &= ~(1<<B_ZRE_TLEN);	/* _EN_able Texture pipe */
+d567 1
+d654 1
+a654 7
+extern int txt_zstr();
+extern int zov_str(int col, int row, const char *ptr, int palette );
+extern void zov_stamp( int col, int row, int stamp, int color );
+extern void zov_clr_wid( int col, int row, int width );
+extern int mbtxt_str(int col, int row, const char *ptr, int palette );
+extern void mbtxt_stamp( int col, int row, int stamp, int color );
+extern void mbtxt_clr_wid( int col, int row, int width );
+d661 1
+a661 4
+    { "HOST", (U32)zbtxt_str },
+    { "ZRE", (U32)txt_zstr },
+    { "ZOVER", (U32)zov_str },
+    { "ZMB", (U32)mbtxt_str },
+a693 1
+    int buf;
+d695 1
+a695 1
+    ztv_mod_latch(~(1<<B_Z_XACC));
+d717 1
+a717 1
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) ztv_bufswap();
+d719 1
+a719 6
+#ifdef ZIG
+	buf = *ztv_base & (1<<B_Z_CURBUF);
+#else
+	buf = ZTV_STAT&(1<<B_Z_CURBUF);
+#endif
+	txt_hexnum(-1,3,(U32)buf,1,RJ_ZF,MNORMAL_PAL);
+a724 66
+/*	ZRE Text portion starts here */
+/* We are using local texture RAM to hold the "textures" which
+ * represent the alphanumerics. Therefore, we need "ROM" data
+ * to initialize it.
+ */
+
+int z20_init_loctex()
+{
+    int offset;
+    struct txt_alpha_ptr *which;
+
+    which = txt_vsptr(0);
+    if ( which == 0 ) return -1;
+
+#if SHORT16_OFFS
+#define ANTX_CHUNK (32)
+    {
+	/* The texture memory is essentially little-endian, but
+	 * ztv_texture_write() swaps 16-bit words within a longword
+	 * to pander to big-endian processors. So we end up
+	 * having to swap words on a little-endian CPU, to
+	 * pre-compensate for this effect.
+	 */
+	int len,sofar;
+	U32 swb[ANTX_CHUNK];
+	U16 *stamps = &an_stamps;
+	len = &an_end-&an_stamps;
+	sofar = 0;
+	/* In real life, we would attempt to pre-allocate
+	 * the stamp memory here, and use the returned offset
+	 * below. Since allocation doesn't work yet, we do
+	 * what the BIG_ENDIAN version does, and always
+	 * write at zero.
+	 */
+	offset = 0;
+	while ( sofar < len ) {
+	    int idx,cnt;
+	    cnt = len - sofar;
+	    /* Clip cnt to our chunk size, and ensure
+	     * that the last chunk has an even length,
+	     * Then shift down because cnt is in 16-bit words,
+	     * but we are swapping a pair of them at once.
+	     */
+	    if ( cnt > (ANTX_CHUNK<<1) ) cnt = (ANTX_CHUNK<<1);
+	    cnt = (cnt+1)>>1;
+	    for ( idx = 0 ; idx < cnt ; ++idx ) {
+		/* Form a big-endian longword */
+		U32 data;
+		data = ((U32 *)stamps)[idx];
+		data = (data << 16) | (data >>16);
+		swb[idx] = data;
+	    }
+	    cnt <<= 1;	/* back to count of 16-bit words */
+	    idx = ztv_texture_write(sofar,swb,cnt);
+	    if ( idx < 0 ) { offset = idx ; break; }
+	    sofar += cnt;
+	    stamps += cnt;
+	}
+    }
+#else
+    offset = ztv_texture_write(0,(U32*)&an_stamps,&an_end-&an_stamps);
+#endif /* SHORT16_OFFS */
+    if ( offset >= 0 ) which->texture_offset = offset;
+    return offset;
+}
+
+d750 1
+a750 54
+int z20_init_colram(offset)
+int offset;
+{
+    VU32 *csr = &ZRE_CSR;
+    int idx;
+    U32 *dst;
+    U32 data;
+    S32 spinner;
+    struct txt_alpha_ptr *which;
+
+    /* It would be exceptionally rude to steal the
+     * Texture color RAM while it was still painting.
+     */
+    if ( ztv_base == &ZTV_CTL )	data = 0;
+    else data = (1<<B_ZRE_IDLE);
+    for ( spinner = TOO_LONG ; spinner >= 0 ; spinner -= LOOP_TIME ) {
+	if ( (*csr & (1<<B_ZRE_IDLE) ) == data ) break;
+    }
+    if ( spinner < 0 ) {
+	holler(2, 2, "IDLE NOT HAPPENING; CSR=0x",*csr);
+	return 0;
+    }
+
+    which = txt_vsptr(0);
+    if ( which == 0 ) return 0;
+    which->color_offset = offset;
+
+    *csr |= (1<<B_ZRE_TLEN);	/* _DIS_able Texture pipe */
+    dst = (U32*)ZRE_COLRAM_ADDR+offset;
+    for ( idx = 0 ; idx < n_elts(st_text_palettes) ; ++idx ) {
+	U32 fg,bg,mid;
+	fg = st_text_palettes[idx];
+	bg = fg >> 16;
+	fg &= 0xFFFF;
+	/* derive an anti-alias color halfway from fg to bg */
+	mid =  fg & ~(RED_LSB|GRN_LSB|BLU_LSB|0x8000);
+	mid += bg & ~(RED_LSB|GRN_LSB|BLU_LSB|0x8000);
+	mid >>= 1;
+	*dst = (bg |= 0x8000);
+	if ( (*dst & 0xFFFF) != bg ) break;
+	*++dst = mid;
+	if ( (*dst & 0xFFFF) != mid ) break;
+	*++dst = mid;
+	if ( (*dst & 0xFFFF) != mid ) break;
+	*++dst = fg;
+	if ( (*dst & 0xFFFF) != fg ) break;
+	++dst;
+    }
+    *csr &= ~(1<<B_ZRE_TLEN);	/* _EN_able Texture pipe */
+    if ( idx < n_elts(st_text_palettes) ) return -1;
+    return 0;
+}
+
+int zre_text_init( unsigned int tex_offs, unsigned int col_offs)
+a751 1
+    int status;
+d759 1
+a759 1
+	which->dirty = 0;
+d765 2
+a766 59
+    status = z20_init_colram(col_offs);
+    if ( status < 0 ) return status;
+    return z20_init_loctex(tex_offs);
+}
+
+/* Following preloads needed to do any text at all */
+STATIC const U32 boilerplate[] = {
+    0x04000007,		/* TRAP PLH 8 */
+    0x08000007,		/* TRAP PRH 8 */
+    0x10000000,		/* Vertical */
+    0x18000000,		/* Vertical */
+/* Magic no-perspective PERC, verbatim from pencil sheet */
+    0x20400000,		/* VD PL0 */
+    0x21400000,		/* VD PR0 */
+    0x22000000,		/* VD PDL */
+    0x23000000,		/* VD PDR */
+    0x24000000,		/* VN PL0 */
+    0x25000000,		/* VN PR0 */
+    0x26400000,		/* VN PDL */
+    0x27400000,		/* VN PDR */
+    0x28400000,		/* HD PL0 */
+    0x29000000,		/* HD PR0 */
+    0x2A000000,		/* HD PDL */
+    0x2B000000,		/* HD PDR */
+    0x2C000000,		/* HN PL0 */
+    0x2D400000,		/* HN PR0 */
+    0x2E000000,		/* HN PDL */
+    0x2F000000,		/* HN PDR */
+#if (0)
+    0x40000000,		/* SCI_S_PL0 = 0.0.0 */
+    0x4100ff00,		/* SCI_S_PR0 = 0.ff.0 */
+    0x42000000,		/* SCI_S_PDL = 0.0.0 */
+    0x43000000,		/* SCI_S_PDR = 0.0.0 */
+    0x44000000,		/* SCI_T_PL0 = 0.0.0 */
+    0x45000000,		/* SCI_T_PR0 = 0.0.0 */
+    0x4600ff00,		/* SCI_T_PDL = 0.ff.0 */
+    0x4700ff00,		/* SCI_T_PDR = 0.ff.0 */
+#else
+/* The SCI_S and SCI_T regs are swapped. */
+    0x44000000,		/* SCI_S_PL0 = 0.0.0 */
+    0x4500ff00,		/* SCI_S_PR0 = 0.ff.0 */
+    0x46000000,		/* SCI_S_PDL = 0.0.0 */
+    0x47000000,		/* SCI_S_PDR = 0.0.0 */
+    0x40000000,		/* SCI_T_PL0 = 0.0.0 */
+    0x41000000,		/* SCI_T_PR0 = 0.0.0 */
+    0x4200ff00,		/* SCI_T_PDL = 0.ff.0 */
+    0x4300ff00,		/* SCI_T_PDR = 0.ff.0 */
+#endif
+    0x50800330,		/* Texture 8x8x2 */
+    0x78000000,		/* In your face at Z = 0 */
+    0x79000000,		/* No change at right edge */
+    0x7A000000,		/* No change down the left side */
+    0x7B000000,		/* No change down right side */
+#if (0)
+    0x7C030000,		/* Flat, no Z compare */
+#else
+    0x7C032000,		/* Flat, no Z compare, XP (color D15 = invis) */
+#endif
+};
+d770 2
+a771 6
+int
+txt_zstr(col, row, txt, palset)
+int col, row, palset;
+const char *txt;
+{
+    VU32 *lp;
+d775 1
+d779 4
+a782 1
+    lp = which->screen+(row*AN_VIS_COL+col);
+d787 9
+d797 4
+a800 1
+    return src - txt;
+d804 1
+a804 1
+txt_zclr(col, row, width)
+d807 1
+a807 1
+    VU32 *lp;
+d809 2
+d812 1
+d815 31
+a845 2
+    lp = which->screen+(row*AN_VIS_COL+col);
+    memset((void *)lp,0,width*sizeof(*lp));
+d848 2
+a849 2
+void txt_zstamp(int col, int row, int stampno, int pal_font) {
+    VU32 *lp;
+d851 1
+d855 1
+a855 1
+    lp = which->screen+(row*AN_VIS_COL+col);
+d857 4
+d863 2
+a864 15
+#ifndef SCI_SHF
+#define SCI_SHF (29)
+#endif
+#ifndef PLREG_SHF
+#define PLREG_SHF (26)
+#endif
+#ifndef FEND_OP
+#define FEND_OP (7)
+#endif
+
+extern int zre_bkg();
+
+/*		txt_2_traps(screen)
+ *	scans a "fake screen" and emits TBUS commands to display
+ *	the requested alphanumerics.
+a865 19
+#ifndef TEXMAP_PTB
+#define TEXMAP_PTB (0x4C000000)
+#endif
+
+void
+txt_2_traps(screen)
+const U32 *screen;
+{
+    VU32 *lp;
+    VU32 *csr = &ZRE_CSR;
+    U32	old_csr,old_ztv;
+    int cidx;		/* "Command" Index */
+    const U32 *clist = boilerplate;
+    int	x,y;
+
+    int y_init,old_col = -1;
+    int stamp;
+    U32 prx_offs = ((TRAP_PRX-TRAP_PLX)<<PLREG_SHF)+(7<<12);
+    U32 texmap,color_cmd;
+d867 3
+d871 3
+d876 1
+a876 1
+    if ( which == 0 || which->screen == 0 ) return;
+d878 33
+a910 19
+    lp = which->screen;
+    /* Pre-bias the texmap entry (altered and emitted
+     * on a per-stamp basis) to include the offset to
+     * the base of the AlphaNumeric textures. This
+     * register species the offset to (0,0) in _pairs_
+     * of 16-bit texture words.
+     */
+    texmap = TEXMAP_PTB|((which->texture_offset)>>1);
+    color_cmd = 0x54000000 | (which->color_offset);
+ 
+    old_ztv = ztv_mod_latch(0);
+    old_csr = *csr;
+    if ( (old_csr & (1<<B_ZRE_REON)) == 0 ) {
+	if ( zre_init() < 0 ) return;
+    }
+    ztv_mod_latch(1<<B_Z_XACC);
+    *csr |= (1<<B_ZRE_XTOT);
+#ifdef ZIG
+    *csr &= (xtot_bit| ~(1<<B_ZRE_XTOT));
+d912 14
+a925 31
+    while ( (*csr & (1<<B_ZRE_TFULL) ) == 0 ) {;}
+    for ( cidx = 0 ; cidx < n_elts(boilerplate) ; ++cidx ) {
+	ZRE_XTOT = clist[cidx];
+    }
+    for ( y = 0 ; y < AN_VIS_ROW ; ++y ) {
+	y_init = (TRAP_PY<<PLREG_SHF)|(((AN_VIS_ROW-y)<<3)-1);
+	for ( x = 0 ; x < AN_VIS_COL ; ++x ) {
+	    if ( (stamp = lp[x]) != 0 ) {
+		/* got a non-blank, get ready and wait */
+		U32 plx,ptb,ppw=0,plb=0;
+		U32 new_col;
+		new_col = stamp >> AN_PAL_SHF;
+		if ( new_col != old_col ) {
+		    old_col = new_col;
+		    plb = color_cmd | ((new_col &~(BGBIT>>AN_PAL_SHF)) << 2);
+		    ppw = 0x7C030000 | ((new_col & (BGBIT>>AN_PAL_SHF)) ? 0 : 0x2000);
+                }
+		stamp &= (1<<AN_PAL_SHF)-1;
+		plx = (TRAP_PLX<<PLREG_SHF)|(x<<15);
+		ptb = texmap|(stamp<<2);
+		while ( (*csr & (1<<B_ZRE_TFULL) ) == 0 ) {;}
+		if ( y_init ) {
+		    ZRE_XTOT = y_init;
+		    y_init = 0; 
+		}
+		ZRE_XTOT = plx;
+		ZRE_XTOT = plx+prx_offs;
+		ZRE_XTOT = ptb;
+		if ( plb ) {
+		    ZRE_XTOT = plb;
+		    ZRE_XTOT = ppw;
+a926 1
+		ZRE_XTOT = 0xCf000000;	/* TSTART */
+a928 1
+	lp += AN_VIS_COL;
+d930 3
+a932 2
+    *csr = old_csr;
+    if ( (old_ztv & (1<<B_Z_XACC)) == 0 ) ztv_mod_latch(~(1<<B_Z_XACC));
+a934 3
+#if !USE_ISPRINTF && (HOST_BOARD == LCR3K || HOST_BOARD == HCR4K)
+# define Isprintf nisprintf
+# define SPRINTF_WHERE(x, siz) x, siz
+a935 5
+#else
+# define Isprintf isprintf
+# define SPRINTF_WHERE(x, siz) x
+extern int isprintf(char *, const char *, ... );
+#endif
+d939 2
+a940 1
+int zre_text_test(const struct menu_d *smp)
+a943 2
+    VU32 *csr = &ZRE_CSR;
+    U32	old_csr,old_ztv;
+d1010 1
+a1013 43
+int zre_transp(const struct menu_d *smp)
+{
+    int screens = 2;
+
+    /* Put AlphaNumeric Textures above the Cube-Movie
+     * texture, colors above the kluge for ZIG Direct
+     * textures.
+     */
+    zre_text_init(0x10000,0x8000);
+
+    /* get everything else off the screen */
+    memset(fake_screen,0,sizeof(fake_screen));
+    txt_zstr(2,2,"\135",RG_PAL<<AN_PAL_SHF);
+    txt_zstr(2,3,"\135",0);
+#if HOST_BOARD == ASCLEAP
+    zre_bkg();
+#endif
+    while (1) {
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	if ( screens ) {
+	    --screens;
+	    bm_rect(0,0,VIS_H_PIX-1,VIS_V_PIX-1,WHT_FUL,GRY_FUL);
+	}
+	txt_2_traps(fake_screen);
+	/* End frame and swap when done. Returns non-zero if it
+	 * takes to long to do.
+	 */
+	if ( zre_frame_end(3) ) {
+	    int spinner;
+	    char msg[AN_VIS_COL+2];
+	    Isprintf(SPRINTF_WHERE(msg,sizeof(msg)), "Frame End Timeout: ZRE_CSR=0x%4X ZTV_CSR=0x%4X",
+		ZRE_CSR&0xFFFF,*ztv_base & 0xFFFF);
+	    txt_str(-1,2,msg,ERROR_PAL);
+	    for ( spinner = 42 ; spinner > 0 ; --spinner ) {
+		if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) return 1;
+		prc_delay(1);
+	    }
+	    txt_clr_str(-1,2,msg,ERROR_PAL);
+	}
+    }
+    return 0;
+}
+
+d1030 1
+d1155 1
+d1175 7
+d1187 4
+a1190 19
+	case TXT_HOST :
+	    vid_str = zbtxt_str;
+	    vid_stamp = zbtxt_stamp;
+	    vid_tclr = zbtxt_clr_wid;
+	    break;
+	case TXT_ZRE :
+	    vid_str = txt_zstr;
+	    vid_stamp = txt_zstamp;
+	    vid_tclr = txt_zclr;
+	    break;
+	case TXT_ZMB :
+	    vid_str = mbtxt_str;
+	    vid_stamp = mbtxt_stamp;
+	    vid_tclr = mbtxt_clr_wid;
+	    break;
+	case TXT_ZOVER :
+	    vid_str = zov_str;
+	    vid_stamp = zov_stamp;
+	    vid_tclr = zov_clr_wid;
+d1200 48
+a1247 9
+/*		dbg_select(which_method)
+ *	Zoid20 has several different methods for getting
+ *	text on the screen, none of them completely satisfactory.
+ *	Use dbg_select() to select the least objectionable
+ *	at any given time, as the _alternate_ output. Returns
+ *	previous setting.
+ */
+
+static int which_dbg;
+a1248 35
+int dbg_select ( method )
+int method;
+{
+    int old_method;
+
+    old_method = dbg_str ? which_dbg:TXT_NONE;
+    switch (method) {
+	case TXT_NONE :
+	    dbg_str = notxt_str;
+	    dbg_stamp = notxt_stamp;
+	    dbg_tclr = notxt_clr_wid;
+	    break;
+	case TXT_HOST :
+	    dbg_str = zbtxt_str;
+	    dbg_stamp = zbtxt_stamp;
+	    dbg_tclr = zbtxt_clr_wid;
+	    break;
+	case TXT_ZRE :
+	    dbg_str = txt_zstr;
+	    dbg_stamp = txt_zstamp;
+	    dbg_tclr = txt_zclr;
+	    break;
+	case TXT_ZMB :
+	    dbg_str = mbtxt_str;
+	    dbg_stamp = mbtxt_stamp;
+	    dbg_tclr = mbtxt_clr_wid;
+	    break;
+	case TXT_ZOVER :
+	default :
+	    method = old_method;
+	    break;
+    }
+    which_dbg = method;
+    return old_method;
+}
+@

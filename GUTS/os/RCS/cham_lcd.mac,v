@@ -1,0 +1,79 @@
+head	1.1;
+access;
+symbols
+	AREA_52_00:1.1;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	97.05.17.01.49.58;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Chameleon files
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@.if not_defined, _CHAM_LCD_MAC_
+_CHAM_LCD_MAC_ == 0
+;/*
+; * lcd.h: Sanyo alphanumeric LCD display module
+; */
+;
+.DEFINE BASIC_TYPE	VU8
+;
+	.macro REG sym, value, comments
+	 HEX_CONST 'sym'_BASE	value	<comments>
+	VAR	'sym'_T	BASIC_TYPE 'sym'_BASE <comments>
+	.endm
+;
+	REG LCD_STAT	LCD_BASE
+;
+;/* status register */
+;
+	HEX_CONST LCD_STAT_BUSY	0x80	< display busy >
+	HEX_CONST LCD_STAT_AC	0x7f	< address counter >
+	HEX_CONST LCD_STAT_LINE 0x40    < tells which line we're on >
+;
+	REG LCD_CMD	LCD_BASE
+;
+;/* command register */
+;
+	HEX_CONST LCD_NOOP		0x00
+	HEX_CONST LCD_CLEAR		0x01
+	HEX_CONST LCD_HOME		0x02
+	HEX_CONST LCD_MODE		0x04
+	HEX_CONST LCD_MODE_INCR		0x02
+	HEX_CONST LCD_MODE_DECR		0x00
+	HEX_CONST LCD_MODE_SHIFT	0x01
+	HEX_CONST LCD_CTRL		0x08
+	HEX_CONST LCD_CTRL_DISPLAY	0x04
+	HEX_CONST LCD_CTRL_CURSOR	0x02
+	HEX_CONST LCD_CTRL_BLINK	0x01
+	HEX_CONST LCD_CSHIFT		0x10
+	HEX_CONST LCD_DSHIFT		0x18
+	HEX_CONST LCD_SHIFT_L		0x04
+	HEX_CONST LCD_SHIFT_R		0x00
+	HEX_CONST LCD_FUNC		0x20
+	HEX_CONST LCD_FUNC_8BIT		0x10
+	HEX_CONST LCD_FUNC_4BIT		0x00
+	HEX_CONST LCD_FUNC_2LINE	0x08
+	HEX_CONST LCD_FUNC_1LINE	0x00
+	HEX_CONST LCD_FUNC_5x10		0x04
+	HEX_CONST LCD_FUNC_5x7		0x00
+	HEX_CONST LCD_SET_CGADDR	0x40
+	HEX_CONST LCD_SET_DDADDR	0x80
+;
+	REG LCD_DATA	LCD_BASE+2
+;
+.DEFINE BASIC_TYPE
+.endc
+@

@@ -1,0 +1,666 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	96.02.24.22.09.01;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.02.11.02.25.10;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Stubs to use ICELESS for I/O instead or in addition to video.
+@
+
+
+1.2
+log
+@Fixed it so it worked on a 4K system.
+Removed premanently #if'd out code
+@
+text
+@/*		Iceless_stubs.c: Surrogate routines for a handful
+ *	of GUTS function or variables that need to be emulated in
+ *	a video-less environment using ICELESS as the communication
+ *	medium.
+ *
+ *		Copyright 1995 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#define NEED_CORP_DEFS	1	/* Need this for ZOVER defines */
+#include <config.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <string.h>
+#include <eer_defs.h>
+#undef FALSE
+#undef TRUE
+#undef NULL
+#undef DEBUG
+#include <iio_proto.h>
+#include <intvecs.h>
+
+#if HOST_BOARD == HCR4K || HOST_BOARD == LCR3K
+# include <os_root.h>
+#endif
+
+#ifndef HAS_SWITCHES
+# define HAS_SWITCHES	0
+#endif
+
+#ifndef NO_COMMS
+# define NO_COMMS	0	/* set to 1 to disable all Iceless communications */
+#endif
+
+#if NO_COMMS
+# if defined(HAS_SWITCHES)
+#  undef HAS_SWITCHES
+# endif
+# define HAS_SWITCHES 1		/* fool us into not using local functions */
+#endif
+
+#if !HAS_SWITCHES
+U32 fake_controls, dbswitch;
+static struct switch_state {
+    /* First the successively "cooked" form of the switches */
+    unsigned long prev;		/* previous sample of switches */
+    unsigned long db;		/* Debounced switches */
+    unsigned long edge;		/* "New" switch closures (since off OR read) */
+    /* now the timers for auto-repeat */
+    unsigned long rpt;		/* mask for which switches auto-repeat */
+    unsigned short timer;
+    unsigned short init;	/* auto-repeat initial delay */
+    unsigned short delay;	/* auto-repeat successive delay */
+} sw_state,db_state;
+
+static unsigned long last_key,off_req, off_ack,kbd_lock;
+static void kbd_parse( const unsigned char *buff, int cnt);
+#endif
+
+#if !NO_COMMS
+# define COMBUFSIZ 	(128)		/* size of input buffer */
+# define ICELESS_THREAD 	1	/* ICELESS thread to use */
+
+static int atten,kbd_inited;
+
+       IcelessIO *iceop;
+static U8 combuf0[COMBUFSIZ], combuf1[COMBUFSIZ];
+
+static void read_done(PktIOStruct *pkt) {
+    IcelessIO *piop;
+    piop = (IcelessIO *)pkt->user;
+    if (piop != 0 && pkt->len >= 2) {	/* if this is a valid packet */
+	if (pkt->buf[PKTcmd] == ICEnak && pkt->buf[PKTreason] == NAKnotopen) {
+	    piop->pkt.to = 0;		/* channel is not open anymore, stop sender */
+	} else {
+	    piop->pkt.to = pkt->from;	/* remember where to send stuff */
+	    piop->pkt.from = pkt->to;
+	}
+# if !HAS_SWITCHES
+	if (pkt->buf[PKTcmd] == ICEreply && pkt->len > 2) { /* normal message */
+#  if 0
+	    {
+	       unsigned char tmp[24], *src, *dst;
+	       int ii, max;
+	       src = pkt->buf+PKTcmd+1;
+	       memset(tmp, ' ', sizeof(tmp));
+	       tmp[sizeof(tmp)-1] = 0;
+	       dst = tmp+1;
+	       max = pkt->len-2;
+	       if (max > sizeof(tmp)-2) max = sizeof(tmp)-2;
+	       for (ii=0; ii < max; ++ii, ++src, ++dst) {
+		  if (isprint(*src)) {
+		     *dst = *src;
+		  } else {
+		     *dst = '.';
+		  }
+	       }
+	       txt_str(3, AN_VIS_ROW-3, "Received ", MNORMAL_PAL);
+	       txt_cdecnum(pkt->len-2, 4, RJ_BF, MNORMAL_PAL);
+	       txt_cstr(" keys: ", MNORMAL_PAL);
+	       txt_cstr((char *)tmp, MNORMAL_PAL);
+	    }
+#  endif
+	    kbd_parse(pkt->buf+PKTcmd+1, pkt->len-2);	/* process the data */
+	}
+# endif				/* !HAS_SWITCHES */
+    }
+    pktQueRecv(pkt);			/* requeue the packet */	    
+}
+#endif				/* !NO_COMMS */
+
+#if !NO_COMMS
+static void kbd_init()
+{
+    int old_ps, led;
+    volatile int *ip;
+    if ( kbd_inited ) return;		/* already been through here */
+    old_ps = prc_set_ipl(INTS_OFF);	/* stop all interrupts for a sec */
+    iceop = iio_open(ICELESS_THREAD);	/* open ICELESS_THREAD as the GUTS port */
+    if (iceop == 0) {
+	prc_set_ipl(old_ps);
+	return;			/* it didn't open, nothing to do */
+    }
+    iceop->ipkt0.buf = combuf0;	/* change to larger local buffer */
+    iceop->ipkt0.size = sizeof(combuf0);
+    iceop->ipkt0.func = read_done; /* point to our completion routine */
+    iceop->ipkt1.buf = combuf1;
+    iceop->ipkt1.size = sizeof(combuf1);
+    iceop->ipkt1.func = read_done;
+    kbd_inited = 1;
+    prc_set_ipl(old_ps|(0x100<<ICELESS_LVL)|SR_IEC);	/* make sure ICELESS interrupts are allowed */
+    ip = (volatile int *)&iceop->pkt.to;
+    led = 1;
+    while (*ip == 0) {
+#if HOST_BOARD == HCR4K
+       prc_set_led(led);
+       wait_n_usecs(50000);
+       prc_set_led(0);
+       wait_n_usecs(50000);
+#endif
+    }
+    iio_puts(iceop, "Hello world\n");
+    iio_flush(iceop);
+}
+#endif
+
+/*		putn_ams()
+*	Try to put "cnt" characters from *buffer to AMS fake console.
+*	Returns number of chars actually queued, which will always be
+*	"cnt", because right now this is always done "wait mode"
+*/
+
+int
+putn_ams(buff,i_cnt)
+unsigned char *buff;
+int i_cnt;
+{
+#if !NO_COMMS
+    kbd_init();
+    if (atten) {
+	txt_cstr("got atten\n",MNORMAL_PAL);
+	atten = 0;
+    }
+
+    iio_write(iceop, (char *)buff, i_cnt); /* this will never fail */
+    iio_flush(iceop);		/* force output over the network */
+#endif
+    return i_cnt;		/* say how many we managed to queue */
+}
+
+#if !HAS_SWITCHES
+/*	Gang debounce routine for up to 32 switches. Called by sf_swtch
+ *	for both debug and player switches. Returns new debounced state.
+ */
+static unsigned long
+debounce_swtch(sw,new)
+struct switch_state *sw;
+U32 new;			/* new raw switches, high-true */
+{
+#ifndef ALBAUGH
+    unsigned long dying,old,changes,stable;
+#else
+    unsigned long on,not_off,old,debounced;
+#endif
+    old = sw->prev;
+    sw->prev = new;
+
+#ifndef ALBAUGH
+/*  The following code is a 'C' translation of the 68000 assembly
+ *  in lipson/joy_sw.asm. It contains several oddities....
+ */
+    changes = old ^ new;
+    stable = ~changes;
+    dying = (changes & sw->db);		/* ones where changing to off? */
+    sw->db = dying | (new & stable);	/* debounce = dying 1s or stable ones*/
+    sw->edge &= sw->db;
+    if ( (dying & sw->rpt) == 0 && (sw->db & sw->rpt) ) {
+	/* at least one of our auto-repeat switches is on, and
+	 * none are dying, run the timer.
+	 */
+	if ( --(sw->timer) == 0 ) {
+	    sw->timer = sw->delay;	/* re-init to "later" delay */
+	    sw->edge &= ~sw->rpt;	/* re-trigger selected switches */
+	}
+    } else sw->timer = sw->init;	/* all off or dying?, init timer */
+#else
+    on = new & old;			/* ones where on at least twice */
+    not_off = new | old;		/* zeroes where off at least twice */
+    debounced = (sw->db | on) & not_off;
+    sw->edges &= debounced;	   /* reset edges that died before being seen */
+    if ( (sw->rpt & debounced) && --(sw->timer) == 0) {
+	/* timer expired with at least one of our auto-repeat switches
+	 * held at all times. Re-arm selected edges and timer.
+	 */
+	sw->timer = sw->delay;	/* re-init to "later" delay */
+	sw->edge &= ~sw->rpt;	/* re-trigger selected switches */
+    } else sw->timer = sw->init;	/* all off or dying?, init timer */
+#endif
+    return sw->db;
+}
+
+#define SW_HOLD (0x100)
+
+static const char sw_let[] = "udlran";
+
+static const char sw_esckey[] = "ABDCHEFG";
+
+static const unsigned long sw_ltab[] = {
+    J_UP, J_DOWN, J_LEFT, J_RIGHT, SW_ACTION, SW_NEXT,
+    (SW_ACTION|SW_HOLD), (SW_NEXT|SW_HOLD)
+};
+
+unsigned long cntlshadw;
+extern volatile unsigned short COM_PORT[2];
+
+/*		This "gun emulation" is by no means robust. It
+ *	is intended for debugging gun-based selftest and easing the
+ *	pain of slow networks.
+ */
+static int kbx,kby,mouse_on;
+
+
+static const char * const mouse_ctl[] = {
+    "\033[?9l",	/* Turn mouse off */
+    "\033[?9h"	/* Turn mouse on */
+};
+
+int xy2idx PARMS((
+const struct menu_d * menu,
+int menu_size,
+int vpos
+))
+{
+    int col,row;
+    const char *label;
+    int idx;
+
+    if ( !mouse_on ) {
+	/* turn on mouse reports */
+	putn_ams(mouse_ctl[mouse_on=1],5);
+    }
+    row = -1;
+    if ( (row = kby) == 0 ) return -1;
+    row = kby >> 3;
+    col = kbx >> 3;
+    kby = 0;
+    idx = 0;
+    while ( row >= vpos ) {
+	if ( (label = menu->mn_label) == 0 ) break;	/* end of list */
+	if ( *label == '?' ) {
+	    ++label;
+#ifdef DEBUG
+	    if ( (debug_mode & GUTS_OPT_DEVEL) == 0 )
+#endif
+	    {
+		menu = (const struct menu_d *)((char *)menu + menu_size);
+		++idx;
+		continue;
+	    }
+	}
+	if ( *label == '\n' ) ++vpos;
+	if ( vpos == row ) return idx;
+	++idx;
+	menu = (const struct menu_d *)((char *)menu + menu_size);
+	++vpos;
+    }
+    /* row selected is not part of menu */
+    return -1;
+}
+
+#if (0)
+unsigned long ctl_rd_gun(int which)
+{
+    unsigned long retval,yval;
+    retval = 0;
+    if ( which == 0 && (yval = kby) != 0 ) {
+	retval = (kbx << GUN_HORZ_SHF)
+    	 | (yval << GUN_VERT_SHF) | (1<<(B_SHOT+GUN_STAT_SHF));
+	kby = 0;
+    }
+    return retval;
+}
+#endif
+
+static int kbd_state;
+#define KBD_INIT (0)
+#define KBD_ESC (1)
+#define KBD_BRACK (2)
+#define KBD_MS (3)
+#define KBD_MX (4)
+#define KBD_MY (5)
+
+static void kbd_parse( const unsigned char *buff, int cnt)
+{
+    int raw_char;
+    int lock;
+    const char *cp;
+    unsigned long bit;
+    int state = kbd_state;
+    /* first handle "off requests" and acknowledge them.
+     */
+    fake_controls &= ~(off_req^off_ack);
+    off_ack = off_req;
+    last_key = eer_rtc;
+
+    while (cnt--) {
+	raw_char = *buff++;
+	/* got one from somewhere */
+	lock = 0;
+	bit = 0;
+
+	/* Parse input string looking for new key actuations.
+	 */
+	switch (state) {
+	    case KBD_INIT :
+		if ( raw_char == '\033' ) {
+		    state = KBD_ESC;
+		    break;
+		}
+		if ( raw_char >= 'A' && raw_char <= 'Z' ) {
+		    lock = 1;
+		    raw_char -= ('A' - 'a');
+		}
+		cp = sw_let;
+		while ( *cp && *cp != raw_char ) ++cp;
+		if ( *cp ) {
+		    /* found a matching letter, convert to index,
+		     * then bit to actuate switch
+		     */
+		    bit = sw_ltab[cp-sw_let];
+		}
+		break;
+	    case KBD_ESC :
+		if ( raw_char == '[' ) state = KBD_BRACK;
+		else state = KBD_INIT;
+		break;
+	    case KBD_BRACK :
+		if ( raw_char == 'M' ) {
+		    state = KBD_MS;	/* Looking for space from Sun Mouse */
+		    break;
+		}
+		cp = sw_esckey;
+		while ( *cp && *cp != raw_char ) ++cp;
+		if ( *cp ) {
+		    /* found a matching letter, convert to index,
+		     * then bit to actuate switch
+		     */
+		    bit = sw_ltab[cp-sw_esckey];
+		    if ( bit & SW_HOLD ) lock = 1;
+		    bit &= ~SW_HOLD;
+		}
+		state = KBD_INIT;
+		break;
+	    case KBD_MS :
+		if ( raw_char == ' ' ) {
+		    state = KBD_MX;
+		    break;
+		} else state = KBD_INIT;
+		break;
+	    case KBD_MX :
+		raw_char -= ' ';
+		if ( (raw_char > 0) && (raw_char < AN_VIS_COL) ) {
+		    kbx = (raw_char - 1)<< 3;
+		    state = KBD_MY;
+		} else state = KBD_INIT;
+		break;
+	    case KBD_MY :
+		raw_char -= ' ';
+		if ( (raw_char > 0) && (raw_char < AN_VIS_ROW) ) {
+		    kby = ((raw_char-1) << 3)+1;
+		}
+		/* fall through */
+	    default:
+		state = KBD_INIT;
+		break;
+	} /* end switch */
+	if ( bit ) {
+	    /* turn on the bit. */
+	    fake_controls |= bit;
+	    if ( lock ) kbd_lock |= bit;
+	    else {
+		/* new "momentary" switch, clear locked bits.
+		 * ctl_upd_sw() will attempt to make
+		 * "Hold switchA and press SwitchB" work.
+		 */
+		kbd_lock = 0;
+	    }
+	}
+    }
+    kbd_state = state;
+}
+#endif				/* !HAS_SWITCHES */
+
+#if !HAS_SWITCHES
+unsigned long
+ctl_upd_sw()
+{
+    unsigned long bit = 0;
+    unsigned long suppress= 0;
+
+    kbd_init();
+
+    /* Ask to turn off any non-locked switches that should have already
+     * been seen. We don't do this here, because fake_controls
+     * should only be written by the keyboard parser itself,
+     * which my be "owned", for writing, by a different process, or even
+     * a different _processor_. Instead, we set corresponding bits of
+     * off_req (which we own) to be different from those in kbd_ack,
+     * (which the keyboard parser owns).h
+     */
+    if ( (eer_rtc - last_key) > 4 ) suppress = ~kbd_lock;
+    suppress &= fake_controls;		    /* minus those which already are*/
+    off_req = off_ack ^ suppress;
+
+    suppress = (off_req ^ off_ack);	/* keep suppressing them */
+    bit = (fake_controls & ~suppress);
+    cntlshadw = debounce_swtch(&sw_state,bit);
+    return cntlshadw;
+}
+
+void
+ctl_autorepeat(switches,initial,later)
+unsigned long switches;
+int initial,later;
+{
+    sw_state.rpt = switches;
+    sw_state.init = initial<<3;
+    sw_state.delay = later<<3;
+}
+
+/*	long ctl_read_sw(MASK)
+*
+*	for bits that are 1 in MASK
+*		code returns edge state, and clears the edge state
+*
+*	for bits that are 0 in MASK
+*		code returns level state
+*/
+#define EARLY_ON (1)
+
+unsigned long
+ctl_read_sw(edge_mask)
+unsigned long edge_mask;
+{
+    unsigned long edges,val;
+
+    struct switch_state *sw = &sw_state;
+#ifdef EARLY_ON
+    val = sw->db | sw->prev;
+#else
+    val = sw->db;
+#endif
+    if ( edge_mask != 0) {
+	edges = (sw->edge ^ val) & edge_mask;
+	sw->edge |= edges;
+	val = (val & ~edge_mask) | edges;
+    }
+    return val;
+}
+
+/*	More-or-less the same thing, but for the debug (Diagnostic)
+ *	switches.
+ */
+unsigned long
+ctl_read_debug(edge_mask)
+unsigned long edge_mask;
+{
+    unsigned long edges,val;
+
+    struct switch_state *sw = &db_state;
+
+    val = sw->db;
+    if ( edge_mask != 0) {
+	edges = (sw->edge ^ val) & edge_mask;
+	sw->edge |= edges;
+	val = (val & ~edge_mask) | edges;
+    }
+    return val;
+}
+#endif			/* !HAS_SWITCHES */
+
+/*	The head of the action queue.
+ */
+
+void hdw_init(int coldflag)
+{
+#if !NO_COMMS
+    extern void cit_init(void);
+
+    cit_init();
+    prc_set_ipl((0x100<<ICELESS_LVL)|SR_IEC);	/* allow iceless interrupts now */
+    kbd_init();					/* start the system */
+#endif
+    txt_str(-1,AN_VIS_ROW/2,"Getting to selftest\n",MNORMAL_PAL);
+#if HOST_BOARD == HCR4K
+    wait_n_usecs(200*16*1000);
+#else
+    prc_delay(200);
+#endif
+    prc_set_ipl(INTS_ON);
+}
+
+#if !HAS_SWITCHES
+int SwitchTest(smp)
+const struct menu_d *smp;
+{
+    int hold = 0;
+    unsigned long ctls;
+    while (1) {
+	ctls = ctl_read_sw(0);
+	if ( ctls & SW_NEXT ) ++hold;
+	if ( hold > 100 ) break;
+	txt_str(2,2,"fake_controls: ",MNORMAL_PAL);
+	txt_chexnum(fake_controls,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(2,3,"last_key:      ",MNORMAL_PAL);
+	txt_chexnum(last_key,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(2,4,"off_req:       ",MNORMAL_PAL);
+	txt_chexnum(off_req,8,RJ_ZF,MNORMAL_PAL);
+	txt_str(2,5,"off_ack:       ",MNORMAL_PAL);
+	txt_chexnum(off_ack,8,RJ_ZF,MNORMAL_PAL);
+	txt_hexnum(17,6,(off_ack^off_req),8,RJ_ZF,MNORMAL_PAL);
+	txt_hexnum(17,7,fake_controls&~(off_ack^off_req),8,RJ_ZF,MNORMAL_PAL);
+	txt_hexnum(17,8,ctls,8,RJ_ZF,MNORMAL_PAL);
+	prc_delay(1);
+    }
+    return 0;
+}
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d26 4
+d34 3
+a36 1
+#define NO_COMMS	0	/* set to 1 to disable all Iceless communications */
+a62 2
+extern void blink(int), pause(int);
+
+d118 1
+a118 1
+    int old_ps;
+d136 1
+d138 6
+a143 1
+       blink(600000);		/* wait until the Unix system says hello */
+a507 41
+#if 0			/* prc_delay stuff is in the other modules */
+extern void process_action_q(int old_ps, int new_ps);
+
+void prc_delay( int time)
+{
+    int old_ps;
+    extern int prc_get_ipl(void);
+
+#if 0
+    volatile U32 zclock;
+    extern void pause(int);
+    U32 new_time;
+    int tmp;
+
+    old_ps = prc_get_ipl();
+    if ((tmp&((0x100<<TIMER_LVL)|SR_IEC)) == ((0x100<<TIMER_LVL)|SR_IEC)) {
+       do {
+	   new_time = zclock+4;			/* frames to wait */
+           do {
+	      tmp = (S32)(new_time-zclock);	/* compute difference */
+           } while (tmp >= 0);
+	   process_action_q(old_ps, old_ps);	/* empty the action queue if there's anything on it */
+       } while ( --time >= 0 );
+    } else {
+      do {
+	 pause(16000+(16000/4));		/* wait about 16,000 microseconds */
+	 process_action_q(old_ps, old_ps);
+      } while ( --time >= 0 );
+   }
+#else
+   old_ps = prc_get_ipl();
+   do {
+      blink(16000+4000);			/* about 16,000 microseconds */
+      process_action_q(old_ps, old_ps);		/* empty the action queue if there's anything on it */
+   } while (--time > 0);
+#endif
+}
+
+void prc_delay0() { prc_delay(0); }
+#endif
+
+d518 3
+a521 17
+#ifdef MEMCON
+# if (0)
+    /* Brian has made CoJag Mixed-endian, so we have to tell it
+     * that it is Big Endian and kluge the software.
+     */
+    memcon_val = MEMCON_VAL;
+#  if SHORT16_OFFS==0
+    memcon_val |= (1<<13);	/* Set HILO */
+#  else
+    memcon_val &= ~(1<<13);	/* clear HILO */
+#  endif
+    MEMCON = memcon_val;
+# else
+    MEMCON = MEMCON_VAL;
+# endif
+
+    G_END = 0x50005;
+a522 1
+
+@

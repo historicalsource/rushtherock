@@ -1,0 +1,276 @@
+head	1.3;
+access;
+symbols
+	RUSH_ROCK_1_0:1.3
+	RUSH_ROCK_1_0epst:1.3
+	RUSH_ROCK_1_0boot:1.3
+	MACE_1_0e:1.3
+	MACE_1_0d:1.3
+	RUSH_1_06A:1.2
+	AREA_52_00:1.3
+	MACE_1_0a:1.3;
+locks; strict;
+comment	@;; @;
+
+
+1.3
+date	97.03.27.04.57.00;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.03.20.02.15.59;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.10.31.18.45.49;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Assembly replacements for C flavors of memcpy and memset.
+@
+
+
+1.3
+log
+@Added double word memcpy and memset routines.
+@
+text
+@OUTPUT_LANG == 4		; LANG_ASR3k
+	.include config.mac
+
+; Memcpy - replacement for the C flavor of memcpy
+;
+; At entry:
+;	a0 = destination ptr
+;	a1 = source ptr
+;	a2 = count in bytes
+; At exit:
+;	v0 = destination ptr
+; If the input and output regions overlap, the result is undefined.
+;
+
+.define DST	$4	;a0
+.define SRC	$5	;a1
+.define CNT	$8	;t0
+.define TMP0	$9	;t1
+.define TMP1	$10	;t2
+
+FRAME memcpy
+	.set noreorder
+.if true, (PROCESSOR&-16) == MIPS4000
+	and TMP0, a0, 7		;# Check that addresses are double aligned
+	and TMP1, a1, 7
+	or  TMP0, TMP1
+	move a3, a0		;# save starting pointer
+	beq TMP0, r0, do_doubles /* 0 = do double mode copy */
+	addu TMP1, r0, 4
+	beq TMP1, TMP0, do_words
+.iff
+	and TMP0, a0, 3		;# Check that addresses are word aligned
+	and TMP1, a1, 3
+	or  TMP0, TMP1
+	move a3, a0		;# save starting pointer
+	beq TMP0, r0, do_words	;# 0 = do word mode copy
+.endc
+	addu TMP1, r0, 2
+	beq TMP1, TMP0, do_halfs ;# 2 = do halfword mode copy
+;	addu TMP1, 1
+;	beq TMP1, TMP0, do_bytes ;# 1 or 3 = do byte mode copy
+;	nop
+
+do_bytes:
+	move CNT, a2
+	blez CNT, done	
+10:	addu CNT, -1
+	lbu  TMP0, (SRC)
+	addu SRC, 1
+	sb   TMP0, (DST)
+	bgtz CNT, 10b
+	addu DST, 1
+
+done:	j    ra
+	move v0, a3
+
+do_halfs:
+	srl  CNT, a2, 1		;# compute count in halfs
+	sll  TMP0, CNT, 1
+	sub  a2, TMP0		;# take count from total
+	blez CNT, do_bytes
+20:	addu CNT, -1
+	lhu  TMP0, (SRC)
+	addu SRC, 2
+	sh   TMP0, (DST)
+	bgtz CNT, 20b
+	addu DST, 2
+	b    do_bytes
+	nop
+
+do_words:	
+	srl  CNT, a2, 2		;# compute count in words
+	sll  TMP0, CNT, 2
+	sub  a2, TMP0		;# take count from total
+	blez CNT, do_bytes
+30:	addu CNT, -1
+	lw  TMP0, (SRC)
+	addu SRC, 4
+	sw   TMP0, (DST)
+	bgtz CNT, 30b
+	addu DST, 4
+	b    do_bytes
+	nop
+
+.if true, (PROCESSOR&-16) == MIPS4000
+do_doubles:	
+	srl  CNT, a2, 3		;# compute count in doubles
+	sll  TMP0, CNT, 3
+	sub  a2, TMP0		;# take count from total
+	blez CNT, do_bytes
+40:	addu CNT, -1
+	ld  TMP0, (SRC)
+	addu SRC, 8
+	sd   TMP0, (DST)
+	bgtz CNT, 40b
+	addu DST, 8
+	b    do_bytes
+	nop
+.endc
+
+	.set reorder
+ENDFRAME memcpy
+
+; Memset - replacement for the C flavor of memset
+;
+; At entry:
+;	a0 = destination ptr
+;	a1 = value to deposit
+;	a2 = count in bytes
+; At exit:
+;	v0 = destination ptr
+;
+
+FRAME memset
+	.set noreorder
+.if true, (PROCESSOR&-16) == MIPS4000
+	and  a1,0xFF		;# use only the lower byte of value
+	and TMP0, a0, 7		;# Check that address is double aligned
+	move a3, a0		;# save starting pointer
+	beq TMP0, r0, do_ms_doubles /* 0 = do word mode write */
+	addu TMP1, r0, 4	;# "li TMP1, 4" without warnings
+	beq TMP1, TMP0, do_ms_words ;# 2 = do word mode write
+	addu TMP1, r0, 2	;# "li TMP1, 2" without warnings
+	beq TMP1, TMP0, do_ms_halfs ;# 2 = do halfword mode write
+;	nop
+.iff
+	and  a1,0xFF		;# use only the lower byte of value
+	and TMP0, a0, 3		;# Check that address is word aligned
+	move a3, a0		;# save starting pointer
+	beq TMP0, r0, do_ms_words /* 0 = do word mode write */
+	addu TMP1, r0, 2	;# "li TMP1, 2" without warnings
+	beq TMP1, TMP0, do_ms_halfs ;# 2 = do halfword mode write
+;	nop
+.endc
+
+do_ms_bytes:
+	move CNT, a2
+	blez CNT, ms_done	
+10:	addu CNT, -1
+	sb   a1, (DST)
+	bgtz CNT, 10b
+	addu DST, 1
+
+ms_done:	j    ra
+	move v0, a3
+
+do_ms_halfs:
+	srl  CNT, a2, 1		;# compute count in halfs
+	sll  TMP0, CNT, 1
+	sub  a2, TMP0		;# take count from total
+	blez CNT, do_ms_bytes
+	sll  TMP1, a1, 8
+	or   a1, TMP1		;# dup the lower byte to the upper
+20:	addu CNT, -1
+	sh   a1, (DST)
+	bgtz CNT, 20b
+	addu DST, 2
+	b    do_ms_bytes
+	nop
+
+do_ms_words:	
+	srl  CNT, a2, 2		;# compute count in words
+	sll  TMP0, CNT, 2
+	sub  a2, TMP0		;# take count from total
+	blez CNT, do_ms_bytes
+	sll  TMP1, a1, 8
+	or   a1, TMP1
+	sll  TMP1, a1, 16	;# dup the lower byte through all bytes in word
+	or   a1, TMP1
+30:	addu CNT, -1
+	sw   a1, (DST)
+	bgtz CNT, 30b
+	addu DST, 4
+
+	b    do_ms_bytes
+	nop
+
+.if true, (PROCESSOR&-16) == MIPS4000
+do_ms_doubles:	
+	srl  CNT, a2, 3		;# compute count in words
+	sll  TMP0, CNT, 3
+	sub  a2, TMP0		;# take count from total
+	blez CNT, do_ms_bytes
+	dsll  TMP1, a1, 8	;# dup the lower byte through all bytes in doubleword
+	or   a1, TMP1
+	dsll  TMP1, a1, 16
+	or   a1, TMP1
+	dsll32 TMP1, a1, 0
+	or   a1, TMP1
+30:	addu CNT, -1
+	sd   a1, (DST)
+	bgtz CNT, 30b
+	addu DST, 8
+
+	b    do_ms_bytes
+	nop
+.endc
+
+	.set reorder
+ENDFRAME memset
+@
+
+
+1.2
+log
+@Corrected code for use with R3K.
+@
+text
+@d23 9
+d37 1
+d85 16
+d116 11
+d130 1
+a130 1
+	beq TMP0, r0, do_ms_words ;# 0 = do word mode write
+d134 1
+d177 21
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d39 1
+a40 1
+	addu SRC, 1
+d54 1
+a55 1
+	addu SRC, 2
+d68 1
+a69 1
+	addu SRC, 4
+@

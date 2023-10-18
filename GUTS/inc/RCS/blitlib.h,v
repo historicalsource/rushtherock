@@ -1,0 +1,47 @@
+head	1.1;
+access;
+symbols
+	CJ_206:1.1
+	CJ2_05:1.1
+	CJ2_04:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	94.12.16.16.35.56;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@definitions and prototypes for Jaguar Blitter utilities
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/**************************************************************
+* BLITLIB.H | Author: Robert M. Birmingham | August 8, 1994   *
+* =========================================================== *
+* Header file for the Jaguar/CoJag blitter library functions. *
+* Copyright 1994, Atari Games.                                *
+**************************************************************/
+
+void blit_clear( U8 *memptr, U32 numbytes );
+void blit_pattern( U8 *memptr, U32 numbytes, PHRASE pattern );
+void blit_copy( U8 *dstptr, U8 *srcptr, U32 numbytes );
+
+U32 blit_status( void );
+void blit_wait( void );
+
+/*************************************************************************
+* End of file: BLITLIB.H                                                 *
+*************************************************************************/
+
+
+
+@

@@ -1,0 +1,236 @@
+head	1.3;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	96.04.03.23.48.55;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.03.19.00.34.39;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.03.15.21.58.41;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Xbus monitor board stubs.
+@
+
+
+1.3
+log
+@Added SERIAL_ADDRESS to conditionals
+@
+text
+@/*		xbusmon_stubs.c
+ *
+ *	This contains some interfaces to allow one to use an XBUSMON board
+ *	on the ROMBUS connector (or XBUS) of a ZAG host so that the selftest
+ *	menu will appear on a (dumb) serial terminal instead of or in addition
+ *	to the normal video menu. It also optionally swaps the buttons to those
+ *	on the XBUSMON board so one can it to run the selftest diags on a system
+ *	with a broken UIO (or other misconfigured or broken I/O board).
+ *
+ *	I make no pretense that this code will be useful for anything other
+ *	than a ZAG board at this time. Good luck making it work on a 68k or
+ *	R3K host for example (not impossible).
+ *
+ *		Copyright 1996 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#include <os_proto.h>
+#include <os_root.h>
+#include <zoid_proto.h>
+
+#if HOST_BOARD == HCR4K || HOST_BOARD == LCR3K
+# include <os_root.h>
+#endif
+
+#if USE_XBUSMON_CTLMODLATCH
+static U32 cntr_bitshd;
+
+U32 ctl_mod_latch(int x) {
+    U32 old;
+    int oldipl = prc_set_ipl(INTS_OFF);
+    old = cntr_bitshd;
+    if (x < 0) {
+	cntr_bitshd &= x;
+    } else {
+	cntr_bitshd |= x;
+    }
+    prc_set_led(cntr_bitshd);
+    prc_set_ipl(oldipl);
+    return old;
+}
+#endif
+
+extern void cit_init(void);
+extern void cit_deinit(void);
+#if HOST_BOARD == HCR4K
+extern void diag_serial_out(int);
+extern U32 diag_autobaud(void);
+extern U32 ticks_microsec;
+#endif
+
+/*		putn_ams()
+*	Try to put "cnt" characters from *buffer to AMS fake console.
+*	Returns number of chars actually queued, which will always be
+*	"cnt", because right now this is always done "wait mode"
+*/
+
+int putn_ams(unsigned char *buff, int i_cnt) {
+#if (HOST_BOARD == HCR4K) && defined(SERIAL_ADDRESS)
+    int ii;
+    for (ii=0; ii < i_cnt; ++ii) diag_serial_out(*buff++);
+#endif
+    return i_cnt;
+}
+
+#define n_elts(x) (sizeof(x)/sizeof(x[0]))
+
+#define XBCOINL		0x00200
+#define XBCOINR		0x00100
+#define XBJ_UP		0x00080
+#define XBJ_DOWN	0x00040
+#define XBJ_LEFT	0x00020
+#define XBJ_RIGHT	0x00010
+#define XBNEXT		0x00008
+#define XBACTION	0x00004
+#define XBEXTRA		0x00002
+
+#define SWAP_CONTROLS	0x8000		/* swap normal controls with xbusmon board */
+#define USE_SERIAL	0x4000		/* use serial output for dbg_txt */
+#define NO_TEXT		0x2000		/* don't display any text on the video */
+#define XBHANDSHAKE	(XBJ_UP)
+#define SIGNATURE	(0xFF02&~(SWAP_CONTROLS|USE_SERIAL|NO_TEXT|XBHANDSHAKE))
+#define SW_MASK		(0xFFFF&~(SWAP_CONTROLS|USE_SERIAL|NO_TEXT|XBHANDSHAKE))
+
+#if defined(SERIAL_ADDRESS)
+static int using_alternate, serial_enabled;
+extern U32 (*read_raw_sw_vec)(int);
+#endif
+
+#if defined(SERIAL_ADDRESS)
+static U32 read_raw_switches(int which) {
+    U32 tmp, ans;
+    if (serial_enabled) {
+	tmp = ~*(VU32 *)SERIAL_ADDRESS;
+	if ((tmp&USE_SERIAL) && (serial_enabled&2) == 0) {
+	    cit_init();
+	    serial_enabled |= 2;
+	} else if ((tmp&USE_SERIAL) == 0 && (serial_enabled&2)) {
+	    cit_deinit();
+	    serial_enabled &= ~2;
+	}
+    }
+    if (!using_alternate) {
+#if defined(DIAG)
+	return which ? ~DIAG : (~INPUTS & 0xFFFF);
+#else
+        return (~INPUTS & 0xFFFF);
+#endif
+    } 
+    ans = 0;			/* assume no buttons pushed */
+    if (!which) {
+	tmp = ~*(VU32 *)SERIAL_ADDRESS;
+        ans = 1<<B_TEST;		/* selftest switch is always on */
+	if (tmp&XBJ_UP)    ans |= J_UP;
+	if (tmp&XBJ_DOWN)  ans |= J_DOWN;
+	if (tmp&XBJ_LEFT)  ans |= J_LEFT;
+	if (tmp&XBJ_RIGHT) ans |= J_RIGHT;
+	if (tmp&XBACTION)  ans |= SW_ACTION;
+	if (tmp&XBNEXT)    ans |= SW_NEXT;
+	if (tmp&XBEXTRA)   ans |= SW_EXTRA;
+	if (tmp&XBCOINL)   ans |= (1<<B_COINL)<<8;
+	if (tmp&XBCOINR)   ans |= (1<<B_COINR)<<8;
+    }
+    return ans;
+}
+#endif
+
+void hdw_init(int coldflag)
+{
+#if (HOST_BOARD == HCR4K) && defined(SERIAL_ADDRESS)
+    int spinner, ii;
+    U32 switches[32], junk;
+    VU32 *vup = (VU32*)XBUS_SLOT75;
+    VU32 *xbm = (VU32*)SERIAL_ADDRESS;
+    for (ii=0; ii<n_elts(switches); ++ii) {
+	switches[ii] = (~*xbm)&0xFFFF;
+	for (spinner=500; spinner > 0; --spinner) junk = *vup;
+    }
+    for (ii=1; ii<n_elts(switches); ++ii) {
+	if (switches[0] != switches[ii]) break;
+    }
+    if (ii >= n_elts(switches)) {
+	if ((switches[0]&SW_MASK) == SIGNATURE) {	/* matches the signature */
+	    read_raw_sw_vec = read_raw_switches;
+	    if ((switches[0]&SWAP_CONTROLS)) ++using_alternate; /* switch 15 means swap controls */
+	    if ((switches[0]&USE_SERIAL)) {		/* switch 14 means use serial output */
+		int oldtxt;
+		ticks_microsec = diag_autobaud();	/* autobaud the terminal */
+		cit_init();				/* all of them require this */
+		serial_enabled = 3;			/* serial enabled and running */
+		oldtxt = txt_select(TXT_NONE);		/* no vid_init() yet, turn off text */
+#define VT100_ANSI	"\033<"		/* ansi mode */
+#define VT100_HOME	"\033[1;1H"	/* home curosr */
+#define VT100_CLS	"\033[2J"	/* clear to end of screen */
+#define VT100_NOATT	"\033[0m"	/* all attributes off */
+#define VT100_ASCII	"\033(B"	/* select the normal ASCII character set */
+#define INIT_STRING VT100_ANSI VT100_HOME VT100_CLS VT100_NOATT VT100_ASCII
+		putn_ams((unsigned char *)INIT_STRING, sizeof(INIT_STRING)-1);
+		txt_str(-1,AN_VIS_ROW/2,"Getting to selftest\n",MNORMAL_PAL);
+		wait_n_usecs(200*16*1000);
+		if (!(switches[0]&NO_TEXT)) {		/* switch 13 means no video */
+		    txt_select(oldtxt);			/* restore video text */
+		}
+	    }		
+	}
+    }	        
+#endif
+    prc_set_ipl(INTS_ON);
+}
+@
+
+
+1.2
+log
+@Conditionaled the compilation of ctl_mod_latch()
+@
+text
+@d62 1
+a62 1
+#if HOST_BOARD == HCR4K
+d88 1
+d91 1
+d93 1
+d129 1
+d133 1
+a133 1
+#if HOST_BOARD == HCR4K
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d29 1
+d45 1
+d104 1
+d106 3
+@

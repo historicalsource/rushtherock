@@ -1,0 +1,3862 @@
+head	1.17;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.17
+date	96.03.15.23.22.28;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.03.15.22.39.25;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.03.15.21.19.41;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.03.14.00.46.48;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.03.08.03.26.31;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.03.05.22.18.52;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.03.04.22.23.26;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.02.23.22.46.29;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.02.23.02.57.34;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.02.18.00.19.42;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.02.15.01.01.27;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.02.07.21.37.36;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.02.07.20.03.41;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.02.07.00.43.48;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.02.06.22.15.51;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.02.05.22.39.12;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.01.31.21.35.09;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@First pass at doing ZAG TBUS/ZIG test routines.
+@
+
+
+1.17
+log
+@Fixed the mathbox text setup in this test.
+@
+text
+@/*		zag_tbus.c
+ *
+ *	Test routines for the Zoid Math Box (ZAG). All of these routines
+ *	depend on the ZIG and TEXTURE boards working too, since TBUS data
+ *	is delivered to ZIG to display pictures and the pictures are stored
+ *	in the TEXTURE memory.
+ *
+ *		Copyright 1996 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#include <os_proto.h>
+#include <zoid_proto.h>
+#include <tbus.h>
+#include <nsprintf.h>
+#include <string.h>
+#include <st_proto.h>
+#include <zmbdiags.h>
+#include <zag.h>
+#include <zre_defs.h>
+
+/*	Following definition is needed because gcc bitches about pointer
+ *	arithmetic when the MSB of the address is set, which it is for
+ *	the XBUS on the HCR4K
+ */
+#ifndef ZTV_BITMAP_OFFSET
+#define ZTV_BITMAP_OFFSET ((ZTV_BITMAP_ADDR-(U32)&ZTV_CTL)/sizeof(ZTV_CTL))
+#endif
+
+#if (ZOID_GAME&ZOID20_DMS)		/* this just prevents others from getting compile errors */
+# define DO_ICELESS		0	/* report CRC's instead of checking them */
+# define TEST_CRC_BUF		0	/* just emit CRC's */
+# define CHECK_FRAME_BUF	0	/* do a compare of the frame buffer */
+#endif
+
+#ifndef NO_CRC_TESTS
+# define NO_CRC_TESTS 1			/* for now, default to no CRC checking at all */
+#endif
+
+#if DO_ICELESS || TEST_CRC_BUF
+# include <iio_proto.h>
+#endif
+
+#ifndef NO_ZAG_TEST_TEXTURES
+# define NO_ZAG_TEST_TEXTURES	0	/* don't create test textures (for use on ASCLEAP) */
+#endif
+#ifndef NO_ZAG_TEST_SAVE_UNDER
+# define NO_ZAG_TEST_SAVE_UNDER	0	/* don't bother to save old textures */
+#endif
+#ifndef USE_ZTV_TEXTURE_WRITE
+# define USE_ZTV_TEXTURE_WRITE	0	/* don't use this until ZTV_TEXTURE_READ is available */
+#endif
+
+typedef struct {
+    int topy;		/* Y of top line */
+    int boty;		/* Y of bottom line */
+    int toplftx;	/* X of top left corner */
+    int toprtx;		/* X of top right corner */
+    int botlftx;	/* X of bottom left corner */
+    int botrtx;		/* X of bottom right corner */
+    int ztl;		/* Z of top left corner */
+    int ztr;		/* Z of top right corner */
+    int zbl;		/* Z of bottom left corner */
+    int zbr;		/* Z of bottom right corner */
+} Traps;
+
+typedef struct {
+    int tl;		/* top left */
+    int tr;		/* top right */
+    int bl;		/* bottom left */
+    int br;		/* bottom right */
+    int vel;		/* amount to increment/decrement */
+} Percs;
+
+typedef struct {
+    int tl;		/* top left */
+    int tr;		/* top right */
+    int bl;		/* bottom left */
+    int br;		/* bottom right */
+} RGBs;
+
+typedef struct {
+    int ptw;		/* control flags */
+    int ptb;		/* texture base address */
+    int plb;		/* palette base address */
+    int tl_s;		/* top left S */
+    int tl_t;		/* top left T */
+    int bl_s;		/* bottom left S */
+    int bl_t;		/* bottom left T */
+    int tr_s;		/* top right S */
+    int tr_t;		/* top right T */
+    int br_s;		/* bottom right S */
+    int br_t;		/* bottom right T */
+    int grad;		/* MIPMAP gradient */
+    int flags;		/* misc flags */
+    int tindx;		/* current texture to be displayed */
+    U32 oldptb;
+    U16 *prevtext;	/* pointer to old texture */
+} TexMaps;
+
+#define MAX_CRC_TESTS	7
+
+typedef struct {
+    Traps *traps;
+    Percs *percs;
+    RGBs *rgb;
+    TexMaps *tex;
+    int frame;		/* frame number within an auto test */
+    int subframe;	/* for CRC checks, the loop count */
+#if DO_ICELESS || TEST_CRC_BUF
+    int match_count;	/* number of times CRC matched */
+    U32 prev_crc;	/* previous CRC value */
+#endif
+    int txt_type;
+    int update;
+    int disp_buf;
+    int sequence;
+    int edges;
+    int buttons;
+    int errors[MAX_CRC_TESTS];
+    int crc_errors;   
+    int crc_retries;
+#if DO_ICELESS || TEST_CRC_BUF
+    IcelessIO *iop;
+#endif
+} Misc;
+
+#if DO_ICELESS || TEST_CRC_BUF
+static IcelessIO *iop;
+#endif
+
+#if HOST_IS_MATHBOX || MB_TEST_CODE
+enum upd {
+#define TOPT( enum, string ) enum,
+#include <zagtopts.h>
+#undef TOPT
+UPD_MAX		/* can't equal or go beyond this value */
+};
+
+static const char * const updates_msg[] = {
+#define TOPT( enum, string ) string,
+#include <zagtopts.h>
+#undef TOPT
+    0
+};
+
+#define Nsprintf nisprintf
+
+static VU32 frame_count;
+
+static struct act_q vbq;
+extern void stub_start(void);
+
+static void vb_action(int param) {
+    ++frame_count;
+#if defined(TEST) && (B_TEST >= 0)
+    if ((TEST&(1<<B_TEST)) != 0) stub_start();		/* reboot if selftest is off */
+#endif
+    return;    
+}
+
+static void test_vb()
+{
+    WDOG = 0;    /* hit watchdog */
+    vbq.action = vb_action;
+    vbq.param = 0;
+    prc_q_action(&vbq);
+}   /* End: test_vb() */
+
+#if !NO_ZAG_TEST_TEXTURES
+static U32 avg_pixels(U16 *src, int srcsize) {
+    int row, col, r, b, g, qty;
+    U16 val, *s;
+    r = b = g = 0;
+    qty = 2;
+    for (row=0; row < qty; ++row) {
+	s = src + srcsize*row;
+	for (col=0; col < qty; ++col) {
+	    val = *s++;
+	    r += (val>>10) & 0x1f;
+	    g += (val>>5) &0x1f;
+	    b += val&0x1f;
+	}
+    }
+    qty *= 2;
+    r = r/qty;
+    if (r > 0x1f) r = 0x1f;
+    g = g/qty;
+    if (g > 0x1f) g = 0x1f;
+    b = b/qty;
+    if (b > 0x1f) b = 0x1f;
+    val = (r<<10) | (g<<5) | b;
+    val |= (val<<16);
+    return val;
+}
+
+static void mip_texture(U16 *src, U16 *dst, int dsize, int srcsize) {
+    int row, col, d2;
+    U16 *da, *db, *dc, *s;
+
+    d2 = dsize/2;
+    for (row=0; row < d2; ++row ) {
+	da = dst + (row+d2)*srcsize;
+	db = dst + ((row+d2)*srcsize+d2);
+	dc = dst + (row*srcsize+d2);
+	s = src+(row*2*srcsize);
+	for (col=0; col < d2; ++col, s += 2) {
+	    U16 val;
+	    val = avg_pixels(s, srcsize);
+	    *da++ = val;
+	    *db++ = val;
+	    *dc++ = val;
+	}
+    }	    
+}
+#endif
+
+#if 0
+#define RGB_RED		0x7c00
+#define RGB_GREEN	0x03e0
+#define RGB_BLUE	0x001f
+#else
+#define RGB_RED		0x4000
+#define RGB_GREEN	0x0200
+#define RGB_BLUE	0x0010
+#endif
+#define RGB_WHITE	(RGB_RED|RGB_GREEN|RGB_BLUE)
+
+#define TEX_CHECKER	0x00		/* checkerboard pattern */
+#define TEX_BARS	0x01		/* Color bars */
+#define TEX_TEXMAX	0x01		/* maximum number of texture */
+#define TEX_FLG_SAVE	0x01		/* Save existing texture */
+#define TEX_FLG_RESTORE	0x02		/* Restore existing texture */
+#define TEX_FLG_LOAD	0x04		/* create and write a new texture */
+#define TEX_FLG_MIPMAP	0x08		/* mipmap the created texture */
+
+static void make_texture(TexMaps *tex, int flags) {
+#if !NO_ZAG_TEST_TEXTURES
+    int row, col;
+    
+# if !NO_ZAG_TEST_SAVE_UNDER
+    if (flags&TEX_FLG_RESTORE) {	/* first restore any old stuff */
+#  if USE_ZTV_TEXTURE_WRITE
+	ztv_texture_write(tex->oldptb*2, tex->prevtext, 256*256);
+#  else
+	U16 val, *src;
+	U32 *tp;
+
+	tp = (U32 *)TEXRAM_ADDR + (tex->oldptb*2);
+	
+	if ((src=tex->prevtext) != 0) {
+	    for (row=0; row < 256; ++row ) {
+		for (col=0; col < 256; ++col) {
+		    val = *src++;
+		    *tp++ = (val<<16) | val;
+		}
+	    }
+	}
+#  endif
+    }
+    if (flags&TEX_FLG_SAVE) {		/* next save any existing stuff */
+#  if USE_ZTV_TEXTURE_WRITE
+/*	ztv_texture_read(tex->prevtext, (tex->oldptb = tex->ptb)*2, 256*256); */
+#  else
+	U16 *dst;
+
+	if ((dst = tex->prevtext) != 0) {
+	    U32 *tp;
+	    tex->oldptb = tex->ptb;
+	    tp = (U32 *)TEXRAM_ADDR + (tex->ptb*2);
+	    for (row=0; row < 256; ++row ) {
+		for (col=0; col < 256; ++col) {
+		    *dst++ = *tp++;
+		}
+	    }
+	}
+#  endif
+    }
+# endif
+    if (flags&TEX_FLG_LOAD) {		/* create a new texture */
+	int ii;
+# if !USE_ZTV_TEXTURE_WRITE
+	U32 *dst;
+	U16 val;
+# endif
+	U16 copy[256][256], mipmap[256][256], *src;
+
+	if (tex->tindx == TEX_CHECKER) {
+	    for (row=0; row < 256; ++row) {
+		for (col=0; col < 256; ++col) {
+		    copy[row][col] = RGB_WHITE;
+		}
+	    }
+	    for (row=0; row < 256; ++row) {
+		for (col=0; col < 256; col += 256/8) {
+		    copy[row][col] = RGB_RED;
+		    copy[row][col+1] = RGB_RED;
+		}
+	    }
+	    for (row=0; row < 256; row += 256/8) {
+		for (ii=0; ii<2; ++ii) {
+		    for (col=0; col < 256; ++col) {
+			copy[row][col] = RGB_GREEN;
+		    }
+		}
+	    }
+	    for (row=0; row < 256; ++row) {
+		for (ii=0; ii<2; ++ii) {
+		    copy[row][row+ii] = RGB_BLUE;
+		}
+		for (ii=0; ii<2; ++ii) {
+		    copy[row][255-(row+ii)] = RGB_BLUE;
+		}
+	    }
+	} else /* if (tex->tindx == TEX_BARS) */ {
+	    for (row=0; row < 64; ++row) {
+		for (col=0; col < 256; ++col) {
+		    copy[row][col] = (col&0xF8) << 7;
+		}
+	    }
+	    for (row=64; row < 128; ++row) {
+		for (col=0; col < 256; ++col) {
+		    copy[row][col] = (col&0xF8) << 2;
+		}
+	    }
+	    for (row=128; row < 192; ++row) {
+		for (col=0; col < 256; ++col) {
+		    copy[row][col] = (col&0xF8) >> 3;
+		}
+	    }
+	    for (row=192; row < 256; ++row) {
+		for (col=0; col < 256; ++col) {
+		    int color;
+		    color = col>>3;
+		    copy[row][col] = (color << 10) | (color << 5) | color;
+		}
+	    }
+	}
+# if !USE_ZTV_TEXTURE_WRITE
+	dst = (U32 *)TEXRAM_ADDR + (tex->ptb*2);
+# endif
+	if (flags&TEX_FLG_MIPMAP) {
+	    src = (U16*)copy;
+	    for (ii=256; ii > 1; ii /=2) {
+		mip_texture(src, (U16 *)mipmap, ii, 256);
+		src = (U16 *)mipmap+ii/2;
+	    }
+# if USE_ZTV_TEXTURE_WRITE
+	    ztv_texture_write(tex->ptb*2, (U32 *)(((U32)mipmap+3)&-4), 256*256);
+# else
+	    for (row=0; row < 256; ++row) {
+		for (col=0; col < 256; ++col) {
+		    val = mipmap[row][col];
+		    *dst++ = (val<<16) | val;
+		}
+	    }
+# endif
+	} else {
+# if USE_ZTV_TEXTURE_WRITE
+	    ztv_texture_write(tex->ptb*2, (U32 *)(((U32)copy+3)&-4), 256*256);
+# else
+	    for (row=0; row < 256; ++row) {
+		for (col=0; col < 256; ++col) {
+		    val = copy[row][col];
+		    *dst++ = (val<<16) | val;
+		}
+	    }
+# endif
+	}
+    }
+#endif
+}
+
+static void up_traps(Traps *t, int what) {
+    switch(what) {
+	case UPD_XYPOS:
+	    if (t->topy+1 < 512) {
+		++t->topy;
+		++t->boty;
+	    }
+	    break;
+	case UPD_XYSIZ:
+	    if (t->boty < t->topy-1) {
+		++t->boty;
+	    }
+	    break;
+	case UPD_TOPRT:
+	case UPD_TOPLFT:
+	    if (t->topy+1 < 512) {
+		++t->topy;
+	    }
+	    break;
+	case UPD_BOTTOMRT:
+	case UPD_BOTTOMLFT:
+	    if (t->boty+1 < 511) {
+		++t->boty;
+		if (t->boty >= t->topy) t->topy = t->boty+1;
+	    }
+	    break;
+	case UPD_Ztl:
+	    ++t->ztl;
+	    break;
+	case UPD_Ztr:
+	    ++t->ztr;
+	    break;
+	case UPD_Zbl:
+	    ++t->zbl;
+	    break;
+	case UPD_Zbr:
+	    ++t->zbr;
+	    break;
+	case UPD_Zall:
+	    t->ztl += 0x8;
+	    t->ztr += 0x8;
+	    t->zbl += 0x8;
+	    t->zbr += 0x8;
+	    break;
+    }
+    return;
+}
+
+static void up_percs(Percs *p, int what) {
+    switch (what) {
+	case UPD_Wtl:
+	    if (p->tl+p->vel <= 0xFFFF) p->tl += p->vel;
+	    break;
+	case UPD_Wtr:
+	    if (p->tr+p->vel <= 0xFFFF) p->tr += p->vel;
+	    break;
+	case UPD_Wbl:
+	    if (p->bl+p->vel <= 0xFFFF) p->bl += p->vel;
+	    break;
+	case UPD_Wbr:
+	    if (p->br+p->vel <= 0xFFFF) p->br += p->vel;
+	    break;
+    }
+    return;
+}
+
+static void up_rgbs(RGBs *rgb, int what) {
+    switch (what) {
+	case UPD_RGBtl:
+	    if (rgb->tl+1 <= 0x7F) rgb->tl += 1;
+	    break;
+	case UPD_RGBtr:
+	    if (rgb->tr+1 <= 0x7F) rgb->tr += 1;
+	    break;
+	case UPD_RGBbl:
+	    if (rgb->bl+1 <= 0x7F) rgb->bl += 1;
+	    break;
+	case UPD_RGBbr:
+	    if (rgb->br+1 <= 0x7F) rgb->br += 1;
+	    break;
+    }
+    return;
+}
+
+static void up_texmaps(TexMaps *tex, int what) {
+    switch (what) {
+	case UPD_TEXtl:
+	    if (tex->tl_t+0x100 <= 0x7FFF00) tex->tl_t += 0x100;
+	    break;
+	case UPD_TEXtr:
+	    if (tex->tr_t+0x100 <= 0x7FFF00) tex->tr_t += 0x100;
+	    break;
+	case UPD_TEXbl:
+	    if (tex->bl_t+0x100 < tex->tl_t) tex->bl_t += 0x100;
+	    break;
+	case UPD_TEXbr:
+	    if (tex->br_t+0x100 < tex->tr_t) tex->br_t += 0x100;
+	    break;
+    }
+    return;
+}
+
+static void down_texmaps(TexMaps *tex, int what) {
+    switch (what) {
+	case UPD_TEXtl:
+	    if (tex->tl_t-0x100 > tex->bl_t) tex->tl_t -= 0x100;
+	    break;
+	case UPD_TEXtr:
+	    if (tex->tr_t-0x100 > tex->br_t) tex->tr_t -= 0x100;
+	    break;
+	case UPD_TEXbl:
+	    if (tex->bl_t-0x100 >= 0) tex->bl_t -= 0x100;
+	    break;
+	case UPD_TEXbr:
+	    if (tex->br_t-0x100 >= 0) tex->br_t -= 0x100;
+	    break;
+    }
+    return;
+}
+
+static void left_texmaps(TexMaps *tex, int what) {
+    switch (what) {
+	case UPD_TEXtl:
+	    if (tex->tl_s-0x100 > tex->bl_s) tex->tl_s -= 0x100;
+	    break;
+	case UPD_TEXtr:
+	    if (tex->tr_s-0x100 > tex->br_s) tex->tr_s -= 0x100;
+	    break;
+	case UPD_TEXbl:
+	    if (tex->bl_s-0x100 >= 0) tex->bl_s -= 0x100;
+	    break;
+	case UPD_TEXbr:
+	    if (tex->br_s-0x100 >= 0) tex->br_s -= 0x100;
+	    break;
+    }
+    return;
+}
+
+static void right_texmaps(TexMaps *tex, int what) {
+    switch (what) {
+	case UPD_TEXtl:
+	    if (tex->tl_s+0x100 <= 0x7FFF00) tex->tl_s += 0x100;
+	    break;
+	case UPD_TEXtr:
+	    if (tex->tr_s+0x100 <= 0x7FFF00) tex->tr_s += 0x100;
+	    break;
+	case UPD_TEXbl:
+	    if (tex->bl_s+0x100 < tex->tl_s) tex->bl_s += 0x100;
+	    break;
+	case UPD_TEXbr:
+	    if (tex->br_s+0x100 < tex->tr_s) tex->br_s += 0x100;
+	    break;
+    }
+    return;
+}
+
+static void down_traps(Traps *t, int what) {
+    switch(what) {
+	case UPD_XYPOS:
+	    if (t->topy-1 >= 0) {
+		--t->topy;
+		--t->boty;
+	    }
+	    break;
+	case UPD_XYSIZ:
+	    if (t->boty > 0) {
+		--t->boty;
+	    }
+	    break;
+	case UPD_TOPLFT:
+	case UPD_TOPRT:
+	    if (t->topy-1 > 1) {
+		--t->topy;
+		if (t->topy <= t->boty) t->boty = t->topy-1;
+	    }
+	    break;
+	case UPD_BOTTOMLFT:
+	case UPD_BOTTOMRT:
+	    if (t->boty > 0) {
+		--t->boty;
+	    }
+	    break;
+	case UPD_Ztl:
+	    --t->ztl;
+	    break;
+	case UPD_Ztr:
+	    --t->ztr;
+	    break;
+	case UPD_Zbl:
+	    --t->zbl;
+	    break;
+	case UPD_Zbr:
+	    --t->zbr;
+	    break;
+	case UPD_Zall:
+	    t->ztl -= 8;
+	    t->ztr -= 8;
+	    t->zbl -= 8;
+	    t->zbr -= 8;
+	    break;
+    }
+    return;
+}
+
+static void down_percs(Percs *p, int what) {
+    switch (what) {
+	case UPD_Wtl:
+	    if (p->tl-p->vel >= 0) p->tl -= p->vel;
+	    break;
+	case UPD_Wtr:
+	    if (p->tr-p->vel >= 0) p->tr -= p->vel;
+	    break;
+	case UPD_Wbl:
+	    if (p->bl-p->vel >= 0) p->bl -= p->vel;
+	    break;
+	case UPD_Wbr:
+	    if (p->br-p->vel >= 0) p->br -= p->vel;
+	    break;
+    }
+    return;
+}
+
+static void down_rgbs(RGBs *rgb, int what) {
+    switch (what) {
+	case UPD_RGBtl:
+	    if (rgb->tl-1 >= 0) rgb->tl -= 1;
+	    break;
+	case UPD_RGBtr:
+	    if (rgb->tr-1 >= 0) rgb->tr -= 1;
+	    break;
+	case UPD_RGBbl:
+	    if (rgb->bl-1 >= 0) rgb->bl -= 1;
+	    break;
+	case UPD_RGBbr:
+	    if (rgb->br-1 >= 0) rgb->br -= 1;
+	    break;
+    }
+    return;
+}
+
+static void right_traps(Traps *t, int what) {
+    switch(what) {
+	case UPD_XYPOS:
+	    if (t->toplftx+1 < 512) {
+		++t->toplftx;
+		++t->toprtx;
+		++t->botlftx;
+		++t->botrtx;
+	    }
+	    break;
+	case UPD_XYSIZ:
+	    if (t->toprtx+1 < 512) {
+		++t->toprtx;
+		++t->botrtx;
+	    }
+	    break;
+	case UPD_TOPLFT:
+	    if (t->toplftx < 511) {
+		++t->toplftx;
+	    }
+	    if (t->toplftx >= t->toprtx) t->toprtx = t->toplftx+1;
+	    break;
+	case UPD_TOPRT:
+	    if (t->toprtx < 512) {
+		++t->toprtx;
+	    }
+	    break;
+	case UPD_BOTTOMLFT:
+	    if (t->botlftx < 511) {
+		++t->botlftx;
+	    }
+	    if (t->botlftx >= t->botrtx) t->botrtx = t->botlftx+1;
+	    break;
+	case UPD_BOTTOMRT:
+	    if (t->botrtx < 512) {
+		++t->botrtx;
+	    }
+	    break;
+    }
+    return;
+}
+
+static void right_percs(Percs *p, int what) {
+    switch (what) {
+	case UPD_Wtl:
+	case UPD_Wtr:
+	case UPD_Wbl:
+	case UPD_Wbr:
+	    if (p->vel < 0x8000) ++p->vel;
+	    break;
+    }
+    return;
+}
+
+static void right_rgbs(RGBs *rgb, int what) {
+    return;
+}
+
+static void left_traps(Traps *t, int what) {
+    switch(what) {
+	case UPD_XYPOS:
+	    if (t->toplftx-1 >= 0) {
+		--t->toplftx;
+		--t->toprtx;
+		--t->botlftx;
+		--t->botrtx;
+	    }
+	    break;
+	case UPD_XYSIZ:
+	    if (t->toprtx-1 > t->toplftx) {
+		--t->toprtx;
+		--t->botrtx;
+	    }
+	    break;
+	case UPD_TOPLFT:
+	    if (t->toplftx > 0) {
+		--t->toplftx;
+	    }
+	    break;
+	case UPD_TOPRT:
+	    if (t->toprtx > 1) {
+		--t->toprtx;
+	    }
+	    if (t->toprtx <= t->toplftx) t->toplftx = t->toprtx -1;
+	    break;
+	case UPD_BOTTOMLFT:
+	    if (t->botlftx > 0) {
+		--t->botlftx;
+	    }
+	    break;
+	case UPD_BOTTOMRT:
+	    if (t->botrtx > 1) {
+		--t->botrtx;
+	    }
+	    if (t->botrtx <= t->botlftx) t->botlftx = t->botrtx-1;
+	    break;
+    }
+    return;
+}
+
+static void left_percs(Percs *p, int what) {
+    switch (what) {
+	case UPD_Wtl:
+	case UPD_Wtr:
+	case UPD_Wbl:
+	case UPD_Wbr:
+	    if (p->vel > 1) --p->vel;
+	    break;
+    }
+    return;
+}
+
+static void left_rgbs(RGBs *rgb, int what) {
+    return;
+}
+
+static void up_texaddr(TexMaps *tex, int what) {
+    if (what == UPD_TEXaddr) {
+	tex->ptb += 0x00008000;	
+	if (tex->ptb >= 0x00800000) tex->ptb = 0;
+	make_texture(tex, TEX_FLG_RESTORE|TEX_FLG_SAVE|TEX_FLG_LOAD);
+    }
+}
+
+static void down_texaddr(TexMaps *tex, int what) {
+    if (what == UPD_TEXaddr) {
+	tex->ptb -= 0x00008000;	
+	if (tex->ptb < 0) tex->ptb = 0x00800000-0x00008000;
+	make_texture(tex, TEX_FLG_RESTORE|TEX_FLG_SAVE|TEX_FLG_LOAD);
+    }
+}
+
+static void reset_traps(Traps *t) {
+    t->topy = 320;
+    t->boty = t->topy-128;
+    t->toplftx = 192;
+    t->toprtx = t->toplftx+128;
+    t->botlftx = 192;
+    t->botrtx = t->botlftx+128;
+}
+
+static void reset_z(Traps *t) {
+    t->ztl = 0x380+(0x980-0x380)/2;
+    t->ztr = 0x380+(0x980-0x380)/2;
+    t->zbl = 0x380+(0x980-0x380)/2;
+    t->zbr = 0x380+(0x980-0x380)/2;
+}
+
+static void reset_percs(Percs *p) {
+    p->tl = 0x8000;
+    p->tr = 0x8000;
+    p->bl = 0x8000;
+    p->br = 0x8000;
+    p->vel = 0x0080;
+}
+
+static void reset_rgb(RGBs *rgb) {
+    rgb->tl = 0x7F;
+    rgb->bl = 0x7F;
+    rgb->tr = 0x7F;
+    rgb->br = 0x7F;
+}
+
+static void reset_tex(TexMaps *tex) {
+    tex->tl_s = 0;		/* horiz (x) texture coordinate */
+    tex->tr_s = 0x10000;
+    tex->bl_s = 0;
+    tex->br_s = 0x10000;
+    tex->tl_t = 0x10000;	/* vertical (y) texture coordinate */
+    tex->tr_t = 0x10000;
+    tex->bl_t = 0;
+    tex->br_t = 0;
+    tex->tindx = 0;
+    tex->ptw = PL_PTW_TEXTURE|PL_PTW_MSIZE(8)|PL_PTW_SSIZE(8)|PL_PTW_TSIZE(8)|PL_PTW_PSIZE(3);
+    tex->plb = 0;		/* palette base */
+    tex->grad = -1;		/* start with MIPMAP off */
+}
+
+#undef INSTR_PAL
+#define INSTR_PAL GRN_PALB
+
+#define TO_TBUS(pl, val) to_tbus(pl, val)
+
+static void to_tbus(U32 pl, U32 val) {
+#if !HOST_IS_MATHBOX && MB_TEST_CODE
+    ZagSAmovie *zm = (ZagSAmovie *)ZMBSA_COMM;
+    U32 *up;
+    up = (U32 *)(zm+1) + zm->length;
+    ++zm->length;
+    *up = pl | (val&0x00FFFFFF);
+#endif
+#if HOST_IS_MATHBOX
+    *(VU32 *)TBUS_BASE = pl | (val&0x00FFFFFF);
+#endif
+    return;
+}
+
+static void do_trap(Traps *t, Percs *p, RGBs *rgb, TexMaps *tex) {
+    U32 ppw;
+    ppw = PL_PPW_RGB1 | PL_PPW_ZCOMPARE | PL_PPW_ZWRITE | PL_PPW_FRAMEWRITE | PL_PPW_TRANSPEN;
+    TO_TBUS( PL_PPW, ppw);
+    	/* Z buffer */
+    TO_TBUS( PL_Z_PL0, t->ztl);
+    TO_TBUS( PL_Z_PDL, t->zbl-t->ztl);
+    TO_TBUS( PL_Z_PR0, t->ztr-t->ztl);
+    TO_TBUS( PL_Z_PDR, t->zbr-t->ztr);
+    	/* TRAPS */
+    TO_TBUS( PL_PY, t->topy);
+    TO_TBUS( PL_PLH, (t->topy-t->boty));
+    TO_TBUS( PL_PRH, (t->topy-t->boty));
+    TO_TBUS( PL_PLX, (t->toplftx << 12));
+    TO_TBUS( PL_PRX, (t->toprtx << 12)); 
+    TO_TBUS( PL_PDLX, ((t->botlftx-t->toplftx)<<5) ); 
+    TO_TBUS( PL_PDRX, ((t->botrtx-t->toprtx)<<5) );
+	/* PERCs */
+    TO_TBUS( PL_VN_PL0, 0);
+    TO_TBUS( PL_VN_PDL, p->tr);
+    TO_TBUS( PL_VN_PR0, 0);
+    TO_TBUS( PL_VN_PDR, p->tl);
+    TO_TBUS( PL_VD_PL0, p->br);
+    TO_TBUS( PL_VD_PDL, (p->tr-p->br));
+    TO_TBUS( PL_VD_PR0, p->bl);
+    TO_TBUS( PL_VD_PDR, (p->tl-p->bl));
+    TO_TBUS( PL_HN_PL0, 0);
+    TO_TBUS( PL_HN_PDL, 0);
+    TO_TBUS( PL_HN_PR0, p->tl);
+    TO_TBUS( PL_HN_PDR, (p->bl-p->tl));
+    TO_TBUS( PL_HD_PL0, p->tr);
+    TO_TBUS( PL_HD_PDL, (p->br-p->tr));
+    TO_TBUS( PL_HD_PR0, (p->tl-p->tr));
+    TO_TBUS( PL_HD_PDR, (p->bl-p->tr));
+	/* PIXOPs */
+    TO_TBUS( PL_R1_PL0, rgb->tl);
+    TO_TBUS( PL_G1_PL0, rgb->tl);
+    TO_TBUS( PL_B1_PL0, rgb->tl);
+    TO_TBUS( PL_R1_PDL, (rgb->bl-rgb->tl));
+    TO_TBUS( PL_G1_PDL, (rgb->bl-rgb->tl));
+    TO_TBUS( PL_B1_PDL, (rgb->bl-rgb->tl));
+    TO_TBUS( PL_R1_PR0, (rgb->tr-rgb->tl));
+    TO_TBUS( PL_G1_PR0, (rgb->tr-rgb->tl));
+    TO_TBUS( PL_B1_PR0, (rgb->tr-rgb->tl));
+    TO_TBUS( PL_R1_PDR, (rgb->br-rgb->tr));
+    TO_TBUS( PL_G1_PDR, (rgb->br-rgb->tr));
+    TO_TBUS( PL_B1_PDR, (rgb->br-rgb->tr));
+	/* TEXMAP */
+    TO_TBUS( PL_PTW, tex->ptw);
+    TO_TBUS( PL_PTB, 0x00800000|tex->ptb);
+    TO_TBUS( PL_PLB, tex->plb);
+    TO_TBUS( PL_S_PL0, tex->tl_s);
+    TO_TBUS( PL_S_PDL, (tex->bl_s-tex->tl_s));
+    TO_TBUS( PL_S_PR0, (tex->tr_s-tex->tl_s));
+    TO_TBUS( PL_S_PDR, (tex->br_s-tex->tr_s));
+    TO_TBUS( PL_T_PL0, tex->tl_t);
+    TO_TBUS( PL_T_PDL, (tex->bl_t-tex->tl_t));
+    TO_TBUS( PL_T_PR0, (tex->tr_t-tex->tl_t));
+    TO_TBUS( PL_T_PDR, (tex->br_t-tex->tr_t));
+    TO_TBUS( TB_TSTART|TB_EP|TB_LR|TB_LL|TB_SP, 0);
+}
+
+static char *show_xy(char *tmp, int size, Traps *t, int which) {
+    if (which) {
+	Nsprintf(tmp, size, "X size = 0x%03X, Y size = 0x%03X", 
+		t->toprtx-t->toplftx, t->topy-t->boty);
+    } else {
+	Nsprintf(tmp, size, "ty=%03X, by=%03X, tlx=%03X, trx=%03X, blx=%03X, brx=%03X",
+	    t->topy, t->boty&0xFFF, t->toplftx, t->toprtx, t->botlftx, t->botrtx);
+    }
+    return "Testing TRAP ASIC";
+}
+
+static char *show_percs(char *tmp, int size, Percs *p) {
+    Nsprintf(tmp, size, "Wtl=%04X Wbl=%04X Wtr=%04X Wbr=%04X Wv=%04X",
+	p->tr&0xFFFF,
+	p->bl&0xFFFF,
+	p->tl&0xFFFF,
+	p->br&0xFFFF,
+	p->vel&0xFFFF);
+    return "Testing H and V PERC ASICs";
+}
+
+static char *show_pixop(char *tmp, int size, RGBs *rgb) {
+    Nsprintf(tmp, size, "tl=%04X bl=%04X tr=%04X br=%04X",
+	rgb->tl&0xFFFF,
+	rgb->bl&0xFFFF,
+	rgb->tr&0xFFFF,
+	rgb->br&0xFFFF);
+    return "Testing PIXOP ASIC";
+}
+
+static char *show_texcoor(char *tmp, int size, TexMaps *tex, int drow) {
+    Nsprintf(tmp, size, "Stl=%04X Sbl=%04X Str=%04X Sbr=%04X", 
+	(tex->tl_s>>8)&0xFFFF,
+	(tex->bl_s>>8)&0xFFFF,
+	(tex->tr_s>>8)&0xFFFF,
+	(tex->br_s>>8)&0xFFFF);
+    txt_str(-1, drow, tmp, WHT_PALB);
+    Nsprintf(tmp, size, "Ttl=%04X Tbl=%04X Ttr=%04X Tbr=%04X",
+	(tex->tl_t>>8)&0xFFFF,
+	(tex->bl_t>>8)&0xFFFF,
+	(tex->tr_t>>8)&0xFFFF,
+	(tex->br_t>>8)&0xFFFF);
+    return "Testing TEXMAP ASIC";
+}
+
+static char *show_z(char *tmp, int size, Traps *t){
+    Nsprintf(tmp, size, "tl=%06X bl=%06X tr=%06X br=%06X",
+	t->ztl, t->zbl, t->ztr, t->zbr);
+    return "Testing PIXOP Z ASIC";
+}
+
+static int show_manual(Misc *misc) {
+    char tmp[132], *s, *title;
+    int row, drow, len;
+    int updates;
+    Traps *t;
+    Percs *p;
+    RGBs *rgb;
+    TexMaps *tex;
+    t = misc->traps;
+    p = misc->percs;
+    rgb = misc->rgb;
+    tex = misc->tex;
+    updates = misc->update;
+
+    if (misc->txt_type == TXT_ZMB || (misc->txt_type == TXT_HOST && (misc->disp_buf == 3))) {
+	row = AN_VIS_ROW-2;
+#define CYCL_MSG " to cycle actions"
+	txt_str((AN_VIS_COL-(strlen(t_msg_action)+sizeof(CYCL_MSG)-1))/2,
+		    --row, t_msg_action, INSTR_PAL);
+	txt_cstr(CYCL_MSG, INSTR_PAL);
+	len = strlen(updates_msg[updates])+strlen(t_msg_control);
+	txt_str((AN_VIS_COL-len)/2, --row, t_msg_control, INSTR_PAL);
+	txt_cstr(" to ", INSTR_PAL);
+	txt_cstr(updates_msg[updates], INSTR_PAL);
+	s = 0;
+	title = 0;
+	tmp[0] = 0;
+	drow = row - 3;
+	switch (updates) {
+	    case UPD_XYPOS:
+	    case UPD_XYSIZ:
+	    case UPD_TOPLFT:
+	    case UPD_TOPRT:
+	    case UPD_BOTTOMLFT:
+	    case UPD_BOTTOMRT:
+		title = show_xy(tmp, sizeof(tmp), t, updates == UPD_XYSIZ);
+		s = " to resize and recenter the square";
+		break;
+	    case UPD_Wtl:
+	    case UPD_Wtr:
+	    case UPD_Wbl:
+	    case UPD_Wbr:
+		title = show_percs(tmp, sizeof(tmp), p);
+		s = " to reset all Corrections";
+		break;
+	    case UPD_RGBtl:
+	    case UPD_RGBtr:
+	    case UPD_RGBbl:
+	    case UPD_RGBbr:
+		title = show_pixop(tmp, sizeof(tmp), rgb);
+		s = " to reset all Shades";
+		break;
+	    case UPD_Ztl:
+	    case UPD_Ztr:
+	    case UPD_Zbl:
+	    case UPD_Zbr:
+	    case UPD_Zall:
+		title = show_z(tmp, sizeof(tmp), t);
+		s = " to reset all Z coordinates";
+		break;
+	    case UPD_TEXtl:
+	    case UPD_TEXtr:
+	    case UPD_TEXbl:
+	    case UPD_TEXbr:
+		title = show_texcoor(tmp, sizeof(tmp), tex, drow++);
+		s = " to reset all Coordinates";
+		break;
+	    case UPD_TEXaddr:
+		Nsprintf(tmp, sizeof(tmp), "Texture offset %06X", tex->ptb);
+		goto set_texmap_title;
+	    case UPD_TEXpatt:
+		goto set_texmap_title;
+	    case UPD_MIPgr:
+		if (tex->grad >= 0) {
+		    Nsprintf(tmp, sizeof(tmp), "MIPMAP gradient %02X", tex->grad);
+		} else {
+		    strcpy(tmp, "MIPMAP'ing off");
+		}
+		s = " to turn off MIPMAP";
+	    set_texmap_title:
+		title = "Testing TEXMAP ASIC";
+		break;
+	}
+	if (s) {
+	    txt_str((AN_VIS_COL-(strlen(s)+strlen(t_msg_extra)))/2,
+		    --row, t_msg_extra, INSTR_PAL);
+	    txt_cstr(s, INSTR_PAL);
+	}
+	txt_str(-1, drow++, tmp, WHT_PALB);
+	if (title) txt_str(-1, 1, title, RED_PALB);
+    }
+    return 0;
+}
+
+static void show_automatic(Misc *misc);	/* forward reference */
+
+extern unsigned long hi_crc(unsigned long, unsigned long *,int);
+extern unsigned long lo_crc(unsigned long, unsigned long *,int);
+extern VU32 *ztv_base;
+
+#if !NO_CRC_TESTS
+static U32 crc_buff(void) {
+    /* we want to check the frame by CRC'ing the
+     * frame buffer.
+     */
+    U32 crc_val, oldztv;
+    U32 *buff = (U32*)ztv_base + ZTV_BITMAP_OFFSET;
+    unsigned long bufbit;
+
+    bufbit = *ztv_base & (1<<B_Z_CURBUF);
+    oldztv = ztv_mod_latch(~(1<<B_Z_XACC));
+    ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+    if ( bufbit ) crc_val=hi_crc(0,buff,VIS_V_PIX*TOT_H_PIX);
+    else crc_val=lo_crc(0,buff,VIS_V_PIX*TOT_H_PIX);
+    if (oldztv&(1<<B_Z_ZBUFF_EN)) ztv_mod_latch(1<<B_Z_ZBUFF_EN);
+    ztv_mod_latch(1<<B_Z_XACC);
+    return crc_val;
+}
+#endif
+
+#if CHECK_FRAME_BUF
+static void clone_frame(U16 *dst) {
+    /* we want to check the frame by CRC'ing the
+     * frame buffer.
+     */
+    U32 oldztv;
+    VU32 *buff = ztv_base + ZTV_BITMAP_OFFSET;
+    unsigned long bufbit;
+    int ii;
+
+    prc_delay(10);
+    bufbit = *ztv_base & (1<<B_Z_CURBUF);
+# if TEST_CRC_BUF
+    iio_iprintf(iop, "\nAt entry to clone_frame, *ztv_base = %08lX (bufbit=%d)\n", *ztv_base, bufbit);
+# endif
+    oldztv = ztv_mod_latch(~(1<<B_Z_XACC));
+    ztv_mod_latch(~(1<<B_Z_ZBUFF_EN));
+    if ( bufbit ) {
+	for (ii=0; ii < VIS_V_PIX*TOT_H_PIX; ++ii) *dst++ = *buff++ >> 16;
+    } else {
+	for (ii=0; ii < VIS_V_PIX*TOT_H_PIX; ++ii) *dst++ = *buff++;
+    }
+    if (oldztv&(1<<B_Z_ZBUFF_EN)) ztv_mod_latch(1<<B_Z_ZBUFF_EN);
+    ztv_mod_latch(1<<B_Z_XACC);
+# if TEST_CRC_BUF
+    bufbit = *ztv_base & (1<<B_Z_CURBUF);
+    iio_iprintf(iop, "At exit from clone_frame, *ztv_base = %08lX (bufbit=%d)\n", *ztv_base, bufbit);
+# endif
+    return;
+}
+
+static int compare_frame(U16 *dst) {
+    /* we want to check the frame by CRC'ing the
+     * frame buffer.
+     */
+    U32 oldztv;
+    VU32 *buff = ztv_base + ZTV_BITMAP_OFFSET;
+    unsigned long bufbit;
+    int ii, errs=0, oldint;
+
+    bufbit = *ztv_base & (1<<B_Z_CURBUF);
+    oldztv = ztv_mod_latch(~((1<<B_Z_XACC)|(1<<B_Z_ZBUFF_EN)));
+    if ( bufbit ) {
+	for (ii=0; ii < VIS_V_PIX*TOT_H_PIX; ++ii, ++dst, ++buff) {
+	    if ((*dst&0x7FFF) != ((*buff >> 16)&0x7FFF)) {
+		oldint = prc_set_ipl(INTS_OFF);
+		ztv_mod_latch(1<<B_Z_DSM_OFF);
+		*buff = /* (*buff&0xFFFF) | (0x7FFF0000) */ 0x7FFF7FFF;
+		ztv_mod_latch(~(1<<B_Z_DSM_OFF));
+		prc_set_ipl(oldint);
+		++errs;
+	    }
+	}
+    } else {
+	for (ii=0; ii < VIS_V_PIX*TOT_H_PIX; ++ii, ++dst, ++buff) {
+	    if ((*dst&0x7FFF) != (*buff&0x7FFF)) {
+		oldint = prc_set_ipl(INTS_OFF);
+		ztv_mod_latch(1<<B_Z_DSM_OFF);
+		*buff = /* (*buff&0xFFFF0000) | (0x7FFF) */ 0x7FFF7FFF;
+		ztv_mod_latch(~(1<<B_Z_DSM_OFF));
+		prc_set_ipl(oldint);
+		++errs;
+	    }
+	}
+    }
+    if (oldztv&(1<<B_Z_ZBUFF_EN)) ztv_mod_latch(1<<B_Z_ZBUFF_EN);
+    ztv_mod_latch(1<<B_Z_XACC);
+    return errs;
+}
+#endif
+
+#if !NO_CRC_TESTS
+/* WARNINIG  WARNINIG  WARNINIG  WARNINIG  WARNINIG  WARNINIG  WARNINIG  
+ *  DANGER    DANGER    DANGER    DANGER    DANGER    DANGER    DANGER  
+ *
+ * WHATEVER YOU DO, DO NOT CHANGE THE ORDER OF THE ENTRIES IN auto_names
+ * AND auto_crcs.
+ *
+ */
+# if DO_ICELESS || TEST_CRC_BUF
+static const U32 auto_trap_crc[1] = {0};
+static const U32 auto_size_crc[1] = {0};
+static const U32 auto_corner_crc[1] = {0};
+static const U32 auto_perc_crc[1] = {0};
+static const U32 auto_pixop_crc[1] = {0};
+static const U32 auto_tex_crc[1] = {0};
+static const U32 auto_z_crc[1] = {0};
+static const char * const auto_names[] = {
+    "Traps",
+    "Size",
+    "Corner",
+    "Perc",
+    "Pixop",
+    "Z",
+    "Texmap"
+};
+# else
+#  include <zag_crcs.h>
+# endif
+
+static const U32 * const auto_crcs[] = {
+    auto_trap_crc,
+    auto_size_crc,
+    auto_corner_crc,
+    auto_perc_crc,
+    auto_pixop_crc,
+    auto_z_crc,
+    auto_tex_crc
+};
+
+/* END OF WARNING */
+#endif
+
+#define CHECK_RATE	(15)		/* number of frames between crc checks */
+extern U32 zag_defaults;
+
+static int gen_check(Misc *misc, unsigned int which) {
+    if ( (misc->edges&(J_UP|J_DOWN)) ) return -1;
+#if !NO_CRC_TESTS
+    if ((zag_defaults&(1<<ZAG_B_OPTS_CRC)) != 0) {
+	if ((misc->frame%CHECK_RATE) == 0 && which < MAX_CRC_TESTS) {
+# if DO_ICELESS
+	    int sf;
+	    sf = misc->subframe++;
+	    if (sf == 0) return 1;		/* skip the first one */
+	    if (misc->iop && misc->iop->pkt.to) {
+		U32 crc_val;
+		crc_val = crc_buff();
+		if (sf == 1) {
+		    misc->match_count = 0;
+		    misc->prev_crc = crc_val;
+		    return 1;
+		}
+		if (crc_val == misc->prev_crc) {
+		    ++misc->match_count;
+		    if (misc->match_count < 3) return 1;
+		} else {
+		    misc->match_count = 0;
+		    misc->prev_crc = crc_val;
+		}
+		if (sf < 8 && misc->match_count < 3 ) return 1;
+		if (misc->match_count != 3) {
+		    iio_iprintf(misc->iop, "%c\n    DID_NOT_CRC\t/* %4d %d (%s) match %d, subfr %d */",
+			    misc->frame ? ',' : ' ', misc->frame, which, auto_names[which],
+    				misc->match_count, sf);
+		} else {
+		    iio_iprintf(misc->iop, "%c\n    0x%08lX\t/* %4d %d (%s) (chkcnt=%d)*/",
+			    misc->frame ? ',' : ' ', crc_val, misc->frame,
+		    	    which, auto_names[which], sf);
+		}
+	    }
+# else
+	    U32 verify_val, crc_val;
+	    int sf;
+	    sf = misc->subframe++;
+	    if (sf == 0) return 1;	/* render it again */
+	    crc_val = crc_buff();
+	    verify_val = *(auto_crcs[which]+misc->frame/CHECK_RATE);
+	    if (crc_val != verify_val) {
+		char tmp[AN_VIS_COL];
+		int wait, oldtxt, row;
+
+		if (sf < 4) {
+		    ++misc->crc_retries;
+		    return 1;	/* try up to 4 times */
+		}
+		oldtxt = txt_select(TXT_HOST);
+		prc_delay(2);			/* wait for ZRE to stop rendering */
+		row = AN_VIS_ROW/2;
+#define CRC_MSG_SIZE (17+8+8+8)
+#define CRC_MSG_COL  ((AN_VIS_COL-CRC_MSG_SIZE)/2)
+		txt_clr_wid(CRC_MSG_COL, row+0, CRC_MSG_SIZE);
+		txt_clr_wid(CRC_MSG_COL, row+1, CRC_MSG_SIZE);
+		txt_clr_wid(CRC_MSG_COL, row+2, CRC_MSG_SIZE);
+		txt_clr_wid(CRC_MSG_COL, row+3, CRC_MSG_SIZE);
+		txt_clr_wid(CRC_MSG_COL, row+4, CRC_MSG_SIZE);
+		txt_clr_wid(CRC_MSG_COL, row+5, CRC_MSG_SIZE);
+		nisprintf(tmp, sizeof(tmp), "CRC error at frame %4d",
+	    		misc->frame);
+		txt_str(-1, ++row, tmp, RED_PALB);
+		nisprintf(tmp, sizeof(tmp), "Expected %08lX, found %08lX",
+		    verify_val, crc_val);
+		txt_str(-1, ++row, tmp, RED_PALB);
+		++row;
+		nisprintf(tmp, sizeof(tmp), "%s to continue", t_msg_action);
+		txt_str(-1, ++row, tmp, INSTR_PAL);
+		for (wait=0; wait < 60*5; ++wait) {
+		    prc_delay(0);
+		    if (ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION)) break;
+		}
+		txt_select(oldtxt);
+		++misc->errors[which];
+		++misc->crc_errors;
+		misc->crc_retries -= 4;	/* not a successful retry */
+	    }
+# endif
+	}
+	misc->subframe = 0;		/* next time is ok */
+    }
+#endif
+    ++misc->frame;
+    return 0;
+}
+
+static int do_auto(Misc *misc) {
+    int sts, chksts;
+    Traps *t;
+    Percs *p;
+    RGBs *rgb;
+    TexMaps *tex;
+   
+    t = misc->traps;
+    p = misc->percs;
+    rgb = misc->rgb;
+    tex = misc->tex;
+
+    sts = 1;
+
+    if (misc->update) {
+	switch (misc->sequence) {
+#define AUTO_TRAP_BEGIN 0
+#define AUTO_WALK_MIN AUTO_TRAP_BEGIN
+	    case AUTO_TRAP_BEGIN:	/* reset all parameters */
+		reset_traps(t);
+		reset_percs(p);
+		reset_rgb(rgb);
+		reset_tex(tex);
+		reset_z(t);
+		tex->ptb = 256*256*2/4;	/* assume to use the second 256x256 texture */
+		make_texture(tex, TEX_FLG_RESTORE|TEX_FLG_SAVE|TEX_FLG_LOAD);
+		t->topy = 0;
+		t->boty = t->topy-128;
+		t->toplftx = 0;
+		t->toprtx = 127;
+		t->botlftx = 0;
+		t->botrtx = 127;
+		++misc->sequence;
+		misc->subframe = misc->frame = 0;
+#if DO_ICELESS
+ iio_iprintf(misc->iop, "static const U32 auto_trap_crc[] = {");
+#endif
+		break;
+	    case AUTO_TRAP_BEGIN+1:	/* walk square from bottom left to top left edge of screen */
+		if ((chksts=gen_check(misc, 0)) < 0) goto stop_trap;
+		if (chksts) break;
+		t->topy += 1;
+		t->boty += 1;
+		if (t->topy >= 0x1FF) ++misc->sequence;
+		break;
+	    case AUTO_TRAP_BEGIN+2:	/* walk sqaure from offscreen top left to on screen top left */
+		if ((chksts=gen_check(misc, 0)) < 0) goto stop_trap;
+		if (chksts) break;
+		t->topy -= 1;
+		t->boty -= 1;
+		if (t->topy <= 0x180) ++misc->sequence;
+		break;
+	    case AUTO_TRAP_BEGIN+3:	/* walk sqaure from top left to top right */
+		if ((chksts=gen_check(misc, 0)) < 0) goto stop_trap;
+		if (chksts) break;
+		t->toplftx += 1;
+		t->toprtx  += 1;
+		t->botlftx += 1;
+		t->botrtx  += 1;
+		if (t->toplftx >= 0x1FF) ++misc->sequence;
+		break;
+	    case AUTO_TRAP_BEGIN+4:	/* walk square from top right off screen to top right on screen */
+		if ((chksts=gen_check(misc, 0)) < 0) goto stop_trap;
+		if (chksts) break;
+		t->toplftx -= 1;
+		t->toprtx  -= 1;
+		t->botlftx -= 1;
+		t->botrtx  -= 1;
+		if (t->toplftx <= 0x180) ++misc->sequence;
+		break;
+	    case AUTO_TRAP_BEGIN+5:	/* walk square diagonally from top right to bottom left */
+		if ((chksts=gen_check(misc, 0)) < 0) goto stop_trap;
+		if (chksts) break;
+		t->toplftx -= 1;
+		t->toprtx  -= 1;
+		t->botlftx -= 1;
+		t->botrtx  -= 1;
+		t->topy -= 1;
+		t->boty -= 1;
+		if (t->topy <= 0) ++misc->sequence;
+		break;
+	    case AUTO_TRAP_BEGIN+6:	/* move square to top left corner */
+#define AUTO_WALK_MAX (AUTO_TRAP_BEGIN+6)
+stop_trap:
+		reset_traps(t);
+		t->topy = 0x180;
+		t->boty = t->topy-32;
+		t->toplftx = 0;
+		t->toprtx = 32;
+		t->botlftx = 0;
+		t->botrtx = 32;
+		misc->sequence = AUTO_WALK_MAX+1; /* slam it in case we got here via goto */
+#if DO_ICELESS
+ iio_iprintf(misc->iop, "\n};\nstatic const U32 auto_size_crc[] = {");
+#endif
+		misc->subframe = misc->frame = 0;
+		break;
+#define AUTO_SIZE_BEGIN (AUTO_WALK_MAX+1)
+	    case AUTO_SIZE_BEGIN:
+		if ((chksts=gen_check(misc, 1)) < 0) goto stop_size;
+		if (chksts) break;
+		t->toprtx += 1;		/* move square's bottom right towards bottom right of screen */
+		t->botrtx += 1;
+		t->boty -= 1;
+		if (t->boty < 0) ++misc->sequence;
+		break;
+	    case AUTO_SIZE_BEGIN+1:
+#define AUTO_SIZE_END (AUTO_SIZE_BEGIN+1)
+stop_size:
+		reset_traps(t);		/* recenter the square */
+		++misc->sequence;
+		misc->subframe = misc->frame = 0;
+#if DO_ICELESS
+ iio_iprintf(misc->iop, "\n};\nstatic const U32 auto_corner_crc[] = {");
+#endif
+		break;
+#define AUTO_CORNER_BEGIN (AUTO_SIZE_END+1)
+	    case AUTO_CORNER_BEGIN+0:	/* move topleft corner left */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->toplftx -= 1;
+		if (t->toplftx < 192-64) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+1:	/* move topleft corner right */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->toplftx += 1;
+		if (t->toplftx > 192+64) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+2:	/* move topleft corner left again */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->toplftx -= 1;
+		if (t->toplftx <= 192) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+3:	/* move bottom left corner left */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->botlftx -= 1;
+		if (t->botlftx < 192-64) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+4:	/* move bottom left corner right */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->botlftx += 1;
+		if (t->botlftx > 192+64) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+5:	/* move bottom left corner left again */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->botlftx -= 1;
+		if (t->botlftx <= 192) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+6:	/* move top right corner left */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->toprtx -= 1;
+		if (t->toprtx <= t->toplftx+64) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+7:	/*move top right corner right */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->toprtx += 1;
+		if (t->toprtx >= t->toplftx+128+64) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+8:	/* move top right corner left again */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->toprtx -= 1;
+		if (t->toprtx <= t->toplftx+128) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+9:	/* move bottom right corner left */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->botrtx -= 1;
+		if (t->botrtx <= t->botlftx+64) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+10:	/* move bottom right corner right */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->botrtx += 1;
+		if (t->botrtx >= t->botlftx+128+64) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+11:	/* move bottom right corner left again */
+		if ((chksts=gen_check(misc, 2)) < 0) goto stop_corners;
+		if (chksts) break;
+		t->botrtx -= 1;
+		if (t->botrtx <= t->botlftx+128) ++misc->sequence;
+		break;
+	    case AUTO_CORNER_BEGIN+12:	/* reset */
+#define AUTO_TRAP_END	(AUTO_CORNER_BEGIN+12)
+stop_corners:
+		reset_traps(t);
+		misc->sequence = AUTO_TRAP_END+1; /* slam it in case we got here via goto */
+		misc->subframe = misc->frame = 0;
+#if DO_ICELESS
+ iio_iprintf(misc->iop, "\n};\nstatic const U32 auto_perc_crc[] = {");
+#endif
+		break;
+#define AUTO_PERC_BEGIN (AUTO_TRAP_END+1) /* set to MIN perc tester */
+	    case AUTO_PERC_BEGIN+0:	/* change top left perspective */
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->tl -= 0x80;
+		if (p->tl < 0) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+1:
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->tl += 0x80;
+		if (p->tl > 0xFFFF) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+2:
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->tl -= 0x80;
+		if (p->tl <= 0x8000) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+3:	/* change top right perspective */
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->tr -= 0x80;
+		if (p->tr < 0) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+4:
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->tr += 0x80;
+		if (p->tr > 0xFFFF) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+5:
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->tr -= 0x80;
+		if (p->tr <= 0x8000) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+6:	/* change bottom left perspective */
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->bl -= 0x80;
+		if (p->bl < 0) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+7:
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->bl += 0x80;
+		if (p->bl > 0xFFFF) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+8:
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->bl -= 0x80;
+		if (p->bl <= 0x8000) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+9:	/* change bottom right perspective */
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->br -= 0x80;
+		if (p->br < 0) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+10:
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->br += 0x80;
+		if (p->br > 0xFFFF) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+11:
+		if ((chksts=gen_check(misc, 3)) < 0) goto stop_percs;
+		if (chksts) break;
+		p->br -= 0x80;
+		if (p->br <= 0x8000) ++misc->sequence;
+		break;
+	    case AUTO_PERC_BEGIN+12:
+stop_percs:
+#define AUTO_PERC_END	(AUTO_PERC_BEGIN+12)	/* set this to MAX number of case for PERC test */
+		reset_percs(p);
+		misc->sequence = AUTO_PERC_END+1; /* slam it in case we got here via goto */
+		misc->subframe = misc->frame = 0;
+#if DO_ICELESS
+ iio_iprintf(misc->iop, "\n};\nstatic const U32 auto_pixop_crc[] = {");
+#endif
+		break;
+#define AUTO_PIXOP_BEGIN (AUTO_PERC_END+1)	/* set to MIN number of case for PIXOP test */
+	    case AUTO_PIXOP_BEGIN+0:
+		if ((chksts=gen_check(misc, 4)) < 0) goto stop_pixops;
+		if (chksts) break;
+		rgb->tl -= 1;
+		if (rgb->tl < 1) ++misc->sequence;
+		break;
+	    case AUTO_PIXOP_BEGIN+1:
+		if ((chksts=gen_check(misc, 4)) < 0) goto stop_pixops;
+		if (chksts) break;
+		rgb->tr -= 1;
+		if (rgb->tr < 1) ++misc->sequence;
+		break;
+	    case AUTO_PIXOP_BEGIN+2:
+		if ((chksts=gen_check(misc, 4)) < 0) goto stop_pixops;
+		if (chksts) break;
+		rgb->bl -= 1;
+		if (rgb->bl < 1) ++misc->sequence;
+		break;
+	    case AUTO_PIXOP_BEGIN+3:
+		if ((chksts=gen_check(misc, 4)) < 0) goto stop_pixops;
+		if (chksts) break;
+		rgb->br -= 1;
+		if (rgb->br < 1) ++misc->sequence;
+		break;
+	    case AUTO_PIXOP_BEGIN+4:
+stop_pixops:
+#define AUTO_PIXOP_END	(AUTO_PIXOP_BEGIN+4)	/* make this the same number as the MAX case for PIXOP test */
+		reset_rgb(rgb);
+		t->ztl = 0x380;
+		t->ztr = 0x380;
+		t->zbl = 0x380;
+		t->zbr = 0x380;
+		misc->sequence = AUTO_PIXOP_END+1;
+		misc->subframe = misc->frame = 0;
+#if DO_ICELESS
+ iio_iprintf(misc->iop, "\n};\nstatic const U32 auto_z_crc[] = {");
+#endif
+		break;
+#define AUTO_Z_BEGIN	(AUTO_PIXOP_END+1)	/* make this the same number as the case for PERC Z test */
+	    case AUTO_Z_BEGIN:
+		if ((chksts=gen_check(misc, 5)) < 0) goto stop_z;
+		if (chksts) break;
+		t->ztl += 0x8;
+		t->ztr += 0x8;
+		t->zbl += 0x8;
+		t->zbr += 0x8;
+		if (t->ztl >= 0x980) ++misc->sequence;
+		break;
+	    case AUTO_Z_BEGIN+1:
+#define AUTO_Z_END (AUTO_Z_BEGIN+1)
+stop_z:
+		reset_z(t);
+		tex->tl_t /= 2;
+		tex->tr_t /= 2;
+		++misc->sequence;
+		misc->subframe = misc->frame = 0;
+#if DO_ICELESS
+ iio_iprintf(misc->iop, "\n};\nstatic const U32 auto_tex_crc[] = {");
+#endif
+		break;
+#define AUTO_TEX_BEGIN	(AUTO_Z_END+1)	/* make this the same number as the case for TEXMAP test */
+	    case AUTO_TEX_BEGIN+0:
+		if ((chksts=gen_check(misc, 6)) < 0) goto stop_tex;
+		if (chksts) break;
+		tex->tl_t += 0x100;
+		if (tex->tl_t >= 0x20000) ++misc->sequence;
+		break;
+	    case AUTO_TEX_BEGIN+1:
+		if ((chksts=gen_check(misc, 6)) < 0) goto stop_tex;
+		if (chksts) break;
+		tex->tr_t += 0x100;
+		if (tex->tr_t >= 0x20000) ++misc->sequence;
+		break;
+	    case AUTO_TEX_BEGIN+2:
+		if ((chksts=gen_check(misc, 6)) < 0) goto stop_tex;
+		if (chksts) break;
+	    	tex->bl_t += 0x100;
+		if (tex->bl_t >= 0x10000) ++misc->sequence;
+		break;
+	    case AUTO_TEX_BEGIN+3:
+		if ((chksts=gen_check(misc, 6)) < 0) goto stop_tex;
+		if (chksts) break;
+		tex->br_t += 0x100;
+		if (tex->br_t >= 0x10000) ++misc->sequence;
+		break;
+	    case AUTO_TEX_BEGIN+4:
+		if ((chksts=gen_check(misc, 6)) < 0) goto stop_tex;
+		if (chksts) break;
+		reset_tex(tex);
+		tex->tr_s /= 2;
+		tex->br_s /= 2;
+		++misc->sequence;
+		break;
+	    case AUTO_TEX_BEGIN+5:
+		if ((chksts=gen_check(misc, 6)) < 0) goto stop_tex;
+		if (chksts) break;
+		tex->tr_s += 0x100;
+		if (tex->tr_s >= 0x20000) ++misc->sequence;
+		break;
+	    case AUTO_TEX_BEGIN+6:
+		if ((chksts=gen_check(misc, 6)) < 0) goto stop_tex;
+		if (chksts) break;
+		tex->br_s += 0x100;
+		if (tex->br_s >= 0x20000) ++misc->sequence;
+		break;
+	    case AUTO_TEX_BEGIN+7:
+		if ((chksts=gen_check(misc, 6)) < 0) goto stop_tex;
+		if (chksts) break;
+		tex->tl_s += 0x100;
+		if (tex->tl_s >= 0x10000) ++misc->sequence;
+		break;
+	    case AUTO_TEX_BEGIN+8:
+		if ((chksts=gen_check(misc, 6)) < 0) goto stop_tex;
+		if (chksts) break;
+		tex->bl_s += 0x100;
+		if (tex->bl_s >= 0x10000) ++misc->sequence;
+		break;
+	    case AUTO_TEX_BEGIN+9:
+#define AUTO_TEX_END (AUTO_TEX_BEGIN+9)
+stop_tex:
+		reset_tex(tex);
+		misc->sequence = AUTO_TEX_END+1;
+		vid_fields(8);
+		misc->subframe = misc->frame = 0;
+		break;
+#define AUTO_TEXADDR_BEGIN (AUTO_TEX_END+1)
+	    case AUTO_TEXADDR_BEGIN+0:
+		tex->ptb = (tex->ptb + 0x8000) & 0x003FFFFF;
+		make_texture(tex, TEX_FLG_RESTORE|TEX_FLG_SAVE|TEX_FLG_LOAD);
+		if (tex->ptb == 0x8000) ++misc->sequence;
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_taddr;
+		break;
+	    case AUTO_TEXADDR_BEGIN+1:
+stop_taddr:
+		tex->ptb = 256*256*2/4;		/* assume to use the second 256x256 texture */
+		make_texture(tex, TEX_FLG_RESTORE|TEX_FLG_SAVE|TEX_FLG_LOAD);
+		++misc->sequence;
+		vid_fields(1);
+#if DO_ICELESS
+ iio_iprintf(misc->iop, "\n};\n");
+#endif
+		break;
+#define AUTO_TEXADDR_END (AUTO_TEXADDR_BEGIN+1)
+	    default:
+		reset_traps(t);
+		reset_percs(p);
+		reset_rgb(rgb);
+		reset_tex(tex);
+		reset_z(t);
+		misc->sequence = -1;
+		break;
+	}	    	    
+    }
+    if (misc->sequence >= 0) {
+	if (misc->txt_type == TXT_ZMB) {
+	    show_automatic(misc);
+	}
+    } else {
+	misc->sequence = 0;
+	sts = 0;
+    }
+    do_trap(t, p, rgb, tex);
+    return sts;
+}
+
+static void show_automatic(Misc *misc) {
+    char tmp[132], *title;
+    int row;
+
+    tmp[0] = 0;
+    title = 0;
+    row = AN_VIS_ROW-4;
+    if (misc->sequence >= AUTO_TRAP_BEGIN && misc->sequence <= AUTO_TRAP_END) {
+	title = show_xy(tmp, sizeof(tmp), misc->traps,
+	    		 misc->sequence >= AUTO_SIZE_BEGIN && misc->sequence <= AUTO_SIZE_END);
+    } else if (misc->sequence >= AUTO_PERC_BEGIN && misc->sequence <= AUTO_PERC_END) {
+	title = show_percs(tmp, sizeof(tmp), misc->percs);
+    } if (misc->sequence >= AUTO_PIXOP_BEGIN && misc->sequence <= AUTO_PIXOP_END) {
+	title = show_pixop(tmp, sizeof(tmp), misc->rgb);
+    } if (misc->sequence >= AUTO_Z_BEGIN && misc->sequence <= AUTO_Z_END) {
+	title = show_z(tmp, sizeof(tmp), misc->traps);
+    } if (misc->sequence >= AUTO_TEX_BEGIN && misc->sequence <= AUTO_TEX_END) {
+	title = show_texcoor(tmp, sizeof(tmp), misc->tex, row-2);
+    } if (misc->sequence >= AUTO_TEXADDR_BEGIN && misc->sequence <= AUTO_TEXADDR_END) {
+	title = "Testing Texture Memory";
+	Nsprintf(tmp, sizeof(tmp), "Texture offset %06X", misc->tex->ptb);
+    }
+    if (title) txt_str(-1, 2, title, RED_PALB);
+    if (tmp[0] != 0) txt_str(-1, --row, tmp, WHT_PALB);
+    return;
+}
+
+static int do_buttons(Misc *misc) {
+    Traps *t;
+    Percs *p;
+    RGBs *rgb;
+    TexMaps *tex;
+    int sts, swt;
+    sts = 0;
+
+    t = misc->traps;
+    p = misc->percs;
+    rgb = misc->rgb;
+    tex = misc->tex;
+
+#if 0 && defined(SW_WHITE)
+    if ((misc->edges&SW_WHITE)) {
+	++tex->tindx;
+	if (tex->tindx > TEX_TEXMAX) {
+	    tex->tindx = 0;
+	    tex->flags ^= TEX_FLG_MIPMAP;
+	}
+	make_texture(tex, TEX_FLG_LOAD|(tex->flags&TEX_FLG_MIPMAP));
+    }
+#endif
+    if ((misc->edges&SW_EXTRA)) {
+	if (misc->update >= UPD_Wtl && misc->update <= UPD_Wbr) {
+	    reset_percs(p);
+	} else if (misc->update >= UPD_RGBtl && misc->update <= UPD_RGBbr) {
+	    reset_rgb(rgb);
+	} else if (misc->update >= UPD_TEXtl && misc->update <= UPD_TEXbr) {
+	    reset_tex(tex);
+	} else if (misc->update >= UPD_XYPOS && misc->update <= UPD_BOTTOMRT) {
+	    reset_traps(t);
+	} else if (misc->update == UPD_MIPgr) {
+	    tex->grad = -1;
+	} else if (misc->update >= UPD_Ztl && misc->update <= UPD_Zall) {
+	    reset_z(t);
+	}
+    }
+    if ((misc->edges&SW_ACTION)) {
+	while (1) {
+	    ++misc->update;
+	    if (misc->update == UPD_MIPgr) continue;	 /* skip over tests that don't work yet */
+#if 0
+	    if (misc->update >= UPD_Ztl && misc->update <= UPD_Zbr) {
+		misc->update = UPD_Zbr+1;
+		continue;
+	    }
+#endif
+	    if (misc->update >= UPD_MAX) misc->update = 0; /* start over */
+	    break;
+	}
+    }
+    swt = misc->buttons;
+    if ((swt&(J_UP|J_DOWN|J_LEFT|J_RIGHT))) {
+	int updwn;
+	updwn = misc->edges&(J_UP|J_DOWN);
+	if (updwn) {
+	    if (misc->update == UPD_TEXpatt) {
+		++tex->tindx;
+		if (tex->tindx > TEX_TEXMAX) {
+		    tex->tindx = 0;
+		    tex->flags ^= TEX_FLG_MIPMAP;
+		}
+		make_texture(tex, TEX_FLG_LOAD|(tex->flags&TEX_FLG_MIPMAP));
+	    }
+	    if (misc->update == UPD_MIPgr) {
+		if ((updwn&J_UP)) {
+		    ++tex->grad;
+		    if (tex->grad > 8) tex->grad = -1;
+		} else {
+		    --tex->grad;
+		    if (tex->grad < -1) tex->grad = 8;
+		}
+	    }
+	    if (misc->update == UPD_Automatic) {
+		sts = 1;
+	    }
+	}
+	if (swt&J_UP) {
+	    up_traps(t, misc->update);
+	    up_percs(p, misc->update);
+	    up_rgbs(rgb, misc->update);
+	    up_texmaps(tex, misc->update);
+	    up_texaddr(tex, misc->update);
+	}
+	if (swt&J_DOWN) {
+	    down_traps(t, misc->update);
+	    down_percs(p, misc->update);
+	    down_rgbs(rgb, misc->update);
+	    down_texmaps(tex, misc->update);
+	    down_texaddr(tex, misc->update);
+	}
+	if (swt&J_RIGHT) {
+	    right_traps(t, misc->update);
+	    right_percs(p, misc->update);
+	    right_rgbs(rgb, misc->update);
+	    right_texmaps(tex, misc->update);
+	}
+	if (swt&J_LEFT) {
+	    left_traps(t, misc->update);
+	    left_percs(p, misc->update);
+	    left_rgbs(rgb, misc->update);
+	    left_texmaps(tex, misc->update);
+	}
+    }
+    return sts;
+}
+
+/*	The two-line trap that we use to clear the lines just above
+ *	the visible screen. These are copied by the VRAM hackery
+ *	in clr_traps (below) to every line on the visible screen.
+ */
+#define CLR_TOP (VIS_V_PIX)
+static void init_traps(U32 bgcolor) {
+    TO_TBUS( PL_PY, CLR_TOP+1);		/* Trap PY 2 above top of screen */
+    TO_TBUS( PL_PLH, 1);		/* Left Height. Need two lines */
+    TO_TBUS( PL_PRH, 1);		/* Right Height. Need two lines */
+    TO_TBUS( PL_PLX, 0<<12);		/* Left X 0 */
+    TO_TBUS( PL_PDLX, 0);		/* DLX = 0 (Vertical) */
+    TO_TBUS( PL_PRX, (VIS_H_PIX-1)<<12); /* Right X  (Need whole line) */
+    TO_TBUS( PL_PDRX, 0);		/* DRX = 0 (vertical) */
+    TO_TBUS( PL_PTW, bgcolor&0x7FFF);	/* TEXMAP PTW, bg color */
+    TO_TBUS( PL_Z_PL0, 0xFFFFFF);	/* Place background at Z = infinity */
+    TO_TBUS( PL_Z_PR0, 0);
+    TO_TBUS( PL_Z_PDL, 0);
+    TO_TBUS( PL_Z_PDR, 0);
+/* The real magic is in PIXOP_PPW */
+    TO_TBUS( PL_PPW, PL_PPW_PRIORITY|PL_PPW_ZWRITE|PL_PPW_FRAMEWRITE);	/* No Z compare, but write Z and pixels */
+    TO_TBUS( TB_TSTART|TB_EP|TB_LR|TB_LL|TB_SP, 0);	/* TSTART with EP,SP,LL,LR */	
+    return;
+}
+
+static void clr_scrn(void) {
+/* For (at least) debug purposes, we start with a 1-TRAP poly to
+ * be sure the controls are in a known state.
+ */
+/* First real "TRAP" fetches a line into the SAM of each (even/odd) VRAM */
+    TO_TBUS(PL_PY, CLR_TOP+1);	/* Trap PY two above top of screen */
+    TO_TBUS(PL_PLH, 0);		/* Left Height. Just need one lines */
+    TO_TBUS(PL_PRH, 0);		/* Right Height. Just need one lines */
+    TO_TBUS(PL_PLX, 0<<12);	/* Left X 0 (irrelevant) */
+    TO_TBUS(PL_PDLX, 0);	/* DLX = 0 (Vertical) */
+    TO_TBUS(PL_PRX, 4<<12);	/* Right X 4 (Need 4 "pixels") */
+    TO_TBUS(PL_PDRX, 0);	/* DRX = 0 (vertical) */
+
+    TO_TBUS(PL_PTW,0);		/* TEXMAP PTW, dull black irrelevant TRAP */
+
+/* Place background at Z = infinity, this is probably also irrelevant */
+    TO_TBUS(PL_Z_PL0, 0x00FFFFFF);
+    TO_TBUS(PL_Z_PR0, 0);
+    TO_TBUS(PL_Z_PDL, 0);
+    TO_TBUS(PL_Z_PDR, 0);
+/* The real magic is in PIXOP_PPW */
+    TO_TBUS(PL_PPW, PL_PPW_ZCOMPARE|PL_PPW_FRAMEWRITE);
+    TO_TBUS(TB_TSTART|TB_EP|TB_SP|TB_LL|TB_LR, 0); /* TSTART with EP,SP,LL,LR */
+
+/* Bulk of work done by second TRAP. We should only need to change
+ * preloads for left and right heights, plus PPW. Since controls
+ * (PPW) only change when the TSTART contains SP, we also need to
+ * have a valid PLY.
+ */
+    TO_TBUS(PL_PY, CLR_TOP);	/* Trap PY one above top of screen */
+    TO_TBUS(PL_PLH, CLR_TOP-1);	/* Left Height. Should do full screen */
+    TO_TBUS(PL_PRH, CLR_TOP-1);	/* Right Height. Should do full screen */
+    TO_TBUS(PL_PLX, 0<<12);	/* Left X 0 (irrelevant) */
+    TO_TBUS(PL_PDLX, 0);	/* DLX = 0 (Vertical) */
+    TO_TBUS(PL_PRX, 1<<12);	/* Right X 1 (need 2 "pixel") */
+    TO_TBUS(PL_PDRX, 0);	/* DRX = 0 (vertical) */
+
+    TO_TBUS(PL_PTW, 0);		/* TEXMAP PTW, dull black irrelevant TRAP */
+
+    TO_TBUS(PL_PPW, PL_PPW_ZCOMPARE);
+    TO_TBUS(TB_TSTART|TB_EP|TB_SP|TB_LL|TB_LR, 0); /* TSTART with EP,SP,LL,LR */
+/* Finish up with last line. Again, We should only need to change
+ * preloads for left and right heights, plus PPW
+ */
+    TO_TBUS(PL_PY, 0);		/* Trap PY at bottom of screen */
+    TO_TBUS(PL_PLX, 0);		/* Left X 0 (irrelevant) */
+    TO_TBUS(PL_PDLX, 0);	/* DLX = 0 (Vertical) */
+    TO_TBUS(PL_PRX, 1<<12);	/* Right X 1 (Try 2 "pixels") */
+    TO_TBUS(PL_PDRX, 0);	/* DRX = 0 (vertical) */
+
+    TO_TBUS(PL_PTW, 0);		/* TEXMAP PTW, dull black irrelevant TRAP */
+
+    TO_TBUS(PL_PPW, 0);		/* PPW = 0 should produce invisible pixels */
+    TO_TBUS(PL_PLH, 0);		/* Left Height. Just need one line */
+    TO_TBUS(PL_PRH, 0);		/* Right Height. Just need one line */
+    TO_TBUS(TB_TSTART|TB_EP|TB_SP|TB_LL|TB_LR, 0);	/* TSTART with EP,SP,LL,LR */
+    return;
+}
+
+extern U32 zre_frames();
+#endif
+
+extern U32 zag_get_defaults(void);
+
+#define BORDER '\003'
+#define BORDER_COLOR WHT_PAL
+#define TXT_STAMP txt_stamp
+
+#if HOST_IS_MATHBOX || MB_TEST_CODE
+static void banners(Misc *misc, const char *pause) {
+    int ii;
+    if (misc->txt_type == TXT_ZMB || misc->disp_buf == 3) {
+#define NEXT_MSG " to return to previous menu"
+	txt_str((AN_VIS_COL-(sizeof(NEXT_MSG)-1+strlen(t_msg_next)))/2,
+	    AN_VIS_ROW-2, t_msg_next, INSTR_PAL);
+	txt_cstr(NEXT_MSG, INSTR_PAL);
+	if (pause) {
+	    txt_str((AN_VIS_COL-(strlen(pause)+strlen(t_msg_action)))/2,
+		AN_VIS_ROW-3, t_msg_action, INSTR_PAL);
+	    txt_cstr(pause, INSTR_PAL);
+	}
+    }
+    if (misc->txt_type == TXT_ZMB) {
+	for (ii=0; ii<AN_VIS_ROW; ++ii) {
+	    TXT_STAMP(0, ii, BORDER, BORDER_COLOR);
+	    TXT_STAMP(AN_VIS_COL-1, ii, BORDER, BORDER_COLOR);
+	}
+	for (ii=0; ii<AN_VIS_COL; ++ii) {
+	    TXT_STAMP(ii, 0, BORDER, BORDER_COLOR);
+	    TXT_STAMP(ii, AN_VIS_ROW-1, BORDER, BORDER_COLOR);
+	}
+	txt_str(-1, 0, "TESTING TBUS", RED_PALB);
+    }
+
+}
+#endif
+
+static void select_text_type(Misc *misc) {
+    int ii;
+    ii = (zag_defaults>>ZAG_B_OPTS_TEXT)&ZAG_OPTS_MASK;
+    misc->txt_type = TXT_NONE;
+    if (ii == ZAG_OPTS_HOST) {
+	misc->txt_type = TXT_HOST;
+    } else if (ii == ZAG_OPTS_ZMB) {
+	misc->txt_type = TXT_ZMB;
+    }
+    return;
+}
+
+/*
+** ***************************
+** zag_tbus():
+** Main entry point for test.
+** ***************************
+*/
+
+#define TXT_COLOROFFS 0x8000
+#define TXT_TEXTOFFS 0
+
+int zag_tbus(const struct menu_d *smp) {
+#if HOST_IS_MATHBOX || MB_TEST_CODE
+    int oldint, updates=0, automatic=0, very_first_time=1, bufbit;
+    U32 curframe=0;
+    Traps traps, *t, ztrap, *zt;
+    Percs percs, *p, zperc, *zp;
+    RGBs rgbs, *rgb, zrgbs, *zrgb;
+    TexMaps texmaps, *tex, zmap, *ztex;
+    Misc misc_s, *misc;
+# if !defined(ZIGTV_CTL)
+    VU32 *csr = &ZRE_CSR;
+# endif
+    struct {
+	int txt;
+	TxtAlphaPtr *alp;
+	int fields;
+# if !defined(ZIGTV_CTL)
+	U32 zre;
+# endif
+	void (*vb)();
+    } old;
+    TxtAlphaPtr alphas;
+# if !NO_ZAG_TEST_TEXTURES && !NO_ZAG_TEST_SAVE_UNDER
+    U16 prev_textures[256][256];
+# endif
+
+# if !HOST_IS_MATHBOX && MB_TEST_CODE
+    ZagSAmovie *zm = (ZagSAmovie *)ZMBSA_COMM;
+# else
+    U32 text_buf[AN_VIS_ROW*AN_VIS_COL/2];
+    U32 text_dirty[AN_VIS_ROW*AN_VIS_COL/32];
+# endif    
+
+# if !HOST_IS_MATHBOX && MB_TEST_CODE
+    {
+	int ii;
+	VU32 *vup = (VU32*)ZMBSA_TEXTBUF;
+	extern int zag_load_code(const struct menu_d *smp);
+
+	if (zag_load_code(smp)) return 1;
+	zm->hdr.status = 0;
+	zm->hdr.command = 0;
+	zm->start = sizeof(ZagSAmovie);
+	alphas.screen = (VU32 *)ZMBSA_TEXTBUF;
+	alphas.dirty = (VU32 *)ZMBSA_DIRTYBUF;
+	for (ii=0; ii < (AN_VIS_ROW*AN_VIS_COL/2+AN_VIS_ROW*AN_VIS_COL/32); ++ii) {
+	    *vup++ = 0;
+	}
+	*(VU32*)ZMBSA_COLOROFFS = TXT_COLOROFFS;
+	*(VU32*)ZMBSA_TEXTOFFS = TXT_TEXTOFFS;
+    }
+# else
+    alphas.screen = text_buf;
+    alphas.dirty = text_dirty;
+    memset((char *)text_buf, 0, AN_VIS_ROW*AN_VIS_COL*2);
+    memset((char *)text_dirty, 0, AN_VIS_ROW*AN_VIS_COL/8);
+# endif
+    alphas.texture_offset = TXT_TEXTOFFS;
+    alphas.color_offset = TXT_COLOROFFS;
+    
+    old.alp = txt_vsptr(&alphas);
+
+/* Init the ZRE's control register */
+
+    if ((oldint=zre_setup()) < 0) {
+	if (!old.alp) {
+	    alphas.screen = 0;
+	    old.alp = &alphas;
+	}
+	txt_vsptr(old.alp);
+	return oldint;
+    }
+
+# if !defined(ZIGTV_CTL)
+    old.zre = *csr;
+    *csr |= (1<<B_ZRE_REON) | (1<<B_ZRE_INTEN);
+    *csr &= ~((1<<B_ZRE_TLEN)|(1<<B_ZRE_XTOT));
+#  if XTOT_POLARITY
+    *csr ^= XTOT_POLARITY;
+#  endif
+# endif
+
+    t = &traps;
+    p = &percs;
+    rgb = &rgbs;
+    tex = &texmaps;
+# if !NO_ZAG_TEST_TEXTURES && !NO_ZAG_TEST_SAVE_UNDER
+    tex->prevtext = &prev_textures[0][0];
+# else
+    tex->prevtext = 0;
+# endif
+
+    zt = &ztrap;
+    zp = &zperc;
+    zrgb = &zrgbs;
+    ztex = &zmap;
+
+    memset((char *)&misc_s, 0, sizeof(misc_s)); /* preclear */
+    misc = &misc_s;
+
+    misc->traps = &traps;
+    misc->percs = &percs;
+    misc->rgb = &rgbs;
+    misc->tex = &texmaps;
+
+# if DO_ICELESS || TEST_CRC_BUF
+    if (!iop) {
+	iop = iio_open(4);	/* open a connection to thread 4 */
+    }	
+    misc->iop = iop;
+    prc_delay(90);		/* wait a few frames for connections to establish */
+#  if DO_ICELESS
+    if (iop && iop->pkt.to) zag_defaults |= 1<<ZAG_B_OPTS_CRC;
+    iio_puts(misc->iop, "/*****************************************************\n");
+    iio_puts(misc->iop, " * WARNING DANGER WARNING DANGER WARNING DANGER      *\n");
+    iio_puts(misc->iop, " *                                                   *\n");
+    iio_puts(misc->iop, " * This file is machine generated. Manual changes    *\n");
+    iio_puts(misc->iop, " * to this file will be lost the next time it is     *\n");
+    iio_puts(misc->iop, " * re-created. DO NOT EDIT THIS FILE.                *\n");
+    iio_puts(misc->iop, " *                                                   *\n");
+    iio_puts(misc->iop, " * To remake this file, edit zag_tbus.c and #define  *\n");
+    iio_puts(misc->iop, " * DO_ICELESS to 1. Recompile, download and run it   *\n");
+    iio_puts(misc->iop, " * on a known good working ZIG. On an SGI run the    *\n");
+    iio_puts(misc->iop, " * following command:                                *\n");
+    iio_puts(misc->iop, " *                                                   *\n");
+    iio_puts(misc->iop, " * icelessio -h<ascleap> -t4 > zag_crcs.h            *\n");
+    iio_puts(misc->iop, " *                                                   *\n");
+    iio_puts(misc->iop, " * where <ascleap> is the hostname of the ascleap.   *\n");
+    iio_puts(misc->iop, " * Put the game in selftest and select the ZAG_TESTS *\n");
+    iio_puts(misc->iop, " * menu. Run the automatic test sequence (press UP). *\n");
+    iio_puts(misc->iop, " * It will emit this text and the computed CRC's for *\n");
+    iio_puts(misc->iop, " * the selected frames. When the tests finish, type  *\n");
+    iio_puts(misc->iop, " * 3 control-Y's to end the icelessio program.       *\n");
+    iio_puts(misc->iop, " * You will need to edit the crcs.h file and remove  *\n");
+    iio_puts(misc->iop, " * any garbage that may be at the end of the file.   *\n");
+    iio_puts(misc->iop, " *****************************************************/\n\n");
+    iio_flush(misc->iop);
+#  endif
+# endif
+
+    reset_traps(t);
+    reset_percs(p);
+    reset_rgb(rgb);
+    reset_tex(tex);
+    reset_z(t);
+
+    reset_traps(zt);
+    reset_percs(zp);
+    reset_rgb(zrgb);
+    reset_tex(ztex);
+    reset_z(zt);
+
+    zt->ztl = 0x1000;
+    zt->ztr = 0;
+    zt->zbl = 0x1000;
+    zt->zbr = 0;
+    zt->topy -= 50;
+    zt->boty -= 64;
+    zt->toplftx = 32;
+    zt->toprtx = zt->toplftx + 384;
+    zt->botlftx = zt->toplftx;
+    zt->botrtx = zt->toprtx;
+
+    old.fields = vid_fields(1);
+
+    old.vb = vid_set_vb( test_vb );
+
+# if HOST_IS_MATHBOX
+    prc_mod_latch(CTS_FIFO_RST|CTS_FIFO_FULLINT);
+# endif
+
+    tex->ptb = 256*256*2/4;	/* assume to use the second 256x256 texture */
+    make_texture(tex, TEX_FLG_SAVE|TEX_FLG_LOAD);
+    ztex->ptb = 256*256*4/4;	/* assume to use the third 256x256 texture for Z tests */
+    ztex->tindx = tex->tindx+1;
+    make_texture(ztex, TEX_FLG_SAVE|TEX_FLG_LOAD);
+
+    zag_get_defaults();
+    select_text_type(misc);
+    old.txt = txt_select(misc->txt_type);
+
+    ztv_gamma_init(0,0);
+    ztv_gamma_init(1,0);		/* make sure gamma ram has legit stuff in it */
+
+    while (1) {
+	char *pause_msg;
+# if !HOST_IS_MATHBOX
+	zm->length = 0;
+# endif
+
+	pause_msg = 0;
+
+#if SW_WHITE
+# define ALL_SWITCHES (J_UP|J_DOWN|J_RIGHT|J_LEFT|SW_ACTION|SW_NEXT|SW_EXTRA|SW_WHITE)
+#else
+# define ALL_SWITCHES (J_UP|J_DOWN|J_RIGHT|J_LEFT|SW_ACTION|SW_NEXT|SW_EXTRA)
+#endif
+
+	misc->edges = ctl_read_sw(-1);		/* get all the edges */
+	if (misc->edges&SW_NEXT) break;		/* done if NEXT pushed */
+	misc->buttons = ctl_read_sw(0);		/* get all the buttons */
+	if (!very_first_time && !(misc->edges&ALL_SWITCHES) && !(misc->buttons&ALL_SWITCHES)) {
+	    misc->disp_buf = (misc->disp_buf<<1) | 1;
+	} else {
+	    misc->disp_buf = 0;
+	    very_first_time = 0;
+	}
+	if (!automatic) {
+	    automatic = do_buttons(misc);
+	    if ((misc->buttons|misc->edges)&ALL_SWITCHES) {
+		misc->crc_errors = 0;
+		misc->crc_retries = 0;
+	    }
+	    if (automatic) {
+		if (zag_defaults&(1<<ZAG_B_OPTS_CRC)) {
+		    zag_defaults &= ~(3<<ZAG_B_OPTS_TEXT);
+		    select_text_type(misc);
+		}
+		memset((char *)misc->errors, 0, sizeof(misc->errors));
+	    }
+	    if (misc->txt_type != TXT_HOST || (misc->disp_buf&3) != 3) {
+		init_traps(0);
+		clr_scrn();
+	    }
+	    if (misc->update == UPD_MIPgr) {
+		if (tex->grad >= 0) {
+		    tex->ptw = PL_PTW_TEXTURE|PL_PTW_STATICMIP|PL_PTW_MSIZE(tex->grad)|
+			       PL_PTW_SSIZE(8)|PL_PTW_TSIZE(8)|PL_PTW_PSIZE(3);
+		} else {
+		    tex->ptw = PL_PTW_TEXTURE|PL_PTW_MSIZE(8)|PL_PTW_SSIZE(8)|PL_PTW_TSIZE(8)|PL_PTW_PSIZE(3);
+		}
+	    }
+	    if (misc->txt_type == TXT_ZMB) show_manual(misc);
+	    if (updates >= UPD_Ztl && updates <= UPD_Zall) {
+		do_trap(zt, zp, zrgb, ztex);
+	    }
+	    do_trap(t, p, rgb, tex);
+	    misc->sequence = 0;
+	    if (misc->txt_type == TXT_ZMB) banners(misc, 0);
+# if !NO_CRC_TESTS
+	    if (misc->crc_errors) {
+#define CRC_ERROR_MSG "A total of xxxx frames with CRC errors"
+#define CRC_ERROR_COL ((AN_VIS_COL-sizeof(CRC_ERROR_MSG))/2)
+#define CRC_ERROR_CNT_COL (CRC_ERROR_COL+11)
+		txt_str(CRC_ERROR_COL, AN_VIS_ROW-9, CRC_ERROR_MSG, YEL_PALB);
+		txt_decnum(CRC_ERROR_CNT_COL, AN_VIS_ROW-9, misc->crc_errors, 4, RJ_BF, YEL_PALB);
+	    }
+	    if (misc->crc_retries > 0) {
+#define CRC_RETRY_MSG "A total of xxxx successful frame retries"
+#define CRC_RETRY_COL ((AN_VIS_COL-sizeof(CRC_RETRY_MSG))/2)
+#define CRC_RETRY_CNT_COL (CRC_RETRY_COL+11)
+		txt_str(CRC_RETRY_COL, AN_VIS_ROW-8, CRC_RETRY_MSG, YEL_PALB);
+		txt_decnum(CRC_RETRY_CNT_COL, AN_VIS_ROW-8, misc->crc_retries, 4, RJ_BF, YEL_PALB);
+	    }
+# endif
+# if HOST_IS_MATHBOX
+	    zag_text2traps(3);
+	    TO_TBUS( TB_FEND, 0);	/* put FEND at end of buf */
+# else
+#  if MB_TEST_CODE
+	    TO_TBUS( TB_FEND, 0);	/* put FEND at end of buf */
+	    zm->hdr.command = ZMBSA_TEST_MOVIE | (ZMBSA_FLAG_DOTEXT|ZMBSA_FLAG_USEDIRTY|ZMBSA_FLAG_CLRDIRTY);
+	    zm->hdr.status = 0;
+	    zm->hdr.sentinel = ZMBSA_SENTINEL_GO;
+#  endif
+# endif
+	} else {
+	    if (automatic == 1) {	/* normal mode */
+		if ((misc->edges&SW_ACTION) == 0) {
+		    pause_msg = " to pause display";
+		} else {
+		    ++automatic;
+		}
+	    } else {
+		if (automatic == 2) {
+		    ++automatic;
+		} else {
+		    pause_msg = " to continue display";
+		    if ((misc->edges&(SW_NEXT|SW_ACTION)) != 0) {
+			automatic = 1;
+		    }
+		}
+	    }
+	    if (automatic == 1 || (misc->disp_buf&3) != 3) {
+		init_traps(0);
+		clr_scrn();
+	    }
+	    misc->update = (automatic == 1);
+	    if (do_auto(misc) == 0) {
+		automatic = 0;
+		misc->update = 0;		/* restart at top of list */
+		zag_defaults = 0;		/* force 'em to refetch from eeprom */
+		zag_get_defaults();		/* restore the defaults */
+		select_text_type(misc);
+	    } else {
+		if (misc->sequence >= AUTO_Z_BEGIN && misc->sequence <= AUTO_Z_END) {
+		    do_trap(zt, zp, zrgb, ztex);
+		}
+	    }
+	    if (misc->txt_type == TXT_ZMB) banners(misc, pause_msg);
+# if HOST_IS_MATHBOX
+	    if (misc->txt_type == TXT_ZMB) zag_text2traps(3);
+	    TO_TBUS( TB_FEND, 0);	/* put FEND at end of buf */
+# else
+#  if MB_TEST_CODE
+	    TO_TBUS( TB_FEND, 0);	/* put FEND at end of buf */
+	    zm->hdr.command = ZMBSA_TEST_MOVIE | (ZMBSA_FLAG_DOTEXT|ZMBSA_FLAG_USEDIRTY|ZMBSA_FLAG_CLRDIRTY);
+	    zm->hdr.status = 0;
+	    zm->hdr.sentinel = ZMBSA_SENTINEL_GO;
+#  endif
+# endif
+	}
+	bufbit = *ztv_base & (1<<B_Z_CURBUF);	/* remember buffer we just rendered */
+	oldint = frame_count+10;
+	curframe = zre_frames();	/* get current zre frame */
+	while (curframe == zre_frames()) if (oldint == frame_count) break;
+
+	if (oldint == frame_count) {
+	    oldint = txt_select(TXT_HOST);
+	    txt_clr_wid(2, AN_VIS_ROW-4, AN_VIS_COL-4);
+	    txt_str(-1, AN_VIS_ROW-4, "No ZRE interrupts in 10 frames", RED_PALB);
+	    txt_select(oldint);
+	    prc_delay(60);
+	    txt_clr_wid(2, AN_VIS_ROW-4, AN_VIS_COL-4);
+	    continue;
+	}
+	oldint = frame_count+2;		/* wait for buffer to swap ...*/
+	while (oldint != frame_count && (*ztv_base & (1<<B_Z_CURBUF)) == bufbit);
+	if ( (*ztv_base & (1<<B_Z_CURBUF)) == bufbit ) {
+# if TEST_CRC_BUF
+buf_swap_fail:
+# endif
+	    oldint = txt_select(TXT_HOST);
+	    txt_clr_wid(2, AN_VIS_ROW-4, AN_VIS_COL-4);
+	    txt_str(-1, AN_VIS_ROW-4, "Buffer swap failed", RED_PALB);
+	    txt_select(oldint);
+	    prc_delay(60);
+	    txt_clr_wid(2, AN_VIS_ROW-4, AN_VIS_COL-4);
+	    continue;
+	}
+	if (misc->txt_type == TXT_HOST && misc->disp_buf == 3) {
+	    banners(misc, pause_msg);	/* draw the banners, if appropriate */
+	    if (automatic) {
+		show_automatic(misc);	/* draw any extra text */
+	    } else {
+		show_manual(misc);
+	    }
+	}
+# if TEST_CRC_BUF
+	if ( (misc->buttons&(SW_P1_E|SW_P1_D|SW_P1_C)) ) {
+	    extern int ztv_bufsel(int);
+
+	    if (misc->iop && misc->iop->pkt.to) {
+		U32 crc_val;
+		static int items;
+
+		ztv_bufsel(bufbit);		/* switch back to buffer we just rendered */
+		oldint = frame_count+2;		/* wait for buffer to swap ...*/
+		while (oldint != frame_count && (*ztv_base & (1<<B_Z_CURBUF)) != bufbit) {;}
+		if ((*ztv_base & (1<<B_Z_CURBUF)) != bufbit) goto buf_swap_fail;
+		while ((misc->buttons&(SW_P1_E|SW_P1_D)) != 0) {
+		    crc_val = crc_buff();
+		    iio_iprintf(misc->iop, " %08lX", crc_val);
+		    ++items;
+		    if (items > 10) {
+			items = 0;
+			iio_iprintf(misc->iop, "\n");
+		    }
+		    if ( (ctl_read_sw(0)&SW_P1_D) == 0) break;
+		    prc_delay(0);
+		} 
+	    }
+#  if CHECK_FRAME_BUF
+	    if ( (misc->buttons&SW_P1_C) != 0) {
+		U16 *old_frame_alive = (U16 *)0x00206000;
+		U16 *old_frame = (U16 *)0x00206004;
+		if ((*ztv_base & (1<<B_Z_CURBUF)) != bufbit) {
+		    int newbuf = ztv_bufswap();
+		    while ( (*ztv_base & (1<<B_Z_CURBUF)) != newbuf) {;}
+		}
+		if (!*old_frame_alive) {
+		    *old_frame_alive = 1;
+		    clone_frame(old_frame);
+		}
+		while (compare_frame(old_frame)) {
+		    if ((ctl_read_sw(0)&SW_P1_B) == 0) break;
+		}
+	    }
+#  endif
+	    ztv_bufsel(!bufbit);		/* display buffer we just rendered */
+	    oldint = frame_count+2;		/* wait for buffer to swap ...*/
+	    while (oldint != frame_count && (*ztv_base & (1<<B_Z_CURBUF)) == bufbit) {;}
+	    if ((*ztv_base & (1<<B_Z_CURBUF)) == bufbit) goto buf_swap_fail;
+	}
+# endif
+    }    
+# if !defined(ZIGTV_CTL)
+    *csr = old.zre;
+# endif
+    if (!old.alp) {
+	alphas.screen = 0;
+	old.alp = &alphas;
+    }
+    txt_vsptr(old.alp);
+    vid_fields(old.fields);
+    txt_select(old.txt);
+    vid_set_vb( old.vb );
+    return 0;
+#else
+    return 1;
+#endif
+}   /* End: game_main() */
+@
+
+
+1.16
+log
+@Added a write of COLOROFFS to ZMBSA_COLOROFFS
+@
+text
+@d2022 1
+a2022 3
+	*(VU32*)ZMBSA_COLOROFFS = TXT_COLOROFFS:
+	*(VU32*)ZMBSA_TEXTOFFS = TXT_TEXTOFFS;
+	for (ii=0; ii < (ZMBSA_COMM-ZMBSA_TEXTBUF+sizeof(U32)-1)/sizeof(U32); ++ii) {
+d2025 2
+@
+
+
+1.15
+log
+@Changed the border color from wht_palb to wht_pal.
+@
+text
+@d1974 3
+d2022 2
+d2034 3
+a2036 2
+    alphas.texture_offset = 0;
+    alphas.color_offset = 0x8000;
+@
+
+
+1.14
+log
+@For the time being, made the default case to not check for CRC's.
+@
+text
+@d1923 1
+a1923 1
+#define BORDER_COLOR WHT_PALB
+@
+
+
+1.13
+log
+@Added frame CRC creation and checkin in automatic mode.
+@
+text
+@d39 4
+d1027 1
+d1045 1
+d1118 1
+d1126 1
+a1126 1
+#if DO_ICELESS || TEST_CRC_BUF
+d1143 3
+a1145 3
+#else
+#include <zag_crcs.h>
+#endif
+d1158 1
+d1165 1
+d1168 1
+a1168 1
+#if DO_ICELESS
+d1198 1
+a1198 1
+#else
+d1242 1
+a1242 1
+#endif
+d1246 1
+d2210 1
+d2225 1
+@
+
+
+1.12
+log
+@Support for CRC test and creation.
+@
+text
+@d35 2
+a36 1
+# define TEST_CRC_BUF		1	/* just emit CRC's */
+d108 5
+a116 1
+    int defaults;
+d120 2
+d127 4
+d217 1
+a217 1
+#if 1
+d222 3
+a224 3
+#define RGB_RED		0x3c00
+#define RGB_GREEN	0x00e0
+#define RGB_BLUE	0x0007
+d1041 71
+d1160 3
+d1166 22
+a1187 1
+		iio_iprintf(misc->iop, "    0x%08lX, /* %4d %d (%s) */\n", crc_val, misc->frame, which, auto_names[which]);
+d1191 3
+d1198 27
+a1224 6
+		int wait;
+		txt_str(-1, AN_VIS_ROW/2, "    CRC error    ", RED_PALB);
+		nisprintf(tmp, sizeof(tmp), "At frame %4d expected %08lX, found %08lX",
+		    misc->frame, verify_val, crc_val);
+		txt_str(-1, AN_VIS_ROW/2+1, tmp, RED_PALB);
+		for (wait=0; wait < 60*60; ++wait) {
+d1226 1
+a1226 1
+		    if (ctl_read_sw(0)&(SW_NEXT|SW_ACTION)) break;
+d1228 1
+d1230 2
+d1235 1
+d1242 1
+a1242 1
+    int sts;
+a1251 1
+    memset((char *)misc->errors, 0, sizeof(misc->errors));
+d1274 1
+a1274 1
+		misc->frame = 0;
+d1276 1
+a1276 1
+ iio_iprintf(misc->iop, "static const U32 auto_trap_crc[] = {\n");
+d1280 2
+a1284 1
+		if (gen_check(misc, 0) < 0) goto stop_trap;
+d1287 2
+a1291 1
+		if (gen_check(misc, 0) < 0) goto stop_trap;
+d1294 2
+a1300 1
+		if (gen_check(misc, 0) < 0) goto stop_trap;
+d1303 2
+a1309 1
+		if (gen_check(misc, 0) < 0) goto stop_trap;
+d1312 2
+a1320 1
+		if (gen_check(misc, 0) < 0) goto stop_trap;
+d1334 1
+a1334 1
+ iio_iprintf(misc->iop, "\t0\n};\nstatic const U32 auto_size_crc[] = {\n");
+d1336 1
+a1336 1
+		misc->frame = 0;
+d1340 2
+a1345 1
+		if (gen_check(misc, 1) < 0) goto stop_size;
+d1352 1
+a1352 1
+		misc->frame = 0;
+d1354 1
+a1354 1
+ iio_iprintf(misc->iop, "\t0\n};\nstatic const U32 auto_corner_crc[] = {\n");
+d1359 2
+a1362 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1365 2
+a1368 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1371 2
+a1374 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1377 2
+a1380 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1383 2
+a1386 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1389 2
+a1392 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1395 2
+a1398 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1401 2
+a1404 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1407 2
+a1410 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1413 2
+a1416 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1419 2
+a1422 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1425 2
+a1428 1
+		if (gen_check(misc, 2) < 0) goto stop_corners;
+d1435 1
+a1435 1
+		misc->frame = 0;
+d1437 1
+a1437 1
+ iio_iprintf(misc->iop, "\t0\n};\nstatic const U32 auto_perc_crc[] = {\n");
+d1442 2
+a1445 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1448 2
+a1451 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1454 2
+a1457 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1460 2
+a1463 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1466 2
+a1469 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1472 2
+a1475 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1478 2
+a1481 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1484 2
+a1487 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1490 2
+a1493 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1496 2
+a1499 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1502 2
+a1505 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1508 2
+a1511 1
+		if (gen_check(misc, 3) < 0) goto stop_percs;
+d1518 1
+a1518 1
+		misc->frame = 0;
+d1520 1
+a1520 1
+ iio_iprintf(misc->iop, "\t0\n};\nstatic const U32 auto_pixop_crc[] = {\n");
+d1525 2
+a1528 1
+		if (gen_check(misc, 4) < 0) goto stop_pixops;
+d1531 2
+a1534 1
+		if (gen_check(misc, 4) < 0) goto stop_pixops;
+d1537 2
+a1540 1
+		if (gen_check(misc, 4) < 0) goto stop_pixops;
+d1543 2
+a1546 1
+		if (gen_check(misc, 4) < 0) goto stop_pixops;
+d1557 1
+a1557 1
+		misc->frame = 0;
+d1559 1
+a1559 1
+ iio_iprintf(misc->iop, "\t0\n};\nstatic const U32 auto_z_crc[] = {\n");
+d1564 2
+a1570 1
+		if (gen_check(misc, 5) < 0) goto stop_z;
+d1579 1
+a1579 1
+		misc->frame = 0;
+d1581 1
+a1581 1
+ iio_iprintf(misc->iop, "\t0\n};\nstatic const U32 auto_tex_crc[] = {\n");
+d1586 2
+a1589 1
+		if (gen_check(misc, 6) < 0) goto stop_tex;
+d1592 2
+a1595 1
+		if (gen_check(misc, 6) < 0) goto stop_tex;
+d1598 2
+a1601 1
+		if (gen_check(misc, 6) < 0) goto stop_tex;
+d1604 2
+a1607 1
+		if (gen_check(misc, 6) < 0) goto stop_tex;
+d1610 2
+a1615 1
+		if (gen_check(misc, 6) < 0) goto stop_tex;
+d1618 2
+a1621 1
+		if (gen_check(misc, 6) < 0) goto stop_tex;
+d1624 2
+a1627 1
+		if (gen_check(misc, 6) < 0) goto stop_tex;
+d1630 2
+a1633 1
+		if (gen_check(misc, 6) < 0) goto stop_tex;
+d1636 2
+a1639 1
+		if (gen_check(misc, 6) < 0) goto stop_tex;
+d1647 1
+a1647 1
+		misc->frame = 0;
+d1663 1
+a1663 1
+ iio_iprintf(misc->iop, "\t0\n};\n");
+d1729 1
+a1729 1
+#ifdef SW_WHITE
+d1910 1
+a1910 1
+extern int zag_get_defaults(void);
+d1945 12
+d1966 1
+a1966 1
+    int oldint, updates=0, automatic=0, very_first_time=1;
+d2067 4
+a2070 1
+    misc->iop = iio_open(4);	/* open a connection to thread 4 */
+d2073 1
+d2086 1
+a2086 1
+    iio_puts(misc->iop, " * icelessio -h<ascleap> -t4 > crcs.h                *\n");
+d2138 2
+a2139 9
+    misc->defaults = zag_get_defaults();
+    oldint = (misc->defaults>>ZAG_B_OPTS_TEXT)&ZAG_OPTS_MASK;
+
+    misc->txt_type = TXT_NONE;
+    if (oldint == ZAG_OPTS_HOST) {
+	misc->txt_type = TXT_HOST;
+    } else if (oldint == ZAG_OPTS_ZMB) {
+	misc->txt_type = TXT_ZMB;
+    }
+d2169 12
+a2184 1
+	    automatic = do_buttons(misc);
+d2200 14
+d2228 1
+a2228 1
+		    pause_msg = "to pause display";
+d2250 3
+d2271 1
+a2271 1
+			
+d2283 22
+a2304 10
+	} else {
+	    oldint = frame_count;
+	    while (oldint == frame_count);	/* wait for next VB to do buffer swap ...*/
+	    if (misc->txt_type == TXT_HOST && misc->disp_buf == 3) {
+		banners(misc, pause_msg);	/* draw the banners, if appropriate */
+		if (automatic) {
+		    show_automatic(misc);	/* draw any extra text */
+		} else {
+		    show_manual(misc);
+		}
+d2306 14
+a2319 5
+#if TEST_CRC_BUF
+	    if (((misc->edges&SW_P1_E) && (frame_count&0x3F) == 0) || (misc->buttons&SW_P1_D)) {
+		if (misc->iop && misc->iop->pkt.to) {
+		    U32 crc_val;
+		    static int items;
+d2327 18
+d2347 5
+a2351 1
+#endif
+d2353 1
+@
+
+
+1.11
+log
+@Preparing to allow for removal of texture creation/saving etc.
+@
+text
+@d23 1
+d25 15
+a39 4
+#if 0
+#undef ZIGTV_CTL
+#define XTOT_POLARITY (1<<B_ZRE_XTOT)
+#define ZRE_INTEN_HACK	1
+d42 9
+a50 1
+#define USE_ZTV_TEXTURE_WRITE 0
+d99 2
+d106 1
+d114 4
+d158 1
+d204 1
+d1008 99
+d1118 1
+d1141 4
+d1150 1
+a1150 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_trap;
+d1156 1
+a1156 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_trap;
+d1164 1
+a1164 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_trap;
+d1172 1
+a1172 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_trap;
+d1182 1
+a1182 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_trap;
+d1195 4
+d1206 2
+a1207 2
+		if ( !(misc->edges&(J_UP|J_DOWN)) ) break;
+	    	/* fall through to next case */
+d1210 1
+d1213 4
+d1222 1
+a1222 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1227 1
+a1227 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1232 1
+a1232 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1237 1
+a1237 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1242 1
+a1242 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1247 1
+a1247 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1252 1
+a1252 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1257 1
+a1257 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1262 1
+a1262 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1267 1
+a1267 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1272 1
+a1272 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1277 1
+a1277 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_corners;
+d1284 4
+d1293 1
+a1293 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1298 1
+a1298 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1303 1
+a1303 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1308 1
+a1308 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1313 1
+a1313 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1318 1
+a1318 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1323 1
+a1323 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1328 1
+a1328 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1333 1
+a1333 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1338 1
+a1338 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1343 1
+a1343 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1348 1
+a1348 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_percs;
+d1355 4
+d1364 1
+a1364 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_pixops;
+d1369 1
+a1369 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_pixops;
+d1374 1
+a1374 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_pixops;
+d1379 1
+a1379 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_pixops;
+d1390 4
+d1402 1
+a1402 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_z;
+d1411 4
+d1420 1
+a1420 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_tex;
+d1425 1
+a1425 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_tex;
+d1430 1
+a1430 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_tex;
+d1435 1
+a1435 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_tex;
+d1442 1
+a1442 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_tex;
+d1447 1
+a1447 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_tex;
+d1452 1
+a1452 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_tex;
+d1457 1
+a1457 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_tex;
+d1462 1
+a1462 1
+		if ( (misc->edges&(J_UP|J_DOWN)) ) goto stop_tex;
+d1470 1
+d1485 3
+d1869 1
+d1876 31
+a1906 3
+    misc->disp_buf = 0;
+    misc->sequence = 0;
+    misc->update = 0;
+d2080 15
+@
+
+
+1.10
+log
+@Changed palettes to _PALB now that it works correctly.
+@
+text
+@d76 1
+a76 5
+#if !USE_ZTV_TEXTURE_WRITE
+    U16 oldtext[256][256]; /* old texture */
+#else
+    U32 oldtext[256*256*16/32]; /* old texture */
+#endif
+d197 1
+d200 1
+d202 4
+a205 4
+#if USE_ZTV_TEXTURE_WRITE
+	ztv_texture_write(tex->oldptb*2, tex->oldtext, 256*256);
+#else
+	U16 val;
+d210 6
+a215 4
+	for (row=0; row < 256; ++row ) {
+	    for (col=0; col < 256; ++col) {
+		val = tex->oldtext[row][col];
+		*tp++ = (val<<16) | val;
+d218 1
+a218 1
+#endif
+d221 13
+a233 9
+#if USE_ZTV_TEXTURE_WRITE
+/*	ztv_texture_read(tex->oldtext, (tex->oldptb = tex->ptb)*2, 256*256); */
+#else
+	U32 *tp;
+	tex->oldptb = tex->ptb;
+	tp = (U32 *)TEXRAM_ADDR + (tex->ptb*2);
+	for (row=0; row < 256; ++row ) {
+	    for (col=0; col < 256; ++col) {
+		tex->oldtext[row][col] = *tp++;
+d236 1
+a236 1
+#endif
+d238 1
+d241 1
+a241 1
+#if !USE_ZTV_TEXTURE_WRITE
+d244 1
+a244 1
+#endif
+d298 1
+a298 1
+#if !USE_ZTV_TEXTURE_WRITE
+d300 1
+a300 1
+#endif
+d307 1
+a307 1
+#if USE_ZTV_TEXTURE_WRITE
+d309 1
+a309 1
+#else
+d316 1
+a316 1
+#endif
+d318 1
+a318 1
+#if USE_ZTV_TEXTURE_WRITE
+d320 1
+a320 1
+#else
+d327 1
+a327 1
+#endif
+d330 1
+d1635 3
+d1696 6
+@
+
+
+1.9
+log
+@Checked for presence of TEST and B_TEST before using them.
+@
+text
+@d746 1
+a746 1
+#define INSTR_PAL GRN_PAL
+d862 1
+a862 1
+    txt_str(-1, drow, tmp, WHT_PAL);
+d965 2
+a966 2
+	txt_str(-1, drow++, tmp, WHT_PAL);
+	if (title) txt_str(-1, 1, title, RED_PAL);
+d1366 2
+a1367 2
+    if (title) txt_str(-1, 2, title, RED_PAL);
+    if (tmp[0] != 0) txt_str(-1, --row, tmp, WHT_PAL);
+d1568 1
+a1568 1
+#define BORDER_COLOR WHT_PAL
+d1594 1
+a1594 1
+	txt_str(-1, 0, "TESTING TBUS", RED_PAL);
+d1859 1
+a1859 1
+	    txt_str(-1, AN_VIS_ROW-4, "No ZRE interrupts in 10 frames", RED_PAL);
+@
+
+
+1.8
+log
+@Use ztv_texture_write where appropriate.
+@
+text
+@d121 1
+d123 1
+@
+
+
+1.7
+log
+@Removed all direct references to zre_csr.
+Use zre_setup() instead of zre_init().
+Put ZIG conditionals around all zre references in case
+none of these changes work.
+@
+text
+@d24 8
+d76 1
+d78 3
+d202 3
+d207 1
+d209 1
+d216 1
+d219 3
+d230 1
+d234 1
+d236 3
+a238 1
+	U16 copy[256][256], mipmap[256][256], *src, val;
+d291 1
+d293 1
+d300 3
+d309 1
+d311 3
+d320 1
+d1658 1
+a1658 1
+    alphas.color_offset = 0;
+d1674 1
+a1674 1
+    *csr = *csr | (1<<B_ZRE_REON) | (1<<B_ZRE_INTEN);
+d1676 3
+d1748 3
+d1838 1
+a1838 1
+	    zag_text2traps(3);
+@
+
+
+1.6
+log
+@Use t_msg_control for "Joystick" message
+@
+text
+@d1579 1
+d1581 1
+d1586 1
+d1588 1
+d1628 1
+a1628 1
+    if ((oldint=zre_init()) < 0) {
+d1637 1
+d1641 1
+d1672 2
+a1673 2
+    reset_z(zt)
+;
+d1833 1
+d1835 1
+@
+
+
+1.5
+log
+@Include banners() function if HOST_IS_MATHBOX as well as when MB_TEST_CODE
+@
+text
+@d860 3
+a862 3
+#define JOYINST_MSG "Use joystick to "
+	len = strlen(updates_msg[updates]);
+	txt_str((AN_VIS_COL-(len+sizeof(JOYINST_MSG)-1))/2, --row, JOYINST_MSG, INSTR_PAL);
+@
+
+
+1.4
+log
+@Protected some code with MB_TEST_CODE
+@
+text
+@d1534 1
+a1534 1
+#if MB_TEST_CODE
+@
+
+
+1.3
+log
+@Way too many changes to itemize here.
+@
+text
+@a23 19
+#if HOST_IS_MATHBOX || MB_TEST_CODE
+enum upd {
+#define TOPT( enum, string ) enum,
+#include <zagtopts.h>
+#undef TOPT
+UPD_MAX		/* can't equal or go beyond this value */
+};
+
+static const char * const updates_msg[] = {
+#define TOPT( enum, string ) string,
+#include <zagtopts.h>
+#undef TOPT
+    0
+};
+
+#define Nsprintf nisprintf
+
+static VU32 frame_count;
+
+d85 19
+d1534 1
+d1561 1
+@
+
+
+1.2
+log
+@Made tbus tests work via proxy.
+@
+text
+@d22 1
+d90 14
+d840 1
+a840 1
+static int do_manual(int updates, Traps *t, Percs *p, RGBs *rgb, TexMaps *tex) {
+d843 10
+d854 2
+a855 1
+    row = AN_VIS_ROW-2;
+d857 3
+a859 3
+    txt_str((AN_VIS_COL-(strlen(t_msg_action)+sizeof(CYCL_MSG)-1))/2,
+		--row, t_msg_action, INSTR_PAL);
+    txt_cstr(CYCL_MSG, INSTR_PAL);
+d861 69
+a929 76
+    len = strlen(updates_msg[updates]);
+    txt_str((AN_VIS_COL-(len+sizeof(JOYINST_MSG)-1))/2, --row, JOYINST_MSG, INSTR_PAL);
+    txt_cstr(updates_msg[updates], INSTR_PAL);
+    s = 0;
+    title = 0;
+    tmp[0] = 0;
+    drow = row - 3;
+    switch (updates) {
+	case UPD_XYPOS:
+	case UPD_XYSIZ:
+	case UPD_TOPLFT:
+	case UPD_TOPRT:
+	case UPD_BOTTOMLFT:
+	case UPD_BOTTOMRT:
+	    title = show_xy(tmp, sizeof(tmp), t, updates == UPD_XYSIZ);
+	    s = " to resize and recenter the square";
+	    break;
+	case UPD_Wtl:
+	case UPD_Wtr:
+	case UPD_Wbl:
+	case UPD_Wbr:
+	    title = show_percs(tmp, sizeof(tmp), p);
+	    s = " to reset all Corrections";
+	    break;
+	case UPD_RGBtl:
+	case UPD_RGBtr:
+	case UPD_RGBbl:
+	case UPD_RGBbr:
+	    title = show_pixop(tmp, sizeof(tmp), rgb);
+	    s = " to reset all Shades";
+	    break;
+	case UPD_Ztl:
+	case UPD_Ztr:
+	case UPD_Zbl:
+	case UPD_Zbr:
+	case UPD_Zall:
+	    title = show_z(tmp, sizeof(tmp), t);
+	    s = " to reset all Z coordinates";
+	    break;
+	case UPD_TEXtl:
+	case UPD_TEXtr:
+	case UPD_TEXbl:
+	case UPD_TEXbr:
+	    title = show_texcoor(tmp, sizeof(tmp), tex, drow++);
+	    s = " to reset all Coordinates";
+	    break;
+	case UPD_TEXaddr:
+	    Nsprintf(tmp, sizeof(tmp), "Texture offset %06X", tex->ptb);
+	    goto set_texmap_title;
+	case UPD_TEXpatt:
+	    goto set_texmap_title;
+	case UPD_MIPgr:
+	    if (tex->grad >= 0) {
+		Nsprintf(tmp, sizeof(tmp), "MIPMAP gradient %02X", tex->grad);
+		tex->ptw = PL_PTW_TEXTURE|PL_PTW_STATICMIP|PL_PTW_MSIZE(tex->grad)|
+			   PL_PTW_SSIZE(8)|PL_PTW_TSIZE(8)|PL_PTW_PSIZE(3);
+	    } else {
+		strcpy(tmp, "MIPMAP'ing off");
+		tex->ptw = PL_PTW_TEXTURE|PL_PTW_MSIZE(8)|PL_PTW_SSIZE(8)|PL_PTW_TSIZE(8)|PL_PTW_PSIZE(3);
+	    }
+	    s = " to turn off MIPMAP";
+	set_texmap_title:
+	    title = "Testing TEXMAP ASIC";
+	    break;
+    }
+    if (s) {
+	txt_str((AN_VIS_COL-(strlen(s)+strlen(t_msg_extra)))/2,
+		--row, t_msg_extra, INSTR_PAL);
+	txt_cstr(s, INSTR_PAL);
+    }
+    txt_str(-1, drow++, tmp, WHT_PAL);
+    if (title) {
+	int old;
+	old = txt_select(TXT_ZMB);
+	txt_str(-1, 1, title, RED_PAL);
+	txt_select(old);
+d934 13
+a946 7
+static int do_auto(int *seq, int upd, Traps *t, Percs *p, RGBs *rgb, TexMaps *tex) {
+    char tmp[132], *title;
+#if 0
+    char *s, 
+    int drow, len;
+#endif
+    int row, autoseq, sts;
+a947 2
+    row = AN_VIS_ROW-4;
+    autoseq = *seq;
+d950 2
+a951 12
+#if 0
+#define DUM_MSG "Sequence  "
+    txt_str((AN_VIS_COL-(sizeof(DUM_MSG)-1)-8)/2, row, DUM_MSG, WHT_PAL);
+    if (!upd) {
+	txt_cstr("paused", WHT_PAL);
+    } else {
+	txt_cdecnum(autoseq, 8, RJ_BF, WHT_PAL);
+    }
+#endif
+
+    if (upd) {
+	switch (autoseq) {
+d968 1
+a968 1
+		++autoseq;
+d973 2
+a974 2
+		if (t->topy >= 0x1FF) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_trap;
+d979 2
+a980 2
+		if (t->topy <= 0x180) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_trap;
+d987 2
+a988 2
+		if (t->toplftx >= 0x1FF) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_trap;
+d995 2
+a996 2
+		if (t->toplftx <= 0x180) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_trap;
+d1005 2
+a1006 2
+		if (t->topy <= 0) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_trap;
+d1018 1
+a1018 1
+		autoseq = AUTO_WALK_MAX+1; /* slam it in case we got here via goto */
+d1025 2
+a1026 2
+		if (t->boty < 0) ++autoseq;
+		if ( !(ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) break;
+d1031 1
+a1031 1
+		++autoseq;
+d1036 2
+a1037 2
+		if (t->toplftx < 192-64) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1041 2
+a1042 2
+		if (t->toplftx > 192+64) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1046 2
+a1047 2
+		if (t->toplftx <= 192) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1051 2
+a1052 2
+		if (t->botlftx < 192-64) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1056 2
+a1057 2
+		if (t->botlftx > 192+64) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1061 2
+a1062 2
+		if (t->botlftx <= 192) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1066 2
+a1067 2
+		if (t->toprtx <= t->toplftx+64) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1071 2
+a1072 2
+		if (t->toprtx >= t->toplftx+128+64) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1076 2
+a1077 2
+		if (t->toprtx <= t->toplftx+128) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1081 2
+a1082 2
+		if (t->botrtx <= t->botlftx+64) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1086 2
+a1087 2
+		if (t->botrtx >= t->botlftx+128+64) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1091 2
+a1092 2
+		if (t->botrtx <= t->botlftx+128) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_corners;
+d1098 1
+a1098 1
+		autoseq = AUTO_TRAP_END+1; /* slam it in case we got here via goto */
+d1103 2
+a1104 2
+		if (p->tl < 0) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1108 2
+a1109 2
+		if (p->tl > 0xFFFF) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1113 2
+a1114 2
+		if (p->tl <= 0x8000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1118 2
+a1119 2
+		if (p->tr < 0) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1123 2
+a1124 2
+		if (p->tr > 0xFFFF) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1128 2
+a1129 2
+		if (p->tr <= 0x8000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1133 2
+a1134 2
+		if (p->bl < 0) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1138 2
+a1139 2
+		if (p->bl > 0xFFFF) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1143 2
+a1144 2
+		if (p->bl <= 0x8000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1148 2
+a1149 2
+		if (p->br < 0) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1153 2
+a1154 2
+		if (p->br > 0xFFFF) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1158 2
+a1159 2
+		if (p->br <= 0x8000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_percs;
+d1165 1
+a1165 1
+		autoseq = AUTO_PERC_END+1; /* slam it in case we got here via goto */
+d1170 2
+a1171 2
+		if (rgb->tl < 1) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_pixops;
+d1175 2
+a1176 2
+		if (rgb->tr < 1) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_pixops;
+d1180 2
+a1181 2
+		if (rgb->bl < 1) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_pixops;
+d1185 2
+a1186 2
+		if (rgb->br < 1) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_pixops;
+d1196 1
+a1196 1
+		autoseq = AUTO_PIXOP_END+1;
+d1204 2
+a1205 2
+		if (t->ztl >= 0x980) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_z;
+d1213 1
+a1213 1
+		++autoseq;
+d1218 2
+a1219 2
+		if (tex->tl_t >= 0x20000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_tex;
+d1223 2
+a1224 2
+		if (tex->tr_t >= 0x20000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_tex;
+d1228 2
+a1229 2
+		if (tex->bl_t >= 0x10000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_tex;
+d1233 2
+a1234 2
+		if (tex->br_t >= 0x10000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_tex;
+d1240 2
+a1241 2
+		++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_tex;
+d1245 2
+a1246 2
+		if (tex->tr_s >= 0x20000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_tex;
+d1250 2
+a1251 2
+		if (tex->br_s >= 0x20000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_tex;
+d1255 2
+a1256 2
+		if (tex->tl_s >= 0x10000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_tex;
+d1260 2
+a1261 2
+		if (tex->bl_s >= 0x10000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_tex;
+d1267 1
+a1267 1
+		autoseq = AUTO_TEX_END+1;
+d1274 2
+a1275 2
+		if (tex->ptb == 0x8000) ++autoseq;
+		if ( (ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN)) ) goto stop_taddr;
+d1281 1
+a1281 1
+		++autoseq;
+d1291 1
+a1291 1
+		autoseq = -1;
+d1295 3
+a1297 16
+    if (autoseq >= 0) {
+	tmp[0] = 0;
+	title = 0;
+	if (autoseq >= AUTO_TRAP_BEGIN && autoseq <= AUTO_TRAP_END) {
+	    title = show_xy(tmp, sizeof(tmp), t, autoseq >= AUTO_SIZE_BEGIN && autoseq <= AUTO_SIZE_END);
+	} else if (autoseq >= AUTO_PERC_BEGIN && autoseq <= AUTO_PERC_END) {
+	    title = show_percs(tmp, sizeof(tmp), p);
+	} if (autoseq >= AUTO_PIXOP_BEGIN && autoseq <= AUTO_PIXOP_END) {
+	    title = show_pixop(tmp, sizeof(tmp), rgb);
+	} if (autoseq >= AUTO_Z_BEGIN && autoseq <= AUTO_Z_END) {
+	    title = show_z(tmp, sizeof(tmp), t);
+	} if (autoseq >= AUTO_TEX_BEGIN && autoseq <= AUTO_TEX_END) {
+	    title = show_texcoor(tmp, sizeof(tmp), tex, row-2);
+	} if (autoseq >= AUTO_TEXADDR_BEGIN && autoseq <= AUTO_TEXADDR_END) {
+	    title = "Testing Texture Memory";
+	    Nsprintf(tmp, sizeof(tmp), "Texture offset %06X", tex->ptb);
+a1298 2
+	if (title) txt_str(-1, 2, title, RED_PAL);
+	if (tmp[0] != 0) txt_str(-1, --row, tmp, WHT_PAL);
+d1300 1
+a1300 1
+	autoseq = 0;
+a1303 1
+    *seq = autoseq;
+d1307 32
+a1338 2
+static int do_buttons(int *updp, Traps *t, Percs *p, RGBs *rgb, TexMaps *tex) {
+    int updates = *updp;
+d1342 5
+d1348 1
+a1348 1
+    if ((ctl_read_sw(SW_WHITE)&SW_WHITE)) {
+d1357 2
+a1358 2
+    if ((ctl_read_sw(SW_EXTRA)&SW_EXTRA)) {
+	if (updates >= UPD_Wtl && updates <= UPD_Wbr) {
+d1360 1
+a1360 1
+	} else if (updates >= UPD_RGBtl && updates <= UPD_RGBbr) {
+d1362 1
+a1362 1
+	} else if (updates >= UPD_TEXtl && updates <= UPD_TEXbr) {
+d1364 1
+a1364 1
+	} else if (updates >= UPD_XYPOS && updates <= UPD_BOTTOMRT) {
+d1366 1
+a1366 1
+	} else if (updates == UPD_MIPgr) {
+d1368 1
+a1368 1
+	} else if (updates >= UPD_Ztl && updates <= UPD_Zall) {
+d1372 1
+a1372 1
+    if ((ctl_read_sw(SW_ACTION)&SW_ACTION)) {
+d1374 2
+a1375 2
+	    ++updates;
+	    if (updates == UPD_MIPgr) continue;	 /* skip over tests that don't work yet */
+d1377 2
+a1378 2
+	    if (updates >= UPD_Ztl && updates <= UPD_Zbr) {
+		updates = UPD_Zbr+1;
+d1382 1
+a1382 1
+	    if (updates >= UPD_MAX) updates = 0; /* start over */
+d1386 1
+a1386 1
+    swt = ctl_read_sw(0);
+d1389 1
+a1389 1
+	updwn = ctl_read_sw(J_UP|J_DOWN)&(J_UP|J_DOWN);
+d1391 1
+a1391 1
+	    if (updates == UPD_TEXpatt) {
+d1399 1
+a1399 1
+	    if (updates == UPD_MIPgr) {
+d1408 1
+a1408 1
+	    if (updates == UPD_Automatic) {
+d1413 5
+a1417 5
+	    up_traps(t, updates);
+	    up_percs(p, updates);
+	    up_rgbs(rgb, updates);
+	    up_texmaps(tex, updates);
+	    up_texaddr(tex, updates);
+d1420 5
+a1424 5
+	    down_traps(t, updates);
+	    down_percs(p, updates);
+	    down_rgbs(rgb, updates);
+	    down_texmaps(tex, updates);
+	    down_texaddr(tex, updates);
+d1427 4
+a1430 4
+	    right_traps(t, updates);
+	    right_percs(p, updates);
+	    right_rgbs(rgb, updates);
+	    right_texmaps(tex, updates);
+d1433 4
+a1436 4
+	    left_traps(t, updates);
+	    left_percs(p, updates);
+	    left_rgbs(rgb, updates);
+	    left_texmaps(tex, updates);
+a1438 1
+    *updp = updates;
+d1528 33
+d1570 1
+a1570 1
+    int oldint, updates=0, autoseq=0, automatic=0;
+d1576 1
+d1622 9
+a1630 1
+    if ((oldint=zre_init()) < 0) return oldint;
+d1644 10
+d1664 2
+a1665 1
+    reset_z(zt);
+a1676 1
+
+a1678 2
+    old.txt = txt_select(TXT_HOST);
+
+d1691 10
+a1700 1
+    txt_select(TXT_ZMB);
+d1703 1
+a1703 2
+	int ii;
+
+d1708 7
+a1714 3
+#define BORDER '\003'
+#define BORDER_COLOR WHT_PAL
+#define TXT_STAMP txt_stamp
+d1716 8
+a1723 7
+	for (ii=0; ii<AN_VIS_ROW; ++ii) {
+	    TXT_STAMP(0, ii, BORDER, BORDER_COLOR);
+	    TXT_STAMP(AN_VIS_COL-1, ii, BORDER, BORDER_COLOR);
+	}
+	for (ii=0; ii<AN_VIS_COL; ++ii) {
+	    TXT_STAMP(ii, 0, BORDER, BORDER_COLOR);
+	    TXT_STAMP(ii, AN_VIS_ROW-1, BORDER, BORDER_COLOR);
+a1724 8
+	txt_str(-1, 0, "TESTING TBUS", RED_PAL);
+
+	if ((ctl_read_sw(SW_NEXT)&SW_NEXT)) break;
+#define NEXT_MSG " to return to previous menu"
+	txt_str((AN_VIS_COL-(sizeof(NEXT_MSG)-1+strlen(t_msg_next)))/2,
+	    AN_VIS_ROW-2, t_msg_next, INSTR_PAL);
+	txt_cstr(NEXT_MSG, INSTR_PAL);
+
+d1726 14
+a1739 4
+	    init_traps(0);
+	    clr_scrn();
+	    automatic = do_buttons(&updates, t, p, rgb, tex);
+	    do_manual(updates, t, p, rgb, tex);
+d1744 2
+a1745 1
+	    autoseq = 0;
+d1759 2
+a1760 5
+		if ((ctl_read_sw(SW_ACTION)&SW_ACTION) == 0) {
+#define STOP_MSG " to pause display"
+		    txt_str((AN_VIS_COL-(sizeof(STOP_MSG)-1+strlen(t_msg_action)))/2,
+			AN_VIS_ROW-3, t_msg_action, INSTR_PAL);
+		    txt_cstr(STOP_MSG, INSTR_PAL);
+d1768 2
+a1769 5
+#define GO_MSG " to continue display"
+		    txt_str((AN_VIS_COL-(sizeof(GO_MSG)-1+strlen(t_msg_action)))/2,
+			AN_VIS_ROW-3, t_msg_action, INSTR_PAL);
+		    txt_cstr(GO_MSG, INSTR_PAL);
+		    if ((ctl_read_sw(SW_ACTION)&SW_ACTION) != 0) {
+d1774 1
+a1774 1
+	    if (automatic < 3) {
+d1778 10
+a1787 2
+	    if (do_auto(&autoseq, automatic == 1, t, p, rgb, tex) == 0) automatic = 0;
+	    if (autoseq >= AUTO_Z_BEGIN && autoseq <= AUTO_Z_END) do_trap(zt, zp, zrgb, ztex);
+d1814 9
+a1822 1
+	    while (oldint == frame_count);	/* wait for next VB ...*/
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d21 1
+d23 1
+a695 4
+#if 0
+static U32 td_indx, trap_dump[64];
+#endif
+
+d699 6
+a704 3
+#if 0
+    trap_dump[td_indx++] = val;
+    if (td_indx > sizeof(trap_dump)/sizeof(U32)) td_indx = 0;
+d706 1
+d708 1
+d1495 1
+d1505 1
+d1520 1
+d1522 3
+a1524 1
+    TxtAlphaPtr alphas;
+d1527 1
+d1529 5
+a1533 5
+/* Init the ZRE's control register */
+    if ((oldint=zre_init()) < 0) return oldint;
+    old.zre = *csr;
+    *csr = *csr | (1<<B_ZRE_REON) | (1<<B_ZRE_INTEN);
+    *csr &= ~((1<<B_ZRE_TLEN)|(1<<B_ZRE_XTOT));
+d1535 11
+d1548 3
+d1555 6
+a1560 2
+    memset((char *)text_buf, 0, AN_VIS_ROW*AN_VIS_COL*2);
+    memset((char *)text_dirty, 0, AN_VIS_ROW*AN_VIS_COL/8);
+d1600 1
+d1602 1
+d1615 7
+a1621 3
+#define BORDER "("
+#define BORDER_COLOR WHT_PALB
+#define TXT_STAMP txt_str
+d1623 4
+a1630 4
+	for (ii=0; ii<AN_VIS_ROW; ++ii) {
+	    TXT_STAMP(0, ii, BORDER, BORDER_COLOR);
+	    TXT_STAMP(AN_VIS_COL-1, ii, BORDER, BORDER_COLOR);
+	}
+d1649 1
+d1652 8
+d1689 1
+d1692 8
+d1708 2
+a1709 1
+	    txt_str(20, AN_VIS_ROW-2, "No ZRE interrupts in 10 frames", MNORMAL_PAL);
+d1711 2
+d1728 3
+@

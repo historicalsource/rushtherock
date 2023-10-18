@@ -1,0 +1,114 @@
+head	1.1;
+access;
+symbols
+	CJ2_05:1.1
+	CJ2_04:1.1;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	95.07.21.01.44.16;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Misc functions used by the 68k ICELESS stub
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@	.globl _exceptionHandler, exceptionHandler
+
+exceptionHandler:
+_exceptionHandler:
+	move.l 4(sp), a0	;get vector number
+	add.l a0, a0		;*4 to get actual memory address
+	add.l a0, a0
+	movec vbr, d0		;get pointer to vector table
+	add.l d0, a0		;compute real memory address
+	move.l 8(sp), (a0)	;copy in the vector
+	rts			;done
+
+	.globl get_vbr, _get_vbr
+get_vbr:
+_get_vbr:
+	movec vbr, d0
+	rts
+
+;/****************************************
+; * ipl_clr:
+; * ======================================
+; * AND the 68000's IPL bits in the status
+; * register with the specified mask.
+; *
+; * Stack:
+; *   [sp+0] : <long: return address>
+; *   [sp+4] : <long: IPL AND mask>
+; *
+; * Returns:
+; *   Nothing.
+; ****************************************/
+
+	.globl _ipl_clr, ipl_clr
+ipl_clr:
+_ipl_clr:
+	move.w  sr,d0
+	and.l   4(sp),d0	; Mask the 68K IPL
+	move.w  d0,sr
+	rts
+
+;/****************************************
+; * ipl_set:
+; * ======================================
+; * SET's the 68000's bits in the status
+; * register with the specified bits.
+; *
+; * Stack:
+; *   [sp+0] : <long: return address>
+; *   [sp+4] : <long: IPL bit mask>
+; *
+; * Returns:
+; *   Nothing.
+; ****************************************/
+
+	.globl _ipl_set, ipl_set
+ipl_set:
+_ipl_set:
+	movel	4(sp), d0
+	move.w  d0, sr
+	rts
+
+;/****************************************
+; * ipl_get:
+; * ======================================
+; * GET the 68000's status register bits
+; *
+; * Stack:
+; *   [sp+0] : <long: return address>
+; *
+; * Returns:
+; *   status register bits
+; ****************************************/
+
+	.globl _ipl_get, ipl_get
+ipl_get:
+_ipl_get:
+	clrl d0
+	move.w  sr,d0
+	rts
+
+;/********************************
+; * The GCC runtime library always
+; * calls __main() from main().
+; ********************************/
+ 
+	.globl ___main
+___main:
+	rts
+@

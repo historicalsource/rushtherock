@@ -1,0 +1,612 @@
+head	1.4;
+access;
+symbols
+	MACE_1_0e:1.3
+	MACE_1_0d:1.3
+	MACE_1_0a:1.3;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	97.09.18.23.45.17;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.03.14.21.14.30;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.03.04.22.13.58;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.02.01.22.51.00;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Filesystem dump functions.
+@
+
+
+1.4
+log
+@Fixed it if the HB reads failed.
+@
+text
+@#include <config.h>
+#include <os_proto.h>
+#include <iio_proto.h>
+#define QIO_LOCAL_DEFINES 1
+#include <qio.h>
+#include <fsys.h>
+#include <fcntl.h>
+#include <nsprintf.h>
+#include <string.h>
+#include <ctype.h>
+
+#define FPRINTF(x) iio_printf x
+#define OUTWHERE iop
+#if FSYS_REPEAT_SKIP
+# define REPEAT_SKIP_CTL ", repeat = %ld, skip = %ld"
+# define REPEAT_SKIP_ARGS(x) ,x->repeat, x->skip
+#else
+# define REPEAT_SKIP_CTL
+# define REPEAT_SKIP_ARGS(x)
+#endif
+
+const char hex2asc[] = "0123456789ABCDEF";
+
+void fsys_dump_bytes(IcelessIO *iop, unsigned char *s, int size) {
+    char line[100], *strp;
+    unsigned char *lp;
+    int col, row;
+
+    if (size > 1024) size = 1024;
+    for (row=0; size > 0; row += 16, size -= 16, s += 16) {
+	int lim;
+	nsprintf(line, sizeof(line), "%04X  ", row);
+	strp = line + strlen(line);
+	lim = size > 16 ? 16 : size;
+	for (col=0, lp=s; col < lim; ++col, ++lp) {
+	    if (col && !(col&0x7)) *strp++ = ' ';
+	    *strp++ = hex2asc[(*lp >> 4)&0xF];
+	    *strp++ = hex2asc[*lp & 0xF];
+	    *strp++ = ' ';
+	}
+	if (col < 16) {
+	    if (col <= 8) *strp++ = ' ';
+	    memset(strp, ' ', (16-col)*3);
+	    strp += (16-col)*3;
+	}
+	*strp++ = ' ';
+	*strp++ = '|';
+	for (col=0, lp=s; col < lim; ++col, ++lp) {
+	    if (isprint(*lp)) {
+		*strp++ = *lp;
+	    } else {
+		*strp++ = '.';
+	    }
+	}
+	if (col < 16) {
+	    memset(strp, ' ', 16-col);
+	    strp += 16-col;
+	}
+	*strp++ = '|';
+	*strp++ = '\n';
+	*strp = 0;
+	iio_puts(iop, line);
+    }
+}
+
+typedef struct dmphdr {
+    QioIOQ *ioq;
+    IcelessIO *iop;
+    FsysHomeBlock *hb;
+    U32 *buff;
+    U32 *index;
+    int dumped_it;
+} DmpHdr;
+
+static int dump_hdr(DmpHdr *dh, int idx, int which, U32 id) {
+    QioIOQ *ioq;
+    IcelessIO *iop;
+    FsysHomeBlock *hb;
+    U32 *buff;
+    FsysHeader *hdr;
+    U32 tbuf[512/4];
+    FsysRetPtr *rp;
+    int ii, match;
+
+    ioq = dh->ioq;
+    iop = dh->iop;
+    hb = dh->hb;
+    buff = dh->buff;
+    
+    FPRINTF((OUTWHERE, "    FH %d at %8ld:\n", which,
+	dh->index[idx*FSYS_MAX_ALTS+which]));
+    hdr = (FsysHeader*) ((dh->dumped_it&0xFF) ? tbuf : buff);
+    ii = qio_readwpos(ioq, dh->index[idx*FSYS_MAX_ALTS+which], hdr, 512);
+    while (!ii && !ioq->iostatus) { ; }
+    if (!ii) ii = ioq->iostatus;
+    if (QIO_ERR_CODE(ii)) return ii;
+    if (hdr->id != id) {
+	FPRINTF((OUTWHERE, "\tID of %08lX is invalid, expected %08lX\n",
+	    hdr->id, id));
+	fsys_dump_bytes(iop, (unsigned char *)hdr, 512);
+	return 0;
+    }
+    if (dh->dumped_it) {
+	FsysHeader *good;
+	good = (FsysHeader *)buff;
+	match = 3;
+	if (hdr->size != good->size) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match size. is=%d, s/b=%d\n",
+		which, hdr->size, good->size));
+	    match = 2;
+	}
+	if (hdr->clusters != good->clusters) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match clusters. is=%d, s/b=%d\n",
+		which, hdr->clusters, good->clusters));
+	    match = 2;
+	}
+	if (hdr->generation != good->generation) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match generation. is=%d, s/b=%d\n",
+		which, hdr->generation, good->generation));
+	    match = 2;
+	}
+	if (hdr->type != good->type) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match type. is=%d, s/b=%d\n",
+		which, hdr->type, good->type));
+	    match = 2;
+	}
+	if (hdr->flags != good->flags) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match flags. is=0x%04X, s/b=0x%04X\n",
+		which, hdr->flags, good->flags));
+	    match = 2;
+	}
+#if (FSYS_FEATURES&FSYS_FEATURES_ABTIME)
+	if (hdr->atime != good->atime) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match atime. is=0x%08lX, s/b=0x%08lX\n",
+		which, hdr->atime, good->atime));
+	    match = 2;
+	}
+	if (hdr->btime != good->btime) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match btime. is=0x%08lX, s/b=0x%08lX\n",
+		which, hdr->btime, good->btime));
+	    match = 2;
+	}
+#endif
+#if (FSYS_FEATURES&FSYS_FEATURES_CMTIME)
+	if (hdr->ctime != good->ctime) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match ctime. is=0x%08lX, s/b=0x%08lX\n",
+		which, hdr->ctime, good->ctime));
+	    match = 2;
+	}
+	if (hdr->mtime != good->mtime) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match mtime. is=0x%08lX, s/b=0x%08lX\n",
+		which, hdr->mtime, good->mtime));
+	    match = 2;
+	}
+#endif
+#if (FSYS_FEATURES&FSYS_FEATURES_PERMS) 
+	if (hdr->owner != good->owner) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match owner. is=%d, s/b=%d\n",
+		which, hdr->owner, good->owner));
+	    match = 2;
+	}
+	if (hdr->perms != good->perms) {
+	    FPRINTF((OUTWHERE, "\tCopy %d doesn't match perms. is=%d, s/b=%d\n",
+		which, hdr->perms, good->perms));
+	    match = 2;
+	}
+#endif
+	for (which=0; which < FSYS_MAX_ALTS; ++which) {
+	    FsysRetPtr *goodrp, *badrp;
+	    goodrp = good->pointers[which];
+	    badrp  = hdr->pointers[which];
+	    for (ii=0; ii < FSYS_MAX_FHPTRS; ++ii, ++goodrp, ++badrp) {
+		if (goodrp->start == 0) break;
+		if (goodrp->start != badrp->start || goodrp->nblocks != badrp->nblocks) {
+		    FPRINTF((OUTWHERE, "\rRP set %2d doesn't match\n\t  is  start=%7d, nblocks=%7d\n"
+		    						   "\t  s/b start=%7d, nblocks=%7d\n",
+		    	which, badrp->start, badrp->nblocks, goodrp->start, goodrp->nblocks));
+		    match &= ~2;
+		    break;
+		}
+	    }
+	}
+    } else {
+	dh->dumped_it = which+1;
+	match = 0;
+    }
+    if (!(match&1)) {
+	FPRINTF((OUTWHERE, "\tID = %08lX, flags=%04X, ctime = %s",
+    		hdr->id, hdr->flags, ctime((time_t *)&hdr->ctime)));
+#if (FSYS_FEATURES&FSYS_FEATURES_EXTENSION_HEADER)
+# define HDR_EXT hdr->extension
+#else
+# define HDR_EXT 0L
+#endif
+	FPRINTF((OUTWHERE, "\tsize = %ld, alloc = %ld, type = %d, generation = %d, extension = %08lX\n",
+	    hdr->size, hdr->clusters, hdr->type, hdr->generation, HDR_EXT));
+    }
+    if (!(match&2)) {
+	for (which=0; which < FSYS_MAX_ALTS; ++which) {
+	    FPRINTF((OUTWHERE, "\tRP set %2d:\n", which));
+	    for (rp=hdr->pointers[which], ii=0; ii < FSYS_MAX_FHPTRS; ++ii, ++rp) {
+		if (rp->start == 0) break;
+		FPRINTF((OUTWHERE, "\t         %2d: start = %8ld, nblocks = %ld" REPEAT_SKIP_CTL "\n",
+		    ii, rp->start, rp->nblocks REPEAT_SKIP_ARGS(rp)));
+	    }
+	}
+    } else if (match == 2) {
+	FPRINTF((OUTWHERE, "\tRP's are Identical to %d\n", (dh->dumped_it&0xFF)-1));
+    }	
+    if (match == 3) {
+	FPRINTF((OUTWHERE, "\tIdentical to %d\n", (dh->dumped_it&0xFF)-1));
+    }
+    return 1;
+}
+
+typedef struct {
+    QioIOQ *ioq;
+    FsysHeader *hdr;
+    U32 *buff;
+    IcelessIO *iop;
+    int buf_size;
+} Contents;
+
+static int read_contents(Contents *cont, int which) {
+    QioIOQ *ioq;
+    IcelessIO *iop;
+    FsysHeader *hdr;
+    int size, ii, jj;
+    U8 *buf;
+
+    iop = cont->iop;
+    ioq = cont->ioq;
+    hdr = cont->hdr;
+    size = (hdr->size+511)&-512;
+    if (size > 0 && (!cont->buff || cont->buf_size < size)) {
+	cont->buff = QIOrealloc(cont->buff, size);
+	if (!cont->buff) {
+	    FPRINTF((OUTWHERE, "Unable to realloc %d bytes.\n", size));
+	    return QIO_NOMEM;
+	}
+	cont->buf_size = size;
+    }
+    buf = (U8*)cont->buff;
+    size /= 512;
+    for (jj=0; size > 0 && jj < FSYS_MAX_FHPTRS; ++jj) {
+	U32 start;
+	int amt, nblocks;
+	start = hdr->pointers[which][jj].start;
+	nblocks = hdr->pointers[which][jj].nblocks;
+	if (!start || !nblocks) break;
+	amt = nblocks;
+	if (amt > size) amt = size;
+	ii = qio_readwpos(ioq, start, buf, amt*512);
+	while (!ii && !ioq->iostatus) { ; }
+	if (!ii) ii = ioq->iostatus;
+	if (QIO_ERR_CODE(ii)) {
+	    return ii;
+	}
+	buf += ioq->iocount;
+	size -= ioq->iocount/512;
+    }
+    return 0;
+}
+
+int fsys_dmpvol(IcelessIO *iop) {
+    int ii, bcnt, hbgood;
+    FsysHomeBlock hb;
+    FsysHeader *hdr;
+    unsigned long *index=0;
+    int num_files=0;
+    unsigned long *buff;
+    int buf_size;
+    unsigned char *s;
+    QioIOQ *ioq;
+    QioFile *fp;
+    int drv_capacity;
+    int dumped_it;
+    U32 *data, *master;
+    int data_size;
+    DmpHdr dh;
+    Contents content;
+
+    ioq = qio_getioq();
+    ii = qio_open(ioq, "/rd0", O_RDONLY);
+    while (!ii && !ioq->iostatus) { ; }
+    if (!ii) ii = ioq->iostatus;
+    if (QIO_ERR_CODE(ii)) return ii;
+    fp = qio_fd2file(ioq->file);
+    drv_capacity = fp->size;
+    buf_size = 10240;
+    buff = QIOmalloc(buf_size);
+    if (!buff) {
+	FPRINTF((OUTWHERE, "Ran out of memory\n"));
+	return 1;
+    }
+    dh.ioq = ioq;
+    dh.iop = iop;
+    dh.hb = &hb;
+    dh.buff = buff;
+    data = 0;
+    data_size = 0;
+    content.ioq = ioq;
+    content.hdr = (FsysHeader *)buff;
+    content.buff = 0;
+    content.iop = iop;
+    content.buf_size = 0;
+
+    hdr = (FsysHeader *)buff;
+
+    FPRINTF((OUTWHERE, "Home blocks:\n"));
+    for (hbgood=bcnt=0; bcnt < FSYS_MAX_ALTS; ++bcnt) {
+	unsigned long cs;
+	FPRINTF((OUTWHERE, "  %d at LBA %8d:\n", bcnt, FSYS_HB_ALG(bcnt, drv_capacity)));
+	ii = qio_readwpos(ioq, FSYS_HB_ALG(bcnt, drv_capacity), buff, 512);
+	while (!ii && !ioq->iostatus) { ; }
+	if (!ii) ii = ioq->iostatus;
+	if (QIO_ERR_CODE(ii)) return ii;
+	for (cs=0, ii=0; ii < 512/4; ++ii) cs += buff[ii];
+	hb = *(FsysHomeBlock*)buff;
+	if (hb.id != FSYS_ID_HOME) {
+	    FPRINTF((OUTWHERE, "\tID of %08lX is incorrect. Expected %08X\n", hb.id, FSYS_ID_HOME));
+	    fsys_dump_bytes(iop, (unsigned char *)hdr, 512);
+	    continue;
+	}
+	if (cs) {
+	    FPRINTF((OUTWHERE, "\tChecksum of %08lX is incorrect. Expected 0\n", cs));
+	    continue;
+	}
+	FPRINTF((OUTWHERE, "\tID = %08lX, hb_major=%d, hb_minor=%d, hb_size=%d\n", 
+	    hb.id, hb.hb_major, hb.hb_minor, hb.hb_size));
+	FPRINTF((OUTWHERE, "\tfh_major=%d, fh_minor=%d, fh_size=%d, fh_ptrs=%d\n", 
+		hb.fh_major, hb.fh_minor, hb.fh_size, hb.fh_ptrs));
+	FPRINTF((OUTWHERE, "\tefh_major=%d, efh_minor=%d, efh_size=%d, efh_ptrs=%d\n", 
+		hb.efh_major, hb.efh_minor, hb.efh_size, hb.efh_ptrs));
+	FPRINTF((OUTWHERE, "\trp_major=%d, rp_minor=%d, rp_size=%d\n", 
+		hb.rp_major, hb.rp_minor, hb.rp_size));
+	FPRINTF((OUTWHERE, "\tcluster=%d, maxalts=%d, chksum=%08lX, computed cksum=%08lX\n",
+    	    hb.cluster, hb.maxalts, hb.chksum, cs));
+	FPRINTF((OUTWHERE, "\tctime = %s", ctime((time_t *)&hb.ctime)));
+	FPRINTF((OUTWHERE, "\tindex[0]=%8ld", hb.index[0]));
+	for (ii=1; ii < FSYS_MAX_ALTS; ++ii) {
+	    FPRINTF((OUTWHERE, ", [%d]=%8ld", ii, hb.index[ii]));
+	}
+	FPRINTF((OUTWHERE, "\n"));
+	hbgood |= 1<<bcnt;
+    }
+    if (!hbgood) return FSYS_MOUNT_NOHBLK;
+    if (!(hbgood&(1<<(bcnt-1)))) {		/* if last one not good */
+	for (bcnt=0; bcnt < FSYS_MAX_ALTS; ++bcnt) {
+	    if ((hbgood&(1<<bcnt))) break;
+	}
+	FPRINTF((OUTWHERE, "Re-reading HB at %d\n", FSYS_HB_ALG(bcnt, drv_capacity)));
+	ii = qio_readwpos(ioq, FSYS_HB_ALG(bcnt, drv_capacity), buff, 512);
+	while (!ii && !ioq->iostatus) { ; }
+	if (!ii) ii = ioq->iostatus;
+	if (QIO_ERR_CODE(ii)) return ii;
+	hb = *(FsysHomeBlock*)buff;
+    }	
+    FPRINTF((OUTWHERE, "Index files:\n"));
+    dumped_it = dh.dumped_it = 0;
+    dh.index = hb.index;
+    hdr = (FsysHeader *)buff;
+    for (bcnt=0; bcnt < FSYS_MAX_ALTS; ++bcnt) {
+	if (dump_hdr(&dh, FSYS_INDEX_INDEX, bcnt, FSYS_ID_INDEX)) {
+	    if (!dumped_it) {
+		num_files = hdr->size/(sizeof(long)*FSYS_MAX_ALTS);
+		FPRINTF((OUTWHERE, "    %d files, Contents of copy %d at %8ld:\n",
+			    num_files, bcnt, hdr->pointers[bcnt][0].start));
+		if (!hdr->size) {
+		    FPRINTF((OUTWHERE, "       File is empty\n"));
+		    continue;
+		}
+		ii = read_contents(&content, bcnt);
+		if (QIO_ERR_CODE(ii)) return ii;
+		index = content.buff;
+		content.buff = 0;
+		content.buf_size = 0;
+		for (ii=0; ii < hdr->size/sizeof(long)*FSYS_MAX_ALTS; ii += FSYS_MAX_ALTS) {
+		    int jj;
+		    char *aux;
+		    if (index[ii] == 0) break;
+		    FPRINTF((OUTWHERE, "\t%3d: ", (ii)/FSYS_MAX_ALTS));
+		    if ((index[ii]&0x80000000) || !index[ii]) {
+			FPRINTF((OUTWHERE, " Inactive, next generation is %d", index[ii]&0xFF));
+		    } else {
+			for (jj=0; jj < FSYS_MAX_ALTS; ++jj) FPRINTF((OUTWHERE, " %8ld", index[ii+jj]));
+		    }
+		    switch (ii/FSYS_MAX_ALTS) {
+			case FSYS_INDEX_INDEX: aux = " Index.sys"; break;
+			case FSYS_INDEX_FREE: aux = " Freemap.sys"; break;
+			case FSYS_INDEX_ROOT: aux = " Root directory"; break;
+			default: aux = "";
+		    }
+		    FPRINTF((OUTWHERE, "%s\n", aux));
+		}
+		dumped_it = 1;
+	    } else {
+		ii = read_contents(&content, bcnt);
+		if (QIO_ERR_CODE(ii)) return ii;
+		if (memcmp(index, content.buff, content.buf_size) != 0) {
+		    FPRINTF((OUTWHERE, "  Contents of %d don't match that of 0\n", bcnt));
+		}
+	    }
+	}
+    }
+    if (!index) {
+	FPRINTF((OUTWHERE, "Index file empty\n"));
+	return 1;
+    }
+    if (content.buff) QIOfree(content.buff);
+    content.buff = 0;
+    content.buf_size = 0;
+
+    FPRINTF((OUTWHERE, "Freemap files:\n"));
+    dumped_it = dh.dumped_it = 0;
+    dh.index = index;
+    master = 0;
+    for (bcnt=0; bcnt < FSYS_MAX_ALTS; ++bcnt) {
+	if (!dump_hdr(&dh, FSYS_INDEX_FREE, bcnt, FSYS_ID_HEADER)) continue;
+	if (!dumped_it) {
+	    int prev = 0;
+	    FsysRetPtr *rp;
+	    FPRINTF((OUTWHERE, "    Contents of %d at %8ld:\n", bcnt, hdr->pointers[bcnt][0].start));
+	    ii = read_contents(&content, bcnt);
+	    if (QIO_ERR_CODE(ii)) return ii;
+	    master = content.buff;
+	    content.buff = 0;
+	    content.buf_size = 0;
+	    rp = (FsysRetPtr *)master;
+	    for (ii=0; ii < ((hdr->size+511)&-512)/sizeof(FsysRetPtr); ++ii, ++rp) {
+		FPRINTF((OUTWHERE, "\t%3d: start: %7d, nblocks: %7d\n",
+		    ii, rp->start, rp->nblocks));
+		if (!rp->start) break;
+		if (rp->start < prev) break;
+		prev = rp->start + rp->nblocks;
+	    }
+	    dumped_it = 1;
+	} else {
+	    U8 *good, *bad;
+	    ii = read_contents(&content, bcnt);
+	    if (QIO_ERR_CODE(ii)) return ii;
+	    good = (U8*)master;
+	    bad  = (U8*)content.buff;
+	    for (ii=0; ii < hdr->size; ++ii, ++good, ++bad) {
+		if (*good != *bad) break;
+	    }
+	    if (ii < hdr->size) {
+		FPRINTF((OUTWHERE, "\tCopy %d doesn't match copy %d. Mismatch starts at 0x%03X\n",
+		    bcnt, 0, ii));
+	    }
+	}
+    }
+
+    if (content.buff) QIOfree(content.buff);
+    content.buff = 0;
+    content.buf_size = 0;
+
+    FPRINTF((OUTWHERE, "File headers:\n"));
+    for (bcnt=2; bcnt < num_files; ++bcnt) {
+	S32 lba;
+	int alt;
+	lba = index[bcnt*FSYS_MAX_ALTS];
+	if (lba <= 0) {
+	    FPRINTF((OUTWHERE, "%3d: Inactive, next generation is %d\n", bcnt, lba&0xFF));
+	    continue;
+	}
+	FPRINTF((OUTWHERE, "%3d:\n", bcnt));
+	dumped_it = dh.dumped_it = 0;
+	for (alt=0; alt < FSYS_MAX_ALTS; ++alt) {
+	    if (!dump_hdr(&dh, bcnt, alt, FSYS_ID_HEADER)) continue;
+	    if (hdr->type != FSYS_TYPE_DIR) continue;
+	    if (dumped_it) {
+		ii = read_contents(&content, alt);
+		if (QIO_ERR_CODE(ii)) return ii;
+		if (memcmp(master, content.buff, hdr->size) != 0) {
+		    FPRINTF((OUTWHERE, "\tContent of %d didn't match 0\n", alt));
+		} else {
+		    FPRINTF((OUTWHERE, "\tContent of %d matches 0\n", alt));
+		}
+		continue;
+	    }
+	    dumped_it = 1;
+	    FPRINTF((OUTWHERE, "    Directory:\n"));
+	    ii = read_contents(&content, alt);
+	    if (QIO_ERR_CODE(ii)) return ii;
+	    master = content.buff;
+	    content.buff = 0;
+	    content.buf_size = 0;
+	    s = (unsigned char *)master;
+#if 0
+	    fsys_dump_bytes(iop, s, hdr->size);
+#endif
+	    while (1) {
+		unsigned long idx;
+		int cnt, gen;
+		char name[258];
+		idx = (s[2]<<16) | (s[1]<<8) | s[0];
+		if (idx == 0) break;
+		s += 3;
+		gen = *s++;
+		cnt = *s++;
+		if (!cnt) cnt = 256;
+		memcpy(name, (char *)s, cnt);
+		name[cnt] = 0;
+		FPRINTF((OUTWHERE, "\t%6ld,%3d: (%d)%s\n", idx, gen, cnt, name));
+		s += cnt;
+	    }
+	}
+	if (master && master != content.buff) QIOfree(master);
+	master = 0;
+	if (content.buff) QIOfree(content.buff);
+	content.buff = 0;
+	content.buf_size = 0;
+    }
+    
+    QIOfree(buff);
+    if (index) QIOfree(index);
+    if (data) QIOfree(data);
+    ioq->complete = 0;
+    qio_close(ioq);
+    while (!ioq->iostatus) { ; }
+    qio_freeioq(ioq);
+    return 0;
+}
+@
+
+
+1.3
+log
+@Corrected 2.7.2 compiler syntax error.
+@
+text
+@d345 1
+a345 1
+	hbgood = 1;
+d348 11
+a358 1
+
+@
+
+
+1.2
+log
+@Swapped reporting of HB major/minor.
+@
+text
+@a189 2
+	FPRINTF((OUTWHERE, "\tsize = %ld, alloc = %ld, type = %d, generation = %d, extension = %08lX\n",
+	    hdr->size, hdr->clusters, hdr->type, hdr->generation, 
+d191 1
+a191 1
+	    hdr->extension
+d193 1
+a193 1
+	    0L
+d195 2
+a196 2
+	    ));
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d332 1
+a332 1
+	    hb.id, hb.hb_minor, hb.hb_major, hb.hb_size));
+@

@@ -1,0 +1,113 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.1
+date	95.06.26.23.37.09;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@MACPP constants and macros defining the EC020X32 host board
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@.if ndf, _CONSTANTS_MAC_
+  .warn ;You should .include constants.mac before including lcr3k.mac
+  .include constants.mac
+.endc
+.if ndf, _PPTYPES_MAC_
+  .warn ;You should .include types.mac before including lcr3k.mac
+  .include pptypes.mac
+.endc
+;
+.if ndf,HOST_BOARD
+	HEX_CONST HOST_BOARD	EC020cojag
+.endc
+REM <	EC020 host board specific definitions>
+;
+; Big-Endian Byte offset is 32 (or 64) - (bit offset)>>3
+	HEX_CONST SHORT0_OFFS 2
+	HEX_CONST SHORT16_OFFS 0
+	HEX_CONST BYTE0_OFFS 3
+	HEX_CONST BYTE8_OFFS 2
+	HEX_CONST BYTE16_OFFS 1
+	HEX_CONST BYTE24_OFFS 0
+REMB
+REMM <The EC020 memory map appears as the following:			>
+REME
+;  
+.if true, HOST_BOARD == EC020cojag
+	HEX_CONST DRAM_BASE     0xFF000000 < xb=2, 0xFF000000-0xFF7FFFFF, Cojag Dram, 8Mb (rw) >
+	HEX_CONST PROG_BASE     0xFF800000 < xb=0, 0xFF800000-0xFF9FFFFF, Progam EPROM, 2MB (ro)>
+	HEX_CONST RAM_BASE      0xFFA00000 < xb=0, 0xFFA00000-0xFFA1FFFF, Working RAM, 128KB (rw) >
+	HEX_CONST BBRAM_BASE    0xFFA20000 < xb=0, 0xFFA20000-0xFFA2FFFF, Zero power RAM, 64KB (rw) >
+	HEX_CONST WDOG_BASE     0xFFA30000 < xb=0, 0xFFA30000-0xFFA3FFFF, Kick the dog, 64KB (wo) >
+	HEX_CONST BBRUNLOCK     0xFFA40000 < xb=0, 0xFFA40000-0xFFA4FFFF, Unlock BBRAM, 64KB (wo) >
+	HEX_CONST TIMER_ACK     0xFFA40000 < xb=0, 0xFFA40000-0xFFA4FFFF, Ack the 4Ms timer. 64KB (ro) >
+	HEX_CONST TIMER_RST     0xFFA50000 < xb=0, 0xFFA50000-0xFFA5FFFF, reset the timer counter. 64KB (ro) >
+	HEX_CONST XBUS_SLOT1	0xFFC00000 < xb=1, 0xFFC00000-0xFFC7FFFF, undefined, 512kb (rw) >
+	HEX_CONST XBUS_SLOT2	0xFFC00000 < xb=2, 0xFFF00000-0xFFFFFFFF, undefined, 1Mb   (rw) >
+	HEX_CONST XBUS_SLOT3	0xFFB70000 < xb=3, 0xFFB70000-0xFFBFFFFF, undefined, 512kb (rw) >
+	HEX_CONST XBUS_SLOT4	0xFFB00000 < xb=4, 0xFFB00000-0xFFB7FFFF, undefined, 512kb (rw) >
+	HEX_CONST XBUS_SLOT5	0xFFAC0000 < xb=5, 0xFFAC0000-0xFFAFFFFF, undefined, 128kb (rw) >
+	HEX_CONST XBUS_SLOT6	0xFFA80000 < xb=6, 0xFFA80000-0xFFABFFFF, cage audio, 128kb (rw) >
+	HEX_CONST XBUS_SLOT7	0xFFC80000 < xb=7, 0xFFC80000-0xFFC8FFFF, Xbus slot 7 (ICELESS) (rw) >
+	HEX_CONST ROMULATOR_START 0x00800000 < ROMBUS board 0x00800000-0x009FFFFF >
+	HEX_CONST COJAG_CART    0xFFD00000 < xb=2, 0xFFD00000-0xFFDFFFFF, Cojag cart memory 1Mb, (rw) >
+	HEX_CONST COJAG_BASE    XBUS_SLOT2 < xb=2, 0xFFF00000-0xFFFFFFFF, CoJag h/w,  1MB (rw) >
+.endc
+.if true, HOST_BOARD == EC020zoid10
+	HEX_CONST PROG_BASE     0x00000000 < xb=0, 0x00000000-0x001FFFFF, Progam EPROM, 2MB (ro)>
+	HEX_CONST RAM_BASE      0x00200000 < xb=0, 0x00200000-0x0021FFFF, Working RAM, 128KB (rw) >
+	HEX_CONST BBRAM_BASE    0x00220000 < xb=0, 0x00220000-0x0022FFFF, Zero power RAM, 64KB (rw) >
+	HEX_CONST WDOG_BASE     0x00230000 < xb=0, 0x00230000-0x0023FFFF, Kick the dog, 64KB (wo) >
+	HEX_CONST BBRUNLOCK     0x00240000 < xb=0, 0x00240000-0x0024FFFF, Unlock BBRAM, 64KB (wo) >
+	HEX_CONST TIMER_ACK     0x00240000 < xb=0, 0x00240000-0x0024FFFF, Ack the 4Ms timer. 64KB (ro) >
+	HEX_CONST TIMER_RST     0x00250000 < xb=0, 0x00250000-0x0025FFFF, reset the timer counter. 64KB (ro) >
+	HEX_CONST XBUS_SLOT1	0x00400000 < xb=1, 0x00400000-0x007FFFFF, ZTV, 4MB (rw) >
+	HEX_CONST XBUS_SLOT2	0x00800000 < xb=2, 0x00800000-0x00BFFFFF, ZRE, 4MB (rw) >
+	HEX_CONST XBUS_SLOT3	0x00C00000 < xb=3, 0x00C00000-0x00DFFFFF, ZMATH/C30MATTE, 2MB (rw) >
+	HEX_CONST XBUS_SLOT4	0x00380000 < xb=4, 0x00380000-0x003FFFFF, undefined, 512kb (rw) >
+	HEX_CONST XBUS_SLOT5	0x00300000 < xb=5, 0x00300000-0x0037FFFF, undefined, 512kb (rw) >
+	HEX_CONST XBUS_SLOT6	0x00280000 < xb=6, 0x00280000-0x002FFFFF, cage audio, 512kb (rw) >
+	HEX_CONST XBUS_SLOT7	0x00E00000 < xb=7, 0x00E00000-0x00FFFFFF, undefined, 2Mb (rw) (ICELESS) (rw) >
+	HEX_CONST ROMULATOR_START 0x00000000 < ROMBUS board 0x00000000-0x001FFFFF >
+.endc
+;
+	HEX_CONST ROMULATOR_END   ROMULATOR_START+0x00200000
+	HEX_CONST BBRAM_SIZE    (2040*4)   < BRAM size (almost 2k longwords)			>
+	HEX_CONST SRAM_BASE	RAM_BASE   < SRAM phys 0x00A00000-0x00A1FFFF (cached)			>
+	HEX_CONST SRAM_SIZE	0x00002000 < SRAM size (128k) >
+	HEX_CONST BRAM_BASE     BBRAM_BASE < alias for BBRAM >
+	HEX_CONST BRAM_SIZE     BBRAM_SIZE < alias for BBRAM_SIZE >
+	HEX_CONST CAGE_BASE     XBUS_SLOT6
+	HEX_CONST XIO_BASE      XBUS_SLOT5 < XIO board lives in slot 5 >
+	HEX_CONST TIMER_BASE	TIMER_ACK
+
+	DEC_CONST XBUS0_LVL	3			< XBUS 0 interrupt >
+	DEC_CONST XBUS1_LVL	4			< XBUS 1 interrupt >
+	DEC_CONST XBUS2_LVL	5			< XBUS 2 interrupt >
+	DEC_CONST XBUS3_LVL	6			< XBUS 3 interrupt >
+	DEC_CONST ICELESS_LVL	7			< ICELESS debugger interrupt >
+	DEC_CONST TIMER_LVL	4			< CPU timer interrupt >
+	HEX_CONST INTS_ON	0x2000			< Enable all interrupts >
+	HEX_CONST INTS_OFF	0x2700			< Disable all XBUS interrupts >
+
+	VAR	WDOG	VU32	WDOG_BASE	< Watchdog kick >
+REM <	Work RAM>
+	ARRAY	WRAM,	U32, 	SRAM_BASE, SRAM_SIZE < Working RAM	>
+REM <	EEPROM>
+	ADDR	EEPROM	U8	BBRAM_BASE+BYTE24_OFFS 	< EEPROM 		>
+REM <	BRAM>
+	ADDR	BRAM 	U8	BBRAM_BASE+BYTE24_OFFS 	< BRAM			>
+@

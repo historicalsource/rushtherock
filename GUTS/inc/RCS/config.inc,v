@@ -1,0 +1,356 @@
+head	1.1;
+access;
+symbols
+	CJ_206:1.1
+	CJ2_05:1.1
+	CJ2_04:1.1;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	95.01.11.02.17.18;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@hand-hacked version of config.i for FSF as68k
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@*
+* Special Game Flags	
+*
+CORP_JAG	=	$0	;  Not actually COJAG	
+COJAG_PROTO	=	$1	;  game specific information 
+HERO	=	$2
+HOOPS	=	$4
+COJAG_GAME	=	$1
+*
+*	TRUE and FALSE restricted to this file now, only exist for history 
+*
+*
+*	Hardware config constants
+*
+M68000	=	$1
+M68010	=	$2
+M68EC020	=	$3
+
+ANSI_OK	=	$1	;  developed under ANSI	
+PROCESSOR	=	$3	;  processor to run on	
+HAS_EXT_SND	=	$0	;  has seperate sound processor
+HAS_CAGE	=	$0	;  has a CAGE sound bd	
+HAS_GAME_RPM	=	$0	;  RPM linked w/ game?	
+HAS_4MSINT	=	$1	;  4 millisecond interrupt 
+HAS_SMC_COM	=	$0	;  has Don's SMC com bd	
+HAS_DSP	=	$0	;  has DSP		
+HAS_XGA	=	$0	;  has GXA - security	
+HAS_ASIC	=	$0	;  has ASIC		
+HAS_VAD	=	$0	;  has a VAD chip?	
+HAS_MOB	=	$0	;  has MOB chip only?	
+HAS_GROWTH	=	$0	;  has a GROWTH chip?	
+HAS_PF_ERAM	=	$0	;  has PF extended RAM	
+HAS_BITMAP	=	$0	;  has BITMAP alphas?	
+HAS_TWO	=	$0	;  possibly has 2 hdwrs	
+HAS_AN_RAM	=	$0	;  has seperate AN_RAM	
+HAS_POTS	=	$0	;  has analog joysticks?	
+HAS_LETA	=	$0	;  has Whirly-gigs or trackballs	
+HAS_CARD	=	$0	;  has card vendor box	
+HAS_COMM	=	$0	;  has Communications board 
+HAS_CRAM	=	$0	;  has Common RAM	
+HAS_PRINTF	=	$0	;  has UNIX printf functionality	
+COIN_DOORS	=	$0	;  # of coin doors(2 mechs per)	
+JMP_OPCODE	=	$4EF9	;  680xx JMP.L opcode	
+*
+*	The following are for use by assembly files, because MOTO has no .ifdef
+*
+MACROS_MOTO	=	$0
+MACROS_MAC68K	=	$1
+
+*
+*		VARIABLE TYPES
+*
+* offsets in struct pconfigb
+p_reset	=	0	; 1 void ()  Points to code 
+p_optmenu	=	4	; 1 const unsigned char *  game option menu 
+p_coinmenu	=	8	; 1 const unsigned char *  coin opt menu 
+p_linktime	=	12	; 1 const char *  Main program link time 
+p_trapmode	=	16	; 1 char  trap type 0:STOP +:68K -:68010 
+p_debug_options	=	17	; 1 char  Normally 0
+p_oblist	=	20	; 1 void * game-allocated object list memory
+p_oblen	=	24	; 1 unsigned long length in bytes of above
+* offsets in struct pconfigp
+p_validate	=	0	; 1 long  validation word	
+p_configb	=	4	; 1 struct pconfigb *  configuration pointer	
+PB_VALID	=	$0DEADBEEF	; value to validate PTR	
+*
+*	Structure to describe RAM area to test
+*
+* offsets in struct rdb
+rd_base	=	0	; 1 unsigned long *  Starting address 
+rd_len	=	4	; 1 unsigned long  Length in bytes 
+rd_misc	=	8	; 1 unsigned long  Which bits exist
+*
+*	Structure for optional return of RAM test results
+*
+* offsets in struct rrb
+rr_addr	=	0	; 1 unsigned long *  Where it choked 
+rr_expected	=	4	; 1 unsigned long  What it wanted 
+rr_got	=	8	; 1 unsigned long  What it got
+rr_test_no	=	12	; 1 int  Which test 
+*
+*	Actual Type Declarations
+*
+*
+*	Sound Processor constants
+*
+MIN_VOLUME	=	$0	;  minimum volume level		
+DEF_VOLUME	=	$18	;  sound test initial volume	
+MAX_VOLUME	=	$20	;  maximum volume level		
+BAD_VOLUME	=	$0A	;  volume if requested is bad	
+ST_S_STOP	=	$0	;  Stop all sounds		
+ST_S_SOFF	=	$1	;  Silent			
+ST_S_SON	=	$2	;  Noisy				
+ST_S_YTST	=	$4	;  Yamaha test			
+ST_S_ADTEST	=	$5	;  ADPCM test			
+ST_S_VMUSIC	=	$0A	;  music for volume adjust	
+*
+*		HARDWARE CONFIGURATION
+*
+B_NO_ROM_TEST	=	$0	;  bit # in p_debug_options to skip ROM checksum	
+NO_ROM_TEST	=	$1
+B_NO_RAM_TEST	=	$1	;  bit # in p_debug_options to skip RAM test	
+NO_RAM_TEST	=	$2
+B_NO_LOG_RESET	=	$2	;  bit # in p_debug_options to skip logging RESET
+NO_LOG_RESET	=	$4
+VBI_LVL	=	$6	;  vertical blanking interrupt level 
+MS4_LVL	=	$4	;  4mS interrupt level		
+POT_CNT	=	$0
+VIS_H_PIX	=	$150	;  horizontal screen resolution	
+VIS_V_PIX	=	$0F0	;  vertical screen resolution	
+*
+*	Color pair constants
+*
+WHT_FUL	=	$88FF
+SLT_FUL	=	$885F
+GRY_FUL	=	$887F
+GRY_BAK	=	$887F0000
+YEL_MSK	=	$0FFC0
+RED_MSK	=	$0F0FF
+CYN_MSK	=	$48FF
+GRN_MSK	=	$5F88
+GRY_SLT	=	$887F885F
+GRY_WHT	=	$887F88FF
+GRY_YEL	=	$887FFFC0
+GRY_RED	=	$887FF0FF
+GRY_GRN	=	$887F5F88
+GRY_CYN	=	$887F48FF
+
+*
+*	Alpha size, count, and stamp constants
+*
+AN_BIT_DEPTH	=	$2
+AN_STMP_CNT	=	$400	;  AN total stamps	
+AN_PALS	=	$8
+AN_STMP_WID	=	$8
+AN_STMP_HT	=	$8
+AN_TOT_COL	=	$2A	;  AN total stamps horiz.	
+AN_TOT_ROW	=	$1E	;  AN total stamps vert.		
+AN_VIS_COL	=	$2A	;  AN visible stamps horiz.	
+AN_VIS_ROW	=	$1E	;  AN visible stamps vert.	
+AN_TOT_SIZ	=	$4EC
+AN_NXT_COL	=	$10	;  AN offset to next horz. stamp (bytes)	
+AN_NXT_ROW	=	$1500	;  AN offset to next vert. stamp (bytes)	
+AN_RC_BUMP	=	$15000010	;  ROW-COLUMN BUMP CONST	
+AN_BLANK	=	$0	;  AN stamp # completely empty	
+AN_A_STMP	=	$47	;  code for 'A' stamp		
+AN_SQUARE	=	$3	;  AN stamp # completely filled	
+AN_DOT	=	$11D	;  Used for joystick display	
+AN_BALL	=	$11E	;  Used for joystick display	
+AN_BORDER	=	$3
+AN_VOL_BAR	=	$166	;  AN stamp for volume stamp	
+BGBIT	=	$8000
+AN_PAL_MSK	=	$7000
+AN_PAL_SHF	=	$0C
+AN_NXT_PAL	=	$1000
+AN_PAL0	=	$0
+AN_PAL0B	=	$8000
+AN_PAL1	=	$1000
+AN_PAL1B	=	$9000
+AN_PAL2	=	$2000
+AN_PAL2B	=	$0A000
+AN_PAL3	=	$3000
+AN_PAL3B	=	$0B000
+AN_PAL4	=	$4000
+AN_PAL4B	=	$0C000
+AN_PAL5	=	$5000
+AN_PAL5B	=	$0D000
+AN_PAL6	=	$6000
+AN_PAL6B	=	$0E000
+AN_PAL7	=	$7000
+AN_PAL7B	=	$0F000
+GRY_PAL	=	$0	;  GREY is palette 0	
+GRY_PALB	=	$8000
+WHT_PAL	=	$1000	;  WHITE is palette 1	
+WHT_PALB	=	$9000
+YEL_PAL	=	$2000	;  YELLOW is palette 2	
+YEL_PALB	=	$0A000
+RED_PAL	=	$3000	;  RED is palette 3	
+RED_PALB	=	$0B000
+GRN_PAL	=	$4000	;  GREEN is palette 4	
+GRN_PALB	=	$0C000
+CYN_PAL	=	$5000	;  CYAN is palette 5	
+CYN_PALB	=	$0D000
+TITLE_PAL	=	$0B000
+INSTR_PAL	=	$0C000
+BORDER_PAL	=	$3000
+VERSION_PAL	=	$0D000
+MHILITE_PAL	=	$0A000
+MNORMAL_PAL	=	$0
+*
+*	Playfield size, count, and stamp constants
+*  Jaguar has no "playfield" per se
+*
+PF_CNT	=	$0	;  Number of playfields		
+
+*
+*	Hardware I/O
+*
+*
+*ARRAY
+*
+
+
+JERRY_BASE	=	$0FFF10000	; TOM's internal register base
+INPUTS	=	$0FFF17000	; (VU32)  SWITCH INPUTS	
+JAMMA	=	$0FFF17C00	; (VU32)  JAMMA connector	
+START	=	$0FFF17C00	; (VU32)  START SWITCH ADDR	
+B_START	=	$17	;  Player 1 START SWITCH BIT	
+
+DIAG	=	$0FFF17000	; (VU32)  Diagnostic switches	
+VBLANK	=	$0FFF17000	; (VU32)  VBLANK SWITCH ADDR	
+B_VBL	=	$7	;  VBLANK SWITCH BIT	
+TEST	=	$0FFF17000	; (VU16)  SELFTEST SWITCH ADDR	
+B_TEST	=	$6	;  SELFTEST SWITCH BIT	
+
+
+
+
+CN_STATUS	=	$0FFF17000	; (VU32)  Coin SWITCHES ADDR	
+BC_AUX_LFT	=	$3	;  AUX LEFT Coin switch	
+BC_AUX_RGT	=	$2	;  AUX RIGHT Coin switch	
+B_COINL	=	$1	;  COIN LEFT
+B_COINR	=	$0	;  COIN RIGHT 
+
+	
+
+
+LATCH	=	$0FFF17800	; (VU16)  CIRCUIT CONTROL REG	
+
+LM_VCR_REC	=	$2000	;  start/stop vcr recording	
+LM_EMC_R	=	$1	;  click COIN CTR 0	
+LM_EMC_L	=	$2	;  click COIN CTR 1	
+LM_MUTE	=	$20	;  MUTE Audio if 1	
+
+
+VCR_RECORD	=	$0FFFFFFFF	;  turn on vcr RECORD		
+VCR_STOP	=	$0	;  STOP vcr			
+UNLK_EP	=	$0FFA40000	; (VU16)  EEPROM UNLOCK STROBE	
+WDOG	=	$0FFA30000	; (VU16)  WATCH DOG RESET	
+CPU_TIMER	=	$0FFA50000	; (VU32)  1-4 ms timer		
+CPU_INTACK	=	$0FFA40000	; (VU32)  ACK timer irq with read
+TOM_BASE	=	$0FFF00000	; TOM's internal register base
+MEMCON1	=	$0FFF00000	; (VU16) Memory Config Register
+MEMCON2	=	$0FFF00002	; (VU16) Memory Config Register
+MEMCON_VAL	=	$586135CC
+TOM_INT1	=	$0FFF000E0	; (VU16) 
+TOM_INT2	=	$0FFF000E2	; (VU16) 
+*
+*	SELFTEST common definitions
+*
+INTS_OFF	=	$2700	;  Value for all IRQs disabled
+INTS_ON	=	$2000	;  Value for all IRQs enabled
+TEST_DWELL	=	900	;  How long to wait for NEXT in P.O.R
+WDI_MASK	=	$3FF	;  longwords to try to clear btw wdogs
+*
+*	SELFTEST switch definitions coming OUT of sf_swtch
+*
+J1_UP	=	$80000000
+J1_DOWN	=	$40000000
+J1_LEFT	=	$20000000
+J1_RIGHT	=	$10000000
+J1_B	=	$8000000
+J1_A	=	$4000000
+J1_FIRE	=	$2000000
+J1_START	=	$1000000
+J2_UP	=	$8000
+J2_DOWN	=	$4000
+J2_LEFT	=	$2000
+J2_RIGHT	=	$1000
+J2_B	=	$800
+J2_A	=	$400
+J2_FIRE	=	$200
+J2_START	=	$100
+J_UP	=	$80008000
+J_DOWN	=	$40004000
+*
+*	J_LEFT/RIGHT, JOY_ defs moved below so the can use SW_ defs	
+*
+
+J1_VERT	=	$0C0000000
+J1_BITS	=	$0F0000000
+J2_BITS	=	$0F000
+
+*
+*	the switches let you do s/t options w/o L/R on stix	
+*
+J_LEFT	=	$20002000
+J_RIGHT	=	$10001000
+JOY_BITS	=	$0F000F000
+JOY_VERT	=	$0C000C000
+
+SW_NEXT	=	$1000000
+SW_ACTION	=	$2000000
+SW_EXTRA	=	$4000000
+
+JOY_ALL	=	$0F300F000
+SW_ALL	=	$7000000
+*
+*	Work RAM
+*
+WRAM	=	$0FFA00000	;  Working RAM	
+WRAM_size	=	$20000
+*
+*	EEPROM
+*
+EEPROM	=	$0FFA20000	; (U8)  EEPROM		
+*
+*	Color RAM
+*
+COLRAM	=	$0FFF00400	;  In Tom, 16-Bit only 
+COLRAM_size	=	$800
+*
+*	Video RAM
+*
+*
+*	MESSAGE ROUTINE CONFIGURATION
+*
+MAX_MESS	=	$0	;  maximum # of special message types	
+BIG_CHAR	=	$80	;  BIG character bit offset		
+COLMSK	=	$0F000	;  palette mask+bgbit	
+SETMSK	=	$3	;  character set mask	
+AN_SET0	=	$0
+AN_SET1	=	$1
+AN_SET2	=	$2
+AN_BIG_SET	=	$3
+*
+*			EOF				
+*
+
+@

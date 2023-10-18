@@ -1,0 +1,52 @@
+head	1.1;
+access;
+symbols
+	CJ_206:1.1
+	CJ2_05:1.1
+	CJ2_04:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	94.12.16.16.37.44;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@definitions and prototypes for Jaguar GPU (Tom) control routines
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@/*************************************************************
+* GPU.H | Author: Robert M. Birmingham | September 20, 1994  *
+* ========================================================== *
+* Header file for RISC.C, which contains the functions for   *
+* managing GPU on the Jaguar hardware.                       *
+*************************************************************/
+
+#define  GPU_LOAD  (0)
+#define  GPU_RUN   (1)
+
+typedef struct{
+    U32 *codeptr;
+    U32 codesize;
+    U32 stacksize;
+    } GPU_HEADER;
+
+U32 gpu_load( GPU_HEADER *, U32 runaddr, int );
+void gpu_run( U32 runaddr );
+void gpu_wait( void );
+U32 gpu_calc_stackptr( GPU_HEADER *gpu_header, U32 runaddr );
+U32 *gpu_push( U32 *stackptr, U32 stackparm );
+
+/*************************************************************************
+* End of file: GPU.H                                                     *
+*************************************************************************/
+@

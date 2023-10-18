@@ -1,0 +1,36 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	96.02.08.18.47.05;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Some prototypes used by the standalone diagnostics.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@#if !defined(_PROTO_H_)
+#define _PROTO_H_
+
+#include <os_root.h>
+#include <nsprintf.h>
+
+extern char *diag_get_line(const char *prompt);
+extern void reent_init(void);
+extern void parse(void);
+extern char emsg[132];
+extern char *mem_test_msgs[];
+#endif
+@

@@ -1,0 +1,2804 @@
+head	1.11;
+access;
+symbols
+	AREA_52_00:1.5;
+locks; strict;
+comment	@ * @;
+
+
+1.11
+date	97.10.31.02.38.45;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	97.10.13.18.43.05;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	97.09.26.03.36.12;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	97.09.26.02.58.43;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	97.09.26.01.11.46;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.08.13.03.50.10;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	97.07.16.02.21.25;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	97.07.11.01.19.41;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.05.30.03.46.25;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.05.17.19.10.55;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.05.17.01.53.20;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Chameleon IDE driver.
+@
+
+
+1.11
+log
+@Changed types on seek and read from size_t to off_t and
+int to long respectively.
+@
+text
+@/*
+ * $Id: cmd_ide.c,v 1.10 1997/10/13 18:43:05 shepperd Exp shepperd $
+ *
+ *		Copyright 1997 Atari Games, Corp.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ *
+ ********************************************************
+ * Author: David Shepperd -- May 13, 1997		*
+ * ==================================================== *
+ * This file contains the IDE device driver functions.  *
+ * for a Chameleon (class) hardware using the CMD IDE 	*
+ * controller chip (CMD Technology PCI0646).		*
+ ********************************************************/
+
+/*
+ * set TEST_DISK_ERRORS non-zero to test error handling code
+ * set IDE_RW_VIA_DMA non-zero if you want to enable r/w via DMA
+ */
+
+#define QIO_LOCAL_DEFINES	1
+#include <stdio.h>
+#include <stddef.h>
+#include <string.h>
+#include <fcntl.h>
+#include <config.h>
+
+#ifndef NUM_HDRIVES
+# define NUM_HDRIVES 1
+#endif
+
+#if (NUM_HDRIVES <= 0) || (NUM_HDRIVES > 2)
+# error * Sorry, The cpp variable, "NUM_HDRIVES", must be 1 or 2
+# undef NUM_HDRIVES
+# define NUM_HDRIVES 1
+#endif
+
+#include <os_proto.h>
+#include <st_proto.h>
+#include <phx_proto.h>
+#include <intvecs.h>
+#include <qio.h>
+#include <fsys.h>
+#include <nsprintf.h>
+#include <eer_defs.h>
+#include <wms_proto.h>
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+#if !defined(KICK_WDOG)
+# if defined(WDOG) && !NO_EER_WRITE && !NO_WDOG
+#  define KICK_WDOG() WDOG = 0
+# else
+#  define KICK_WDOG() do { ; } while (0)
+# endif
+#endif
+
+#if NO_BLINKING_LED
+# ifndef LED_ON
+#  define LED_ON(x)	do { *(VU32*)LED_OUT &= ~(1<<B_LED_##x); } while (0)
+# endif
+# ifndef LED_OFF
+#  define LED_OFF(x)	do { *(VU32*)LED_OUT |= (1<<B_LED_##x); } while (0)
+# endif
+#else
+# ifndef LED_ON
+#  define LED_ON(x)	do { ; } while(0)
+# endif
+# ifndef LED_OFF
+#  define LED_OFF(x)	do { ; } while(0)
+# endif
+#endif
+
+#ifndef IDE_MAX_DMA_CNT
+# define IDE_MAX_DMA_CNT 127
+#endif
+
+#ifndef IDE_MAX_PIO_CNT
+# define IDE_MAX_PIO_CNT 255
+#endif
+
+#ifndef HDIO_KERNEL_BUFSIZE
+# if !FSYS_TIGHT_MEM
+#  define HDIO_KERNEL_BUFSIZE   (IDE_MAX_DMA_CNT*512)
+# else
+#  define HDIO_KERNEL_BUFSIZE	8192
+# endif
+#endif
+
+#define  IDE_CMD_RECALIBRATE    (0x10)
+#define  IDE_CMD_SREAD          (0x20)
+#define  IDE_CMD_SREAD_NORTY    (0x21)
+#define  IDE_CMD_SWRITE         (0x30)
+#define  IDE_CMD_SWRITE_NORTY   (0x31)
+#define  IDE_CMD_SVERIFY        (0x40)
+#define  IDE_CMD_FORMAT         (0x50)
+#define  IDE_CMD_SEEK           (0x70)
+#define  IDE_CMD_DIAGNOSTICS    (0x90)
+#define  IDE_CMD_INITPARMS      (0x91)
+#define  IDE_CMD_MREAD          (0xC4)
+#define  IDE_CMD_MWRITE         (0xC5)
+#define  IDE_CMD_MULTIMODE      (0xC6)
+#define  IDE_CMD_RDDMA		(0xC8)
+#define  IDE_CMD_RDDMA_NORTY	(0xC9)
+#define  IDE_CMD_WRTDMA		(0xCA)
+#define  IDE_CMD_WRTDMA_NORTY	(0xCB)
+#define  IDE_CMD_BREAD          (0xE4)
+#define  IDE_CMD_BWRITE         (0xE8)
+#define  IDE_CMD_IDENTIFY       (0xEC)
+#define  IDE_CMD_BUFFERMODE     (0xEF)
+/* Status bits  */
+#define  IDE_STB_BUSY           (0x80)
+#define  IDE_STB_READY          (0x40)
+#define  IDE_STB_WRFAULT        (0x20)
+#define  IDE_STB_SEEKDONE       (0x10)
+#define  IDE_STB_DATAREQ        (0x08)
+#define  IDE_STB_CORRDATA       (0x04)
+#define  IDE_STB_INDEX          (0x02)
+#define  IDE_STB_ERROR          (0x01)
+/* Error bits */
+#define  IDE_ERB_BADBLOCK       (0x80)
+#define  IDE_ERB_UNCDATA        (0x40)
+#define  IDE_ERB_IDNFOUND       (0x10)
+#define  IDE_ERB_ABORTCMD       (0x04)
+#define  IDE_ERB_TK0NFOUND      (0x02)
+#define  IDE_ERB_AMNFOUND       (0x01)
+#define  DRIVE_HEAD_INFO        (0x00)
+#define  BYTES_PER_SECTOR       (512)
+#define  WORDS_PER_SECTOR       (BYTES_PER_SECTOR/2)
+#define  LONGS_PER_SECTOR       (BYTES_PER_SECTOR/4)
+
+typedef struct ide_ctl {
+    union {
+	VU32 ldata;
+	struct { VU16 data; VU16 pad; } wdata;
+	struct { VU8 data; VU8 precomp_error; VU8 scnt; VU8 snum; } bdata;
+    } overlaid;
+    VU8 lcylinder;
+    VU8 hcylinder;
+    VU8 drive_head;
+    VU8 csr;
+} IdeCtl; 
+
+#define CMD_PCI_CFR		(0x50/4) /* PCI configuration registers */
+# define CMD_CFR_V		0	/* (0x50) shift count for CFR register */
+# define CMD_CFR_DSA1		(1<<6)	/* status of DSA1 jumper */
+# define CMD_CFR_INT		(1<<2)	/* Interrupt pending */
+# define CMD_CNTRL_V		8	/* (0x51) shift count for CNTRL register */
+# define CMD_CNTRL_D1RA		(1<<7)	/* Drive 1 read ahead enable */
+# define CMD_CNTRL_D0RA		(1<<6)	/* Drive 0 read ahead enable */
+# define CMD_CNTRL_2CHAN	(1<<3)	/* Second channel enable */
+# define CMD_CMDTIM_V		16	/* (0x52) shift count for CMDTIM register */
+# define CMD_ACT_V		(4)	/* shift count for active time */
+# define CMD_REC_V		(0)	/* shift count for recovery time */
+# define DEFAULT_CMDTIM ((0x2<<CMD_ACT_V)|0x1)
+# define CMD_ARTTIM0_V		24	/* (0x53) shift count for ARTTIM0 register */
+# define DEFAULT_ARTTIM	(0x40)
+#define CMD_PCI_DRWTIM0		(0x54/4) /* PCI Drive 0 R/W or DACK timing */
+# define CMD_DRWTIM0_V		0	/* (0x54) shift count for DRWTIM0 register */
+# define CMD_ARTTIM1_V		8	/* (0x55) shift count for Drive 1 address setup timing */
+# define CMD_DRWTIM1_V		16	/* (0x56) shift count for Drive 1 R/W or DACK timing */
+# define CMD_ARTTIM23_V		24	/* (0x57) shift count for Drive 2/3 address setup timing */
+#define CMD_PCI_DRWTIM2		(0x58/4) /* PCI Drive 2 R/W or DACK timing */
+# define CMD_DRWTIM2_V		0	/* (0x58) shift count for Drive 2 R/W or DACK timing */
+# define CMD_BRST_V		8	/* (0x59) shift count for Read Ahead count */
+# define CMD_DRWTIM3_V		16	/* (0x5A) shift count for Drive 3 R/W or DACK timing */
+
+#if IDE_RW_VIA_DMA
+typedef struct cmd_cmd {
+    unsigned char cmd;		/* command register */
+    unsigned char ds0;		/* device specific (contents unknown) */
+    unsigned char status;	/* status register */
+    unsigned char ds1;		/* device specific (contents unknown) */
+    unsigned long prd_addr;	/* descriptor table address */
+} CMDcmd;
+
+#define DMA_CMD_start	0x01	/* start DMA */
+#define DMA_CMD_write	0x08	/* write DMA */
+#define DMA_STS_busy	0x01	/* DMA channel is busy */
+#define DMA_STS_error	0x02	/* DMA got an error */
+#define DMA_STS_int	0x04	/* Interrupt reported from drive */
+#define DMA_STS_dma1	0x20	/* drive 1 is DMA capable */
+#define DMA_STS_dma2	0x40	/* drive 2 is DMA capable */
+
+typedef struct cmd_pdt {
+    unsigned long phys;		/* physical address */
+    unsigned long byte_cnt;	/* byte count (must be even and .le. 65534) */
+} CMDpdt;
+#define DMA_PDT_EOT	0x80000000	/* signal end of block */
+#define IDE_PDTS_DD	6	/* number of local pdts */
+#ifndef IDE_CACHE_LINE_SIZE
+# define IDE_CACHE_LINE_SIZE (16) /* assume 16 bytes per cache line */
+#endif
+#define IDE_PDTS_CACHE_LINE	(IDE_CACHE_LINE_SIZE/sizeof(CMDpdt))
+#endif
+
+typedef struct device_desc{
+    struct ide_ctl *ideptr;	/* points to h/w */
+    volatile unsigned char *alt_sts;	/* points to alternate status byte */
+    struct act_q complete_q;	/* queue for completion routine */
+    struct tq timer_q;		/* gross timer for I/O */
+    volatile int timeout;	/* timeout flag */
+#if IDE_RW_VIA_DMA
+    CMDpdt pdt[IDE_PDTS_DD+IDE_PDTS_CACHE_LINE]; /* room for some PDT's + alignment */
+    CMDpdt *pdts;		/* pointer to array of pdt's */
+    CMDcmd *dma;		/* pointer to DMA control registers */
+#endif
+    int doofus;			/* number of times I/O required use of kernel buffer */
+    int did_multsect;		/* amount issued for SET MULTIPLE command */
+    U32 *lclbuff;		/* pointer to "kernel" buffer to using during I/O */
+    volatile int busy;		/* drive currently busy */
+    int select;			/* drive select bit */
+    int status;			/* status of device connected */
+    int cyls;			/* number of cylinders */
+    int heads;			/* number of heads */
+    int sectors;		/* number of sectors per track */
+    int spc;			/* sectors per cylinder */
+    int lba_capacity;		/* total number of sectors per disk */
+    int max_multsect;		/* maximum number of sectors on multi-sector r/w */
+    int dma_ns;			/* nanosecs for DMA read/write */
+    int pio_ns;			/* nanosecs for PIO read/write */
+    int dma_timing;		/* value to stuff into the timing register */
+    int pio_timing;		/* value to stuff into the timing register */
+} DeviceDesc;
+
+/* structure returned by HDIO_GET_IDENTITY, as per ANSI ATA2 rev.2j spec */
+/* (VU) = Vendor Unique							 */
+typedef struct hd_driveid {
+    unsigned short	config;		/*  0 lots of obsolete bit flags */
+    unsigned short	cyls;		/*  1 "physical" cyls */
+    unsigned short	reserved2;	/*  2 reserved (word 2) */
+    unsigned short	heads;		/*  3 "physical" heads */
+    unsigned short	track_bytes;	/*  4 (VU) unformatted bytes per track */
+    unsigned short	sector_bytes;	/*  5 (VU) unformatted bytes per sector */
+    unsigned short	sectors;	/*  6 "physical" sectors per track */
+    unsigned short	vendor0;	/*  7 vendor unique */
+    unsigned short	vendor1;	/*  8 vendor unique */
+    unsigned short	vendor2;	/*  9 vendor unique */
+    unsigned char	serial_no[20];	/* 10-19 Serial number ([0,1] == 0, not specified) */
+    unsigned short	buf_type;	/* 20 (VU) */
+    unsigned short	buf_size;	/* 21 (VU) 512 byte increments; 0 = not_specified */
+    unsigned short	vs_bytes;	/* 22 number of vendor specific bytes on r/w longs */
+    unsigned char	fw_rev[8];	/* 23-26 Firmware revision */
+    unsigned char	model[40];	/* 27-46 Model number */
+    unsigned char	max_multsect;	/* 47lsb max sectors on a r/w multiple; 0=not_implemented */
+    unsigned char	vendor3;	/* 47msb (VU) */
+    unsigned short	reserved48;	/* 48 reserved */
+    unsigned char	vendor4;	/* 49lsb (VU) */
+    unsigned char	capability;	/* 49msb bits 0:DMA 1:LBA 2:IORDYsw 3:IORDYsup*/
+    unsigned short	reserved50;	/* 50 reserved */
+    unsigned char	vendor5;	/* 51lsb (VU) */
+    unsigned char	tPIO;		/* 51msb 0=slow, 1=medium, 2=fast */
+    unsigned char	vendor6;	/* 52lsb (VU) vendor unique */
+    unsigned char	tDMA;		/* 52msb 0=slow, 1=medium, 2=fast */
+    unsigned short	field_valid;	/* 53 bits 0:cur_ok 1:eide_ok */
+    unsigned short	cur_cyls;	/* 54 logical cylinders */
+    unsigned short	cur_heads;	/* 55 logical heads */
+    unsigned short	cur_sectors;	/* 56 logical sectors per track */
+    unsigned short	cur_capacity0;	/* 57 logical total sectors on drive (lsb) */
+    unsigned short	cur_capacity1;	/* 58   (2 words, misaligned int) (msb)    */
+    unsigned char	multsect;	/* 59lsb current multiple sector count */
+    unsigned char	multsect_valid;	/* 59msb when (bit0==1) multsect is ok */
+    unsigned int	lba_capacity;	/* 60+61 total number of sectors */
+    unsigned short	dma_1word;	/* 62 single-word dma info */
+    unsigned short	dma_mword;	/* 63 multiple-word dma info */
+    unsigned short  	eide_pio_modes; /* 64 bits 0:mode3 1:mode4 */
+    unsigned short  	eide_dma_min;	/* 65 min mword dma cycle time (ns) */
+    unsigned short  	eide_dma_time;	/* 66 recommended mword dma cycle time (ns) */
+    unsigned short  	eide_pio;       /* 67 min cycle time (ns), no IORDY  */
+    unsigned short  	eide_pio_iordy; /* 68 min cycle time (ns), with IORDY */
+    unsigned short  	reserved69;	/* 69 reserved */
+    unsigned short  	reserved70;	/* 70 reserved */
+    /* unsigned short reservedxx[57];*/	/* reserved (words 71-127) */
+    /* unsigned short vendor7  [32];*/	/* vendor unique (words 128-159) */
+    /* unsigned short reservedyy[96];*/	/* reserved (words 160-255) */
+} DriveID;
+
+extern struct cpu_params cpu_params;
+
+#ifndef HDIO_BATCH
+# define HDIO_BATCH	32
+#endif
+
+enum hd_read_state {
+    HDRW_BEGIN,
+#if IDE_RW_VIA_DMA
+    HDREAD_DMA,
+    HDREAD_CHECK,
+    HDWRITE_DMA,
+    HDWRITE_CHECK,
+#endif
+    HDREAD_PIO,
+    HDREAD_PIOCHK,
+    HDWRITE_PIO,
+    HDWRITE_PIOCHK,
+    HDRW_XFER,
+    HDRW_DONE,
+    HDRW_TIMEOUT
+};
+
+#define HDIO_USE_KERNEL		1	/* flags below is set to this indicating to use kernel buffer for I/O */
+
+typedef struct hd_io {
+    struct hd_io *next;		/* ptr to next hd_io struct */
+    const QioDevice *dvc;	/* dvc stored here just to save time */
+    QioFile *file;		/* stored here just to save time */
+    char *buff;			/* ptr to user's buffer */
+    int xfer;			/* number of bytes currently being xferred */
+    int wrt;			/* number of bytes that were written */
+    int remain;			/* number of bytes remaining to xfer (multiple of sector size) */    
+    int u_len;			/* number of bytes user asked for (may not be multiple of sector size) */
+    int flags;			/* .ne. if using kernel buffer to do xfer */
+    int lba;			/* sector number */
+    int direction;		/* .ne. for write, .eq. for read */
+    enum hd_read_state state;	/* current state */
+} HdIO;
+
+static HdIO *hdio_pool_head;
+
+/************************************************************
+ * hd_gethdio - Get a HdIO from the system's pool
+ * 
+ * At entry:
+ *	no requirements
+ *
+ * At exit:
+ *	returns pointer to queue or 0 if none available.
+ */
+static HdIO *hd_gethdio(void) {
+    int oldipl, ii;
+    HdIO *q;
+
+    oldipl = prc_set_ipl(INTS_OFF); /* this cannot be interrupted */
+    q = hdio_pool_head;		/* get next item */
+    if (!q) {			/* need to get more ioq's */
+	HdIO *new;
+	prc_set_ipl(oldipl);	/* interrupts are ok now */
+	new = QIOcalloc(HDIO_BATCH, sizeof(QioIOQ));
+	if (!new) return 0;	/* no more */
+	for (q=new, ii=0; ii < HDIO_BATCH-1; ++ii, ++q) {
+	    q->next = q+1;
+	}
+	prc_set_ipl(INTS_OFF);
+	q->next = hdio_pool_head;
+	q = new;
+    }
+    hdio_pool_head = q->next;
+    prc_set_ipl(oldipl);
+    q->state = 0;
+    return q;
+}
+    
+/************************************************************
+ * hd_freehdio - Free a HdIO as obtained from a previous
+ * call to hd_gethdio().
+ * 
+ * At entry:
+ *	que - pointer to queue element to put back in pool.
+ *
+ * At exit:
+ *	returns 0 if success, 1 if error
+ */
+static int hd_freehdio(HdIO *que) {
+    int oldipl;
+
+    if (!que) return 1;
+    oldipl = prc_set_ipl(INTS_OFF); /* this cannot be interrupted */
+    que->next = hdio_pool_head;
+    hdio_pool_head = que;
+    prc_set_ipl(oldipl);	/* interrupts ok again */
+    return 0;
+}
+
+static int ide_pci_device_id;
+
+static int get_cmd_device_number(void) {
+    int id = -1, junk;
+    int ii;
+
+    for (ii=0; ii < 6; ++ii) {
+	junk = get_pci_config_reg(ii, 0);
+	if (junk == 0x06461095) id = ii;
+    }
+    return id;
+}
+
+#ifndef CMD_DEF_BAR
+# define CMD_DEF_BAR (0x400)
+#endif
+
+static int setup_harddrive(void) {
+    int id;
+    U32 junk;
+
+    id = get_cmd_device_number();
+    if ((ide_pci_device_id = id) < 0) return -1;
+    put_pci_config_reg(id, 1, 5);	/* enable the chip and bus master */
+    junk = get_pci_config_reg(id, 2);
+    junk = (junk&0xFFFF00FF) | 0x8F00;
+    put_pci_config_reg(id, 2, junk);	/* use native mode instead of legacy */
+    junk = get_pci_config_reg(id, CMD_PCI_CFR);
+    junk = get_pci_config_reg(id, CMD_PCI_DRWTIM0);
+    junk = get_pci_config_reg(id, CMD_PCI_DRWTIM2);
+    get_pci_config_reg(id, 4);
+    put_pci_config_reg(id, 4, -1);
+    junk = get_pci_config_reg(id, 4);
+    put_pci_config_reg(id, 4, 0x1F0);	/* use legacy IDE addressing */
+    get_pci_config_reg(id, 5);
+    put_pci_config_reg(id, 5, -1);
+    junk = get_pci_config_reg(id, 5);
+    put_pci_config_reg(id, 5, 0x3F4);	/* use legacy IDE addressing */
+    get_pci_config_reg(id, 8);
+    put_pci_config_reg(id, 8, -1);
+    junk = get_pci_config_reg(id, 8);
+    put_pci_config_reg(id, 8, CMD_DEF_BAR); /* use 0x400 for IDE DMA and CNT regs */
+    junk = get_pci_config_reg(id, 8);
+    return 0;
+}
+
+/**************************************************************/
+
+#ifndef n_elts
+# define n_elts(x) (sizeof(x)/sizeof(x[0]))
+#endif
+
+#ifndef DREQ_TIMEOUT
+# define DREQ_TIMEOUT    (2*60)   /* timeout for wait for DREQ */
+#endif
+#ifndef BUSY_TIMEOUT
+# define BUSY_TIMEOUT    (5*60)   /* timeout for ide_wait_not_busy() */
+#endif
+#ifndef RESET_TIMEOUT
+# define RESET_TIMEOUT   (10*60)  /* timeout for ide_soft_reset() */
+#endif
+#ifndef POWERUP_TIMEOUT
+# define POWERUP_TIMEOUT (30*60)  /* timeout for drive powerup */
+#endif
+
+static DeviceDesc device_list[NUM_HDRIVES];
+
+#define READ_BYTE(x) *(x)
+
+/*
+** *************************************
+** ide_wait_not_busy(dev):
+** Wait for the drive to become not busy
+** *************************************
+*/
+
+static int ide_wait_not_busy( DeviceDesc *dev)
+{
+    U32 end_timer;
+
+    end_timer = eer_rtc;
+    while( (eer_rtc - end_timer) <  BUSY_TIMEOUT) {
+	if (!(READ_BYTE(dev->alt_sts) & IDE_STB_BUSY)) break;
+	if ((eer_rtc&15) == 0) KICK_WDOG();
+    }
+    return 0;
+
+}   /* End: ide_wait_not_busy() */
+
+/*
+** ******************************************************
+** ide_send_byte():
+** Send the specified byte to the IDE controller.
+** ======================================================
+** Usage:
+**   ide_send_byte( ptr, offset, cmd );
+**
+**   offset:  address offset (0-7) to write
+**   cmd:  data to write to IDE controller.
+**
+** Returns:
+**   0 on success, 1 if timeout
+** ******************************************************
+*/
+
+#define SEND_BYTE_WAIT_TIME (CPU_SPEED/1000000 * 128)
+
+#if IDE_SENDBYTE_HISTORY
+U8 ide_sendbyte_history[IDE_SENDBYTE_HISTORY][sizeof(IdeCtl)];
+#endif
+
+static int ide_send_byte(DeviceDesc *dev, int offset, int val) {
+    U32 t;
+
+#if IDE_SENDBYTE_HISTORY
+    ide_sendbyte_history[0][offset] = val;
+    if (offset == offsetof(IdeCtl, csr)) {	/* if writing to command byte */
+	int ii;
+	for (ii=IDE_SENDBYTE_HISTORY-1; ii > 0; --ii ) {
+	    memcpy(ide_sendbyte_history[ii], ide_sendbyte_history[ii-1], sizeof(IdeCtl));
+	}
+	memset(ide_sendbyte_history[0], 0, sizeof(IdeCtl));
+    }
+#endif
+
+    t = prc_get_count();
+
+    do {
+	if (!(READ_BYTE(dev->alt_sts) & IDE_STB_BUSY)) {
+	    *((VU8*)dev->ideptr + offset) = val;
+	    return 0;
+	}
+    } while ( (prc_get_count() - t) < SEND_BYTE_WAIT_TIME);
+
+/*
+ * Check one more time in case the above loop timed out due to 
+ * interrupt servicing.
+ */
+
+    if (!(READ_BYTE(dev->alt_sts) & IDE_STB_BUSY)) {
+	*((VU8*)dev->ideptr + offset) = val;
+	return 0;
+    }
+
+    return 1;
+}
+    
+static void cmd_irq(void) {
+    DeviceDesc *dev;
+    U32 sts;
+#if IDE_RW_VIA_DMA
+    CMDcmd *dma;
+    U32 dma_sts;
+#endif
+    
+    sts = get_pci_config_reg(ide_pci_device_id, CMD_PCI_CFR);
+    if ((sts&CMD_CFR_INT)) {		/* this interrupt is us */
+	dev = device_list;
+
+#if IDE_RW_VIA_DMA
+	dma = dev->dma;			/* point to h/w register */
+	dma_sts = dma ? dma->status : 0;
+#endif
+	READ_BYTE(&dev->ideptr->csr);	/* clear the interrupt at the drive */
+#if NUM_HDRIVES > 1
+	if (!dev->busy) ++dev;		/* drive 0 not busy, switch to drive 1 */
+#endif
+	if (dev->busy) {		/* if drive busy */
+	    dev->busy &= ~1;		/* not busy anymore */
+	    if (dev->complete_q.action) { /* if he has a completion routine */
+		prc_q_ast(QIO_ASTLVL, &dev->complete_q); /* queue it up */
+	    }
+	}
+#if IDE_RW_VIA_DMA
+	if ((dma_sts&DMA_STS_int)) dma->status |= DMA_STS_int;
+#endif
+    }
+    return;
+}
+
+static int ide_hard_reset(void) {
+    int tmp;
+
+    tmp = prc_set_ipl(INTS_OFF);
+    RESET_CTL_T &= ~RESET_IDE;
+    prc_wait_n_usecs(500);
+    RESET_CTL_T |= RESET_IDE;
+    prc_set_ipl(tmp);
+
+    device_list[0].did_multsect = 0;	/* this gets cleared */
+    device_list[0].busy = 0;
+#if NUM_HDRIVES > 1
+    device_list[1].did_multsect = 0;	/* this gets cleared too */
+    device_list[1].busy = 0;
+#endif
+
+    prc_delay(2);
+    return setup_harddrive();		/* re-init the CMD chip */
+}
+
+/**************************************************************/
+
+#define DEVICE_SELECT_BIT  (4)
+
+/*
+** ************************************************
+** ide_set_device():
+** Set the active device for subsequent IDE functions.
+** ================================================
+** Usage:
+**   ide_set_device( DeviceDesc *dev );
+**
+** Returns:
+**   nothing.
+** ************************************************
+*/
+
+static void ide_set_device( DeviceDesc *dev ) {
+    int tmp;
+
+    tmp = dev->ideptr->drive_head;
+    tmp &= ~(1<<DEVICE_SELECT_BIT);
+    dev->ideptr->drive_head = tmp | dev->select;
+    return;
+}   /* End: ide_set_device() */
+
+static void hd_lseek_q( QioIOQ *ioq ) {
+    HdIO *hdio;
+    QioFile *file;
+
+    hdio = (HdIO *)ioq->private2;
+    file = hdio->file;
+    switch (hdio->flags) {
+	case SEEK_SET:
+	    file->pos = hdio->remain;
+	    break;
+
+	case SEEK_END:
+	    file->pos = file->size + hdio->remain;
+	    break;
+
+	case SEEK_CUR:
+	    file->pos += hdio->remain;
+	    break;
+    }
+    if (file->pos > file->size) file->pos = file->size;
+    ioq->iostatus = HDIO_SUCC|SEVERITY_INFO;
+    ioq->iocount = file->pos;
+    qio_freemutex(file->dvc->mutex, ioq); /* done with HD mutex */
+    hd_freehdio(hdio);			/* done with HD I/O stuff */
+    ioq->private2 = 0;
+    qio_complete(ioq);
+}
+
+static int hd_lseek( QioIOQ *ioq, off_t pos, int whence) {
+    QioFile *file;
+    HdIO *hdio;
+    int sts;
+
+    if (whence < 0 || whence > SEEK_END) return (ioq->iostatus = HDIO_INVARG);
+    file = qio_fd2file(ioq->file);
+    hdio = hd_gethdio();
+    if (!hdio) return (ioq->iostatus = HDIO_NOHDIO);
+    hdio->file = file;
+    hdio->remain = pos;
+    hdio->flags = whence;
+    ioq->private2 = hdio;
+    sts = qio_getmutex(file->dvc->mutex, hd_lseek_q, ioq);
+    if (sts) {
+	hd_freehdio(hdio);		/* done with HD I/O stuff */
+	return sts;
+    }
+    return 0;
+}
+    
+static int ide_hread_data( DeviceDesc *dev, U32 *rdbuf, int nsectors );
+static int ide_hwrite_data( DeviceDesc *dev, U32 *rdbuf, int nsectors );
+
+#if IDE_RW_VIA_DMA
+/*
+** ****************************************************************
+** rw_via_dma():
+** Use the host processor to read (or write) LBA sectors from the specified
+** location on the hard drive into the read buffer (or visa-versa).
+** ================================================================
+** Usage:
+**   status = rw_via_dma( rdbuf, lba, count );
+**
+**   U32 *rdbuf:    pointer to buffer to hold sector information.
+**   int lba:       Logical block
+**   int count:     number of sectors to read into buffer.
+**
+** Returns:
+**   0
+** ****************************************************************
+*/
+
+static int rw_via_dma( DeviceDesc *dev, HdIO *hdio ) {
+    U32 addr;
+    CMDcmd *dma;
+    CMDpdt *pdts;
+    int ii, tcnt, sts;
+
+    dma = dev->dma;		/* set pointer to base of IDE controller registers */
+    if (hdio->flags&HDIO_USE_KERNEL) {
+	addr = (U32)dev->lclbuff;
+	if (hdio->direction) {
+	    prc_flush_pdcache((void *)dev->lclbuff, hdio->xfer); /* flush the kernel buffer on writes */
+	} else {
+	    prc_inv_pdcache((void *)dev->lclbuff, hdio->xfer); /* invalidate the kernel buffer on reads */
+	}
+    } else {
+	addr = (U32)hdio->buff; 
+    }
+    tcnt = hdio->xfer;
+    pdts = dev->pdts;		/* pointer to PDT's in non-cached and aligned memory */
+
+    for (ii=0; ii < IDE_PDTS_DD && tcnt > 0; ++ii, ++pdts) {
+	int bc;
+	bc = (tcnt > 127*512) ? 127*512 : tcnt;	/* 65024 bytes max per xfer (65536-512) */
+	if ((addr&0xFFFF0000) != ((addr+bc)&0xFFFF0000)) {	/* crossed a 64k page */
+	    bc = ((addr&0xFFFF0000) + 0x10000) - addr;	/* amount to next 64k page */
+	}
+	pdts->phys = QIO_PHYS(addr);	/* get physical address of buffer */
+	pdts->byte_cnt = bc&0xFFFF;
+	addr += bc;
+	tcnt -= bc;
+    }
+    --pdts;				/* backup to the last one loaded */
+    pdts->byte_cnt |= DMA_PDT_EOT;	/* set the EOT bit */
+
+    dma->cmd = 0;			/* stop any currently running DMA */
+    dma->status = DMA_STS_int|DMA_STS_error|DMA_STS_dma2|DMA_STS_dma1; /* reset errors and int */
+    if (!hdio->direction) {
+	dma->cmd = DMA_CMD_write;	/* set direction */
+    }
+    dma->prd_addr = QIO_PHYS(dev->pdts); /* convert PDT address to physical */
+    ii = dev->ideptr->csr;		/* ACK any pending drive interrupts */
+
+    dev->busy = 1;			/* say we're busy */
+
+/* setup IDE drive to read n sectors */
+    sts = ide_send_byte(dev, offsetof(IdeCtl, drive_head), ((hdio->lba>>24)&0xF) | 0x40 | dev->select);
+    sts |= ide_send_byte(dev, offsetof(IdeCtl, hcylinder), (hdio->lba>>16)&0xFF);
+    sts |= ide_send_byte(dev, offsetof(IdeCtl, lcylinder), (hdio->lba>>8)&0xFF);
+    sts |= ide_send_byte(dev, offsetof(IdeCtl, overlaid.bdata.snum), hdio->lba&0xFF);
+    sts |= ide_send_byte(dev, offsetof(IdeCtl, overlaid.bdata.scnt), hdio->xfer/512);
+
+    if (hdio->direction) {
+	dma->cmd = DMA_CMD_start;	/* start the DMA */
+    } else {
+	dma->cmd = DMA_CMD_start|DMA_CMD_write;	/* start the DMA */
+    }
+    READ_BYTE(&dev->ideptr->csr);	/* make sure drive interrupt has been ack'ed */
+    sts |= ide_send_byte(dev, offsetof(IdeCtl, csr),
+    		hdio->direction ? IDE_CMD_WRTDMA : IDE_CMD_RDDMA);
+        
+    return sts;
+}
+#endif
+
+#ifndef QIO_IOQ_BATCH
+# define QIO_IOQ_BATCH	16
+#endif
+
+/**********************************************************************************
+ * hd_timeout is called by the timer interrupt. It runs as an ACTION routine
+ * (which may have interrupted an AST in progress). Do not change anything in
+ * in any HdIO or QioIOQ structs while in this routine.
+ */
+
+static void hd_timeout(void *arg) {
+    HdIO *hdio;
+    QioIOQ *ioq;
+    DeviceDesc *dev;
+
+    ioq = (QioIOQ *)arg;
+    hdio = (HdIO *)ioq->private2;
+    dev = (DeviceDesc *)hdio->dvc->private;
+    dev->timeout = 1;				/* signal there was a device timeout */
+    prc_q_ast(QIO_ASTLVL, &dev->complete_q);	/* call I/O completion routine */
+    return;
+}
+
+#if defined(EER_DSK_ERR) || defined(EER_DSK_AMNF) || defined(EER_DSK_TK0NF) || \
+    defined(EER_DSK_ABORT) || defined(EER_DSK_IDNF) || defined(EER_DSK_UNCDTA) || \
+    defined(EER_DSK_TIMOUT) || defined(EER_DSK_WERR) || defined(EER_DSK_CORR)
+static void inc_bram(int arg) {
+    int t;
+    t = eer_gets(arg);
+    if (t != -1 && t < 255) eer_puts(arg, t+1);
+}
+#endif
+
+static void hd_rw_q(QioIOQ *ioq) {
+    HdIO *hdio;
+    DeviceDesc *dev;
+    QioMutex *mutex;
+    int err;
+
+    LED_ON(YEL);
+    hdio = (HdIO *)ioq->private2;
+    if (!hdio) {
+        LED_OFF(YEL);
+	return;				/* ACKKK!!! Can't do anything */
+    }
+    dev = (DeviceDesc *)hdio->dvc->private;	/* need to get at variables that irq will use */
+
+    err = READ_BYTE(dev->alt_sts);
+
+#if TEST_DISK_ERRORS
+    if (!(err&(IDE_STB_ERROR|IDE_STB_WRFAULT))) {
+	if ((ctl_read_sw(IO_MISC8 << SH_MISC)&(IO_MISC8 << SH_MISC))) {
+	    err = IDE_STB_CORRDATA;
+	}
+	if ((ctl_read_sw(IO_MISC7 << SH_MISC)&(IO_MISC7 << SH_MISC))) {
+	    err = IDE_STB_ERROR;
+	}
+    }
+#endif
+	
+#ifdef EER_DSK_CORR
+    if (hdio->state != HDRW_BEGIN && (err&IDE_STB_CORRDATA)) {
+	inc_bram(EER_DSK_CORR);	/* record it */
+    }
+#endif
+
+    if (hdio->state != HDRW_BEGIN && (dev->timeout || (err&(IDE_STB_ERROR|IDE_STB_WRFAULT)))) {
+	if ((err&(IDE_STB_ERROR|IDE_STB_WRFAULT))) {	/* if there were any I/O errors */
+	    int t;
+	    t = READ_BYTE(&dev->ideptr->overlaid.bdata.scnt);
+	    ioq->iocount += t * 512;	/* record how many bytes were xferred before the error */
+	    t = READ_BYTE(&dev->ideptr->overlaid.bdata.precomp_error);
+	    if ((t&IDE_ERB_AMNFOUND)) {
+		ioq->iostatus = HDIO_AMNF;
+#ifdef EER_DSK_AMNF
+		inc_bram(EER_DSK_AMNF);
+#endif
+	    } else if ((t&IDE_ERB_TK0NFOUND)) {
+		ioq->iostatus = HDIO_TK0NF;
+#ifdef EER_DSK_TK0NF
+		inc_bram(EER_DSK_TK0NF);
+#endif
+	    } else if ((t&IDE_ERB_ABORTCMD)) {
+		ioq->iostatus = HDIO_ABRT;
+#ifdef EER_DSK_ABORT
+		inc_bram(EER_DSK_ABORT);
+#endif
+	    } else if ((t&IDE_ERB_IDNFOUND)) {
+		ioq->iostatus = HDIO_IDNF;
+#ifdef EER_DSK_IDNF
+		inc_bram(EER_DSK_IDNF);
+#endif
+	    } else if ((t&IDE_ERB_UNCDATA)) {
+		ioq->iostatus = HDIO_UNCORR;
+#ifdef EER_DSK_UNCDTA
+		inc_bram(EER_DSK_UNCDTA);
+#endif
+	    }
+#ifdef EER_DSK_WERR
+	    if ((err&IDE_STB_WRFAULT)) inc_bram(EER_DSK_WERR);
+#endif
+#ifdef EER_DSK_ERR
+	    inc_bram(EER_DSK_ERR);	/* record the fact we got any error at all */
+#endif
+	}
+	if (!ioq->iostatus) {		/* assume anything else is device timeout */
+	    ioq->iostatus = HDIO_TIMEOUT; /* under DMA or with no ARB_CTL, all errors are reported as timeouts */
+	    ide_hard_reset();		/* reset the chip and the pair of drives */
+#ifdef EER_DSK_ERR
+	    inc_bram(EER_DSK_ERR);	/* record the fact */
+#endif
+#ifdef EER_DSK_TIMOUT
+	    inc_bram(EER_DSK_TIMOUT);	/* record the device timeout */
+#endif
+	}
+    } else while (1) {
+	switch (hdio->state) {
+	    default:
+		ioq->iostatus = HDIO_FATAL;	/* disaster strikes */
+		break;
+	    case HDRW_BEGIN:
+		dev->complete_q.action = hd_rw_q; /* interrupts send us back to ourself */
+		dev->complete_q.param = (void *)ioq; /* and we always get the same arg */
+		if (ioq->timeout) {		/* if he wants a gross rw timeout */
+		    dev->timer_q.delta = ioq->timeout;
+		    dev->timer_q.func = hd_timeout;
+		    dev->timer_q.vars = (void *)ioq;
+		    dev->timeout = 0;		/* assume not timed out */
+		    tq_ins(&dev->timer_q);	/* put it in the timer queue */
+		}
+#if IDE_RW_VIA_DMA
+		hdio->state = hdio->direction ? HDWRITE_DMA : HDREAD_DMA; /* next state */
+#else
+		hdio->state = hdio->direction ? HDWRITE_PIO : HDREAD_PIO; /* next state */
+#endif
+		continue;
+
+	    case HDREAD_PIO:
+		hdio->xfer = IDE_MAX_PIO_CNT*512; /* assume we're to xfer the max */
+		if (hdio->xfer > hdio->u_len) hdio->xfer = (hdio->u_len+511)&-512;
+		hdio->state = HDREAD_PIOCHK;
+#if 0
+		if (!dev->did_multsect && dev->max_multsect > 1) {
+		    int max;
+		    max = dev->max_multsect;
+		    if (max > IDE_MAX_DMA_CNT) max = IDE_MAX_DMA_CNT;
+		    if (max > HDIO_KERNEL_BUFSIZE/512) max = HDIO_KERNEL_BUFSIZE/512;
+		    err = ide_send_byte(dev, offsetof(IdeCtl, overlaid.bdata.scnt), max);
+		    err |= ide_send_byte(dev, offsetof(IdeCtl, csr), IDE_CMD_MULTIMODE); /* set multiple mode */
+		    err |= ide_wait_not_busy( dev );
+		    if (err) goto device_timeout;
+		    err = READ_BYTE(&dev->ideptr->csr); /* clear any interrupt at the drive */
+		    dev->did_multsect = (err&IDE_STB_ERROR) ? -1 : max;
+		}
+#endif
+		dev->busy = 1;			/* say we're busy */
+		err = ide_send_byte(dev, offsetof(IdeCtl, drive_head), ((hdio->lba>>24)&0xF) | 0x40 | dev->select);
+		err |= ide_send_byte(dev, offsetof(IdeCtl, hcylinder), (hdio->lba>>16)&0xFF);
+		err |= ide_send_byte(dev, offsetof(IdeCtl, lcylinder), (hdio->lba>>8)&0xFF);
+		err |= ide_send_byte(dev, offsetof(IdeCtl, overlaid.bdata.snum), hdio->lba&0xFF);
+		err |= ide_send_byte(dev, offsetof(IdeCtl, overlaid.bdata.scnt), hdio->xfer/512);
+		err |= ide_send_byte(dev, offsetof(IdeCtl, csr), 
+		    		dev->did_multsect > 1 ? IDE_CMD_MREAD : IDE_CMD_SREAD); /* read via PIO */
+		if (err) {
+device_timeout:
+		    ioq->iostatus = HDIO_TIMEOUT; 
+		    ide_hard_reset();		/* reset the chip and the pair of drives */
+#ifdef EER_DSK_ERR
+		    inc_bram(EER_DSK_ERR);	/* record the fact */
+#endif
+#ifdef EER_DSK_TIMOUT
+		    inc_bram(EER_DSK_TIMOUT);	/* record the device timeout */
+#endif
+		    break;			/* finish up and exit */
+		}
+		return;				/* wait for interrupt */
+		
+	    case HDREAD_PIOCHK: {
+		U32 *bp;
+		int amt, sects;
+
+		sects = dev->did_multsect > 1 ? dev->did_multsect : 1;
+		if (sects*512 > hdio->xfer) sects = hdio->xfer/512;
+		amt = sects*512;		/* assume max length */
+		if (amt > hdio->u_len) amt = hdio->u_len; /* unless user wants less */
+		bp = (U32*)hdio->buff;
+		dev->busy = 1;			/* say we're still busy */
+		if (((U32)bp&3) || (amt&511)) { /* buffer is not longword aligned or amt not sector aligned */
+		    ide_hread_data(dev, dev->lclbuff, sects); /* copy sector to kernel buffer */
+		    memcpy(bp, dev->lclbuff, amt); /* then copy from there to user buffer */
+		    ++dev->doofus;		/* tell 'em he screwed up */
+		} else {
+		    ide_hread_data(dev, bp, sects); /* copy n sectors to user's buffer */
+		}
+		ioq->iocount += amt;		/* tell 'em how much was input so far */
+		hdio->buff += amt;		/* advance user's buffer pointer */
+		hdio->u_len -= amt;		/* take from amt he asked for */
+		hdio->xfer -= amt;		/* take from total we asked the drive for */
+		hdio->lba += sects;		/* advance sector number */
+		if (hdio->u_len > 0) {		/* if there's more to read */
+		    if (hdio->xfer <= 0) {	/* if we've done all we can in one operation */
+			hdio->state = HDREAD_PIO; /* start another read */
+			continue;
+		    }
+		    return;			/* else just wait for next interrupt */
+		}
+		ioq->iostatus = HDIO_SUCC | SEVERITY_INFO; /* normal success */
+		hdio->state = HDRW_DONE;		/* finish up and exit */
+		break;
+	    }
+
+	    case HDWRITE_PIO: {
+		int old_rtc;
+		hdio->xfer = IDE_MAX_PIO_CNT*512; /* assume we're to xfer the max */
+		if (hdio->xfer > hdio->u_len) hdio->xfer = (hdio->u_len+511)&-512;
+		hdio->state = HDWRITE_PIOCHK;
+		err = ide_send_byte(dev, offsetof(IdeCtl, drive_head), ((hdio->lba>>24)&0xF) | 0x40 | dev->select);
+		err |= ide_send_byte(dev, offsetof(IdeCtl, hcylinder), (hdio->lba>>16)&0xFF);
+		err |= ide_send_byte(dev, offsetof(IdeCtl, lcylinder), (hdio->lba>>8)&0xFF);
+		err |= ide_send_byte(dev, offsetof(IdeCtl, overlaid.bdata.snum), hdio->lba&0xFF);
+		err |= ide_send_byte(dev, offsetof(IdeCtl, overlaid.bdata.scnt), hdio->xfer/512);
+		err |= ide_send_byte(dev, offsetof(IdeCtl, csr), IDE_CMD_SWRITE); /* write via PIO */
+		if (err) goto device_timeout;
+		hdio->wrt = 0;			/* assume we didn't write anything at first */
+		old_rtc = eer_rtc;
+		while( ((READ_BYTE(dev->alt_sts) & IDE_STB_DATAREQ) != IDE_STB_DATAREQ) &&
+		       (eer_rtc - old_rtc) < DREQ_TIMEOUT )  {
+		    if ((eer_rtc&15) == 0) KICK_WDOG();
+		}
+
+		continue;			/* start the first transaction */		
+	    }		
+	    case HDWRITE_PIOCHK: {
+		U32 *bp;
+		int amt;
+
+		ioq->iocount += hdio->wrt;	/* tell 'em how much was successfully written */
+		hdio->buff += hdio->wrt;	/* advance user's buffer pointer */
+		hdio->u_len -= hdio->wrt;	/* take from amt he said to write */
+		hdio->xfer -= hdio->wrt;	/* take from total told the drive we're sending */
+		hdio->lba += hdio->wrt/512;	/* advance sector number */
+		if (hdio->u_len <= 0) {
+		    ioq->iostatus = HDIO_SUCC | SEVERITY_INFO; /* normal success */
+		    hdio->state = HDRW_DONE;	/* we're done. */
+		    break;
+		}
+		if (hdio->xfer <= 0) {		/* if we've done all we can in one operation */
+		    hdio->state = HDWRITE_PIO;	/* start another write */
+		    continue;
+		}
+		bp = (U32*)hdio->buff;
+		dev->busy = 1;			/* say we're busy */
+		amt = 512;
+		if (amt > hdio->u_len) amt = hdio->u_len; /* unless user wants less */
+		hdio->wrt = amt;		/* this is how much we're attempting to write */
+		if (((U32)bp&3) || amt < 512) { /* buffer is not longword aligned or short */
+		    memcpy(dev->lclbuff, bp, amt);	/* copy 1 sector's worth of kernel buffer to drive */
+		    ide_hwrite_data(dev, dev->lclbuff, 1);
+		    ++dev->doofus;		/* tell 'em he screwed up */
+		} else {
+		    ide_hwrite_data(dev, bp, 1);/* copy 1 sector's worth of user's buffer to drive */
+		}
+		return;				/* wait for next interrupt */
+	    }
+
+#if IDE_RW_VIA_DMA
+	    case HDREAD_DMA:
+		if ((hdio->flags&HDIO_USE_KERNEL)) {	/* now need to copy kernel buffer to user's buffer */
+		    hdio->xfer = HDIO_KERNEL_BUFSIZE; /* assume we're to xfer the max */
+		} else {
+		    hdio->xfer = IDE_MAX_DMA_CNT*512; /* assume we're to xfer the max */
+		}
+		if (hdio->xfer > hdio->remain) hdio->xfer = hdio->remain;
+		hdio->state = HDREAD_CHECK;
+		rw_via_dma( dev, hdio );
+                LED_OFF(YEL);
+		return;
+		
+	    case HDREAD_CHECK:
+		hdio->lba += hdio->xfer/512;		/* advance sector pointer */
+		if ((hdio->flags&HDIO_USE_KERNEL)) {	/* now need to copy kernel buffer to user's buffer */
+		    if (hdio->xfer > hdio->u_len) hdio->xfer = hdio->u_len;
+		    memcpy(hdio->buff, dev->lclbuff, hdio->xfer);
+		}
+		ioq->iocount += hdio->xfer;		/* tell 'em how much was input so far */
+		hdio->buff += hdio->xfer;		/* advance user's buffer pointer */
+		hdio->remain -= hdio->xfer;		/* reduce amount we're to copy */
+		hdio->u_len -= hdio->xfer;
+		if (hdio->u_len > 0) {
+		    hdio->state = HDREAD_DMA;
+		    continue;				/* start another read */
+		}
+		ioq->iostatus = HDIO_SUCC | SEVERITY_INFO; /* normal success */
+		hdio->state = HDRW_DONE;		/* finish up and exit */
+		break;
+
+	    case HDWRITE_DMA:
+		if ((hdio->flags&HDIO_USE_KERNEL)) {
+		    hdio->xfer = HDIO_KERNEL_BUFSIZE;
+		} else {
+		    hdio->xfer = IDE_MAX_DMA_CNT*512; /* assume we're to xfer the max */
+		}
+		if (hdio->xfer > hdio->remain) hdio->xfer = hdio->remain;
+		if ((hdio->flags&HDIO_USE_KERNEL)) {	/* now need to copy user's buffer to kernel buffer */
+		    if (hdio->xfer > hdio->u_len) {
+			memcpy(dev->lclbuff, hdio->buff, hdio->u_len);
+			memset((char *)dev->lclbuff + hdio->u_len, 0, hdio->xfer - hdio->u_len);
+		    } else {
+			memcpy(dev->lclbuff, hdio->buff, hdio->xfer);
+		    }
+		}
+		hdio->state = HDWRITE_CHECK;
+		rw_via_dma( dev, hdio );
+                LED_OFF(YEL);
+		return;
+		
+	    case HDWRITE_CHECK:
+		hdio->buff += hdio->xfer;		/* advance user's buffer pointer */
+		hdio->remain -= hdio->xfer;		/* reduce amount we're to copy */
+		ioq->iocount += hdio->xfer;		/* tell 'em how much was output so far */
+		hdio->lba += hdio->xfer/512;		/* advance sector pointer */
+		hdio->u_len -= hdio->xfer;
+		if (hdio->u_len > 0) {
+		    hdio->state = HDWRITE_DMA;
+		    continue;				/* start another write */
+		}
+		ioq->iostatus = HDIO_SUCC | SEVERITY_INFO; /* normal success */
+		hdio->state = HDRW_DONE;		/* finish up and exit */
+		break;
+#endif
+
+	    case HDRW_DONE:
+		break;
+	}
+	break;
+    }
+    dev->complete_q.action = 0;		/* cover our tracks */
+    dev->busy &= ~1;			/* channel is not busy anymore */
+    hdio->file->pos = hdio->lba;	/* move file's position */
+    if (dev->timer_q.que) tq_del(&dev->timer_q);	/* delete the timer, if any */
+    mutex = hdio->dvc->mutex;		/* save this */
+    hd_freehdio(hdio);			/* done with HD I/O stuff */
+    ioq->private2 = 0;			/* probably don't need to do this, but do it anyway */
+    qio_freemutex(mutex, ioq);		/* done with HD mutex */
+    qio_complete(ioq);			/* call his completion routine if any */
+    LED_OFF(YEL);
+    return;
+}
+
+static int hd_readwpos( QioIOQ *ioq, off_t where, void *buff, long count) {
+    DeviceDesc *dev;
+    const QioDevice *dvc;
+    QioFile *file;
+    HdIO *hdio;
+    int sts;
+
+    file = qio_fd2file(ioq->file);
+    if (!(file->mode&FREAD)) return (ioq->iostatus = HDIO_WRONLY); /* file not opened for read, reject it */
+    if (where >= file->size) {
+	ioq->iostatus = QIO_EOF;
+    } else if (count == 0) {
+	ioq->iostatus = HDIO_SUCC|SEVERITY_INFO;
+    }
+    if (ioq->iostatus) {		/* EOF and count == 0 call completion routine */
+	ioq->iocount = 0;
+	qio_complete(ioq);
+	return 0;
+    }
+    dvc = file->dvc;
+    dev = (DeviceDesc *)dvc->private;
+    if (!dev) return (ioq->iostatus = HDIO_FATAL); /* ide_init probably not run */
+    hdio = hd_gethdio();
+    if (!hdio) return (ioq->iostatus = HDIO_NOHDIO);
+    ioq->private2 = hdio;
+    hdio->u_len = hdio->remain = count;
+    hdio->dvc = dvc;
+    hdio->file = file;
+    hdio->buff = (char *)buff;
+    hdio->lba = where;
+    hdio->flags = 0;			/* assume we're to DMA directly into user's buffer */
+    hdio->direction = 0;		/* read */
+    if ( ((U32)buff&(3 | (cpu_params.cpu_dcache_ls-1))) || /* if user's buffer is not on a U32 or cache-line boundary */
+         (count&511) ) {		/* or count is not a multiple of a sector length */
+	hdio->flags |= HDIO_USE_KERNEL; /* signal to use kernel buffer as intermediate storage */
+	hdio->remain = (count+511)&-512;	/* round up local count to next sector boundary */
+	++dev->doofus;			/* note the fact that we used a kernel buffer */
+    } else if (!((U32)buff&0x20000000)) { /* if buffer is in cached memory */
+#if (PROCESSOR&~1) == MIPS5000
+# define MAX_FLUSH_COUNT	(512*1024)
+#else
+# define MAX_FLUSH_COUNT	(256*1024)
+#endif
+	if (count >= MAX_FLUSH_COUNT) {	/* if buffer is really big ... */
+	    flush_dcache();		/* it is probably faster to just flush the entire data cache */
+	} else {
+	    prc_inv_pdcache(buff, count); /* otherwise try invalidating only the user's buffer */
+	}
+    }
+    sts = qio_getmutex(dvc->mutex, hd_rw_q, (void *)ioq);	/* claim mutex, switch to ASTLVL and goto hd_rw_q */
+    if (sts) {
+	ioq->private2 = 0;	/* didn't queue the I/O, cleanup after ourselves */
+	ioq->iostatus = sts;	/* tell 'em we failed */
+	hd_freehdio(hdio);	/* give back our temps */
+    }
+    return sts;			/* return to caller with error code (if any) */
+}
+    
+static int hd_read( QioIOQ *ioq, void *buff, long count) {
+    QioFile *file;
+
+    file = qio_fd2file(ioq->file);
+    return hd_readwpos(ioq, file->pos, buff, count);
+}
+    
+static int hd_writewpos( QioIOQ *ioq, off_t where, const void *buff, long count) {
+    DeviceDesc *dev;
+    const QioDevice *dvc;
+    QioFile *file;
+    HdIO *hdio;
+    int sts;
+
+    file = qio_fd2file(ioq->file);
+    if (!(file->mode&FWRITE)) return (ioq->iostatus = HDIO_RDONLY); /* file not opened for write, reject it */
+    if (where >= file->size) {
+	ioq->iostatus = QIO_EOF;	/* we cannot extend the disk */
+    } else if (count == 0) {
+	ioq->iostatus = HDIO_SUCC|SEVERITY_INFO;
+    }
+    if (ioq->iostatus) {		/* EOF and count == 0 call completion routine */
+	ioq->iocount = 0;
+	qio_complete(ioq);
+	return 0;
+    }
+    dvc = file->dvc;
+    dev = (DeviceDesc *)dvc->private;
+    if (!dev) return (ioq->iostatus = HDIO_FATAL); /* ide_init probably not run */
+    hdio = hd_gethdio();
+    if (!hdio) return (ioq->iostatus = HDIO_NOHDIO);
+    ioq->private2 = hdio;
+    hdio->u_len = hdio->remain = count;
+    hdio->dvc = dvc;
+    hdio->file = file;
+    hdio->buff = (char *)buff;		/* remember user's buffer ptr */
+    hdio->lba = where;
+    hdio->flags = 0;			/* assume we're to DMA directly into user's buffer */
+    hdio->direction = 1;		/* write direction */
+    if ( ((U32)buff&(3 | (cpu_params.cpu_dcache_ls-1))) || /* if user's buffer is not on a U32 or cache-line boundary */
+         (count&511) ) {		/* or count is not a multiple of a sector length */
+	hdio->flags |= HDIO_USE_KERNEL; /* signal to use kernel buffer as intermediate storage */
+	hdio->remain = (count+511)&-512;	/* round up local count to next sector boundary */
+	++dev->doofus;			/* note the fact that we used a kernel buffer */
+    } else if (!((U32)buff&0x20000000)) { /* if buffer is in cached memory */
+	if (count > MAX_FLUSH_COUNT) {	/* if buffer is really big ... */
+	    flush_dcache();		/* it is probably faster to just flush the entire data cache */
+	} else {
+	    prc_flush_pdcache(buff, count); /* otherwise try flushing only the user's buffer */
+	}
+    }
+    sts = qio_getmutex(dvc->mutex, hd_rw_q, (void *)ioq);	/* claim mutex, switch to ASTLVL and goto hd_rw_q */
+    if (sts) {
+	ioq->private2 = 0;	/* didn't queue the I/O, cleanup after ourselves */
+	ioq->iostatus = sts;	/* tell 'em we failed */
+	hd_freehdio(hdio);	/* give back our temps */
+    }
+    return sts;			/* return to caller with error code (if any) */
+}
+    
+static int hd_write( QioIOQ *ioq, const void *buff, long count) {
+    QioFile *file;
+    file = qio_fd2file(ioq->file);
+    return hd_writewpos(ioq, file->pos, buff, count);
+}
+    
+static int hd_ioctl( QioIOQ *ioq, unsigned int arg1, void *arg2) {
+    ioq->iostatus = HDIO_NOTSUPP;
+    ioq->iocount = 0;
+    qio_complete(ioq);
+    return 0;
+}
+
+static int hd_cancel( QioIOQ *ioq ) {
+    ioq->iostatus = HDIO_NOTSUPP;
+    ioq->iocount = 0;
+    qio_complete(ioq);
+    return 0;
+}
+
+static int hd_open( QioIOQ *ioq, const char *name) {
+    QioFile *file;
+    DeviceDesc *d;
+    file = qio_fd2file(ioq->file);
+    file->pos = 0;                      /* current position in file */
+    d = (DeviceDesc *)file->dvc->private;
+#if IDE_MAX_CAPACITY
+    file->size = IDE_MAX_CAPACITY < d->lba_capacity ? IDE_MAX_CAPACITY : d->lba_capacity;
+#else
+    file->size = d->lba_capacity;	/* size of file is whole disk */
+#endif
+    file->flags = 0;                    /* start at 0 for now */
+    ioq->iostatus = HDIO_SUCC|SEVERITY_INFO;
+    ioq->iocount = ioq->file;           /* this is redundant */
+    qio_complete(ioq);
+    return 0;
+}
+
+static int hd_close( QioIOQ *ioq) {
+    QioFile *file;
+    ioq->iostatus = HDIO_SUCC|SEVERITY_INFO;
+    ioq->iocount = 0;
+    file = qio_fd2file(ioq->file);
+    file->dvc = 0;                      /* file is no longer associated with device */
+    qio_freefile(file);                 /* put file back on freelist */
+    ioq->file = -1;                     /* tell 'em his fd is no good anymore */
+    ioq->iostatus = HDIO_SUCC|SEVERITY_INFO;
+    qio_complete(ioq);                  /* call his completion routine */
+    return 0;
+}
+
+static int hd_fstat( QioIOQ *ioq, struct stat *stat ) {
+    DeviceDesc *d;
+    ioq->iostatus = HDIO_SUCC|SEVERITY_INFO;
+    ioq->iocount = 0;
+    d = (DeviceDesc *)(qio_fd2file(ioq->file))->dvc->private;
+    stat->st_mode = S_IFBLK;
+#if IDE_MAX_CAPACITY
+    stat->st_size = IDE_MAX_CAPACITY < d->lba_capacity ? IDE_MAX_CAPACITY : d->lba_capacity;
+#else
+    stat->st_size = d->lba_capacity;
+#endif
+    stat->st_blksize = 512;
+    stat->st_blocks = d->lba_capacity;
+    qio_complete(ioq);
+    return 0;
+}
+
+static QioMutex hd_mutex[(NUM_HDRIVES-1)/2+1];
+
+static const QioFileOps hd_fops = {
+    hd_lseek,	/* lseek allowed on disk */
+    hd_read, 	/* read allowed */
+    hd_write,	/* writes allowed */
+    hd_ioctl, 	/* ioctl may do something */
+    hd_open,	/* open does something */
+    hd_close,	/* close does something */
+    0,		/* delete not allowed */
+    0,		/* fsync not allowed */
+    0,		/* mkdir not allowed */
+    0,		/* rmdir not allowed */
+    0,		/* rename not allowed */
+    0,		/* truncate not allowed */
+    0,		/* statfs not allowed */
+    hd_fstat,	/* fstat allowed */
+    hd_cancel,	/* cancel I/O required */
+    0,		/* hd is not a tty */
+    hd_readwpos,/* read with position */
+    hd_writewpos /* write with position */
+};
+
+static const QioDevice hd_dvcs[] = {
+    {"rd0",				/* device name */
+     3,					/* length of name */
+     &hd_fops,				/* list of file ops */
+     hd_mutex,				/* drives 0 & 1 share the same mutex */
+     0,					/* unit */
+     (void *)(device_list+0)},		/* device specific parameters */
+
+#if NUM_HDRIVES > 1
+    {"rd1",				/* device name */
+     3,					/* length of name */
+     &hd_fops,				/* list of file ops */
+     hd_mutex,				/* drives 0 & 1 share the same mutex */
+     1,					/* unit */
+     (void *)(device_list+1)},		/* device specific parameters */
+#endif
+
+#if NUM_HDRIVES > 2
+    {"rd2",				/* device name */
+     3,					/* length of name */
+     &hd_fops,				/* list of file ops */
+     hd_mutex+1,			/* drives 2 & 3 share the same mutex */
+     2,					/* unit */
+     (void *)(device_list+2)},		/* device specific parameters */
+#endif
+
+#if NUM_HDRIVES > 3
+    {"rd3",				/* device name */
+     3,					/* length of name */
+     &hd_fops,				/* list of file ops */
+     hd_mutex+1,			/* drives 2 & 3 share the same mutex */
+     3,					/* unit */
+    (void *)(device_list+3)},		/* device specific parameters */
+#endif
+};
+
+/*
+** ************************************************************
+** ide_check_devstat():
+** Repeatedly check for a connected hard drive until a valid
+** device is found or the defined timeout period has elapsed.
+** Return the result of the test to the calling function.
+** ============================================================
+** Usage:
+**   status = ide_check_devstat(dev);
+**
+** Returns:
+**   0	Device recognized.
+**   1  No device recognized.
+** ************************************************************
+*/
+
+static int ide_check_devstat( DeviceDesc *dev) {
+    int status;
+    U32 end_timer;
+    VU8 alt_status;
+
+    /*
+    ** Look for a hard drive until a valid device is found or
+    ** until the timeout has expired.  The test looks at the
+    ** IDE Alternate Status register, if it contains the value
+    ** 0x00 or 0xff then it is assumed that no hard drive is
+    ** attached.
+    */
+
+    end_timer = eer_rtc;
+
+    status = 1;
+    do {
+        alt_status = READ_BYTE(dev->alt_sts);
+ 
+        if ( (alt_status != 0xff) && (alt_status != 0x00) ) {
+            status = 0;
+	    break;
+        }
+	if ((eer_rtc&15)) KICK_WDOG();	/* keep WDOG happy on these long transfers */
+    } while( (eer_rtc - end_timer) < BUSY_TIMEOUT );
+
+    return status;
+
+}   /* End: ide_check_devstat() */
+
+/*
+** ************************************************
+** ide_hread_data():
+** Use the host processor to read in one sector of
+** data from the hard drive.
+** ================================================
+** Usage:
+**   status = ide_hread_data( rdbuf, nsectors );
+**
+**   U32 *rdbuf:    pointer to buffer to hold data.
+**   U16 nsectors:  number of sectors to read.
+**
+** Returns:
+**   Nothing.
+** ************************************************
+*/
+
+static int ide_hread_data( DeviceDesc *dev, U32 *rdbuf, int nsectors ) {
+    int ii, nloops;
+    VU32 *ide_data_reg;
+    struct ide_ctl *ide_dev;
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = dev->ideptr;
+
+    /* set pointer to IDE controller data register */
+    ide_data_reg = &ide_dev->overlaid.ldata;
+
+    /* Calculate how many semi-unrolled loops to perform */
+    nloops = (LONGS_PER_SECTOR * nsectors) / 16;
+
+    /* read in the specified number of sectors */
+    for( ii = 0; ii < nloops; ii++ ) {
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+         *rdbuf++ = *ide_data_reg;
+     }
+     return 0;
+}   /* End: ide_hread_data() */
+
+/*
+** ************************************************
+** ide_hwrite_data():
+** Use the host processor to write n sectors' worth
+** of data to the hard drive.
+** ================================================
+** Usage:
+**   status = ide_hwrite_data( dev, rdbuf, nsectors );
+**
+**   DeviceDesc *dev: pointer to device specific parameters
+**   U32 *rdbuf:    pointer to buffer to hold data.
+**   int nsectors:  number of sectors to write.
+**
+** Returns:
+**   Nothing.
+** ************************************************
+*/
+
+static int ide_hwrite_data( DeviceDesc *dev, U32 *rdbuf, int nsectors ) {
+    int ii, nloops;
+    VU32 *ide_data_reg;
+    struct ide_ctl *ide_dev;
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = dev->ideptr;
+
+    /* set pointer to IDE controller data register */
+    ide_data_reg = &ide_dev->overlaid.ldata;
+
+    /* Calculate how many semi-unrolled loops to perform */
+    nloops = (LONGS_PER_SECTOR * nsectors) / 16;
+
+    /* write the specified number of sectors */
+    for( ii = 0; ii < nloops; ii++ ) {
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+         *ide_data_reg = *rdbuf++;
+     }
+     return 0;
+}   /* End: ide_hread_data() */
+
+/*
+** ********************************************************
+** ide_identify():
+** Send an IDENTIFY command to the IDE controller.
+** The data returned is read directly using the host
+** processor, not through an interrupt service routine.
+** ========================================================
+** Usage:
+**   status = ide_identify( rdbuf );
+**
+**   U32 *rdbuf:  pointer to buffer for holding drive info.
+**
+** Returns:
+**   Zero if no error occurred, 1 if an error occured.
+** ********************************************************
+*/
+
+static int ide_identify( DeviceDesc *dev, U32 *rdbuf ) {
+    U8 ackint;
+    VU32 old_rtc;
+    VU32 timeout;
+    struct ide_ctl *ide_dev;
+    int sts;
+
+    /* Don't do anything if there's no device! */
+    if ( ide_check_devstat(dev) ) return 1;
+
+    /* set pointer to base of IDE controller registers */
+    ide_dev = dev->ideptr;
+
+    ide_send_byte(dev, offsetof(IdeCtl, csr), IDE_CMD_IDENTIFY );
+
+    /*
+    ** Wait for the drive to indicate data is waiting to be read
+    */
+
+    timeout = 0;
+    old_rtc = eer_rtc;
+    sts = 0;
+
+    while( ((READ_BYTE(dev->alt_sts) & IDE_STB_DATAREQ) != IDE_STB_DATAREQ) &&
+           ((timeout = eer_rtc - old_rtc) < DREQ_TIMEOUT) ) {
+	if ((eer_rtc&15) == 0) KICK_WDOG();
+    }
+
+    /* read ID information only if 'wait for DREQ' loop didn't timeout */
+    if ( timeout < DREQ_TIMEOUT ) {
+	int ii;
+	DriveID *id;
+
+        /* acknowledge the HD interrupt and read the data */
+        ackint = READ_BYTE(&ide_dev->csr);
+        ide_hread_data( dev, rdbuf, 1 );
+	id = (DriveID *)rdbuf;
+	
+	for (ii=0; ii<sizeof(id->serial_no); ii += 2) {	/* swap the bytes in the ASCII fields */
+	    int tmp;
+	    tmp = id->serial_no[ii];
+	    id->serial_no[ii] = id->serial_no[ii+1];
+	    id->serial_no[ii+1] = tmp;
+	}
+	for (ii=0; ii<sizeof(id->model); ii += 2) {
+	    int tmp;
+	    tmp = id->model[ii];
+	    id->model[ii] = id->model[ii+1];
+	    id->model[ii+1] = tmp;
+	}
+    }
+
+    /* If an error occurred -- return it, else return zero for no error */
+    if( READ_BYTE(dev->alt_sts) & IDE_STB_ERROR ) {
+#if HOST_BOARD == CHAMELEON || ARB_CTL
+        sts = READ_BYTE(&ide_dev->overlaid.bdata.precomp_error);
+#else
+        sts = 1;
+#endif
+    } 
+
+    return sts;
+}   /* End: ide_identify() */
+
+#if !defined(CMD_INIT)
+# define CMD_INIT ide_init
+#endif
+
+#ifndef IDE_WAIT_VEC
+# define IDE_WAIT_VEC cmd_wait_vec
+#endif
+
+#if NO_CMD_CHOOSE_DRV
+extern
+#endif
+void (*IDE_WAIT_VEC)(int, int, int);
+
+/*
+** ****************************************************
+** ide_init():
+** Initialize the IDE device driver and all ide drives.
+** ====================================================
+** Usage:
+**   ide_init(); Typically called at boot time.
+**
+** Returns:
+**   Status of first connected device.
+** ****************************************************
+*/
+
+int CMD_INIT( void ) {
+    U32 end_timer;
+    int ii, jj, oldopt, setvec=0;
+    DeviceDesc *dev;
+
+    if (qio_install_dvc(hd_dvcs) < 0) return 0;	/* already init'd */
+
+    if (ide_hard_reset() < 0) return -1;	/* reset drives and init the CMD chip */
+
+    end_timer = eer_rtc;			/* prepare for global powerup timeouts */
+
+    oldopt = prc_delay_options(PRC_DELAY_OPT_TEXT2FB|PRC_DELAY_OPT_SWAP|PRC_DELAY_OPT_CLEAR);
+
+#if TEST_DISK_ERRORS
+    txt_str(-1, AN_VIS_ROW/4, "FAKE DISK ERRORS ENABLED", RED_PAL|AN_BIG_SET);
+    prc_delay(4*60);
+#endif
+
+/* Hit hardware reset in case we got here via prc_reboot() */
+
+    ii = get_pci_config_reg(ide_pci_device_id, CMD_PCI_CFR);
+    ii &= ~0xFFFFFF00;
+    ii |= ((CMD_CNTRL_D1RA|CMD_CNTRL_D0RA)<<CMD_CNTRL_V)|
+    	  (DEFAULT_CMDTIM<<CMD_CMDTIM_V) | (DEFAULT_ARTTIM<<CMD_ARTTIM0_V);
+    put_pci_config_reg(ide_pci_device_id, CMD_PCI_CFR, ii);
+
+    for (ii=0; ii < NUM_HDRIVES; ++ii) {
+	int sts;
+	if (ii) qio_install_dvc(hd_dvcs + ii);
+
+	dev = device_list + ii;
+	dev->ideptr = (struct ide_ctl *)(PCI_IO_BASE+0x1F0);
+	dev->alt_sts = (VU8*)(PCI_IO_BASE+0x3F6);
+	dev->dma = (CMDcmd *)(PCI_IO_BASE+CMD_DEF_BAR+0x00);
+
+	if ((ii&1) == 0) {
+#if IDE_RW_VIA_DMA
+    	    dev->pdts = (CMDpdt *)QIO_MK_NONCACHE(QIO_ALIGN(dev->pdt, cpu_params.cpu_dcache_ls));
+#endif
+	    dev->lclbuff = QIOmalloc(HDIO_KERNEL_BUFSIZE+QIO_CACHE_LINE_SIZE);	/* grab an 'n' sector buffer */
+	    if (!dev->lclbuff) return HDIO_NOMEM;	/* ran out of memory */
+	    dev->lclbuff = (U32*)( QIO_ALIGN(dev->lclbuff, cpu_params.cpu_dcache_ls) );
+	} else {
+#if IDE_RW_VIA_DMA
+    	    dev->pdts = (dev-1)->pdts;
+#endif
+	    dev->lclbuff = (dev-1)->lclbuff;	/* drive 1 shares kernel buffer with drive 0 */
+	}
+
+	dev->busy = 0;			/* not busy */
+	dev->select = (ii&1) ? (1<<DEVICE_SELECT_BIT) : 0;
+	dev->dma_timing = 0;
+	dev->pio_timing = 0;
+	dev->cyls = 0;
+	dev->heads = 0;
+	dev->sectors = 0;
+	dev->lba_capacity = 0;
+	dev->spc = 0;		/* sectors per cylinder */
+	dev->status = 1;	/* assume invalid */
+
+	ide_set_device(dev);
+
+        /*
+        ** Wait for the device to come out of reset.
+        */
+
+        for (sts=jj=0; (eer_rtc-end_timer) <  (POWERUP_TIMEOUT); ) {
+	    sts = READ_BYTE(dev->alt_sts);
+	    if (READ_BYTE(dev->alt_sts) != sts) continue;
+	    if (sts == 0xff ) break;		/* assume there's no drive */
+	    if (IDE_WAIT_VEC) IDE_WAIT_VEC(ii, (POWERUP_TIMEOUT-(eer_rtc-end_timer))/60, sts);
+	    if ((eer_rtc&15)) KICK_WDOG();	/* keep WDOG happy on these long delays */
+	    prc_delay(0);
+	    if ((sts&(IDE_STB_BUSY|IDE_STB_READY|IDE_STB_SEEKDONE)) ==
+    	             (             IDE_STB_READY|IDE_STB_SEEKDONE)) {
+		break;
+	    }
+	}
+
+	if ((sts&(IDE_STB_BUSY|IDE_STB_READY|IDE_STB_SEEKDONE)) !=
+		 (             IDE_STB_READY|IDE_STB_SEEKDONE)) {
+	    continue;				/* probably not there, do next one */
+	}
+
+        if( !(READ_BYTE(dev->alt_sts) & IDE_STB_BUSY) ) {
+	    if ( ide_wait_not_busy(dev) ) continue;	/* drive is dead */
+	    if ( !setvec ) {
+		prc_set_vec(IDE_INTVEC, cmd_irq);	/* register our interrupt routine */
+		setvec = 1;
+	    }
+	    if (!ide_identify( dev, dev->lclbuff )) {
+		DriveID *id;
+		struct ide_ctl *ide;
+		int active, recovery;
+		id = (DriveID *)dev->lclbuff;
+		dev->cyls = id->cyls;
+		dev->heads = id->heads;
+		dev->sectors = id->sectors;
+		dev->spc = id->sectors*id->heads;
+		dev->dma_ns = id->eide_dma_min;
+		dev->pio_ns = id->eide_pio;
+		dev->max_multsect = id->max_multsect;
+		dev->lba_capacity = id->lba_capacity;
+		if (strncmp((char *)id->model, "ST9420", 6) == 0) {	/* special for seagate 2.5" drive */
+		    ide_send_byte(dev, offsetof(IdeCtl, overlaid.bdata.scnt), 0);	/* no IDLE timer */
+		    ide_send_byte(dev, offsetof(IdeCtl, csr), 0xFA);	/* Set IDLE timer to 0, disabling it */
+		    ide_wait_not_busy(dev);
+		    ide_send_byte(dev, offsetof(IdeCtl, csr), 0xF9);	/* Enter Active mode */
+		    ide_wait_not_busy(dev);
+		}		    
+		ide = dev->ideptr;
+#if !PCI_SPEED
+# define PCI_CYCLE_TIME	(30)				/* assume a 33MHZ PCI bus */
+#else
+# define PCI_CYCLE_TIME (10*100000000L/(PCI_SPEED))	/* compute cycle time in nanoseconds */
+#endif
+		active = dev->dma_ns % PCI_CYCLE_TIME;	 /* round it up to multiple of clock */
+		if (active) dev->dma_ns += PCI_CYCLE_TIME - active;
+		active = dev->dma_ns / PCI_CYCLE_TIME;	/* compute cycle time in clocks */
+
+#if 1
+/* NOTE: Until we can get resolved what caps should be used on the IDE bus, we will
+ * have to minimize the IDE cycle times to 240 nanoseconds (8 clocks). We do this here just to
+ * make it easy.
+ */
+# ifndef TMP_IDE_LOW
+#  define TMP_IDE_LOW 8
+# endif
+		if (active < TMP_IDE_LOW) active = TMP_IDE_LOW;
+#else
+		if (active < 2) active = 2;	/* minimize the value to 2 clocks */
+#endif
+		if (active > 32) active = 32;	/* maximize the value to 32 clocks */
+		active /= 2;			/* assume equal active and recovery times */
+		if (active == 16) {
+		    active = 0;			/* special code for 16 clocks */
+		    recovery = 0;		/* this is also special for 16 clocks */
+		} else {
+		    recovery = active - 1;
+		    if (recovery <= 0) recovery = 15; /* special for 1 clock */
+		}
+		active = (active << CMD_ACT_V) | (recovery << CMD_REC_V);
+		dev->dma_timing = active;	/* save this so we can display it later */
+		recovery = get_pci_config_reg(ide_pci_device_id, CMD_PCI_DRWTIM0);
+		if (ii == 0) {		/* drive 0 */
+		    recovery = recovery & ~((0xFF<<CMD_DRWTIM0_V)|(0xFF<<CMD_ARTTIM1_V));
+		    recovery |= (active<<CMD_DRWTIM0_V) | (DEFAULT_ARTTIM<<CMD_ARTTIM1_V);
+		} else {		/* drive 1 */
+		    recovery = recovery & ~(0xFF<<CMD_DRWTIM1_V);
+		    recovery |= active<<CMD_DRWTIM1_V;
+		}
+		put_pci_config_reg(ide_pci_device_id, CMD_PCI_DRWTIM0, recovery);
+		dev->status = 0;
+	    }
+        }
+    }
+
+#if TEST_DISK_ERRORS
+    txt_clr_str(-1, AN_VIS_ROW/4, "FAKE DISK ERRORS ENABLED", RED_PAL|AN_BIG_SET);
+#endif
+    prc_delay(0);
+    prc_delay_options(oldopt);
+
+    flush_dcache();			/* make sure no cache lines point to non-cached kernel buffer(s) */
+
+    /* return the status of device 0 */
+    return device_list[0].status;
+
+}   /* End: CMD_INIT() */
+
+#if VERY_NOISY
+/*
+** **************************************************************
+** ide_get_rpm():
+** Calculate the approximate RPM of the IDE hard drive and return
+** the result to the caller.
+** ==============================================================
+** Usage:
+**    rpm = ide_get_rpm();
+**
+** Returns:
+**    16-bit value with the approximate RPM of the hard drive.
+** **************************************************************
+*/
+
+static int ide_get_rpm( DeviceDesc *dev ) {
+    U32 revolutions = 0;
+    U32 old_vcnt;
+    int oipl;
+
+    /* Don't do anything if there's no device! */
+    if( ide_check_devstat(dev) ) return 0;
+
+    ide_wait_not_busy(dev);
+
+    oipl = prc_set_ipl(INTS_OFF);	/* disable interrupts for this */
+    
+    old_vcnt = prc_get_count();
+
+    while( (prc_get_count() - old_vcnt) < CPU_SPEED/2 ) {	/* wait 1 second */
+	U32 time;
+
+	time = prc_get_count();
+	while (1) {
+	    if (READ_BYTE(dev->alt_sts) & IDE_STB_INDEX) break;
+	    if ((prc_get_count()-time) > CPU_SPEED/20) break;	/* time it for 0.1 seconds */
+	}
+	time = prc_get_count();
+        while (1) {
+	    if (!(READ_BYTE(dev->alt_sts) & IDE_STB_INDEX)) break;
+	    if ((prc_get_count()-time) > CPU_SPEED/20) break;	/* time it for 0.1 seconds */
+	}
+        revolutions += 60;
+    }
+    prc_set_ipl(oipl);
+
+/* fudge it up or down */
+    if (revolutions >= 3600-120 && revolutions <= 3600+120) revolutions = 3600;
+    else if (revolutions >= 4500-120 && revolutions <= 4500+120) revolutions = 4500;
+    else if (revolutions >= 5400-120 && revolutions <= 5400+120) revolutions = 5400;
+    else if (revolutions >= 7200-120 && revolutions <= 7200+120) revolutions = 7200;
+
+    return( revolutions );
+
+}   /* End: ide_get_rpm() */
+
+static int compute_avg(int *times, int nelts, int *max, int *min) {
+    int ii;
+    int tot;
+    int lmin, lmax;
+    lmin = 0x7FFFFFFF;
+    lmax = 0;
+    tot = 0;
+    for (ii=0; ii < nelts; ++ii) {
+	int t;
+	t = times[ii]/(CPU_SPEED/2000000);
+	if (t > lmax) lmax = t;
+	if (t < lmin) lmin = t;
+	tot += t;
+    }
+    if (max) *max = lmax;
+    if (min) *min = lmin;
+    return tot/nelts;
+}
+#endif
+
+#ifndef CMD_SQUAWK
+# define CMD_SQUAWK ide_squawk
+#endif
+#ifndef CMD_UNSQUAWK
+# define CMD_UNSQUAWK ide_unsquawk
+#endif
+#if !defined(CMD_CHOOSE_DRV)
+# define CMD_CHOOSE_DRV ide_choose_drv
+#endif
+
+#if !NO_CMD_CHOOSE_DRV
+int CMD_CHOOSE_DRV(int choices) {
+    int col, active, ii;
+    int bott=AN_VIS_ROW-3, new=1;
+    U32 sws;
+
+    if (!choices) return 0;
+    txt_str(-1, AN_VIS_ROW/2, "Select drive to test:", MNORMAL_PAL);
+    bott = st_insn(bott, "To begin test,", t_msg_action, INSTR_PAL);
+    bott = st_insn(bott, "To select drive,", t_msg_control, INSTR_PAL);
+    active = -1;
+    while (1) {
+	++active;
+	if (active >= NUM_HDRIVES) active = 0;
+	if (((1<<active)&choices)) break;
+    }
+    while (1) {
+	if ((sws=ctl_read_sw(SW_ACTION|J_LEFT|J_RIGHT)&(SW_ACTION|SW_NEXT|J_LEFT|J_RIGHT))) {
+	    if ((sws&SW_NEXT)) {
+		active = -1;
+		break;
+	    }
+	    if ((sws&SW_ACTION)) break;
+	    if ((sws&J_LEFT)) {
+		while (1) {
+		    --active;
+		    if (active < 0) active = NUM_HDRIVES-1;
+		    if (((1<<active)&choices)) break;
+		}
+	    }
+	    if ((sws&J_RIGHT)) {
+		while (1) {
+		    ++active;
+		    if (active >= NUM_HDRIVES) active = 0;
+		    if (((1<<active)&choices)) break;
+		}
+	    }
+	    new = 1;
+	}
+	if (new) {
+	    col = (AN_VIS_COL-4*NUM_HDRIVES)/2-1;
+	    txt_str(col, AN_VIS_ROW/2+2, " ", WHT_PAL);
+	    for (ii=0; ii < NUM_HDRIVES; ++ii) {
+		int color;
+		if (!((1<<ii)&choices)) color = RED_PAL;
+		else if (ii == active) color = YEL_PALB;
+		else color = MNORMAL_PAL;
+		txt_cdecnum(ii, 1, RJ_ZF, color);
+		txt_cstr("   ", MNORMAL_PAL);
+	    }
+	    new = 0;
+	}
+	prc_delay(0);
+    }
+    txt_clr_wid(1, ++bott, AN_VIS_COL-2);
+    txt_clr_wid(1, ++bott, AN_VIS_COL-2);
+    txt_clr_wid(1, AN_VIS_ROW/2, AN_VIS_COL-2);
+    txt_clr_wid(1, AN_VIS_ROW/2+2, AN_VIS_COL-2);
+    return active;
+}
+
+static struct show_drv {
+    int row;
+    int col;
+} show_drv_details;
+
+static void show_drv_sts(int drv, int time, int sts) {
+    txt_str(show_drv_details.col, show_drv_details.row, "Waiting for drive", WHT_PAL);
+#if NUM_HDRIVES > 1
+    txt_cstr(" ", WHT_PAL);
+    txt_cdecnum(drv, 1, RJ_BF, GRN_PAL);
+#endif
+    txt_cstr(", sts=", WHT_PAL);
+    txt_chexnum(sts, 2, RJ_ZF, (sts&0x50) == 0x50 ? GRN_PAL : RED_PAL);
+    txt_cstr(", timeout=", WHT_PAL);
+    txt_cdecnum(time, 3, RJ_BF, WHT_PAL);
+}
+
+void CMD_SQUAWK(int row, int col) {
+    show_drv_details.row = row;
+    show_drv_details.col = col;
+    IDE_WAIT_VEC = show_drv_sts;		/* drop in a function to call while waiting */
+}
+
+void CMD_UNSQUAWK(void) {
+    txt_clr_wid(show_drv_details.col, show_drv_details.row, AN_VIS_COL-show_drv_details.col-1);
+    IDE_WAIT_VEC = 0;				/* done with this */
+}
+#else
+extern void CMD_SQUAWK(int row, int col);
+extern void CMD_UNSQUAWK(void);
+extern int CMD_CHOOSE_DRV(int); 
+#endif
+
+/*
+** ********************************************************
+** ide_test():
+** IDE hard drive test, called by self test.
+** ========================================================
+** Usage:
+**   retcode = ide_test( smp );
+**
+**   struct menu_d *smp:  pointer to self test menu struct.
+**
+** Returns:
+**   Zero?
+** ********************************************************
+*/
+
+#define TRKBUFSIZ (63 * BYTES_PER_SECTOR)
+
+static int disk_test( const struct menu_d *smp ) {
+    int row = 3;
+
+    U32 ctls;
+
+    U32 total_kbytes;
+    U32 kbinc;
+    U32 field;
+    U32 iterations = 0;
+
+    QioIOQ *ioq=0, *null=0;
+
+    char tmp[AN_VIS_COL_MAX];
+    DriveID *id;
+
+    DeviceDesc *dev;
+    struct ide_ctl *ide_dev;
+
+    int ii, col, any, drvs, errors=0;
+#ifdef EER_DSK_CORR
+    int correctable_errs=0;
+#endif
+
+    F32 rate_min=0.0, rate_max=0.0, rate_tot=0.0, half_cpu;
+    int whats_up=0, nxt_row=0, nxt_col=0;
+
+    U32 uatrkbuf[(TRKBUFSIZ+QIO_CACHE_LINE_SIZE)/sizeof(U32)];
+    U32 *trkbuf;
+
+    half_cpu = CPU_SPEED;
+    half_cpu = 2000000.0/half_cpu;
+
+    trkbuf = (U32*)QIO_ALIGN(uatrkbuf, QIO_CACHE_LINE_SIZE);
+    ExitInst(INSTR_PAL);
+
+#define SHOW_DRV_CONNECT "Hard Drive Connected: "
+#define SHOW_DRV_STATUS  "Alternate status:"
+#define DRV_COL (2+sizeof(SHOW_DRV_CONNECT)-4)
+
+    /* Show if the hard drive is connected */
+    txt_str( 2, row, SHOW_DRV_CONNECT, MNORMAL_PAL );
+#if NUM_HDRIVES > 1
+    txt_str( 2, row+1, SHOW_DRV_STATUS, MNORMAL_PAL );
+#endif
+
+    prc_delay(0);				/* make sure we see what we've drawn so far */
+
+    CMD_SQUAWK(row+NUM_HDRIVES, 2);
+
+    /* initialize device driver if necessary */
+    CMD_INIT();				/* init the drivesubsystem */
+
+    CMD_UNSQUAWK();
+
+    prc_delay(0);				/* make sure we see what we've drawn so far */
+
+    for (drvs=any=ii=0; ii < NUM_HDRIVES; ++ii) {
+	int t=0;
+
+	dev = device_list + ii;
+	ide_set_device(dev);
+	col = DRV_COL+ii*4;
+#if NUM_HDRIVES > 1
+	txt_decnum(col+1, row-1, ii, 4, RJ_BF, MNORMAL_PAL);
+#endif
+	if ( dev->status ) {
+	    txt_str(col+2, row, " No ", RED_PAL );
+	} else {
+	    txt_str(col+2, row, "Yes ", GRN_PAL );
+	    t = 1;
+	    any |= 1<<ii;
+	    ++drvs;
+	}
+#if NUM_HDRIVES > 1
+	txt_hexnum(col+3, row+1, READ_BYTE(dev->alt_sts), 2, RJ_ZF, t?GRN_PAL:RED_PAL);
+#endif
+    }
+
+    row += (NUM_HDRIVES > 1) ? 2 : 1;
+
+    if (!any) {
+	/* Wait for SW_NEXT before returning to main menu */
+	ctl_read_sw(SW_ACTION|SW_NEXT);
+
+	while ((ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION)) == 0) {prc_delay(0);}
+
+	return(0);
+    }
+
+    if (drvs > 1) {
+	ii = CMD_CHOOSE_DRV(any);
+	if (ii < 0) goto done;		/* he wanted to abort */
+    } else {
+	for (ii=0; (any&(1<<ii)) == 0; ++ii) {;}
+    }
+	
+#if NUM_HDRIVES > 1
+#define TESTING_MSG "Testing drive: "
+    txt_str(AN_VIS_COL-1-(sizeof(TESTING_MSG)-1)-4, 3, TESTING_MSG, MNORMAL_PAL);
+    txt_cdecnum(ii, 1, RJ_ZF, GRN_PAL);
+#endif
+
+    dev = device_list + ii;			/* test first drive in chain */
+
+    ioq = qio_getioq();			/* get an I/O queue */
+    nsprintf(tmp, sizeof(tmp), "/rd%d", ii);
+    qio_open(ioq, tmp, O_RDWR);		/* open the device */
+    while (!ioq->iostatus) { ; }	/* wait for complete */
+
+    ide_set_device(dev);
+
+    /* set pointer to base of IDE controller interface registers. */
+    ide_dev = dev->ideptr;
+
+    prc_delay(0);			/* show what we've drawn so far */
+
+    /* display drive identification */
+    row++;
+    ide_identify( dev, trkbuf );
+
+    id = (DriveID *)trkbuf;
+    id->model[sizeof(id->model)-1] = 0;
+    txt_str( 2, row++, (char *)id->model, GRN_PAL );
+
+    /* display the number of heads, cylinders, and sectors */
+    ++row;
+    
+#if VERY_NOISY
+    if (debug_mode & GUTS_OPT_DEVEL) {
+	txt_str(2, row, "Heads:", MNORMAL_PAL );
+	txt_cdecnum( dev->heads, 4, RJ_BF, GRN_PAL );
+	txt_cstr( "  Cylinders:", MNORMAL_PAL );
+	txt_cdecnum( dev->cyls, 5, RJ_BF, GRN_PAL );
+	txt_cstr( "  SPT:", MNORMAL_PAL );
+	txt_cdecnum( dev->sectors, 3, RJ_BF, GRN_PAL );
+	++row;
+    }
+#endif
+
+    txt_str(2, row, "Logical sectors available:", MNORMAL_PAL);
+    txt_cdecnum(dev->lba_capacity, 10, RJ_BF, GRN_PAL);
+    ++row;
+
+#if IDE_MAX_CAPACITY
+    {
+	QioFile *f;
+	f = qio_fd2file(ioq->file);
+	if (f) f->size = dev->lba_capacity;	/* cheat and force file size to drive size for this test */
+    }
+#endif
+
+#if VERY_NOISY
+    if (debug_mode & GUTS_OPT_DEVEL) {
+	int rpm;
+	txt_str(2, row, "ns/DMA cycle:", MNORMAL_PAL);
+	txt_cdecnum( dev->dma_ns, 4, RJ_BF, GRN_PAL);
+	txt_cstr("  ns/PIO cycle:", MNORMAL_PAL);
+	txt_cdecnum(dev->pio_ns, 4, RJ_BF, GRN_PAL);
+	++row;
+	txt_str(2, row++, "DMA timing register set to: ", MNORMAL_PAL);
+	txt_chexnum( dev->dma_timing, 2, RJ_ZF, GRN_PAL);
+
+	txt_str(2, row++, "Approx RPM: ", MNORMAL_PAL);
+	prc_delay(0);
+	rpm = ide_get_rpm(dev);
+	txt_cdecnum(rpm, 5, RJ_BF, GRN_PAL);
+	prc_delay(0);
+
+	txt_str(2, row++, "Avg rotational latency: ", MNORMAL_PAL);
+	nsprintf(tmp, sizeof(tmp), "%6.2f", 30000.0/(float)rpm);
+	txt_cstr(tmp, GRN_PAL);
+	txt_cstr(" milliseconds", MNORMAL_PAL);
+    }
+#endif
+
+    prc_delay(0);
+    
+#define AMT_TO_READ	(TRKBUFSIZ/512)	/* no bigger than our buffer */
+#define SKIP_SECTORS	(AMT_TO_READ+1) /* in case drive has "look for benchmark" ucode */
+
+    ioq->timeout = DREQ_TIMEOUT*16000;		/* timeout in microseconds */
+
+#if VERY_NOISY
+    if (debug_mode & GUTS_OPT_DEVEL) do {
+	U32 full, half, one16;
+	int full_min, full_max;
+	int half_min, half_max;
+	int one16_min, one16_max;
+	int rate_tot, time, lba, ii, dir;
+	int times[64];
+	F32 fzclock;
+	VU32 zclock;
+	U32 *oldzclock;
+
+	oldzclock = prc_timer_ptr((U32*)&zclock);
+
+	zclock = 0;
+	rate_tot = 0;
+	qio_readwpos(ioq, SKIP_SECTORS, trkbuf, TRKBUF_SIZE);
+	while (!ioq->iostatus) { ; }
+	if (QIO_ERR_CODE(ioq->iostatus)) break;
+	for (ii=0; ii < n_elts(times); ++ii) {
+	    time = prc_get_count();
+	    qio_readwpos(ioq, (ii&1) ? SKIP_SECTORS : dev->lba_capacity-1-SKIP_SECTORS, trkbuf, AMT_TO_READ*512);
+	    while (!ioq->iostatus) { ; }
+	    times[ii] = prc_get_count()-time;
+	    if (QIO_ERR_CODE(ioq->iostatus)) break;
+	}	    
+	if (QIO_ERR_CODE(ioq->iostatus)) break;
+	full = compute_avg(times, n_elts(times), &full_max, &full_min);
+	for (ii=0; ii < n_elts(times); ++ii) {
+	    time = prc_get_count();
+	    switch (ii&3) {
+		case 1:
+		    qio_readwpos(ioq, SKIP_SECTORS, trkbuf, AMT_TO_READ*512);
+		    while (!ioq->iostatus) { ; }
+		    break;
+		case 2:
+		case 0:
+		    qio_readwpos(ioq, (dev->lba_capacity-2*SKIP_SECTORS)/2, trkbuf, AMT_TO_READ*512);
+		    while (!ioq->iostatus) { ; }
+		    break;
+		case 3:
+		    qio_readwpos(ioq, dev->lba_capacity-1-SKIP_SECTORS, trkbuf, AMT_TO_READ*512);
+		    while (!ioq->iostatus) { ; }
+		    break;
+	    }
+	    times[ii] = prc_get_count()-time;
+	    if (QIO_ERR_CODE(ioq->iostatus)) break;
+	}	    
+	if (QIO_ERR_CODE(ioq->iostatus)) break;
+	half = compute_avg(times, n_elts(times), &half_max, &half_min);
+	dir = -dev->lba_capacity/16;
+	lba = dev->lba_capacity + dir;
+	for (ii=0; ii < n_elts(times); ++ii) {
+	    time = prc_get_count();
+	    qio_readwpos(ioq, lba, trkbuf, AMT_TO_READ*512);
+	    while (!ioq->iostatus) { ; }
+	    times[ii] = prc_get_count()-time;
+	    if (QIO_ERR_CODE(ioq->iostatus)) break;
+	    if (lba+dir < SKIP_SECTORS || lba+dir >= dev->lba_capacity-SKIP_SECTORS) {
+		dir = -dir;
+	    }
+	    lba += dir;		
+	}	    
+	if (QIO_ERR_CODE(ioq->iostatus)) break;
+	++row;
+	fzclock = zclock;		/* freeze time here */
+	one16 = compute_avg(times, n_elts(times), &one16_max, &one16_min);
+	txt_str(2, row++, "               Full     Half     1/16  strokes", MNORMAL_PAL);
+	txt_str(2, row++, "Seeks: Avg:", MNORMAL_PAL);
+	nsprintf(tmp, sizeof(tmp), "%9.2f%9.2f%9.2f",
+		(float)full/1000.0, (float)half/1000.0, (float)one16/1000.0);
+	txt_cstr(tmp, GRN_PAL);
+	txt_cstr(" milliseconds", MNORMAL_PAL);
+	txt_str(2, row++, "       Max:", MNORMAL_PAL);
+	nsprintf(tmp, sizeof(tmp), "%9.2f%9.2f%9.2f",
+		(float)full_max/1000.0, (float)half_max/1000.0, (float)one16_max/1000.0);
+	txt_cstr(tmp, GRN_PAL);
+	txt_str(2, row++, "       Min:", MNORMAL_PAL);
+	nsprintf(tmp, sizeof(tmp), "%9.2f%9.2f%9.2f",
+		(float)full_min/1000.0, (float)half_min/1000.0, (float)one16_min/1000.0);
+	txt_cstr(tmp, GRN_PAL);
+	txt_str(2, row++, "Total test time:", MNORMAL_PAL);
+	nsprintf(tmp, sizeof(tmp), "%4.1f", fzclock/1000.0);
+	txt_cstr(tmp, GRN_PAL);
+	txt_cstr(" sec, overall avg: ", MNORMAL_PAL);
+	nsprintf(tmp, sizeof(tmp), "%4.1f", fzclock/193.0);
+	txt_cstr(tmp, GRN_PAL);
+	txt_cstr("  Millisecs", MNORMAL_PAL);
+	prc_timer_ptr(oldzclock);
+    } while (0);
+#endif
+
+    row += (debug_mode & GUTS_OPT_DEVEL) ? 2 : 3;
+    txt_str( 8, row,   "LBA  MB/sec", MNORMAL_PAL );
+    txt_str( 12, row+1, "00.000 avg", MNORMAL_PAL );
+    txt_str( 12, row+2, "00.000 min", MNORMAL_PAL );
+    txt_str( 12, row+3, "00.000 max", MNORMAL_PAL );
+    txt_str( 2, row+5, "Tests completed: ", MNORMAL_PAL );
+
+#if 0
+    /* print the date information from the last sector on the drive */
+    if (debug_mode & GUTS_OPT_DEVEL) {
+	qio_readwpos(ioq, dev->lba_capacity-1, trkbuf, 512);
+	while (!ioq->iostatus) { ; }
+	if (!QIO_ERR_CODE(ioq->iostatus)) {
+	    char *bptr;
+	    bptr = (char *)trkbuf;
+	    tmp[0] = '.';
+	    tmp[1] = 0;
+	    tmp[3] = 0;
+	    txt_str( 2, row+7, "Date code: ", MNORMAL_PAL);
+	    for (ii=0; ii < 36; ++ii) {
+		if (bptr[ii] < '!' || bptr[ii] > '~') {
+		    txt_cstr(tmp, RED_PAL);
+		} else {
+		    tmp[2] = bptr[ii];
+		    txt_cstr(tmp+2, GRN_PAL);
+		}
+	    }
+	}
+    }
+#endif
+
+    prc_delay(0);
+
+    null = qio_getioq();
+    qio_open(null, "/null", O_RDWR);
+    ioq->iostatus = 0;
+
+    while(1) {
+	QioIOQ *whichio;
+	int sts;
+
+	int time, etime, lba, maxsec, inner;
+
+	whichio = ioq /* null */;
+
+        total_kbytes = 0;
+        kbinc = (BYTES_PER_SECTOR * dev->sectors) / 1024;
+
+        txt_decnum( 19, row+5, iterations, 4, RJ_BF, GRN_PAL );
+        prc_delay(0);		/* show something */
+	time = 0;
+	maxsec = AMT_TO_READ;
+        for( inner = 0, lba = 0; lba < dev->lba_capacity; ++inner) {
+	    int seccnt;
+#ifdef EER_DSK_CORR
+	    int p_recover, recover;
+#endif
+
+	    seccnt = maxsec;
+	    if (lba+seccnt > dev->lba_capacity) {
+		seccnt = dev->lba_capacity - lba;
+	    }
+	    txt_decnum( 2, row+1, lba, 9, RJ_BF, GRN_PAL );
+
+#ifdef EER_DSK_CORR
+	    p_recover = eer_gets(EER_DSK_CORR);
+#endif
+	    field = prc_get_count();
+
+	    sts = qio_readwpos(whichio, lba, trkbuf, seccnt*512);
+
+	    while (!sts) sts = whichio->iostatus;
+
+	    etime = prc_get_count();
+
+	    if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) goto done;
+
+#ifdef EER_DSK_CORR
+	    recover = eer_gets(EER_DSK_CORR);
+	    if (recover != p_recover) {
+		correctable_errs += recover - p_recover;
+		if (!(whats_up&2)) {
+		    txt_str(5, row+7, "Correctables:", MNORMAL_PAL);
+		    whats_up |= 2;
+		}
+		txt_decnum(19, row+7, correctable_errs, 4, RJ_BF, YEL_PAL);
+	    }
+#endif
+	    if ( QIO_ERR_CODE(sts) ) {
+		char emsg[AN_VIS_COL_MAX-13-2];
+		lba += whichio->iocount/512;	/* skip to failling lba */
+		if (!(whats_up&1)) {
+		    txt_str(2, (debug_mode & GUTS_OPT_DEVEL) ? row-1 : row-2, "Last error: ", MNORMAL_PAL);
+		    txt_str(3, row+6, "Uncorrectables:", MNORMAL_PAL);
+		    txt_str(25, row, "List of bad sectors:", MNORMAL_PAL);
+		    whats_up |= 1;
+		}
+		qio_errmsg(whichio->iostatus, emsg, sizeof(emsg));
+		txt_str(14, (debug_mode & GUTS_OPT_DEVEL) ? row-1 : row-2, emsg, YEL_PAL);
+		txt_decnum(19, row+6, ++errors, 4, RJ_BF, RED_PAL);
+		prc_delay(0);
+		if (!nxt_col || nxt_col > AN_VIS_COL-1-8) {
+		    if (nxt_row >= AN_VIS_ROW-3) {
+			prc_delay(0);
+			continue;
+		    }
+		    if (!nxt_row) nxt_row = row;
+		    ++nxt_row;
+		    nxt_col = 24;
+		}
+		txt_decnum(nxt_col, nxt_row, lba, 8, RJ_BF, RED_PAL);
+		++lba;			/* skip bad sector */
+		nxt_col += 8;
+	    } else {
+		lba += seccnt;
+		time += etime - field;
+		total_kbytes += seccnt;
+		if ( time > CPU_SPEED/2 /* || !(inner&1023) */ ) {
+		    float ftime=0.0, frate;
+		    ftime = time;
+		    ftime *= half_cpu;
+		    frate = total_kbytes*512 + 511;
+		    frate /= ftime;
+		    if (rate_min == 0.0 || rate_min > frate) rate_min = frate;
+		    if (rate_max < frate) rate_max = frate;
+		    rate_tot += frate;
+		    nsprintf(tmp, sizeof(tmp), "%6.3f", frate);
+		    txt_str(12, row+1, tmp, GRN_PAL);
+		    nsprintf(tmp, sizeof(tmp), "%6.3f", rate_min);
+		    txt_str(12, row+2, tmp, GRN_PAL);
+		    nsprintf(tmp, sizeof(tmp), "%6.3f", rate_max);
+		    txt_str(12, row+3, tmp, GRN_PAL);
+		    total_kbytes = 0;
+		    time = 0;
+		    prc_delay(0);
+		}
+	    }
+	}
+	iterations++;
+    }      /* End: while(1) */
+
+    /* Wait for SW_NEXT before returning to main menu */
+    while( (ctl_read_sw(0) & SW_ACTION) != 0 ) prc_delay(0);
+
+    do { ctls = ctl_read_sw(SW_NEXT);
+	prc_delay(0);
+    } while( !(ctls & SW_NEXT) );
+
+done:
+
+    if (ioq) {
+	qio_close(ioq);
+	qio_freeioq(ioq);
+    }
+    if (null) {
+	qio_close(null);
+	qio_freeioq(null);
+    }
+
+    return(0);
+
+}   /* End: disk_test() */
+
+#if INCLUDE_FSYS
+extern	int	fsys_test(const struct menu_d *);
+
+static const struct menu_d dt_menu[] = {
+    {	"646 DISK TESTS",	0		},
+    {	"\nDRIVE TEST",		disk_test	},
+    {	"\nFILESYSTEM CHECK",	fsys_test	},
+    { 0, 0 }
+};
+#endif
+
+#if !defined(CMD_TEST)
+# define CMD_TEST ide_test
+#endif
+
+int CMD_TEST(const struct menu_d *smp) {
+#if !INCLUDE_FSYS
+    return disk_test();
+#else
+    return st_menu(dt_menu, sizeof(dt_menu[0]), MNORMAL_PAL, 0);
+#endif
+}
+
+@
+
+
+1.10
+log
+@Corrected typo preventing cmd_init from completing with success.
+@
+text
+@d2 1
+a2 1
+ * $Id: cmd_ide.c,v 1.9 1997/09/26 03:36:12 shepperd Exp shepperd $
+d634 1
+a634 1
+static int hd_lseek( QioIOQ *ioq, size_t pos, int whence) {
+d1090 1
+a1090 1
+static int hd_readwpos( QioIOQ *ioq, size_t where, void *buff, int count) {
+d1148 1
+a1148 1
+static int hd_read( QioIOQ *ioq, void *buff, int count) {
+d1155 1
+a1155 1
+static int hd_writewpos( QioIOQ *ioq, size_t where, const void *buff, int count) {
+d1208 1
+a1208 1
+static int hd_write( QioIOQ *ioq, const void *buff, int count) {
+@
+
+
+1.9
+log
+@Fixed message in NUM_HDRIVES == 1.
+@
+text
+@d2 1
+a2 1
+ * $Id: cmd_ide.c,v 1.8 1997/09/26 02:58:43 shepperd Exp shepperd $
+d1674 1
+a1674 1
+	if ((sts&(IDE_STB_BUSY|IDE_STB_READY|IDE_STB_SEEKDONE)) ==
+@
+
+
+1.8
+log
+@Fiddled with drive online/offline recognition.
+@
+text
+@d2 1
+a2 1
+ * $Id: cmd_ide.c,v 1.7 1997/09/26 01:11:46 shepperd Exp shepperd $
+d1918 1
+a1918 1
+    txt_str(show_drv_details.col, show_drv_details.row, "Waiting for drive ", WHT_PAL);
+d1920 1
+@
+
+
+1.7
+log
+@Corrected bug when 2 drives are enabled.
+Added the same squawk code as is in phx_ide.c.
+@
+text
+@d2 1
+a2 1
+ * $Id: cmd_ide.c,v 1.6 1997/08/13 03:50:10 shepperd Exp shepperd $
+d1573 8
+a1580 1
+static void (*wait_vec)(int, int, int);
+d1665 1
+a1665 1
+	    if (wait_vec) wait_vec(ii, (POWERUP_TIMEOUT-(eer_rtc-end_timer))/60, sts);
+d1668 2
+a1669 2
+	    if (sts == 0) continue;		/* Segate drives return 0 during powerup */
+	    if (!(sts&IDE_STB_BUSY)) {
+d1674 4
+a1677 1
+	if ( sts == 0x00 || sts == 0xff ) continue; /* probably not there, do next one */
+d1931 1
+a1931 1
+    wait_vec = show_drv_sts;			/* drop in a function to call while waiting */
+d1936 1
+a1936 1
+    wait_vec = 0;				/* done with this */
+@
+
+
+1.6
+log
+@Added support for DMA.
+@
+text
+@d2 1
+a2 1
+ * $Id: cmd_ide.c,v 1.5 1997/07/16 02:21:25 shepperd Exp shepperd $
+a38 5
+#if 0 && (defined(IDE_RW_VIA_DMA) && IDE_RW_VIA_DMA)
+# error * Sorry, no DMA support in this driver at this time
+# undef IDE_RW_VIA_DMA
+#endif
+
+d90 1
+a90 1
+#  define HDIO_KERNEL_BUFSIZE	(32768-512)
+d1234 3
+d1238 1
+d1265 3
+d1269 1
+d1271 1
+a1271 1
+    stat->st_blocks = (d->lba_capacity+511)/512;
+d1573 2
+a1600 6
+#if IDE_SQUAWK
+# define INIT_MSG "cmd_init: Waiting for drive "
+# define INIT_COL ((AN_VIS_COL-sizeof(INIT_MSG)-1+1)/2)
+# define INIT_ROW (AN_VIS_ROW/2)
+    txt_str(INIT_COL, INIT_ROW, INIT_MSG, WHT_PAL);
+#endif
+d1631 3
+a1653 4
+#if IDE_SQUAWK && NUM_HDRIVES > 1
+	txt_decnum(INIT_COL+sizeof(INIT_MSG)-1, INIT_ROW, ii , 1, RJ_BF, WHT_PAL);
+#endif
+
+d1658 1
+a1658 7
+#if IDE_SQUAWK
+	    txt_hexnum(INIT_COL+sizeof(INIT_MSG)-1+3, INIT_ROW, sts, 2, RJ_ZF, jj?GRN_PAL:RED_PAL);
+	    txt_cdecnum((POWERUP_TIMEOUT-(eer_rtc-end_timer))/30, 5, RJ_BF, WHT_PAL);
+# if 0
+	    if ((ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION))) break;
+# endif
+#endif
+a1662 3
+#if IDE_SQUAWK
+		if (++jj < 15) continue;	/* give 'em time to see the message */
+#endif
+a1741 3
+#if IDE_SQUAWK
+    txt_clr_wid(INIT_COL, INIT_ROW, sizeof(INIT_MSG)+9);
+#endif
+d1831 12
+a1842 1
+static int choose_drv(int choices) {
+d1902 32
+d1998 2
+d2003 2
+d2041 1
+a2041 1
+	ii = choose_drv(any);
+d2093 8
+@
+
+
+1.5
+log
+@Delayed enabling interrupts until we are sure the
+drive is online to prevent an interrupt loop problem
+on Chameleon.
+@
+text
+@d2 1
+a2 1
+ * $Id: cmd_ide.c,v 1.4 1997/07/11 01:19:41 shepperd Exp shepperd $
+a28 2
+#undef IDE_RW_VIA_DMA
+
+d32 1
+d35 2
+d38 2
+a39 1
+#if defined(IDE_RW_VIA_DMA) && IDE_RW_VIA_DMA
+d86 1
+a86 1
+# define IDE_MAX_DMA_CNT 63
+d95 1
+a95 1
+#  define HDIO_KERNEL_BUFSIZE	(IDE_MAX_DMA_CNT*512)
+d179 29
+d214 5
+d398 4
+d426 1
+a426 1
+    put_pci_config_reg(id, 8, 0x400);	/* use 0x400 for IDE DMA and CNT regs */
+d535 4
+d543 5
+d558 3
+d684 2
+a685 2
+    NSC415Cmd *cmd;
+    NSC415Pdt *pdts;
+d704 1
+a704 1
+	bc = (tcnt > 63*512) ? 63*512 : tcnt;	/* 32256 bytes max per xfer (32768-512) */
+d716 4
+a719 4
+    if (hdio->direction) {
+	dma->cmd = DMA_STS_int|DMA_STS_error|DMA_STS_dma2|DMA_STS_dma1; /* stop any currently running DMA, set direction */
+    } else {
+	dma->cmd = DMA_STS_int|DMA_STS_error|DMA_STS_dma2|DMA_STS_dma1|DMA_CMD_write; /* stop any currently running DMA, set direction */
+d734 1
+a734 1
+	dma->cmd = DMA_STS_int|DMA_STS_error|DMA_STS_dma2|DMA_STS_dma1|DMA_CMD_start;	/* start the DMA */
+d736 1
+a736 1
+	dma->cmd = DMA_STS_int|DMA_STS_error|DMA_STS_dma2|DMA_STS_dma1|DMA_CMD_start|DMA_CMD_write;	/* start the DMA */
+d1618 1
+d1622 1
+d1625 3
+@
+
+
+1.4
+log
+@Added $Id$.
+Removed ctl_read_sw() call from ide_squawk startup loop.
+@
+text
+@d2 1
+a2 1
+ * $Id$
+d1533 1
+a1533 1
+    int ii, jj, oldopt;
+a1556 2
+    prc_set_vec(IDE_INTVEC, cmd_irq);		/* register our interrupt routine */
+
+a1623 1
+
+d1625 4
+@
+
+
+1.3
+log
+@Works now.
+@
+text
+@d2 1
+a2 1
+ *	cmd_ide.c
+d1608 1
+d1610 1
+@
+
+
+1.2
+log
+@Re-enabled the slow down of the timing signals.
+@
+text
+@d29 2
+d492 1
+a492 1
+static void ide_irq(void) {
+d1514 4
+d1531 1
+a1531 1
+int ide_init( void ) {
+d1545 1
+a1545 1
+# define INIT_MSG "ide_init: Waiting for drive "
+d1557 1
+a1557 1
+    prc_set_vec(IDE_INTVEC, ide_irq);		/* register our interrupt routine */
+d1707 1
+a1707 1
+}   /* End: ide_init() */
+d1910 1
+a1910 1
+    ide_init();				/* init the drivesubsystem */
+d2291 1
+a2291 1
+    {	"DISK TESTS",	0			},
+d2298 5
+a2302 1
+int ide_test(const struct menu_d *smp) {
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1650 1
+a1654 3
+#if 1
+		if (active < 2) active = 2;		/* minimize the value to 2 clocks */
+#else
+d1656 1
+a1656 1
+# define TMP_IDE_LOW 8
+d1659 2
+d1662 1
+a1662 1
+		if (active > 33) active = 33;		/* maximize the value to 33 clocks */
+d1675 3
+a1677 3
+		    recovery = recovery & ~(0xFF<<CMD_DRWTIM0_V);
+		    recovery |= active<<CMD_DRWTIM0_V;
+		} else {
+a1680 1
+		recovery |= DEFAULT_ARTTIM<<CMD_ARTTIM1_V;
+@

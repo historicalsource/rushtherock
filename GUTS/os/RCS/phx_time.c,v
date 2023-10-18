@@ -1,0 +1,385 @@
+head	1.2;
+access;
+symbols
+	RUSH_ROCK_1_0:1.2
+	RUSH_ROCK_1_0epst:1.2
+	MACE_1_0e:1.2
+	MACE_1_0d:1.2
+	AREA_52_00:1.2
+	MACE_1_0a:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	97.03.31.23.48.29;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	97.03.31.02.27.01;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@Time.c for the Phoenix class hardware.
+@
+
+
+1.2
+log
+@phx_shims has been corrected to call tq_maint with the
+correct time.
+@
+text
+@
+/*
+ *	phx_time.c -- Forrest Miller -- March 1997
+ *
+ *	Timer-queue manipulation routines, from time.c
+ *
+ *
+ *		Copyright 1997 Atari Games Corporation
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <phx_proto.h>
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+#define COUNTS_PER_USEC ( CPU_SPEED / 2000000 )
+
+#ifndef ONE_SECOND
+#define ONE_SECOND (1048576)
+#endif
+/*	__time_q is really a pointer to the first struct tq, not
+ *	a struct tq itself, but since the "next" field is first, and
+ *	we need a "tail" pointer, lying gives us cleaner code :-)
+ */
+
+struct tq __time_q;
+
+/*		tq_maint
+ *	Simple timer "delta Q" hook. The user must call this periodically,
+ *	with the parameter usec indicating a "best guess" at how many
+ *	microseconds have elapsed since the last call. This routine will
+ *	be called from the hardware timer interrupt routine _unless_ that
+ *	vector has been "hijacked", so it should not be of interest to anyone
+ *	not doing so.
+ *		This code locks out interrupts, so that no timer events can
+ *	be added or deleted by any code running at a higher hardware priority
+ *	than itself. If this becomes an issue due to the inevitable increase
+ *	in latency, it could be avoided if we can guarantee that no timer
+ *	events will be posted by any code that could execute at a higher
+ *	hardware interrupt level at all.
+ */
+
+void tq_maint(unsigned long usec)
+{
+    int old_ipl;
+    struct tq *tqp;
+    unsigned long over_run = 0;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    __time_q.delta = prc_get_count();/* time of maint */
+    tqp = __time_q.next;	/* first one is dummy */
+    while ( tqp ) {
+	if ( tqp->delta > usec ) {
+	    tqp->delta -= usec;
+	    break;
+	}
+	if ( usec ) over_run = usec - tqp->delta;
+	tqp->delta = over_run;	/* show over-run if any */
+	__time_q.next = tqp->next;
+	tqp->que = 0;
+	prc_q_action((struct act_q *)tqp);
+	usec = over_run;
+	tqp = __time_q.next;
+    }
+    prc_set_ipl(old_ipl);
+}
+
+/* 		tq_ins()
+ *	Insert an entry on the timer queue, which will cause an "action"
+ *	to occur "delta" microseconds in the future. The caller must
+ *	allocate the queue entry (in memory that will "live" until it
+ *	times out), and fill in the delta, func, and vars fields.  The
+ *	last two need only be filled in once, if the same element will
+ *	be used for the same action repeatedly. This routine will not
+ *	insert the same entry twice.  The delta field will be adjusted
+ *	by tq_ins() to account for any earlier events in the queue, so
+ *	should not be "watched" by user code.
+ *
+ *	Returns 0 if successful, -1 if unsuccessful.
+ */
+
+int
+tq_ins(tqp)
+struct tq *tqp;
+{
+    int old_ipl;
+    unsigned long del;
+    struct tq *tail,*wp;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+    if ( CPU_SPEED )
+     tqp->delta += ( ( prc_get_count() - __time_q.delta ) / COUNTS_PER_USEC );
+    tail = &__time_q;
+    if ( tqp->que ) {
+	/* already on some que, return error
+	 */
+	prc_set_ipl(old_ipl);
+	return -1;
+    }
+    del = tqp->delta;
+
+    while ( (wp = tail->next) != 0 ) {
+	if ( wp == tqp ) {
+	    /* the geek tried to insert the same queue element twice
+	     */
+	    prc_set_ipl(old_ipl);
+	    return -1;
+	}
+	if ( wp->delta > del ) {
+	    /* next delta is greater than ours, adjust and insert here
+	     */
+	    wp->delta -= del;
+	    break;
+	}
+	/* getting here means there is a next entry, and it is due to
+	 * expire before us, so deduct its delta from ours, and keep
+	 * moving down the chain;
+	 */
+	del -= wp->delta;
+	tail = wp;
+    }
+    /* tail points to the entry _before_ the correct insertion point.
+     * This is possibly the fake "struct tq" at __time_q, but we only
+     * dink with its first (only) element.
+     * wp is either 0 or points to the entry _after_ the insertion point.
+     */
+    tqp->delta = del;		/* store adjusted delta */
+    tqp->next = wp;		/* link to entry after us */
+    tqp->que = &__time_q;	/* show "on timer queue" */
+    tail->next = tqp;		/* insert us */
+    prc_set_ipl(old_ipl);
+    return 0;
+}
+
+/*		tq_del()
+ *	Delete an un-expired entry from the timer queue.
+ *
+ *	Returns 0 if successful, -1 if unsuccessful (entry not found
+ *	on queue.)
+ */
+
+int
+tq_del(tqp)
+struct tq *tqp;
+{
+    int old_ipl;
+    struct tq *tail,*wp;
+
+    tail = &__time_q;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+
+    if ( tail == tqp->que ) {
+	while ( (wp = tail->next) != 0 ) {
+	    if ( wp == tqp ) {
+		/* Found our entry
+		*/
+		wp = wp->next;	/* move wp to our successor */
+		tail->next = wp;	/* link predecessor (or __time_q) to next */
+		if ( wp ) wp->delta += tqp->delta;
+		tqp->que = 0;
+		prc_set_ipl(old_ipl);
+		return 0;
+	    }
+	    tail = wp;
+	}
+    }
+    prc_set_ipl(old_ipl);
+    return -1;
+}
+
+/*		sho_delay_q(col,row)
+ *	Display current delay q starting at (col,row)
+ */
+
+int sho_delay_q(col,row,prev)
+int col,row,prev;
+{
+    struct tq *tqp,*sqp,sample[AN_VIS_ROW_MAX];
+    int old_ipl,idx,active;
+    unsigned long delta,secs,frac;
+    idx = 0;
+    sqp = sample;
+    old_ipl = prc_set_ipl(INTS_OFF);
+    tqp = __time_q.next;		/* start with first real que elt */
+    while ( tqp ) {
+	*sqp++ = *tqp;
+	if ( ++idx >= AN_VIS_ROW ) break;
+	tqp = tqp->next;
+    }
+    prc_set_ipl(old_ipl);
+    active = idx;
+    if ( prev < active ) prev = active;
+    delta = 0;
+    sqp = sample;
+    for ( idx = 0 ; idx < prev ; ++idx ) {
+	if ( idx >= active ) {
+	    txt_clr_wid(col,row,29);
+	} else {
+	    delta += sqp->delta;
+	    secs = delta/ONE_SECOND;
+	    frac = delta-(secs*ONE_SECOND);
+	    txt_decnum(col,row++,secs,4,RJ_BF,WHT_PALB);
+	    txt_cstr(".",WHT_PALB);
+	    txt_cdecnum(frac,6,LJ_BF,WHT_PALB);
+	    txt_cstr(" $",WHT_PALB);
+	    txt_chexnum((unsigned long)sqp->func,6,RJ_ZF,WHT_PALB);
+	    txt_cstr("(",WHT_PALB);
+	    txt_chexnum((unsigned long)sqp->vars,8,RJ_ZF,WHT_PALB);
+	    txt_cstr(")",WHT_PALB);
+	    ++sqp;
+	}
+	++row;
+    }
+    return active;
+}
+
+static struct tq ttq[4];
+
+static void expire(void *arg)
+{
+    char *msg;
+    int col,row;
+
+    if ( (msg = arg) == 0 ) msg = "0Expired";
+    row = *msg++ - '0';
+    if ( row < 0 ) row = 0;
+    else if ( row > 9 ) row -= ('A'-'9');
+    if ( row >= AN_VIS_ROW ) row = AN_VIS_ROW-1;
+    col = 1;
+    while ( *msg ) {
+	txt_stamp(col++,row,(*msg++)+AN_A_STMP-'A',MHILITE_PAL);
+    }
+}
+
+static const char * const tmsg[] = { "1FIRST","2SECOND","3THIRD","4FOURTH" };
+void time_test(smp)
+const struct menu_d *smp;
+{
+    int idx;
+    struct tq *wp;
+    wp = ttq;
+    for ( idx = 3 ; idx >= 0 ; --idx ) {
+	wp->delta = ((idx*2)+1)*ONE_SECOND;
+	wp->func = expire;
+	wp->vars = (void *)tmsg[idx];
+	tq_ins(wp);
+	++wp;
+    }
+    wp = ttq;
+    idx = 0;
+    do {
+	idx = sho_delay_q(8,2,idx);
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) {
+	    tq_del(wp);
+	    wp->delta += 5*ONE_SECOND;
+	    wp->que = 0;
+	    tq_ins(wp);
+	    if ( ++wp > (ttq+3) ) wp = ttq;
+	}
+    } while (idx);
+}
+
+#if (0)
+#ifndef CLK_TICKS
+#define CLK_TICKS (100)
+#endif
+
+static void
+bell(vars)
+void *vars;
+{
+    if ( vars ) fputs((char *)vars,stderr);
+    fputs("\a",stderr);
+}
+
+const char alarm_help[] = "<delta>\n\tbeep terminal bell in <delta> seonds";
+
+int
+alarm_Cmd(argc,argv)
+int argc;
+char **argv;
+{
+    static struct tq atq,*tqp;
+    int old_ipl,status;
+    unsigned long delta;
+    char *rp;
+
+    if ( argc < 2 ) {
+	/* kluge to inspect timer queue */
+	delta = 0;
+	old_ipl = prc_set_ipl(INTS_OFF);
+	tqp = __time_q.next;		/* start with first real que elt */
+	while ( tqp ) {
+	    delta += tqp->delta;
+	    if ( tqp == &atq ) break;
+	    tqp = tqp->next;
+	}
+	prc_set_ipl(old_ipl);
+	if ( tqp ) {
+	    delta += (CLK_TICKS>>1);
+	    delta /= CLK_TICKS;
+	    fprintf(stdout,"Alarm set to go off in %d seconds\n",delta);
+	} else fputs("Alarm not set\n",stdout);
+	return 0;
+    }
+    delta = strtoul(*++argv,&rp,10);
+    if ( rp == *argv ) {
+	fprintf(stderr,"Usage: %s\n",alarm_help);
+	return EDOM;
+    } else {
+	status = tq_del(&atq);
+	if ( status == 0 ) {
+	    /* able to delete means alarm was previously set
+	     */
+	    fputs("re-",stdout);
+	}
+	atq.delta = delta * CLK_TICKS;
+	atq.func = bell;
+	atq.vars = (void *)"Your alarm is ringing\n";
+	atq.que = 0;
+	tq_ins(&atq);
+	fprintf(stdout,"setting alarm for %d seconds\n",delta);
+    }
+    return 0;
+}
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a59 2
+    if ( CPU_SPEED )
+     usec = ( ( prc_get_count() - __time_q.delta ) / COUNTS_PER_USEC );
+@

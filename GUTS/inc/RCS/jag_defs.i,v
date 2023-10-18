@@ -1,0 +1,202 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	94.12.13.21.54.00;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@assembly-language version of Jaguar-specific definitions
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@
+
+*
+* COJag Horizontal computations
+*
+
+N_HP	EQU	$1C7	; horizontal period
+N_HBB	EQU	$544	; horizontal blank begin
+N_HBE	EQU	$6C	; horizontal blank end
+N_HS	EQU	$585	; horizontal sync
+N_HVS	EQU	$140	; horizontal vertical sync
+N_HEQ	EQU	$1C7	; horizontal equalization
+N_HDE	EQU	$540	; horizontal display end
+N_HDB1	EQU	$68	; horizontal display begin #1
+N_HDB2	EQU	$68	; horizontal display begin #1
+*
+* COJag Vertical computations
+*
+
+N_VP	EQU	$20B	; vertical period (half-lines)
+N_VEE	EQU	$0	; vertical equalization end
+N_VBE	EQU	$22	; vertical blank end
+N_VDB	EQU	$20	; vertical display begin
+N_VDE	EQU	$200	; vertical display begin
+N_VBB	EQU	$200	; vertical blank begin
+N_VS	EQU	$205	; vertical sync
+N_VEB	EQU	$207	; vertical equalization end
+TOM_MEM_BASE	EQU	$0	; DRAM base, from TOM's viewpoint
+HOST_MEM_BASE	EQU	$0FF000000	; DRAM base, from HOST's viewpoint
+TOM_BASE	EQU	$0FFF00000	; TOM's internal register base
+JERRY_BASE	EQU	$0FFF10000	; JERRY's internal register base
+VIDEO_MODE_CRY	EQU	$281
+VIDEO_MODE_RBG5	EQU	$287
+
+MEMCON1	EQU	$0FFF00000	; (VU16) Memory Config Register
+MEMCON2	EQU	$0FFF00002	; (VU16) Memory Config Register
+INT1	EQU	$0FFF000E0	; (VU16) 
+INT2	EQU	$0FFF000E2	; (VU16) 
+NTSC_HMID	EQU	823
+NTSC_WIDTH	EQU	1409
+NTSC_VMID	EQU	266
+NTSC_HEIGHT	EQU	241
+VDB	EQU	$0FFF00046	; (VU16) Vert Display Begin
+VDE	EQU	$0FFF00048	; (VU16) Vert Display End
+BG	EQU	$0FFF00058	; (VU16) 
+BORD1	EQU	$0FFF0002A	; (VU16) 
+BORD2	EQU	$0FFF0002C	; (VU16) 
+OLP	EQU	$0FFF00020	; (VU32) 
+VMODE	EQU	$0FFF00028	; (VU16) 
+HP	EQU	$0FFF0002E	; (VU16) Horizontal Period
+HBB	EQU	$0FFF00030	; (VU16) Horizontal Blanking Begin
+HBE	EQU	$0FFF00032	; (VU16) Horizontal Blanking End
+HS	EQU	$0FFF00034	; (VU16) Horizontal Sync
+HVS	EQU	$0FFF00036	; (VU16) Horizontal Vertical Sync
+HDB1	EQU	$0FFF00038	; (VU16) Horz Display Begin #1
+HDB2	EQU	$0FFF0003A	; (VU16) Horz Display Begin #2
+HDE	EQU	$0FFF0003C	; (VU16) Horz Display End
+VP	EQU	$0FFF0003E	; (VU16) Vertical Period 1/2 lines
+VBB	EQU	$0FFF00040	; (VU16) Vert Blanking Begin
+VBE	EQU	$0FFF00042	; (VU16) Vert Blanking End
+VS	EQU	$0FFF00044	; (VU16) Vert Sync
+VEB	EQU	$0FFF0004A	; (VU16) Vert Equalization Begin
+VEE	EQU	$0FFF0004C	; (VU16) Vert Equalization End
+VI	EQU	$0FFF0004E	; (VU16) Vertical Interrupt
+HEQ	EQU	$0FFF00054	; (VU16) Horizontal Equalization End
+
+*
+* GPU Registers...
+*
+
+G_FLAGS	EQU	$0FFF02100	; (VU32)  GPU Flags 
+G_MTXC	EQU	$0FFF02104	; (VU32)  GPU Matrix Control 
+G_MTXA	EQU	$0FFF02108	; (VU32)  GPU Matrix Address 
+G_END	EQU	$0FFF0210C	; (VU32)  GPU Data Organization 
+G_PC	EQU	$0FFF02110	; (VU32)  GPU Program Counter 
+G_CTRL	EQU	$0FFF02114	; (VU32)  GPU Operation Control/Status 
+G_HIDATA	EQU	$0FFF02118	; (VU32)  GPU Bus Interface high data 
+G_REMAIN	EQU	$0FFF0211C	; (VU32)  GPU Division Remainder 
+G_DIVCTRL	EQU	$0FFF0211C	; (VU32)  GPU Divider Control 
+G_RAM	EQU	$0FFF03000	; (VU32)  GPU Internal RAM 
+
+*
+* fix this
+*
+G_ENDRAM	EQU	$0FFF04000	; (VU16)  GPU End of Internal RAM 
+
+*
+* Blitter registers...
+*
+A1_BASE	EQU	$0FFF02200	; (VU32)  A1 Base address 
+A1_FLAGS	EQU	$0FFF02204	; (VU32)  A1 Control Flags 
+A1_CLIP	EQU	$0FFF02208	; (VU32)  A1 Clipping Size 
+A1_PIXEL	EQU	$0FFF0220C	; (VU32)  A1 Pixel Pointer (Integer) 
+A1_STEP	EQU	$0FFF02210	; (VU32)  A1 Step (Integer) 
+A1_FSTEP	EQU	$0FFF02214	; (VU32)  A1 Step (Fractional) 
+A1_FPIXEL	EQU	$0FFF02218	; (VU32)  A1 Pixel Pointer (Fractional) 
+A1_INC	EQU	$0FFF0221C	; (VU32)  A1 Increment (Integer) 
+A1_FINC	EQU	$0FFF02220	; (VU32)  A1 Increment (Fractional) 
+
+A2_BASE	EQU	$0FFF02224	; (VU32)  A2 Base address 
+A2_FLAGS	EQU	$0FFF02228	; (VU32)  A2 Control Flags 
+A2_MASK	EQU	$0FFF0222C	; (VU32)  A2 Address Mask 
+A2_PIXEL	EQU	$0FFF02230	; (VU32)  A2 Pixel Pointer 
+A2_STEP	EQU	$0FFF02234	; (VU32)  A2 Step 
+
+B_CMD	EQU	$0FFF02238	; (VU32)  Blitter Command 
+B_COUNT	EQU	$0FFF0223C	; (VU32)  Blitter Counter 
+B_SRCD	EQU	$0FFF02240	; (VU32)  Blitter Source Data 
+B_DSTD	EQU	$0FFF02248	; (VU32)  Blitter Destination Data 
+B_DSTZ	EQU	$0FFF02250	; (VU32)  Blitter Destination Z 
+B_SRCZ1	EQU	$0FFF02258	; (VU32)  Blitter Source Z (Integer) 
+B_SRCZ2	EQU	$0FFF02260	; (VU32)  Blitter Source Z (Fractional) 
+B_PATD	EQU	$0FFF02268	; (VU32)  Blitter Pattern Data 
+B_PATD1	EQU	$0FFF02268	; (VU32)  Blitter Pattern Data 
+B_PATD2	EQU	$0FFF0226C	; (VU32)  Blitter Pattern Data 
+B_IINC	EQU	$0FFF02270	; (VU32)  Blitter Intensity Increment 
+B_ZINC	EQU	$0FFF02274	; (VU32)  Blitter Z Increment 
+B_STOP	EQU	$0FFF02278	; (VU32)  Blitter Collision Stop Control 
+
+B_I3	EQU	$0FFF0227C	; (VU32)  Blitter Intensity #3 
+B_I2	EQU	$0FFF02280	; (VU32)  Blitter Intensity #2 
+B_I1	EQU	$0FFF02284	; (VU32)  Blitter Intensity #1 
+B_I0	EQU	$0FFF02288	; (VU32)  Blitter Intensity #0 
+
+B_Z3	EQU	$0FFF0228C	; (VU32)  Blitter Z #3 
+B_Z2	EQU	$0FFF02290	; (VU32)  Blitter Z #2 
+B_Z1	EQU	$0FFF02294	; (VU32)  Blitter Z #1 
+B_Z0	EQU	$0FFF02298	; (VU32)  Blitter Z #0 
+
+*
+* JERRY Registers...
+*
+
+JPIT1	EQU	$0FFF10000	; (VU32) 
+CLK1	EQU	$0FFF10010	; (VU16)  Host CLock Freq.
+CLK2	EQU	$0FFF10012	; (VU16)  Video Clock Freq.
+CHRO_CLK	EQU	$0FFF10014	; (VU32)  Chroma Clock control
+
+JOYSTICK	EQU	$0FFF14000	; (VU16)  Joystick register
+JOYBUTS	EQU	$0FFF14002	; (VU16)  Joystick Buttons
+CONFIG	EQU	$0FFF14002	; (VU16)  Also has NTSC/PAL
+
+MOD_MASK	EQU	$0FFF1A118	; (VU32)  Mask for ADDQ(SUBQ)MOD
+
+SCLK	EQU	$0FFF1A150	; (VU32)  SSI Clock Frequency
+SMODE	EQU	$0FFF1A154	; (VU32)  SSI Control
+
+R_DAC	EQU	$0FFF1A148	; (VU32) Right Channel DAC
+L_DAC	EQU	$0FFF1A14C	; (VU32) Left Channel DAC
+
+L_I2S	EQU	$0FFF1A148	; (VU32) Left Channel I2S port??
+R_I2S	EQU	$0FFF1A14C	; (VU32) Right Channel I2S port??
+*
+* ROM Tables buiilt into Jerry, 128 samples
+*
+ROM_TRI	EQU	$0FFF1D000	; (VS32)  A triangle wave 
+ROM_SINE	EQU	$0FFF1D200	; (VS32)  Full amplitude SINE
+ROM_AMSINE	EQU	$0FFF1D400	; (VS32)  Linear (?) ramp SINE
+*
+* This was once ROM_SINE12W which is just like ROM_SINE 
+*
+ROM_12W	EQU	$0FFF1D600	; (VS32)  SINE(X)+SINE(2*X)
+ROM_CHIRP16	EQU	$0FFF1D800	; (VS32)  SHORT SWEEP
+ROM_NTRI	EQU	$0FFF1DA00	; (VS32)  Triangle w/NOISE
+ROM_DELTA	EQU	$0FFF1DC00	; (VS32)  Positive spike 
+ROM_NOISE	EQU	$0FFF1DE00	; (VS32)  Guess 
+D_FLAGS	EQU	$0FFF1A100	; (VU32)  DSP Flags 
+D_MTXC	EQU	$0FFF1A104	; (VU32)  DSP Matrix Control 
+D_MTXA	EQU	$0FFF1A108	; (VU32)  DSP Matrix Address 
+D_END	EQU	$0FFF1A10C	; (VU32)  DSP Data Organization 
+D_PC	EQU	$0FFF1A110	; (VU32)  DSP Program Counter 
+D_CTRL	EQU	$0FFF1A114	; (VU32)  DSP Operation Control/Status 
+D_HIDATA	EQU	$0FFF1A118	; (VU32)  DSP Bus Interface high data 
+D_REMAIN	EQU	$0FFF1A11C	; (VU32)  DSP Division Remainder 
+D_DIVCTRL	EQU	$0FFF1A11C	; (VU32)  DSP Divider Control 
+D_RAM	EQU	$0FFF1B000	; (VU32)  DSP Internal RAM 
+D_ENDRAM	EQU	$0FFF1D000	; (VU32)  End of 8K byte RAM
+
+@

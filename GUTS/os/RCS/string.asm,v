@@ -1,0 +1,369 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.2
+date	95.04.11.22.17.37;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.18.18.29;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Such of the ANSI str* and mem* functions as are actually used in GUTS.
+@
+
+
+1.2
+log
+@added underscored versions of each global symbol, for gas brain-damage
+@
+text
+@*	TTL	'68000 mem* and str* functions'
+* This file contains the 68000 assembly source for the Ansi defined
+* functions memchr, memcmp, memcpy, memmove, and memset. For definitions of
+* individual functions, see comments below at each function. GreenHills C
+* calling conventions have been used:
+*
+*	32-bit ints,
+*	all params on stack,
+*	D0/D1/A0/A1 are caller-save,
+*	all other regs are callee-save.
+*
+* These functions have been coded reasonably carefully but no attempt was
+* made to optimize for long lengths. Partially this was laziness, but partially
+* it was because I had insufficient data on freqency to decide whether the
+* (sometimes large) start-up penalty would be paid back. They all use the
+* "loop-mode" available on the 68010 and above, so they should be moderately
+* fast. -- Mike Albaugh
+*
+*	ADDED strcpy, strchr, and strlen sep 13, 1991 MEA
+
+	SECTION	9
+	xdef	memchr,_memchr
+* void * memchr ( const void *srch, int chr, size_t len);
+* locates first occurence of char 'chr' within first 'len' chars of array srch.
+* returns pointer to char or NULL if not found.
+
+SRCH	SET	4
+CHR	SET	8
+LEN	SET	12
+_memchr:
+memchr:
+	MOVE.L	CHR(A7),D1
+	MOVE.L	SRCH(A7),A0
+	MOVE.L	LEN(A7),D0
+	BEQ.S	mch_10		; zero length returns NULL
+	SUBQ.L	#1,D0		; adjust for DBF
+mch_00:	CMP.B	(A0)+,D1
+	DBEQ	D0,mch_00
+	BEQ.S	mch_20		; Match, adjust pointer and return
+	SUB.L	#$10000,D0
+	BCC	mch_00
+	MOVEQ.L	#0,D0		; Failure return
+mch_10:	RTS
+
+mch_20:	SUBQ.L	#1,A0		; back-up to matching char
+	MOVE.L	A0,D0
+	RTS
+
+	xdef	_memcmp,memcmp
+* int memcmp ( const void *s1, const void *s2, size_t len);
+* compares first 'len' chars of arrays s1 and s2.
+* returns integer <, ==, or < 0 depending on first differing character.
+
+S1	SET	4
+S2	SET	8
+LEN	SET	12
+_memcmp:
+memcmp:
+	MOVE.L	S2(A7),A1
+	MOVE.L	S1(A7),A0
+	MOVE.L	LEN(A7),D0
+	BEQ.S	mcm_20		; zero length returns 0 (equal)
+	SUBQ.L	#1,D0		; adjust for DBNE
+mcm_00:	CMP.B	(A0)+,(A1)+
+	DBNE	D0,mcm_00
+	BNE.S	mcm_10		; MisMatch, adjust pointers and return diff.
+	SUB.L	#$10000,D0
+	BCC	mcm_00
+* count exhausted without mis-match, re-compare last chars to return 0 (equal)
+* pANS specifies that the comparison be done as unsigned chars, which the code
+* below does. VAXCRTL has a bug which essentially returns a random non-zero
+* value for unequal, regardless of relative values, while Xenix implementation
+* returns the same result as the typical strcmp(), which is what Xenix man
+* page implies (without stating). Both of those need to be fixed :-)
+mcm_10:	MOVEQ.L	#0,D0
+	MOVEQ.L	#0,D1
+	MOVE.B	-(A0),D0
+	MOVE.B	-(A1),D1
+	SUB.L	D1,D0
+mcm_20:	RTS
+
+	xdef	_memcpy
+	xdef	memcpy
+* void * memcpy (void *dst, const void *src, size_t len);
+* copy 'len' chars from array pointed to by 'src' to array pointed to by 'dst'
+* returns dst.
+* No guarantee of "correct" behavior for overlapping src,dst (see memmove)
+
+DST	SET	4
+SRC	SET	8
+LEN	SET	12
+_memcpy:
+memcpy:
+	MOVE.L	DST(A7),A1
+	MOVE.L	A1,D0		; Copy for return value
+	MOVE.L	SRC(A7),A0
+MC_SD:	MOVE.L	LEN(A7),D1
+	BRA.S	mc_10
+mc_00:	MOVE.B	(A0)+,(A1)+
+mc_10:	DBF	D1,mc_00
+	SUB.L	#$10000,D1
+	BCC	mc_00
+mc_20:	RTS
+
+	xdef	_memmove
+	xdef	memmove
+* void * memmove (void *dst, const void *src, size_t len);
+* copy 'len' chars from array pointed to by 'src' to array pointed to by 'dst'
+* returns dst.
+* Checks for possible overlap and "does the right thing"
+
+DST	SET	4
+SRC	SET	8
+LEN	SET	12
+_memmove:
+memmove:
+	MOVE.L	DST(A7),A1
+	MOVE.L	A1,D0		; Save for return value
+	MOVE.L	SRC(A7),A0
+	CMP.L	A0,D0
+	BCS	MC_SD		; just use memcpy if dst < src
+	MOVE.L	LEN(A7),D1
+	ADD.L	D1,A0		; skip to right end of src
+	ADD.L	D1,A1		; skip to right end of dst
+	BRA.S	mm_10
+mm_00:	MOVE.B	-(A0),-(A1)
+mm_10:	DBF	D1,mm_00
+	SUB.L	#$10000,D1
+	BCC	mm_00
+mm_20:	RTS
+
+	xdef	_memset
+	xdef	memset
+* void *memset (void *dst, char chr, size_t len);
+* set first 'len' characters of array pointed to by 'dst' to value 'chr'
+* returns dst
+DST	SET	4
+CHR	SET	8
+LEN	SET	12
+_memset:
+memset:
+	MOVE.L	DST(A7),A1
+	MOVE.L	A1,A0
+	MOVE.L	CHR(A7),D1
+	MOVE.L	LEN(A7),D0
+	BRA.S	ms_10
+ms_00:	MOVE.B	D1,(A1)+
+ms_10:	DBF	D0,ms_00
+	SUB.L	#$10000,D0
+	BCC	ms_00
+	MOVE.L	A0,D0
+	RTS
+
+	xdef _strcpy
+	xdef strcpy
+_strcpy:
+strcpy:
+	move.l 4(A7),A0
+	move.l 8(A7),A1
+	MOVE.L	#-1,D1
+.L37:
+	move.b (A1)+,(A0)+
+	DBEQ	D1,.L37
+	BNE	.L37
+	rts
+
+	xdef _strncpy
+	xdef strncpy
+_strncpy:
+strncpy:
+	move.l 12(A7),D1	; get cnt
+	beq .L41
+	move.l 4(A7),A1		; Get dst
+	move.l 8(A7),A0		; Get src
+	subq.l	#1,D1
+.L42:
+	move.b (A0)+,(A1)+
+	DBEQ	D1,.L42
+	beq .L46
+	sub.l	#$10000,D1
+	BCC	.L42
+	BRA	.L41
+
+.L46:	MOVEQ.L	#0,D0
+	BRA.S	.L47
+.L48:	MOVE.B	D0,(A1)+
+.L47:	DBF	D1,.L48
+	SUB.L	#$10000,D1
+	BCC	.L48
+.L41:
+	move.l 4(A7),D0
+	rts
+
+	xdef	_strchr
+	xdef	strchr
+_strchr:
+strchr:
+	move.l 4(A7),A1
+	move.l 8(A7),D1
+	bra .L54
+.L58:
+	cmp.w #0,A0
+	bne .L56
+	clr.l D0
+	bra .L53
+.L56:
+	addq.w #1,A1
+.L54:
+	move.b (A1),D0
+	ext.w D0
+	move.w D0,A0
+	cmp.l A0,D1
+	bne .L58
+	move.l A1,D0
+.L53:
+	rts
+	xdef _strrchr
+	xdef strrchr
+_strrchr:
+strrchr:
+	move.l D2,-(A7)
+	move.l 8(A7),A0
+	move.l 12(A7),D2
+	clr.l D1
+.L60:
+	move.b (A0),D0
+	ext.w D0
+	move.w D0,A1
+	cmp.l A1,D2
+	bne .L63
+	move.l A0,D1
+.L63:
+	addq.w #1,A0
+	cmp.w #0,A1
+	bne .L60
+	move.l D1,D0
+	move.l (A7)+,D2
+	rts
+
+	xdef	_strlen
+	xdef	strlen
+_strlen:
+strlen:
+	MOVE.L	4(A7),A0
+	MOVE.L	A0,A1
+.stl0:	TST.B	(A0)+
+	BNE.S	.stl0
+	MOVEQ.L	#-1,D0
+	ADD.L	A0,D0
+	SUB.L	A1,D0
+	RTS
+
+* Produced by mild hand-edits to gcc-1.34 compiled version in simple_strings.c
+	SECTION 9
+	xdef _strcat
+	xdef strcat
+_strcat:
+strcat:
+	move.l 4(sp),d0
+	move.l 8(sp),a1
+	move.l d0,a0
+.L4:
+	tst.b (a0)+
+	bne .L4
+.L9:
+	SUBQ.L	#1,A0
+.L6:
+	move.b (a1)+,(A0)+
+	bne .L6
+	rts
+
+	xdef _strncat
+	xdef strncat
+_strncat:
+strncat:
+	move.l 12(sp),d1
+	beq.s .L11
+	move.l 4(sp),A0
+	move.l 8(sp),a1
+.L14:	tst.b (a0)+
+	bne	.L14
+	SUBQ.L	#1,A0		; Back up from overrun
+	SUBQ.L	#1,D1
+	BCS.S	.L11
+
+.L16:
+	move.b (a1)+,(A0)+
+	DBEQ	D1,.L16
+	BEQ.S	.L11
+	sub.l #$10000,d1
+	BCC.s .L16
+	clr.b (a0)
+.L11:
+	move.l 4(SP),d0
+	rts
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+	TTL	'68000 mem* and str* functions'
+d22 1
+a22 1
+	xdef	memchr
+d30 1
+d49 1
+a49 1
+	xdef	memcmp
+d57 1
+d82 1
+d92 1
+d105 1
+d115 1
+d132 1
+d140 1
+d154 1
+d156 1
+d166 2
+a167 1
+	DS.W 0
+d169 1
+d194 1
+d196 1
+d217 1
+a217 1
+	DS.W 0
+d219 1
+d240 1
+d242 1
+d255 1
+a255 1
+	DS.W 0
+d257 1
+d272 1
+d274 1
+@

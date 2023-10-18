@@ -1,0 +1,81 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	97.04.29.16.44.06;	author forrest;	state Exp;
+branches;
+next	;
+
+
+desc
+@QIO DMA driver user definitions.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@
+/*
+ *	dma.h -- Forrest Miller -- April 1997
+ *
+ *	QIO DMA driver user definitions.
+ *
+ *
+ *		Copyright 1997 Atari Games Corporation
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#ifndef _DMA_H_
+#define _DMA_H_
+
+/*
+ *	qio_ioctl commands for /dma device(s)
+ */
+#define DMA_IOC_XFER 1
+
+/*
+ *	qio_ioctl control block for /dma device(s)
+ */
+typedef struct dma_ioctl_block
+{
+ U32  src;
+ U32  dst;
+ U32  count;
+ char s_control;
+ char d_control;
+ char x_control;
+} DmaIOCB;
+
+/*
+ *	qio_ioctl parameters for DmaIOCB, s_control and d_control
+ */
+#define DMA_INCR '+'
+#define DMA_DECR '-'
+#define DMA_HOLD '='
+
+/*
+ *	qio_ioctl parameters for DmaIOCB, x_control
+ */
+#define DMA_BYTE 'b'	/*  1 byte  */
+#define DMA_HALF 'h'	/*  2 bytes */
+#define DMA_WORD 'w'	/*  4 bytes */
+#define DMA_DBLE 'd'	/*  8 bytes */
+#define DMA_QUAD 'q'	/* 16 bytes */
+#define DMA_OCTW 'o'	/* 32 bytes */
+
+/*
+ *	prototypes
+ */
+extern void qio_dma_init( void );
+
+#endif  /* _DMA_H_ */
+@

@@ -1,0 +1,137 @@
+head	1.2;
+access;
+symbols
+	RUSH_ROCK_1_0:1.2
+	RUSH_ROCK_1_0epst:1.2
+	MACE_1_0e:1.2
+	MACE_1_0d:1.2
+	RUSH_1_06A:1.2
+	AREA_52_00:1.2
+	MACE_1_0a:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	96.10.02.00.33.58;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.05.07.00.08.36;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Phoenix NSC IDE chip definitions
+@
+
+
+1.2
+log
+@Corrected the prototypes for some PCI_xxx functions.
+@
+text
+@/****************************************************************************
+    Copyright (C) 1995 National Semiconductor Corp.  All Rights Reserved
+*****************************************************************************
+*
+*   File:               PCI_CFIG.H
+*
+*   Purpose:            Header file for PCI configuration manipulation code.
+*
+*   Update History:      1/10/95 GDV Created
+*
+****************************************************************************/
+
+#ifndef PCI_CFIG_H
+#define PCI_CFIG_H
+
+#define PCI_DEFVAL_BUSMHZ   33          /* PCI bus speed in Mhz */
+
+typedef unsigned long       DEVHANDLE;  /* handle to a PCI device */
+					/*  to be used for access */
+
+extern DEVHANDLE PCI_FindDevice		/* returns a handle for dev access */
+(					/*  NULL is the device is not found */
+    SBOOL *         usebios,            /* IN: TRUE to use the PCI BIOS */
+					/* OUT: TRUE if using the PCI BIOS */
+    DWORD           deviceID            /* PCI device ID to search for */
+);
+
+extern int PCI_ReadConfigByte      /* returns value of PCI byte register */
+(
+    DEVHANDLE       devhand,            /* handle for device access */
+    BYTE            regaddr             /* register address to read from */
+);
+
+extern int PCI_ReadConfigWord      /* returns value of PCI word register */
+(
+    DEVHANDLE       devhand,            /* handle for device access */
+    BYTE            regaddr             /* register address to read from */
+);
+
+extern unsigned long PCI_ReadConfigDWord      /* returns value of PCI DWord register */
+(
+    DEVHANDLE       devhand,            /* handle for device access */
+    BYTE            regaddr             /* register address to read from */
+);
+
+extern void PCI_WriteConfigByte     /* writes single byte PCI register value */
+(
+    DEVHANDLE       devhand,            /* handle for device access */
+    BYTE            regaddr,            /* register address to write to */
+    BYTE            regval              /* value to write to that address */
+);
+
+extern void PCI_WriteConfigWord     /* writes single word PCI register value */
+(
+    DEVHANDLE       devhand,            /* handle for device access */
+    BYTE            regaddr,            /* register address to write to */
+    WORD            regval              /* value to write to that address */
+);
+
+extern void PCI_WriteConfigDword    /* writes double word PCI register value */
+(
+    DEVHANDLE       devhand,            /* handle for device access */
+    BYTE            regaddr,            /* register address to write to */
+    DWORD           regval              /* value to write to that address */
+);
+
+#endif
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d28 1
+a28 1
+extern BYTE PCI_ReadConfigByte      /* returns value of PCI byte register */
+d34 1
+a34 1
+extern void PCI_WriteConfigByte     /* writes single byte PCI register value */
+d37 1
+a37 2
+    BYTE            regaddr,            /* register address to write to */
+    BYTE            regval              /* value to write to that address */
+d40 1
+a40 1
+extern WORD PCI_ReadConfigWord      /* returns value of PCI word register */
+d46 1
+a46 1
+extern void PCI_WriteConfigWord     /* writes single word PCI register value */
+d50 1
+a50 1
+    WORD            regval              /* value to write to that address */
+d53 1
+a53 1
+extern DWORD PCI_ReadConfigDword    /* returns value of PCI dword register */
+d56 2
+a57 1
+    BYTE            regaddr             /* register address to read from */
+@

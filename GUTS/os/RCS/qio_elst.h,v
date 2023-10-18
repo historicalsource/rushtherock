@@ -1,0 +1,350 @@
+head	1.12;
+access;
+symbols
+	RUSH_1_06A:1.11;
+locks; strict;
+comment	@ * @;
+
+
+1.12
+date	97.01.02.23.23.10;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.12.10.23.53.25;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.11.22.20.44.52;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.11.22.01.46.05;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.11.18.23.16.08;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.11.16.01.09.04;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.10.29.18.27.59;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.10.26.17.48.53;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.10.08.02.02.17;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.10.07.16.47.54;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.10.02.00.20.36;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.10.01.18.13.33;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Support for QIO and Filesystem error messages.
+@
+
+
+1.12
+log
+@This file is now obsolete. Nobody #include's it anymore.
+@
+text
+@/* This file is obsolete. The contents that used to be in
+ * here have been moved to qio.h.
+ */
+
+@
+
+
+1.11
+log
+@Corrected syntax of error message.
+@
+text
+@d1 4
+a4 141
+QIO_ERR_MSG( FSYS_IO_SUCC, =FACILITY_FSYS_IO<<FACILITY_SHIFT, "successful fsys I/O" ),
+QIO_ERR_MSG( FSYS_IO_RDERR,,		"file read error" ),
+QIO_ERR_MSG( FSYS_IO_WRTERR,,		"file write error" ),
+QIO_ERR_MSG( FSYS_IO_FATAL,,		"file read/write fatal internal error" ),
+QIO_ERR_MSG( FSYS_IO_NOSUPP,,		"function not supported by fsys" ),
+QIO_ERR_MSG( FSYS_IO_NOTOPEN,,		"file not open" ),
+QIO_ERR_MSG( FSYS_IO_NOT512,,		"length not a multiple of sector size (512)" ),
+QIO_ERR_MSG( FSYS_IO_NOQIO,,		"ran out of FsysQio's" ),
+QIO_ERR_MSG( FSYS_IO_NODIRS,,		"ran of of DIR structs" ),
+QIO_ERR_MSG( FSYS_MOUNT_SUCC, =FACILITY_MOUNT<<FACILITY_SHIFT,	"successful mount" ),
+QIO_ERR_MSG( FSYS_MOUNT_FATAL,,		"fatal internal error in mount code" ),
+QIO_ERR_MSG( FSYS_MOUNT_BADLVL,,	"executing at wrong level" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOMEM,,		"not enough memory for mount" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOSUPP,,	"feature not supported yet" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOHBLK,,	"could not find any valid home blocks" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOINDX,,	"could not read any index file headers" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOINDXF,,	"could not read any index files" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOFREE,,	"could not read any freemap file headers" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOFREEF,,	"could not read any freemap files" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOROOT,,	"could not read any root file headers" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOROOTF,,	"could not read any root files" ),
+QIO_ERR_MSG( FSYS_MOUNT_BUSY,,		"volume is busy mounting" ),
+QIO_ERR_MSG( FSYS_MOUNT_FHRDERR,,	"file header read error" ),
+QIO_ERR_MSG( FSYS_MOUNT_RDERR,,		"(probably a) directory read error" ),
+QIO_ERR_MSG( FSYS_MOUNT_DIRCORR,,	"directory corrupt" ),
+QIO_ERR_MSG( FSYS_MOUNT_MOUNTED,,	"volume is already mounted" ),
+QIO_ERR_MSG( FSYS_MOUNT_NSV,,		"no such volume name" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOPHYS,,	"couldn't stat the physical device" ),
+QIO_ERR_MSG( FSYS_MOUNT_NOIOQ,,		"ran out of IOQ's" ),
+QIO_ERR_MSG( FSYS_INITFS_SUCC, =FACILITY_INITFS<<FACILITY_SHIFT, "completed successfully" ),
+QIO_ERR_MSG( FSYS_INITFS_INVARG,,	"invalid argument to initfs" ),
+QIO_ERR_MSG( FSYS_INITFS_FATAL,,	"fatal internal error in initfs code" ),
+QIO_ERR_MSG( FSYS_INITFS_BADLVL,,	"executing at wrong level" ),
+QIO_ERR_MSG( FSYS_INITFS_NOMEM,,	"ran out of memory" ),
+QIO_ERR_MSG( FSYS_INITFS_NOSUPP,,	"feature not supported" ),
+QIO_ERR_MSG( FSYS_INITFS_BADHB,,	"error writing the home blocks" ),
+QIO_ERR_MSG( FSYS_INITFS_BADINDX,,	"error writing the index header" ),
+QIO_ERR_MSG( FSYS_INITFS_BADINDXF,,	"error writing the index file" ),
+QIO_ERR_MSG( FSYS_INITFS_BADFREE,,	"error writing the freemap header" ),
+QIO_ERR_MSG( FSYS_INITFS_BADFREEF,, 	"error writing the freemap file" ),
+QIO_ERR_MSG( FSYS_INITFS_BADROOT,,	"error writing the root header" ),
+QIO_ERR_MSG( FSYS_INITFS_BADROOTF,,	"error writing the root file" ),
+QIO_ERR_MSG( FSYS_INITFS_BUSY,,		"initfs is already busy" ),
+QIO_ERR_MSG( FSYS_INITFS_NODRV,,	"no drive" ),
+QIO_ERR_MSG( FSYS_INITFS_NOINFO,,	"error getting drive info" ),
+QIO_ERR_MSG( FSYS_INITFS_NOFREE,,	"ran out of free blocks" ),
+QIO_ERR_MSG( FSYS_INITFS_NOIV,,		"No FsysInitVol parameter supplied" ),
+QIO_ERR_MSG( FSYS_INITFS_CLUSTERNOT1,,	"Cluster size not equal to 1" ),
+QIO_ERR_MSG( FSYS_INITFS_TOOMANYCLUST,,	"Allocated file sizes greater than drive capacity" ),
+QIO_ERR_MSG( FSYS_CREATE_SUCC, =FACILITY_CREATE<<FACILITY_SHIFT,	"file creation completed successfully" ),
+QIO_ERR_MSG( FSYS_CREATE_INVARG,,	"invalid argument to file creation call" ),
+QIO_ERR_MSG( FSYS_CREATE_FATAL,,	"fatal internal error in creation handler" ),
+QIO_ERR_MSG( FSYS_CREATE_BADLVL,,	"executing at wrong level" ),
+QIO_ERR_MSG( FSYS_CREATE_NOMEM,,	"create ran out of memory" ),
+QIO_ERR_MSG( FSYS_CREATE_NOSUPP,,	"cannot create on read only filesystem" ),
+QIO_ERR_MSG( FSYS_CREATE_NOPATH,,	"no such path" ),
+QIO_ERR_MSG( FSYS_CREATE_NAMEINUSE,,	"name already in use by a directory" ),
+QIO_ERR_MSG( FSYS_CREATE_NOFH,,		"filesystem full, no more file headers" ),
+QIO_ERR_MSG( FSYS_CREATE_FULL,,		"filesystem full, no room for file" ),
+QIO_ERR_MSG( FSYS_CREATE_FATALNOPRIV,,	"private field has been zeroed" ),
+QIO_ERR_MSG( FSYS_DELETE_SUCC, =FACILITY_DELETE<<FACILITY_SHIFT,	"file deletion completed successfully" ),
+QIO_ERR_MSG( FSYS_DELETE_INVARG,,	"invalid argument to file deletion call" ),
+QIO_ERR_MSG( FSYS_DELETE_NOMEM,,	"delete ran out of memory" ),
+QIO_ERR_MSG( FSYS_DELETE_FNF,,		"no such file" ),
+QIO_ERR_MSG( FSYS_DELETE_DIR,,		"cannot delete a directory" ),
+QIO_ERR_MSG( FSYS_LOOKUP_SUCC, =FACILITY_LOOKUP<<FACILITY_SHIFT,	"lookup worked" ),
+QIO_ERR_MSG( FSYS_LOOKUP_INVARG,,	"invalid argument to lookup" ),
+QIO_ERR_MSG( FSYS_LOOKUP_FATAL,,	"fatal internal error in lookup" ),
+QIO_ERR_MSG( FSYS_LOOKUP_NOPATH,,	"no such directory" ),
+QIO_ERR_MSG( FSYS_LOOKUP_FNF,,		"no such file" ),
+QIO_ERR_MSG( FSYS_LOOKUP_TOODEEP,,	"too many directories" ),
+QIO_ERR_MSG( FSYS_LOOKUP_FSNF,,		"no such file system to stat" ),
+QIO_ERR_MSG( FSYS_LOOKUP_NOTDIR,,	"not a directory" ),
+QIO_ERR_MSG( FSYS_OPEN_SUCC, =FACILITY_OPEN<<FACILITY_SHIFT,	"file open completed successfully" ),
+QIO_ERR_MSG( FSYS_OPEN_INVARG,,		"invalid argument to file open call" ),
+QIO_ERR_MSG( FSYS_OPEN_FATAL,,		"fatal internal error in open handler" ),
+QIO_ERR_MSG( FSYS_OPEN_BADLVL,,		"executing at wrong level" ),
+QIO_ERR_MSG( FSYS_OPEN_NOMEM,,		"open ran out of memory" ),
+QIO_ERR_MSG( FSYS_OPEN_NOFID,,		"No such file (FID out of range)" ),
+QIO_ERR_MSG( FSYS_OPEN_NOGEN,,		"No such file (generation number mismatch)" ),
+QIO_ERR_MSG( FSYS_OPEN_NOTMNT,,		"No such file (volume not mounted)" ),
+QIO_ERR_MSG( FSYS_OPEN_NOTOPEN,,	"Fatal internal error. fsys_open_q found file closed." ),
+QIO_ERR_MSG( FSYS_EXTEND_SUCC, =FACILITY_EXTEND<<FACILITY_SHIFT,	"extend completed successfully" ),
+QIO_ERR_MSG( FSYS_EXTEND_INVARG,,	"invalid argument to extend function" ),
+QIO_ERR_MSG( FSYS_EXTEND_FATAL,,	"fatal internal error in extend function" ),
+QIO_ERR_MSG( FSYS_EXTEND_2MNYRP,,	"too many retrieval pointers" ),
+QIO_ERR_MSG( FSYS_EXTEND_NOMEM,,	"extend function ran out of memory" ),
+QIO_ERR_MSG( FSYS_EXTEND_FULL,,		"filesystem full" ),
+QIO_ERR_MSG( FSYS_SYNC_SUCC, =FACILITY_SYNC<<FACILITY_SHIFT,	"sync completed successfully" ),
+QIO_ERR_MSG( FSYS_SYNC_INVARG,,		"invalid argument to sync" ),
+QIO_ERR_MSG( FSYS_SYNC_FATAL,,		"fatal internal error in sync function" ),
+QIO_ERR_MSG( FSYS_SYNC_NOMEM,,		"sync function ran out of memory" ),
+QIO_ERR_MSG( FSYS_SYNC_NOMNT,,		"file system not mounted" ),
+QIO_ERR_MSG( FSYS_FREE_SUCC, =FACILITY_FREE<<FACILITY_SHIFT,	"freelist bit update completed successfully" ),
+QIO_ERR_MSG( FSYS_FREE_INVARG,,		"invalid argument to freelist function" ),
+QIO_ERR_MSG( FSYS_FREE_FATAL,,		"fatal internal error in freelist function" ),
+QIO_ERR_MSG( FSYS_FREE_NOMEM,,		"freelist function ran out of memory" ),
+QIO_ERR_MSG( QIO_MUTEX_SUCC, =FACILITY_MUTEX<<FACILITY_SHIFT,	"mutex function completed successfully" ),
+QIO_ERR_MSG( QIO_MUTEX_INVARG,,		"invalid argument to mutex call" ),
+QIO_ERR_MSG( QIO_MUTEX_FATAL,,		"fatal internal error in mutex handler" ),
+QIO_ERR_MSG( QIO_MUTEX_BADLVL,,		"executing at wrong level" ),
+QIO_ERR_MSG( QIO_MUTEX_NESTED,,		"mutex is already claimed by 'task'" ),
+QIO_ERR_MSG( QIO_MUTEX_NOTBUSY,,	"mutex is not busy" ),
+QIO_ERR_MSG( QIO_MUTEX_NOMUTEX,,	"mutex pool is empty" ),
+QIO_ERR_MSG( QIO_MUTEX_QUEUED,,		"function to claim mutex has been queued" ),
+QIO_ERR_MSG( QIO_MUTEX_NOTOWN,,		"mutex 'free'd by other than 'task' that claimed it" ),
+QIO_ERR_MSG( QIO_MUTEX_NONE,,		"no mutex to free" ),
+QIO_ERR_MSG( QIO_SUCC, =FACILITY_QIO<<FACILITY_SHIFT,	"function completed successfully" ),
+QIO_ERR_MSG( QIO_INVARG,,		"invalid argument to QIO call" ),
+QIO_ERR_MSG( QIO_FATAL,,		"fatal internal error in QIO handler" ),
+QIO_ERR_MSG( QIO_BADLVL,,		"executing at wrong AST level" ),
+QIO_ERR_MSG( QIO_NOTSUPP,,		"function not supported on device" ),
+QIO_ERR_MSG( QIO_NOIOQ,,		"ran out of IOQ's" ),
+QIO_ERR_MSG( QIO_NOMEM,,		"ran out of memory" ),
+QIO_ERR_MSG( QIO_IOQBUSY,,		"QioIOQ already on a queue" ),
+QIO_ERR_MSG( QIO_NSD,,			"no such device" ),
+QIO_ERR_MSG( QIO_NOFILE,,		"no more file descriptors" ),
+QIO_ERR_MSG( QIO_STAT_FNF,,		"no such file to stat" ),
+QIO_ERR_MSG( QIO_NOTOPEN,,		"file not open" ),
+QIO_ERR_MSG( QIO_EOF,,			"EOF on file" ),
+QIO_ERR_MSG( QIO_NOT_ORD,,		"file not open for read" ),
+QIO_ERR_MSG( QIO_NOT_OWR,,		"file not open for write" ),
+QIO_ERR_MSG( QIO_NOTSAMEDVC,,		"cannot rename to different device" ),
+QIO_ERR_MSG( HDIO_SUCC, =FACILITY_HDIO<<FACILITY_SHIFT, "function completed successfully" ),
+QIO_ERR_MSG( HDIO_INVARG,,		"invalid argument to QIO call" ),
+QIO_ERR_MSG( HDIO_FATAL,,		"fatal internal error in QIO handler" ),
+QIO_ERR_MSG( HDIO_BADLVL,,		"executing at wrong AST level" ),
+QIO_ERR_MSG( HDIO_NOTSUPP,,		"function not supported" ),
+QIO_ERR_MSG( HDIO_NOHDIO,,		"ran out of HdIO's" ),
+QIO_ERR_MSG( HDIO_RDERR,,		"read error on hard disk" ),
+QIO_ERR_MSG( HDIO_WRERR,,		"write error on hard disk" ),
+QIO_ERR_MSG( HDIO_SEEKERR,,		"seek error on hard disk" ),
+QIO_ERR_MSG( HDIO_TIMEOUT,,		"device timeout on hard disk" ),
+QIO_ERR_MSG( HDIO_NOMEM,,               "IDE driver ran out of memory" ),
+QIO_ERR_MSG( HDIO_WRONLY,,              "file opened \"write only\"" ),
+QIO_ERR_MSG( HDIO_RDONLY,,              "file opened \"read only\"" ),
+QIO_ERR_MSG( HDIO_UNCORR,,              "Uncorrectable read error" ),
+QIO_ERR_MSG( HDIO_IDNF,,                "Sector ID not found" ),
+QIO_ERR_MSG( HDIO_ABRT,,		"device error" ),
+QIO_ERR_MSG( HDIO_TK0NF,,		"Track 0 not found" ),
+QIO_ERR_MSG( HDIO_AMNF,,		"Address mark not found" ),
+@
+
+
+1.10
+log
+@Changed the text of a message.
+@
+text
+@d24 1
+a24 1
+QIO_ERR_MSG( FSYS_MOUNT_RDERR,,		"(probably a), directory read error" ),
+@
+
+
+1.9
+log
+@Added QIO_NOTSAMEDVC for rename.
+@
+text
+@d15 1
+a15 1
+QIO_ERR_MSG( FSYS_MOUNT_NOHBLK,,	"could not read any home blocks" ),
+@
+
+
+1.8
+log
+@Added error messages for writes to readonly file or read from
+writeonly file.
+@
+text
+@d123 1
+@
+
+
+1.7
+log
+@Added more error messages.
+@
+text
+@d121 2
+@
+
+
+1.6
+log
+@New messages for dirent functions.
+@
+text
+@a10 1
+QIO_ERR_MSG( FSYS_MOUNT_INVARG,,	"invalid argument to mount" ),
+d47 3
+@
+
+
+1.5
+log
+@This version of qio and fsys stuff all works. It isn't done yet,
+but since it works, I checked in what there is so far.
+/
+@
+text
+@d9 1
+d71 1
+@
+
+
+1.4
+log
+@Still under development. Not quite ready for primetime.
+@
+text
+@d6 3
+d57 1
+d78 1
+@
+
+
+1.3
+log
+@Still under development. Not ready for prime time.
+@
+text
+@d26 1
+@
+
+
+1.2
+log
+@Added HDIO_NOMEM.
+@
+text
+@a1 1
+QIO_ERR_MSG( FSYS_IO_EOF,,		"EOF on file" ),
+d92 1
+a92 1
+QIO_ERR_MSG( QIO_MUTEX_BUSY,,		"mutex is busy" ),
+d94 1
+d96 1
+a96 1
+QIO_ERR_MSG( QIO_MUTEX_FULL,,		"no more queue entries available" ),
+d104 2
+d110 1
+d112 3
+d116 1
+d122 7
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d114 1
+@

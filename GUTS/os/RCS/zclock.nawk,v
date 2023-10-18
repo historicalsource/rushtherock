@@ -1,0 +1,28 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@# @;
+
+
+1.1
+date	95.07.20.17.10.14;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@nawk script used to help build os_vec.asm
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@{
+	printf "\t.globl %s\n%s = 0x%s\n", $3, $3, $1;
+}
+
+@

@@ -1,0 +1,70 @@
+head	1.2;
+access;
+symbols
+	CJ_206:1.2
+	CJ2_05:1.2
+	CJ2_04:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	95.09.01.16.18.01;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.13.21.41.46;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@doubly-linked-list definitions that are needed by oblist.h
+@
+
+
+1.2
+log
+@Removed prototype for dll_unlink(), function was the same as dll_delete().
+@
+text
+@/************************************************************
+* DLL.H | Author: Robert M. Birmingham | August 21, 1994    *
+* ========================================================= *
+* Header file for DLL routines: Copyright 1994, Atari Games *
+************************************************************/
+
+#ifndef _DLL_H
+#define _DLL_H
+
+typedef struct dllnode{
+    struct dllnode *next;
+    struct dllnode *prev;
+    } DLLNODE;
+
+/************************************************************************/
+
+void dll_reset( DLLNODE *headnodep, DLLNODE *tailnodep );
+void dll_before( DLLNODE *refnodep, DLLNODE *newnodep );
+void dll_after( DLLNODE *refnodep, DLLNODE *newnodep );
+void dll_delete( DLLNODE *delnodep );
+
+/************************************************************************/
+
+#endif
+/*************************************************************************
+* End of file: DLL.C                                                     *
+*************************************************************************/
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a20 1
+void dll_unlink( DLLNODE *nodep );
+@

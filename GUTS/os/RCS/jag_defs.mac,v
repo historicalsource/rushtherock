@@ -1,0 +1,338 @@
+head	1.4;
+access;
+symbols
+	CJ_206:1.4
+	CJ2_05:1.4
+	CJ2_04:1.4;
+locks; strict;
+comment	@;; @;
+
+
+1.4
+date	95.06.23.21.00.53;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.06.14.01.49.13;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.05.08.22.14.05;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.18.40.02;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@common definition file to generate jag_defs.i and jag_defs.h. These
+contain the CORP names for various Jaguar resources. They are not in
+config.mac(.i,.h) because they may conflict with various legitimate
+programmer-chosen names and are not needed unless one is doing serious
+jag-hacking in a particular file.
+@
+
+
+1.4
+log
+@corrected value of VBB (vertical Blank Begin)
+@
+text
+@;****************************************************************************
+;	JAG_DEFS.MAC Single-point definitions for JAGUAR and COJAG
+;	hardware definitions.
+;	This file is processed similarly to config.mac to produce
+;	jag_defs.h and jag_defs.i. The definitions in it are not
+;	simply tossed into config.mac because they are not relevant
+;	to the casual user, they may conflict with previous Atari Games
+;	symbols, and there seems to be no particular system for naming.
+;
+;	MEA	13JUL94
+;****************************************************************************
+; First some stuff that varies from COJAG to consumer JAG. These theoretically
+; can (and should) be computed from a few simple constants like CPU and Video
+; clock and monitor timing. For now (Hah!) we simply take Brian's word for
+; the mystic numbers.
+;
+ .if	eq,OUTPUT_LANG-LANG_C
+#ifndef _JAG_DEFS_H
+#define _JAG_DEFS_H
+REM <New T2HADDR and H2TADDR intended to be safe on AMS or not>
+#define  T2HADDR(a)  ((U32)(a) | (HOST_MEM_BASE))
+#define  H2TADDR(a)  ((U32)(a) & ~(HOST_MEM_BASE))
+
+#ifndef __PHRASE_TYPE_DEFINED
+#define __PHRASE_TYPE_DEFINED
+typedef struct phrase PHRASE;
+    U32 hi32;
+    U32 lo32;
+    } PHRASE;
+#endif
+ .endc
+	TYPE	VU16	<volatile unsigned short> 2
+	TYPE	VU32	<volatile unsigned long> 4
+
+REM < COJag Horizontal computations>
+COJAG == 2
+;
+ .if	true,COJAG==0
+	HEX_CONST	TOM_MEM_BASE 0x00000 <DRAM base, from TOM's viewpoint>
+	HEX_CONST	HOST_MEM_BASE 0x00000 <DRAM base, from HOST's viewpoint>
+	HEX_CONST	TOM_BASE 0xF00000 <TOM's internal register base>
+	HEX_CONST	JERRY_BASE 0xF10000 <JERRY's internal register base>
+
+	HEX_CONST	N_HP	0x34C	<horizontal period>
+	HEX_CONST	N_HBB	0x69D	<horizontal blank begin> 
+	HEX_CONST	N_HBE	0x7D	<horizontal blank end> 
+	HEX_CONST	N_HS	0x6CD	<horizontal sync> 
+	HEX_CONST	N_HVS	0x28B	<horizontal vertical sync> 
+	HEX_CONST	N_HEQ	0x30E	<horizontal equalization> 
+	HEX_CONST	N_HDE	0x6A0	<horizontal display end>
+	HEX_CONST	N_HDB1	0xA6	<horizontal display begin #1>
+	HEX_CONST	N_HDB2		N_HDB1 <horizontal display begin #1>
+;
+	HEX_CONST	N_VP	0x20b	<vertical period (half-lines)>
+	HEX_CONST	N_VEE	6	<vertical equalization end>
+	HEX_CONST	N_VBE	0x18	<vertical blank end>
+	HEX_CONST	N_VDB	0x2E	<vertical display begin>
+	HEX_CONST	N_VDE	0x1FB	<vertical display begin>
+	HEX_CONST	N_VBB	0x1F4	<vertical blank begin>
+	HEX_CONST	N_VS	0x205	<vertical sync>
+	HEX_CONST	N_VEB	0x1FF	<vertical equalization end>
+ .iff
+VC_PER_PIX == 2
+ .if	true,VC_PER_PIX==4
+	HEX_CONST	N_HP	0x38f	<horizontal period>
+	HEX_CONST	N_HBB	0x686	<horizontal blank begin> 
+	HEX_CONST	N_HBE	0xd6	<horizontal blank end> 
+	HEX_CONST	N_HS	0x708	<horizontal sync> 
+	HEX_CONST	N_HVS	0x140	<horizontal vertical sync> 
+	HEX_CONST	N_HEQ	0x31c	<horizontal equalization> 
+	HEX_CONST	N_HDE	0x680	<horizontal display end>
+	HEX_CONST	N_HDB1	0xd0	<horizontal display begin #1>
+	HEX_CONST	N_HDB2		N_HDB1	<horizontal display begin #1>
+ .endc
+ .if	true,VC_PER_PIX==2
+	HEX_CONST	N_HP	0x1C7	<horizontal period>
+	HEX_CONST	N_HBB	0x544	<horizontal blank begin> 
+	HEX_CONST	N_HBE	0x6C	<horizontal blank end> 
+	HEX_CONST	N_HS	0x585	<horizontal sync> 
+	HEX_CONST	N_HVS	0x140	<horizontal vertical sync> 
+	HEX_CONST	N_HEQ	0x1C7	<horizontal equalization> 
+	HEX_CONST	N_HDE	0x540	<horizontal display end>
+	HEX_CONST	N_HDB1	0x68	<horizontal display begin #1>
+	HEX_CONST	N_HDB2		N_HDB1	<horizontal display begin #1>
+ .endc
+;
+REM < COJag Vertical computations>
+
+	HEX_CONST	N_VP	0x20b	<vertical period (half-lines)>
+	HEX_CONST	N_VEE	0	<vertical equalization end>
+	HEX_CONST	N_VBE	0x22	<vertical blank end>
+	HEX_CONST	N_VDB	0x20	<vertical display begin>
+	HEX_CONST	N_VDE	0x200	<vertical display begin>
+	HEX_CONST	N_VBB	0x202	<vertical blank begin>
+	HEX_CONST	N_VS	0x205	<vertical sync>
+	HEX_CONST	N_VEB	0x207	<vertical equalization end>
+  .if true,COJAG>1
+	HEX_CONST	TOM_MEM_BASE 0x00000 <DRAM base, from TOM's viewpoint>
+	HEX_CONST	HOST_MEM_BASE 0xFF000000 <DRAM base, from HOST's viewpoint>
+	HEX_CONST	TOM_BASE 0xFFF00000 <TOM's internal register base>
+	HEX_CONST	JERRY_BASE 0xFFF10000 <JERRY's internal register base>
+  .iff
+	HEX_CONST	TOM_MEM_BASE 0x00000 <DRAM base, from TOM's viewpoint>
+	HEX_CONST	HOST_MEM_BASE 0xFF800000 <DRAM base, from HOST's viewpoint>
+	HEX_CONST	TOM_BASE 0xFF700000 <TOM's internal register base>
+	HEX_CONST	JERRY_BASE 0xFF710000 <JERRY's internal register base>
+  .endc
+ .endc
+	HEX_CONST	VIDEO_MODE_CRY 0x281
+	HEX_CONST	VIDEO_MODE_RBG5 0x287
+;
+	VAR		MEMCON1 VU16 TOM_BASE <Memory Config Register>
+	VAR		MEMCON2 VU16 TOM_BASE+2 <Memory Config Register>
+	VAR		INT1 VU16 TOM_BASE+0xE0
+	VAR		INT2 VU16 TOM_BASE+0xE2
+	DEC_CONST	NTSC_HMID 823
+	DEC_CONST	NTSC_WIDTH 1409 
+	DEC_CONST	NTSC_VMID 266
+	DEC_CONST	NTSC_HEIGHT 241
+	VAR		VDB  VU16 TOM_BASE+0x46 <Vert Display Begin>
+	VAR		VDE  VU16 TOM_BASE+0x48 <Vert Display End>
+	VAR		BG   VU16 TOM_BASE+0x58
+	VAR		BORD1 VU16 TOM_BASE+0x2A
+	VAR		BORD2 VU16 TOM_BASE+0x2C
+	VAR		OLP VU32 TOM_BASE+0x20
+	VAR		VMODE VU16 TOM_BASE+0x28
+	VAR		HP VU16 TOM_BASE+0x2E	<Horizontal Period>
+	VAR		HBB VU16 TOM_BASE+0x30	<Horizontal Blanking Begin>
+	VAR		HBE VU16 TOM_BASE+0x32	<Horizontal Blanking End>
+	VAR		HS VU16 TOM_BASE+0x34	<Horizontal Sync>
+	VAR		HVS VU16 TOM_BASE+0x36	<Horizontal Vertical Sync>
+	VAR		HDB1 VU16 TOM_BASE+0x38 <Horz Display Begin #1>
+	VAR		HDB2 VU16 TOM_BASE+0x3A <Horz Display Begin #2>
+	VAR		HDE  VU16 TOM_BASE+0x3C <Horz Display End>
+	VAR		VP VU16 TOM_BASE+0x3E	<Vertical Period 1/2 lines>
+	VAR		VBB VU16 TOM_BASE+0x40	<Vert Blanking Begin>
+	VAR		VBE VU16 TOM_BASE+0x42	<Vert Blanking End>
+	VAR		VS VU16 TOM_BASE+0x44	<Vert Sync>
+;	VAR		VDB VU16 TOM_BASE+0x46	<Vert Display Begin>
+;	VAR		VDE VU16 TOM_BASE+0x48	<Vert Display End>
+	VAR		VEB VU16 TOM_BASE+0x4A	<Vert Equalization Begin>
+	VAR		VEE VU16 TOM_BASE+0x4C	<Vert Equalization End>
+	VAR		VI VU16	TOM_BASE+0x4E	<Vertical Interrupt>
+	VAR		HEQ VU16 TOM_BASE+0x54	<Horizontal Equalization End>
+
+REM < GPU Registers...>
+
+	VAR	G_FLAGS    VU32 TOM_BASE+0x2100    < GPU Flags >
+	VAR	G_MTXC     VU32 TOM_BASE+0x2104    < GPU Matrix Control >
+	VAR	G_MTXA     VU32 TOM_BASE+0x2108    < GPU Matrix Address >
+	VAR	G_END      VU32 TOM_BASE+0x210c    < GPU Data Organization >
+	VAR	G_PC       VU32 TOM_BASE+0x2110    < GPU Program Counter >
+	VAR	G_CTRL     VU32 TOM_BASE+0x2114    < GPU Operation Control/Status >
+	VAR	G_HIDATA   VU32 TOM_BASE+0x2118    < GPU Bus Interface high data >
+	VAR	G_REMAIN   VU32 TOM_BASE+0x211c    < GPU Division Remainder >
+	VAR	G_DIVCTRL  VU32 TOM_BASE+0x211c    < GPU Divider Control >
+	VAR	G_RAM      VU32 TOM_BASE+0x3000    < GPU Internal RAM >
+
+REM < fix this>
+	VAR	G_ENDRAM   VU16 G_RAM+0x1000	   < GPU End of Internal RAM >
+
+REM < Blitter registers...>
+	VAR	A1_BASE     VU32 TOM_BASE+0x2200   < A1 Base address >
+	VAR	A1_FLAGS    VU32 TOM_BASE+0x2204   < A1 Control Flags >
+	VAR	A1_CLIP     VU32 TOM_BASE+0x2208   < A1 Clipping Size >
+	VAR	A1_PIXEL    VU32 TOM_BASE+0x220C   < A1 Pixel Pointer (Integer) >
+	VAR	A1_STEP     VU32 TOM_BASE+0x2210   < A1 Step (Integer) >
+	VAR	A1_FSTEP    VU32 TOM_BASE+0x2214   < A1 Step (Fractional) >
+	VAR	A1_FPIXEL   VU32 TOM_BASE+0x2218   < A1 Pixel Pointer (Fractional) >
+	VAR	A1_INC      VU32 TOM_BASE+0x221C   < A1 Increment (Integer) >
+	VAR	A1_FINC     VU32 TOM_BASE+0x2220   < A1 Increment (Fractional) >
+
+	VAR	A2_BASE     VU32 TOM_BASE+0x2224   < A2 Base address >
+	VAR	A2_FLAGS    VU32 TOM_BASE+0x2228   < A2 Control Flags >
+	VAR	A2_MASK     VU32 TOM_BASE+0x222C   < A2 Address Mask >
+	VAR	A2_PIXEL    VU32 TOM_BASE+0x2230   < A2 Pixel Pointer >
+	VAR	A2_STEP     VU32 TOM_BASE+0x2234   < A2 Step >
+
+	VAR	B_CMD       VU32 TOM_BASE+0x2238   < Blitter Command >
+	VAR	B_COUNT     VU32 TOM_BASE+0x223C   < Blitter Counter >
+	VAR	B_SRCD      VU32 TOM_BASE+0x2240   < Blitter Source Data >
+	VAR	B_DSTD      VU32 TOM_BASE+0x2248   < Blitter Destination Data >
+	VAR	B_DSTZ      VU32 TOM_BASE+0x2250   < Blitter Destination Z >
+	VAR	B_SRCZ1     VU32 TOM_BASE+0x2258   < Blitter Source Z (Integer) >
+	VAR	B_SRCZ2     VU32 TOM_BASE+0x2260   < Blitter Source Z (Fractional) >
+	VAR	B_PATD      VU32 TOM_BASE+0x2268   < Blitter Pattern Data >
+	VAR	B_PATD1     VU32 TOM_BASE+0x2268   < Blitter Pattern Data >
+	VAR	B_PATD2     VU32 TOM_BASE+0x226c   < Blitter Pattern Data >
+	VAR	B_IINC      VU32 TOM_BASE+0x2270   < Blitter Intensity Increment >
+	VAR	B_ZINC      VU32 TOM_BASE+0x2274   < Blitter Z Increment >
+	VAR	B_STOP      VU32 TOM_BASE+0x2278   < Blitter Collision Stop Control >
+
+	VAR	B_I3        VU32 TOM_BASE+0x227C   < Blitter Intensity #3 >
+	VAR	B_I2        VU32 TOM_BASE+0x2280   < Blitter Intensity #2 >
+	VAR	B_I1        VU32 TOM_BASE+0x2284   < Blitter Intensity #1 >
+	VAR	B_I0        VU32 TOM_BASE+0x2288   < Blitter Intensity #0 >
+
+	VAR	B_Z3        VU32 TOM_BASE+0x228C   < Blitter Z #3 >
+	VAR	B_Z2        VU32 TOM_BASE+0x2290   < Blitter Z #2 >
+	VAR	B_Z1        VU32 TOM_BASE+0x2294   < Blitter Z #1 >
+	VAR	B_Z0        VU32 TOM_BASE+0x2298   < Blitter Z #0 >
+
+REM < JERRY Registers...>
+
+	VAR	JPIT1	   VU32 JERRY_BASE
+	VAR	CLK1	   VU16 JERRY_BASE+0x0010    < Host CLock Freq.>
+	VAR	CLK2	   VU16 JERRY_BASE+0x0012    < Video Clock Freq.>
+	VAR	CHRO_CLK   VU32 JERRY_BASE+0x0014    < Chroma Clock control>
+	VAR	JINTCTRL   VU16 JERRY_BASE+0x0020    < DSP Interrupt control Reg>
+	VAR	JINTCTRL2  VU16 JERRY_BASE+0x0022    < DSP Interrupt control Reg2(KLUGE)>
+	VAR    JOYSTICK VU16 JERRY_BASE+0x4000	< Joystick register>
+	VAR	JOYBUTS	VU16 JERRY_BASE+0x4002	< Joystick Buttons>
+	VAR	CONFIG	VU16 JOYBUTS		< Also has NTSC/PAL>
+
+	VAR	MOD_MASK VU32 JERRY_BASE+0xa118	< Mask for ADDQ(SUBQ)MOD>
+
+	VAR	SCLK	VU32 JERRY_BASE+0xA150	< SSI Clock Frequency>
+	VAR	SMODE	VU32 JERRY_BASE+0xA154	< SSI Control>
+
+	VAR	R_DAC	VU32 JERRY_BASE+0xa148	<Right Channel DAC>
+	VAR	L_DAC	VU32 JERRY_BASE+0xa14C	<Left Channel DAC>
+
+	VAR	L_I2S	VU32 JERRY_BASE+0xa148	<Left Channel I2S port??>
+	VAR	R_I2S	VU32 JERRY_BASE+0xa14C	<Right Channel I2S port??>
+;
+REM < ROM Tables buiilt into Jerry, 128 samples>
+;
+	VAR	ROM_TRI VS32 JERRY_BASE+0xD000	< A triangle wave >
+	VAR	ROM_SINE VS32 JERRY_BASE+0xD200	< Full amplitude SINE>
+	VAR	ROM_AMSINE VS32 JERRY_BASE+0xD400 < Linear (?) ramp SINE>
+REM < This was once ROM_SINE12W which is just like ROM_SINE >
+	VAR	ROM_12W VS32 JERRY_BASE+0xD600	< SINE(X)+SINE(2*X)>
+	VAR	ROM_CHIRP16 VS32 JERRY_BASE+0xD800	< SHORT SWEEP>
+	VAR	ROM_NTRI VS32 JERRY_BASE+0xDA00	< Triangle w/NOISE>
+	VAR	ROM_DELTA VS32 JERRY_BASE+0xDC00 < Positive spike >
+	VAR	ROM_NOISE VS32 JERRY_BASE+0xDE00 < Guess >
+	VAR	D_FLAGS    VU32 JERRY_BASE+0xA100    < DSP Flags >
+	VAR	D_MTXC     VU32 JERRY_BASE+0xA104    < DSP Matrix Control >
+	VAR	D_MTXA     VU32 JERRY_BASE+0xA108    < DSP Matrix Address >
+	VAR	D_END      VU32 JERRY_BASE+0xA10c    < DSP Data Organization >
+	VAR	D_PC       VU32 JERRY_BASE+0xA110    < DSP Program Counter >
+	VAR	D_CTRL     VU32 JERRY_BASE+0xA114    < DSP Operation Control/Status >
+	VAR	D_HIDATA   VU32 JERRY_BASE+0xA118    < DSP Bus Interface high data >
+	VAR	D_REMAIN   VU32 JERRY_BASE+0xA11c    < DSP Division Remainder >
+	VAR	D_DIVCTRL  VU32 JERRY_BASE+0xA11c    < DSP Divider Control >
+	VAR	D_RAM      VU32 JERRY_BASE+0xB000    < DSP Internal RAM >
+	VAR	D_ENDRAM   VU32 D_RAM+0x2000	     < End of 8K byte RAM>
+
+ .if	eq,OUTPUT_LANG-LANG_C
+#endif
+ .endc
+@
+
+
+1.3
+log
+@guarded declaration of PHRASE, so we could include it in config.h too.
+@
+text
+@d94 1
+a94 1
+	HEX_CONST	N_VBB	0x200	<vertical blank begin>
+@
+
+
+1.2
+log
+@parenthesized arg in H2TADDR/T2HADDR. Added JINTCTRL.
+@
+text
+@d24 3
+a26 1
+typedef struct{
+d30 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d21 2
+a22 2
+#define  T2HADDR(a)  ((U32)a | (HOST_MEM_BASE))
+#define  H2TADDR(a)  ((U32)a & ~(HOST_MEM_BASE))
+d108 1
+a108 1
+
+d206 2
+a207 1
+
+@

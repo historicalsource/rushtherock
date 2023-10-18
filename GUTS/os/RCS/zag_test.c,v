@@ -1,0 +1,3493 @@
+head	1.35;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.35
+date	96.03.19.04.01.39;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	96.03.18.18.33.44;	author shepperd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	96.03.15.21.20.14;	author shepperd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	96.03.14.22.40.55;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	96.03.14.03.42.42;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	96.03.06.00.48.43;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	96.03.05.22.18.26;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	96.03.05.00.47.00;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.02.29.22.18.21;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.02.29.05.14.41;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.02.28.01.50.17;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.02.20.21.38.59;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.02.15.01.02.47;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.02.08.01.19.30;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.02.07.20.03.21;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.02.07.01.15.43;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.02.07.00.43.48;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.02.06.23.18.14;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.02.06.22.15.19;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.02.05.23.50.17;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.02.05.22.40.14;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.01.31.21.32.36;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.01.25.22.22.05;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.01.25.19.15.22;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.01.23.19.16.42;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.01.23.18.34.47;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.01.19.04.17.46;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.01.18.06.10.26;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.01.16.03.58.48;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.01.12.00.54.44;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.01.06.05.51.37;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.01.02.23.01.57;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.12.22.22.56.30;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.12.21.04.11.37;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.12.10.00.21.24;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@ZAG routines.
+@
+
+
+1.35
+log
+@Conditionalled the "?" character on HANDSHAKE
+@
+text
+@/*		zag_test.c
+ *
+ *	Test routines for the Zoid Math Box (ZAG). Some of these routines
+ *	depend on the ZIG board working too, since TBUS data is delivered
+ *	to ZIG to display some pictures.
+ *
+ *		Copyright 1995 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#include <string.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#if !defined(ZIGTV_CTL)
+# include <zre_defs.h>
+#endif
+#include <zoid_proto.h>
+#include <eer_defs.h>
+#if HOST_BOARD == HCR4K
+#include <os_root.h>
+#endif
+#include <zmbdiags.h>
+#if !defined(STATIC)
+# define STATIC static
+#endif
+#include <tbus.h>
+#include <intvecs.h>
+
+#define ZAG_TEST_FIFO		0x0001
+#define ZAG_TEST_MEMORY		0x0002
+#define ZAG_TEST_TEXT		0x0004
+#define ZAG_TEST_MOVIE		0x0008
+#define ZAG_TEST_CONFIG		0x0010
+#define ZAG_TEST_LOADCODE	0x0020
+#define ZAG_TEST_IRQ		0x0040
+#define ZAG_TEST_RESET		0x0080
+#define ZAG_TEST_TBUS		0x0100
+
+#include <zag.h>
+
+#ifndef ZAG_TESTS
+# if HOST_IS_MATHBOX
+#  define ZAG_TESTS (ZAG_TEST_FIFO|ZAG_TEST_MEMORY|ZAG_TEST_TEXT|ZAG_TEST_PALETTE|ZAG_TEXT_ALPHA|ZAG_TEST_IRQ|ZAG_TEST_TBUS)
+# else
+#  define ZAG_TESTS (ZAG_TEST_LOADCODE|ZAG_TEST_RESET|ZAG_TEST_FIFO|ZAG_TEST_MEMORY|ZAG_TEST_IRQ|ZAG_TEST_TBUS)
+# endif
+#endif
+
+#define n_elts(array) (sizeof(array)/sizeof(array[0]))
+
+struct zag_desc {
+    const struct menu_d menu_desc;
+    const void *arg;
+};
+
+extern int holler(int col, int row, const char *msg, U32 csr);
+extern int zre_frames(void);
+extern U8 bss_end[];
+
+U32 zag_defaults;
+
+U32 zag_get_defaults(void) {
+    if (!zag_defaults) {
+#ifdef EER_ZAG_OPT
+	zag_defaults = eer_gets(EER_ZAG_OPT);
+	if (!zag_defaults) {
+	    zag_defaults = ZAG_DEFAULT_OPTIONS;
+	    eer_puts(EER_ZAG_OPT, zag_defaults);
+	}
+#else
+	zag_defaults = ZAG_DEFAULT_OPTIONS;
+#endif
+    }
+    return zag_defaults;
+}
+
+STATIC void pass_fail_msg(int status) {
+    int frame;
+    if (status == 0) {
+	txt_clr_wid(10, AN_VIS_ROW-6, AN_VIS_COL-10-4);
+	txt_str(-1, AN_VIS_ROW*3/4, "PASSED", GRN_PAL|AN_BIG_SET);
+	frame = 60*15;
+    } else {
+	txt_str(-1, AN_VIS_ROW*3/4, "FAILED", RED_PAL|AN_BIG_SET);
+	frame = 60*60;
+    }
+
+    txt_str(-1, AN_VIS_ROW-4, t_msg_next, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-3, t_msg_ret_menu, INSTR_PAL);
+
+    ctl_read_sw(SW_ACTION|SW_NEXT);	/* eat any typeahead */
+    for (; frame > 0; --frame) {
+	prc_delay(0);
+	if ((ctl_read_sw(SW_ACTION|SW_NEXT)&(SW_ACTION|SW_NEXT)) != 0) break;
+    }
+}
+
+#if !HOST_IS_MATHBOX && !MB_TEST_CODE
+static void announce_nocode(const char *msg) {
+    int ii;
+    int row;
+    row = AN_VIS_ROW/2-2;
+    txt_clr_wid(2, row, AN_VIS_COL-4);
+    if (msg) {
+	ii = strlen(msg);
+#define ANN_MSG "Message from function "
+	txt_str((AN_VIS_COL-ii-(sizeof(ANN_MSG)-1)-1)/2, row, ANN_MSG, RED_PAL);
+	txt_cstr(msg, RED_PAL);
+	txt_cstr(":", RED_PAL);
+    }
+    ++row;
+    txt_clr_wid(2, row++, AN_VIS_COL-4);
+    txt_clr_wid(2, row, AN_VIS_COL-4);
+    txt_str(-1, row++, "No MB test code included in this module. You need to", RED_PAL);
+    txt_clr_wid(2, row, AN_VIS_COL-4);
+    txt_str(-1, row++, "recompile GUTS with the following in config.mac:", RED_PAL);
+    txt_clr_wid(2, row++, AN_VIS_COL-4);
+    txt_clr_wid(2, row, AN_VIS_COL-4);
+    txt_str(-1, row++, "DEC_CONST MB_TEST_CODE TRUE", WHT_PAL);
+    txt_str(-1, AN_VIS_ROW-3, t_msg_next, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-2, t_msg_ret_menu, INSTR_PAL);
+    ctl_read_sw(SW_NEXT|SW_ACTION);	/* eat any typeahead */
+    for (ii=0; ii<60*10; ++ii) {
+	prc_delay(0);
+	if (ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION)) break;
+    }
+}
+#endif
+
+int zmb_reset(void) {
+#if !HOST_IS_MATHBOX
+    VU32 *zmb = &ZMB_CSR;
+    int oldint;
+
+    prc_delay(1);			/* sync this whole transaction to VB */
+    oldint = prc_set_ipl(INTS_OFF);
+    *zmb =  ((1<<B_ZMB_INTACK) | (1<<B_ZMB_HRESET) | (1<<B_ZMB_INTEN_N)) & 
+	    ~(1<<B_ZMB_RESET_N); 	/* plink reset on the MB to show we're alive */
+    prc_set_ipl(oldint);
+
+# if ZMB_EPLD_REV > 0 || ZAG_REV
+    {
+	int sts, count;
+	prc_delay(0);			/* pause 16Ms */
+	for (count=0; count < 120; ++count) {
+	    prc_delay(0);		/* wait 16Ms (need to wait at least 20Ms for reset to assert */
+	    sts = *zmb&(1<<B_ZMB_RESET_N);	/* wait for reset to be asserted */
+	    if (sts) break;		/* exit as soon as we see it pop up */
+	}
+	if (count >= 120) return 1;
+	for (count=0; count < 2*60; ++count) {
+	    prc_delay(0);		/* wait 16Ms (need to wait at least 20Ms for reset to assert) */
+	    sts = *zmb&(1<<B_ZMB_RESET_N);
+	    if (sts == 0) break;		/* exit as soon as we see it pop down */
+	}
+	if (count >= 2*60) return 2;;
+    }
+# else
+    prc_delay(60); 		/* wait a second for MB to come out of reset */
+# endif
+#endif
+    return 0;
+}
+
+static int zag_intrs;
+
+void zag_irq(void) {
+#if !HOST_IS_MATHBOX
+    ++zag_intrs;
+    /* ACK the mathbox interrupt in case there is one */
+    ZMB_CSR = ((1<<B_ZMB_RESET_N) | (1<<B_ZMB_INTACK)) & ~(1<<B_ZMB_HRESET);
+#endif
+}
+
+int zag_ints(void) {
+    return zag_intrs;
+}
+
+#if ZAG_TESTS&ZAG_TEST_RESET
+STATIC int zag_reset_test(const struct menu_d *smp) {
+    U32 bits;
+    const struct zag_desc *zp;
+    zp = (const struct zag_desc *)smp;
+    bits = (U32)zp->arg;
+    txt_str(-1, AN_VIS_ROW-5, t_msg_action, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-4, "to initiate reset sequence", INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-3, t_msg_next, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-2, t_msg_ret_menu, INSTR_PAL);
+#define ZMB_INTS_MSG "Interrupt count "
+    txt_str((AN_VIS_COL-sizeof(ZMB_INTS_MSG)-8)/2, AN_VIS_ROW/2-2, ZMB_INTS_MSG, MNORMAL_PAL);
+    ctl_read_sw(SW_NEXT|SW_ACTION);	/* eat any typeahead */
+    while (1) {
+	int ii;
+	prc_delay(1);
+	txt_decnum((AN_VIS_COL-sizeof(ZMB_INTS_MSG)-8)/2+sizeof(ZMB_INTS_MSG),
+		   AN_VIS_ROW/2-2, zag_intrs, 8, RJ_BF, MNORMAL_PAL);
+	ii = ctl_read_sw(SW_NEXT|SW_ACTION);
+	if ( ii & SW_NEXT ) break;		/* we're done */
+	if ( !(ii & SW_ACTION) ) continue;	/* button not pressed */
+	ZMB_CSR = bits;
+#define ZMB_BITS_MSG "Wrote a "
+    	txt_str((AN_VIS_COL-sizeof(ZMB_BITS_MSG)-2)/2, AN_VIS_ROW/2, ZMB_BITS_MSG, MNORMAL_PAL);
+        txt_chexnum(bits, 2, RJ_ZF, MNORMAL_PAL);
+	for (ii=0; ii < 20; ++ii) prc_delay(1);
+	txt_clr_wid((AN_VIS_COL-sizeof(ZMB_BITS_MSG)-2)/2, AN_VIS_ROW/2, sizeof(ZMB_BITS_MSG)+2);
+    }
+    return 0;
+}
+#endif
+
+int zmb_init(U32 *program, int length) {
+# if !HOST_IS_MATHBOX
+    VU32 *zmb = &ZMB_CSR;
+    int led_num, led_cnt;
+    int sts;
+
+/* Reset the mathbox but leave the processor in reset */
+    led_num = 0x10;
+    led_cnt = 1;
+
+    sts = zmb_reset();
+    if (sts) {
+	holler(2, 2, sts == 1 ? "MB reset didn't assert, CSR=" : "MB reset didn't de-assert, CSR=" , *zmb);
+	return -1;
+    }	
+
+    if (program) {
+	VU32 *dst;
+	for (dst = (VU32 *)ZMB_ADDR; length > 0; --length) *dst++ = *program++;
+    }
+
+    *zmb = (1<<B_ZMB_RESET_N) & ~(1<<B_ZMB_INTEN_N); /* release processor, enable interrupts */
+
+    prc_delay(60);
+# endif
+    return 0;
+}
+
+#if !HOST_IS_MATHBOX
+
+# if MB_TEST_CODE
+STATIC void report_mb_error(int row, const char *msg) {
+    int ii;
+    txt_clr_wid(2, row, AN_VIS_COL-4);
+    txt_clr_wid(2, row+1, AN_VIS_COL-4);
+    if (msg) {
+	txt_clr_wid(2, row+2, AN_VIS_COL-4);
+	txt_clr_wid(2, row+3, AN_VIS_COL-4);
+	txt_str(-1, row, msg, RED_PAL);
+	row += 2;
+    }
+    ii = strlen(t_msg_next) + strlen(t_msg_action);
+    txt_str((AN_VIS_COL-ii-5)/2, row++, t_msg_next, INSTR_PAL);
+    txt_cstr(" or ", INSTR_PAL);
+    txt_cstr(t_msg_action, INSTR_PAL);
+    txt_str(-1, row++, "to dismiss this message", INSTR_PAL);
+    ctl_read_sw(SW_NEXT|SW_ACTION);	/* eat any typeahead */
+    for (ii=0; ii<10*60; ++ii) {
+	prc_delay(0);
+	if (ctl_read_sw(0)&(SW_NEXT|SW_ACTION)) break;
+    }
+    txt_clr_wid(2, --row, AN_VIS_COL-4);
+    txt_clr_wid(2, --row, AN_VIS_COL-4);
+    if (msg) {
+	txt_clr_wid(2, --row, AN_VIS_COL-4);
+	txt_clr_wid(2, --row, AN_VIS_COL-4);
+    }
+    return;
+}    
+#endif
+
+int zag_load_code(const struct menu_d *smp) {
+# if MB_TEST_CODE
+    ZagSAcmd *zc = (ZagSAcmd *)ZMBSA_COMM;
+    txt_clr_wid(2, 4, AN_VIS_COL-4);
+    txt_str(-1, 4, "Loading mathbox program ...", WHT_PAL);
+    zmb_init(mb_test_code, mb_test_code_end-mb_test_code);
+    txt_clr_wid(2, 4, AN_VIS_COL-4);
+    zc->status = 0;
+    zc->command = ZMBSA_TEST_VERSION;
+    zc->sentinel = ZMBSA_SENTINEL_GO;
+    prc_delay(0);
+    if (zc->sentinel != ZMBSA_SENTINEL_IDLE) {
+	report_mb_error(AN_VIS_ROW/2, "Mathbox did not start");
+	return 1;
+    }
+    if (zc->status != ZMBSA_VERSION) {
+#define MB_VER_MISMATCH "Mathbox version mismatch. Is XXXX s/b XXXX"
+#define MB_VER_SPACER   "                             "
+	txt_str((AN_VIS_COL-sizeof(MB_VER_MISMATCH)-1)/2, AN_VIS_ROW/2, MB_VER_MISMATCH, RED_PAL);
+	txt_hexnum((AN_VIS_COL-sizeof(MB_VER_MISMATCH)-1)/2+(sizeof(MB_VER_SPACER)-1),
+			AN_VIS_ROW/2, zc->status, 4, RJ_ZF, RED_PAL);
+	txt_hexnum((AN_VIS_COL-sizeof(MB_VER_MISMATCH)-1)/2+(sizeof(MB_VER_SPACER)-1)+4+5,
+			AN_VIS_ROW/2, ZMBSA_VERSION, 4, RJ_ZF, RED_PAL);
+	report_mb_error(AN_VIS_ROW/2+1, 0);
+	return 1;
+    }
+    return 0;
+# else
+    announce_nocode("zag_load_code");
+    return 1;
+# endif
+
+}
+
+int zag_load_sdiag(const struct menu_d *smp) {
+    U32 *src = (U32*)0x9FFE0000;
+
+    txt_clr_wid(2, 4, AN_VIS_COL-4);
+    txt_str(-1, 4, "Loading mathbox serial diags program ...", WHT_PAL);
+    txt_str(-1, 5, "(Expecting source to live at 0x9FFE0000-0x9FFEFFFF)", WHT_PAL);
+    zmb_init(src, 65536/4);
+    txt_clr_wid(2, 4, AN_VIS_COL-4);
+    return 0;
+}
+#endif
+
+#if ZAG_TESTS&ZAG_TEST_FIFO
+# if HOST_IS_MATHBOX || MB_TEST_CODE
+
+#define NORM_COLOR	MNORMAL_PAL
+#define GOOD_COLOR	GRN_PAL
+#define BAD_COLOR	RED_PAL
+#define WARN_COLOR	YEL_PAL
+
+STATIC void fifo_out(ZagSAfifo *zfifo) {
+    if (zfifo->subtest != ZagFIFOok && zfifo->subtest != ZagFIFOannounce) {
+	if (!zfifo->hdr.status) {
+	    txt_str(4, zfifo->row, "Test", NORM_COLOR);
+	    txt_chexnum(zfifo->sequence++, 2, RJ_BF, NORM_COLOR);
+	    txt_cstr(": ", NORM_COLOR);
+	} else {
+	    txt_cstr("nfg", BAD_COLOR);
+	    zfifo->row += 2;
+	}
+    }
+    switch (zfifo->subtest) {
+	case ZagFIFOok:
+	    txt_cstr("ok", GRN_PAL);
+	    zfifo->row += 2;
+	    break;
+	case ZagFIFOinit:
+	    if (!zfifo->hdr.status) {
+		txt_cstr("check reset conditions ...", NORM_COLOR);
+	    } else {
+	    	txt_str(6, zfifo->row, "Found FIFO empty ", NORM_COLOR);
+		if (zfifo->actual&1) {
+		    txt_cstr("asserted", GOOD_COLOR);
+		} else {
+		    txt_cstr("de-asserted", BAD_COLOR);
+		}
+		txt_cstr(", FIFO full ", NORM_COLOR);
+		if (zfifo->actual&2) {
+		    txt_cstr("asserted", BAD_COLOR);
+		} else {
+		    txt_cstr("de-asserted", GOOD_COLOR);
+		}
+		zfifo->row += 2;
+		if ((zfifo->actual&1) == 0) {
+		    txt_str(6, zfifo->row, "Expected FIFO empty to be asserted", WARN_COLOR);
+		    zfifo->row += 2;
+		}
+		if ((zfifo->actual&2) != 0) {
+		    txt_str(6, zfifo->row, "Expected FIFO full to be de-asserted", WARN_COLOR);
+		    zfifo->row += 2;
+		}
+	    }
+	    break;	    
+	case ZagFIFOicounter:
+	    if (!zfifo->hdr.status) {
+		txt_cstr("check initial counter bits ...", NORM_COLOR);
+	    } else {
+		txt_str(6, zfifo->row, "After reset, ", WARN_COLOR);
+  		txt_cstr("found 0x", BAD_COLOR);
+		txt_chexnum(zfifo->actual, 2, RJ_ZF, BAD_COLOR);
+		txt_cstr(", ", WARN_COLOR);
+		txt_cstr("expected 0x00", GOOD_COLOR);
+		zfifo->row += 2;
+	    }
+	    break;		
+	case ZagFIFOcounter:
+	    if (!zfifo->hdr.status) {
+		txt_cstr("check counter bits ...", NORM_COLOR);
+	    } else {
+		txt_str(6, zfifo->row, "after ", WARN_COLOR);
+		txt_cdecnum(zfifo->expected, 6, RJ_BF, WARN_COLOR);
+		txt_cstr(" stores, counter was ", WARN_COLOR);
+		txt_cstr("0x", BAD_COLOR);
+		txt_chexnum(zfifo->actual, 2, RJ_ZF, BAD_COLOR);
+		txt_cstr(", ", WARN_COLOR);
+		txt_cstr("expected 0x*", GOOD_COLOR);
+		txt_chexnum(zfifo->actual&0xF, 1, RJ_ZF, GOOD_COLOR);
+		zfifo->row += 2;
+		txt_str(6, zfifo->row, "where '", WARN_COLOR);
+		txt_cstr("*", GOOD_COLOR);
+		txt_cstr("' can be a 1, 2 or 3", WARN_COLOR);
+		zfifo->row += 2;
+	    }
+	    break;
+	case ZagFIFOfull:
+	    if (!zfifo->hdr.status) {
+		txt_cstr("check FIFO Full bit ...", NORM_COLOR);
+	    } else {
+		txt_str(6, zfifo->row, "FIFO Full bit ", WARN_COLOR);
+		txt_cstr("de-asserted", BAD_COLOR);
+		txt_cstr(" after 128k writes", WARN_COLOR);
+		zfifo->row += 2;
+		txt_str(6, zfifo->row, "Expected FIFO Full bit to be ", WARN_COLOR);
+		txt_cstr("asserted", GOOD_COLOR);
+		zfifo->row += 2;
+	    }
+	    break;
+	case ZagFIFOannounce:
+	    txt_str(6, zfifo->row, "Size=0x", NORM_COLOR);
+	    txt_chexnum(zfifo->size, 5, RJ_ZF, NORM_COLOR);
+	    txt_cstr("(", NORM_COLOR);
+	    txt_cdecnum(zfifo->size/1024, 3, RJ_BF, NORM_COLOR);
+	    txt_cstr("k), hiwater=0x", NORM_COLOR);
+	    txt_chexnum(zfifo->highwater, 5, RJ_ZF, NORM_COLOR);
+	    txt_cstr(", lowwater=0x", NORM_COLOR);
+	    txt_chexnum(zfifo->lowater, 5, RJ_ZF, NORM_COLOR);
+	    zfifo->row += 2;
+	    break;
+	case ZagFIFO132:
+	    if (!zfifo->hdr.status) {
+		txt_cstr("walk a 1 through first 32 locations ...", NORM_COLOR);
+	    } else {
+normal_error:
+		txt_str(6, zfifo->row++, "At location ", WARN_COLOR);
+		txt_chexnum(zfifo->failed, 5, RJ_ZF, WARN_COLOR);
+		txt_cstr(", expected ", GOOD_COLOR);
+		txt_chexnum(zfifo->expected, 8, RJ_ZF, GOOD_COLOR);
+		txt_str(6, zfifo->row, "                   found    ", BAD_COLOR);
+		txt_chexnum(zfifo->actual, 8, RJ_ZF, BAD_COLOR);
+		zfifo->row += 2;
+	    }
+	    break;		
+	case ZagFIFOaddress:
+	    if (zfifo->hdr.status) goto normal_error;
+	    txt_cstr("write address into location ...", NORM_COLOR);
+	    break;
+	case ZagFIFOnotaddress:
+	    if (zfifo->hdr.status) goto normal_error;
+	    txt_cstr("write compliment of address into location ...", NORM_COLOR);
+	    break;
+	case ZagFIFOones:
+	    if (zfifo->hdr.status) goto normal_error;
+	    txt_cstr("fill FIFO with all 1's ...", NORM_COLOR);
+	    break;
+	case ZagFIFOzeros:
+	    if (zfifo->hdr.status) goto normal_error;
+	    txt_cstr("fill FIFO with 0's ...", NORM_COLOR);
+	    break;
+	default:
+	    if (!zfifo->hdr.status) {
+		txt_cstr("unknown test ... ", BAD_COLOR);
+	    } else {
+		txt_str(6, zfifo->row, "Have know idea why it failed either", BAD_COLOR);
+	    }
+	    break;
+    }
+    return;
+}
+# endif
+
+STATIC int zag_fifo_test(const struct menu_d *smp) {
+# if !HOST_IS_MATHBOX && !MB_TEST_CODE
+    announce_nocode("zag_fifo_test");
+    return 1;
+# else
+    int sts;
+#  if HOST_IS_MATHBOX
+    ZagSAfifo lcl_zfifo, *zfifo = &lcl_zfifo;
+#  else
+    ZagSAfifo *zfifo = (ZagSAfifo *)(ZMBSA_COMM);
+#  endif
+    
+    txt_select(TXT_HOST);
+
+    zfifo->row = 4;
+
+#  if !HOST_IS_MATHBOX
+    if (zag_load_code(smp)) return 1;
+#  endif
+
+    sts = zag_test_fifo(zfifo, fifo_out);    
+
+#if 0
+    txt_str(6, AN_VIS_ROW-5, "subt=", WHT_PAL);
+    txt_cdecnum(zfifo->subtest, 3, RJ_BF, WHT_PAL);
+    txt_cstr(", act=", WHT_PAL);
+    txt_chexnum(zfifo->actions, 8, RJ_ZF, WHT_PAL);
+    txt_cstr(", flags=", WHT_PAL);
+    txt_chexnum(zfifo->flags, 8, RJ_ZF, WHT_PAL);
+    txt_cstr(", seq=", WHT_PAL);
+    txt_cdecnum(zfifo->sequence, 3, RJ_BF, WHT_PAL);
+#endif
+
+#if !HOST_IS_MATHBOX
+    if (sts > 1) txt_str(-1, zfifo->row+2, "Mathbox stopped responding", RED_PAL);
+#endif
+
+    pass_fail_msg(sts);
+
+    return sts;
+# endif
+}
+#endif
+
+#if !HOST_IS_MATHBOX
+# if ZAG_TESTS&ZAG_TEST_IRQ
+STATIC int zag_irq_test(const struct menu_d *smp) {
+#  if !MB_TEST_CODE
+    announce_nocode("zag_irq_test");
+#  else
+    ZagSAcmd *zc = (ZagSAcmd *)ZMBSA_COMM;
+
+    if (zag_load_code(smp)) return 1;
+    zag_intrs = 0;
+    zc->status = 0;
+    zc->command = ZMBSA_TEST_INT;
+    zc->sentinel = ZMBSA_SENTINEL_GO;
+    prc_delay(1);
+
+    if (zc->status) {
+	txt_str(-1, 10, "Mathbox rejected the TEST INTERRUPT command", YEL_PAL);
+    } else {
+	if (zag_intrs != 16) {
+	    txt_str(-1, 10, "Mathbox reported ", YEL_PAL);
+	    txt_cdecnum(zag_intrs, 4, RJ_BF, RED_PAL);
+	    txt_cstr(", expected ", YEL_PAL);
+	    txt_cstr("16", GRN_PAL);
+	    zc->status = 1;
+	}
+    }
+
+    pass_fail_msg(zc->status);
+	
+#  endif
+    return 0;
+}
+# endif
+#endif
+
+#if ZAG_TESTS&ZAG_TEST_CONFIG
+STATIC int zag_config_test(const struct menu_d *smp) {
+# if !MB_TEST_CODE
+    announce_nocode("zag_config_test");
+# endif
+    return 0;
+}
+#endif
+
+#if ZAG_TESTS&ZAG_TEST_MEMORY
+
+#define TEST_DRAM	0x00		/* dram */
+#define TEST_ODRAM	0x01		/* object dram */
+#define TEST_RR		0x02		/* ramrom */
+#define TEST_RR2	0x03		/* 2nd 4MB ramrom */
+#define TEST_PROXY_DRAM	0x04		/* do dram test via proxy */
+#define TEST_PROXY_ODRAM 0x05		/* do object dram test via proxy */
+#define TEST_PROXY_RR	0x06		/* do ramrom test via proxy */
+
+#define LCL_FLG_COUNT	1
+#define LCL_FLG_INCREM	2
+#define LCL_FLG_DISP	4
+
+STATIC volatile int lcl_vb_flag, lcl_frames, lcl_minutes, lcl_seconds, lcl_col, lcl_row;
+
+STATIC void lcl_act_routine(void) {
+    int diff=0;
+    if ((lcl_vb_flag&LCL_FLG_COUNT) != 0) {
+	++lcl_frames;
+	if (lcl_frames > 60) {
+	    lcl_frames = 0;
+	    diff=1;
+	    if ((lcl_vb_flag&LCL_FLG_INCREM) != 0) {
+		++lcl_seconds;
+		if (lcl_seconds > 59) {
+		    lcl_seconds = 0;
+		    ++lcl_minutes;
+		}
+	    } else {
+		--lcl_seconds;
+		if (lcl_seconds < 0) {
+		    lcl_seconds = 59;
+		    --lcl_minutes;
+		    if (lcl_minutes < 0) {
+			lcl_minutes = 0;
+			lcl_seconds = 0;
+		    }
+		}
+	    }
+	}
+    }
+    if ((lcl_vb_flag&LCL_FLG_DISP) != 0 && diff) {
+	txt_decnum(lcl_col, lcl_row, lcl_minutes, 2, RJ_ZF, MNORMAL_PAL);
+	txt_cstr(":", MNORMAL_PAL);
+	txt_cdecnum(lcl_seconds, 2, RJ_ZF, MNORMAL_PAL);
+    }
+}
+
+STATIC struct act_q lcl_act;
+
+STATIC void lcl_vb(void) {
+    lcl_act.action = lcl_act_routine;
+    lcl_act.param = 0;
+    prc_q_action( &lcl_act );
+    return;
+}
+
+STATIC const char * const error_msgs[] = {
+    "Walk one bit through address 0",
+    "Fill all of memory with F's",
+    "Write each location's address",
+    "Verify refresh",
+    "Walk a 1 throughout memory",
+    "Verify location's address is in each location",
+    "Fill all of memory with 0's"
+};
+
+STATIC void show_mem_error(struct diag_params *dp, int opts, int row) {
+    txt_str(10, row, "Failed", RED_PAL);
+    txt_cstr(" at address ", MNORMAL_PAL);
+    txt_chexnum(dp->bad_address, 8, RJ_ZF, RED_PAL);
+    txt_cstr(" during subtest ", MNORMAL_PAL);
+    txt_cdecnum(dp->subtest, 1, RJ_BF, MNORMAL_PAL);
+    txt_cstr(":", MNORMAL_PAL);
+    row += 2;
+    txt_str(-1, row, error_msgs[dp->subtest], WHT_PAL);
+    row += 2;
+    txt_str(10, row++, "Expected data ", MNORMAL_PAL);
+    if (!opts) txt_chexnum(dp->expected_msb, 8, RJ_ZF, GRN_PAL);
+    txt_chexnum(dp->expected_lsb, 8, RJ_ZF, GRN_PAL);
+    txt_str(10, row++, "Got data      ", MNORMAL_PAL);
+    if (!opts) txt_chexnum(dp->actual_msb, 8, RJ_ZF, RED_PAL);
+    txt_chexnum(dp->actual_lsb, 8, RJ_ZF, RED_PAL);
+    return;
+}
+
+#if !HOST_IS_MATHBOX
+# define PROXY "MB "
+# define LOCAL "HOST "
+#else
+# define LOCAL
+# define PROXY
+#endif
+
+#if !HOST_IS_MATHBOX
+STATIC int mb_time;
+#endif
+
+STATIC int zag_mem_test(const struct menu_d *smp) {
+    U32 upperlim=0, lowerlim=0, uphys, lphys=0;
+    struct zag_desc *zagd;
+    struct diag_params dparms;
+    int options, status=1, row, ii, time=0, mode=0, size;
+    char *msg=0;
+    void (*oldvb)(void);
+
+    lcl_vb_flag = 0;
+    oldvb = vid_set_vb( lcl_vb );
+
+    zag_get_defaults();
+    zagd = (struct zag_desc *)smp;
+    options = (int)zagd->arg;
+    row = 8;
+#if !HOST_IS_MATHBOX
+    if (options >= TEST_PROXY_DRAM) {
+	if (!mb_time) {
+	    volatile ZagSAcmd *zc = (ZagSAcmd *)ZMBSA_COMM;
+	    if (zag_load_code(smp)) return 1;
+	    zc->command = ZMBSA_TEST_TIMEIT;
+	    zc->status = 0;
+	    prc_delay(0);		/* make sure we're in sync with VB */
+	    zc->sentinel = ZMBSA_SENTINEL_GO;
+	    prc_delay(30);		/* wait about one half second */
+	    zc->command = 0;	/* tell 'em to stop */
+	    prc_delay(0);		/* this will give 'em plenty of time to stop */
+	    mb_time = zc->status;	/* record the elapsed time */
+	}
+	txt_str(10, row, PROXY "running at about ", MNORMAL_PAL);
+	txt_cdecnum((mb_time+124999)/250000, 4, RJ_BF, MNORMAL_PAL);
+	txt_cstr("MHZ", MNORMAL_PAL);
+    }
+#endif
+    if (options < TEST_PROXY_DRAM) {
+#if HOST_IS_MATHBOX
+# define RUNNING "Running"
+#else
+# define RUNNING "running"
+#endif
+	int frame;
+	if (tpllvec) {
+	    txt_str(10, row, "Waiting for timer to finish...", MNORMAL_PAL);
+	    for (frame=330; tpllvec && frame; --frame) prc_delay(0);
+	    txt_clr_wid(10, row, AN_VIS_COL-10-4);
+	}
+	txt_str(10, row, LOCAL RUNNING " at about ", MNORMAL_PAL);
+	txt_cdecnum((set_timer_rate(0)+499)/500, 4, RJ_BF, MNORMAL_PAL);
+	txt_cstr("MHZ", MNORMAL_PAL);
+    }
+    row += 2;
+    switch (options) {
+#if HOST_BOARD == HCR4K
+	case TEST_DRAM: {
+	    if ((size = (zag_defaults>>ZAG_B_OPTS_DRAM)&ZAG_OPTS_Autosize)) {
+		msg = "Testing " LOCAL "working DRAM";
+		upperlim = (U32)(&upperlim - 768);	/* make address non-cached */
+		lowerlim = (U32)(bss_end+7)&-8;
+		lphys = 0x80000000 | (lowerlim - DRAM_BASE);
+		time = 58;
+	    } else {
+		msg = "No " LOCAL "DRAM configured";
+		time = 0;
+	    }
+	    break;
+	}
+	case TEST_ODRAM: {
+	    if ((size = (zag_defaults>>ZAG_B_OPTS_ODRAM)&ZAG_OPTS_Autosize)) {
+		msg = "Testing OBJECT DRAM";
+		lowerlim = (U32)RDRAM_BASE;
+		upperlim = RDRAM_BASE + ((size == ZAG_OPTS_2MB) ? 2*1024*1024:4*1024*1024)-1;
+		lphys = 0x20000000;
+		time = 97;
+	    } else {
+		msg = "No " LOCAL "Object DRAM configured";
+		time = 0;
+	    }
+	    break;
+        }
+	case TEST_RR: {
+	    if ((size = (zag_defaults>>ZAG_B_OPTS_RR)&ZAG_OPTS_Autosize)) {
+		extern U8 text_end[], startup[];
+		U8 *text_start;
+		text_start = startup;
+		if (text_start == 0) text_start = (U8 *)0x9FC00000;
+		msg = "Testing first 4MB of RamRom";
+		txt_str(-1, 5, "NOTE: This test erases all game code", YEL_PALB);
+		txt_str(-1, 6, "located in RAMROM boards.", YEL_PALB);
+		lowerlim = RRBUS_BASE + (((text_end-text_start)+1023)&-1024) + 1024;
+		upperlim = RRBUS_BASE + 0x00400000 - 0x20000 - 1;
+		lphys = lowerlim;
+		time = 97;
+	    } else {
+		msg = "No " LOCAL "RamRom boards configured";
+		time = 0;
+	    }
+	    break;
+	}
+	case TEST_RR2: {
+	    if ((size = (zag_defaults>>ZAG_B_OPTS_RR)&ZAG_OPTS_Autosize) == ZAG_OPTS_4MB) {
+		msg = "Testing 2nd 4Mb of RamRom";
+		lowerlim = RRBUS_BASE + 0x00400000;
+		upperlim = RRBUS_BASE + 0x00800000 - 1;
+		lphys = lowerlim;
+		time = 97;
+	    } else {
+		msg = "There is not 8MB of " LOCAL "RamRom configured";
+		time = 0;
+	    }
+	    break;
+	}
+#endif
+#if !HOST_IS_MATHBOX
+	case TEST_PROXY_DRAM: {
+	    int size;
+	    size = (zag_defaults>>ZAG_B_OPTS_PDRAM)&ZAG_OPTS_Autosize;
+	    if (size) {
+	    	U32 offs;
+		msg = "Testing " PROXY "working DRAM";
+		upperlim = 0x00200000 + ((size > 1) ? 0x003FFFF8 : 0x001FFFF8);
+		offs = (((ZMBSA_COMM+sizeof(ZagSAmemory)-ZMBSA_BASE_ADDR)+7)&-8);
+		lowerlim = 0x00200000 + offs;
+		lphys = 0x80000000 | offs;
+		time = (size > 1) ? 65:65/2;
+		mode = 1;
+	    } else {
+		msg = "No " PROXY "DRAM configured";
+		time = 0;
+	    }
+	    break;
+	}
+	case TEST_PROXY_ODRAM: {
+	    int size;
+	    size = (zag_defaults>>ZAG_B_OPTS_PODRAM)&ZAG_OPTS_Autosize;
+	    if (size) {
+		msg = "Testing Mathbox's object DRAM";
+		upperlim = 0x20000000 + ((size > 1) ? 0x003FFFF8 : 0x001FFFF8);
+		lowerlim = 0x20000000;
+		lphys = 0x20000000;
+		time = (size > 1) ? 115 : 115/2;
+		mode = 1;
+	    } else {
+		msg = "No " PROXY "Object DRAM configured";
+		time = 0;
+	    }
+	    break;
+	}
+	case TEST_PROXY_RR: {
+	    int size;
+	    size = (zag_defaults>>ZAG_B_OPTS_PRR)&ZAG_OPTS_Autosize;
+	    if (size) {
+		msg = "Testing Mathbox's RamRom ports";
+		upperlim = 0x38000000 + ((size > 1) ? 0x007FFFF8 : 0x003FFFF8);
+		lowerlim = 0x38000000;
+		lphys = 0x38000000;
+		time = (size > 1) ? 115*2 : 115;
+		mode = 1;
+	    } else {
+		msg = "No " PROXY "RamRom configured";
+		time = 0;
+	    }
+	    break;
+	}
+#endif
+	default:
+	    msg = "Test not yet implemented";
+	    time = 0;
+	    break;
+    }
+    txt_str(10, row, msg, MNORMAL_PAL);
+    row += 2;
+    if (time) {
+	uphys = lphys + (upperlim-lowerlim);
+#define MEMT_32		1
+#define MEMT_CACHE	2
+#define LCL_MSG "Approximate time to completion "
+#define LCL_TIME_ROW (row+4)
+	txt_str(10, LCL_TIME_ROW, LCL_MSG, MNORMAL_PAL);
+	lcl_row = row+4;
+	lcl_col = 10+sizeof(LCL_MSG)-1;
+	lcl_frames = 60;
+	++time;
+	for (ii=0; ii<4; ++ii) {
+	    if ((options != TEST_DRAM) && (options != TEST_PROXY_DRAM) && (ii&MEMT_CACHE) != 0) continue;
+	    txt_clr_wid(10, row, AN_VIS_COL-14);
+	    txt_str(10, row, "Test options: ", MNORMAL_PAL);
+	    txt_cstr((ii&MEMT_32)?"32 bit ":"64 bit ", MNORMAL_PAL);
+	    if ((ii&MEMT_CACHE) != 0) {
+		lowerlim &= ~0x00800000;
+		upperlim &= ~0x00800000;
+	    } else {
+		lowerlim |= 0x00800000;
+		upperlim |= 0x00800000;
+		txt_cstr("UN-", MNORMAL_PAL);
+	    }
+	    txt_cstr("CACHED", MNORMAL_PAL);
+	    txt_str(10, row+2, "Addresses under test ", MNORMAL_PAL);
+	    txt_chexnum(lphys, 8, RJ_ZF, MNORMAL_PAL);
+	    txt_cstr("-", MNORMAL_PAL);
+	    txt_chexnum(uphys, 8, RJ_ZF, MNORMAL_PAL);
+#if 0
+	    if ((ii&MEMT_CACHE) != 0) {
+		lcl_seconds = (time/4) % 60;
+		lcl_minutes = (time/4) / 60;
+	    } else {
+		lcl_seconds = time % 60;
+		lcl_minutes = time / 60;
+	    }
+	    lcl_vb_flag = LCL_FLG_COUNT | LCL_FLG_DISP;
+#else
+	    lcl_seconds = 1;
+            lcl_minutes = 0;
+	    lcl_vb_flag = LCL_FLG_COUNT | LCL_FLG_DISP | LCL_FLG_INCREM;
+#endif
+	    if (!mode) {
+		int r_after_w;
+		r_after_w = options != TEST_DRAM;
+		if ((ii&MEMT_32) == 0) {
+		    status = zag_test_mem64(&dparms, lowerlim, upperlim, r_after_w);
+		} else {
+		    status = zag_test_mem32(&dparms, lowerlim, upperlim, r_after_w);
+		}
+	    } else {
+		int r_after_w;
+		volatile ZagSAmemory *zm = (ZagSAmemory *)ZMBSA_COMM;
+		r_after_w = options != TEST_PROXY_DRAM;
+		zm->start = lowerlim;
+		zm->end = upperlim;
+		zm->flags = r_after_w | (((ii&MEMT_32) != 0) << 1);
+		zm->hdr.status = 0;
+		zm->hdr.command = ZMBSA_TEST_MEM;
+		zm->hdr.sentinel = ZMBSA_SENTINEL_GO;
+		while (1) {
+		    prc_delay(0);
+		    if (zm->hdr.sentinel == ZMBSA_SENTINEL_IDLE) break;
+		    if (lcl_seconds == 0 && lcl_minutes == 0) break;
+		}
+		dparms.actual_lsb = zm->actual_lsb;
+		dparms.actual_msb = zm->actual_msb;
+		dparms.expected_lsb = zm->expected_lsb;
+		dparms.expected_msb = zm->expected_msb;
+		dparms.bad_address = zm->failed;
+		dparms.subtest = zm->subtest;
+		status = zm->hdr.status;
+		if (!status && lcl_seconds == 0 && lcl_minutes == 0) status = -1;
+	    }
+	    lcl_vb_flag = 0;
+	    if (status) {
+		txt_clr_wid(10, LCL_TIME_ROW, AN_VIS_COL-10-4);
+		if (status > 0) {
+		    dparms.bad_address -= lowerlim;
+		    dparms.bad_address += lphys;
+		    show_mem_error(&dparms, ii&MEMT_32, row+6);
+		} else {
+		    txt_str(-1, row+6, "Mathbox seems to be hung", RED_PAL);
+		}
+		break;
+	    }
+	}
+    } else {
+	status = 1;
+    }
+    
+    pass_fail_msg(status);
+
+    vid_set_vb( oldvb );
+    return status;
+}
+#endif
+
+#if 0
+#if !USE_ISPRINTF && (HOST_BOARD == LCR3K || HOST_BOARD == HCR4K)
+# define Isprintf nisprintf
+# define SPRINTF_WHERE(x, siz) x, siz
+# include <nsprintf.h>
+#else
+# define Isprintf isprintf
+# define SPRINTF_WHERE(x, siz) x
+extern int isprintf(char *, const char *, ... );
+#endif
+#endif
+
+#ifndef AN_STMP_CNT
+#define AN_STMP_CNT ((&an_end-&an_stamps)/8)
+#endif
+#define	AN_COL_CNT	16
+#define	AN_COL_SEP 	2
+#define	AN_LFT_COL		((AN_VIS_COL - (AN_COL_CNT * AN_COL_SEP))/2)
+
+#define	AN_ROW_CNT	10
+#define	AN_ROW_SEP 	2
+#define	AN_TOP_ROW	((AN_VIS_ROW - (AN_ROW_CNT * AN_ROW_SEP))/2)
+#define	AN_MAX_ROWS	(((AN_STMP_CNT+(AN_COL_CNT-1)) / AN_COL_CNT) - AN_ROW_CNT)
+
+extern void z20_init_loctex(void);
+extern void z20_init_colram(void);
+extern unsigned short an_stamps, an_end;
+extern void zag_text2traps(int);
+
+#if ZAG_TESTS&(ZAG_TEST_TEXT|ZAG_TEST_IRQ)
+typedef struct {
+    TxtAlphaPtr new;		/* current virtual screen pointers */
+    TxtAlphaPtr *old;		/* previous virtual screen pointers */
+    int oldtxt;			/* previous txt_select() value */
+# if !defined(ZIGTV_CTL)
+    U32 oldcsr;			/* previous ZRE csr */
+# endif
+    int oldfields;		/* previous vid_fields */
+    U32 oldoffset;		/* offset of saved texture area */
+    U16 oldtexture[2048];	/* saved alpha texture */
+} FixUpData;
+#endif
+
+#if !defined(ZIGTV_CTL) && (ZAG_TESTS&ZAG_TEST_TEXT)
+STATIC int reset_zre(void) {
+    VU32 *csr = &ZRE_CSR;
+    int oldcsr;
+    oldcsr = *csr;
+/* Init the ZRE's control register */
+    zre_init();
+    *csr = *csr | (1<<B_ZRE_REON) | (1<<B_ZRE_INTEN);
+    *csr &= ~((1<<B_ZRE_TLEN)|(1<<B_ZRE_XTOT));
+    return oldcsr;
+}
+#endif
+
+#if (ZAG_TESTS&ZAG_TEST_TEXT)
+STATIC void fixup_hw(FixUpData *fup) {
+
+# if HOST_IS_MATHBOX
+    prc_mod_latch(~CTS_FIFO_RST);	/* reset the FIFO */
+    prc_mod_latch(CTS_FIFO_RST|CTS_FIFO_FULLINT);
+# endif
+
+    fup->oldfields = vid_fields(1);
+
+# if !defined(ZIGTV_CTL)
+    fup->oldcsr = reset_zre();
+# else
+    zre_setup();
+# endif
+    return;
+}
+
+#define FILL_FLG_SAVE		0x01	/* save existing data */
+#define FILL_FLG_RESTORE	0x02	/* restore old data */
+#define FILL_FLG_FILL		0x04	/* write new texture at offset */
+
+STATIC void fill_alpha_texture(FixUpData *fup, U32 offset, int flags) {
+    VU32 *ldst, *lsrc;
+    U16 *ssrc, *sdst;
+    int ii;
+
+    if ((flags&FILL_FLG_RESTORE)) {
+	ssrc = fup->oldtexture;
+	ldst = (VU32 *)TEXRAM_ADDR + fup->oldoffset;
+	for (ii=0; ii<n_elts(fup->oldtexture); ++ii, ++ssrc) *ldst++ = (*ssrc<<16) | *ssrc;
+    }	
+    if ((flags&FILL_FLG_SAVE)) {
+	fup->oldoffset = offset;
+	lsrc = (VU32 *)TEXRAM_ADDR + offset;	/* save the current texture */
+	sdst = fup->oldtexture;
+	for (ii=0; ii<n_elts(fup->oldtexture); ++ii) *sdst++ = *lsrc++;
+    }
+    if ((flags&FILL_FLG_FILL)) {
+	ssrc = &an_stamps;
+	ldst = (VU32 *)TEXRAM_ADDR + offset;
+	for (ii=0; ii<n_elts(fup->oldtexture); ++ii, ++ssrc) *ldst++ = (*ssrc << 16) | *ssrc;
+	fup->new.texture_offset = offset/2;
+    }
+    return;
+}
+
+STATIC void restore_hw(FixUpData *fup) {
+# if !defined(ZIGTV_CTL)
+    VU32 *csr = &ZRE_CSR;
+# endif
+# if HOST_IS_MATHBOX
+    prc_mod_latch(~(CTS_FIFO_RST|CTS_FIFO_FULLINT));	/* reset the FIFO */
+    prc_mod_latch(CTS_FIFO_RST);		/* reset the FIFO, disable full interrupts */
+# endif
+    zre_setup();			/* reset the zre */
+    vid_fields(fup->oldfields);		/* restore vid fields */
+# if !defined(ZIGTV_CTL)
+    *csr = fup->oldcsr;			/* restore ZRE CSR to value at entry */
+# endif
+    txt_select(fup->oldtxt);		/* switch txt back */
+    fill_alpha_texture(fup, 0, FILL_FLG_RESTORE);
+    if (fup->old == 0) {		/* if there was no old virtual screen */
+	fup->new.screen = 0;		/* tell 'em so by passing a 0 in the screen */
+	fup->old = &fup->new;		/* and pretend there was */
+    }
+    txt_vsptr(fup->old);		/* reset the virtual screen */
+    return;
+}
+
+#if !defined(AN_TEXTURE_OFFSET)
+# define AN_TEXTURE_OFFSET	0
+#endif
+
+#if !defined(AN_COLOR_OFFSET)
+# define AN_COLOR_OFFSET	0
+#endif
+
+STATIC void fix_vsptr(FixUpData *fup, U32 *vs) {
+    TxtAlphaPtr *ap;
+
+    ap = &fup->new;
+    ap->screen = vs;
+    ap->dirty = vs + AN_VIS_ROW*AN_VIS_COL/2;
+    ap->texture_offset = AN_TEXTURE_OFFSET;
+    ap->color_offset = AN_COLOR_OFFSET;
+    memset((char *)vs, 0, AN_VIS_ROW*AN_VIS_COL*2 + AN_VIS_ROW*AN_VIS_COL/8);
+    fup->old = txt_vsptr(ap);
+    fup->oldtxt = txt_select(0);
+    fup->oldoffset = 0;
+    fixup_hw(fup);
+    fill_alpha_texture(fup, 0, FILL_FLG_SAVE|FILL_FLG_FILL);
+    vid_clear();
+    return;
+}
+#endif
+
+#if HOST_IS_MATHBOX
+# if ZAG_TESTS&ZAG_TEST_TEXT
+
+STATIC int zag_AN_stamp_test(FixUpData *fup, const struct menu_d *smp) {
+    U32	edges;
+    m_int	i,j,update;
+    m_uint	stamp,textPal;
+    m_int	baserow;
+    m_int	addrow;
+
+    txt_select(TXT_HOST);
+    txt_str(-1, AN_VIS_ROW-7, "Use LEFT/RIGHT", INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-6, "to use different area of texture memory", INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-5, t_msg_control, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-4, "to see more characters", INSTR_PAL);
+
+#define TEX_MEM_ROW (AN_VIS_ROW-10)
+#define TEX_MEM_OFFS "Texture memory offset: "
+    txt_str((AN_VIS_COL-(sizeof(TEX_MEM_OFFS)-1)-8)/2, TEX_MEM_ROW, TEX_MEM_OFFS, WHT_PAL);
+#define TEX_MEM_OFFS_COL ((AN_VIS_COL-(sizeof(TEX_MEM_OFFS)-1)-8)/2+(sizeof(TEX_MEM_OFFS)-1))
+    txt_chexnum(fup->new.texture_offset, 8, RJ_ZF, WHT_PAL);
+
+#define STMP_MSG0 "A total stamp count of "
+#define STMP_MSG1 "Stamps 0x000 - 0x"
+    txt_str((AN_VIS_COL-(sizeof(STMP_MSG0)-1)-4)/2, 5, STMP_MSG0, WHT_PAL);
+    txt_cdecnum(AN_STMP_CNT, 4, RJ_BF, WHT_PAL);
+    txt_str((AN_VIS_COL-(sizeof(STMP_MSG1)-1)-3)/2, 6, STMP_MSG1, WHT_PAL);
+    txt_chexnum(AN_STMP_CNT-1, 3, RJ_ZF, WHT_PAL);
+
+    SetANPal(MNORMAL_PAL,GRY_WHT);
+    
+    for (i=0; i < AN_COL_CNT; i++)		/* display col #'s	*/
+	txt_hexnum(AN_LFT_COL + (i * AN_COL_SEP),AN_TOP_ROW - 2,i,1,RJ_ZF,
+	MNORMAL_PAL);
+
+    baserow = 0;
+    
+    ctl_autorepeat(JOY_VERT,30,15);	/* Autorepeat after 1/2secs @@ 1/4 */
+
+    update = 1;				/* we always have to update */
+
+    textPal = MNORMAL_PAL;
+    txt_select(TXT_ZMB);
+
+    ctl_read_sw(-1);			/* eat all typeahead */
+    while (1)
+    {
+	prc_delay0();
+	edges = ctl_read_sw(JOY_ALL|SW_EXTRA);	/* get edges	*/
+	if (edges & SW_NEXT)
+	    break;			/* done with this test...	*/
+
+	if (edges & SW_EXTRA)
+	{
+	    textPal ^= BGBIT;
+	    update = 1;
+	}
+
+	if (ctl_read_sw(0) & SW_ACTION)		/* SHIFT key?		*/
+	    addrow = AN_ROW_CNT;
+	else
+	    addrow = 1;
+
+	if (edges & J_UP)
+	{
+	    update = (baserow != 0);
+	    if ((baserow -= addrow) < 0)
+		baserow = 0;
+	}
+	else
+	if (edges & J_DOWN)
+	{
+	    update = (baserow != AN_MAX_ROWS);
+	    if ((baserow += addrow) > AN_MAX_ROWS)
+		baserow = AN_MAX_ROWS;
+	}
+
+	if (edges & J_LEFT) {
+	    if (fup->oldoffset < 0x02000000-sizeof(fup->oldtexture)) {
+		U32 new;
+		new = fup->oldoffset + sizeof(fup->oldtexture);
+		fill_alpha_texture(fup, new, FILL_FLG_RESTORE|FILL_FLG_SAVE|FILL_FLG_FILL);
+		update = 1;
+	    }		
+	}
+
+	if (edges & J_RIGHT) {
+	    if (fup->oldoffset >= sizeof(fup->oldtexture)) {
+		U32 new;
+		new = fup->oldoffset - sizeof(fup->oldtexture);
+		fill_alpha_texture(fup, new, FILL_FLG_RESTORE|FILL_FLG_SAVE|FILL_FLG_FILL);
+		update = 1;
+	    }		
+	}
+
+	if (edges & (J_LEFT|J_RIGHT)) {
+	    txt_hexnum(TEX_MEM_OFFS_COL, TEX_MEM_ROW, fup->new.texture_offset, 8, RJ_ZF, WHT_PAL);
+	}
+	    
+	if (update)
+	{
+	    stamp = (baserow * AN_COL_CNT);
+	    for (j=0; j < AN_ROW_CNT; j++)
+	    {
+		m_int x,y;
+
+	        txt_select(TXT_HOST);
+		x = AN_LFT_COL - 3;
+		y = AN_TOP_ROW + (j * AN_ROW_SEP);
+		txt_hexnum(x,y,stamp/16,2,RJ_ZF,MNORMAL_PAL);
+
+		txt_select(TXT_HOST);
+		txt_clr_wid(AN_LFT_COL, y, AN_COL_CNT*AN_COL_SEP);
+		txt_select(TXT_ZMB);
+
+		for (i=0,x = AN_LFT_COL; i < AN_COL_CNT; i++,x += AN_COL_SEP) {
+		    if (stamp >= AN_STMP_CNT) {
+			txt_stamp(x, y, 0, textPal);
+		    } else {
+			txt_stamp(x, y, stamp, textPal);
+		    }
+		    ++stamp;
+		}
+	    }
+	    update = 0;	/* done with update	*/
+	}
+
+	zag_text2traps(0);
+	*(U32 *)TBUS_BASE = TB_FEND;
+        txt_select(TXT_HOST);
+    }
+    return 0;
+}
+# endif
+#endif
+
+#if ZAG_TESTS&ZAG_TEST_TEXT
+extern int z20_nelts_st_text_palettes;
+extern const char * const z20_pmsg[];
+
+# if HOST_IS_MATHBOX
+STATIC int zag_text_test(const struct menu_d *smp)
+{
+    int tidx, row;
+    FixUpData fup;
+    U32 virt_scrn[(AN_VIS_ROW*AN_VIS_COL+1)/2 + (AN_VIS_ROW*AN_VIS_COL+31)/32];
+
+    fix_vsptr(&fup, virt_scrn);
+
+    if ( smp->mn_label[0] == '\n' || smp->mn_label[0] == 'A' ) {
+	int sts;	
+	sts = zag_AN_stamp_test(&fup, smp);
+	restore_hw(&fup);
+	return sts;
+    }
+
+    tidx = -1;
+    row = 0;
+    ctl_read_sw(-1);	/* eat any typeahead */
+    while (1) {
+	if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) break;
+	if ( row++ >= (AN_VIS_ROW-5) ) row = 1; 
+	if ( ++tidx >= z20_nelts_st_text_palettes ) tidx = 0;
+        txt_select(TXT_ZMB);
+	if ( smp->mn_label[0] == 'P' ) {
+	    txt_str(10,tidx,z20_pmsg[tidx],tidx<<AN_PAL_SHF);
+	} else {
+	    txt_str(10,row,"Hello, World",tidx<<AN_PAL_SHF);
+	}
+	{
+	    int zreframe;
+	    U32 edges;
+	    zag_text2traps(0);
+	    zreframe = zre_frames();
+	    *(U32 *)TBUS_BASE = TB_FEND;		/* let autoswap do its thing */
+	    while (zre_frames() == zreframe) {
+		edges = ctl_read_sw(JOY_ALL|SW_EXTRA);	/* get edges	*/
+		if (edges & SW_NEXT)
+		    break;			/* done with this test...	*/
+	    }
+	}
+	if ( smp->mn_label[0] == 'S' ) prc_delay(10);
+    }
+    restore_hw(&fup);
+    return 0;
+}
+# endif
+#endif
+
+#if ZAG_TESTS&ZAG_TEST_MOVIE
+STATIC int zag_movie(const struct menu_d *smp) {
+# if !MB_TEST_CODE
+    announce_nocode("zag_movie");
+# endif
+    return 0;
+}
+#endif
+
+#if (ZAG_TESTS&ZAG_TEST_IRQ) && HOST_IS_MATHBOX
+/* Declare a structure that the interrupt service routine will access */
+
+STATIC struct act_q fifo_act;
+STATIC int fulls, empties;
+
+/* fifo_spinner - This function simply spins on the control register
+ * waiting for some space to become available in the FIFO. This function
+ * is a special program in that it runs at interrupt level except interrupts
+ * remain enabled. This allows the vblank isr to process buffer swaps allowing
+ * the FIFO to empty preventing a deadly embrace.
+ */
+
+STATIC void fifo_spinner(void) {
+    VU32 *ctl = (VU32 *)(CTRL_BASE+4);
+    ++fulls;
+    while ((*ctl&0x3F) > 0x1F);		/* wait until FIFO empties a bit */
+    prc_mod_latch(CTS_FIFO_FULLINT);	/* re-enable FIFO full interrupt */
+    return;				/* control returns to an RTI allowing main to run */
+}
+
+void zag_fifofull_irq(void) {
+    prc_mod_latch(~CTS_FIFO_FULLINT);	/* ACK the interrupt */
+    prc_mod_latch(CTS_FIFO_MTINT);	/* enable the empty interrupt */
+    fifo_act.action = fifo_spinner;	/* point to our sleeper routine */
+    fifo_act.param = 0;			/* no argument */
+    prc_q_action( &fifo_act );		/* register the function */
+    return;				/* control returns to fifo_spinner before RTI */
+}
+
+void zag_fifomt_irq(void) {
+    prc_mod_latch(~CTS_FIFO_MTINT);	/* ACK the interrupt */
+    ++empties;
+    return;
+}
+
+STATIC int zag_int_test(const struct menu_d *smp) {
+# if !HOST_IS_MATHBOX && !MB_TEST_CODE
+    announce_nocode("zag_int_test");
+    return 0;
+# else
+#  if HOST_IS_MATHBOX
+    int row, col, ii, sts;
+    FixUpData fup;
+    U32 virt_scrn[(AN_VIS_ROW*AN_VIS_COL+1)/2 + (AN_VIS_ROW*AN_VIS_COL+31)/32];
+
+    txt_str(-1, AN_VIS_ROW-4, t_msg_next, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-3, "to end the test", INSTR_PAL);
+
+    fix_vsptr(&fup, virt_scrn);	
+
+    txt_select(TXT_ZMB);
+
+    ii = '!';
+    for (row=2; row < AN_VIS_ROW-2; ++row) {
+	for (col=2; col < AN_VIS_COL-2; ++col) {
+	    txt_stamp(col, row, ii, MNORMAL_PAL);
+	    ++ii;
+	    if (ii > '~') ii = '!';
+	}
+    }
+    fulls = empties = 0;
+    prc_mod_latch(CTS_FIFO_FULLINT);
+    ctl_read_sw(-1);	/* eat any typeahead */
+    while (1) {
+	if ((ctl_read_sw(SW_NEXT|SW_ACTION) & (SW_NEXT|SW_ACTION)) ) break;	/* stop on any button press */
+	zag_text2traps(1);
+    }
+    ii = zre_frames();
+    *(U32 *)TBUS_BASE = TB_FEND;		/* flush it and let autoswap do its thing */
+    prc_delay(30);
+    while (zre_frames() == ii) {
+	if ( (ctl_read_sw(SW_NEXT|SW_ACTION) & (SW_NEXT|SW_ACTION)) ) break;
+    }
+    txt_select(TXT_HOST);
+    for (ii=0; ii<10; ++ii) {
+	txt_clr_wid(2, ii+2, AN_VIS_COL-4);
+    }
+    for (ii=AN_VIS_ROW*3/4-2; ii<AN_VIS_ROW-2; ++ii) {
+	txt_clr_wid(2, ii, AN_VIS_COL-4);
+    }
+    txt_str(-1, AN_VIS_ROW-4, t_msg_next, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-3, t_msg_ret_menu, INSTR_PAL);
+
+    txt_str(10, 4, "Received ", MNORMAL_PAL);
+    txt_cdecnum(fulls, 6, RJ_BF, MNORMAL_PAL);
+    txt_cstr(" FULL interrupts", MNORMAL_PAL);
+    txt_str(10, 6, "Received ", MNORMAL_PAL);
+    txt_cdecnum(empties, 6, RJ_BF, MNORMAL_PAL);
+    txt_cstr(" EMPTY interrupts", MNORMAL_PAL);
+    prc_mod_latch(~(CTS_FIFO_FULLINT|CTS_FIFO_MTINT));
+    sts = 0;
+    if (fulls == 0) {
+	txt_str(10, 8, "FAILURE: Expected FULL count to be > 0", RED_PALB);
+	sts = 1;
+    }
+    if (empties == 0) {
+	txt_str(10, 8, "FAILURE: Expected EMPTY count to be > 0", RED_PALB);
+	sts = 1;
+    }
+
+    pass_fail_msg(sts);
+
+    restore_hw(&fup);
+    return sts;
+#  else
+    return 1;
+#  endif
+# endif
+}
+#endif
+
+STATIC int zag_timer_test(const struct menu_d *smp) {
+    U32 *oldptr;
+    U32 milliseconds=0;
+    int frames, seconds;
+
+    prc_delay(0);
+    oldptr = set_timer_ptr(&milliseconds);
+    seconds = frames = 0;
+    txt_select(TXT_HOST);
+    txt_str(-1, 10, "One millisecond timer test", MNORMAL_PAL);
+    txt_str(10, 12, "Seconds:", MNORMAL_PAL);
+    txt_str(10, 14, "Milliseconds per second:", MNORMAL_PAL);
+    txt_str(10, 16, "Approx CPU speed (MHZ):", MNORMAL_PAL);
+    txt_str(-1, AN_VIS_ROW-4, t_msg_next, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-3, "to end the test", INSTR_PAL);
+
+    ctl_read_sw(SW_NEXT|SW_ACTION);	/* eat any typeahead */
+    while (1) {
+	prc_delay(0);
+	if ( (ctl_read_sw(SW_NEXT|SW_ACTION) & (SW_NEXT|SW_ACTION)) ) break;
+	++frames;
+	if (frames >= 60) {
+	    ++seconds;
+	    txt_decnum(36, 12, seconds, 6, RJ_BF, MNORMAL_PAL);
+	    txt_decnum(36, 14, milliseconds, 6, RJ_BF, MNORMAL_PAL);
+	    txt_decnum(34, 16, (set_timer_rate(0)+499)/500, 8, RJ_BF, MNORMAL_PAL);
+	    frames = 0;
+	    milliseconds = 0;
+	}
+    }    
+    set_timer_ptr(oldptr);
+    return 0;
+}
+
+#if ZAG_TESTS&ZAG_TEST_TBUS
+# if !HOST_IS_MATHBOX && !MB_TEST_CODE
+static int zag_tbus(const struct menu_d *smp) {
+    announce_nocode("zag_tbus");
+    return 1;
+}
+# else
+extern int zag_tbus(const struct menu_d *smp);
+# endif
+#endif
+
+#if defined(HANDSHAKE)
+# define HNDSHK_CHR "?"
+#else
+# define HNDSHK_CHR
+#endif
+
+STATIC const struct zag_desc zag_menu[] = {
+    { { "ZAG TESTS", 0}, 0},
+#if (ZAG_TESTS&ZAG_TEST_MEMORY) && HOST_BOARD == HCR4K
+    { { "\n" LOCAL "DRAM TEST", zag_mem_test}, (const void *)(TEST_DRAM)},
+    { { LOCAL  "OBJECT DRAM TEST", zag_mem_test}, (const void *)(TEST_ODRAM)},
+    { { LOCAL "RAMROM TEST", zag_mem_test}, (const void *)(TEST_RR)},
+    { { LOCAL "2ND 4MB RAMROM TEST", zag_mem_test}, (const void *)(TEST_RR2)},
+#endif
+#if ZAG_TESTS&ZAG_TEST_RESET
+    { { HNDSHK_CHR "\nRESET AND HOLD TEST", zag_reset_test}, (const U32 **)(((1<<B_ZMB_INTACK) | (1<<B_ZMB_HRESET)) & ~(1<<B_ZMB_RESET_N)) },
+    { { HNDSHK_CHR "RESET AND RELEASE TEST", zag_reset_test}, (const U32 **)((1<<B_ZMB_INTACK) & ~(1<<B_ZMB_RESET_N)) },
+#endif
+#if ZAG_TESTS&ZAG_TEST_LOADCODE
+    { { HNDSHK_CHR "\nDOWNLOAD AND START TEST PROGRAM", zag_load_code}, 0},
+    { { HNDSHK_CHR "DOWNLOAD AND START SDIAG PROGRAM", zag_load_sdiag}, 0},
+#endif
+#if (ZAG_TESTS&ZAG_TEST_MEMORY) && !HOST_IS_MATHBOX
+    { { "\n" PROXY "DRAM TEST", zag_mem_test}, (const void *)(TEST_PROXY_DRAM)},
+    { { PROXY "OBJECT DRAM TEST", zag_mem_test}, (const void *)(TEST_PROXY_ODRAM)},
+    { { PROXY "RAMROM TEST", zag_mem_test}, (const void *)(TEST_PROXY_RR)},
+#endif
+#if ZAG_TESTS&ZAG_TEST_FIFO
+    { { "\n" PROXY "FIFO LOOPBACK TEST", zag_fifo_test}, 0},
+#endif
+#if (ZAG_TESTS&ZAG_TEST_IRQ) 
+# if HOST_IS_MATHBOX
+    { { "\n" PROXY "FIFO INTERRUPT TEST", zag_int_test}, 0},
+# else
+    { { "\n" PROXY "INTERRUPT TEST", zag_irq_test}, 0},
+# endif
+#endif
+#if (ZAG_TESTS&ZAG_TEST_TBUS)
+    { { "\n" PROXY "TBUS TESTS", zag_tbus}, 0},
+#endif
+#if ZAG_TESTS&ZAG_TEST_TEXT
+    { { "\nALPHANUMERIC STAMPS", zag_text_test}, 0},
+    { { "TEXT TEST", zag_text_test}, 0},
+    { { "SLOW TEXT TEST", zag_text_test}, 0},
+    { { "PALETTE TEXT TEST", zag_text_test}, 0},
+#endif
+    { { HNDSHK_CHR "\nCPU TIMER TEST", zag_timer_test }, 0 },
+#if ZAG_TESTS&ZAG_TEST_MOVIE
+    { { "\nPLAY MOVIE", zag_movie}, 0},
+#endif
+#if ZAG_TESTS&ZAG_TEST_CONFIG
+    { { "\nCONFIGURATION REPORT", zag_config_test}, 0},
+#endif
+    { { 0, 0}, 0}
+};
+
+struct vzag_desc {
+    char *mn_label;		    /* menu item label		*/
+    int	(*mn_call)(const struct menu_d*); /* menu item routine call	*/
+    void *arg;
+};
+
+extern int (*dbg_str)(int col, int row, const char *string, int font);
+
+int zag_tests( smp )
+const struct menu_d *smp;
+{
+    int status, ii, jj;
+    struct vzag_desc lcl_zag_menu[n_elts(zag_menu)];
+
+    zag_get_defaults();
+
+    for (ii=jj=0; zag_menu[ii].menu_desc.mn_label; ++ii) {
+	if (zag_menu[ii].menu_desc.mn_call == zag_mem_test) {
+	    if (((U32)zag_menu[ii].arg == TEST_RR2 &&
+    		 ((zag_defaults>>ZAG_B_OPTS_RR)&ZAG_OPTS_Autosize) != ZAG_OPTS_4MB)) {
+		continue;
+	    }
+	    if (((U32)zag_menu[ii].arg == TEST_ODRAM &&
+    		 ((zag_defaults>>ZAG_B_OPTS_ODRAM)&ZAG_OPTS_Autosize) == 0)) {
+		continue;
+	    }
+#if !HOST_IS_MATHBOX
+	    if (((U32)zag_menu[ii].arg == TEST_PROXY_DRAM &&
+    		 ((zag_defaults>>ZAG_B_OPTS_PDRAM)&ZAG_OPTS_Autosize) == 0)) {
+		continue;
+	    }
+	    if (((U32)zag_menu[ii].arg == TEST_PROXY_ODRAM &&
+    		 ((zag_defaults>>ZAG_B_OPTS_PODRAM)&ZAG_OPTS_Autosize) == 0)) {
+		continue;
+	    }
+	    if (((U32)zag_menu[ii].arg == TEST_PROXY_RR &&
+    		 ((zag_defaults>>ZAG_B_OPTS_PRR)&ZAG_OPTS_Autosize) == 0)) {
+		continue;
+	    }
+#endif
+	}
+#if (ZAG_TESTS&ZAG_TEST_TEXT)
+	if (zag_menu[ii].menu_desc.mn_call == zag_text_test &&
+		((zag_defaults>>ZAG_B_OPTS_TESTALP)&1) == 0) {
+	    continue;
+	}
+#endif
+#if (ZAG_TESTS&ZAG_TEST_IRQ) && HOST_IS_MATHBOX
+	if (dbg_str && zag_menu[ii].menu_desc.mn_call == zag_int_test) continue;
+#endif
+#if ZAG_TESTS&ZAG_TEST_TBUS
+	if (dbg_str && zag_menu[ii].menu_desc.mn_call == zag_tbus) continue;
+#endif
+
+	lcl_zag_menu[jj].mn_label = (char *)zag_menu[ii].menu_desc.mn_label;
+	lcl_zag_menu[jj].mn_call = (int (*)(const struct menu_d *))zag_menu[ii].menu_desc.mn_call;
+	lcl_zag_menu[jj].arg = (void *)zag_menu[ii].arg;
+	++jj;
+    }
+    lcl_zag_menu[jj].mn_label = (char *)zag_menu[ii].menu_desc.mn_label;
+    lcl_zag_menu[jj].mn_call = (int (*)(const struct menu_d *))zag_menu[ii].menu_desc.mn_call;
+    lcl_zag_menu[jj].arg = (void *)zag_menu[ii].arg;
+
+    status = st_menu((const struct menu_d *)&lcl_zag_menu[0],sizeof(lcl_zag_menu[0]),
+				   TITLE_PAL,0);
+    return status;
+}
+
+/* String format is:
+ * First character is bits 7-3 (5 bits) starting bit number in
+ * flag field. bits 2-0 (3 bits) number of bits in option. The
+ * first null terminated string is the option title. The remaining
+ * null terminated strings are the names for each option.
+ */
+
+static const unsigned char zag_opt_menu[] =
+#if HOST_BOARD == HCR4K
+    "\002HOST DRAM size\000None\0002 megabytes\000*4 megabytes\000\000"
+    "\022HOST Object DRAM size\000*None\0002 megabytes\0004 megabytes\000\000"
+    "\042HOST RamRom size\000None\000*4 megabytes\0008 megabytes\000\000"
+#endif
+#if !HOST_IS_MATHBOX
+    "\062Mathbox DRAM size\000None\000*2 megabytes\000*4 megabytes\000\000"
+    "\102Mathbox Object DRAM size\000*None\0002 megabytes\0004 megabytes\000\000"
+    "\122Mathbox RamRom size\000*None\0004 megabytes\0008 megabytes\000\000"
+#endif
+    "\142ZagTest TBUS Text Display method\000None\000Bitmap writes\000*Traps\000\000"
+#if HOST_IS_MATHBOX && (ZAG_TESTS&ZAG_TEST_TEXT)
+    "\161Enable Alphanumerics Test\000*No\000Yes\000"
+#endif
+    "\171CRC and check frame buf during autotest sequences\000*No\000Yes\000"
+;
+
+int zag_test_options(const struct menu_d *smp) {
+    unsigned long gopts;
+    gopts = DoOptions(zag_opt_menu, zag_get_defaults(), SW_EXTRA);
+#ifdef EER_ZAG_OPT
+    eer_puts(EER_ZAG_OPT, gopts);
+#endif
+    zag_defaults = gopts;
+    return 0;
+}
+@
+
+
+1.34
+log
+@Changed the order and text of the menus.
+@
+text
+@d1435 6
+d1450 2
+a1451 2
+    { { "?\nRESET AND HOLD TEST", zag_reset_test}, (const U32 **)(((1<<B_ZMB_INTACK) | (1<<B_ZMB_HRESET)) & ~(1<<B_ZMB_RESET_N)) },
+    { { "?RESET AND RELEASE TEST", zag_reset_test}, (const U32 **)((1<<B_ZMB_INTACK) & ~(1<<B_ZMB_RESET_N)) },
+d1454 2
+a1455 2
+    { { "?\nDOWNLOAD AND START TEST PROGRAM", zag_load_code}, 0},
+    { { "?DOWNLOAD AND START SDIAG PROGRAM", zag_load_sdiag}, 0},
+d1481 1
+a1481 1
+    { { "?\nCPU TIMER TEST", zag_timer_test }, 0 },
+@
+
+
+1.33
+log
+@Made the mem_test timer display only when a digit changed.
+Made cpu_timer test a debug only test.
+@
+text
+@d49 1
+a49 1
+#  define ZAG_TESTS (ZAG_TEST_LOADCODE|ZAG_TEST_RESET|ZAG_TEST_MEMORY|ZAG_TEST_IRQ|ZAG_TEST_TBUS)
+d309 11
+d857 1
+a857 1
+#if 1
+d867 2
+a868 1
+	    lcl_seconds = lcl_minutes = 0;
+d1278 1
+a1278 2
+#if ZAG_TESTS&ZAG_TEST_IRQ
+# if HOST_IS_MATHBOX
+a1312 1
+# endif
+d1437 10
+d1448 7
+a1454 1
+    { { "\nDOWNLOAD AND START TEST PROGRAM", zag_load_code}, 0},
+d1456 2
+a1457 2
+#if (ZAG_TESTS&ZAG_TEST_TBUS)
+    { { "\n" PROXY "TBUS TESTS", zag_tbus}, 0},
+d1459 4
+a1462 1
+#if !HOST_IS_MATHBOX && (ZAG_TESTS&ZAG_TEST_IRQ)
+d1464 1
+d1466 2
+a1467 3
+#if ZAG_TESTS&ZAG_TEST_RESET
+    { { "?\nRESET AND HOLD TEST", zag_reset_test}, (const U32 **)(((1<<B_ZMB_INTACK) | (1<<B_ZMB_HRESET)) & ~(1<<B_ZMB_RESET_N)) },
+    { { "?RESET AND RELEASE TEST", zag_reset_test}, (const U32 **)((1<<B_ZMB_INTACK) & ~(1<<B_ZMB_RESET_N)) },
+a1474 19
+#if ZAG_TESTS&ZAG_TEST_FIFO
+    { { "\n" PROXY "FIFO LOOPBACK TEST", zag_fifo_test}, 0},
+#endif
+#if ZAG_TESTS&ZAG_TEST_IRQ
+    { { PROXY "FIFO INTERRUPT TEST", zag_int_test}, 0},
+#endif
+#if ZAG_TESTS&ZAG_TEST_MEMORY
+# if HOST_BOARD == HCR4K
+    { { "\n" LOCAL "DRAM TEST", zag_mem_test}, (const void *)(TEST_DRAM)},
+    { { LOCAL  "OBJECT DRAM TEST", zag_mem_test}, (const void *)(TEST_ODRAM)},
+    { { LOCAL "RAMROM TEST", zag_mem_test}, (const void *)(TEST_RR)},
+    { { LOCAL "2ND 4MB RAMROM TEST", zag_mem_test}, (const void *)(TEST_RR2)},
+# endif
+# if !HOST_IS_MATHBOX
+    { { "\n" PROXY "DRAM TEST", zag_mem_test}, (const void *)(TEST_PROXY_DRAM)},
+    { { PROXY "OBJECT DRAM TEST", zag_mem_test}, (const void *)(TEST_PROXY_ODRAM)},
+    { { PROXY "RAMROM TEST", zag_mem_test}, (const void *)(TEST_PROXY_RR)},
+# endif
+#endif
+d1532 1
+a1532 1
+#if ZAG_TESTS&ZAG_TEST_IRQ
+d1562 3
+a1564 3
+    "\002DRAM size\000None\0002 megabytes\000*4 megabytes\000\000"
+    "\022Object DRAM size\000*None\0002 megabytes\0004 megabytes\000\000"
+    "\042RamRom size\000None\000*4 megabytes\0008 megabytes\000\000"
+d1569 1
+a1569 1
+    "\122Mathbox RamRom size\000None\000*4 megabytes\0008 megabytes\000\000"
+d1571 1
+a1571 1
+    "\142Text Display method\000None\000Bitmap writes\000*Traps\000\000"
+d1573 1
+a1573 1
+    "\161Test Alphanumerics\000*No\000Yes\000"
+d1575 1
+a1575 1
+    "\171CRC and check frame buf during autotest sequences\000No\000*Yes\000"
+@
+
+
+1.32
+log
+@Fixed sense of alpha-numeric test on/off.
+@
+text
+@d564 1
+d569 1
+d589 1
+a589 1
+    if ((lcl_vb_flag&LCL_FLG_DISP) != 0) {
+d826 2
+d1465 1
+a1465 1
+    { { "\nCPU TIMER TEST", zag_timer_test }, 0 },
+d1481 2
+d1522 7
+@
+
+
+1.31
+log
+@Turned timer test back on.
+@
+text
+@d1059 1
+d1213 1
+a1213 3
+    z20_init_colram();
+
+    if ( smp->mn_label[0] == 'A' ) {
+d1512 1
+a1512 1
+		(zag_defaults>>ZAG_B_OPTS_TESTALP) == 0) {
+@
+
+
+1.30
+log
+@Corrected support for MATHBOX based systems.
+@
+text
+@d1462 1
+a1462 1
+    { { "?\nCPU TIMER TEST", zag_timer_test }, 0 },
+@
+
+
+1.29
+log
+@Added a CRC option.
+@
+text
+@d1434 2
+a1435 2
+    { { "\nRESET AND HOLD TEST", zag_reset_test}, (const U32 **)(((1<<B_ZMB_INTACK) | (1<<B_ZMB_HRESET)) & ~(1<<B_ZMB_RESET_N)) },
+    { { "RESET AND RELEASE TEST", zag_reset_test}, (const U32 **)((1<<B_ZMB_INTACK) & ~(1<<B_ZMB_RESET_N)) },
+d1511 1
+d1516 1
+d1550 1
+d1552 1
+@
+
+
+1.28
+log
+@Made the menu dynamic. It now displays only those items selected
+in the options menu.
+@
+text
+@d64 1
+a64 1
+STATIC U32 zag_defaults;
+d1549 1
+a1549 1
+    "\171Check CRC during autotest sequences\000*No\000Yes\000"
+@
+
+
+1.27
+log
+@Removed FIFO test from host with mathbox code.
+Changed the CPU speed measure in the mem_test code.
+@
+text
+@a1421 31
+/* String format is:
+ * First character is bits 7-3 (5 bits) starting bit number in
+ * flag field. bits 2-0 (3 bits) number of bits in option. The
+ * first null terminated string is the option title. The remaining
+ * null terminated strings are the names for each option.
+ */
+
+static const unsigned char zag_opt_menu[] =
+#if HOST_BOARD == HCR4K
+    "\002DRAM size\000None\0002 megabytes\000*4 megabytes\000\000"
+    "\022Object DRAM size\000*None\0002 megabytes\0004 megabytes\000\000"
+    "\042RamRom size\000None\000*4 megabytes\0008 megabytes\000\000"
+#endif
+#if !HOST_IS_MATHBOX
+    "\062Mathbox DRAM size\000None\000*2 megabytes\000*4 megabytes\000\000"
+    "\102Mathbox Object DRAM size\000*None\0002 megabytes\0004 megabytes\000\000"
+    "\122Mathbox RamRom size\000None\000*4 megabytes\0008 megabytes\000\000"
+#endif
+    "\142Text Display method\000None\000Bitmap writes\000*Traps\000"
+;
+
+STATIC int zag_options(const struct menu_d *smp) {
+    unsigned long gopts;
+    gopts = DoOptions(zag_opt_menu, zag_get_defaults(), SW_EXTRA);
+#ifdef EER_ZAG_OPT
+    eer_puts(EER_ZAG_OPT, gopts);
+#endif
+    zag_defaults = gopts;
+    return 0;
+}
+
+a1423 1
+    { { "\nZAG OPTIONS", zag_options}, 0},
+d1438 1
+a1438 1
+    { { "ALPHANUMERIC STAMPS", zag_text_test}, 0},
+d1462 1
+a1462 1
+    { { "\nCPU TIMER TEST", zag_timer_test }, 0 },
+d1472 6
+d1481 4
+a1484 1
+    int status;
+d1486 39
+a1524 1
+    status = st_menu((const struct menu_d *)&zag_menu[0],sizeof(zag_menu[0]),
+d1529 32
+@
+
+
+1.26
+log
+@Changed timeouts on the memory tests.
+@
+text
+@d41 1
+a42 7
+#if 1 || defined(ZAG_TEST_TBUS)
+# undef ZAG_TEST_TBUS
+# define ZAG_TEST_TBUS		0x0100
+#else
+# define ZAG_TEST_TBUS		0x0000	/* prevent errors until everyone gets updated */
+#endif
+
+d49 1
+a49 1
+#  define ZAG_TESTS (ZAG_TEST_LOADCODE|ZAG_TEST_RESET|ZAG_TEST_FIFO|ZAG_TEST_MEMORY|ZAG_TEST_IRQ|ZAG_TEST_TBUS)
+d640 4
+a648 3
+#if !HOST_IS_MATHBOX
+    int mb_time;
+#endif
+d661 12
+a672 10
+	volatile ZagSAcmd *zc = (ZagSAcmd *)ZMBSA_COMM;
+	if (zag_load_code(smp)) return 1;
+	zc->command = ZMBSA_TEST_TIMEIT;
+	zc->status = 0;
+	prc_delay(0);		/* make sure we're in sync with VB */
+	zc->sentinel = ZMBSA_SENTINEL_GO;
+	prc_delay(6);		/* wait about one tenth second */
+	zc->command = 0;	/* tell 'em to stop */
+	prc_delay(0);		/* this will give 'em plenty of time to stop */
+	mb_time = zc->status;	/* record the elapsed time */
+d674 1
+a674 1
+	txt_cdecnum((mb_time+24999)/50000, 4, RJ_BF, MNORMAL_PAL);
+d685 5
+a689 1
+	for (frame=330; tpllvec && frame; --frame) prc_delay(0);
+@
+
+
+1.25
+log
+@Added a second 4MB RamRom test.
+@
+text
+@d638 8
+d651 3
+d663 1
+d666 1
+d668 11
+d681 13
+a693 1
+    row = 10;
+d698 1
+a698 1
+		msg = "Testing main working DRAM";
+d702 1
+a702 1
+		time = 65;
+d704 1
+a704 1
+		msg = "No DRAM configured";
+d715 1
+a715 1
+		time = 115;
+d717 1
+a717 1
+		msg = "No Object DRAM configured";
+d734 1
+a734 1
+		time = 115;
+d736 1
+a736 1
+		msg = "No RamRom boards configured";
+d747 1
+a747 1
+		time = 115;
+d749 1
+a749 1
+		msg = "There is not 4MB of RamRom configured";
+d761 1
+a761 1
+		msg = "Testing Mathbox's main working DRAM";
+d766 1
+a766 1
+		time = 65;
+d769 1
+a769 1
+		msg = "No DRAM configured on Mathbox";
+d782 1
+a782 1
+		time = 115;
+d785 1
+a785 1
+		msg = "No Object DRAM configured on Mathbox";
+d798 1
+a798 1
+		time = 115;
+d801 1
+a801 1
+		msg = "No RamRom configured on Mathbox";
+d864 1
+a864 1
+		ZagSAmemory *zm = (ZagSAmemory *)ZMBSA_COMM;
+a1450 8
+
+#if !HOST_IS_MATHBOX
+# define PROXY "MB "
+# define LOCAL "HOST "
+#else
+# define LOCAL
+# define PROXY
+#endif
+@
+
+
+1.24
+log
+@Added #defines AN_COLOR_OFFSET and AN_TEXTURE_OFFSET to allow settable
+options in config.mac should these values not be 0.
+@
+text
+@d558 4
+a561 3
+#define TEST_PROXY_DRAM	0x03		/* do dram test via proxy */
+#define TEST_PROXY_ODRAM 0x04		/* do object dram test via proxy */
+#define TEST_PROXY_RR	0x05		/* do ramrom test via proxy */
+d642 1
+a642 1
+    int options, status=1, row, ii, time=0, mode=0;
+d661 1
+a661 1
+	    if ((zag_defaults&(ZAG_OPTS_Autosize<<ZAG_B_OPTS_DRAM))) {
+d673 2
+a674 2
+	case TEST_ODRAM:
+	    if ((zag_defaults&(ZAG_OPTS_Autosize<<ZAG_B_OPTS_ODRAM))) {
+d677 1
+a677 1
+		upperlim = RDRAM_BASE+RDRAM_SIZE-1;
+d685 1
+d687 1
+a687 1
+	    if ((zag_defaults&(ZAG_OPTS_Autosize<<ZAG_B_OPTS_RR))) {
+d692 1
+a692 1
+		msg = "Testing RamRom";
+d705 13
+d759 1
+a759 1
+		upperlim = 0x38000000 + ((size > 1) ? 0x003FFFF8 : 0x001FFFF8);
+d1418 1
+a1418 1
+# define LOCAL "LOCAL "
+d1455 1
+a1455 1
+    { { LOCAL "OBJECT DRAM TEST", zag_mem_test}, (const void *)(TEST_ODRAM)},
+d1457 1
+@
+
+
+1.23
+log
+@Removed all direct references to zre_csr.
+Use zre_setup() instead of zre_init().
+Put ZIG conditionals around all zre references in case
+none of these changes work.
+@
+text
+@d985 8
+d999 2
+a1000 2
+    ap->texture_offset = 0;
+    ap->color_offset = 0;
+@
+
+
+1.22
+log
+@Enable tbus tests.
+@
+text
+@d18 3
+a20 1
+#include <zre_defs.h>
+d893 1
+d895 1
+d902 1
+a902 1
+#if (ZAG_TESTS&ZAG_TEST_TEXT)
+d925 1
+d927 3
+a929 1
+
+d963 1
+d965 1
+d970 1
+a970 1
+    zre_init();				/* reset the zre */
+d972 1
+d974 1
+@
+
+
+1.21
+log
+@Don't load MB test code when doing local memory tests.
+@
+text
+@d39 2
+a40 1
+#ifdef ZAG_TEST_TBUS
+@
+
+
+1.20
+log
+@Checked for errors on all calls to zag_load_code().
+Corrected error messages on Proxy Ram failures.
+@
+text
+@d646 2
+d649 3
+a651 1
+    if (zag_load_code(smp)) return 1;
+a652 3
+
+    zagd = (struct zag_desc *)smp;
+    options = (int)zagd->arg;
+@
+
+
+1.19
+log
+@Protected some code with MB_TEST_CODE
+@
+text
+@d514 1
+a514 1
+    zag_load_code(smp);
+d647 1
+a647 1
+    zag_load_code(smp);
+d714 1
+a714 1
+		msg = "No Object DRAM configured on Mathbox";
+d746 1
+a746 1
+		msg = "No Object DRAM configured on Mathbox";
+@
+
+
+1.18
+log
+@Protected call to load_mb_code().
+@
+text
+@d248 1
+d277 1
+@
+
+
+1.17
+log
+@Way too many changes to highlight here.
+@
+text
+@d644 1
+d646 1
+@
+
+
+1.16
+log
+@Fixed numerous bugs.
+Added some #define's
+@
+text
+@d46 1
+a46 2
+/* The following are the starting bit positions in the ZAG_OPT eerom record. */
+/* Each are two bits wide.						     */
+a47 32
+#define ZAG_OPTS_NONE		0
+#define ZAG_OPTS_2MB		1
+#define ZAG_OPTS_4MB		2
+#define ZAG_OPTS_Autosize	3
+
+#define ZAG_B_OPTS_DRAM		0x00	/* DRAM size (0=none, 1=2MB, 2=4MB, 3=autosize */
+#define ZAG_B_OPTS_ODRAM	0x02	/* Object DRAM size (0=none, 1=2MB, 2=4MB, 3=autosize */
+#define ZAG_B_OPTS_RR		0x04	/* RamRom size (0=none, 1=4MB, 2=8MB, 3=autosize */
+#define ZAG_B_OPTS_PDRAM	0x06	/* Proxy DRAM size (0=none, 1=2MB, 2=4MB, 3=autosize */
+#define ZAG_B_OPTS_PODRAM	0x08	/* Proxy Object DRAM size (0=none, 1=2MB, 2=4MB, 3=autosize */
+#define ZAG_B_OPTS_PRR		0x0A	/* Proxy RamROM size (0=none, 1=2MB, 2=4MB, 3=autosize */
+
+#if HOST_BOARD == HCR4K
+# define ZAG_LCL_OPTIONS	(\
+    (ZAG_OPTS_4MB<<ZAG_B_OPTS_DRAM)|\
+    (ZAG_OPTS_NONE<<ZAG_B_OPTS_ODRAM)|\
+    (ZAG_OPTS_2MB<<ZAG_B_OPTS_RR))
+#else
+# define ZAG_LCL_OPTIONS 0
+#endif
+
+#if !HOST_IS_MATHBOX
+# define ZAG_MB_OPTIONS	(\
+    (ZAG_OPTS_4MB<<ZAG_B_OPTS_PDRAM)|\
+    (ZAG_OPTS_NONE<<ZAG_B_OPTS_PODRAM)|\
+    (ZAG_OPTS_2MB<<ZAG_B_OPTS_PRR))
+#else
+# define ZAG_MB_OPTIONS	0
+#endif
+
+#define ZAG_DEFAULT_OPTIONS (ZAG_LCL_OPTIONS|ZAG_MB_OPTIONS)
+
+d69 1
+a69 1
+STATIC U32 zag_get_defaults(void) {
+d73 4
+d84 21
+d129 1
+d198 1
+d263 1
+a464 1
+    U32 fcnt;
+d497 1
+a497 10
+    if (sts == 0) {
+	txt_str(-1, AN_VIS_ROW*3/4, "PASSED", GRN_PAL|AN_BIG_SET);
+    } else {
+	txt_str(-1, AN_VIS_ROW*3/4, "FAILED", RED_PAL|AN_BIG_SET);
+    }
+
+    txt_str(-1, AN_VIS_ROW-4, t_msg_next, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-3, t_msg_ret_menu, INSTR_PAL);
+
+    fcnt = eer_rtc + ((sts) ? 60*60 : 60*15);
+a498 7
+    while (1) {
+	int ii;
+	prc_delay(0);
+	if (eer_rtc == fcnt) break;
+	ii = ctl_read_sw(SW_NEXT|SW_ACTION);
+	if ( ii & (SW_NEXT|SW_ACTION) ) break;		/* we're done */
+    }
+d509 24
+d624 2
+a625 2
+    if (!opts) txt_chexnum(dp->expected_msb, 8, RJ_ZF, RED_PAL);
+    txt_chexnum(dp->expected_lsb, 8, RJ_ZF, RED_PAL);
+d636 1
+a636 1
+    int options, status=1, frame, row, ii, time=0;
+d644 2
+d698 4
+a701 1
+	    if ((zag_defaults&(ZAG_OPTS_Autosize<<ZAG_B_OPTS_ODRAM))) {
+d703 4
+a706 3
+		upperlim = 
+		lowerlim = (U32)(bss_end+7)&-8;
+		lphys = 0x80000000 | (lowerlim - DRAM_BASE);
+d708 33
+d749 2
+d765 1
+a765 1
+	    if ((options != TEST_DRAM) && (ii&MEMT_CACHE) != 0) continue;
+d795 8
+a802 2
+	    if ((ii&MEMT_32) == 0) {
+		status = zag_test_mem64(&dparms, lowerlim, upperlim, options != TEST_DRAM);
+d804 22
+a825 1
+		status = zag_test_mem32(&dparms, lowerlim, upperlim, options != TEST_DRAM);
+d830 7
+a836 3
+		dparms.bad_address -= lowerlim;
+		dparms.bad_address += lphys;
+		show_mem_error(&dparms, ii&MEMT_32, row+6);
+d843 2
+a844 15
+    if (status == 0) {
+	txt_clr_wid(10, LCL_TIME_ROW, AN_VIS_COL-10-4);
+	txt_str(-1, AN_VIS_ROW*3/4, "PASSED", GRN_PAL|AN_BIG_SET);
+	frame = eer_rtc+60*15;
+    } else {
+	txt_str(-1, AN_VIS_ROW*3/4, "FAILED", RED_PAL|AN_BIG_SET);
+	frame = eer_rtc-1;
+    }
+
+    txt_str(-1, AN_VIS_ROW-4, t_msg_next, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-3, t_msg_ret_menu, INSTR_PAL);
+
+    while (eer_rtc != frame) {
+	if ((ctl_read_sw(0)&(SW_ACTION|SW_NEXT)) != 0) break;
+    }
+d1030 1
+d1146 1
+d1251 1
+d1253 1
+a1253 1
+	if ( ctl_read_sw(0) & (SW_NEXT|SW_ACTION) ) break;	/* stop on any button press */
+d1260 1
+a1260 1
+	if (ctl_read_sw(0) & (SW_NEXT|SW_ACTION) ) break;
+d1288 3
+a1290 11
+    ii = 60*15;
+    if (sts == 0) {
+	txt_str(-1, AN_VIS_ROW*3/4, "PASSED", GRN_PAL|AN_BIG_SET);
+    } else {
+	txt_str(-1, AN_VIS_ROW*3/4, "FAILED", RED_PAL|AN_BIG_SET);
+	ii *= 4;
+    }
+    for (; ii > 0; --ii) {
+	prc_delay(0);
+	if (ctl_read_sw(0) & (SW_NEXT|SW_ACTION) ) break;
+    }
+d1316 1
+d1319 1
+a1319 1
+	if (ctl_read_sw(0) & (SW_NEXT|SW_ACTION) ) break;
+d1361 1
+a1361 1
+    "\122Mathbox RamRom size\000None\0004 megabytes\0008 megabytes\000\000"
+d1363 1
+d1377 1
+a1377 1
+# define PROXY "PROXY "
+d1387 3
+a1392 3
+#if ZAG_TESTS&ZAG_TEST_LOADCODE
+    { { "\nDOWNLOAD AND START TEST PROGRAM", zag_load_code}, 0},
+#endif
+d1419 1
+a1419 1
+    { { PROXY "DRAM TEST", zag_mem_test}, (const void *)(TEST_PROXY_DRAM)},
+@
+
+
+1.15
+log
+@Added proxy tests.
+Added a zag_options menu
+@
+text
+@d46 35
+d100 14
+a113 1
+#if !MB_TEST_CODE
+d641 1
+d644 1
+d646 1
+d648 10
+a657 5
+	    msg = "Testing main working DRAM";
+	    upperlim = (U32)(&upperlim - 768);	/* make address non-cached */
+	    lowerlim = (U32)(bss_end+7)&-8;
+	    lphys = 0x80000000 | (lowerlim - DRAM_BASE);
+	    time = 65;
+a659 8
+	case TEST_PROXY_DRAM: {
+	    msg = "Testing Mathbox's main working DRAM";
+	    upperlim = 
+	    lowerlim = (U32)(bss_end+7)&-8;
+	    lphys = 0x80000000 | (lowerlim - DRAM_BASE);
+	    time = 65;
+	    break;
+	}
+d661 10
+a670 5
+	    msg = "Testing OBJECT DRAM";
+	    lowerlim = (U32)RDRAM_BASE;
+	    upperlim = RDRAM_BASE+RDRAM_SIZE-1;
+	    lphys = 0x20000000;
+	    time = 115;
+d673 16
+a688 11
+	    extern U8 text_end[], startup[];
+	    U8 *text_start;
+	    text_start = startup;
+	    if (text_start == 0) text_start = (U8 *)0x9FC00000;
+	    msg = "Testing RamRom";
+	    txt_str(-1, 5, "NOTE: This test erases all game code", YEL_PALB);
+	    txt_str(-1, 6, "located in RAMROM boards.", YEL_PALB);
+	    lowerlim = RRBUS_BASE + (((text_end-text_start)+1023)&-1024) + 1024;
+	    upperlim = RRBUS_BASE + 0x00400000 - 0x20000 - 1;
+	    lphys = lowerlim;
+	    time = 115;
+d691 16
+a709 2
+    uphys = lphys + (upperlim-lowerlim);
+    row = 10;
+d712 2
+d718 21
+a738 21
+    txt_str(10, LCL_TIME_ROW, LCL_MSG, MNORMAL_PAL);
+    lcl_row = row+4;
+    lcl_col = 10+sizeof(LCL_MSG)-1;
+    for (ii=0; ii<4; ++ii) {
+	if ((options != TEST_DRAM) && (ii&MEMT_CACHE) != 0) continue;
+	txt_clr_wid(10, row, AN_VIS_COL-14);
+	txt_str(10, row, "Test options: ", MNORMAL_PAL);
+	txt_cstr((ii&MEMT_32)?"32 bit ":"64 bit ", MNORMAL_PAL);
+	if ((ii&MEMT_CACHE) != 0) {
+	    lowerlim &= ~0x00800000;
+	    upperlim &= ~0x00800000;
+	} else {
+	    lowerlim |= 0x00800000;
+	    upperlim |= 0x00800000;
+	    txt_cstr("UN-", MNORMAL_PAL);
+	}
+	txt_cstr("CACHED", MNORMAL_PAL);
+	txt_str(10, row+2, "Addresses under test ", MNORMAL_PAL);
+	txt_chexnum(lphys, 8, RJ_ZF, MNORMAL_PAL);
+	txt_cstr("-", MNORMAL_PAL);
+	txt_chexnum(uphys, 8, RJ_ZF, MNORMAL_PAL);
+d740 8
+a747 8
+	if ((ii&MEMT_CACHE) != 0) {
+	    lcl_seconds = (time/4) % 60;
+	    lcl_minutes = (time/4) / 60;
+	} else {
+	    lcl_seconds = time % 60;
+	    lcl_minutes = time / 60;
+	}
+	lcl_vb_flag = LCL_FLG_COUNT | LCL_FLG_DISP;
+d749 2
+a750 2
+	lcl_seconds = lcl_minutes = 0;
+	lcl_vb_flag = LCL_FLG_COUNT | LCL_FLG_DISP | LCL_FLG_INCREM;
+d752 13
+a764 4
+	if ((ii&MEMT_32) == 0) {
+	    status = zag_test_mem64(&dparms, lowerlim, upperlim, options != TEST_DRAM);
+	} else {
+	    status = zag_test_mem32(&dparms, lowerlim, upperlim, options != TEST_DRAM);
+d766 2
+a767 8
+	lcl_vb_flag = 0;
+	if (status) {
+	    txt_clr_wid(10, LCL_TIME_ROW, AN_VIS_COL-10-4);
+	    dparms.bad_address -= lowerlim;
+	    dparms.bad_address += lphys;
+	    show_mem_error(&dparms, ii&MEMT_32, row+6);
+	    break;
+	}
+d1297 3
+a1299 3
+    "\002DRAM size\000None\0002 megabytes\000*4 megabytes\000\000\000"
+    "\022Object DRAM size\000*None\0002 megabytes\0004 megabytes\000\000\000"
+    "\042RamRom size\000None\000*4 megabytes\0008 megabytes\000\000\000"
+d1302 3
+a1304 3
+    "\062Mathbox DRAM size\000None\000*2 megabytes\000*4 megabytes\000\000\000"
+    "\102Mathbox Object DRAM size\000*None\0002 megabytes\0004 megabytes\000\000\000"
+    "\122Mathbox RamRom size\000None\0004 megabytes\0008 megabytes\000\000\000"
+d1310 1
+a1310 6
+#ifdef EER_ZAG_OPT
+    gopts = eer_gets(EER_ZAG_OPT);
+#else
+    gopts = 0x00000892;
+#endif
+    gopts = DoOptions(zag_opt_menu, gopts, SW_EXTRA);
+d1314 1
+d1335 1
+a1335 1
+#if ZAG_TESTS&ZAG_TEST_IRQ
+@
+
+
+1.14
+log
+@Added calls to ZAG_TBUS tester.
+Fixed alpha test to not scroll off end of alphas.
+Added function to move texture ram offset.
+Saves and restores alpha texture memory before/after using it.
+@
+text
+@d20 1
+d50 1
+a50 1
+#  define ZAG_TESTS 0		/* (ZAG_LOAD_CODE|ZAG_TEST_RESET) */
+d65 31
+d107 1
+a107 1
+# if !defined(ZMB_EPLD_REV) || ZMB_EPLD_REV > 0
+d110 1
+a110 1
+	prc_delay(1);			/* pause 16Ms */
+d112 1
+a112 1
+	    prc_delay(1);		/* wait 16Ms (need to wait at least 20Ms for reset to assert */
+d118 1
+a118 1
+	    prc_delay(1);		/* wait 16Ms (need to wait at least 20Ms for reset to assert) */
+d125 1
+a125 52
+    prc_delay(120); 		/* wait a couple seconds for MB to come out of reset */
+# endif
+#endif
+    return 0;
+}
+
+int zmb_init(U32 *program, int length) {
+#if !HOST_IS_MATHBOX
+    VU32 *zmb = &ZMB_CSR;
+#if 0
+    int count;
+#endif
+    int led_num, led_cnt;
+    int sts;
+
+/* Reset the mathbox but leave the processor in reset */
+    led_num = 0x10;
+    led_cnt = 1;
+
+    sts = zmb_reset();
+    if (sts) {
+	holler(2, 2, sts == 1 ? "MB reset didn't assert, CSR=" : "MB reset didn't de-assert, CSR=" , *zmb);
+	return -1;
+    }	
+
+    if (program) {
+	VU32 *dst;
+	for (dst = (VU32 *)ZMB_ADDR; length > 0; --length) *dst++ = *program++;
+    }
+
+# if 0
+    memset((char *)ZMB_COMM, 0, 100);        	/* zap the first few locations in shared mem */
+
+    ZMB_COMM[ZMB_SENTINEL] = ZMB_FLAG_IDLE;	/* make sure the MB doesn't start itself */
+# endif
+
+    *zmb = (1<<B_ZMB_RESET_N) & ~(1<<B_ZMB_INTEN_N); /* release processor, enable interrupts */
+
+# if 0
+/* We must wait for the mathbox to be ready before we try to send stuff to it */
+
+    for (count=0; count<120; count++) {		/* wait a couple seconds for MB to come alive */
+        if ((ZMB_COMM[ZMB_STATUS]&ZMB_FLAG_MASK) == ZMB_FLAG_IDLE) break;
+	prc_delay(1); 
+    }
+
+    if ((ZMB_COMM[ZMB_STATUS]&ZMB_FLAG_MASK) != ZMB_FLAG_IDLE) {
+	holler(2, 2, "Mathbox program does not seem to be running, STATUS=0x", ZMB_COMM[ZMB_STATUS]);
+	return -1;
+    }
+# else
+    prc_delay(60);
+d151 4
+a154 2
+    txt_str(-1,AN_VIS_ROW-7,t_msg_action,MNORMAL_PAL);
+    txt_str(-1,AN_VIS_ROW-6,"to initiate reset sequence", MNORMAL_PAL);
+d176 93
+d270 1
+a270 1
+STATIC int col_offset, row_offset;
+d272 141
+a412 2
+STATIC void fifo_out(int col, int row, const char *str, int color) {
+    txt_str(col+col_offset, row+row_offset, str, color);
+d415 1
+d418 4
+d424 5
+d432 22
+a453 3
+    col_offset = 1;
+    row_offset = 4;
+    sts = zag_test_fifo(fifo_out, 2, 2);
+d464 1
+a464 1
+    fcnt = eer_rtc + 60*15;
+d473 2
+a474 1
+    return 0;
+a478 15
+# if !NO_MB_TEST_CODE
+extern U32 mb_test_code[];
+extern U32 mb_test_code_end[];
+# endif
+
+# if ZAG_TESTS&ZAG_TEST_LOADCODE
+int zag_load_code(const struct menu_d *smp) {
+    
+# if !NO_MB_TEST_CODE
+    zmb_init(mb_test_code, mb_test_code_end-mb_test_code);
+#endif
+
+    return 0;
+}
+# endif
+d481 3
+d491 3
+d500 6
+a505 3
+#define TEST_DRAM	0x0		/* dram */
+#define TEST_ODRAM	0x1		/* object dram */
+#define TEST_RR		0x2		/* ramrom */
+d604 8
+d713 1
+d723 1
+d742 1
+a742 1
+#if ZAG_TESTS&ZAG_TEST_TEXT
+d754 1
+a754 1
+#if (ZAG_TESTS&ZAG_TEST_TEXT) || (ZAG_TESTS&ZAG_TEST_IRQ)
+d767 1
+a767 1
+#if (ZAG_TESTS&(ZAG_TEST_TEXT|ZAG_TEST_IRQ))
+d770 1
+d773 1
+d813 1
+d816 1
+d1039 3
+d1047 1
+d1082 1
+d1085 5
+d1160 4
+d1200 7
+d1208 44
+d1255 9
+a1263 2
+#if ZAG_TESTS&ZAG_TEST_TBUS
+    { { "\nTBUS TESTS", zag_tbus}, 0},
+d1265 1
+a1265 8
+#if !HOST_IS_MATHBOX
+# if ZAG_TESTS&ZAG_TEST_LOADCODE
+    { { "\nDOWNLOAD AND RUN TEST PROGRAM", zag_load_code}, 0},
+# endif
+# if ZAG_TESTS&ZAG_TEST_IRQ
+    { { "\nINTERRUPT TEST", zag_irq_test}, 0},
+# endif
+# if ZAG_TESTS&ZAG_TEST_RESET
+d1267 2
+a1268 3
+    { { "\nRESET AND RELEASE TEST", zag_reset_test}, (const U32 **)((1<<B_ZMB_INTACK) & ~(1<<B_ZMB_RESET_N)) },
+# endif
+#else
+d1275 11
+a1285 2
+# if ZAG_TESTS&ZAG_TEST_FIFO
+    { { "\nFIFO LOOPBACK TEST", zag_fifo_test}, 0},
+d1287 4
+a1290 2
+# if ZAG_TESTS&ZAG_TEST_IRQ
+    { { "FIFO INTERRUPT TEST", zag_int_test}, 0},
+a1291 5
+#endif
+#if ZAG_TESTS&ZAG_TEST_MEMORY
+    { { "\nDRAM TEST", zag_mem_test}, (const void *)(TEST_DRAM)},
+    { { "OBJECT DRAM TEST", zag_mem_test}, (const void *)(TEST_ODRAM)},
+    { { "RAMROM TEST", zag_mem_test}, (const void *)(TEST_RR)},
+@
+
+
+1.13
+log
+@Made types of variables match those defined in zoid_proto.h
+@
+text
+@d38 6
+d47 1
+a47 1
+#  define ZAG_TESTS (ZAG_TEST_FIFO|ZAG_TEST_MEMORY|ZAG_TEST_TEXT|ZAG_TEST_PALETTE|ZAG_TEXT_ALPHA|ZAG_TEST_IRQ)
+d86 1
+a86 1
+	    prc_delay(1);		/* wait 16Ms (need to wait at least 20Ms for reset to assert */
+d477 1
+a477 1
+#define AN_STMP_CNT ((&an_end-&an_stamps)/4)
+d486 1
+a486 1
+#define	AN_MAX_ROWS	((AN_STMP_CNT / AN_COL_CNT) - AN_ROW_CNT)
+d490 1
+a490 1
+extern unsigned short an_stamps, an_norm_a, an_end;
+d495 7
+a501 5
+    TxtAlphaPtr new;
+    TxtAlphaPtr *old;
+    int oldtxt;
+    U32 oldcsr;
+    int oldfields;
+d531 29
+d568 1
+d577 1
+a577 2
+STATIC void fix_vsptr(FixUpData *fup) {
+    U32 tmp;
+d581 2
+a582 3
+    tmp = ((U32)bss_end + 7) & -8;
+    ap->screen = (U32 *)tmp;
+    ap->dirty = (U32 *)(tmp+AN_VIS_ROW*AN_VIS_COL*2);
+d585 1
+a585 1
+    memset((char *)tmp, 0, AN_VIS_ROW*AN_VIS_COL*2 + AN_VIS_ROW*AN_VIS_COL/8);
+d588 1
+d590 1
+d597 2
+a598 1
+STATIC int zag_AN_stamp_test(const struct menu_d *smp) {
+a604 3
+    z20_init_loctex();
+    z20_init_colram();
+
+d606 2
+d611 13
+d671 22
+d710 5
+a714 1
+		    txt_stamp(x, y, stamp, textPal);
+d739 3
+d743 1
+a743 1
+    fix_vsptr(&fup);
+d747 1
+a747 1
+	sts = zag_AN_stamp_test(smp);
+a751 3
+    z20_init_loctex();
+    z20_init_colram();
+
+d829 1
+d834 1
+a834 1
+    fix_vsptr(&fup);	
+d933 2
+d937 3
+@
+
+
+1.12
+log
+@Removed dependency on zmbcom.h
+Removed references to ZMB_COMM in zmb_init.
+@
+text
+@d96 1
+d98 1
+@
+
+
+1.11
+log
+@Fixed some preprocessor conditionals.
+@
+text
+@a23 3
+#if !HOST_IS_MATHBOX
+#include <zmbcom.h>
+#endif
+d115 1
+d119 1
+d123 1
+d135 3
+a137 1
+
+d849 1
+@
+
+
+1.10
+log
+@Protected some zag_test functions with HOST_IS_MATHBOX
+@
+text
+@d44 3
+a46 1
+#  define ZAG_TESTS (ZAG_TEST_FIFO|ZAG_TEST_MEMORY|ZAG_TEST_TEXT|ZAG_TEST_PALETTE|ZAG_TEXT_ALPHA)
+d154 1
+a154 1
+#if !HOST_IS_MATHBOX
+d181 1
+a181 2
+
+#else 
+d183 1
+a183 1
+# if ZAG_TESTS&ZAG_TEST_FIFO
+a220 1
+# endif
+d483 1
+d491 1
+d493 1
+d504 1
+d506 1
+d534 1
+a534 1
+    
+d551 1
+d709 1
+a709 1
+#if HOST_IS_MATHBOX
+d872 2
+@
+
+
+1.9
+log
+@Added a CPU timer test (this is only temporary)
+Removed the alpha test fifofull irq routine (defaults to using the new one).
+@
+text
+@d703 1
+d810 1
+d815 1
+a815 1
+    int frames, seconds, phaselock=0, eers;
+d821 4
+a824 6
+    txt_str(-1, 10, "One milisecond timer test", MNORMAL_PAL);
+    txt_str(10, 12, "Seconds:                 ", MNORMAL_PAL);
+    txt_str(10, 14, "Milliseconds per second: ", MNORMAL_PAL);
+    txt_str(10, 16, "eer_rtc counts/second:   ", MNORMAL_PAL);
+    txt_str(-1, AN_VIS_ROW-7, t_msg_action, INSTR_PAL);
+    txt_str(-1, AN_VIS_ROW-6, "to phase lock", INSTR_PAL);
+a827 1
+    eers = eer_rtc;
+d830 1
+a830 2
+	if (ctl_read_sw(0) & SW_ACTION ) phaselock = 1;
+	if (ctl_read_sw(0) & SW_NEXT ) break;
+d836 1
+a836 22
+	    txt_decnum(36, 16, eer_rtc-eers, 6, RJ_BF, MNORMAL_PAL);
+	    eers = eer_rtc;
+	    if (phaselock) {
+		int adj;
+		if (milliseconds == 1000) {
+		    phaselock = 0;
+		} else {
+		    int dif, old_rate, new_rate;
+		    new_rate = old_rate = set_timer_rate(0);
+		    dif = milliseconds-1000;
+		    adj = (dif*100)/1000;
+		    if (adj == 0) {
+			new_rate += dif*10;
+		    } else {
+			if (adj >  25) adj =  25;
+			if (adj < -25) adj = -25;
+			adj += 100;
+			new_rate = (old_rate*adj)/100;
+		    }
+		    set_timer_rate(new_rate);
+		}
+	    }
+@
+
+
+1.8
+log
+@Added lots of tests.
+Added default full and emtpy IRQ routines.
+@
+text
+@d363 4
+a366 1
+	    extern U8 text_end[], text_start[];
+a485 1
+    void (*fullvec)(void);
+a501 10
+STATIC void fifofull_irq(void) {
+    int oldtxt = txt_select(TXT_HOST);
+    prc_mod_latch(~(CTS_FIFO_RST|CTS_FIFO_FULLINT));	/* reset the FIFO */
+    prc_mod_latch(CTS_FIFO_RST|CTS_FIFO_FULLINT);
+    reset_zre();
+    txt_str(-1, AN_VIS_ROW-8, "FIFO Full interrupt", RED_PALB);
+    txt_select(oldtxt);
+    return;
+}
+
+a521 1
+    if (fup->fullvec) prc_set_vec(FIFOFULL_INTVEC, fup->fullvec); /* put the vector back */
+a533 1
+    fup->fullvec = 0;
+a550 1
+    int		oldtxt, zreframe;
+d576 1
+a576 1
+    oldtxt = txt_select(TXT_ZMB);
+d634 2
+a635 1
+#if 1
+a636 10
+#endif
+    
+	zag_text2traps(0);
+	zreframe = zre_frames();
+	*(U32 *)TBUS_BASE = TB_FEND;		/* let autoswap do its thing */
+	while (zre_frames() == zreframe) {
+	    edges = ctl_read_sw(JOY_ALL|SW_EXTRA);	/* get edges	*/
+	    if (edges & SW_NEXT)
+		break;			/* done with this test...	*/
+	}
+a637 1
+    txt_select(oldtxt);			/* switch back to whatever it was */
+a654 2
+    fup.fullvec = prc_set_vec(FIFOFULL_INTVEC, fifofull_irq);
+
+a737 8
+#if 0
+void zag_init(void) {
+    prc_set_vec(FIFOFULL_INTVEC, zag_fifofull_irq);
+    prc_set_vec(FIFOMT_INTVEC, zag_fifomt_irq);
+    prc_mod_latch(CTS_FIFO_FULLINT);
+}
+#endif
+
+d757 1
+a757 4
+#if 0
+    prc_set_vec(FIFOFULL_INTVEC, zag_fifofull_irq);
+    prc_set_vec(FIFOMT_INTVEC, zag_fifomt_irq);
+#endif
+d810 57
+d897 1
+@
+
+
+1.7
+log
+@Added conditional compilation and comments.
+@
+text
+@d31 1
+d56 2
+d185 2
+a186 2
+STATIC void fifo_out(int col, int row, const char *str) {
+    txt_str(col+col_offset, row+row_offset, str, MNORMAL_PAL);
+d191 5
+d198 13
+a210 1
+    zag_test_fifo(fifo_out, 2, 2);
+d213 2
+a214 1
+	prc_delay(1);
+d253 80
+d334 116
+a449 1
+    return 0;
+d480 60
+a539 2
+STATIC TxtAlphaPtr *fix_vsptr(TxtAlphaPtr *ap, TxtAlphaPtr *tmpap) {
+    extern U8 bss_end[];
+d541 1
+a541 1
+    TxtAlphaPtr *tp;
+d543 2
+d551 4
+a554 6
+    tp = txt_vsptr(ap);
+    if (!tp) {
+       tmpap->screen = 0;
+       tp = tmpap;
+    }
+    return tp;
+a559 3
+# if 0
+    VU32 *csr = &ZRE_CSR;
+# endif
+d561 1
+a561 1
+    int		oldtxt;
+a565 3
+    TxtAlphaPtr	ap, *oldap, tmpap;
+
+    oldap = fix_vsptr(&ap, &tmpap);
+d570 4
+d576 4
+d587 1
+a587 1
+    oldtxt = txt_select(TXT_HOST);
+d628 1
+d631 2
+d634 2
+a635 1
+		txt_hexnum(x,y,stamp/16,2,RJ_ZF,MNORMAL_PAL);
+d638 1
+a638 4
+		    txt_select(TXT_HOST);
+		    txt_stamp(x, y, 0, textPal);
+		    txt_select(TXT_ZMB);
+		    txt_stamp(x,y,stamp,textPal);
+a642 3
+	    txt_select(TXT_HOST);
+	    txt_str(-1,AN_VIS_ROW-5,t_msg_control,INSTR_PAL);
+	    txt_str(-1,AN_VIS_ROW-4,"to see more characters",INSTR_PAL);
+d645 1
+d647 1
+a647 3
+	for (i=0; i < AN_COL_CNT; i++)		/* display col #'s	*/
+	    txt_hexnum(AN_LFT_COL + (i * AN_COL_SEP),AN_TOP_ROW - 2,i,1,RJ_ZF,
+	    MNORMAL_PAL);
+d650 1
+d652 4
+a655 29
+#if 0
+	while ( (*csr & (1<<B_ZRE_TFULL) ) == 0 ) {;}
+# if (0)
+	ZRE_XTOT = (FEND_OP << SCI_SHF);
+	while ( *csr & (1<<B_ZRE_FBUSY) ) {;}
+	swap_and_wait();
+# else
+	/* End frame and swap when done. Returns non-zero if it
+	 * takes to long to do.
+	 */
+	if ( zre_frame_end(3) ) {
+	    int spinner;
+	    char msg[AN_VIS_COL+2];
+	    Isprintf(SPRINTF_WHERE(msg,sizeof(msg)), "Frame End Timeout: ZRE_CSR=0x%4X ZTV_CSR=0x%4X",
+#  ifdef ZIG
+		ZRE_CSR&0xFFFF,*ztv_base & 0xFFFF);
+#  else
+		ZRE_CSR&0xFFFF,ZTV_STAT&0xFFFF);
+#  endif
+	    txt_str(-1,2,msg,ERROR_PAL);
+	    for ( spinner = 42 ; spinner > 0 ; --spinner ) {
+		if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) {
+		    txt_select(oldtxt);
+		    txt_vsptr(oldap);
+		    return 1;
+		}
+		prc_delay(1);
+	    }
+	    txt_clr_str(-1,2,msg,ERROR_PAL);
+a656 2
+# endif
+#endif
+d658 1
+a658 2
+    txt_select(oldtxt);
+    txt_vsptr(oldap);
+d668 1
+d671 4
+a674 3
+#if HOST_IS_MATHBOX
+    int tidx,row,oldtxt;
+    TxtAlphaPtr ap, *oldap, tmpap;
+d676 1
+a676 1
+    oldap = fix_vsptr(&ap, &tmpap);
+d678 6
+a683 1
+    if ( smp->mn_label[0] == 'A' ) return zag_AN_stamp_test(smp);
+a684 1
+    oldtxt = txt_select(TXT_HOST);
+d700 10
+a709 23
+	zag_text2traps(0);
+	*(U32 *)TBUS_BASE = TB_FEND;
+
+	/* End frame and swap when done. Returns non-zero if it
+	 * takes to long to do.
+	 */
+        txt_select(TXT_HOST);
+	if ( zre_frame_end(3) ) {
+	    int spinner;
+	    char msg[AN_VIS_COL+2];
+	    Isprintf(SPRINTF_WHERE(msg, sizeof(msg)), "Frame End Timeout: ZRE_CSR=0x%4X ZTV_CSR=0x%4X",
+# ifdef ZIG
+		ZRE_CSR&0xFFFF,*ztv_base & 0xFFFF);
+# else
+		ZRE_CSR&0xFFFF,ZTV_STAT&0xFFFF);
+# endif
+	    txt_str(-1,2,msg,ERROR_PAL);
+	    for ( spinner = 42 ; spinner > 0 ; --spinner ) {
+		if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) {
+		    txt_vsptr(oldap);
+		    return 1;
+		}
+		prc_delay(1);
+a710 1
+	    txt_clr_str(-1,2,msg,ERROR_PAL);
+d714 1
+a714 2
+#endif
+    txt_vsptr(oldap);
+d717 1
+d725 119
+d848 1
+a848 1
+    { { "\nDownload and run test program", zag_load_code}, 0},
+d851 1
+a851 1
+    { { "\nInterrupt test", zag_irq_test}, 0},
+d854 2
+a855 2
+    { { "\nReset and hold test", zag_reset_test}, (const U32 **)(((1<<B_ZMB_INTACK) | (1<<B_ZMB_HRESET)) & ~(1<<B_ZMB_RESET_N)) },
+    { { "\nReset and release test", zag_reset_test}, (const U32 **)((1<<B_ZMB_INTACK) & ~(1<<B_ZMB_RESET_N)) },
+d858 6
+d865 2
+a866 1
+    { { "FIFO test", zag_fifo_test}, 0},
+d870 3
+a872 6
+    { { "\nMemory test", zag_mem_test}, 0},
+#endif
+#if ZAG_TESTS&ZAG_TEST_TEXT
+    { { "\nText test", zag_text_test}, 0},
+    { { "\nPalette text test", zag_text_test}, 0},
+    { { "\nAlphanumeric stamps", zag_text_test}, 0},
+d875 1
+a875 1
+    { { "\nPlay movie", zag_movie}, 0},
+d878 1
+a878 1
+    { { "\nConfiguration report", zag_config_test}, 0},
+d892 1
+@
+
+
+1.6
+log
+@Changed nisprintf calls to Isprintf
+Changed message string and added a call to zag memory test
+@
+text
+@a18 1
+#include <zmbcom.h>
+d24 3
+a26 1
+
+d30 1
+d32 15
+d135 1
+a135 1
+int zag_intrs;
+d179 1
+d199 1
+d208 1
+d217 2
+a218 1
+
+d222 1
+d225 1
+d229 1
+d231 1
+d235 1
+d264 19
+d284 1
+d286 1
+d288 1
+d295 1
+d297 2
+a356 1
+		txt_select(TXT_ZMB);
+d358 3
+d377 2
+d401 1
+d409 1
+d412 1
+d415 1
+d418 1
+d426 1
+d428 1
+a428 2
+    memset((char *)ZMB_TEXT_BUF, 0, sizeof(ZMB_TEXT_BUF));
+    memset((char *)ZMB_TEXT_DIRTY, 0, sizeof(ZMB_TEXT_DIRTY));
+d449 2
+d466 4
+a469 1
+		if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) return 1;
+d477 1
+d480 1
+d482 1
+d486 1
+a486 1
+
+d490 10
+a499 4
+    { { "Download and run test program", zag_load_code}, 0},
+    { { "Interrupt test", zag_irq_test}, 0},
+    { { "Reset and hold test", zag_reset_test}, (const U32 **)(((1<<B_ZMB_INTACK) | (1<<B_ZMB_HRESET)) & ~(1<<B_ZMB_RESET_N)) },
+    { { "Reset and release test", zag_reset_test}, (const U32 **)((1<<B_ZMB_INTACK) & ~(1<<B_ZMB_RESET_N)) },
+d501 1
+d503 15
+a518 6
+    { { "Memory test", zag_mem_test}, 0},
+    { { "Text test", zag_text_test}, 0},
+    { { "Palette text test", zag_text_test}, 0},
+    { { "Alphanumeric stamps", zag_text_test}, 0},
+    { { "Play movie", zag_movie}, 0},
+    { { "Configuration report", zag_config_test}, 0},
+@
+
+
+1.5
+log
+@Put USE_ISPRINTF conditional around definition of Isprintf
+,
+@
+text
+@d336 1
+a336 1
+	    nisprintf(msg,sizeof(msg), "Frame End Timeout: ZRE_CSR=0x%4X ZTV_CSR=0x%4X",
+d396 1
+a396 1
+	    nisprintf(msg, sizeof(msg), "Frame End Timeout: ZRE_CSR=0x%4X ZTV_CSR=0x%4X",
+d420 1
+a420 1
+    { { "ZMB TESTS", 0}, 0},
+d429 1
+a433 1
+    { { "Memory test", zag_mem_test}, 0},
+@
+
+
+1.4
+log
+@Made row increment more than 1 in zag_test()
+@
+text
+@d184 1
+d187 1
+d191 1
+d193 1
+d211 9
+a219 1
+#include <nsprintf.h>
+@
+
+
+1.3
+log
+@Renamed numerous functions from zmb_ to zag_.
+Added some text test code (none of it tested yet, though).
+@
+text
+@d172 1
+a172 1
+    zag_test_fifo(fifo_out, 2);
+@
+
+
+1.2
+log
+@Added conditionals so this code can tell if it is supposed to run the
+diags locally or remotely.
+@
+text
+@d20 1
+d32 1
+a32 1
+struct zmb_desc {
+d118 1
+a118 1
+int zmb_intrs;
+d120 1
+a120 1
+void zmb_irq(void) {
+d122 1
+a122 1
+    ++zmb_intrs;
+d128 2
+a129 2
+int zmb_ints(void) {
+    return zmb_intrs;
+d133 1
+a133 1
+STATIC int zmb_reset_test(const struct menu_d *smp) {
+d135 2
+a136 2
+    const struct zmb_desc *zp;
+    zp = (const struct zmb_desc *)smp;
+d146 1
+a146 1
+		   AN_VIS_ROW/2-2, zmb_intrs, 8, RJ_BF, MNORMAL_PAL);
+d169 1
+a169 1
+STATIC int zmb_fifo_test(const struct menu_d *smp) {
+d187 1
+a187 1
+int zmb_load_code(const struct menu_d *smp) {
+d194 1
+a194 1
+STATIC int zmb_irq_test(const struct menu_d *smp) {
+d199 1
+a199 1
+STATIC int zmb_config_test(const struct menu_d *smp) {
+d203 1
+a203 1
+STATIC int zmb_mem_test(const struct menu_d *smp) {
+d207 193
+a399 1
+STATIC int zmb_text_test(const struct menu_d *smp) {
+d403 1
+a403 1
+STATIC int zmb_movie(const struct menu_d *smp) {
+d407 1
+a407 1
+STATIC const struct zmb_desc zmb_menu[] = {
+d410 4
+a413 4
+    { { "Download and run test program", zmb_load_code}, 0},
+    { { "Interrupt test", zmb_irq_test}, 0},
+    { { "Reset and hold test", zmb_reset_test}, (const U32 **)(((1<<B_ZMB_INTACK) | (1<<B_ZMB_HRESET)) & ~(1<<B_ZMB_RESET_N)) },
+    { { "Reset and release test", zmb_reset_test}, (const U32 **)((1<<B_ZMB_INTACK) & ~(1<<B_ZMB_RESET_N)) },
+d415 1
+a415 1
+    { { "FIFO test", zmb_fifo_test}, 0},
+d417 6
+a422 6
+    { { "Text test", zmb_text_test}, 0},
+    { { "Palette text test", zmb_text_test}, 0},
+    { { "Alphanumeric stamps", zmb_text_test}, 0},
+    { { "Play movie", zmb_movie}, 0},
+    { { "Memory test", zmb_mem_test}, 0},
+    { { "Configuration report", zmb_config_test}, 0},
+d426 1
+a426 1
+int zmb_tests( smp )
+d431 1
+a431 1
+    status = st_menu((const struct menu_d *)&zmb_menu[0],sizeof(zmb_menu[0]),
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d39 1
+d49 1
+a49 1
+#if !defined(ZMB_EPLD_REV) || ZMB_EPLD_REV > 0
+d66 1
+a66 1
+#else
+d68 1
+d74 1
+d113 1
+d120 1
+d124 1
+d131 1
+d159 2
+a160 1
+#if HOST_BOARD == HCR4K
+a166 1
+#endif
+a168 1
+#if HOST_BOARD == HCR4K
+a177 1
+#endif
+d180 1
+d182 1
+a182 1
+#if INCLUDE_MBDIAGS
+a191 1
+#endif
+d196 1
+d216 1
+a216 1
+#if INCLUDE_MBDIAGS
+a217 2
+#endif
+    { { "FIFO test", zmb_fifo_test}, 0},
+d221 3
+@

@@ -1,0 +1,1166 @@
+head	1.8;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.8
+date	96.04.17.18.09.00;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.03.20.19.24.18;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.02.27.20.35.13;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.02.26.22.10.30;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.02.26.21.51.42;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.02.23.19.05.10;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.02.21.21.33.54;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.02.08.20.48.25;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@First-cut driver and diags for Pat McCarthy's stream-I/O
+board.
+@
+
+
+1.8
+log
+@Checked in for completeness, changes by PMCC enclosed by
+#if PMCC.
+@
+text
+@/*		stream_bd.c
+ *	Start of "drivers" and Diagnostics for All-Singing,
+ *	All-Dancing Stream I/O Board.
+ */
+
+#include <config.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+
+#ifndef STREAM_BOARD
+#define STREAM_BOARD (XBUS_SLOT76)
+#endif
+#ifndef STREAM_STAT
+#define STREAM_STAT (*(VU32 *)(STREAM_BOARD+0x1c0))
+#endif
+#ifndef PATNET_2
+#define PATNET_2 (*(VU32 *)(STREAM_BOARD+0x80))
+#endif
+#ifndef SLONET_ADDR
+#define SLONET_ADDR ((VU32 *)(STREAM_BOARD+0xC0))
+#endif
+#ifndef UIO_ID
+#define UIO_ID (0x10)
+#endif
+#define BOARD_ID (1)
+#define BOARD_DESELECT (0x10)
+#define RAMROM_32 (0xC0)
+#ifndef PARANOID
+#define PARANOID (2)
+#endif
+static int prev_bd;
+U32 bd_sel(num,address,mode)
+int num,mode;
+U32 address;
+{
+    VU32 *pn;
+    VU32 trash;
+    U32 rd_addr;
+    pn = &PATNET_2;
+
+    if ( prev_bd ) {
+    /* de-select previous board, if any */
+	trash = pn[3];
+	trash = pn[1];
+	pn[0] = prev_bd; /* Already has "de-select" 0x10 */
+	prev_bd = 0;
+    }
+    /* now select new board, if valid */
+    rd_addr = 0;
+    if ( (num >= 0) && (num < 0x10) ) {
+	U32 confirm;
+	trash = pn[3];
+	trash = pn[1];
+	pn[0] = num|(mode & 0xC0);
+	prev_bd = num | 0x10;
+	pn[1] = address;
+	trash = pn[1];
+	rd_addr = (trash & 0xFF);
+	pn[2] = address >> 8;
+	trash = pn[2];
+	rd_addr |= (trash & 0xFF) << 8;
+	pn[3] = address >> 16;
+	trash = pn[3];
+	rd_addr |= (trash & 0xFF) << 16;
+	confirm = pn[1];
+	confirm |= ((pn[2]&0xFF)<<8);
+	confirm |= ((pn[3]&0xFF)<<16);
+	if ( confirm != rd_addr ) rd_addr = confirm;
+    }
+    return rd_addr;
+}
+
+int stream_bd_test(smp)
+const struct menu_d *smp;
+{
+    int boardnum = -1;
+    int bottom = AN_VIS_ROW-2;
+    U32 ctls;
+    U32 addr, rd_addr;
+    VU32 *pn;
+    U32 data;
+    int idx;
+#if (1)
+    int row = 3;
+#endif
+    pn = &PATNET_2;
+    STREAM_STAT = 0;
+    bottom = st_insn(bottom,t_msg_ret_menu,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,"To change Board ID,",
+	"use Up and Down",INSTR_PAL);
+    addr = rd_addr = 4;
+    while (1) {
+	ctls = ctl_read_sw(SW_NEXT|J_UP|J_DOWN);
+	if ( ctls & SW_NEXT ) break;
+	if ( ( boardnum < 0 ) || (ctls & (J_UP|J_DOWN)) ) {
+	    txt_clr_wid(-1,2,2);
+	    if ( boardnum < 0 ) boardnum = BOARD_ID;
+	    else if ( ctls & J_UP ) ++boardnum;
+	    else --boardnum;
+	    boardnum &= 0xf;
+	    txt_decnum(-1,2,boardnum,2,RJ_BF,MNORMAL_PAL);
+	}
+	rd_addr = bd_sel(boardnum,addr,RAMROM_32);
+	if ( rd_addr != addr ) {
+	    /* Failed to set address */
+	    txt_str(2,row++,"Wrote address 0x",ERROR_PAL);
+	    txt_chexnum(addr,8,RJ_ZF,ERROR_PAL);
+	    txt_cstr(", Read 0x",ERROR_PAL);
+	    txt_chexnum(rd_addr,8,RJ_ZF,ERROR_PAL);
+	    if ( row == bottom ) row = 3;
+	    prc_delay(10);
+	} else prc_delay(1);
+	for ( idx = 0 ; idx < 42 ; ++idx ) {
+	    pn[3] = idx;
+	    data = pn[3];
+	}
+	rd_addr = bd_sel(boardnum,addr,RAMROM_32);
+	if ( rd_addr != addr ) {
+	    /* Failed to set address */
+	    txt_str(2,row++,"Wrote address 0x",ERROR_PAL);
+	    txt_chexnum(addr,8,RJ_ZF,ERROR_PAL);
+	    txt_cstr(", Read 0x",ERROR_PAL);
+	    txt_chexnum(rd_addr,8,RJ_ZF,ERROR_PAL);
+	    if ( row == bottom ) row = 3;
+	    prc_delay(10);
+	} else prc_delay(1);
+	prc_delay(2);
+	for ( idx = 0 ; idx < 42 ; ++idx ) {
+	    data = pn[3];
+	    if ( (data & 0xFF) != idx ) break;
+	}
+	if ( idx < 42 ) {
+	    txt_str(2,row++,"Read-back failed, @@0x",ERROR_PAL);
+	    txt_chexnum(idx,2,RJ_ZF,ERROR_PAL);
+	    txt_cstr(", wrote:",ERROR_PAL);
+	    txt_chexnum(idx,2,RJ_ZF,ERROR_PAL);
+	    txt_cstr(", read:",ERROR_PAL);
+	    txt_chexnum(data,2,RJ_ZF,ERROR_PAL);
+	    if ( row == bottom ) row = 3;
+	    prc_delay(10);
+	}
+	rd_addr = bd_sel(-1,0,0);
+	if ( idx >= 42 ) for ( idx = 0 ; idx < 5 ; ++idx ) {
+	    data = ((U32 *)XBUS_SLOT0)[idx+(addr>>2)];   
+	    txt_hexnum(2+idx*10,row,data,8,RJ_ZF,MNORMAL_PAL);
+	}
+	prc_delay0();
+    }
+    return 0;
+}
+
+#define MRBFull (0x8)
+#define MXBEmpty (4)
+
+static int put_slonet(idx,data)
+int idx,data;
+{
+    VU32 *slp = SLONET_ADDR;
+    VU32 *strp = &STREAM_STAT;
+    int spinner;
+    int old_ipl;
+    int status;
+
+    status = 0;
+    old_ipl = prc_set_ipl(INTS_OFF);
+    for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	if ( *strp & MXBEmpty ) {
+	    slp[idx] = data;
+	    break;
+	}
+    }
+    prc_set_ipl(old_ipl);
+    if ( spinner < 0 ) status = -1;
+    return status;
+}
+
+extern int ctl_uio_put( int idx, U8 *buff, int cnt);
+extern U8 *uio_dbg_buf( U8 *);
+
+/*		ctl_uio_get(idx, buff, cnt)
+ *	Gets <cnt> bytes from uio offset <idx> (and successive
+ *	offsets) into user's buffer @@ <buff>.
+ *	Returns count successfully gotten, or -1 for error.
+ */
+
+
+extern int ctl_uio_get( int idx, U8 *buff, int cnt);
+
+/*pmcc wuz here*/
+#if 1
+/* enable streaming */
+#define SNGT_READ (0)
+#define SNGT_PRIME (1)
+#define STREAM_RD (4)
+#define SINGLE_RD (0)
+
+#else
+/* disable streaming */
+#define SNGT_READ (1)
+#define SNGT_PRIME (1)
+#define STREAM_RD (0)
+#define SINGLE_RD (0)
+
+#endif
+
+
+
+static int get_slonet(idx, mode)
+int idx, mode;
+{
+    VU32 *slp = SLONET_ADDR;
+    VU32 *strp = &STREAM_STAT;
+    int spinner;
+    int data;
+
+    /* If receive buffer is already full, we
+     * have no idea where it came from, but
+     * in any case, we want to read the "address"
+     * we need to see, to start a "real"
+     * read in the slave.
+     */
+    if ( mode & SNGT_PRIME) {
+    		/* make sure any previous writes have taken */
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) {
+		data = slp[idx] & 0xFF;
+		break;
+	    }
+	}	/* data = slp[idx]; */ /* not every time, only to prime the channel*/
+    }
+    data = -1;
+    for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	if ( *strp & MRBFull ) {
+	    data = slp[idx] & 0xFF;
+	    break;
+	}
+    }
+    return data;
+}
+
+#define UIO_ORIG (0)
+#define UIO_SCAN (1)
+#define UIO_RESET (2)
+
+int uio_test( smp )
+const struct menu_d *smp;
+{
+    VU32 *strp = &STREAM_STAT;
+    int bottom,data,status;
+    int timeouts = 0;
+    U32 ctls;
+    int dev_id = 0x110;
+    int dig = 0;
+    int run = 0;
+    int pass_fail = -1;
+    int which;		/* Zero for original test, 1 for looped reset */
+    int never,always;
+    U32 edges = JOY_ALL;
+
+    never = always = 0;
+    bottom = AN_VIS_ROW-3;
+    bottom = st_insn(bottom,t_msg_ret_menu,t_msg_next,INSTR_PAL);
+/*    bottom = st_insn(bottom,"For 10^6 reps,",t_msg_action,INSTR_PAL); pmcc*/ 
+    bottom = st_insn(bottom,"For 1 rep,",t_msg_action,INSTR_PAL);
+    bottom = st_insn(bottom,"For continuous reps,",t_msg_actionh,INSTR_PAL);
+    which = (smp->mn_label[0] == 'R') << 1;
+    which |= (smp->mn_label[0] == 'S');
+
+    while (1) {
+	ctls = ctl_read_sw(edges);
+	if ( ctls & SW_NEXT ) break;
+	if ( ctls & (J_LEFT|J_RIGHT) ) dig ^= 4;
+	if ( ctls & J_UP ) dev_id += (0x100|(1<<dig));
+	if ( ctls & J_DOWN ) dev_id -= (0x100|(1<<dig));
+	if ( dev_id & ~0xFF ) {
+	    dev_id &= 0xFF;
+	    txt_hexnum(-1,2,dev_id,2,RJ_ZF,MNORMAL_PAL);
+	}
+	if ( ctls & SW_ACTION ) {
+	    /* After the first edge on SW_ACTION, keep
+	     * re-trigerring on a _level_
+	     */
+/*	    run = 1000000;	pmcc*/
+	    run = 1;
+	    edges &= ~SW_ACTION;
+	}
+	while ( run > 0 ) {
+	    /* Reset SLONET master */
+	    int idx;
+	    --run;
+
+	    do {
+		*strp = 1;
+		/* Clear all four bytes of "stream control" section,
+		 * to make _really_ sure there is no DMA.
+		 */
+		for ( idx = 1 ; idx < 4 ; ++idx ) strp[idx] = 0;
+		/* Writing a zero to address zero should
+		 * reset the serial-state of any slave.
+		 */
+		*strp = 0;
+		status = put_slonet(0,0);
+		if ( status == -1 ) {
+		    txt_decnum(2,6,++always,4,RJ_ZF,MNORMAL_PAL);
+		    if ( always == 1 ) {
+    			txt_cstr(" XMIT Full too long",MNORMAL_PAL);
+			txt_hexnum(1,8,*strp,2,RJ_ZF,MNORMAL_PAL);
+    		    }
+		}
+	    } while ( (status < 0) && (run > 0) );
+	    if ( which == UIO_ORIG ) {
+		/* Select Device ID register by writing
+		 * its number (1) to register 1, then
+		 * write a device ID to register zero.
+		 */
+		status = put_slonet(1,1);
+		status = put_slonet(0,dev_id);
+		status = put_slonet(1,1);
+    		data = get_slonet(0, SNGT_PRIME);
+		if ( data < 0 ) {
+		    txt_decnum(2,3,++timeouts,3,LJ_BF,ERROR_PAL);
+		    if ( pass_fail != 0 ) {
+			txt_cstr("Timeouts, Status (1c0) = 0x",ERROR_PAL);
+			txt_clr_wid(2,4,9);
+		    }
+		    txt_hexnum(32,3,*strp&0xFF,2,RJ_ZF,MNORMAL_PAL);
+		    pass_fail = 0;
+		    prc_delay0();
+		    if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) run = 0;
+		} else {
+		    txt_str(2,4,"Got: 0x",MNORMAL_PAL);
+		    txt_chexnum(data,2,RJ_ZF,MNORMAL_PAL);
+		    pass_fail = 1;
+		}
+	    } else if ( which == UIO_SCAN ) {
+		U8 inbuf[32], vbuf[9];
+
+		int idx,palette;
+		put_slonet(1,1);	/* Select ID Reg */
+		put_slonet(0,dev_id);
+		put_slonet(0,0x0F);	/* Set wrap via auto-inc */
+		put_slonet(0,0xC0);	/* Byte 0, Bank 0, auto-inc Read and Write */
+		put_slonet(1,0);	/* Select TD Reg */
+
+    		put_slonet(0, vbuf[6]++);	/* led display */
+#if PMCC
+		put_slonet(1,3);	/* Select MODE Reg */
+		put_slonet(0,0xC0);	/* Byte 0, Bank 0, auto-inc Read and Write */
+		put_slonet(1,0);	/* Select TD Reg */
+
+		/* Get 16 bytes */
+		idx = 0;
+
+#if 1
+		inbuf[idx++] = get_slonet(STREAM_RD, SNGT_PRIME);	/* Priming read */
+		for (  ; idx < 9 ; ++idx ) 
+    			inbuf[idx] = get_slonet(STREAM_RD, SNGT_READ);
+		inbuf[idx++] = get_slonet(SINGLE_RD, SNGT_READ);	/* turn off streaming */
+		inbuf[idx++] = get_slonet(SINGLE_RD, SNGT_READ);	/* flush the pipe */
+
+		put_slonet(1,3);	/* Select MODE Reg */
+		vbuf[7] = get_slonet(0, SNGT_PRIME);
+		put_slonet(1,0);	/* Select TD Reg */
+
+		inbuf[idx++] = get_slonet(STREAM_RD, SNGT_PRIME);	/* Priming read */
+		for (  ; idx < 14 ; ++idx ) 
+    			inbuf[idx] = get_slonet(STREAM_RD, SNGT_READ);
+		inbuf[idx++] = get_slonet(SINGLE_RD, SNGT_READ);	/* turn off streaming */
+		inbuf[idx++] = get_slonet(SINGLE_RD, SNGT_READ);	/* flush the pipe */
+
+#else
+		while ( idx < 16 ) {
+		    inbuf[idx++] = get_slonet(SINGLE_RD, SNGT_PRIME);
+		    put_slonet(1,3);	/* Select MODE Reg */
+		    inbuf[idx + 15] = get_slonet(SINGLE_RD, SNGT_PRIME);
+		    put_slonet(1,3);	/* Select MODE Reg */
+		    put_slonet(0,0xC0 + idx );	/* Select next target reg */
+		    /* put_slonet(0,0x0a ); */	/* Select next target reg */
+		    put_slonet(1,0);	/* Select TD Reg */
+
+    		}
+#endif
+		put_slonet(1,3);	/* Select MODE Reg */
+		vbuf[2] = get_slonet(0, SNGT_PRIME);
+		put_slonet(1,3);	/* Select MODE Reg */
+		put_slonet(0,0xE0);	/* Select high bank */
+		put_slonet(1,0);	/* Select TD Reg */
+
+    		/* get next 16 */
+#if 1
+    		inbuf[idx++] = get_slonet(STREAM_RD, SNGT_PRIME);	/* Priming read */
+		for (  ; idx < 30 ; ++idx ) 
+    			inbuf[idx] = get_slonet(STREAM_RD, SNGT_READ);
+		inbuf[idx++] = get_slonet(SINGLE_RD, SNGT_READ);	/* turn off streaming */
+		inbuf[idx] = get_slonet(SINGLE_RD, SNGT_READ);		/* flush the pipe */
+#endif
+#endif /* PMCC */
+		/* Verify ID, Wrap, Mode at end */
+		palette = ERROR_PAL;
+		put_slonet(1,1);	/* Select ID Reg */
+
+		vbuf[0] = get_slonet(STREAM_RD, SNGT_PRIME);	/* Priming read */
+		vbuf[1] = get_slonet(SINGLE_RD, SNGT_READ);	/* turn off streaming */
+		vbuf[3] = get_slonet(SINGLE_RD, SNGT_READ);	/* flush the pipe */
+		vbuf[4] = *strp;
+    		if (vbuf[4] & 2)vbuf[5]++;	/* count reflection errors */
+		if ( (vbuf[0] == dev_id)
+		  && (vbuf[1] == 0x0F)
+		  && (vbuf[2] == 0xC0)  
+		  && (vbuf[3] == 0xE0) ) palette = MNORMAL_PAL;
+
+		/* dump input, in palette depending on verification */
+
+		for ( idx = 0 ; idx < 16 ; ++idx ) {
+		    if ( idx < 8 ) {
+			txt_hexnum((idx+1)*3,9,vbuf[idx],2,RJ_ZF,palette);
+		    }
+		    txt_hexnum((idx+1)*3,10,inbuf[idx],2,RJ_ZF,palette);
+		    txt_hexnum((idx+1)*3,11,inbuf[idx+16],2,RJ_ZF,palette);
+		}
+		if ( palette == ERROR_PAL ) {
+		    prc_delay(10);
+		    if ( ctl_read_sw(SW_NEXT) & SW_NEXT ) run = 0;
+		}
+	    }
+	}
+	prc_delay(3);
+    }
+    *strp = 0x40;
+    return 0;    
+}
+
+static int refl_errors;
+
+int uio_read( smp )
+const struct menu_d *smp;
+{
+    VU32 *strp = &STREAM_STAT;
+    int bottom;
+    U32 ctls;
+    int dev_id = 0x110;
+    int dig = 0;
+    int run = 0;
+    int which;		/* Zero for read, 1 for write */
+    U32 edges = JOY_ALL;
+    U8 *vbuf = uio_dbg_buf(0);
+
+    bottom = AN_VIS_ROW-3;
+    bottom = st_insn(bottom,t_msg_ret_menu,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,"For 1 read,",t_msg_action,INSTR_PAL);
+    bottom = st_insn(bottom,"For continuous reps,",t_msg_actionh,INSTR_PAL);
+    which = (smp->mn_label[0] == 'W');
+
+    while (1) {
+	ctls = ctl_read_sw(edges);
+	if ( ctls & SW_NEXT ) break;
+	if ( ctls & (J_LEFT|J_RIGHT) ) dig ^= 4;
+	if ( ctls & J_UP ) dev_id += (0x100|(1<<dig));
+	if ( ctls & J_DOWN ) dev_id -= (0x100|(1<<dig));
+	if ( dev_id & ~0xFF ) {
+	    dev_id &= 0xFF;
+	    txt_hexnum(-1,2,dev_id,2,RJ_ZF,MNORMAL_PAL);
+	}
+	if ( ctls & SW_ACTION ) {
+	    /* After the first edge on SW_ACTION, keep
+	     * re-trigerring on a _level_
+	     */
+	    run = 1;
+	    edges &= ~SW_ACTION;
+	}
+	while ( run > 0 ) {
+	    U8 inbuf[32];
+	    int status0, status1;
+	    /* Reset SLONET master */
+	    int idx;
+	    --run;
+	    *strp = 1;
+	    /* Clear all four bytes of "stream control" section,
+	     * to make _really_ sure there is no DMA.
+	     */
+	    for ( idx = 0 ; idx < 4 ; ++idx ) strp[idx] = 0;
+
+	    /* Use "high-level" routine to read entire first UIO
+	     * bank (16 bytes)
+	     */
+	    status0 = idx = ctl_uio_get(0,inbuf,16);
+	    if ( status0 < 16 ) {
+		txt_str(2,6,"ctl_uio_get(0,inbuf,16) returns:",ERROR_PAL);
+		if ( idx < 0 ) {
+		    txt_cstr("-",ERROR_PAL);
+		    idx = 0-idx;
+		}
+		txt_chexnum(idx,3,LJ_NF,ERROR_PAL);
+		if ( idx >= 0x50 ) {
+		    for ( idx = 0 ; idx < 3 ; ++idx ) {
+			txt_hexnum((idx+1)*3,8,vbuf[idx],2,RJ_ZF,ERROR_PAL);
+		    }
+		}
+	    }
+
+	    /* get next 16 */
+	    status1 = idx = ctl_uio_get(16,inbuf+16,16);
+	    if ( status1 < 16 ) {
+		txt_str(2,7,"ctl_uio_get(0,inbuf+16,16) returns:",ERROR_PAL);
+		if ( status1 < 0 ) {
+		    txt_cstr("-",ERROR_PAL);
+		    idx = 0-idx;
+		}
+		txt_chexnum(idx,3,LJ_NF,ERROR_PAL);
+		if ( idx >= 0x50 ) {
+		    for ( idx = 0 ; idx < 3 ; ++idx ) {
+			txt_hexnum((idx+1)*3,9,vbuf[idx],2,RJ_ZF,ERROR_PAL);
+		    }
+		}
+	    }
+	    if ( *strp & 2) ++refl_errors;	/* count reflection errors */
+
+	    /* dump input, in palette depending on verification */
+
+	    for ( idx = 0 ; idx < 16 ; ++idx ) {
+		txt_hexnum((idx+1)*3,10,inbuf[idx],2,RJ_ZF,
+		  status0 > 0 ? MNORMAL_PAL : ERROR_PAL);
+		txt_hexnum((idx+1)*3,11,inbuf[idx+16],2,RJ_ZF,
+		  status1 > 0 ? MNORMAL_PAL : ERROR_PAL);
+	    }
+	}
+	prc_delay(2);
+    }
+    *strp = 0x40;
+    return 0;    
+}
+
+/*		plist[] (below) describes the parameters we wish to
+ *	enter.
+ */
+
+static const struct parm plist [] = {
+    /* Label		value		col/row	sigdig		curdig	*/
+    { "UIO Register: ",	0,		4,3,	(HEX_FIELD|2),	0 	},
+#define PIDX_REG (0)
+    { "Data:         ",	0,		4,5,	(HEX_FIELD|2),	0 	},
+#define PIDX_DATA  (1)
+    { 0,		0,		0,0,	0,		0 	}};
+
+#define NPARMS (sizeof (plist)/sizeof(plist[0]))
+
+/*		uio_cb() is the "callback". That is, it is called by the
+ *	parameter entry code to validate changes to the parameters and
+ *	possibly copy act on them. In our case, we always "accept"
+ *	the change.
+ */
+static int
+uio_cb(struct parm *pp, int idx,struct opaque *op)
+{
+    return 1;
+}
+
+int
+uio_patch( smp )
+const struct menu_d *smp;
+{
+    struct parm work[NPARMS],*wp;
+    const struct parm *cwp;
+    int status;
+    int bottom;
+
+    wp = work;
+    cwp = plist;
+
+    do {
+	*wp++ = *cwp++;
+    } while (wp[-1].label != 0);
+
+
+    bottom = AN_VIS_ROW-3;
+    bottom = st_insn(bottom,t_msg_ret_menu,t_msg_next,INSTR_PAL);
+    bottom = st_insn(bottom,"To alter Reg,",t_msg_action,INSTR_PAL);
+
+    while (1) {
+	status = utl_enter(work,uio_cb,(struct opaque *)0);
+	if ( status & SW_NEXT ) return 0;
+	if ( status & SW_ACTION ) {
+	    U8 buf;
+	    txt_clr_wid(2,3,32);
+	    buf = work[PIDX_DATA].val;
+	    status = ctl_uio_put(work[PIDX_REG].val,&buf,1);
+	    if ( status != 1 ) {
+		txt_str(2,3,"ctl_uio_put() returns: ",ERROR_PAL);
+		txt_chexnum(status,8,RJ_ZF,ERROR_PAL);
+	    }
+	}
+    }
+    return 0;
+}
+
+#if (HOST_BOARD == ASCLEAP)
+extern unsigned long milliseconds;
+#define eer_rtc ( milliseconds >> 2)
+#endif
+
+const signed char wtab[] = { -15, -13, -9, -6, -1, 0, 9, 13 };
+
+static int bar_graph(int in)
+{
+    int mag,bias;
+    int out = 0;
+
+    mag = in;
+    if ( mag < -15 ) mag = -15;
+    if ( mag > 15 ) mag = 15;
+    mag += 15;
+    bias = eer_rtc&3;
+    mag += bias;
+    out = (1<<(mag/5));
+    return out;
+}
+
+int
+uio_motor( smp )
+const struct menu_d *smp;
+{
+    int status;
+    int bottom;
+    int amp = 0;
+    int old_amp = -42;
+    U8 mval;
+
+    bottom = AN_VIS_ROW-3;
+    bottom = st_insn(bottom,t_msg_ret_menu,t_msg_next,INSTR_PAL);
+
+    while (1) {
+	status = ctl_read_sw(JOY_ALL);
+	if ( status & SW_NEXT ) return 0;
+	if ( status & J_UP ) ++amp;
+	if ( status & J_DOWN) --amp;
+#if 0
+	if ( amp > 15 ) amp = 15;
+	if ( amp < -15 ) amp = -15;
+	mval = wtab[eer_rtc&7]*amp;
+#else
+	if ( status & J_LEFT ) amp += 16;
+	if ( status & J_RIGHT) amp -= 16;
+	mval = amp;
+#endif
+	if ( amp != old_amp ) {
+	    txt_str(5,5,"0x", MNORMAL_PAL);
+	    txt_chexnum(mval,2,RJ_ZF,MNORMAL_PAL);
+	}
+	status = ctl_uio_put(0xA, &mval, 1);
+	if ( status != 1 ) {
+	    txt_str(2,3,"ctl_uio_put() returns: ",ERROR_PAL);
+	    txt_chexnum(status,8,RJ_ZF,ERROR_PAL);
+	}
+	mval = ~bar_graph(amp);
+	if ( amp != old_amp ) {
+	    txt_str(-1,4,amp < 0 ? "-" : " ", MNORMAL_PAL);
+	    txt_cdecnum( ( amp < 0 ) ? (-amp) : amp , 2, LJ_BF, MNORMAL_PAL);
+	    txt_cstr(" (0x",MNORMAL_PAL);
+	    txt_chexnum(mval^0xFF,2,LJ_BF,MNORMAL_PAL);
+	    txt_cstr(")",MNORMAL_PAL);
+	    old_amp = amp;
+	}
+	status = ctl_uio_put(0, &mval, 1);
+	if ( status != 1 ) {
+	    txt_str(2,3,"ctl_uio_put() returns: ",ERROR_PAL);
+	    txt_chexnum(status,8,RJ_ZF,ERROR_PAL);
+	}
+	prc_delay0();
+    }
+    return 0;
+}
+
+@
+
+
+1.7
+log
+@added UIO motor-driver test. More paranoid about PATNET test
+@
+text
+@d347 1
+d398 1
+d412 1
+@
+
+
+1.6
+log
+@stable version.  read_uio works with uio.c
+@
+text
+@d29 3
+a31 1
+
+d52 1
+d66 4
+d118 10
+d129 14
+d144 1
+a144 1
+	for ( idx = 0 ; idx < 5 ; ++idx ) {
+d345 1
+a345 1
+#if (0)
+d350 1
+a350 1
+#endif
+a474 1
+#if 0
+a475 3
+	    *strp = 0;
+	    put_slonet(0,0);
+#endif	    
+d491 1
+a491 1
+		txt_chexnum(idx,10,LJ_NF,ERROR_PAL);
+a498 1
+#if 1
+d507 1
+a507 1
+		txt_chexnum(idx,10,LJ_NF,ERROR_PAL);
+a513 3
+#else
+    	    status1 = 0;
+#endif
+d590 77
+@
+
+
+1.5
+log
+@*** empty log message ***
+@
+text
+@d314 1
+a314 1
+
+d319 1
+a319 1
+
+d444 1
+d446 3
+d472 1
+d488 3
+@
+
+
+1.4
+log
+@get_snet must wait for put_snet to take.
+@
+text
+@d359 1
+a359 1
+#if 0
+@
+
+
+1.3
+log
+@moved ctl_uio_get/put() to uio.c (new file)
+added uio_patch() test.
+@
+text
+@d160 2
+d164 13
+d193 7
+a199 1
+    	data = slp[idx]; /* not every time, only to prime the channel*/
+d261 1
+a261 8
+	    *strp = 1;
+	    /* Clear all four bytes of "stream control" section,
+	     * to make _really_ sure there is no DMA.
+	     */
+	    for ( idx = 0 ; idx < 4 ; ++idx ) strp[idx] = 0;
+	    /* Writing a zero to address zero should
+	     * reset the serial-state of any slave.
+	     */
+d263 9
+a277 2
+			*strp = 1;	/* kick it. (reset) */
+			*strp = 0;
+a279 4
+		if ( status == -2 ) {
+		    txt_decnum(2,7,++never,4,RJ_ZF,MNORMAL_PAL);
+		    if ( never == 1 ) txt_cstr(" XMIT not full long enough",MNORMAL_PAL);
+		}
+d306 1
+a306 1
+		U8 inbuf[32], vbuf[7];
+a319 1
+
+d322 1
+d324 11
+a334 1
+		inbuf[idx++] = get_slonet(4,SNGT_PRIME);	/* Priming read */
+d336 4
+a339 3
+    			inbuf[idx] = get_slonet(4, SNGT_READ);
+		inbuf[idx++] = get_slonet(0, SNGT_READ);	/* turn off streaming */
+		inbuf[idx++] = get_slonet(0, SNGT_READ);	/* flush the pipe */
+d341 10
+a350 4
+		inbuf[idx++] = get_slonet(0,SNGT_PRIME);		/* Priming read */
+		for (  ; idx < 15 ; ++idx ) 
+    			inbuf[idx] = get_slonet(0, SNGT_PRIME);
+		inbuf[idx++] = get_slonet(0, SNGT_PRIME);
+a351 1
+    		/* get next 16 */
+d357 4
+a360 2
+#if 1
+    		inbuf[idx++] = get_slonet(4,SNGT_PRIME);	/* Priming read */
+d362 3
+a364 7
+    			inbuf[idx] = get_slonet(4, SNGT_READ);
+		inbuf[idx++] = get_slonet(0, SNGT_READ);	/* turn off streaming */
+		inbuf[idx] = get_slonet(0, SNGT_READ);		/* flush the pipe */
+#else
+    		inbuf[idx++] = get_slonet(0,SNGT_PRIME);		/* Priming read */
+		for (  ; idx < 31 ; ++idx ) inbuf[idx] = get_slonet(0, SNGT_PRIME);
+		inbuf[idx] = get_slonet(0, SNGT_PRIME);
+d369 4
+a372 9
+#if 1
+		vbuf[0] = get_slonet(4, SNGT_PRIME);	/* Priming read */
+		vbuf[1] = get_slonet(0, SNGT_READ);	/* turn off streaming */
+		vbuf[3] = get_slonet(0, SNGT_READ);	/* flush the pipe */
+#else
+		vbuf[0] = get_slonet(0, SNGT_PRIME);	/* Priming read */
+		vbuf[1] = get_slonet(0, SNGT_PRIME);
+		vbuf[3] = get_slonet(0, SNGT_PRIME);
+#endif
+d382 1
+a382 1
+		    if ( idx < 7 ) {
+d394 1
+a394 1
+	prc_delay(2);
+@
+
+
+1.2
+log
+@first working ctl_uio_get(), various chnges by pmcc,
+MEA adds uio_read() test.
+@
+text
+@d147 2
+a148 66
+/*		ctl_uio_put(idx, buff, cnt)
+ *	Puts <cnt> bytes from user's buffer @@ <buff> via SLONet
+ *	to UIO offset <idx> and successive offsets.
+ *	non-negative <idx>'s are "addresses" in the board's
+ *	space, while negative <idx>'s might in the future be
+ *	used for the _rare_ occurence of explicitely writing
+ *	the "registers" of the SLONET psuedo-device.
+ *	Returns count successfully sent, or -1 for error.
+ */
+#define UIO_BP_LEN (6)
+int ctl_uio_put(idx,buff,cnt)
+int idx,cnt;
+U8 *buff;
+{
+    VU32 *slp = SLONET_ADDR;
+    VU32 *strp = &STREAM_STAT;
+    int old_ipl;
+    int spinner;
+    U16 cmdbuf[UIO_BP_LEN];
+    int sofar;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+
+    cmdbuf[0] = 0;		/* RE-SYNCH slaves, just in case */
+    cmdbuf[1] = 0x101;		/* Reg-select (CIR) gets ID regno */
+    cmdbuf[2] = UIO_ID;		/* Will be sent to ID reg. */
+    cmdbuf[3] = 0xF;		/* Set WRAP start (D7:4 = 0), End (D3:0) = 15 */
+    /* turn "idx" into "byte-select" (D3:0) and "Bank-select" (D5),
+     * and set Read/Write Auto-increment (D7:6)
+     */
+    cmdbuf[4] = (idx&0xF) | ((idx&0x10)<<1) | 0xC0;
+    cmdbuf[5] = 0x100;		/* select TD (data) register */
+
+    for ( sofar = 0 ; sofar < UIO_BP_LEN ; ++sofar ) {
+	int regno = cmdbuf[sofar]>>8;
+	int data = cmdbuf[sofar] & 0xFF;
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) {
+		slp[regno] = data;
+		break;
+	    }
+	}
+	if ( spinner < 0 ) break;
+    }
+    if ( sofar < UIO_BP_LEN ) {
+	prc_set_ipl(old_ipl);
+	return -2;
+    }
+
+    /* Now that we have set it all up, send the user's data,
+     * all to "register 0", which is where the register-pointer
+     * will be set after the above dance.
+     */
+    for ( sofar = 0; sofar < cnt ; ++sofar ) {
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) {
+		*slp = buff[sofar];
+		break;
+	    }
+	}
+	if ( spinner < 0 ) break;
+    }
+    prc_set_ipl(old_ipl);
+    if ( spinner < 0 ) sofar = -1;
+    return sofar;
+}
+a154 43
+static U8 def_vbuf[3];
+
+int ctl_uio_get(idx,buff,cnt)
+int idx,cnt;
+U8 *buff;
+{
+    VU32 *slp = SLONET_ADDR;
+    VU32 *strp = &STREAM_STAT;
+    int old_ipl;
+    int spinner;
+    U16 cmdbuf[UIO_BP_LEN];
+    U8 *vbuf = def_vbuf;
+    int sofar;
+    int data;
+    int end_addr;
+
+    old_ipl = prc_set_ipl(INTS_OFF);
+
+    cmdbuf[0] = 0;		/* RE-SYNCH slaves, just in case */
+    cmdbuf[1] = 0x101;		/* Reg-select (CIR) gets ID regno */
+    cmdbuf[2] = UIO_ID;		/* Will be sent to ID reg. */
+    cmdbuf[3] = 0x0F;		/* Set WRAP start (D7:4 = 0), End (D3:0) = 15 */
+    /* turn "idx" into "byte-select" (D3:0) and "Bank-select" (D5),
+     * and set Read/WRITE Auto-increment (D7:6)
+     */
+    cmdbuf[4] = (idx&0xF) | ((idx&0x10)<<1) | 0xC0;
+    cmdbuf[5] = 0x100;		/* select TD (data) register */
+
+    for ( sofar = 0 ; sofar < UIO_BP_LEN ; ++sofar ) {
+	int regno = cmdbuf[sofar]>>8;
+	int data = cmdbuf[sofar] & 0xFF;
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) {
+		slp[regno] = data;
+		break;
+	    }
+	}
+	if ( spinner < 0 ) break;
+    }
+    if ( sofar < UIO_BP_LEN ) {
+	prc_set_ipl(old_ipl);
+	return -1-sofar;
+    }
+a155 10
+    /* Now that we have set it all up, get the user's data.
+     * The stream board has to be "primed", as it returns
+     * the data for the current read when you do the next read.
+     * It also needs to be put into "stream mode" by adding
+     * an offset of 4 to the address read, _iff_ you are
+     * going to read more than two bytes at a time. The
+     * _last_ two bytes must be read at "register 0", to
+     * "run-down" the streaming read.
+     */
+    data = slp[(cnt >= 2)<<2];	/* "Prime", in streaming mode if cnt >= 2 */
+d157 1
+a157 67
+    for ( sofar = 0; sofar < (cnt-2) ; ++sofar ) {
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MRBFull ) {
+		buff[sofar] = slp[4];
+		break;
+	    }
+	}
+	if ( spinner < 0 ) break;
+    }
+    if ( spinner >= 0 ) {
+	for ( ; sofar < cnt ; ++sofar ) {
+	    for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+		if ( *strp & MRBFull ) {
+		    buff[sofar] = *slp;
+		    break;
+		}
+	    }
+	    if ( spinner < 0 ) break;
+	}
+    }
+    if ( spinner >= 0 ) {
+	/* finish up by verifying ID, Wrap, Mode at end */
+	for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+	    if ( *strp & MXBEmpty ) {
+		slp[1] = 1;	/* Select ID */
+		break;
+	    }
+	}
+	/* calculate end address as bank/byte pair */
+	end_addr = (idx + cnt) & 0xF;
+	end_addr |= ((idx & 0x10) <<1);
+	if ( spinner < 0 ) sofar = -0x20;
+	else {
+	    idx = slp[4];	/* Priming trash read */
+	    for ( idx = 0 ; idx < 3 ; ++idx ) {
+		for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+		    if ( *strp & MRBFull ) {
+			vbuf[idx] = slp[(idx < 1)<<2];
+			break;
+		    }
+		}
+		if ( spinner < 0 ) {
+		    sofar = -0x30-idx;
+		    spinner = 0;
+		    break;
+		}
+	    }
+	} /* end "else for" */
+	if ( vbuf[0] == UIO_ID
+	  && vbuf[1] == 0x0F
+	  && vbuf[2] == (0xC0 | end_addr) ) {
+	    /* Verified, de-select in obscure way :-) */
+	    for ( idx = 1 ; idx >= 0 ; --idx ) {
+		for ( spinner = 42 ; spinner >= 0 ; --spinner ) {
+		    if ( *strp & MXBEmpty ) {
+			slp[idx] = idx ? 1 : 0xFF;
+			break;
+		    }
+		}
+	    }
+	} else sofar = -0x50;
+	spinner = 0;
+    }
+    prc_set_ipl(old_ipl);
+    if ( spinner < 0 ) sofar = -(UIO_BP_LEN+1);
+    return sofar;
+}
+a244 1
+    	    *strp = 0x0;	/* receive on opposite clock edge */
+d252 6
+a257 1
+		    if ( always == 1 ) txt_cstr(" XMIT Full too long",MNORMAL_PAL);
+d263 1
+a263 1
+	    } while ( status < 0 );
+a385 1
+    int never,always;
+d387 1
+a388 1
+    never = always = 0;
+d437 1
+a437 1
+			txt_hexnum((idx+1)*3,8,def_vbuf[idx],2,RJ_ZF,ERROR_PAL);
+d453 1
+a453 1
+			txt_hexnum((idx+1)*3,9,def_vbuf[idx],2,RJ_ZF,ERROR_PAL);
+d473 64
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d11 3
+d15 1
+a15 1
+#define STREAM_STAT (*(VU32 *)0x1f8001c0)
+d18 1
+a18 1
+#define PATNET_2 (*(VU32 *)0x1f800080)
+d21 4
+a24 1
+#define SLONET_ADDR ((VU32 *)(XBUS_SLOT76+0xC0))
+d147 201
+a347 2
+static int get_slonet(idx)
+int idx;
+d360 3
+a362 1
+    data = slp[idx];
+d373 4
+d395 2
+a396 1
+    bottom = st_insn(bottom,"For 10^6 reps,",t_msg_action,INSTR_PAL);
+d398 3
+a400 1
+    which = smp->mn_label[0] == 'R';
+d415 2
+a416 1
+	    run = 1000000;
+d428 1
+d443 1
+a443 1
+	    if ( !which ) {
+d451 1
+a451 1
+    		data = get_slonet(0);
+d467 179
+@

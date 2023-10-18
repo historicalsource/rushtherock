@@ -1,0 +1,706 @@
+head	1.24;
+access;
+symbols
+	CJ_206:1.22
+	CJ2_05:1.22
+	CJ2_04:1.21;
+locks; strict;
+comment	@;; @;
+
+
+1.24
+date	97.02.11.17.43.08;	author albaugh;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	97.01.10.22.44.09;	author albaugh;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.11.04.21.23.12;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.09.25.01.07.46;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.07.17.22.48.10;	author albaugh;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.07.10.00.03.01;	author albaugh;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.06.14.16.58.40;	author albaugh;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.06.08.16.44.26;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.05.29.18.54.20;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.05.25.22.08.03;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.05.04.00.44.11;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.04.26.20.20.45;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.04.17.01.27.38;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.02.08.20.45.59;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.01.09.22.34.35;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.12.12.02.14.29;	author birmingham;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.11.01.18.49.22;	author birmingham;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.08.17.21.41.14;	author birmingham;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.08.09.22.35.20;	author birmingham;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.06.16.19.37.18;	author birmingham;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.06.09.00.14.22;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.05.24.23.37.00;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.05.24.00.09.28;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.05.23.18.49.14;	author birmingham;	state Exp;
+branches;
+next	;
+
+
+desc
+@IDE function prototypes, included in config.mac.
+@
+
+
+1.24
+log
+@Added ide_force_reinit(), to spackle over the "audio wedge
+after memory test" problem on Max Force.
+@
+text
+@;
+;	ide.mac
+;
+;	The language-independant file which is included in config.mac for
+;	games using the VIA IDE disk controller. config.mac is the file from
+;	which config.i and config.h are	automatically derived. This is to
+;	assure agreement between assembly and C files.
+;
+;	Traditionally, config.mac was a single file describing a "hardware"
+;	for the purpose of configuring GUTS (Game Utility and Test Software.)
+;	With the advent of Xbus, a game may "mix and match" a variety of
+;	different boards, so config.mac now contains ".include" directives
+;	for the various pieces. This file is one of those pieces. It is
+;	intended to be included _after_ the host board has been selected,
+;	because the EC020 has a fairly strange Xbus decode map.
+;
+;	Project:	CoJag
+;	Date:		February 1995
+;	Team:		Mike Albaugh, Robert Birmingham
+;
+REMB
+REMM < The VIA may appear at various places in the memory map, so we >
+REMM < just define offsets from it. Things are a bit too spread out to>
+REMM < use a struct, so be careful when casting these things >
+REME
+;
+.iif not_defined,PHOENIX,PHOENIX == -1
+.iif not_defined,PHOENIX_AD,PHOENIX_AD == -1
+.iif not_defined,FLAGSTAFF,FLAGSTAFF == -1
+.iif not_defined,SEATTLE,SEATTLE == -1
+.iif not_defined,VEGAS,VEGAS == -1
+.iif not_defined,HOST_BOARD,HOST_BOARD == 0
+.if true, (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE) || (HOST_BOARD == VEGAS)
+  HB_PHOENIX == 1
+.iff
+  HB_PHOENIX == 0
+.endc
+;
+.if not_defined,IDE_TYPE
+	HEX_CONST IDE_TYPE	IDE_COJAG
+.endc
+;
+.if TRUE,(IDE_TYPE==IDE_COJAG)
+	HEX_CONST VIA_REG_KEY_OFFSET (0x34+BYTE0_OFFS)
+	HEX_CONST VIA_REG_INDEX_OFFSET (0x38+BYTE0_OFFS)
+	HEX_CONST VIA_REG_DATA_OFFSET (0x3C+BYTE0_OFFS)
+REM < The IDE regs are at a fixed offset from the VIA >
+	HEX_CONST IDE_REG_OFFSET (0x1F0)
+	HEX_CONST IDE_REG_ALT_STATUS_OFFSET (IDE_REG_OFFSET+0x204+BYTE16_OFFS) <R>
+	HEX_CONST IDE_REG_FIXED_DISK_OFFSET (IDE_REG_OFFSET+0x204+BYTE16_OFFS) <W>
+	HEX_CONST IDE_REG_DIGITAL_INPUT_OFFSET (IDE_REG_OFFSET+0x204+BYTE24_OFFS) <R>
+.iff
+ .if true, (IDE_TYPE==IDE_PCI)
+	HEX_CONST IDE_REG_OFFSET (0x1F0)
+	HEX_CONST IDE_REG_ALT_STATUS_OFFSET (IDE_REG_OFFSET+0x206) <R>
+	HEX_CONST IDE_REG_FIXED_DISK_OFFSET (IDE_REG_OFFSET+0x206) <W>
+ .iff
+	HEX_CONST VIA_REG_KEY_OFFSET (0x144+BYTE0_OFFS)
+	HEX_CONST VIA_REG_INDEX_OFFSET (0x148+BYTE0_OFFS)
+	HEX_CONST VIA_REG_DATA_OFFSET (0x14C+BYTE0_OFFS)
+REM < The IDE regs are at a fixed offset from the VIA >
+	HEX_CONST IDE_REG_OFFSET (0x150)
+	HEX_CONST IDE_REG_ALT_STATUS_OFFSET (0x174+BYTE16_OFFS) <R>
+	HEX_CONST IDE_REG_FIXED_DISK_OFFSET (0x174+BYTE16_OFFS) <W>
+ .endc
+.endc
+;
+.if eq,OUTPUT_LANG-LANG_C
+struct ide_ctl {
+    .if ne, SHORT0_OFFS
+    union {
+	U32 ldata;
+	struct { U16 pad; U16 data; } wdata;
+	struct { U8 snum; U8 scnt; U8 precomp_error; U8 data; } bdata;
+    } overlaid;
+    U8 csr;
+    U8 drive_head;
+    U8 hcylinder;
+    U8 lcylinder;
+    .iff
+    union {
+	U32 ldata;
+	struct { U16 data; U16 pad; } wdata;
+	struct { U8 data; U8 precomp_error; U8 scnt; U8 snum; } bdata;
+    } overlaid;
+    U8 lcylinder;
+    U8 hcylinder;
+    U8 drive_head;
+    U8 csr;
+    .endc
+}; 
+.endc
+;
+REM < Command codes >
+	HEX_CONST IDE_CMD_RECALIBRATE    (0x10)
+	HEX_CONST IDE_CMD_SREAD          (0x20)
+	HEX_CONST IDE_CMD_SWRITE         (0x30)
+	HEX_CONST IDE_CMD_SVERIFY        (0x40)
+	HEX_CONST IDE_CMD_FORMAT         (0x50)
+	HEX_CONST IDE_CMD_SEEK           (0x70)
+	HEX_CONST IDE_CMD_DIAGNOSTICS    (0x90)
+	HEX_CONST IDE_CMD_INITPARMS      (0x91)
+	HEX_CONST IDE_CMD_MREAD          (0xC4)
+	HEX_CONST IDE_CMD_MWRITE         (0xC5)
+	HEX_CONST IDE_CMD_MULTIMODE      (0xC6)
+	HEX_CONST IDE_CMD_BREAD          (0xE4)
+	HEX_CONST IDE_CMD_BWRITE         (0xE8)
+	HEX_CONST IDE_CMD_IDENTIFY       (0xEC)
+	HEX_CONST IDE_CMD_BUFFERMODE     (0xEF)
+REM < Status bits >
+	HEX_CONST IDE_STB_BUSY           (0x80)
+	HEX_CONST IDE_STB_READY          (0x40)
+	HEX_CONST IDE_STB_WRFAULT        (0x20)
+	HEX_CONST IDE_STB_SEEKDONE       (0x10)
+	HEX_CONST IDE_STB_DATAREQ        (0x08)
+	HEX_CONST IDE_STB_CORRDATA       (0x04)
+	HEX_CONST IDE_STB_INDEX          (0x02)
+	HEX_CONST IDE_STB_ERROR          (0x01)
+REM < Error bits >
+	HEX_CONST IDE_ERB_BADBLOCK       (0x80)
+	HEX_CONST IDE_ERB_UNCDATA        (0x40)
+	HEX_CONST IDE_ERB_IDNFOUND       (0x10)
+	HEX_CONST IDE_ERB_ABORTCMD       (0x04)
+	HEX_CONST IDE_ERB_TK0NFOUND      (0x02)
+	HEX_CONST IDE_ERB_AMNFOUND       (0x01)
+REM < Misc. Constants >
+.if true, HB_PHOENIX
+	HEX_CONST DRIVE_HEAD_INFO        (0x00) <Stick "use LBA mode" in here someday>
+.iff
+	HEX_CONST DRIVE_HEAD_INFO        (0xA0) <sector size and master select >
+.endc
+	HEX_CONST BYTES_PER_SECTOR       (512)
+	HEX_CONST WORDS_PER_SECTOR       (BYTES_PER_SECTOR/2)
+	HEX_CONST LONGS_PER_SECTOR       (BYTES_PER_SECTOR/4)
+REM < General constant and device status definitions.>
+	HEX_CONST IDE_INTS_OFF           (0)
+	HEX_CONST IDE_INTS_ON            (1)
+;
+	HEX_CONST IDE_DEVICE_INVALID     (0)
+	HEX_CONST IDE_DEVICE_CONNECTED   (1)
+;
+.if TRUE,(IDE_TYPE==IDE_COJAG)
+REM < position information for data kept in IDE interrupt handler's BSS area.>
+;
+	HEX_CONST IDE_BSS_BUFPTR (0)
+	HEX_CONST IDE_BSS_CNTPTR (1)
+	HEX_CONST IDE_BSS_RDPEND (2)
+	HEX_CONST IDE_BSS_DEVPTR (3)
+	HEX_CONST IDE_BSS_ERROR  (4)
+ .if TRUE,(COJAG_GAME & COJAG_AREA51)
+	HEX_CONST IDE_BSS_RDTYPE (5)
+	HEX_CONST IDE_BSS_CURCOL (6)
+	HEX_CONST IDE_BSS_COLS   (7)
+	HEX_CONST IDE_BSS_ROWS   (8)
+	HEX_CONST IDE_BSS_COLINC (9)
+	HEX_CONST IDE_BSS_ROWINC (10)
+ .endc ; Area 51 (really Silencer)
+;
+.endc
+ .if	eq,OUTPUT_LANG-LANG_C
+  .if true, HB_PHOENIX
+extern int ide_init( void );
+extern int ide_set_device( int );
+extern int ide_reset( void );
+extern int ide_identify( U32 *readbuf );
+extern int ide_check_devstat( void );
+extern U32 ide_get_rdstatus( void );
+extern U32 ide_get_errstatus( void );
+extern int ide_get_rpm( void );
+extern int ide_get_hdinfo( U16 *nheads, U16 *ncylinders, U16 *nsectors );
+extern int ide_get_lhdinfo( U32 *capacity );
+extern int ide_hread_sectors( U32 *rbuf, int head, int cyl, int snum, int scnt );
+extern int ide_write_sectors( U32 *wbuf, int head, int cyl, int snum, int scnt );
+extern int ide_hread_lsectors( U32 *rbuf, int lba, int scnt );
+extern int ide_write_lsectors( U32 *wbuf, int lba, int scnt );
+struct ide_cb_return {
+    void (*func)(void *);
+    void *arg;
+};
+extern struct ide_cb_return ide_rlcallback(void (*func)(void *), void *arg);
+  .iff
+extern U16 ide_init( void );
+extern void ide_reset( void );
+extern U8 ide_identify( U32 *readbuf );
+extern U16 ide_check_devstat( void );
+extern U32 ide_get_rdstatus( void );
+extern U32 ide_get_errstatus( void );
+extern U16 ide_get_rpm( void );
+extern int ide_get_hdinfo( U16 *nheads, U16 *ncylinders, U16 *nsectors );
+extern U32 ide_calc_checksum( U8 *bufptr, int numbytes );
+extern U8 ide_read_sectors( U32 *rbuf, int head, int cyl, int snum, int scnt );
+extern U8 ide_gread_sectors( U32 *rbuf, int head, int cyl, int snum, int scnt );
+extern U8 ide_hread_sectors( U32 *rbuf, int head, int cyl, int snum, int scnt );
+extern U8 ide_write_sectors( U32 *wbuf, int head, int cyl, int snum, int scnt );
+extern void ide_force_reinit();
+#if THOMAS_OPTIONS
+extern void (*ide_set_xfer_func( void (*func)(U32 *, VU32 *, int) ))(U32 *, VU32 *, int);
+extern void (*ide_get_xfer_func(void))(U32 *, VU32 *, int);
+#endif
+.if TRUE,(IDE_TYPE==IDE_COJAG)
+ .if TRUE,(COJAG_GAME & COJAG_AREA51)
+extern U8 ide_read_decomp_sectors( U32 *rdbuf, int head, int sector,
+                                   int cylinder, int count, int cols,
+                                   int rows, int colInc, int rowInc );
+extern U8 ide_gread_decomp_sectors( U32 *rbuf, int head, int cyl, int snum, int scnt,
+                                   int rows, int cols, int lowbit );
+   .endc ; Area 51 (really Silencer)
+  .endc ; IDE_COJAG
+ .endc ; Not Phoenix
+.endc ; LANG_C
+@
+
+
+1.23
+log
+@Correct COJAG_GAME == COJAG_AREA51 to COJAG_GAME & COJAG_AREA51.
+The exact comparison would cause failure on "generic" GUTS
+for AREA51 (or Silencer/JackHammer/MaxForce) plus other
+games.
+@
+text
+@d195 1
+@
+
+
+1.22
+log
+@Added support and detection for SEATTLE and VEGAS host boards.
+@
+text
+@d200 1
+a200 1
+ .if TRUE,(COJAG_GAME == COJAG_AREA51)
+@
+
+
+1.21
+log
+@Added a prototype for the temporary function ide_rlcallback().
+@
+text
+@d30 2
+d33 1
+a33 1
+.if true, (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+@
+
+
+1.20
+log
+@Altered definitions for ide_read_decomp_sectors() to agree with
+actual JackHammer code.
+@
+text
+@d174 5
+@
+
+
+1.19
+log
+@added "wrappers" (COJAG_AREA51) around silencer-specific definitions.
+@
+text
+@d150 1
+a150 1
+	HEX_CONST IDE_BSS_STATE  (6)
+d153 2
+a154 2
+	HEX_CONST IDE_BSS_LOWBIT (9)
+	HEX_CONST IDE_BSS_CURCOL (10)
+d194 3
+a196 2
+extern U8 ide_read_decomp_sectors( U32 *rbuf, int head, int cyl, int snum, int scnt,
+                                   int rows, int cols, int lowbit );
+@
+
+
+1.18
+log
+@reconcilition with Area51/Silencer "branch". Adds declarations
+for "on the fly" decompression from disk. These may not really
+belong here, and may therefore disappear later.
+@
+text
+@d140 1
+d148 1
+d155 1
+d157 1
+@
+
+
+1.17
+log
+@Added support for PHOENIX_AD and FLAGSTAFF boards.
+@
+text
+@d146 7
+a152 1
+	HEX_CONST IDE_BSS_ERROR (4)
+d184 14
+a197 3
+  .endc
+ .endc
+
+@
+
+
+1.16
+log
+@Added protoypes for ide_hread_lsectors, ide_write_lsectors and ide_get_lhdinfo.
+@
+text
+@d26 11
+a36 1
+
+d40 1
+a40 1
+
+d65 1
+a65 1
+
+d125 3
+a127 1
+.if true, HOST_BOARD != PHOENIX
+a128 2
+.iff
+	HEX_CONST DRIVE_HEAD_INFO        (0x00) <Stick "use LBA mode" in here someday>
+d147 1
+a147 1
+
+d149 1
+a149 3
+  .iif not_defined,PHOENIX,PHOENIX == -1
+  .iif not_defined,HOST_BOARD,HOST_BOARD == 0
+  .if true, HOST_BOARD == PHOENIX
+@
+
+
+1.15
+log
+@0'd the definition of DRIVE_HEAD_INFO on Phoenix systems.
+@
+text
+@d151 1
+d154 2
+@
+
+
+1.14
+log
+@Changed return types on some functions for Phoenix systems.
+Added prototype for ide_set_device() in Phoenix systems.
+@
+text
+@d115 1
+d117 3
+@
+
+
+1.13
+log
+@Added PCI specific conditionals.
+@
+text
+@d135 15
+d163 1
+@
+
+
+1.12
+log
+@Fixed misc typos in Little-Endian variants
+@
+text
+@d31 1
+a31 1
+  .if TRUE,(IDE_TYPE==IDE_COJAG)
+d40 6
+a45 1
+  .iff
+d53 2
+a54 1
+  .endc
+d56 1
+a56 1
+  .if eq,OUTPUT_LANG-LANG_C
+d80 2
+a81 1
+  .endc
+a134 1
+
+a147 4
+#if THOMAS_OPTIONS
+extern void (*ide_set_xfer_func( void (*func)(U32 *, VU32 *, int) ))(U32 *, VU32 *, int);
+extern void (*ide_get_xfer_func(void))(U32 *, VU32 *, int);
+#endif
+@
+
+
+1.11
+log
+@fixed typo in struct ide_ctl, already fixed in big-endian version
+@
+text
+@d41 3
+a43 3
+	HEX_CONST VIA_REG_KEY_OFFSET (0x147)
+	HEX_CONST VIA_REG_INDEX_OFFSET (0x14B)
+	HEX_CONST VIA_REG_DATA_OFFSET (0x14F)
+d46 2
+a47 2
+	HEX_CONST IDE_REG_ALT_STATUS_OFFSET (0x175) <R>
+	HEX_CONST IDE_REG_FIXED_DISK_OFFSET (0x175) <W>
+d66 1
+a66 1
+	struct { U8 data; U8 precomp; U8 scnt; U8 snum; } bdata;
+d71 1
+a71 1
+    U8 cmd;
+@
+
+
+1.10
+log
+@Added prototypes for Thomas's ide_?et_xfer_func().
+@
+text
+@d66 1
+a66 1
+	struct { U8 data; U8 precomp; U8 scnt; U8 snum } bdata;
+@
+
+
+1.9
+log
+@Updated file uses a defined value in CONSTANTS.MAC to conditionally
+create offsets for the IDE controller for the CoJag hardware or the
+Stream I/O hardware.
+@
+text
+@d142 4
+a145 1
+
+@
+
+
+1.8
+log
+@deleted unused low-level routines
+@
+text
+@d26 6
+d40 10
+@
+
+
+1.7
+log
+@Changed prototype of ide_get_rpm().  It no longer needs a pointer
+to a variable updated during VBLANK.  Until recently, I didn't know
+about the GUTS variable 'eer_rtc', so I am now using that to measure
+time.
+@
+text
+@d110 1
+d112 1
+d115 1
+a116 14
+extern void ide_enable_interrupts( void );
+extern void ide_disable_interrupts( void );
+extern U8 ide_send_command( int );
+extern U8 ide_identify( U32 *readbuf );
+extern U8
+ ide_write_sectors( U32 *writebuf, int head, int cyl, int snum, int scnt );
+extern U8
+ ide_read_sectors( U32 *readbuf, int head, int cyl, int snum, int scnt );
+extern U8
+ ide_hread_sectors( U32 *readbuf, int head, int cyl, int snum, int scnt );
+extern U8
+ ide_hverify_sectors( U32 *readbuf, int head, int cyl, int snum, int scnt );
+extern int ide_get_hdinfo( U16 *nheads, U16 *ncylinders, U16 *nsectors );
+extern void ide_wait_bsy( void );
+d118 1
+d120 1
+a120 2
+extern U16
+ ide_verify_sector( U32 *verify_buffer, int head, int cylinder, int sector );
+d122 5
+@
+
+
+1.6
+log
+@Added prototype for IDE reset function: ide_reset().
+@
+text
+@d129 1
+a129 1
+extern U16 ide_get_rpm( U32 *vcnt );
+@
+
+
+1.5
+log
+@Changed prototype of ide_get_hdinfo() to reflect changes
+to that function in ide2.c which now returns the device
+status.
+@
+text
+@d112 1
+@
+
+
+1.4
+log
+@added ide_hverify_sectors for authoring tool
+@
+text
+@d125 1
+a125 1
+extern U8 ide_get_hdinfo( U16 *nheads, U16 *ncylinders, U16 *nsectors );
+@
+
+
+1.3
+log
+@re-worded test for PROC_QUIRKS to be more polite and refer
+to SHORT0_OFFS
+@
+text
+@d121 4
+@
+
+
+1.2
+log
+@Changed several prototypes to accept pointers to (U32 *)
+buffers rather than (U16 *) pointers.
+@
+text
+@d36 1
+a36 1
+    .if ne,PROC_QUIRKS&BIG_ENDIAN
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d116 1
+a116 1
+extern U8 ide_identify( U16 *readbuf );
+d118 1
+a118 1
+ ide_write_sectors( U16 *writebuf, int head, int cyl, int snum, int scnt );
+d120 1
+a120 1
+ ide_read_sectors( U16 *readbuf, int head, int cyl, int snum, int scnt );
+d126 1
+a126 1
+ ide_verify_sector( U16 *verify_buffer, int head, int cylinder, int sector );
+@

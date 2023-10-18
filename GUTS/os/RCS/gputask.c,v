@@ -1,0 +1,1322 @@
+head	1.14;
+access;
+symbols
+	CJ_206:1.13
+	CJ2_05:1.13
+	CJ2_04:1.13
+	CJ2_03:1.8;
+locks; strict;
+comment	@ * @;
+
+
+1.14
+date	97.07.01.22.23.15;	author albaugh;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.07.19.03.37.44;	author albaugh;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.07.19.03.21.15;	author albaugh;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.07.18.15.41.19;	author albaugh;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.07.11.20.18.35;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.07.10.00.00.55;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.10.20.22.31.45;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.10.03.20.52.48;	author birmingham;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.09.08.20.35.48;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.08.01.21.46.47;	author birmingham;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.07.18.18.12.02;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.06.09.00.26.49;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.05.25.23.13.26;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.05.10.16.49.51;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Revised version of gpu.c, includes more orderly support
+of gpu task managment. Primarily written by Robert Birmingham
+@
+
+
+1.14
+log
+@Added RCS ID string
+@
+text
+@/************************************************************
+* GPUTASK.C | Author: Robert M. Birmingham | April 10, 1995 *
+* ========================================================= *
+* G.U.T.S GPU Task Manager: Copyright 1995, Atari Games     *
+************************************************************/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id$";
+#endif
+
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <os_proto.h>
+#include <gputask.h>
+#include <blitlib.h>
+#include <oblist.h>
+
+/******************************************************************/
+
+/*
+** Debugging controls:
+*/
+
+#define PRINT_TASK_INFO    (0)  /* print addresses of loaded tasks */
+#define TASK_INFO_X  (2)        /* X position to print task info */
+#define TASK_INFO_Y  (14)       /* Y position to print task info */
+
+#define PRINT_RUNNING_TASK (0)  /* print position of executing task */
+#define PRINT_RUN_X  (2)        /* X position to print running info */
+#define PRINT_RUN_Y  (28)       /* Y position to print running info */
+
+/******************************************************************/
+
+/*
+** Define the 32-bit constant that is compared with the ID field in
+** a GPU Task's header to see if it is an interrupt task or a normal
+** main-line task.
+*/
+
+#define  INT0VAL  (U32)(('I' << 24)|('N' << 16)|('T' << 8)|0)
+
+/* New scheme encodes vector number (+1) in bits 3..1 of "flags"
+** value.
+*/
+#define VEC_NUM(flags) ((flags>>1)&0x7)
+
+/*
+** Define constants for the GPU Task Dispatcher's BSS variables.
+*/
+
+#define DISPATCH_BSS_DONE (0)  /* slot for address of task done flag */
+#define DISPATCH_BSS_EXEC (1)  /* slot for address of task to execute */
+
+/******************************************************************/
+
+/*
+** Define variables used only within this module.
+*/
+
+static U32 *gpu_memptr;    /* ptr to free GPU memory */
+static U32 *gpu_taskdone;  /* ptr to address of task done flag */
+
+/*
+** declare array used for storing info. about loaded GPU tasks.
+*/
+
+static GPU_TASK_NODE task_list[MAX_GPU_TASKS];
+
+/*
+** Table associating GPU routines by name with their #defined
+** task number (GPU_INT_DISPATCH, et al.)
+*/
+#define mckluge( c1, c2, c3, c4) \
+     (((c1)<<24)|((c2)<<16)|((c3)<<8)|(c4))
+
+#define n_elts(array) (sizeof(array)/sizeof(array[0]))
+
+static const struct n2s {
+    U32 name_id;
+    U32 def_id;
+} fixtab[] = {
+    { mckluge(	'R','O','O','T' ),	GPU_INT_DISPATCH	},
+    { mckluge(	'D','I','S','P' ),	GPU_TASK_DISPATCH	},
+    { mckluge(	'I','D','E','i' ),	GPU_IDE_INTERRUPT	},
+    { mckluge(	'I','N','T','1' ),	GPU_IDE_INTERRUPT	},
+    { mckluge(	'I','N','T','3' ),	GPU_OBP_INTERRUPT	},
+    { mckluge(	'D','C','M','P' ),	GPU_NPACK_DECOMP	},
+    { mckluge(	'M','D','C','M' ),	GPU_MOVIE_DECOMP	},
+    { mckluge(	'M','T','S','T' ),	GPU_MEMORY_TEST		},
+    { mckluge(	'G','I','D','E' ),	GPU_IDE_READ		},
+    { mckluge(	'S','H','A','D' ),	GPU_MAKE_SHADOW		},
+    { mckluge(	'H','A','L','T' ),	GPU_SHUT_DOWN		},
+    { mckluge(	'I','D','E','D' ),	GPU_IDE_READ_DECOMP	},
+    { mckluge(	'I','N','T','4' ),	GPU_BLITTER_INTERRUPT	},
+    { mckluge(	'N','D','1','6' ),	GPU_ND16		}
+};
+
+/* New scheme packs code offset into 20 MSBs of headp->codesize
+ * This allows all the headers to be packed into an array
+ * at the beginning of the GPU image area, and allows more
+ * _possible_ GPU code, although the total loaded at any
+ * one time is limitted to 4Kbytes, the size of the GPU RAM.
+ */
+#define CODE_OFFS(old_size) ((old_size)>>12)
+#define CODE_LEN(old_size) ((old_size)&0xFFF)
+
+static GPU_TASK_HEADER *
+gpu_find_header( id, taskno, hp )
+U32 id;
+int *taskno;
+GPU_TASK_HEADER *hp;
+{
+    int idx;
+    GPU_TASK_HEADER *last;
+    extern U32 GPU_ROM;
+    U32 code_offs;
+
+    if ( hp == 0 ) hp = (GPU_TASK_HEADER*)&GPU_ROM;
+
+    /* If the code for the first header is directly following
+     * the header, we have an old gpudisp.gas, so we
+     * can't find anything else and must fall back
+     * to the old, hard-coded scheme.
+     */
+
+    code_offs = CODE_OFFS(hp->codesize); 
+    if (  code_offs == 0 ) return 0;
+
+    last = (GPU_TASK_HEADER *)((U32*)hp + code_offs);
+
+    while ( hp <= last ) {
+	if ( hp->id != id ) ++hp;
+	else {
+	    /* found our code, now see if it has
+	     * an assigned slot. (if the caller cares)
+	     */
+	    if ( taskno == 0 ) return hp;
+	    for ( idx = 0 ; idx < n_elts(fixtab) ; ++idx ) {
+		if ( fixtab[idx].name_id == id ) break;
+	    }
+	    if ( idx < n_elts(fixtab) ) *taskno = fixtab[idx].def_id;
+	    return hp;
+	}
+
+    }
+    return 0;
+}
+
+/******************************************************************/
+
+
+/*
+** ********************************
+** gpu_task_init():
+** Initialize the GPU Task Manager.
+** ================================
+** Usage:
+**   gpu_task_init():
+**
+** Returns:
+**   Nothing.
+** ********************************
+*/
+
+static int gpu_inited;
+
+void gpu_task_init( void )
+{
+    GPU_TASK_HEADER *hp;
+    int taskno;
+
+    if ( gpu_inited ) {
+	U32 timer;
+	VU32 *g_ctrl;
+
+	gpu_run_task( GPU_SHUT_DOWN );
+	g_ctrl = &G_CTRL;
+	for ( timer = 0 ; timer < 34000000 ; timer += 300 ) {
+	    if ( (*g_ctrl & 1) == 0 ) break;
+	}
+	if ( timer >= 34000000 ) {
+#if (0)
+	    prc_panic("GPU SHUTDOWN FAILED");
+#endif
+	    *g_ctrl = 0;	/* smash it */
+	}
+	for ( taskno = 0 ; taskno < n_elts(task_list) ; ++taskno ) {
+	    task_list[taskno].runaddr = 0;
+	    task_list[taskno].bssbase = 0;
+	}
+    }
+
+    /* clear the GPU flags, and clear GPU memory */
+    G_FLAGS = 0;
+    blit_clear( (U8 *)&G_RAM, 1024 );
+
+    /* init. free memory pointer to start of GPU memory. */
+    gpu_memptr = (U32 *)&G_RAM;
+
+#if LOAD_ALL_GPU
+    /*
+    ** preload all of the GPU tasks and interrupt handlers
+    ** The GPU Interrupt Vector task MUST be loaded first!
+    */
+    hp = gpu_find_header(mckluge('R','O','O','T'), &taskno, 0);
+    if ( hp ) {
+	/* New-style headers, load them up.
+	 */
+	int idx;
+	for ( idx = 0 ; idx < n_elts(fixtab) ; ++idx ) {
+	    hp = gpu_find_header(fixtab[idx].name_id, &taskno, 0);
+	    if ( hp ) gpu_load_task(hp, taskno);
+	}
+    }
+#else
+    /*
+    ** load only those GPU tasks and interrupt handlers
+    ** that we _know_ we need. The rest will be auto-magically
+    ** loaded.
+    */
+    hp = gpu_find_header(mckluge('R','O','O','T'), &taskno, 0);
+    if ( hp ) gpu_load_task(hp, taskno);
+    hp = gpu_find_header(mckluge('D','I','S','P'), &taskno, 0);
+    if ( hp ) gpu_load_task(hp, taskno);
+#if (COJAG_GAME & COJAG_AREA51)
+    /* JackHammer needs blitter interrupt, although it this
+     * is not apparent from the gpu_* calls.
+     */
+    hp = gpu_find_header(mckluge('I','N','T','4'), &taskno, 0);
+    if ( hp ) gpu_load_task(hp, taskno);
+#endif	/* JackHammer */
+#endif	/* LOAD_ALL_GPU */
+    /*
+    ** allocate DRAM for the dispatcher's task done flag, make sure it is
+    ** set to zero, then store its address in the dispatcher's BSS area.
+    */
+
+    gpu_taskdone = (U32 *)dram_alloc( 1, 0 );
+    *gpu_taskdone = 0;
+
+    gpu_set_bss( GPU_TASK_DISPATCH,
+                 DISPATCH_BSS_DONE,
+                 H2TADDR( (U32)gpu_taskdone ) );
+
+    /*
+    ** init. the execute task address to zero and run the dispatcher.
+    */
+
+    gpu_set_bss( GPU_TASK_DISPATCH, DISPATCH_BSS_EXEC, 0 );
+    gpu_run_task( GPU_TASK_DISPATCH );
+
+    gpu_inited = 1;
+
+}   /* End: gpu_task_init() */
+
+
+/*
+** *******************************************************
+** gpu_load_task():
+** Load the GPU task described by the GPU_TASK_HEADER
+** parameter into GPU memory and assign it the position
+** in the task list using the task_id parameter as an
+** array index.
+** =======================================================
+** Usage:
+**   gpu_load_task( gpuheadp, task_id );
+**
+**   GPU_TASK_HEADER *gpuheadp: ptr to GPU program header.
+**   U32 task_id:               ID to assign this task.
+**
+** Returns:
+**   Run address of loaded task. Should return 0 if it fails.
+** *******************************************************
+*/
+
+static void gpu_patch_int( int task_id, int intvec );
+
+U32 gpu_load_task( gpuheadp, task_id )
+GPU_TASK_HEADER *gpuheadp;
+U32 task_id;
+{
+
+    U16 i;
+    U32 code_len,code_offs,slack;
+    U32 tprgsize;
+    VU32 *sptr;
+    VU32 *dptr;
+    GPU_TASK_NODE *gputaskp;
+    code_len = CODE_LEN(gpuheadp->codesize);
+    code_offs = CODE_OFFS(gpuheadp->codesize); 
+
+    slack = ((U32 *)&G_ENDRAM) - gpu_memptr;
+    /* calculate total size of program (including stack space) */
+    tprgsize = code_len + gpuheadp->stacksize;
+    if ( tprgsize > slack ) {
+	/* Won't fit.
+	 */
+	return 0;
+    } 
+    /* initialize the GPU Task structure for this program */
+    gputaskp = &task_list[task_id];
+    gputaskp->runaddr = gpu_memptr;
+    gputaskp->bssbase = gputaskp->runaddr + code_len;
+    gputaskp->stackbase = gputaskp->runaddr + tprgsize;
+    gputaskp->stackptr = gputaskp->stackbase;
+    gputaskp->taskflags = gpuheadp->taskflags;
+
+#if PRINT_TASK_INFO
+    /* Print the task ID and run address on the screen */
+    txt_decnum( TASK_INFO_X,
+                TASK_INFO_Y + task_id,
+                task_id,
+                1, RJ_ZF, RED_PAL );
+
+    txt_hexnum( TASK_INFO_X + 2,
+                TASK_INFO_Y + task_id,
+                (U32)gputaskp->runaddr,
+                8, RJ_ZF, RED_PAL );
+
+    txt_hexnum( TASK_INFO_X + 11,
+                TASK_INFO_Y + task_id,
+                (U32)gputaskp->taskflags,
+                4, RJ_ZF, RED_PAL );
+#endif
+
+    /* copy program into GPU memory */
+    sptr = (U32 *)gpuheadp + (sizeof(GPU_TASK_HEADER)/sizeof(U32)) + code_offs;
+    dptr = gputaskp->runaddr;
+    for( i = 0; i < code_len ; i++ )
+         *dptr++ = *sptr++;
+
+    /* move free memory pointer past the task just loaded */
+    gpu_memptr += tprgsize;
+
+    /* If the task is a new-style interrupt handler,
+    ** patch its GPU interrupt vector
+    */
+    if( VEC_NUM(gpuheadp->taskflags) )
+        {
+        gpu_patch_int( task_id, VEC_NUM(gpuheadp->taskflags)-1 );
+        }
+
+    /* If the task is an old-style interrupt handler,
+    ** patch its GPU interrupt vector
+    */
+    else if( (gpuheadp->id & 0xffffff00) == INT0VAL )
+        {
+        gpu_patch_int( task_id, (U16)gpuheadp->id & 0x7 );
+        }
+
+    /* return run address of task in GPU memory */
+    return( (U32)gputaskp->runaddr );
+
+}   /* End: gpu_load_task() */
+
+
+U32 gpu_load_by_def( task_id )
+int task_id;
+{
+    int idx;
+
+    int ck;
+    GPU_TASK_HEADER *hp;
+
+    for ( idx = 0 ; idx < n_elts(fixtab) ; ++idx ) {
+	if ( fixtab[idx].def_id == task_id ) {
+	    /* If this #define has an associated name,
+	     * try to find the code by name.
+	     */
+	    hp = gpu_find_header( fixtab[idx].name_id, &ck, 0);
+	    if ( hp && ck == task_id ) {
+		return gpu_load_task(hp, task_id);
+	    }
+	}
+    }
+    return 0;
+}
+
+/*
+** ********************************************************
+** gpu_run_task():
+** Execute a GPU task.  A check is made to see if the task
+** to run is the main dispatcher or is a regular GPU task.
+**
+** If the task is the dispatcher, the GPU's program counter
+** is set and the GPU is started.
+**
+** If the task is not the dispatcher (i.e. a normal task)
+** then the address of the task is stored in the bss area
+** execute of the dispatcher.
+** =======================================================
+** Usage:
+**   gpu_run_task( task_id );
+**
+**   U16 task_id:  ID of task to run.
+**
+** Returns:
+**   Nothing.
+** ********************************************************
+*/
+
+static void gpu_patch_task( int task_id );
+
+void gpu_run_task( task_id )
+U16 task_id;
+{
+
+    GPU_TASK_NODE *gputaskp;
+
+
+    /* patch the task's stack address and reset node's stackptr */
+    gputaskp = &task_list[task_id];
+
+    if ( gputaskp->runaddr == 0 ) {
+    	/* task is not yet loaded. This should only
+	*  happen as a result of older "#define driven"
+	* code, so look up the corresponding name,
+	* and load.
+	*/
+	if ( !gpu_load_by_def( task_id ) ) return;
+    }
+    gpu_patch_task( task_id );
+    gputaskp->stackptr = gputaskp->stackbase;
+
+    /*
+    ** If this is the task dispatcher, go ahead and run it.
+    ** Otherwise, it's a sub-task and I need to store its
+    ** location in the BSS slot the task dispatcher looks
+    ** at to see if there's a task to run.
+    */
+
+    if( task_id == GPU_TASK_DISPATCH )
+        {
+        G_PC = H2TADDR( gputaskp->runaddr );
+        G_CTRL = 1;
+        }
+    else
+        {
+
+#if PRINT_RUNNING_TASK
+        txt_str( PRINT_RUN_X, PRINT_RUN_Y, "Running task #", YEL_PAL );
+        txt_str( PRINT_RUN_X + 14, PRINT_RUN_Y, "..........", YEL_PAL );
+
+        txt_decnum( PRINT_RUN_X + 14 + task_id,
+                    PRINT_RUN_Y,
+                    (U32)task_id,
+                    1, RJ_ZF, YEL_PAL );
+#endif
+
+        *gpu_taskdone = 0;
+
+        gpu_set_bss( GPU_TASK_DISPATCH,
+                     DISPATCH_BSS_EXEC,
+                     H2TADDR( (U32)gputaskp->runaddr ) );
+        }
+
+}   /* End: gpu_run_task() */
+
+
+/*
+** **********************************************
+** gpu_patch_task():
+** Fixup a GPU task by patching the instructions
+** at the beginning of the task which set the
+** offsets to the stack and BSS areas.
+** ==============================================
+** Usage:
+**   gpu_patch_task( task_id );
+**
+**   U16 task_id:  ID of task to patch.
+**
+** Returns:
+**   Nothing.
+** **********************************************
+*/
+
+/* define constants for the necessary GPU instructions */
+#define  MOVEI  (0x9800)
+#define  MOVEPC (0xCC00)
+#define  R0     (0x0000)
+#define  R1     (0x0001)
+#define  R2     (0x0002)
+#define  R3     (0x0003)
+#define  R4     (0x0004)
+#define  R5     (0x0005)
+#define  R6     (0x0006)
+#define  R7     (0x0007)
+#define  R8     (0x0008)
+#define  R9     (0x0009)
+#define  R10    (0x000A)
+#define  R11    (0x000B)
+#define  R12    (0x000C)
+#define  R13    (0x000D)
+#define  R14    (0x000E)
+#define  R15    (0x000F)
+#define  R16    (0x0010)
+#define  R17    (0x0011)
+#define  R18    (0x0012)
+#define  R19    (0x0013)
+#define  R20    (0x0014)
+#define  R21    (0x0015)
+#define  R22    (0x0016)
+#define  R23    (0x0017)
+#define  R24    (0x0018)
+#define  R25    (0x0019)
+#define  R26    (0x001A)
+#define  R27    (0x001B)
+#define  R28    (0x001C)
+#define  R29    (0x001D)
+#define  R30    (0x001E)
+#define  R31    (0x001F)
+#define  IJMPT  (0xd000)
+#define  NOP    (0xe400)
+
+/*
+** Warning:
+** The registers used to initialize the program counter, the stack register,
+** and the bss register at the beginning of the dispatcher task, and any
+** subtask, are controlled by the register usage and code in the .GAS files.
+** Do not change the definitions below without also changing the necessary
+** GPU code.  And you had better know exactly what you're doing!
+*/
+
+#define  PCREG  (R21)
+#define  STKREG (R22)
+#define  BSSREG (R23)
+
+static void gpu_patch_task( task_id )
+U16 task_id;
+{
+    U32 runaddr;
+    U32 stk_offset;
+    U32 bss_offset;
+    VU32 *patchptr;
+
+
+    /*
+    ** Patch the beginning of the task with the following code:
+    **
+    ** move	PC,PCREG
+    ** movei	#$<stkaddr-runaddr>,STKREG
+    ** movei	#$<bssaddr-runaddr>,BSSREG
+    ** nop
+    */
+
+    runaddr = (U32)task_list[task_id].runaddr;
+    stk_offset = (U32)task_list[task_id].stackptr - runaddr;
+    bss_offset = (U32)task_list[task_id].bssbase - runaddr;
+
+    patchptr = (VU32 *)runaddr;
+    *patchptr++ = ((MOVEPC | PCREG) << 16) | (MOVEI | STKREG);
+
+    *patchptr++ = ((stk_offset << 16) & 0xffff0000) |
+                  ((stk_offset >> 16) & 0x0000ffff);
+
+    *patchptr++ = ((MOVEI | BSSREG) << 16) | (bss_offset & 0x0000ffff);
+    *patchptr++ = ((bss_offset >> 16) & 0x0000ffff) | NOP;
+
+}   /* End: gpu_patch_task() */
+
+
+/*
+** *********************************************
+** gpu_patch_int():
+** Patch the specified GPU interrupt vector so
+** that it sets up the correct jump location
+** and BSS address.
+** =============================================
+** Usage:
+**   gpu_patch_int( task_id, intvec );
+**
+**   U16 task_id:  ID of task to patch.
+**   U16 intvec:   interrupt vector to patch.
+**
+** Returns:
+**   Nothing.
+** *********************************************
+*/
+
+static void gpu_patch_int( task_id, intvec )
+U16 task_id;
+U16 intvec;
+{
+    VU32 *patchptr;
+    U32 israddr;
+    U32 bssbase;
+
+
+    /*
+    ** Convert the ISR's entry address and BSS address to
+    ** Tom's internal format, then write the following GPU
+    ** code to the interrupt's vector area:
+    **
+    ** movei	#$<israddr>,r0
+    ** movei	#$<bssaddr>,ivecbss
+    ** jump	T,(r0)
+    ** nop
+    */
+
+    israddr = H2TADDR( task_list[task_id].runaddr );
+    bssbase = H2TADDR( task_list[task_id].bssbase );
+
+    patchptr = (VU32 *)((U32)&G_RAM + (intvec << 4));
+    *patchptr++ = ((MOVEI | R0) << 16) | (israddr & 0x0000ffff);
+
+    /* By using the fact that the code has been loaded, with
+     * an assembled-in MOVEI, we can accomodate both original
+     * (IVECBSS == RO) and Silencer (IVECBSS == R14) style
+     * interrupt routines.
+     */
+    *patchptr = (*patchptr & 0xFFFF) | (israddr & 0xFFFF0000);
+    ++patchptr;
+
+    *patchptr++ = ((bssbase >> 16) & 0x0000ffff) |
+                  ((bssbase << 16) & 0xffff0000);
+    *patchptr = ((IJMPT | R0) << 16) | NOP;
+
+}   /* End: gpu_patch_int() */
+
+
+/*
+** ***********************************************
+** gpu_push_stack():
+** Push a parameter onto a GPU task's local stack.
+** ===============================================
+** Usage:
+**   gpu_push_stack( task_id, stackparm );
+**
+**   U16 task_id:    ID of task to receive push.
+**   U32 stackparm:  parameter to push on stack.
+**
+** Return:
+**   Nothing.
+** ***********************************************
+*/
+
+void gpu_push_stack( task_id, stackparm )
+U16 task_id;
+U32 stackparm;
+{
+    U16 *tstack;
+    GPU_TASK_NODE *gputaskp;
+
+
+    gputaskp = &task_list[task_id];
+    if ( gputaskp->runaddr == 0 ) {
+    	/* task is not yet loaded. This should only
+	*  happen as a result of older "#define driven"
+	* code, so look up the corresponding name,
+	* and load.
+	*/
+	if ( !gpu_load_by_def( task_id ) ) return;
+    }
+    tstack = (U16 *)(gputaskp->stackptr - 1);
+    *(tstack) = (U16)((stackparm >> 16) & 0xffff);
+    *(tstack+1) = (U16)(stackparm & 0xffff);
+    gputaskp->stackptr = (U32 *)tstack;
+
+}   /* End: gpu_push_stack() */
+
+
+/*
+** *********************************************
+** gpu_set_bss():
+** Set a value in a GPU task's local BSS area.
+** =============================================
+** Usage:
+**   gpu_set_bss( task_id, bss_slot, bss_val );
+**
+**   U16 task_id:   ID of task to receive push.
+**   U32 bss_slot:  position in BSS to set.
+**   U32 bss_val:   value to put in BSS area.
+**
+** Return:
+**   Nothing.
+** *********************************************
+*/
+
+void gpu_set_bss( task_id, bss_slot, bss_val )
+U16 task_id;
+U32 bss_slot;
+U32 bss_val;
+{
+  VU32 *gpumemptr;
+  
+
+  /* get address of gpu U32 */
+
+  gpumemptr = (VU32 *)(task_list[task_id].bssbase);
+
+  if ( gpumemptr == 0 ) {
+    gpu_load_by_def(task_id);
+    gpumemptr = (VU32 *)(task_list[task_id].bssbase);
+    if ( gpumemptr == 0 ) return;
+  }
+  gpumemptr += bss_slot;
+
+  /* add offset for 32 bit write only */
+  gpumemptr += 0x2000;
+
+  /* write to GPU mem */
+  *gpumemptr = bss_val;
+
+}   /* End: gpu_set_bss() */
+
+
+/*
+** **************************************************
+** gpu_get_bss():
+** Retrieve a value from a GPU task's local BSS area.
+** ==================================================
+** Usage:
+**   bss_val = gpu_get_bss( task_id, bss_slot );
+**
+**   U16 task_id:   ID of task to receive push.
+**   U32 bss_slot:  position in BSS to set.
+**
+** Return:
+**   (U32)bss_val:  Value in task's BSS area.
+** **************************************************
+*/
+
+U32 gpu_get_bss( task_id, bss_slot )
+U16 task_id;
+U32 bss_slot;
+{
+  U32 *gpumemptr;
+
+  gpumemptr = task_list[task_id].bssbase;
+
+  if ( gpumemptr == 0 ) {
+    gpu_load_by_def(task_id);
+    gpumemptr = task_list[task_id].bssbase;
+    if ( gpumemptr == 0 ) return -1;
+  }
+
+  return( gpumemptr[ bss_slot ] );
+
+}   /* End: gpu_get_bss() */
+
+
+/*
+** **************************************************
+** gpu_task_complete():
+** Returns flag that indicates if a GPU task is done.
+** ==================================================
+** Usage:
+**   status = gpu_task_complete();
+**
+** Returns:
+**   U16 status: 0 = task running/1 = task done.
+** **************************************************
+*/
+
+U16 gpu_task_complete( void )
+{
+    return( *gpu_taskdone );
+
+}   /* End: gpu_task_complete() */
+
+/*************************************************************************
+* End of file: GPUTASK.C                                                 *
+*************************************************************************/
+@
+
+
+1.13
+log
+@Force loading of blitter interrupt routine, on
+"Area51", really JackHammer.
+@
+text
+@d6 3
+@
+
+
+1.12
+log
+@Fixed typo in VEC_NUM. Added check for "slack" to avoid
+stuff ten pounds of GPU code in a five-pound sack.
+@
+text
+@d233 8
+a240 1
+#endif
+@
+
+
+1.11
+log
+@More changes for slective loading of GPU code. Implemented
+"load on demand". Only load ROOT and DISP during gpu_task_init().
+Start of GPU ROM image now called GPU_ROM, similar to treatment
+or DSP_ROM. Older per-task labels no longer used. This requires
+change to "magic" file (deleting pile of old labels and adding
+one new one), but should be last one.
+Don't panic on GPU shutdown timeout, just slam it.
+Added ND16 task to table. Changed params to (undocumented)
+gpu_find_header() (used only in this file, so far.
+@
+text
+@d53 1
+a53 1
+#define VEC_NUM(flags) ((flags>>1)&0xE)
+d285 1
+a285 1
+    U32 code_len,code_offs;
+d293 1
+d296 5
+a300 1
+
+@
+
+
+1.10
+log
+@transitional version which supports both old-style (fixed
+task number and external definitions) and new-style (table
+of headers for "load by name". GPU code headers. This version
+works with gpudisp.gas 1.12 or earlier. Next version will
+work with 1.12 or later, to provide overlap.
+@
+text
+@d50 5
+d81 3
+a83 2
+#define mckluge( c1, c2, c3, c4, defval ) \
+    { ((c1)<<24)|((c2)<<16)|((c3)<<8)|(c4), (defval) }
+d90 14
+a103 12
+    mckluge(	'R','O','O','T',	GPU_INT_DISPATCH	),
+    mckluge(	'D','I','S','P',	GPU_TASK_DISPATCH	),
+    mckluge(	'I','N','T','1',	GPU_IDE_INTERRUPT	),
+    mckluge(	'I','N','T','3',	GPU_OBP_INTERRUPT	),
+    mckluge(	'D','C','M','P',	GPU_NPACK_DECOMP	),
+    mckluge(	'M','D','C','M',	GPU_MOVIE_DECOMP	),
+    mckluge(	'M','T','S','T',	GPU_MEMORY_TEST		),
+    mckluge(	'G','I','D','E',	GPU_IDE_READ		),
+    mckluge(	'S','H','A','D',	GPU_MAKE_SHADOW		),
+    mckluge(	'H','A','L','T',	GPU_SHUT_DOWN		),
+    mckluge(	'I','D','E','D',	GPU_IDE_READ_DECOMP	),
+    mckluge(	'I','N','T','4',	GPU_BLITTER_INTERRUPT	)
+d116 1
+a116 1
+gpu_find_header( id, taskno )
+d119 1
+d122 5
+a126 2
+    GPU_TASK_HEADER *hp,*last;
+    extern U32 gpu_int1();
+d128 1
+a128 2
+    hp = (GPU_TASK_HEADER*)&gpu_int1;
+    /* if the code for the first header is directly following
+a132 2
+    if ( CODE_OFFS(hp->codesize) == 0 ) return 0;
+    last = (GPU_TASK_HEADER *)((U32*)hp + CODE_OFFS(hp->codesize));
+d134 5
+a176 12
+    /* externs for functions in GPU code. */
+    extern U32 gpu_int1();
+    extern U32 gpu_ide_isr();
+    extern U32 gpu_blitter_isr();
+    extern U32 gpu_obp_isr();
+    extern U32 gpu_task_dispatcher();
+    extern U32 gpu_decompress();
+    extern U32 gpu_movie();
+    extern U32 gpu_memory_test();
+    extern U32 gpu_ide_read();
+    extern U32 gpu_make_shadow();
+    extern U32 gpu_shut_down();
+d189 10
+a198 1
+	if ( timer >= 34000000 ) prc_panic("GPU SHUTDOWN FAILED");
+d208 1
+d213 2
+a214 1
+    if ( 0 != (hp = gpu_find_header(fixtab[0].name_id, &taskno)) ) {
+d219 1
+a219 1
+	    hp = gpu_find_header(fixtab[idx].name_id, &taskno);
+d222 11
+a232 10
+    } else {
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_int1, GPU_INT_DISPATCH );
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_ide_isr, GPU_IDE_INTERRUPT );
+#if (COJAG_GAME & COJAG_AREA51)
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_blitter_isr, GPU_BLITTER_INTERRUPT );
+#endif
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_obp_isr, GPU_OBP_INTERRUPT );
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_decompress, GPU_NPACK_DECOMP );
+#if !(COJAG_GAME & COJAG_AREA51)
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_movie, GPU_MOVIE_DECOMP );
+a233 6
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_task_dispatcher, GPU_TASK_DISPATCH );
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_memory_test, GPU_MEMORY_TEST );
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_ide_read, GPU_IDE_READ );
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_make_shadow, GPU_MAKE_SHADOW );
+	gpu_load_task( (GPU_TASK_HEADER *)&gpu_shut_down, GPU_SHUT_DOWN );
+    }
+d273 1
+a273 1
+**   Nothing.
+d277 2
+a282 1
+    void gpu_patch_int( int task_id, int intvec );
+d331 12
+a342 2
+    /* If the task is an interrupt handler, patch its GPU interrupt vector */
+    if( (gpuheadp->id & 0xffffff00) == INT0VAL )
+d353 22
+d398 2
+a402 1
+    void gpu_patch_task( int task_id );
+d409 9
+d524 1
+a524 1
+void gpu_patch_task( task_id )
+d576 1
+a576 1
+void gpu_patch_int( task_id, intvec )
+d601 1
+a601 3
+#if (0)
+    *patchptr++ = (israddr & 0xffff0000) | (MOVEI | IVECBSS);
+#else
+d609 1
+a609 1
+#endif
+d642 8
+d684 9
+a692 1
+  gpumemptr = (VU32 *)(task_list[task_id].bssbase + bss_slot);
+d723 11
+a733 1
+    return( (*(U32 *)(task_list[task_id].bssbase + bss_slot)) );
+@
+
+
+1.9
+log
+@Merge with silencer, including removal of assumption about
+which reg is ivecbss.
+@
+text
+@d72 71
+d145 1
+d175 2
+a177 1
+
+d201 11
+a211 3
+
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_int1, GPU_INT_DISPATCH );
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_ide_isr, GPU_IDE_INTERRUPT );
+d213 1
+a213 1
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_blitter_isr, GPU_BLITTER_INTERRUPT );
+d215 2
+a216 2
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_obp_isr, GPU_OBP_INTERRUPT );
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_decompress, GPU_NPACK_DECOMP );
+d218 1
+a218 1
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_movie, GPU_MOVIE_DECOMP );
+d220 6
+a225 6
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_task_dispatcher, GPU_TASK_DISPATCH );
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_memory_test, GPU_MEMORY_TEST );
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_ide_read, GPU_IDE_READ );
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_make_shadow, GPU_MAKE_SHADOW );
+    gpu_load_task( (GPU_TASK_HEADER *)&gpu_shut_down, GPU_SHUT_DOWN );
+
+d276 1
+d281 2
+a282 1
+
+d285 1
+a285 1
+    tprgsize = gpuheadp->codesize + gpuheadp->stacksize;
+d290 1
+a290 1
+    gputaskp->bssbase = gputaskp->runaddr + gpuheadp->codesize;
+d314 1
+a314 1
+    sptr = (U32 *)gpuheadp + (sizeof(GPU_TASK_HEADER) >> 2);
+d316 1
+a316 1
+    for( i = 0; i < gpuheadp->codesize; i++ )
+@
+
+
+1.8
+log
+@added orderly shutdown to prevent hanging when gpu is
+"re-inited" while running.
+@
+text
+@d94 1
+d131 3
+d136 1
+d138 1
+d457 1
+a457 1
+    ** movei	#$<bssaddr>,r1
+d467 11
+a477 1
+    *patchptr++ = (israddr & 0xffff0000) | (MOVEI | R1);
+@
+
+
+1.7
+log
+@Changed position of where GPU task debugging information is
+printed.  No other changes made!
+@
+text
+@d104 11
+a114 3
+#if (0)
+    if ( gpu_inited ) return;
+#endif
+@
+
+
+1.6
+log
+@force gpu_set_bss() to use 32-bit write-only address for
+modifications to GPU memory, to avoid "partial write"
+hazard.
+@
+text
+@d34 1
+a34 1
+#define TASK_INFO_Y  (20)       /* Y position to print task info */
+@
+
+
+1.5
+log
+@Added code to load the new tasks: GPU_MAKE_SHADOW and GPU_SHUT_DOWN.
+@
+text
+@d516 2
+a517 1
+    (*(U32 *)(task_list[task_id].bssbase + bss_slot)) = bss_val;
+d519 9
+d537 1
+a537 1
+**   bss_val = gpu_set_bss( task_id, bss_slot );
+@
+
+
+1.4
+log
+@Added code to load gpu_ide_read task, and changed the way the
+task exec. ptr is handled (it's now located in the dispatcher's
+BSS area rather than in DRAM, so it won't hit the bus as often).
+@
+text
+@d100 2
+d128 2
+@
+
+
+1.3
+log
+@added kluge for MIPS or 68k style includes (jag_defs)
+@
+text
+@d6 1
+d15 1
+d26 1
+a26 1
+/*********************************************************/
+d28 3
+a30 1
+#define  INT0VAL  (U32)(('I' << 24)|('N' << 16)|('T' << 8)|0)
+d32 7
+a38 1
+/*********************************************************/
+d40 1
+a40 3
+U32 *gpu_memptr;     /* ptr to free GPU memory */
+U32 *gpu_execptr;    /* ptr to address of task to execute */
+U32 *gpu_taskdone;   /* ptr to address of task done flag */
+d42 5
+a46 1
+static GPU_TASK_NODE task_list[MAX_GPU_TASKS];
+d48 1
+a48 1
+/*********************************************************/
+d51 1
+a51 1
+** Debugging controls:
+d54 8
+a61 2
+#define PRINT_TASK_INFO    (0)
+#define PRINT_RUNNING_TASK (0)
+d63 2
+a64 2
+#define TASK_INFO_X  (2)
+#define TASK_INFO_Y  (20)
+d66 3
+a68 2
+#define PRINT_RUN_X  (2)
+#define PRINT_RUN_Y  (28)
+d70 1
+a70 1
+#define POLL_FOR_COMPLETION  (0)
+d72 1
+a72 1
+/*********************************************************/
+d91 1
+d99 1
+a112 4
+    /* Allocate DRAM for the dispatcher's exec. task ptr and task done flag */
+    gpu_execptr = (U32 *)dram_alloc( 1, 0 );
+    gpu_taskdone = (U32 *)dram_alloc( 1, 0 );
+
+d125 6
+d132 1
+a132 2
+    /* run the GPU task dispatcher */
+    *gpu_execptr = 0;
+d134 10
+a143 2
+    gpu_set_bss( GPU_TASK_DISPATCH, 0, H2TADDR( (U32)gpu_taskdone ) );
+    gpu_push_stack( GPU_TASK_DISPATCH, H2TADDR( (U32)gpu_execptr ) );
+d145 1
+d154 4
+a157 1
+** Load a task into GPU memory.
+d196 14
+a209 3
+    txt_decnum( TASK_INFO_X, TASK_INFO_Y+task_id, task_id, 1, RJ_ZF, RED_PAL );
+    txt_hexnum( TASK_INFO_X+2, TASK_INFO_Y+task_id, (U32)gputaskp->runaddr, 8, RJ_ZF, RED_PAL );
+    txt_hexnum( TASK_INFO_X+11, TASK_INFO_Y+task_id, (U32)gputaskp->taskflags, 4, RJ_ZF, RED_PAL );
+a214 1
+
+d218 1
+a218 1
+    /* move free memory pointer past task just loaded */
+d237 1
+a237 1
+** to run is the main dispatcher or a regular GPU task.
+d243 2
+a244 2
+** then the address of the task is stored in the execute
+** address variable used by the dispatcher.
+d269 7
+a275 1
+    /* patch BSS code for regular tasks here */
+d286 6
+a291 2
+        txt_str( PRINT_RUN_X+14, PRINT_RUN_Y, "........", YEL_PAL );
+        txt_decnum( PRINT_RUN_X+14+task_id, PRINT_RUN_Y, (U32)task_id, 1, RJ_ZF, YEL_PAL );
+a294 5
+        *gpu_execptr = H2TADDR( (U32)gputaskp->runaddr );
+
+#if POLL_FOR_COMPLETION
+        while( gpu_task_complete() == 0 );
+#endif
+d296 3
+d309 1
+a309 1
+** stack and BSS offsets.
+d321 1
+d365 1
+a365 1
+** GPU code.  And you had better know what exactly you're doing!
+d410 1
+a410 1
+** that is sets up the correct jump location
+@
+
+
+1.2
+log
+@Added code to support the GPU memory test task in GPUDISP.GAS.
+Added two H2TADDR()'s in gpu_task_init() to fix incorrect
+code that sets up and runs the main task dispatcher.
+@
+text
+@d6 9
+a14 1
+
+d16 3
+a19 1
+#include <jag_defs.h>
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d36 1
+a36 1
+#define TASK_INFO_Y  (22)
+d68 1
+d71 1
+d73 1
+d97 1
+d102 2
+a103 2
+    gpu_set_bss( GPU_TASK_DISPATCH, 0, (U32)gpu_taskdone );
+    gpu_push_stack( GPU_TASK_DISPATCH, (U32)gpu_execptr );
+d106 1
+d298 5
+a302 5
+** The registers used to initialize the program counter, the stack register, and
+** the bss register at the beginning of the dispatcher task, and any subtask, are
+** controlled by the register usage and code in the .GAS files.  Do not change the
+** definitions below without also changing the necessary GPU code.  And you had
+** better know what exactly you're doing!
+@

@@ -1,0 +1,204 @@
+head	1.4;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	95.12.02.01.56.58;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.12.02.01.54.20;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.10.31.02.27.07;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.10.24.00.15.26;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@GUTS LCD and XBUS monitor interface board driver.
+@
+
+
+1.4
+log
+@Changed the name GUTS_ONLY to LCD_GUTS_ONLY
+@
+text
+@#define LCD_GUTS_ONLY
+#include <config.h>
+
+VU32 lcd_time;				/* counts in more than 100us intervals */
+
+static U32 last_time;			/* last time through here */
+static U32 next_time;			/* cnt1000 must be > this to do anything */
+static U8 disp_nxt;			/* next char to send to display */
+static int state;			/* display init state */
+       char lcd_buf[81];		/* display has 2 rows of 40 characters and a null */
+
+void lcd_update() {
+   VU32 *DISP_IR, *DISP_DR;
+   DISP_IR = &XBUSMON0_LCD;
+   DISP_DR = DISP_IR+1;
+   if (last_time <= lcd_time || next_time < last_time) {	/* if lcd_time hasn't wrapped... */
+      if (next_time > lcd_time) return;	/* not time to do anything here */      
+   }
+   last_time = lcd_time;		/* remember what time it is */
+   switch(state) {
+      case 0:
+	 next_time = lcd_time+16;	/* wait 16ms before doing anything (power up delay) */
+         ++state;
+	 return;
+      case 1:
+	 ++state;
+         *DISP_IR = 0x38;		/* select 8 bit interface */
+	 next_time = lcd_time+5;	/* next wait 5 millisecs */
+	 return;
+      case 2:
+	 ++state;
+         *DISP_IR = 0x38;		/* select 8 bit interface again */
+	 next_time = lcd_time+1;	/* next wait 1 millisecs */
+	 return;
+      case 3:
+	 ++state;
+         *DISP_IR = 0x38;		/* select 8 bit interface a third time */
+	 next_time = lcd_time+1;	/* next wait 1 millisecs */
+	 return;
+      case 4:
+	 ++state;
+         *DISP_IR = 0x38;		/* 8 bit interface a fourth time with 2 display lines */
+	 next_time = lcd_time+1;	/* next wait 1 millisecs */
+	 return;
+      case 5:
+	 ++state;
+	 *DISP_IR = 0x0C;		/* display on, no visible cursor */
+	 next_time = lcd_time+1;	/* 1 ms */
+	 return;
+      case 6:
+	 ++state;
+	 *DISP_IR = 0x06;		/* entry mode: increment no shift */
+	 disp_nxt = sizeof(lcd_buf);	/* make it do a "home cursor" first */
+	 next_time = lcd_time+1;	/* 1 ms */
+	 return;
+      case 7:
+	 if (disp_nxt >= sizeof(lcd_buf)-1) {
+	    *DISP_IR = 0x80;		/* set cursor to home every 80th character */
+	    disp_nxt = 0;
+	 } else {
+            int chr;
+            chr = lcd_buf[disp_nxt];	/* every millisecond, dump one character to display */
+            if (chr == 0) chr = ' ';	/* convert null's to spaces */
+	    *DISP_DR = chr; 
+	    ++disp_nxt;
+	 }
+	 next_time = lcd_time+1;
+	 return;
+      default:
+	 state = 0;			/* if we ever get here, just start over */
+   }
+   return;
+}
+
+extern void memset(char*, int, int);
+extern int prc_set_ipl(int);
+extern void wait_n_usecs(int);
+
+void lcd_wait(int n) {
+    int oldps;
+    if (n == 0) n = 1;
+    oldps = prc_set_ipl(INTS_OFF);
+    lcd_time += n;
+    wait_n_usecs(1000);
+    prc_set_ipl(oldps);
+    return;
+}
+
+char *lcd_reset() {
+   int ii, jj;
+   state = 0;
+   next_time = last_time = lcd_time = 0;	/* reset the clock */
+   memset(lcd_buf, ' ', sizeof(lcd_buf)); /* fill buffer with blanks */
+   for (jj=0; state < 7;) {
+      lcd_wait(1);			/* pause for one millisecond */
+      lcd_update();			/* process display */
+      ++jj;
+   }
+   for (jj=ii=0; ii<80; ++ii) {		/* now copy all 80 (blank) characters to display */
+      lcd_wait(1);
+      lcd_update();
+      ++jj;
+   }
+   return lcd_buf;
+}
+
+
+@
+
+
+1.3
+log
+@Removed reference to xbusmon.h
+@
+text
+@d1 1
+a1 1
+#define GUTS_ONLY
+@
+
+
+1.2
+log
+@*** empty log message ***
+@
+text
+@d1 1
+a2 1
+#include <xbusmon.h>
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 1
+a12 1
+void update_display() {
+d61 4
+a64 1
+	    *DISP_DR = lcd_buf[disp_nxt]; /* every millisecond, dump one character to display */
+a75 1
+extern void prc_delay(int);
+d77 1
+a77 1
+extern void wait_n_ticks(int);
+d79 1
+a79 1
+void wait_lcdtime(int n) {
+d84 1
+a84 1
+    wait_n_ticks(n*13330);
+d89 1
+a89 1
+char *reset_display() {
+d95 2
+a96 2
+      wait_lcdtime(1);			/* pause for one millisecond */
+      update_display();			/* process display */
+d100 2
+a101 2
+      wait_lcdtime(1);
+      update_display();
+@

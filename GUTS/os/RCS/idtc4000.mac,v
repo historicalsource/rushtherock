@@ -1,0 +1,1630 @@
+head	1.20;
+access;
+symbols
+	RUSH_ROCK_1_0:1.20
+	RUSH_ROCK_1_0epst:1.20
+	RUSH_ROCK_1_0boot:1.20
+	MACE_1_0e:1.20
+	MACE_1_0d:1.20
+	RUSH_1_06A:1.17
+	AREA_52_00:1.20
+	MACE_1_0a:1.19;
+locks; strict;
+comment	@;; @;
+
+
+1.20
+date	97.07.01.20.54.19;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	97.02.25.18.51.41;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	97.02.20.18.37.28;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.11.04.21.23.12;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.08.07.00.01.48;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.06.08.16.52.03;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.05.24.02.44.15;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.05.24.01.48.26;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.04.14.16.59.44;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.04.06.03.10.59;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.04.06.01.18.37;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.01.24.00.44.57;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.01.13.22.42.34;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.01.13.22.22.06;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.11.22.21.58.39;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.11.10.03.07.53;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.10.25.00.41.36;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.10.17.18.21.06;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.10.16.20.49.40;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.07.21.01.35.30;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Assembly functions specific to the IDT R4K processor startup code
+@
+
+
+1.20
+log
+@Added a $Id$ to get file's version number.
+@
+text
+@; $Id$
+;
+/*
+ * R4000 cache operations
+ */
+
+	.include	config.mac
+
+.if not_defined, USE_MIPS4
+USE_MIPS4 == 0
+.endc
+.if not_defined, USE_MIPS3
+USE_MIPS3 == 1
+.endc
+.if true, USE_MIPS4
+	.set mips4
+.iff
+ .if true, USE_MIPS3
+	.set mips3
+ .endc
+.endc
+
+HAS_SCACHE == 0
+
+.if not_defined, BOOT_ROM_CODE
+BOOT_ROM_CODE == 0
+.endc
+
+	.macro ALIGN3
+	.align 3
+	.endm
+
+.if defined,TINY_MODE
+ .if true, TINY_MODE > 0
+MIN_IDTC4000 == 1
+ .endc
+.endc
+
+.if not_defined, MIN_IDTC4000
+MIN_IDTC4000 == 0
+.endc
+
+.if not_defined, CACHE_MEM_BASE
+CACHE_MEM_BASE == 0
+CACHE_MEM_BASE = PROM_BASE
+.endc
+
+.macro	LEAF label args
+	FRAME label args
+.endm
+
+.macro	END label
+	ENDFRAME label
+.endm
+
+/*
+ * cacheop macro to automate cache operations
+ * first some helpers...
+ */
+.macro	_mincache size, maxsize
+	bltu	size,maxsize,8f
+	move	size,maxsize
+	ALIGN3
+8:
+.endm
+
+.macro	_align tmp, minaddr, maxaddr, linesize
+	subu	tmp,linesize,1
+	not	tmp 
+	and	minaddr,tmp
+	addu	maxaddr,-1
+	and	maxaddr,tmp
+.endm
+
+/* This is a bit of a hack really because it relies on minaddr=a0 */
+.macro	_doop1 op1
+	cache	op1,0(a0)
+	nop
+.endm
+
+.macro	_doop2 op1, op2
+	cache	op1,0(a0)
+	nop
+	cache	op2,0(a0)
+	nop
+.endm
+
+/* specials for cache initialisation */
+.macro	_doop1lw1 op1
+	cache	op1,0(a0)
+	nop
+	lw	zero,0(a0)
+	nop
+	cache	op1,0(a0)
+	nop
+.endm
+
+.macro	_doop121 op1, op2
+	cache	op1,0(a0)
+	nop
+	cache	op2,0(a0) 
+	nop
+	cache	op1,0(a0)
+.endm
+
+.macro	_oploopn minaddr, maxaddr, linesize, tag, ops
+	.set	noreorder
+	ALIGN3
+7:
+	_doop'tag	ops
+	bne     minaddr,maxaddr,7b
+	addu   	minaddr,linesize
+	.set	reorder
+.endm
+
+/* finally the cache operation macros */
+.macro	icacheopn kva, n, cache_size, cache_linesize, tag, ops
+	_mincache n, cache_size
+ 	blez	n, 9f
+	addu	n, kva
+	_align	t1, kva, n, cache_linesize
+	_oploopn kva, n, cache_linesize, tag, <ops>
+	ALIGN3
+9:
+.endm
+
+.macro	vcacheopn kva, n, cache_size, cache_linesize, tag, ops
+ 	blez	n,9f
+	addu	n,kva
+	_align	t1, kva, n, cache_linesize
+	_oploopn kva, n, cache_linesize, tag, <ops>
+	ALIGN3
+9:
+.endm
+
+.macro	icacheop kva, n, cache_size, cache_linesize, op
+	icacheopn kva, n, cache_size, cache_linesize, 1, <op>
+.endm
+
+.macro	vcacheop kva, n, cache_size, cache_linesize, op
+	vcacheopn kva, n, cache_size, cache_linesize, 1, <op>
+.endm
+
+.if true, BOOT_ROM_CODE == 0
+	.bss
+	.globl	icache_size; .globl icache_linesize
+icache_size:
+	.space	4
+icache_linesize:
+	.space	4
+	.globl	dcache_size; .globl dcache_linesize
+dcache_size:
+	.space	4
+dcache_linesize:
+	.space	4
+.if true, HAS_SCACHE
+	.globl	scache_size; .globl scache_linesize
+scache_size:
+	.space	4
+scache_linesize:
+	.space	4
+.endc
+.endc
+	.text
+/*
+ * static void size_cache()
+ * 
+ * Internal routine to determine cache sizes by looking at R4000 config
+ * register.  Sizes are returned in registers, as follows:
+ *	t2	icache size
+ *	t3	dcache size
+ *	t6	scache size
+ *	t4	icache line size
+ *	t5	dcache line size
+ *	t7	scache line size
+ */
+	ALIGN3
+LEAF size_cache 
+	mfc0	t0,C0_CONFIG
+
+	and	t1,t0,CFG_ICMASK
+	srl	t1,CFG_ICSHIFT
+	li	t2,0x1000
+	sll	t2,t1
+
+	and	t1,t0,CFG_DCMASK
+	srl	t1,CFG_DCSHIFT
+	li	t3,0x1000
+	sll	t3,t1
+
+	li	t4,32
+	and	t1,t0,CFG_IB
+	bnez	t1,1f
+	li	t4,16
+	ALIGN3
+1:	
+
+	li	t5,32
+	and	t1,t0,CFG_DB
+	bnez	t1,1f
+	li	t5,16
+	ALIGN3
+1:	
+
+	move	t6,zero			# default to no scache
+	move	t7,zero			#
+
+	and	t1,t0,CFG_C_UNCACHED	# test config register
+	bnez	t1,1f			# no scache if uncached/non-coherent
+	
+	li	t6,0x100000		# assume 1Mb scache <<-NOTE
+	and	t1,t0,CFG_SBMASK
+	srl	t1,CFG_SBSHIFT
+	li	t7,16
+	sll	t7,t1
+	ALIGN3
+1:	j	ra
+END size_cache
+
+.if true, BOOT_ROM_CODE == 0
+/*
+ * void config_cache()
+ * 
+ * Work out size of I, D & S caches, assuming they are already initialised.
+ */
+	ALIGN3
+LEAF config_cache
+	lw	t0,icache_size
+	bgtz	t0,8f			# already known?
+	move	v0,ra
+	ALIGN3
+	bal	size_cache
+	move	ra,v0
+
+	sw	t2,icache_size
+	sw	t3,dcache_size
+	and	t4, 0xFF
+	sw	t4,icache_linesize
+	and	t5, 0xFF
+	sw	t5,dcache_linesize
+.if true, HAS_SCACHE
+	sw	t6,scache_size
+	and	t7, 0xFF
+	sw	t7,scache_linesize
+.endc
+	ALIGN3
+8:	j	ra
+END config_cache
+.endc
+
+/*
+ * void init_cache()
+ */
+	ALIGN3
+LEAF init_cache
+	/*
+ 	 * First work out the sizes
+	 */
+	move	v0,ra
+	ALIGN3
+	bal	size_cache
+	move	ra,v0
+	
+	/*
+	 * The caches may be in an indeterminate state,
+	 * so we force good parity into them by doing an
+	 * invalidate, load/fill, invalidate for each line.
+	 */
+
+	/* disable all i/u and cache exceptions */
+	mfc0	v0,C0_SR
+	and	v1,v0,~SR_IE
+	or	v1,SR_DE
+	mtc0	v1,C0_SR
+
+	mtc0	zero,C0_TAGLO
+	mtc0	zero,C0_TAGHI
+
+	/* assume bottom of RAM will generate good parity for the cache */
+	li	a0, CACHE_MEM_BASE
+	move	a2,t2		# icache_size
+	move	a3,t4		# icache_linesize
+	move	a1,a2
+	icacheopn a0, a1, a2, a3, 121, <Index_Store_Tag_I, Fill_I>
+
+	li	a0, CACHE_MEM_BASE
+	move	a2,t3		# dcache_size
+	move	a3,t5		# dcache_linesize
+	move	a1,a2
+	icacheopn a0, a1, a2, a3, 1lw1, <Index_Store_Tag_D>
+
+.if true, HAS_SCACHE		; only if there is an scache
+	/* assume unified I & D in scache <<-NOTE */
+	blez	t6,1f
+	li	a0, CACHE_MEM_BASE
+	move	a2,t6
+	move	a3,t7
+	move	a1,a2
+	icacheopn a0, a1, a2, a3, 1lw1, <Index_Store_Tag_SD>
+
+	ALIGN3
+1:
+.endc
+	mtc0	v0,C0_SR
+	j	ra
+END init_cache
+	
+.if true, BOOT_ROM_CODE == 0
+/*
+ * void flush_cache (void)
+ *
+ * Flush and invalidate all caches
+ */
+DIFF = DRAM_BASEnc - DRAM_BASE
+	ALIGN3
+LEAF flush_cache
+.if true, (HOST_BOARD == HCR4K) || (HOST_BOARD == MB4600)
+	la	v0, 30f			;# get ptr to entry point
+	srl	a1, v0, 31		;# get the upper bit of address
+	bne	a1, r0, 10f		;# if set, we're running in 9fx (EPROM)
+	addu	a0, v0, DIFF		;# else we're running out of DRAM, so make address non-cached
+	b	20f
+
+	ALIGN3
+10:	or	a0, v0, 0xBF000000	;# else switch to non-cached EPROM
+	ALIGN3
+20:	j	a0
+.endc
+.if true, (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE) || (HOST_BOARD == VEGAS)
+	la	v0, 30f
+	or	v0, 0x20000000		;# make sure we are running non-cached
+	j	v0
+	nop
+.endc
+	ALIGN3
+30:
+.if true, HAS_SCACHE
+	/* secondary cacheops do all the work if present */
+	lw	a2,scache_size
+	blez	a2, 40f
+	lw	a3,scache_linesize
+	li	a0, CACHE_MEM_BASE
+	move	a1,a2
+	icacheop a0, a1, a2, a3, Index_Writeback_Inv_SD
+	b	50f
+
+	ALIGN3
+40:
+.endc
+	lw	a2,icache_size
+	blez	a2, 50f
+	lw	a3,icache_linesize
+	li	a0, CACHE_MEM_BASE
+	move	a1,a2
+	icacheop a0, a1, a2, a3, Index_Invalidate_I>
+
+	lw	a2,dcache_size
+	lw	a3,dcache_linesize
+	li	a0, CACHE_MEM_BASE
+	move	a1,a2
+	icacheop a0, a1, a2, a3, Index_Writeback_Inv_D
+
+	ALIGN3
+50:	j	ra
+END flush_cache
+	
+/*
+ * void flush_dcache (void)
+ *
+ * Flush and invalidate data caches
+ */
+	.align 3
+LEAF flush_dcache
+.if true, HAS_SCACHE
+	/* secondary cacheops do all the work if present */
+	lw	a2,scache_size
+	blez	a2, 40f
+	lw	a3,scache_linesize
+	li	a0, CACHE_MEM_BASE
+	move	a1,a2
+	icacheop a0, a1, a2, a3, Index_Writeback_Inv_SD
+	b	50f
+
+	ALIGN3
+40:
+.endc
+	lw	a2,dcache_size
+	lw	a3,dcache_linesize
+	li	a0, CACHE_MEM_BASE
+	move	a1,a2
+	icacheop a0, a1, a2, a3, Index_Writeback_Inv_D
+
+	ALIGN3
+50:	j	ra
+END flush_dcache
+	
+.if true, MIN_IDTC4000 == 0
+/*
+ * void flush_cache_nowrite (void)
+ *
+ * Invalidate all caches
+ */
+	ALIGN3
+LEAF flush_cache_nowrite
+	mfc0	v0,C0_SR
+	and	v1,v0,~SR_IE
+	mtc0	v1,C0_SR
+
+	mtc0	zero,C0_TAGLO
+	mtc0	zero,C0_TAGHI
+
+	lw	a2,icache_size
+	blez	a2,2f
+	lw	a3,icache_linesize
+	li	a0, CACHE_MEM_BASE
+	move	a1,a2
+	icacheop a0, a1, a2, a3, Index_Invalidate_I
+
+	lw	a2,dcache_size
+	lw	a3,dcache_linesize
+	li	a0, CACHE_MEM_BASE
+	move	a1,a2
+	icacheop a0, a1, a2, a3, Index_Store_Tag_D
+
+.if true, HAS_SCACHE
+	lw	a2,scache_size
+	blez	a2,2f
+	lw	a3,scache_linesize
+	li	a0, CACHE_MEM_BASE
+	move	a1,a2
+	icacheop a0, a1, a2, a3, Index_Store_Tag_SD
+
+.endc
+	ALIGN3
+2:
+	mtc0	v0,C0_SR
+	j	ra
+END flush_cache_nowrite
+	
+/*
+ * void clear_cache (unsigned kva, size_t n)
+ *
+ * Writeback and invalidate address range in all caches
+ */
+	ALIGN3
+LEAF clear_cache 
+.if true, HAS_SCACHE
+	/* secondary cacheops do all the work (if fitted) */
+	lw	a2,scache_size
+	blez	a2,1f
+	lw	a3,scache_linesize
+	vcacheop a0, a1, a2, a3, Hit_Writeback_Inv_SD
+	b	2f
+
+	ALIGN3
+1:
+.endc
+	lw	a2,icache_size
+	blez	a2,2f
+	lw	a3,icache_linesize
+	/* save kva & n for subsequent loop */
+	move	t8,a0
+	move	t9,a1
+	vcacheop a0, a1, a2, a3, Hit_Invalidate_I
+
+	lw	a2,dcache_size
+	lw	a3,dcache_linesize
+	/* restore kva & n */
+	move	a0,t8
+	move	a1,t9
+	vcacheop a0, a1, a2, a3, Hit_Writeback_Inv_D
+
+	ALIGN3
+2:	j	ra
+END clear_cache
+	
+/*
+ * void clean_dcache (unsigned kva, size_t n)
+ *
+ * Writeback and invalidate address range in primary data cache
+ */
+	ALIGN3
+LEAF clean_dcache
+	lw	a2,dcache_size
+	blez	a2,2f
+	lw	a3,dcache_linesize
+
+	vcacheop a0, a1, a2, a3, Hit_Writeback_Inv_D
+
+	ALIGN3
+2:	j	ra
+END clean_dcache
+	
+/*
+ * void clean_dcache_indexed (unsigned kva, size_t n)
+ *
+ * Writeback and invalidate indexed range in primary data cache
+ */
+	ALIGN3
+LEAF clean_dcache_indexed
+	lw	a2,dcache_size
+	blez	a2,2f
+	lw	a3,dcache_linesize
+
+	srl	a2,1			# do one set (half cache) at a time
+	move	t8,a0			# save kva & n
+	move	t9,a1
+	icacheop a0, a1, a2, a3, Index_Writeback_Inv_D
+
+	addu	a0,t8,a2		# do next set
+	move	a1,t9			# restore n
+	icacheop a0, a1, a2, a3, Index_Writeback_Inv_D
+
+	ALIGN3
+2:	j	ra
+END clean_dcache_indexed
+	
+/*
+ * void clean_dcache_nowrite (unsigned kva, size_t n)
+ *
+ * Invalidate an address range in primary data cache
+ */
+	ALIGN3
+LEAF clean_dcache_nowrite
+	lw	a2,dcache_size
+	blez	a2,2f
+	lw	a3,dcache_linesize
+
+	vcacheop a0, a1, a2, a3, Hit_Invalidate_D
+
+	ALIGN3
+2:	j	ra
+END clean_dcache_nowrite
+	
+/*
+ * void clean_dcache_nowrite_indexed (unsigned kva, size_t n)
+ *
+ * Invalidate indexed range in primary data cache
+ */
+	ALIGN3
+LEAF clean_dcache_nowrite_indexed
+	mfc0	v0,C0_SR
+	and	v1,v0,~SR_IE
+	mtc0	v1,C0_SR
+
+	mtc0	zero,C0_TAGLO
+	mtc0	zero,C0_TAGHI
+
+	lw	a2,dcache_size
+	blez	a2,2f
+	lw	a3,dcache_linesize
+
+	srl	a2,1			# do one set (half cache) at a time
+	move	t8,a0			# save kva & n
+	move	t9,a1
+	icacheop a0, a1, a2, a3, Index_Store_Tag_D
+
+	addu	a0,t8,a2		# do next set
+	move	a1,t9			# restore n
+	icacheop a0, a1, a2, a3, Index_Store_Tag_D
+
+	ALIGN3
+2:	mtc0	v0,C0_SR
+	j	ra
+END clean_dcache_nowrite_indexed
+	
+/*
+ * void clean_icache (unsigned kva, size_t n)
+ *
+ * Invalidate address range in primary instruction cache
+ */
+	ALIGN3
+LEAF clean_icache
+	lw	a2,icache_size
+	blez	a2,2f
+	lw	a3,icache_linesize
+
+	vcacheop a0, a1, a2, a3, Hit_Invalidate_I
+
+	ALIGN3
+2:	j	ra
+END clean_icache
+	
+/*
+ * void clean_icache_indexed (unsigned kva, size_t n)
+ *
+ * Invalidate indexed range in primary instruction cache
+ */
+	ALIGN3
+LEAF clean_icache_indexed
+	lw	a2,icache_size
+	blez	a2,2f
+	lw	a3,icache_linesize
+
+	srl	a2,1			# do one set (half cache) at a time
+	move	t8,a0			# save kva & n
+	move	t9,a1
+	icacheop a0, a1, a2, a3, Index_Invalidate_I
+
+	addu	a0,t8,a2		# do next set
+	move	a1,t9			# restore n
+	icacheop a0, a1, a2, a3, Index_Invalidate_I
+
+	ALIGN3
+2:	j	ra
+END clean_icache_indexed
+	
+.if true, HAS_SCACHE			; No scaches in our hardware
+/*
+ * void clean_scache (unsigned kva, size_t n)
+ *
+ * Writeback and invalidate address range in secondary cache
+ */
+	ALIGN3
+LEAF clean_scache
+	lw	a2,scache_size
+	blez	a2,2f
+	lw	a3,scache_linesize
+	vcacheop a0, a1, a2, a3, Hit_Writeback_Inv_SD
+
+	ALIGN3
+2:	j	ra
+END clean_scache
+	
+/*
+ * void clean_scache_indexed (unsigned kva, size_t n)
+ *
+ * Writeback and invalidate indexed range in secondary cache
+ */
+	ALIGN3
+LEAF clean_scache_indexed
+	lw	a2,scache_size
+	blez	a2,2f
+	lw	a3,scache_linesize
+
+	icacheop a0, a1, a2, a3, Index_Writeback_Inv_SD
+
+	ALIGN3
+2:	j	ra
+END clean_scache_indexed
+	
+/*
+ * void clean_scache_nowrite (unsigned kva, size_t n)
+ *
+ * Invalidate an address range in secondary cache
+ */
+	ALIGN3
+LEAF clean_scache_nowrite
+	lw	a2,scache_size
+	blez	a2,2f
+	lw	a3,scache_linesize
+
+	vcacheop a0, a1, a2, a3, Hit_Invalidate_SD
+
+	ALIGN3
+2:	j	ra
+END clean_scache_nowrite
+	
+/*
+ * void clean_scache_nowrite_indexed (unsigned kva, size_t n)
+ *
+ * Invalidate indexed range in secondary cache
+ */
+	ALIGN3
+LEAF clean_scache_nowrite_indexed
+	mfc0	v0,C0_SR
+	and	v1,v0,~SR_IE
+	mtc0	v1,C0_SR
+
+	mtc0	zero,C0_TAGLO
+	mtc0	zero,C0_TAGHI
+
+	lw	a2,scache_size
+	blez	a2,2f
+	lw	a3,scache_linesize
+
+	icacheop a0, a1, a2, a3, Index_Store_Tag_SD
+
+	ALIGN3
+2:	mtc0	v0,C0_SR
+	j	ra
+END clean_scache_nowrite_indexed
+.endc
+
+.if true, (PROCESSOR&-16) == MIPS3000
+/*
+** ret_tlblo -- returns the 'entrylo' contents for the TLB
+**	'c' callable - as ret_tlblo(index) - where index is the
+**	tlb entry to return the lo value for - if called from assembly
+**	language then index should be in register a0.
+*/
+FRAME ret_tlblo
+	.set	noreorder
+	mfc0	t0,C0_SR		# save sr
+	nop
+	and	t0,~SR_PE		# dont inadvertantly clear PE
+	mtc0	zero,C0_SR		# clear interrupts
+	mfc0	t1,C0_TLBHI		# save pid
+	sll	a0,TLBINX_INXSHIFT	# position index
+	mtc0	a0,C0_INX		# write to index register
+	nop
+	tlbr				# put tlb entry in entrylo and hi
+	nop
+	mfc0	v0,C0_TLBLO		# get the requested entry lo
+	mtc0	t1,C0_TLBHI		# restore pid
+	mtc0	t0,C0_SR		# restore status register
+	j	ra
+	nop
+	.set	reorder
+ENDFRAME(ret_tlblo)
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+/*
+** ret_tlblo[01] -- returns the 'entrylo' contents for the TLB
+**	'c' callable - as ret_tlblo(index) - where index is the
+**	tlb entry to return the lo value for - if called from assembly
+**	language then index should be in register a0.
+*/
+	ALIGN3
+FRAME ret_tlblo0
+	mfc0	t0,C0_SR		# save sr
+	mtc0	zero,C0_SR		# clear interrupts
+	mfc0	t1,C0_TLBHI		# save pid
+	mtc0	a0,C0_INX		# write to index register
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	tlbr				# put tlb entry in entrylo and hi
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	mfc0	v0,C0_TLBLO0		# get the requested entry lo
+	mtc0	t1,C0_TLBHI		# restore pid
+	mtc0	t0,C0_SR		# restore status register
+	j	ra
+ENDFRAME ret_tlblo0
+
+	ALIGN3
+FRAME ret_tlblo1,sp,0,ra
+	mfc0	t0,C0_SR		# save sr
+	mtc0	zero,C0_SR		# clear interrupts
+	mfc0	t1,C0_TLBHI		# save pid
+	mtc0	a0,C0_INX		# write to index register
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	tlbr				# put tlb entry in entrylo and hi
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	mfc0	v0,C0_TLBLO1		# get the requested entry lo
+	mtc0	t1,C0_TLBHI		# restore pid
+	mtc0	t0,C0_SR		# restore status register
+	j	ra
+ENDFRAME ret_tlblo1
+
+/*
+** ret_pagemask(index) -- return pagemask contents of tlb entry "index"
+*/
+	ALIGN3
+FRAME ret_pagemask
+	mfc0	t0,C0_SR		# save sr
+	mtc0	zero,C0_SR		# disable interrupts
+	mfc0	t1,C0_TLBHI		# save current pid
+	mtc0	a0,C0_INX		# drop it in C0 register
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	tlbr				# read entry to entry hi/lo
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	mfc0	v0,C0_PAGEMASK		# to return value
+	mtc0	t1,C0_TLBHI		# restore current pid
+	mtc0	t0,C0_SR		# restore sr
+	j	ra
+ENDFRAME ret_pagemask
+
+/*
+** ret_tlbwired(void) -- return wired register
+*/
+	ALIGN3
+FRAME ret_tlbwired
+	mfc0	v0,C0_WIRED
+	j	ra
+ENDFRAME ret_tlbwired
+.endc
+
+/*
+** ret_tlbhi -- return the tlb entry high content for tlb entry
+**			index
+*/
+	ALIGN3
+FRAME ret_tlbhi
+.if true, (PROCESSOR&-16) == MIPS3000
+	.set	noreorder
+	mfc0	t0,C0_SR		# save sr
+	nop
+	and	t0,~SR_PE
+	mtc0	zero,C0_SR		# disable interrupts
+	mfc0	t1,C0_TLBHI		# save current pid
+	sll	a0,TLBINX_INXSHIFT	# position index
+	mtc0	a0,C0_INX		# drop it in C0 register
+	nop
+	tlbr				# read entry to entry hi/lo
+	nop
+	mfc0	v0,C0_TLBHI		# to return value
+	mtc0	t1,C0_TLBHI		# restore current pid
+	mtc0	t0,C0_SR		# restore sr
+	j	ra
+	nop
+	.set	reorder
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+	mfc0	t0,C0_SR		# save sr
+	mtc0	zero,C0_SR		# disable interrupts
+	mfc0	t1,C0_TLBHI		# save current pid
+	mtc0	a0,C0_INX		# drop it in C0 register
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	tlbr				# read entry to entry hi/lo0/lo1/mask
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	mfc0	v0,C0_TLBHI		# to return value
+	mtc0	t1,C0_TLBHI		# restore current pid
+	mtc0	t0,C0_SR		# restore sr
+	j	ra
+.endc
+ENDFRAME ret_tlbhi
+
+/*
+** ret_tlbpid() -- return tlb pid contained in the current entry hi
+*/
+	.align 3
+FRAME ret_tlbpid
+.if true, (PROCESSOR&-16) == MIPS3000
+	.set	noreorder
+	mfc0	v0,C0_TLBHI		# fetch tlb high 
+	nop
+	and	v0,TLBHI_PIDMASK	# isolate and position
+	srl	v0,TLBHI_PIDSHIFT
+	j	ra
+	nop
+	.set	reorder
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+	mfc0	v0,C0_TLBHI	# to return value
+	and	v0,TLBHI_PIDMASK
+	j	ra
+.endc
+ENDFRAME ret_tlbpid
+
+/*
+** Set current TLBPID. This assumes PID is positioned correctly in reg.
+**			a0.
+*/
+	ALIGN3
+FRAME set_tlbpid
+.if true, (PROCESSOR&-16) == MIPS3000
+	.set	noreorder
+	sll	a0,TLBHI_PIDSHIFT
+	mtc0	a0,C0_TLBHI
+	j	ra
+	nop
+	.set	reorder
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+	mtc0	a0,C0_TLBHI
+	j	ra
+.endc
+ENDFRAME set_tlbpid
+.endc			; MIN_IDTC4000 == 0
+
+/*
+** tlbprobe(address, length) -- probe the tlb to see if address range is currently
+**				mapped
+**	a0 = vpn  - virtual page numbers are 0=0 1=0x1000, 2=0x2000...
+**			virtual page numbers for the r3000 are in
+**			entry hi bits 31-12
+**	a1 = length in bytes to check
+**	returns negative number if not in tlb, else returns C0_INX
+*/
+	ALIGN3
+FRAME tlbprobe
+.if true, (PROCESSOR&-16) == MIPS3000
+  .if true, 1
+	li	v0, -1
+	ra
+  .iff
+	.set	noreorder
+	mfc0	t0,C0_SR		/* fetch status reg */
+	and	a0,TLBHI_VPNMASK	/* isolate just the vpn */
+	and	t0,~SR_PE		/* don't inadvertantly clear pe */
+	mtc0	zero,C0_SR 
+	mfc0	t1,C0_TLBHI	
+	sll	a1,TLBHI_PIDSHIFT	/* possition the pid */
+	and	a1,TLBHI_PIDMASK
+	or	a0,a1			/* build entry hi value */
+	mtc0	a0,C0_TLBHI
+	nop
+	tlbp				/* do the probe */
+	nop
+	mfc0	v1,C0_INX
+	li	v0,-1
+	bltz	v1,1f
+	nop
+	sra	v0,v1,TLBINX_INXSHIFT	/* get index positioned for return */
+1:
+	mtc0	t1,C0_TLBHI		/* restore tlb hi */
+	mtc0	t0,C0_SR		/* restore the status reg */
+	j	ra
+	nop
+	.set	reorder
+  .endc
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+	mfc0	t0, C0_SR		# save sr
+	mfc0	t1, C0_TLBHI		# save current pid
+	and	v0, t0, ~SR_IE		# disable interrups
+	mtc0	v0, C0_SR		# disable interrupts
+	addu	a1, a0			# compute an end address
+	nor	v0, r0, r0		# assume failure (-1)
+	bltu	a1, a0, 100f		# if end address is less than start, nfg
+ .if true, (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE) || (HOST_BOARD == VEGAS)
+	move	v0, r0			# assume success
+	li	v1, 0x80000000
+	bltu	a0, v1, 5f		# below 0x80000000
+	li	v1, 0x807FFFFF
+	bleu	a1, v1, 100f		# in range, ok
+	li	v1, 0xA0000000
+	bltu	a0, v1, 5f		# below 0xA0000000
+	li	v1, 0xA07FFFFF
+	bleu	a1, v1, 100f		# in range, ok
+	nor	v0, r0, r0		# assume failure (-1) again
+5:
+ .endc
+	and	a0, TLBHI_VPN2MASK	# construct tlbhi for probe (with pid = 0)
+	ALIGN3
+10:	mtc0	a0, C0_TLBHI
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	tlbp				# probe entry to entry hi/lo0/lo1/mask
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	mfc0	v0,C0_INX
+	bltz	v0,100f			# if negative, there's no entry
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	tlbr				# read the 4 tlb registers 
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder	
+	mfc0	v1, C0_PAGEMASK		# get size of each of the two pages
+	mfc0	a0, C0_TLBHI		# get starting virtual address of this region
+	add	v1, 1<<13		# add 1 to the mask to get 2 pages worth of bytes
+	add	a0, v1			# advance test address by 2 times page size to next region
+	bltu	a0, a1, 10b		# continue testing if new address is less than limit
+	ALIGN3
+100:	mtc0	t1,C0_TLBHI		# restore current pid
+	mtc0	t0,C0_SR		# restore sr
+	j	ra
+.endc
+ENDFRAME tlbprobe
+
+/*
+** resettlb(index) Invalidate the  TLB entry specified by index
+*/
+	ALIGN3
+FRAME resettlb
+.if true, (PROCESSOR&-16) == MIPS3000
+	.set	noreorder
+	mfc0	t0,C0_TLBHI		# fetch the current hi 
+	mfc0	v0,C0_SR		# fetch the status reg.
+	li	t2,K0BASE&TLBHI_VPNMASK
+	and	v0,~SR_PE		# dont inadvertantly clear PE
+	and	v1, v0, ~SR_IE		# drop the IE bit
+	mtc0	v1,C0_SR		# disable interrupts, but allow breakpoints
+	mtc0	t2,C0_TLBHI		# set up tlbhi
+	mtc0	zero,C0_TLBLO
+	sll	a0,TLBINX_INXSHIFT
+	mtc0	a0,C0_INX
+	nop
+	tlbwi				# do actual invalidate
+	nop
+	mtc0	t0,C0_TLBHI
+	mtc0	v0,C0_SR
+	j	ra
+	nop
+	.set	reorder
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+	li	t2,K0BASE&TLBHI_VPN2MASK
+	mfc0	t0,C0_TLBHI		# save current TLBHI
+	mfc0	v0,C0_SR		# save SR and disable interrupts
+	mtc0	zero,C0_SR
+	mtc0	t2,C0_TLBHI		# invalidate entry
+	mtc0	zero,C0_TLBLO0
+	mtc0	zero,C0_TLBLO1
+	mtc0	a0,C0_INX
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	tlbwi
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	mtc0	t0,C0_TLBHI
+	mtc0	v0,C0_SR
+	j	ra
+.endc
+ENDFRAME resettlb
+
+.if true, (PROCESSOR&-16) == MIPS3000
+/*
+** Setup TLB entry
+**
+** map_tlb(index, tlbhi, phypage)
+** 	a0  =  TLB entry index
+**	a1  =  virtual page number and PID
+**	a2  =  physical page
+*/
+FRAME map_tlb
+	.set	noreorder
+	sll	a0,TLBINX_INXSHIFT
+	mfc0	v0,C0_SR		# fetch the current status
+	mfc0	a3,C0_TLBHI		# save the current hi
+	and	v0,~SR_PE		# dont inadvertantly clear parity
+
+	mtc0	zero,C0_SR
+	mtc0	a1,C0_TLBHI		# set the hi entry
+	mtc0	a2,C0_TLBLO		# set the lo entry 
+	mtc0	a0,C0_INX		# load the index
+	nop
+	tlbwi				# put the hi/lo in tlb entry indexed
+	nop
+	mtc0	a3,C0_TLBHI		# put back the tlb hi reg 
+	mtc0	v0,C0_SR		# restore the status register 
+	j	ra
+	nop
+	.set	reorder
+ENDFRAME map_tlb
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+/*
+** Setup R4000 TLB entry
+**
+** map_tlb4000(mask_index, tlbhi, pte_even, pte_odd)
+** 	a0  =  TLB entry index and page mask
+**	a1  =  virtual page number and PID
+**      a2  =  pte -- contents of even pte
+**      a3  =  pte -- contents of odd pte
+*/
+	ALIGN3
+FRAME map_tlb4000
+	and	t2,a0,TLBPGMASK_MASK
+	and	a0,TLBINX_INXMASK
+	mfc0	t1,C0_TLBHI		# save current TLBPID
+	mfc0	v0,C0_SR		# save SR and disable interrupts
+	mtc0	zero,C0_SR
+	mtc0	t2,C0_PAGEMASK		# set 
+	mtc0	a1,C0_TLBHI		# set VPN and TLBPID
+	mtc0	a2,C0_TLBLO0		# set PPN and access bits
+	mtc0	a3,C0_TLBLO1		# set PPN and access bits
+	mtc0	a0,C0_INX		# set INDEX to wired entry
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	tlbwi				# drop it in
+	.set noreorder
+	nop; nop; nop; nop; nop; nop; nop; nop
+	.set reorder
+	mtc0	t1,C0_TLBHI		# restore TLBPID
+	mtc0	v0,C0_SR		# restore SR
+	j	ra
+ENDFRAME map_tlb4000
+.endc
+.endc					;BOOT_ROM_CODE == 0
+@
+
+
+1.19
+log
+@More support for gas 2.7
+@
+text
+@d1 2
+@
+
+
+1.18
+log
+@Syntax for gas 2.7 is only one name on a .global directive.
+Split all .globl statements into multiples where appropriate.
+gas 2.7 doesn't like numbers appearing as the first item after
+a # in (effectively) column 1. It assumes it is a line number.
+@
+text
+@d7 14
+@
+
+
+1.17
+log
+@Added support and detection for SEATTLE and VEGAS host boards.
+@
+text
+@d130 1
+a130 1
+	.globl	icache_size, icache_linesize
+d135 1
+a135 1
+	.globl	dcache_size, dcache_linesize
+d141 1
+a141 1
+	.globl	scache_size, scache_linesize
+@
+
+
+1.16
+log
+@Added checks in tlbprobe for 0x80000000-0xA07FFFFF.
+@
+text
+@d313 1
+a313 1
+.if true, (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+d910 1
+a910 1
+ .if true, (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+@
+
+
+1.15
+log
+@Added support for PHOENIX_AD and FLAGSTAFF boards.
+@
+text
+@d910 13
+@
+
+
+1.14
+log
+@Fixed a missing trailing comment delimiter.
+@
+text
+@d313 1
+a313 1
+.if true, (HOST_BOARD == PHOENIX)
+@
+
+
+1.13
+log
+@Added ALIGN3's all over the place to compensate for the Galileo bug.
+@
+text
+@d868 1
+@
+
+
+1.12
+log
+@Conditionalled out most of the code if BOOT_ROM_CODE
+@
+text
+@d13 4
+d47 1
+d92 1
+d107 1
+d116 1
+d161 1
+d179 1
+d186 1
+d200 1
+d210 1
+d215 1
+d230 1
+d238 1
+d244 1
+d285 1
+d299 1
+d308 1
+d310 1
+d319 1
+d331 1
+d347 1
+d356 1
+d368 1
+d377 1
+d387 1
+d417 2
+a419 1
+.endc
+d429 1
+d439 1
+d457 1
+d466 1
+d474 1
+d483 1
+d498 1
+d507 1
+d515 1
+d524 1
+d546 1
+d556 1
+d564 1
+d573 1
+d588 1
+d598 1
+d605 1
+d614 1
+d622 1
+d631 1
+d639 1
+d648 1
+d663 1
+d703 1
+d722 1
+d744 1
+d766 1
+d777 1
+d820 1
+d843 1
+d868 1
+a868 1
+*/
+d910 1
+d929 1
+d939 1
+d1024 1
+@
+
+
+1.11
+log
+@Corrected HOST_BOARD stuff at flush_cache
+@
+text
+@d9 4
+d120 1
+d139 1
+d192 1
+d218 1
+d274 1
+d985 1
+@
+
+
+1.10
+log
+@Added a CACHE_MEM_BASE in lieu of PROM_BASE.
+@
+text
+@d273 1
+d282 7
+a288 1
+
+@
+
+
+1.9
+log
+@Masked cache_linesizes to 255
+@
+text
+@d19 5
+d239 1
+a239 1
+	li	a0, PROM_BASE
+d245 1
+a245 1
+	li	a0, PROM_BASE
+d254 1
+a254 1
+	li	a0, PROM_BASE
+d288 1
+a288 1
+	li	a0, PROM_BASE
+d298 1
+a298 1
+	li	a0, PROM_BASE
+d304 1
+a304 1
+	li	a0, PROM_BASE
+d322 1
+a322 1
+	li	a0, PROM_BASE
+d331 1
+a331 1
+	li	a0, PROM_BASE
+d355 1
+a355 1
+	li	a0, PROM_BASE
+d361 1
+a361 1
+	li	a0, PROM_BASE
+d369 1
+a369 1
+	li	a0, PROM_BASE
+@
+
+
+1.8
+log
+@Fixed another bug in tlbprobe
+@
+text
+@d195 1
+d197 1
+d201 1
+@
+
+
+1.7
+log
+@Fixed the bug in tlbprobe
+@
+text
+@d819 4
+a822 3
+	mfc0	t0,C0_SR		# save sr
+	mtc0	zero,C0_SR		# disable interrupts
+	mfc0	t1,C0_TLBHI		# save current pid
+d826 2
+a827 2
+	and	a0,TLBHI_VPN2MASK	# construct tlbhi for probe (with pid = 0)
+10:	mtc0	a0,C0_TLBHI
+d841 1
+d843 1
+a843 1
+	add	a0, v1			# advance test address by 2 times page size
+d861 2
+a862 1
+	mtc0	zero,C0_SR
+@
+
+
+1.6
+log
+@Added a MIN_IDTC4000 to select a reduced size image.
+@
+text
+@a818 3
+  .if true, 0
+	move	v0, r0			# For now, all memory is legal
+  .iff
+d822 4
+a825 1
+	and	a0,TLBHI_VPN2MASK	# construct tlbhi for probe (pid = 0)
+d841 2
+a842 3
+	add	a0, v1			# advance user's address by 2 times page size
+	sub	a1, v1			# reduce user's size by 2 times page size
+	bgtz	a1, 10b			# if count > 0, check next pair of pages
+a844 1
+  .endc
+@
+
+
+1.5
+log
+@Fixed flush_cache() and tlbprobe().
+@
+text
+@d9 10
+d330 1
+d758 20
+a959 20
+
+
+/*
+** Set current TLBPID. This assumes PID is positioned correctly in reg.
+**			a0.
+*/
+FRAME set_tlbpid
+.if true, (PROCESSOR&-16) == MIPS3000
+	.set	noreorder
+	sll	a0,TLBHI_PIDSHIFT
+	mtc0	a0,C0_TLBHI
+	j	ra
+	nop
+	.set	reorder
+.endc
+.if true, (PROCESSOR&-16) == MIPS4000
+	mtc0	a0,C0_TLBHI
+	j	ra
+.endc
+ENDFRAME set_tlbpid
+@
+
+
+1.4
+log
+@Made size_cache global
+@
+text
+@d253 1
+a255 2
+	li	v1, DRAM_BASE-1		;# get bottom of DRAM
+	and	a0, v0, v1		;# isolate the address lsb's
+d257 2
+a258 2
+	bne	a1, r0, 10f		;# if set, we're running in 9fc
+	or	a0, DRAM_BASEnc		;# else we're running out of EPROM
+d261 1
+a261 1
+10:	or	a0, 0xBFC00000		;# else switch to non-cached EPROM
+d747 1
+a747 1
+** tlbprobe(address, pid) -- probe the tlb to see if address range is currently
+d788 1
+a788 1
+  .if true, 1
+@
+
+
+1.3
+log
+@flush_dcache does not need to execute in non-cached memory.
+@
+text
+@d132 1
+a132 1
+LEAF size_cache global=0
+@
+
+
+1.2
+log
+@Added a flush_dcache function
+@
+text
+@a299 12
+	la	v0, 30f			;# get ptr to entry point
+	li	v1, DRAM_BASE-1		;# get bottom of DRAM
+	and	a0, v0, v1		;# isolate the address lsb's
+	srl	a1, v0, 31		;# get the upper bit of address
+	bne	a1, r0, 10f		;# if set, we're running in 9fc
+	or	a0, DRAM_BASEnc		;# else we're running out of EPROM
+	b	20f
+
+10:	or	a0, 0xBFC00000		;# else switch to non-cached EPROM
+20:	j	a0
+
+30:
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d254 12
+d269 1
+a269 1
+	blez	a2,1f
+d274 1
+a274 1
+	b	2f
+d276 1
+a276 1
+1:
+d279 1
+a279 1
+	blez	a2,2f
+d291 1
+a291 1
+2:	j	ra
+d295 39
+d760 1
+a760 1
+** tlbprobe(address, pid) -- probe the tlb to see if address is currently
+d765 2
+a766 4
+**	a1 = pid  - this is a process id ranging from 0 to 63
+**		    this process id is shifted left 6 bits and or'ed into
+**		    the entry hi register
+**	returns an index value (0-63) if successful -1 -f not
+d770 4
+d798 1
+d801 3
+d807 2
+a808 4
+	and	a0,TLBHI_VPN2MASK	# construct tlbhi for probe
+	and	a1,TLBHI_PIDMASK
+	or	a0,a1
+	mtc0	a0,C0_TLBHI
+d811 2
+d814 2
+a815 1
+	tlbp				# probe entry to entry hi/lo0/lo1/mask
+d818 9
+a826 6
+	.set reorder
+	mfc0	v1,C0_INX
+	li	v0,-1
+	bltz	v1,1f
+	move	v0,v1
+1:	mtc0	t1,C0_TLBHI		# restore current pid
+d828 1
+@

@@ -1,0 +1,4148 @@
+head	1.78;
+access;
+symbols
+	RUSH_ROCK_1_0:1.75
+	RUSH_ROCK_1_0epst:1.75
+	MACE_1_0e:1.63
+	MACE_1_0d:1.63
+	RUSH_1_06A:1.46
+	AREA_52_00:1.69
+	MACE_1_0a:1.63;
+locks; strict;
+comment	@ * @;
+
+
+1.78
+date	97.10.15.06.09.52;	author shepperd;	state Exp;
+branches;
+next	1.77;
+
+1.77
+date	97.10.15.04.44.18;	author albaugh;	state Exp;
+branches;
+next	1.76;
+
+1.76
+date	97.10.10.04.39.48;	author shepperd;	state Exp;
+branches;
+next	1.75;
+
+1.75
+date	97.09.24.23.59.21;	author shepperd;	state Exp;
+branches;
+next	1.74;
+
+1.74
+date	97.09.19.00.12.00;	author shepperd;	state Exp;
+branches;
+next	1.73;
+
+1.73
+date	97.09.12.21.09.20;	author shepperd;	state Exp;
+branches;
+next	1.72;
+
+1.72
+date	97.09.12.20.18.50;	author shepperd;	state Exp;
+branches;
+next	1.71;
+
+1.71
+date	97.08.29.17.58.03;	author shepperd;	state Exp;
+branches;
+next	1.70;
+
+1.70
+date	97.07.17.17.43.17;	author shepperd;	state Exp;
+branches;
+next	1.69;
+
+1.69
+date	97.07.17.03.27.37;	author shepperd;	state Exp;
+branches;
+next	1.68;
+
+1.68
+date	97.07.17.02.59.03;	author shepperd;	state Exp;
+branches;
+next	1.67;
+
+1.67
+date	97.07.11.00.36.47;	author shepperd;	state Exp;
+branches;
+next	1.66;
+
+1.66
+date	97.05.30.03.19.36;	author shepperd;	state Exp;
+branches;
+next	1.65;
+
+1.65
+date	97.05.19.22.46.34;	author shepperd;	state Exp;
+branches;
+next	1.64;
+
+1.64
+date	97.05.17.19.13.06;	author shepperd;	state Exp;
+branches;
+next	1.63;
+
+1.63
+date	97.04.09.21.10.58;	author shepperd;	state Exp;
+branches;
+next	1.62;
+
+1.62
+date	97.04.08.04.00.06;	author shepperd;	state Exp;
+branches;
+next	1.61;
+
+1.61
+date	97.03.28.19.17.44;	author shepperd;	state Exp;
+branches;
+next	1.60;
+
+1.60
+date	97.03.25.19.05.57;	author shepperd;	state Exp;
+branches;
+next	1.59;
+
+1.59
+date	97.03.25.02.37.22;	author shepperd;	state Exp;
+branches;
+next	1.58;
+
+1.58
+date	97.03.21.05.59.46;	author shepperd;	state Exp;
+branches;
+next	1.57;
+
+1.57
+date	97.03.19.03.35.54;	author shepperd;	state Exp;
+branches;
+next	1.56;
+
+1.56
+date	97.03.06.20.06.09;	author shepperd;	state Exp;
+branches;
+next	1.55;
+
+1.55
+date	97.03.06.19.56.57;	author shepperd;	state Exp;
+branches;
+next	1.54;
+
+1.54
+date	97.03.04.02.43.30;	author shepperd;	state Exp;
+branches;
+next	1.53;
+
+1.53
+date	97.02.27.04.04.45;	author shepperd;	state Exp;
+branches;
+next	1.52;
+
+1.52
+date	97.02.25.21.36.30;	author shepperd;	state Exp;
+branches;
+next	1.51;
+
+1.51
+date	97.02.25.19.58.08;	author shepperd;	state Exp;
+branches;
+next	1.50;
+
+1.50
+date	97.02.25.19.29.15;	author shepperd;	state Exp;
+branches;
+next	1.49;
+
+1.49
+date	97.02.22.02.22.04;	author shepperd;	state Exp;
+branches;
+next	1.48;
+
+1.48
+date	97.01.31.02.46.34;	author shepperd;	state Exp;
+branches;
+next	1.47;
+
+1.47
+date	97.01.25.03.51.11;	author shepperd;	state Exp;
+branches;
+next	1.46;
+
+1.46
+date	96.11.27.05.12.27;	author shepperd;	state Exp;
+branches;
+next	1.45;
+
+1.45
+date	96.10.07.16.45.17;	author shepperd;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	96.09.14.01.12.09;	author shepperd;	state Exp;
+branches;
+next	1.43;
+
+1.43
+date	96.09.14.01.10.20;	author shepperd;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	96.09.10.03.17.36;	author shepperd;	state Exp;
+branches;
+next	1.41;
+
+1.41
+date	96.09.06.04.19.45;	author shepperd;	state Exp;
+branches;
+next	1.40;
+
+1.40
+date	96.09.06.02.48.17;	author forrest;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	96.08.24.20.53.21;	author shepperd;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	96.08.06.00.28.11;	author forrest;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	96.08.05.21.27.46;	author shepperd;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	96.07.28.02.38.32;	author shepperd;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	96.07.25.02.07.36;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	96.07.24.17.27.49;	author shepperd;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	96.07.24.04.03.04;	author shepperd;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	96.07.19.03.40.56;	author shepperd;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	96.07.19.03.31.30;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	96.07.18.22.31.05;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	96.07.17.21.31.29;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	96.07.16.21.37.19;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.07.16.04.17.43;	author shepperd;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.07.10.21.40.16;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.06.29.20.51.45;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.06.25.20.00.19;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.06.08.03.30.38;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.06.08.01.06.07;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.06.07.23.58.54;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.06.06.23.23.23;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.06.06.02.29.03;	author shepperd;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.05.15.04.23.34;	author forrest;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.05.15.03.57.14;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.05.14.20.56.57;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.05.08.03.25.05;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.05.07.20.16.59;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.05.05.23.26.14;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.05.05.22.51.28;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.05.05.22.24.57;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.05.05.20.59.06;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.05.04.00.45.38;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.05.01.21.04.04;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.04.30.21.30.43;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.04.24.22.12.04;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.04.24.01.13.59;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.04.22.22.09.55;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.04.20.02.50.35;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.04.20.02.36.38;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.04.17.20.48.38;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@First pass at 3dfx video stuff.
+@
+
+
+1.78
+log
+@Added support for dynamic gamma correction table adjustment.
+@
+text
+@/* $Id: sst_vid.c,v 1.77 1997/10/15 04:44:18 albaugh Exp shepperd $
+ *
+ *	Video handling subroutines for 3DFX video board.
+ *
+ *		Copyright 1996 Atari Games, Corp.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+#ifndef B_TEST
+#define B_TEST (-1)
+#else
+# ifndef TEST_DEBOUNCE_FRAMES
+# define TEST_DEBOUNCE_FRAMES 30
+# endif
+#endif
+#include <string.h>
+#include <limits.h>
+#define GREAT_RENAME (1)
+#include <os_proto.h>
+#include <st_proto.h>
+#include <intvecs.h>
+#include <eer_defs.h>
+#include <phx_proto.h>
+#include <wms_proto.h>
+#include <glide.h>
+#include <math.h>
+#include <sst_tdfx.h>
+#include <nsprintf.h>
+#if GUN_CNT
+#include <cham_gun.h>
+#endif
+
+#define TEST_SST_RESET 0	/* set non-zero to enable sst_reset test */
+
+#if HOST_BOARD == CHAMELEON
+# ifndef BLAB
+#  define BLAB(x)  do { ; } while (0)
+# endif
+# ifndef BLABF
+#  define BLABF(x) do { ; } while (0)
+# endif
+#endif
+
+#define STATIC static
+
+/* You might want to define PHX_PUTS(x) to phx_puts(x) */
+
+#if !defined(PHX_PUTS)
+# define PHX_PUTS(x) 
+#endif
+
+#undef SST_BUSY
+#define SST_BUSY() (*(VU32*)SST_BASE&(1<<7)) 
+
+#define n_elts(array) (sizeof(array)/sizeof(array[0]))
+
+void (*gameint)();
+void (*volatile tpllvec)(void);
+
+void (*vid_set_vb ( void (*new_rtn)() ))()
+{
+    return prc_set_vec(GAMEVB_INTVEC,new_rtn);
+}
+
+static TimerPll pll_data;
+
+TimerPll *get_timer_pll(void) {
+    return &pll_data;
+}
+
+/*		vid_fields( frame_rate )
+ *	Establish the frame rate, for such hardware as needs special
+ *	treatment to switch buffers, show the current screen, etc.
+ *	if <frame_rate> < 0, that part of the video (e.g. GXn video RAM)
+ *	will be turned off. Otherwise, <frame_rate> specifies the number
+ *	of fields (vertical traces of the CRT screen) to display for each
+ *	frame (unique visual image) of video. <frame_rate>s from 0..4
+ *	should be supported on any hardware. Video hardwares that do not
+ *	have such a concept can simply return 0.
+ *
+ *	(fields < 0) now means "video generation off", while (fields == 0)
+ *	means "do not wait at all to swap buffers".
+ */
+
+int vid_fields( frame_rate )
+int frame_rate;
+{
+    int retval;
+    retval = pll_data.fields_frame;
+    pll_data.fields_frame = frame_rate;
+    return retval; 
+}
+
+void sst_bufswap(void) {
+    if (pll_data.fields_frame >= 0) {
+	++pll_data.swap_in;		/* let interrupt routine know we asked to swap buffers */
+#if USE_AGC_BUFSWAP
+	agcBufferSwap( (pll_data.fields_frame << 1) | 1 );
+#else
+	grBufferSwap( pll_data.fields_frame );
+#endif
+    }
+    return;
+}
+
+#if defined(B_PIC_PCI) && USE_PCI_VSYNC
+# define VSYNC_IE_BIT B_PIC_PCI
+# define VSYNC_CAUSE_BIT B_PIC_PCI
+# define VSYNC_IVEC PCI_INTVEC
+# undef SST_VSYNC_ACK			/* force it to use the timer for vsync enable */
+#else
+# if defined B_PIC_VSY
+#  define VSYNC_IE_BIT B_PIC_VSY
+#  define VSYNC_CAUSE_BIT B_PIC_VSY
+#  define VSYNC_IVEC VSY_INTVEC
+# endif
+#endif
+
+#if (HOST_BOARD != CHAMELEON) && (!defined(SST_VSYNC_ACK) && defined(VSYNC_IE_BIT))
+static struct tq vb_tq;
+
+static void test_vb_reen(void *arg) {
+    *(VU32*)INTCTL_IE |= 1<<VSYNC_IE_BIT;	/* re-enable vsync interrupts */
+    return;
+}
+#endif
+    
+static void frame_handler(void) {
+    int do_frame=0;
+    TimerPll *pll;
+
+    pll = get_timer_pll();		/* point to our timer stuff */
+    if (pll->fields_frame > 0) {
+	int swaps;
+	swaps = (pll->swap_in-pll->swap_out); /* get number of swaps requested */
+	if (swaps) {			/* he asked for a swap */
+	    if ( swaps > grBufferNumPending()) { /* he asked for at least one swap and at least one happened */
+		++pll->swap_out;	/* record that it happened */
+		do_frame = 1;		/* signal to do something about it */
+	    }
+	} else {
+	    int over;
+	    swaps = (pll->field - pll->field_last);
+	    over = pll->fields_frame/2+1;
+	    if (swaps >= pll->fields_frame + over) {
+		++pll->frame_overrun;	/* signal there was a frame overrun */
+		do_frame = 1;
+	    }
+	}
+    } else {
+	do_frame = 1;			/* fake a frame */
+    }
+    if (do_frame) {
+	++pll->frame;			/* signal the frame */
+	if (pll->fields_frame > 0 && framevec) framevec();	/* call user's frame function if there is one */
+	pll->field_last = pll->field; /* record the field counter at this frame */
+    }
+}
+
+extern U32 sst_memfifo_min;
+#if B_TEST >= 0
+static int ts_been_on;
+static int ts_been_off;
+#endif
+
+static void sst_vb_tasks(int how) {
+    TimerPll *pll;
+
+    pll = get_timer_pll();
+    pll->ticks = 0;			/* ticks are always reset at vb */
+
+    if (how) {				/* if we got here due to a VB IRQ */
+	prc_timer_rate(prc_timer_rate(0));	/* resync the timer */
+	prc_timer_jobs(0);		/* fake a timer interrupt */
+	pll->nxt_upd = pll->ints_upd;
+    }
+
+    eer_hwt();				/* once per field, update eeprom */
+    ctl_upd_sw();			/* once per field, update switches */
+
+#if QUAD_CNT
+    ctl_upd_quad();			/* once per field, update quadrature switches */
+#endif
+#if GUN_CNT
+    gun_vb();
+#endif
+
+#if SHOW_FIFO_COUNT_COL || SHOW_FIFO_COUNT_ROW
+    {
+	U32 cook;
+	cook = txt_setpos(0);
+# if !SHOW_FIFO_COUNT_COL
+#  undef SHOW_FIFO_COUNT_COL
+#  define SHOW_FIFO_COUNT_COL (-1)
+# endif
+# if !SHOW_FIFO_COUNT_ROW
+#  undef SHOW_FIFO_COUNT_ROW
+#  define SHOW_FIFO_COUNT_ROW (AN_VIS_ROW-1)
+# endif
+	txt_hexnum(SHOW_FIFO_COUNT_COL, SHOW_FIFO_COUNT_ROW, sst_memfifo_min, 4, RJ_ZF, WHT_PALB);
+	txt_setpos(cook);
+    }
+#endif
+
+#if B_TEST >= 0
+# ifdef ST_SWITCH
+  if ( go_to_self_test == 0 ) {
+# endif
+    if ( (TEST & (1<<B_TEST)) ) {
+	if (ts_been_off < 0x1000) ++ts_been_off;
+	ts_been_on = 0;
+    } else {
+	if ( ts_been_off > TEST_DEBOUNCE_FRAMES ) {
+	    if ( ++ts_been_on > TEST_DEBOUNCE_FRAMES ) {
+# ifdef ST_SWITCH
+		go_to_self_test = 1;
+# endif
+		prc_reboot();
+	    }
+	} else {
+	    ts_been_off = 0;
+	}
+    }
+# ifdef ST_SWITCH
+  }
+# endif
+#endif
+
+#if POT_CNT
+    { /* Until I find out where to prototype these ... */
+	extern void VBIReadPots();
+	extern void PotsToSwitches();
+	VBIReadPots();
+	PotsToSwitches();
+    } /* ... fom 3/28/96 */
+#endif
+
+    if (gameint) gameint();		/* call user's vb routine if there is one */
+    ++pll->field;			/* advance field */
+#if !NO_BLINKING_LED
+# if defined(LED_OUT)
+    if ((pll->field&0xF) == 0) {
+	if (pll->field&0x10) {
+	    *(VU32*)LED_OUT |= (1<<B_LED_GRN);
+	} else {
+	    *(VU32*)LED_OUT &= ~(1<<B_LED_GRN);
+	}
+    }
+# else
+#  if defined(IO_MAIN_CTL_T) && IO_MAIN_LED_ON
+    if ((pll->field&0xF) == 0) {
+	int oldps;
+	oldps = prc_set_ipl(INTS_OFF);
+	if (pll->field&0x10) {
+	    IO_MAIN_CTL_T |= IO_MAIN_LED_ON;
+	} else {
+	    IO_MAIN_CTL_T &= ~IO_MAIN_LED_ON;
+	}
+	prc_set_ipl(oldps);
+    }
+#  endif
+# endif
+#endif
+    if (pll->fields_frame <= 0 || (pll->field-pll->field_last) >= pll->fields_frame) {
+	frame_handler();
+    }
+    return;
+}
+
+#if defined(VSYNC_IE_BIT)
+static void sst_vb(void) {
+    U32 ie;
+# if defined(INTCTL_CAUSE_T)
+    ie = INTCTL_CAUSE_T;
+# else
+    ie = *(VU32*)INTCTL_CAUSE;
+# endif
+    if ( !(ie&(1<<VSYNC_CAUSE_BIT)) ) return;	/* not us */
+# if defined(SST_VSYNC_ACK)
+    SST_VSYNC_ACK();		/* ack the VSYNC interrupt. */
+# else
+#  if defined(INTCTL_IE_T)
+    INTCTL_IE_T &= ~(1<<VSYNC_IE_BIT);	/* disable VSYNC interrupts */
+#  else
+    *(VU32*)INTCTL_IE &= ~(1<<VSYNC_IE_BIT);	/* disable VSYNC interrupts */
+#  endif
+    vb_tq.func = test_vb_reen;
+    vb_tq.delta = 4000;			/* wait 4 milliseconds */
+    tq_ins(&vb_tq);			/* enable a restart later */
+# endif
+    if (pll_data.no_vsync < 1) sst_vb_tasks(1);
+}
+#endif
+
+void timer_pll() {
+    TimerPll *pll;
+    FxU32 sc1, scanline;
+    VU32 *sst = (VU32*)(SST_BASE+0x204);
+
+    pll =  &pll_data;
+    ++pll->ticks;			/* count this tick */
+    if (!pll->no_vsync && pll->ticks > 16) return; /* don't do anything if too many ints occured */
+    if (--pll->nxt_upd <= 0) {
+	cn_irq();			/* handle coins */
+	pll->nxt_upd = pll->ints_upd;	/* reset the timer */
+	if (ms4vec) ms4vec();
+    }
+    if (pll->no_vsync > 0) {		/* if there's no h/w VB interrupts */
+	do {
+	    sc1 = *sst&0x7FF;		/* get number of line currently being displayed */
+	    scanline = *sst&0x7FF;
+	} while (sc1 != scanline);    	/* until two reads in a row match values */
+#if HOST_BOARD == CHAMELEON
+	if (pll->ticks > 4 && (scanline > pll->vlines || /* if we've marched off the end of visible screen */
+    			       scanline < pll->prev_scan)) { /* or started a new display */
+	    sst_vb_tasks(0);		/* fake a VB interrupt */
+	}
+#else
+	if (pll->ticks > 4 && scanline > pll->vlines) {	/* if we've marched off the end of visible screen */
+	    sst_vb_tasks(0);		/* fake a VB interrupt */
+	}
+#endif
+	pll->prev_scan = scanline;
+    }
+    return;
+}
+
+void (*prc_delay_vec)(void);
+
+static int prc_delay_flags;
+
+U32 prc_delay_options(U32 new) {
+    U32 old;
+    old = prc_delay_flags;
+    prc_delay_flags = new;
+    return old;
+}
+
+static int no_ints_cntr;
+static int bg_color;
+
+int vid_set_bg(int new) {
+    int old;
+    old = bg_color;
+    bg_color = new;
+    return old;
+}
+
+void sst_prc_delay(void) {
+    int ortc = eer_rtc;
+    int oframe = pll_data.frame;	/* record the current frame number */
+
+    while ( SST_BUSY() ) { ; }		/* wait for all rendering to stop (may also wait for VB) */
+    while (oframe == pll_data.frame) {	/* wait until a frame happens */
+	if (ortc == eer_rtc) {		/* if no VB since waiting for busy */
+	    if (vid_waitvb(1) == 0) {	/* returns 0 if interrupts are off */
+		eer_hwt();		/* keep this going if interrupts are off */
+		ctl_upd_sw();		/* check switches once in awhile too */
+		++no_ints_cntr;		/* record this fact */
+		break;			/* assume 1 field/frame */
+	    }
+	    if (pll_data.fields_frame <= 0) break; /* if no video, assume 1 field/frame */
+	}
+    }
+    if (pll_data.fields_frame >= 0) {
+	if ((prc_delay_flags&PRC_DELAY_OPT_TEXT2FB)) {
+	    sst_text2fb(0);
+#if GUN_CNT
+	    gun_draw_crosshairs();
+#endif
+	}
+	if (prc_delay_flags&PRC_DELAY_OPT_SWAP) sst_bufswap();
+	if (prc_delay_flags&PRC_DELAY_OPT_CLEAR) grBufferClear( bg_color, 0, GR_WDEPTHVALUE_FARTHEST );
+    }
+}
+
+void prc_delay(int cnt) {
+    do {
+#if defined(WDOG) && !NO_WDOG
+	WDOG = 0;
+#endif
+	if (prc_delay_vec) {
+	    (*prc_delay_vec)();
+	} else {
+	    sst_prc_delay();
+	}
+    } while (cnt-- > 0);
+}
+
+void prc_delay0() {
+   prc_delay(0);
+}
+
+/*	In self-test, we call eer_hwt to update EEPROM (and bump eer_rtc)
+ *	and call ctl_upd_swtch() to debounce switches. Separately "debounce"
+ *	self-test switch (if any :-) to transit from selftest to game.
+ */
+
+#ifndef WDOG
+int WDOG;
+#endif
+
+void
+st_vblank()
+{
+    WDOG = 0;
+}
+
+volatile unsigned long vb_count;
+void vid_clr_alphas(void);
+
+extern void st_dispmenu(const U8 *menu, U32 opt_bits, int erase);
+
+static const unsigned char sst_menu[] =
+    "\042Resolution\000*Medium\000\000\000\000"
+    "\063Frame rate\000No Delay\000*60 Hz\00030 Hz\00020 Hz\000"
+    "15 Hz\00012 Hz\00010 Hz\000No ZRE\000"
+;
+
+static U32 sst_opt_memo;
+
+#define NCACHE_READ (300)	/* nanoseconds to read from SST chip */
+#define TOO_LONG (20000000L)	/* A field should not take > 20 million nanoseconds */
+
+#if 0
+#define WREFWIDTH 640.
+#define WREFHEIGHT 480.0
+
+#define WINSCALEX(x) ((x/WREFWIDTH) * wWidth)
+#define WINSCALEY(y) ((y/WREFHEIGHT) * wHeight)  
+#endif
+
+extern void breakpoint(void);
+void grErrorCallback(const char *msg, int val) { PHX_PUTS(msg); while(1) __asm__("BREAK"); }
+
+GrHwConfiguration hwconfig;
+
+static int vid_warm;
+
+#define NVBLANK (*sst&(1<<6))		/* negative true VB signal */
+
+#if CPU_SPEED_VARIABLE
+# if HOST_BOARD == CHAMELEON
+#  error * You cannot use variable CPU_SPEED on this host
+# else
+int CPU_SPEED;
+int cpu_ticks_usec;
+# endif
+#endif
+
+static void time_vb(void) {
+    int ii,oldps;
+    U32 field_time, line_time, lc1, lc2, start;
+    VU32 *sst, *lctr;
+#if GALILEO_TIMER2
+    U32 oldctl;
+    VU32 *timr, *tctl;
+#endif
+    TimerPll *pll;
+
+    sst = (VU32*)SST_BASE;
+    lctr = (VU32*)(SST_BASE+0x204);
+    pll = get_timer_pll();
+#if GALILEO_TIMER2
+    timr = (VU32*)GALILEO_TIMER2; 
+    tctl = (VU32*)GALILEO_TIMER_CTL;
+
+# define GET_TIME() *timr
+    oldctl = *tctl;
+    *tctl &= ~(3<<4);			/* disable timer 2 */
+    *timr = 0x00FFFFFC;			/* set timer to max */
+    *tctl |= (3<<4);			/* turn on timer 2 */
+#else
+# define GET_TIME() prc_get_count()
+#endif
+    oldps = prc_set_ipl(INTS_OFF);	/* no interrupts to get the most accurate times */
+    while (  NVBLANK ) ;		/* if not in VB, wait until VB*/
+    while ( !NVBLANK ) ;		/* if in VB, wait until not in VB */
+    start = GET_TIME();			/* record start time */
+#if CPU_SPEED_VARIABLE
+    CPU_SPEED = prc_get_count();
+#endif
+    while (  NVBLANK ) ;		/* wait for a VB to show up */
+    while ( !NVBLANK ) ;		/* wait for VB to deassert */
+#if HOST_BOARD == CHAMELEON
+    field_time = GET_TIME() - start;
+#else
+    field_time = start - GET_TIME();
+#endif
+    lc1 = *lctr & 0x7FF;
+    while ((lc2=(*lctr&0x7FF)) == lc1);	/* look for a scanline edge */
+    start = GET_TIME();			/* record start time */
+    for (ii=0; ii<16; ++ii) {		/* count 16 lines */
+	while ((lc1 = (*lctr&0x7FF)) == lc2) ;
+	lc2 = lc1;
+    }
+    line_time = GET_TIME();		/* record end time */
+    prc_set_ipl(oldps);			/* interrupts are ok from here on */
+#if HOST_BOARD == CHAMELEON
+    line_time = ((line_time - start)+8)/16;
+#else
+    line_time = ((start - line_time)+8)/16;
+#endif
+    pll->ticks_field = field_time;
+    pll->ticks_line = line_time;
+    pll->lines = field_time/line_time;
+    pll->vlines = *(VU32*)(SST_BASE+0x20C)>>16;
+    if (VIS_V_PIX == 256) {
+	pll->fields_sec = 57;
+    }
+    if (VIS_V_PIX == 384) {
+	pll->fields_sec = 60;
+    }
+#if GALILEO_TIMER2
+    *tctl = oldctl;
+#endif
+    while (  NVBLANK ) ;		/* wait for a VB to show up */
+    while ( !NVBLANK ) ;		/* wait for VB to deassert */
+#if CPU_SPEED_VARIABLE
+    if (VIS_V_PIX == 256) {
+	CPU_SPEED = (((prc_get_count()-CPU_SPEED)/1750+5)/10)*1000000;
+    }
+    if (VIS_V_PIX == 384) {
+	CPU_SPEED = (((prc_get_count()-CPU_SPEED)/1667+5)/10)*1000000;
+    }
+    cpu_ticks_usec = CPU_SPEED/2000000;
+#endif
+    ii = pll->vlines+4;		/* assume our fake VB is about 4 lines after visible */
+    if (ii > pll->lines) ii = pll->lines-1; /* but no further than max lines */
+    while (1) {
+	do {
+	    lc1 = (*lctr&0x7FF);	/* get current scanline */
+	    lc2 = (*lctr&0x7FF);
+	} while (lc1 == lc2) ;
+	if (lc1 > ii) break;
+    }
+    prc_timer_rate(field_time/16);	/* divide field into 16 equal parts */
+    pll->field = 0;			/* start this timer at 0 */
+    pll->ticks = 0;
+    pll->nxt_upd = 0;
+    pll->ints_upd = 4;
+    pll->no_vsync = -1;			/* signal timer not to do vsyncs */
+    pll->fields_frame = 0;		/* 1 field per frame, allow prc_delay to drop out */
+    prc_set_vec(TIMERPLL_INTVEC, timer_pll);
+
+#if defined(SST_VSYNC_ACK)
+    SST_VSYNC_ACK();			/* ack any pending VB interrupts */
+#endif
+#if defined(VSYNC_IE_BIT)
+    prc_set_vec(VSYNC_IVEC, sst_vb);
+# if VSYNC_IE_BIT != VSYNC_CAUSE_BIT
+    INTCTL_IE_T = (INTCTL_IE_T & ~(1<<VSYNC_CAUSE_BIT)) | (1<<VSYNC_IE_BIT);
+# endif
+    prc_delay(10);			/* wait a little */
+    if (!pll->field) {			/* no vsync interrupts */
+	U32 oldopt;
+#if defined(INTCTL_IE_T)
+	char emsg[AN_VIS_COL_MAX];
+	INTCTL_IE_T &= ~(1<<VSYNC_IE_BIT); /* disable this in case it starts all by itself */
+#else
+	*(VU32*)INTCTL_IE &= ~(1<<VSYNC_IE_BIT); /* disable this in case it starts all by itself */
+#endif
+	prc_set_vec(VSYNC_IVEC, 0);	/* might as well zap this to save time */
+	pll->no_vsync = 1;		/* tell timer to take over */
+	pll->fields_frame = 1;		/* enable video */
+	oldopt = prc_delay_options(PRC_DELAY_OPT_SWAP|PRC_DELAY_OPT_CLEAR|PRC_DELAY_OPT_TEXT2FB);
+	txt_str(-1, AN_VIS_ROW/2, "No VSYNC interrupts detected", RED_PAL);
+#if defined(INTCTL_IE_T)
+	nsprintf(emsg, sizeof(emsg), "INTMAP=0x%04X, INTCTL=0x%04X",
+	    INTCTL_MAP_T, INTCTL_IE_T);
+	txt_str(-1, AN_VIS_ROW/2+2, emsg, WHT_PAL);
+#endif
+	prc_delay(240);			/* show message for a little */
+	vid_clear();			/* done with message */
+	prc_delay_options(oldopt);
+    } else {
+	pll->no_vsync = 0;		/* let vsync do its thing */
+    }
+#else
+    pll->no_vsync = 1;
+#endif
+#if 0 && (HOST_BOARD == CHAMELEON)
+    BLABF(("\nsst_vid: Fields/sec: %d, ticks/field: %d, ticks/line: %d",
+	pll->fields_sec, pll->ticks_field, pll->ticks_line));
+    BLABF(("\nsst_vid: timer rate: %d, lines: %d, visible lines: %d",
+	prc_timer_rate(0), pll->lines, pll->vlines));
+#endif
+    return;
+}
+
+static void sst_reset_hw(void) {
+    static int been_here;
+    if (been_here) {
+	grGlideShutdown();
+    }
+#if HOST_BOARD == FLAGSTAFF || HOST_BOARD == SEATTLE 
+    {
+	extern void init_3dfx_pci(void);
+	int oldps = prc_set_ipl(INTS_OFF);
+	*(VU32*)RESET_CTL &= ~(1<<B_RESET_3DFX);	/* reset the 3dfx chip */
+	prc_wait_n_usecs(500);			/* wait a little while */
+	*(VU32*)RESET_CTL |= (1<<B_RESET_3DFX);	/* unreset 3dfx */
+	init_3dfx_pci();
+	*(VU32*)INTCTL_VSY_ACK = 0;			/* purge any pending VSYNC interrupts */
+	prc_set_ipl(oldps);
+    }
+#endif
+#if HOST_BOARD == CHAMELEON
+    {
+	extern void init_3dfx_pci(void);
+	int id, oldps = prc_set_ipl(INTS_OFF);
+	id = get_sst_device_number();
+	if (id >= 3 && id <= 5) {			/* Can only be slot 0-2 */
+	    BLABF(("\nsst_vid: reseting 3dfx board in slot %d...", id-3));
+	    RESET_CTL_T &= ~(RESET_PCI_SLOT_0<<(id-3));	/* reset the 3dfx chip */
+	    prc_wait_n_usecs(500);			/* wait a little while */
+	    RESET_CTL_T |= (RESET_PCI_SLOT_0<<(id-3));	/* unreset 3dfx */
+	    init_3dfx_pci();	
+	    SST_VSYNC_ACK();			/* purge any pending VSYNC interrupts */
+	} else {
+	    BLABF(("\nsst_vid: Found 3dfx chip in invalid slot: %d...", id));
+	}
+	prc_set_ipl(oldps);
+    }
+#endif
+    been_here = 1;
+}
+
+#ifndef AGC_GAMMA_BASE
+# define AGC_GAMMA_BASE (28.0)
+#endif
+#ifndef AGC_GAMMA_RATIO
+# define AGC_GAMMA_RATIO (0.67)
+#endif
+
+#if DYNAMIC_GAMMA_CORRECTION
+extern float agcGammaBase, agcGammaRatio;
+#endif
+
+void sst_reset(void) {
+    sst_reset_hw();
+#if DYNAMIC_GAMMA_CORRECTION
+    if (agcGammaBase == 0.0) agcGammaBase = AGC_GAMMA_BASE;
+    if (agcGammaRatio == 0.0) {
+	if ((IO_DIPSW_T^IO_DIPSW_INVERT)&IO_DIPSW10) {
+	    agcGammaRatio = (256.0-AGC_GAMMA_BASE)/256.0;
+	} else {
+	    agcGammaRatio = AGC_GAMMA_RATIO;
+	}
+    }
+#endif
+    DEFAULT_RES_METHOD();
+#if GLIDE_VERSION > 203
+    {
+	extern void _GlideInitEnvironment(void);
+	PHX_PUTS("Doing _GlideInitEnvironment() ...\r\n");
+	_GlideInitEnvironment();
+	PHX_PUTS("Doing grResetTriStats() ...\r\n");
+	grResetTriStats();
+    }
+#else
+    PHX_PUTS("Doing grSstQueryHardware() ...\r\n");
+    if ( !grSstQueryHardware(&hwconfig) )
+    {
+            grErrorCallback("main: grSstQueryHardware failed!", FXTRUE);
+    }
+#endif
+    PHX_PUTS("Doing grSstSelect()\r\n");
+    grSstSelect(0);
+
+    PHX_PUTS("Doing grSstOpen()\r\n");
+    if ( !grSstOpen(SST_RESOLUTION, SST_REFRESH_RATE, SST_COLOR_FORMAT,
+                  SST_ORIGIN, SST_SMOOTHING, 2) )
+    {
+            grErrorCallback("main: grSstOpen failed!", FXTRUE);
+    }
+
+    /*
+    ** G-shading, no texture mapping.
+    */
+    guColorCombineFunction( GR_COLORCOMBINE_ITRGB );
+    grTexCombineFunction( GR_TMU0, GR_TEXTURECOMBINE_ZERO);
+
+    PHX_PUTS("Finished the 3dfx init\r\n");
+
+}
+
+#if TEST_SST_RESET
+#include <nsprintf.h>
+
+static int test_sst_reset( const struct menu_d *smp ) {
+    U32 stop_time, start_time;
+    float fstart, fstop;
+    char buf[AN_VIS_COL];
+
+    stop_time = prc_get_count();
+    grGlideShutdown();
+    stop_time = prc_get_count() - stop_time;
+    start_time = prc_get_count();
+    sst_reset();
+    start_time = prc_get_count() - start_time;
+    fstop = (float)stop_time*2000.0/(float)CPU_SPEED;
+    nsprintf(buf, sizeof(buf), "Stop time = %.1fms", fstop);
+    txt_str(-1, AN_VIS_ROW/2, buf, WHT_PAL);
+    fstart = (float)start_time*2000.0/(float)CPU_SPEED;
+    nsprintf(buf, sizeof(buf), "Start time = %.1fms", fstart);
+    txt_str(-1, AN_VIS_ROW/2+2, buf, WHT_PAL);
+    ctl_read_sw(-1);
+    while (!(ctl_read_sw(SW_NEXT|SW_ACTION)&(SW_NEXT|SW_ACTION))) prc_delay(0);
+    return 0;
+}
+#endif
+
+#if GLIDE_VERSION > 203
+# if !NO_VIDEO_TIMING_STR && (DYNAMIC_VIS_PIX || VIS_V_PIX_MAX == 256)
+const sst1VideoTimingStruct sst_t512x256 = {
+    39,        /* hSyncOn */
+    605,       /* hSyncOff */
+    4,         /* vSyncOn */
+    276,       /* vSyncOff */
+    74,        /* hBackPorch */
+    13,        /* vBackPorch */
+    512,       /* xDimension */
+    256,       /* yDimension */
+    64,        /* memOffset */
+    0x410,     /* memFifoEntries_1MB  ... 32256 entries in memory fifo (no Z) */
+    0x100,     /* memFifoEntries_2MB  ... 57344 entries in memory fifo */
+    0x100,     /* memFifoEntries_4MB  ... 57344 entries in memory fifo */
+    8,         /* tilesInX_Over2 */
+    23,        /* vFifoThreshold */
+    FXFALSE,   /* video16BPPIsOK */
+    FXTRUE,    /* video24BPPIsOK */
+    20.66F,    /* clkFreq16bpp */
+    20.66F     /* clkFreq24bpp */
+};
+# endif
+
+# if !NO_VIDEO_TIMING_STR && (DYNAMIC_VIS_PIX || VIS_V_PIX_MAX == 384)
+const sst1VideoTimingStruct sst_t512x384 = {
+#  if DMS_TIMING
+    63,        /* hSyncOn */
+    575,       /* hSyncOff */
+    5,         /* vSyncOn */
+    411,       /* vSyncOff */
+    32,        /* hBackPorch (s/b 49) */
+    25,        /* vBackPorch */
+    512,       /* xDimension */
+    384,       /* yDimension */
+    96,        /* memOffset */
+    0x0,       /* memFifoEntries_1MB  ... 32256 entries in memory fifo (no Z) */
+    0x100,     /* memFifoEntries_2MB  ... 57344 entries in memory fifo */
+    0x100,     /* memFifoEntries_4MB  ... 57344 entries in memory fifo */
+    8,         /* tilesInX_Over2 */
+    23,        /* vFifoThreshold */
+    FXTRUE,    /* video16BPPIsOK */
+    FXTRUE,    /* video24BPPIsOK */
+    16.0F,     /* clkFreq16bpp */
+    32.0F      /* clkFreq24bpp */
+#  else
+    23,        /* hSyncOn */
+    640,       /* hSyncOff */
+    3,         /* vSyncOn */
+    411,       /* vSyncOff */
+#   if !SDMS_TIMING
+    90,        /* hBackPorch */
+#   else
+    73,        /* hBackPorch */
+#   endif
+    24,        /* vBackPorch */
+    512,       /* xDimension */
+    384,       /* yDimension */
+    96,        /* memOffset */
+    0x410,     /* memFifoEntries_1MB  ... 32256 entries in memory fifo (no Z) */
+    0x100,     /* memFifoEntries_2MB  ... 57344 entries in memory fifo */
+    0x100,     /* memFifoEntries_4MB  ... 57344 entries in memory fifo */
+    8,         /* tilesInX_Over2 */
+    23,        /* vFifoThreshold */
+    FXFALSE,   /* video16BPPIsOK */
+    FXTRUE,    /* video24BPPIsOK */
+    33.0F,     /* clkFreq16bpp */
+    33.0F      /* clkFreq24bpp */
+#  endif
+};
+# endif
+#endif
+
+void vid_init() {
+    long options;
+
+#if VID_WAIT_FOR_BUTTON
+    while ( !(READ_RAW_SWITCHES(0)&(SW_NEXT|SW_ACTION)) ) { ; }
+#endif
+
+    sst_reset();
+
+    sst_memfifo_min = 0xFFFF;
+
+#if defined(EER_SST_OPT)
+    options = eer_gets(EER_SST_OPT);
+    if ( !options ) {
+	options = sst_opt_memo;
+	eer_puts(EER_SST_OPT,options);
+    } else {
+	sst_opt_memo = options;
+    }
+#else
+    options = sst_opt_memo;
+#endif
+
+    sst_text_init(0, 0);		/* establish a fake screen */
+
+    txt_select(TXT_VSCREEN);		/* default text drawing into fake screen */
+
+    vid_clear();			/* clear the screen(s) */
+    setancolors();
+
+    PHX_PUTS("Timing V-blank signals\r\n");
+    time_vb();
+
+    vid_fields(1);			/* assume normal video mode */
+
+    vid_warm = 1;
+    PHX_PUTS("Exiting vid_init\r\n");
+    prc_delay(10);			/* wait awhile to let switches get debounced */
+}
+
+#define MAX_WAIT (320000L)
+
+#define U32S_PER_LINE (VIS_H_PIX)
+
+static int bypass_enabled;
+
+/*		bm_rect()
+ *	Draw a rectangle in the currently _active_ (not visible, but
+ *	being drawn into) frame buffer. 
+ *	It is not "static"
+ *	because some of the tests in other modules use it at the moment.
+ */
+int bm_rect( int x1, int y1, int x2, int y2, int outside, int inside) {
+    int ul_x, ul_y, lr_x, lr_y;
+    m_int y,x;
+    int v_retrace;
+    int next_line = TOT_H_PIX;
+    FxU16 *ptr, *lp;
+
+    /* Guard against inversion of upper-left and lower-right
+     */ 
+    ul_x = x1 >= 0 ? x1 : 0;
+    lr_x = x2 >= 0 ? x2 : 0;
+    if ( lr_x < ul_x ) {
+	ul_x = x2;
+	lr_x = x1;
+    }
+    ul_y = y1 >= 0 ? y1 : 0;
+    lr_y = y2 >= 0 ? y2 : 0;
+    if ( lr_y > ul_y ) {
+	ul_y = y2;
+	lr_y = y1;
+    }
+    /* Clip to within visible screen, being careful to remember that
+     * y = 0 is _bottom_ of the screen.
+     */
+    if ( lr_x >= VIS_H_PIX ) lr_x = VIS_H_PIX-1;
+    if ( ul_x >= VIS_H_PIX ) ul_x = VIS_H_PIX-1;
+
+    if ( ul_y >= TOT_V_PIX ) ul_y = TOT_V_PIX-1;
+    if ( lr_y >= TOT_V_PIX ) lr_y = TOT_V_PIX-1;
+
+    v_retrace = (ul_y-lr_y)-1;
+
+    /*	Duplicate colors so we don't care which 16-bit word
+     *	we are trying to store.
+     */
+    outside &= 0x7FFF;
+    outside |= (outside << 16);
+
+    inside &= 0x7FFF;
+    inside |= (inside << 16);
+
+    if (!bypass_enabled) {
+	grLfbBegin();
+	grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+	grLfbWriteMode(GR_LFBWRITEMODE_555);
+    }
+
+    /*
+    ** G-shading, no texture mapping.
+    */
+    guColorCombineFunction( GR_COLORCOMBINE_ITRGB );
+    grTexCombineFunction( GR_TMU0, GR_TEXTURECOMBINE_ZERO);
+
+/* OK, we have control and agree which buf we are talking to.
+ * First draw inside
+ */
+    ptr = (FxU16 *)grLfbGetWritePtr( GR_BUFFER_BACKBUFFER );
+
+    lp = ptr;
+    lp += next_line*(lr_y+1);
+    for ( y = ul_y-1 ; y > lr_y ; --y ) {
+	for ( x = ul_x+1 ; x < lr_x ; ++x ) lp[x] = inside;
+	lp += next_line;
+    }
+
+/* draw bottom */
+
+    lp = ptr;
+    lp += next_line*lr_y;
+    for ( x = ul_x ; x <= lr_x ; ++x ) {
+	lp[x] = outside;
+    }
+
+/* draw top */
+
+    lp = ptr;
+    lp += next_line*ul_y;
+    for ( x = ul_x ; x <= lr_x ; ++x ) {
+	lp[x] = outside;
+    }
+
+/* now the sides */
+
+    lp = ptr;
+    lp += next_line*(lr_y+1);
+    for ( y = ul_y-1 ; y > lr_y ; --y ) {
+	lp[ul_x] = outside;		/* write whichever half... */
+	lp[lr_x] = outside;		/* write whichever half... */
+	lp += next_line;
+    }
+    if (!bypass_enabled) {
+	grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+	grLfbEnd();
+    }
+    return 0;
+}
+
+extern int (*dbg_str)(int col, int row, const char *string, int font);
+
+void vid_clr_alphas(void) {
+    m_int y;
+    struct txt_alpha_ptr *alp;
+    alp = txt_vsptr(0);
+    if (alp) {
+	if (dbg_str) {
+	    for ( y = AN_VIS_ROW-1 ; y >= 0 ; --y ) {
+/* egregious hack for remote-alphas selftest with ztv board */
+		txt_clr_wid(0,y,AN_VIS_COL);
+	    }
+	} else {
+	    memset((char *)alp->screen, 0, AN_VIS_ROW*AN_VIS_COL*2);
+	}
+    }
+}
+
+#if GUN_CNT
+extern void gun_hide();
+#endif
+
+void vid_clear(void) {
+    int which;
+
+    which = txt_select(TXT_NONE);
+    txt_select(which);
+    vid_clr_alphas();
+    grBufferClear( 0, 0, GR_WDEPTHVALUE_NEAREST );
+    sst_bufswap( );
+    grBufferClear( 0, 0, GR_WDEPTHVALUE_NEAREST );
+#if GUN_CNT
+    gun_hide();
+#endif
+    while ( SST_BUSY() ) { ; }
+}
+
+void stamp_atxy(int num, int x, int y, int color) {
+    return;
+}
+
+#if (0)
+/* MEA deleted lmul_div(), which was apparently a fossil, left over from
+ * the _last_ time we needed to set a PLL-clock (ASAP Bitmap Board).
+ */
+/*	lmul_div(start,mul,div,mod_p) computes the function (start*mul)/div
+ *	with enough precision in the intermediate result for exact results.
+ *	If mod_p is non-null, the remainder is also returned.
+ */
+#ifndef ULONG_MAX
+#define ULONG_MAX ((unsigned long)-1L)
+#endif
+
+unsigned long lmul_div(unsigned long start, unsigned long mul, unsigned long div, unsigned long *mod_p) {
+    unsigned long acc_hi, acc_mid, acc_lo;
+    unsigned int s_hi, s_lo, m_hi, m_lo;
+    int bit;
+
+    s_hi = (start >> 16) & 0xFFFF;
+    s_lo = (start & 0xFFFF);
+    m_hi = (mul >> 16) & 0xFFFF;
+    m_lo = (mul & 0xFFFF);
+
+    /*	First the easy partial products.
+     */
+    acc_lo = s_lo * m_lo;
+    acc_hi = s_hi * m_hi;
+
+    /*	Now the "middle" partials, accumulating as we go into lo and hi
+     */
+    acc_mid = s_hi * m_lo;
+
+    acc_hi += (acc_mid >> 16);
+    acc_mid &= 0xFFFF;
+
+    acc_mid += (acc_lo >> 16);
+    acc_lo &= 0xFFFF;
+    acc_hi += (acc_mid >> 16);
+    acc_lo |= (acc_mid << 16);
+
+    acc_mid = s_lo * m_hi;
+
+    acc_hi += (acc_mid >> 16);
+    acc_mid &= 0xFFFF;
+
+    acc_mid += (acc_lo >> 16);
+    acc_lo &= 0xFFFF;
+    acc_hi += (acc_mid >> 16);
+    acc_lo |= (acc_mid << 16);
+
+    if ( div <= acc_hi ) {
+	return ULONG_MAX;
+    }
+    for ( bit = 32 ; bit ; --bit ) {
+	int qbit = 0;
+	acc_hi += acc_hi;
+	if ( acc_lo & 0x80000000L ) ++acc_hi;
+	if ( div <= acc_hi ) {
+	    qbit = 1;
+	    acc_hi -= div;
+	}
+	acc_lo = ((acc_lo << 1) + qbit) & 0xFFFFFFFFL;
+    }
+    if ( mod_p ) *mod_p = acc_hi;
+    return acc_lo;
+}
+#endif
+
+/*		SetANPal(f_and_b)
+ *	Sets one AlphaNumeric palette to have the colors specified
+ *	in f_and_b. The lower 16 bits of f_and_b specify the foreground
+ *	color (in game's coding) while the upper 16 bits specify the
+ *	background color. An alias color is synthesized "halfway between"
+ *	the two.
+ */
+extern void SetANPal(int, U32);
+
+void
+setancolors()
+{
+    SetANPal(GRY_PAL,GRY_SLT);
+    SetANPal(BLU_PAL,GRY_BLU);
+    SetANPal(GRN_PAL,GRY_GRN);
+    SetANPal(CYN_PAL,GRY_CYN);
+    SetANPal(RED_PAL,GRY_RED);
+    SetANPal(VIO_PAL,GRY_VIO);
+    SetANPal(YEL_PAL,GRY_YEL);
+    SetANPal(WHT_PAL,GRY_WHT);
+#if GUN_CNT
+    {
+	extern void gun_check_pal_swap();
+	gun_check_pal_swap();
+    }
+#endif
+}
+
+static const int col_bar_desc[] = {
+    RED_MSK, GRN_MSK, BLU_MSK, ALL_MSK, 0
+};
+
+struct col_desc {
+    const char * const text;
+    unsigned long color;
+};
+
+/*	On ZTV2, we use the bitmap for purity. Later, we may merge this
+ *	with ZTV1, which will make us less dependant on the ALPHA ROM
+ */
+
+static const struct col_desc purity_colors[] = {
+    {  "Red"   , RED_MSK},
+    { "Green"  , GRN_MSK},
+    {  "Blue"  , BLU_MSK},
+    { "BRIGHT" , (RED_MSK|GRN_MSK|BLU_MSK)},
+    { "White"  ,  (((RED_MSK*13)>>4)&RED_MSK)
+		| (((GRN_MSK*13)>>4)&GRN_MSK)
+		| (((BLU_MSK*13)>>4)&BLU_MSK)},
+    {"50% Grey",  ((RED_MSK+RED_LSB)>>1)
+		| ((GRN_MSK+GRN_LSB)>>1)
+		| ((BLU_MSK+BLU_LSB)>>1) },
+    {  "Grey"  ,  (((RED_MSK*9)>>5)&RED_MSK)
+		| (((GRN_MSK*9)>>5)&GRN_MSK)
+		| (((BLU_MSK*9)>>5)&BLU_MSK)},
+    {  "Ones"  , ALL_LSB},
+    { "Black"  , 0}
+};
+
+#if GLIDE_VERSION >= 203
+extern int AGCGamma(U32 *ptr, float r, float g, float b, float pcnt, float base);
+# define GAMMA_R		1.4
+# define GAMMA_G		1.4
+# define GAMMA_B 		1.4
+# define GAMMA_GRN_CORR		0.85
+# if DYNAMIC_GAMMA_CORRECTION
+#  define GAMMA_BASE		agcGammaBase
+#  define GAMMA_RATIO		agcGammaRatio
+# else
+#  define GAMMA_BASE		AGC_GAMMA_BASE
+#  define GAMMA_RATIO		AGC_GAMMA_RATIO
+# endif
+#endif
+
+int purity( smp )
+const struct menu_d *smp;
+{
+    U32 cntrls;
+    m_int i,old_i, oldpd;
+    U32 color;
+    i = 0;
+    old_i = -1;
+    oldpd = prc_delay_options(0);
+#if GLIDE_VERSION >= 203
+    AGCGamma((U32*)SST_BASE, GAMMA_R, GAMMA_G, GAMMA_B, GAMMA_RATIO, GAMMA_BASE); /* change gamma for white tracking */
+#endif
+    while (1) {
+	prc_delay(0);
+	while ( SST_BUSY() ) { ; }
+	cntrls = ctl_read_sw(SW_ACTION|SW_NEXT);
+	if ( cntrls & SW_NEXT ) break;
+	if ( cntrls & SW_ACTION ) {
+	    if ( ++i >= n_elts(purity_colors)  ) {
+		i = 0;
+	    }
+	}
+	color = purity_colors[i].color;
+	if ( old_i != i ) {
+	    /*
+	    ** G-shading, no texture mapping.
+	    */
+	    grBufferClear( 0, 0, GR_WDEPTHVALUE_NEAREST );	    
+	    bm_rect(0, 0, VIS_H_PIX-1, VIS_V_PIX-1, color, color);
+	    if ( old_i >= 0 ) {
+		txt_clr_str(-1,2,purity_colors[old_i].text,MNORMAL_PAL);
+	    }
+	    txt_str(-1,2,purity_colors[i].text,WHT_PALB); 
+	    st_insn(AN_VIS_ROW-4,"To change color,",t_msg_action,INSTR_PAL);
+	    while ( SST_BUSY() ) { ; }
+	    sst_text2fb(0);
+	    sst_bufswap();
+	    while ( SST_BUSY() ) { ; }
+	    old_i = i;
+	}
+    }
+#if GLIDE_VERSION >= 203
+    AGCGamma((U32*)SST_BASE, GAMMA_R, GAMMA_G*GAMMA_GRN_CORR, GAMMA_B, GAMMA_RATIO, GAMMA_BASE); /* put it back */
+#endif
+    prc_delay_options(oldpd);
+    return 0;
+}
+
+static	const struct col_desc converge_colors[] = {
+    {" White  ", ALL_MSK },
+    {" Violet ", VIO_MSK },
+    {" Green  ", GRN_MSK }
+};
+
+int converge( smp )
+const struct menu_d *smp;
+{
+    U32 cntrls;
+    m_int i, old_i;
+    U32 color;
+    int oldpd;
+
+    i = 0;
+    old_i = -1;
+    color = 0xFF;
+    oldpd = prc_delay_options(0);	/* we'll do all the buffer swapping, etc */
+    vid_clear();			/* clear the whole screen */
+
+    while (1) {
+	prc_delay(0);
+	cntrls = ctl_read_sw(SW_ACTION|SW_NEXT);
+	if ( cntrls & SW_NEXT ) break;
+	if ( cntrls & SW_ACTION ) {
+	    if ( ++i >= n_elts(converge_colors)  ) {
+		i = 0;
+	    }
+	}
+	if ( old_i != i ) {
+	    int x, y;
+	    VU16 *ptr;
+	    VU16 *pixel;
+	    grBufferClear( 0, 0, GR_WDEPTHVALUE_NEAREST );
+	    if (!bypass_enabled) {
+		grLfbBegin();
+		grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+		grLfbWriteMode(GR_LFBWRITEMODE_555);
+	    }
+
+	    /*
+	    ** G-shading, no texture mapping.
+	    */
+	    guColorCombineFunction( GR_COLORCOMBINE_ITRGB );
+	    grTexCombineFunction( GR_TMU0, GR_TEXTURECOMBINE_ZERO);
+
+	    ptr = (VU16*)grLfbGetWritePtr( GR_BUFFER_BACKBUFFER );
+	    color = converge_colors[i].color;
+	    color |= (color << 16);
+	    for ( y = 0 ; y < VIS_V_PIX ; ++y ) {
+		pixel = ptr + y*1024;
+		for ( x = 0; x < VIS_H_PIX ; ++x ) {
+		    if ( (x & 0x0F) == 0 || (y & 0x0F) == 0 || 
+			( (x & 0x0F) == 8 && (y & 0x0F) == 8 ) )
+			*pixel++ = color;
+		    else *pixel++ = 0;
+		}
+	    }
+	    if (!bypass_enabled) {
+		grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+		grLfbEnd();
+	    }
+	    if ( old_i >= 0 ) {
+		txt_clr_str(-1,2,converge_colors[old_i].text, WHT_PALB);
+		txt_clr_wid(-1, 3, 8);
+	    }
+	    txt_str(-1,2,converge_colors[i].text,WHT_PALB);
+	    txt_hexnum(-1, 3, color, 8, RJ_ZF, WHT_PALB); 
+	    st_insn(AN_VIS_ROW-4,"To change color,",t_msg_action,INSTR_PAL);
+	    while ( SST_BUSY() ) { ; }
+	    sst_text2fb(0);
+	    sst_bufswap( );
+	    while ( SST_BUSY() ) { ; }
+	    old_i = i;
+	}
+    }
+    prc_delay_options(oldpd);
+    return 0;
+}
+
+/*		bm_color_bars(mp, display)
+ *	paints color bars into 3DFX bitmap via direct access.
+ *	mp points to a table of masks for the bands of color, top to bottom.
+ *	If display != 0, paints color bars on second display.
+ *	returns x offset to left edge of color bars. This is a hack
+ *	to speed drawing of color bars.
+ */
+STATIC const int block_y = 20;
+#define BAND_HT (VIS_V_PIX-(block_y<<1))
+STATIC
+int bm_color_bars( const int *mp ) {
+    m_int y,swath,band_y,band_x,max_col,n_bands,band_ht;
+    int block_x,pix_per_band;
+    unsigned long color,incr;
+    int log_max,bits;
+    int red_msk,grn_msk,blu_msk,red_shf,grn_shf,blu_shf;
+    int next_line = TOT_H_PIX;
+    
+    const int *wmp;
+
+    unsigned long *lp,*top;
+    FxU32 *ptr;
+
+    /* count how many bands we need, then figure the band height needed */
+    wmp = mp;
+    n_bands = 0;
+    while ( *wmp ) { ++wmp, ++n_bands; }
+    band_ht = BAND_HT/n_bands;
+
+    /* first figure out max value of any gun. Some assumptions:
+     *	The bits of a gun are contiguous and increase in significance
+     * right-to-left
+     *	The maximum value for a gun is all-ones, i.e. (xxx_MSK >> xxx_SHF)
+     */
+    max_col = (RED_MSK >> RED_SHF);
+    if ( max_col < (GRN_MSK >> GRN_SHF) ) max_col = (GRN_MSK >> GRN_SHF);  
+    if ( max_col < (BLU_MSK >> BLU_SHF) ) max_col = (BLU_MSK >> BLU_SHF);  
+
+    for ( log_max = 0 ; max_col > (1<<log_max) ; ++log_max ) {;}
+
+    /* Build a word with ones at the bottom of three equal-sized fields.
+     * This will be used to increment all guns simultaneously.
+     */
+    incr = 1 | (1<<log_max) | (1<<(log_max<<1));
+
+    /* Now figure out how much we need to shift each equal-sized field to
+     * get it into the hardware location, and how to mask for only the
+     * bits for each gun.
+     */
+    /* find how many bits of RED */
+    red_msk = RED_MSK>>RED_SHF;
+    for ( bits = 0 ; red_msk > (1<<bits) ; ++bits ) {;}
+    red_shf = (log_max<<1)+(log_max-bits);
+    red_msk <<= red_shf;
+
+    grn_msk = GRN_MSK>>GRN_SHF;
+    for ( bits = 0 ; grn_msk > (1<<bits) ; ++bits ) {;}
+    grn_shf = (log_max)+(log_max-bits);
+    grn_msk <<= grn_shf;
+
+    blu_msk = BLU_MSK>>BLU_SHF;
+    for ( bits = 0 ; blu_msk > (1<<bits) ; ++bits ) {;}
+    blu_shf = (log_max-bits);
+    blu_msk <<= blu_shf;
+
+    if (!bypass_enabled) {
+	grLfbBegin();
+	grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+	grLfbWriteMode(GR_LFBWRITEMODE_555);
+    }
+
+    /*
+    ** G-shading, no texture mapping.
+    */
+    guColorCombineFunction( GR_COLORCOMBINE_ITRGB );
+    grTexCombineFunction( GR_TMU0, GR_TEXTURECOMBINE_ZERO);
+    ptr = grLfbGetWritePtr( GR_BUFFER_BACKBUFFER );
+    top = ptr;
+
+    /* screen coordinates have (0,0) at bottom left */
+    top += (VIS_V_PIX-block_y)*next_line/2;
+
+    /* Figure out how many pixels we need to paint of each color to get
+     * a "reasonable" block. This depends on the maximum available
+     * resolution (max_col) and the space we have to paint it in.
+     * to allow for some margin, we add 4 "colors" worth.
+     */
+    pix_per_band = VIS_H_PIX/(max_col+4);
+    block_x = (VIS_H_PIX-(pix_per_band*(max_col+1)))/2;
+
+    /* Now paint bands of pixels vertically down the screen, changing
+     * the mask for each major horizontal section.
+     */
+    color = 0;
+    band_x = block_x;
+    for ( swath = 0 ; swath <= max_col ; swath += 1 ) {
+	/* top of swath, reset mask pointer and bitmap pointer */
+	wmp = mp;
+	lp = top + band_x/2;
+	band_y = band_ht;
+	while (*wmp) {
+	    /* one band of swath */
+	    unsigned long hdw_col;
+	    hdw_col  = ((color & red_msk) >> red_shf) << RED_SHF;
+	    hdw_col |= ((color & grn_msk) >> grn_shf) << GRN_SHF;
+	    hdw_col |= ((color & blu_msk) >> blu_shf) << BLU_SHF;
+	    hdw_col &= *wmp;
+	    hdw_col |= (hdw_col << 16);
+	    for ( y = 0 ; y < band_y ; ++y ) {
+		U32 *tp;
+		int pix_idx;
+		tp = lp;
+		/* draw a rectangle <pix_per_band> wide by <band_ht> high */
+		for ( pix_idx = 0 ; pix_idx < pix_per_band/2 ; ++pix_idx ) {    
+		    *tp++ = hdw_col;
+		}
+		lp -= next_line/2;	/* remember, 0,0 is bottom left */
+	    } /* end of drawing one vertical band of pixels */
+	    ++wmp;	/* next band gets different mask */
+	} /* end of swath */
+	band_x += pix_per_band;
+	color += incr;
+    } /* end of swath */
+    if (!bypass_enabled) {
+	grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+	grLfbEnd();
+    }
+    return block_x;
+}
+
+STATIC int color_bars( const struct menu_d *smp ) {
+    int xpos;
+    int do_it, color, format, oldpd;
+    U32 ctls;
+
+    format = -1;
+    do_it = 1;
+    oldpd = prc_delay_options(0);
+    while ( ((ctls = ctl_read_sw(SW_NEXT|SW_ACTION)) & SW_NEXT) == 0 ) {
+	if ( ctls & SW_ACTION ) do_it = 1;
+	if ( do_it ) {
+	    while ( SST_BUSY() ) { ; }
+	    grBufferClear( 0, 0, GR_WDEPTHVALUE_FARTHEST );
+	    do_it = 0;
+	    ++format;
+	    if ( format & 2 ) color = 0;
+	    else color = SLT_FUL;
+	    xpos = bm_color_bars(&col_bar_desc[0]);
+	    if ( xpos < 0 ) break;
+	    bm_rect(0,0,VIS_H_PIX-1,block_y,color,color);
+	    bm_rect(0,VIS_V_PIX-block_y,VIS_H_PIX-1,VIS_V_PIX-1,color,color);
+	    bm_rect(0,block_y,xpos,VIS_V_PIX-block_y,color,color);
+	    bm_rect(VIS_H_PIX-xpos,block_y,VIS_H_PIX-1,VIS_V_PIX-block_y,color,color);
+	    while ( SST_BUSY() ) { ; }
+	    sst_text2fb(0);
+	    sst_bufswap( );
+	    while ( SST_BUSY() ) { ; }
+	}
+	prc_delay(0);
+    }
+    prc_delay_options(oldpd);
+    return 0;
+}
+
+STATIC int rectangles( smp )
+const struct menu_d *smp;
+{
+    int which, redraw, oldpd;
+
+    while ( SST_BUSY() ) { ; }
+    grBufferClear( 0x00000000, 0, GR_WDEPTHVALUE_FARTHEST );
+    bm_rect(0,0,VIS_H_PIX-1,VIS_V_PIX-1,0x7FFF,0);
+    sst_bufswap( );
+    while ( SST_BUSY() ) { ; }
+    grBufferClear( 0x00000000, 0, GR_WDEPTHVALUE_FARTHEST );
+    bm_rect(0,0,VIS_H_PIX-1,VIS_V_PIX-1,0x7FFF,0);
+    redraw = 1;
+    which = *(VU32*)SST_BASE&(1<<10);
+    oldpd = prc_delay_options(0);
+    while ( (ctl_read_sw(SW_NEXT) & SW_NEXT) == 0 ) {
+	if ( ctl_read_sw(SW_ACTION) & SW_ACTION ) redraw = 1;
+	if ( redraw ) {
+	    /* Draw rectangle in "active" buffer then toggle
+	     * buffers to display it.
+	     */
+	    int in,out;
+	    redraw = 0;
+	    out = RED_MSK;
+	    if ( which ) {
+		in = GRN_MSK;
+		which = 0;
+	    } else {
+		in = BLU_MSK;
+		which = 1;
+	    }
+	    bm_rect(8,8,VIS_H_PIX-9,VIS_V_PIX-9,out,in);
+	    while ( SST_BUSY() ) { ; }
+	    sst_text2fb(0);
+	    sst_bufswap( );
+	    while ( SST_BUSY() ) { ; }
+	}
+	prc_delay(0);
+    }
+    prc_delay_options(oldpd);
+    return 0;
+}
+
+STATIC const struct menu_d mon_list[] = {
+    { "MONITOR TESTS", 	0	},
+    { "COLOR BARS", 	color_bars },
+    { "CONVERGENCE",	converge},
+    { "PURITY",	    	purity	},
+    { "RECTANGLES",	rectangles },
+#if TEST_SST_RESET
+    { "RESET 3DFX SYSTEM", test_sst_reset },
+#endif
+    { 0, 0 }
+};
+
+int st_mon_group( smp )
+const struct menu_d *smp;
+{
+    int sts;
+    sts = st_menu(&mon_list[0],sizeof(mon_list[0]),RED_PALB,0);
+    return sts;
+}
+
+int MS4Field;
+
+extern void tq_maint(unsigned long);
+ 
+int sst_options(const struct menu_d *smp) {
+    unsigned long gopts;
+#ifdef EER_SST_OPT
+    gopts = eer_gets(EER_SST_OPT);
+#else
+    gopts = sst_opt_memo;
+#endif
+    gopts = DoOptions(sst_menu, gopts, SW_EXTRA);
+#ifdef EER_SST_OPT
+    eer_puts(EER_SST_OPT, gopts);
+#endif
+    sst_opt_memo = gopts;
+    vid_init();
+    return 0;
+}
+
+U32
+sst_restore_defaults()
+{
+    unsigned long options;
+    options = factory_setting(sst_menu);
+    sst_opt_memo = options;
+#ifdef EER_SST_OPT
+    eer_puts(EER_SST_OPT,options);
+#endif
+    return options;
+}
+
+#define VB_MASK		(1<<6)
+#define VB_DATA		(*(VU32*)(SST_BASE)&VB_MASK)
+#define VB_ACT		0
+#define VB_INACT	VB_MASK
+
+int vid_waitvb(int edge) {
+    extern volatile unsigned long eer_rtc;	/* timer calls eer_hwt()... */
+    int old_rtc = eer_rtc;			/*  ... which changes eer_rtc */
+    int count = TOO_LONG;
+
+/*
+ * If edge == 0, skip initial active state;
+ * otherwise, skip initial inactive state.
+ */
+
+    int skip = (edge) ? VB_INACT : VB_ACT;
+
+    while (old_rtc == eer_rtc && VB_DATA == skip) {
+	count -= NCACHE_READ;
+	if (count <= 0) return 0;
+    }
+
+    while (old_rtc == eer_rtc && VB_DATA != skip) {
+	count -= NCACHE_READ;
+	if (count <= 0) return 0;
+    }
+
+/* return 0 if timer did not execute */
+
+    return ( (old_rtc == eer_rtc) ? 0 : 1 );
+}
+@
+
+
+1.77
+log
+@Removed lmul_div().
+@
+text
+@d1 1
+a1 1
+/* $Id: sst_vid.c,v 1.76 1997/10/10 04:39:48 shepperd Exp albaugh $
+d632 11
+d645 10
+a1110 2
+# define GAMMA_PCNT		0.67
+# define GAMMA_BASE		28
+d1112 7
+d1131 1
+a1131 1
+    AGCGamma((U32*)SST_BASE, GAMMA_R, GAMMA_G, GAMMA_B, GAMMA_PCNT, GAMMA_BASE); /* change gamma for white tracking */
+d1163 1
+a1163 1
+    AGCGamma((U32*)SST_BASE, GAMMA_R, GAMMA_G*GAMMA_GRN_CORR, GAMMA_B, GAMMA_PCNT, GAMMA_BASE); /* put it back */
+@
+
+
+1.76
+log
+@Corrected the interpretation of the fields_frame value.
+I missed the point where 0 means swap now and -1 means
+don't display video. For purposes of prc_delay, values
+of 0 and -1 mean 1 field per frame. Note that the
+vid_fields(1) only works correctly with glide 2.1.1.
+With earlier versions of Glide, there is no way to tell
+it to give 60HZ frame rate (vid_fields(1) means 30HZ as
+does vid_fields(2)).
+@
+text
+@d1 1
+a1 1
+/* $Id: sst_vid.c,v 1.75 1997/09/24 23:59:21 shepperd Exp shepperd $
+d959 4
+d1024 1
+@
+
+
+1.75
+log
+@Corrected bug with USE_PCI_VSYNC and the novsync detected
+code.
+@
+text
+@d1 1
+a1 1
+/* $Id: sst_vid.c,v 1.74 1997/09/19 00:12:00 shepperd Exp shepperd $
+d98 1
+a98 1
+    if (pll_data.fields_frame) {
+a104 6
+    } else {
+#if USE_AGC_BUFSWAP
+	agcBufferSwap( 1 );
+#else
+	grBufferSwap( 1 );
+#endif
+d136 1
+a136 1
+    if (pll->fields_frame) {
+d153 7
+a159 5
+	if (do_frame) {
+	    ++pll->frame;		/* signal the frame */
+	    if (framevec) framevec();	/* call user's frame function if there is one */
+	    pll->field_last = pll->field; /* record the field counter at this frame */
+	}
+d267 1
+a267 1
+    if ((pll->field-pll->field_last) >= pll->fields_frame) {
+d355 1
+d365 1
+a365 1
+	    if (!pll_data.fields_frame) break; /* if no video, assume 1 field/frame */
+d368 1
+a368 1
+    if (pll_data.fields_frame) {
+d546 1
+a546 1
+    pll->fields_frame = 0;		/* 1 field per frame */
+@
+
+
+1.74
+log
+@Fixed prc_delay() to actually wait frames instead of fields
+and also corrected bug where it always waited at least 2 fields.
+@
+text
+@d1 1
+a1 1
+/* $Id: sst_vid.c,v 1.73 1997/09/12 21:09:20 shepperd Exp shepperd $
+d115 10
+a124 9
+#if defined B_PIC_VSY
+# define VSYNC_IE_BIT B_PIC_VSY
+# define VSYNC_CAUSE_BIT B_PIC_VSY
+# define VSYNC_IVEC VSY_INTVEC
+#else
+# if defined(B_PIC_PCI) && USE_PCI_VSYNC
+#  define VSYNC_IE_BIT B_PIC_PCI
+#  define VSYNC_CAUSE_BIT B_PIC_PCI
+#  define VSYNC_IVEC PCI_INTVEC
+d549 1
+d570 2
+a581 1
+	pll->no_vsync = 1;		/* tell timer to take over */
+a782 2
+    vid_fields(1);			/* assume normal video mode */
+
+d804 2
+@
+
+
+1.73
+log
+@Put the setting of CPU_SPEED back to the way it was in 1.46
+@
+text
+@d1 1
+a1 1
+/* $Id: sst_vid.c,v 1.72 1997/09/12 20:18:50 shepperd Exp shepperd $
+a93 1
+    pll_data.fields_since = 0;
+d98 2
+a99 7
+    if (pll_data.fields_frame) {	/* vid_fields(0) means swap now */
+	int oldps, frames;
+	oldps = prc_set_ipl(INTS_OFF);
+	++pll_data.swap;		/* let interrupt routine know we want to swap buffers */
+	frames = pll_data.fields_frame-1 - pll_data.fields_since;
+	if (frames <= 0) frames = 1;	/* took too long since last time, do it as soon as possible */
+	prc_set_ipl(oldps);
+d101 1
+a101 1
+	agcBufferSwap( (frames << 1) | 1 );
+d103 1
+a103 1
+	grBufferSwap( frames );
+d136 28
+a163 10
+static void frame_handler(void *arg) {
+    int tmp;
+    tmp = *(VU32*)(SST_BASE+(1<<10));	/* get sst status (from ony FBI chip) */
+    tmp = *(VU32*)(SST_BASE+(1<<10));	/* get sst status (from ony FBI chip) */
+    tmp = (tmp>>28) & 0x7;		/* isolate the buffer pending bits */
+    if (pll_data.swap > 0 && pll_data.swap > tmp) {	/* a buffer swap happened */
+	--pll_data.swap;
+	if (framevec) framevec();	/* call the frame function */
+	pll_data.fields_since = 0;	/* reset field counter */
+    }	
+d173 1
+d175 2
+a176 1
+    pll_data.ticks = 0;			/* ticks are always reset at vb */
+d181 1
+a181 1
+	pll_data.nxt_upd = pll_data.ints_upd;
+d245 1
+a245 1
+    ++pll_data.field;			/* advance field */
+d248 2
+a249 2
+    if ((pll_data.field&0xF) == 0) {
+	if (pll_data.field&0x10) {
+d257 1
+a257 1
+    if ((pll_data.field&0xF) == 0) {
+d260 1
+a260 1
+	if (pll_data.field&0x10) {
+d270 2
+a271 3
+    ++pll_data.fields_since;		/* count field since last time */
+    if (pll_data.fields_since >= pll_data.fields_frame) {
+	frame_handler(0);
+d356 13
+a368 4
+    if (vid_waitvb(1) == 0) {		/* returns 0 if interrupts are off */
+	eer_hwt();			/* keep this going if interrupts are off */
+	ctl_upd_sw();			/* check switches once in awhile too */
+	++no_ints_cntr;			/* record this fact */
+d370 3
+a372 3
+    while ( SST_BUSY() ) { ; }
+    if ((prc_delay_flags&PRC_DELAY_OPT_TEXT2FB)) {
+	sst_text2fb(0);
+d374 1
+a374 1
+	gun_draw_crosshairs();
+d376 3
+a379 3
+    if (prc_delay_flags&PRC_DELAY_OPT_SWAP) sst_bufswap();
+    while ( SST_BUSY() ) { ; }
+    if (prc_delay_flags&PRC_DELAY_OPT_CLEAR) grBufferClear( bg_color, 0, GR_WDEPTHVALUE_FARTHEST );
+d513 6
+a518 6
+#if VIS_V_PIX_MAX == 256
+    pll->fields_sec = 57;
+#endif
+#if VIS_V_PIX_MAX == 384
+    pll->fields_sec = 60;
+#endif
+d525 6
+a530 6
+# if VIS_V_PIX == 256
+    CPU_SPEED = (((prc_get_count()-CPU_SPEED)/1750+5)/10)*1000000;
+# endif
+# if VIS_V_PIX == 384
+    CPU_SPEED = (((prc_get_count()-CPU_SPEED)/1667+5)/10)*1000000;
+# endif
+d1494 1
+a1494 1
+    while (VB_DATA == skip) {
+d1499 1
+a1499 1
+    while (VB_DATA != skip) {
+@
+
+
+1.72
+log
+@Corrected the screw up in CPU_SPEED calculation.
+@
+text
+@d1 1
+a1 1
+/* $Id: sst_vid.c,v 1.71 1997/08/29 17:58:03 shepperd Exp shepperd $
+d490 2
+a491 8
+#if 0
+# if HOST_BOARD != CHAMELEON
+    pll->fields_sec = (BUS_SPEED+field_time/2-1)/field_time;
+# else
+    pll->fields_sec = (CPU_SPEED/2+field_time/2-1)/field_time;
+# endif
+#else
+# if VIS_V_PIX_MAX == 256
+d493 2
+a494 1
+# else
+a495 1
+# endif
+a496 1
+    pll->vlines = *(VU32*)(SST_BASE+0x20C)>>16;
+d503 6
+a508 1
+    CPU_SPEED = (((prc_get_count()-CPU_SPEED)*pll->fields_sec/100000+5)/10)*1000000;
+@
+
+
+1.71
+log
+@Added call to ctl_upd_quad().
+@
+text
+@d1 1
+a1 1
+/* $Id: sst_vid.c,v 1.70 1997/07/17 17:43:17 shepperd Exp shepperd $
+d490 2
+a491 1
+#if HOST_BOARD != CHAMELEON
+d493 3
+d497 5
+a501 1
+    pll->fields_sec = (CPU_SPEED/2+field_time/2-1)/field_time;
+@
+
+
+1.70
+log
+@Added call to gun_draw_crosshairs() in prc_delay.
+@
+text
+@d1 1
+a1 1
+/* $Id: sst_vid.c,v 1.69 1997/07/17 03:27:37 shepperd Exp shepperd $
+d173 3
+@
+
+
+1.69
+log
+@Added $Id$.
+@
+text
+@d1 1
+a1 1
+/* $Id$
+d346 6
+a351 1
+    if ((prc_delay_flags&PRC_DELAY_OPT_TEXT2FB)) sst_text2fb(0);
+@
+
+
+1.68
+log
+@Calls gun_check_pal_swap() in setancolors to have it
+set the GRY palette to WHT if using the GUN to select
+menu items (grey is too dim to read on the bright
+background).
+@
+text
+@d1 1
+a1 1
+/*		sst_vid.c
+@
+
+
+1.67
+log
+@Moved screen flash code to cham_gun.c
+@
+text
+@d900 4
+d913 3
+d1005 6
+@
+
+
+1.66
+log
+@Added a vid_set_bg() function.
+Added a call to gun_vb() and simulate a screen flash by flooding
+the gamma RAM. The call is protected with GUN_CNT.
+@
+text
+@a158 4
+#if GUN_CNT
+static int flash_history;
+extern int AGCGammaFill(VU32 *, int);
+#endif
+d174 1
+a174 7
+    flash_history <<= 1;
+    flash_history |= (gun_vb() != 0);
+    if ((flash_history&1)) {
+	AGCGammaFill((VU32*)SST_BASE, 1);	/* Make the screen all white */
+    } else if ((flash_history&2)) {
+	AGCGammaFill((VU32*)SST_BASE, 0);	/* put the clut back */
+    }
+@
+
+
+1.65
+log
+@Removed hack for the VSYNC_IE bit since it's been fixed in
+the hardware.
+@
+text
+@d32 3
+d159 4
+d177 10
+d340 8
+d359 1
+a359 1
+    if (prc_delay_flags&PRC_DELAY_OPT_CLEAR) grBufferClear( 0, 0, GR_WDEPTHVALUE_FARTHEST );
+@
+
+
+1.64
+log
+@Added Chameleon support.
+@
+text
+@d119 1
+a119 5
+# if HOST_BOARD == CHAMELEON
+#  define VSYNC_IE_BIT 9
+# else
+#  define VSYNC_IE_BIT B_PIC_VSY
+# endif
+@
+
+
+1.63
+log
+@Support for optional VSYNC appearing on PCI slot.
+@
+text
+@d31 1
+d35 9
+d119 6
+a124 1
+# define VSYNC_IE_BIT B_PIC_VSY
+d129 1
+d134 1
+a134 1
+#if !defined(SST_VSYNC_ACK) && defined(VSYNC_IE_BIT)
+d226 2
+a227 1
+#if !NO_BLINKING_LED && defined(LED_OUT)
+d235 14
+d260 3
+d264 2
+a265 1
+    if ( !(ie&(1<<VSYNC_IE_BIT)) ) return;	/* not us */
+d269 3
+d273 1
+d300 6
+d309 1
+d407 3
+d412 1
+d417 6
+a422 2
+    U32 field_time, line_time, lc1, lc2, start, oldctl;
+    VU32 *sst, *timr, *tctl, *lctr;
+d426 3
+a430 2
+    lctr = (VU32*)(SST_BASE+0x204);
+    pll = get_timer_pll();
+d432 1
+d437 3
+d443 1
+a443 1
+    start = *timr;			/* record start time */
+d449 5
+a453 2
+    field_time = *timr;			/* record field time */
+    field_time = start - field_time;	/* compute time in Galileo ticks (50MHZ ticks) */
+d456 1
+a456 1
+    start = *timr;			/* record start time */
+d461 1
+a461 1
+    line_time = *timr;			/* record end time */
+d463 3
+d467 1
+d471 1
+d473 3
+d477 1
+d479 1
+d508 3
+d514 4
+d519 1
+d523 5
+d538 6
+a543 1
+
+d547 1
+a547 1
+void sst_reset(void) {
+d551 21
+a571 5
+#if HOST_BOARD == FLAGSTAFF || HOST_BOARD == SEATTLE
+	{
+	    extern void init_3dfx_pci(void);
+	    int oldps = prc_set_ipl(INTS_OFF);
+	    *(VU32*)RESET_CTL &= ~(1<<B_RESET_3DFX);	/* reset the 3dfx chip */
+d573 5
+a577 4
+	    *(VU32*)RESET_CTL |= (1<<B_RESET_3DFX);	/* unreset 3dfx */
+	    init_3dfx_pci();
+	    *(VU32*)INTCTL_VSY_ACK = 0;			/* purge any pending VSYNC interrupts */
+	    prc_set_ipl(oldps);
+d579 2
+a581 1
+    }
+d583 5
+d729 1
+a729 1
+    DEFAULT_RES_METHOD();
+a745 2
+
+    sst_reset();
+@
+
+
+1.62
+log
+@Moved a bunch of defines to sst_tdfx.h.
+@
+text
+@d108 11
+a118 1
+#if !defined(SST_VSYNC_ACK) && defined(B_PIC_VSY)
+d122 1
+a122 1
+    *(VU32*)INTCTL_IE |= 1<<B_PIC_VSY;	/* re-enable vsync interrupts */
+d226 1
+a226 1
+#if defined(B_PIC_VSY)
+d230 2
+a231 3
+    if ( !(ie&(1<<B_PIC_VSY)) ) return;	/* not us */
+
+#if defined(SST_VSYNC_ACK)
+d233 2
+a234 2
+#else
+    *(VU32*)INTCTL_IE &= ~(1<<B_PIC_VSY);	/* disable VSYNC interrupts */
+d238 1
+a238 1
+#endif
+d434 2
+a435 2
+#if defined(B_PIC_VSY)
+    prc_set_vec(VSY_INTVEC, sst_vb);
+d439 2
+a440 2
+	*(VU32*)INTCTL_IE &= ~(1<<B_PIC_VSY);	/* disable this in case it starts all by itself */
+	prc_set_vec(VSY_INTVEC, 0);	/* might as well zap this to save time */
+@
+
+
+1.61
+log
+@Put the substance of prc_delay into sst_prc_delay and set the
+default value of prc_delay_vec to sst_prc_delay.
+@
+text
+@d30 1
+a41 33
+#if DYNAMIC_VIS_PIX
+int VIS_H_PIX, VIS_V_PIX, AN_VIS_ROW, AN_VIS_COL, SST_RESOLUTION;
+#else
+# if !defined(SST_RESOLUTION) && GLIDE_VERSION <= 203
+#  if VIS_V_PIX == 256
+#   define SST_RESOLUTION	GR_RESOLUTION_512x256
+#  else
+#   define SST_RESOLUTION	GR_RESOLUTION_512x384
+#  endif
+# endif
+#endif
+
+#if GLIDE_VERSION > 203
+# undef SST_RESOLUTION
+# define SST_RESOLUTION GR_RESOLUTION_640x480
+#endif
+
+#ifndef SST_COLOR_FORMAT
+# define SST_COLOR_FORMAT	GR_COLORFORMAT_ARGB
+#endif
+
+#ifndef SST_REFRESH_RATE
+# define SST_REFRESH_RATE	GR_REFRESH_60Hz
+#endif
+
+#ifndef SST_ORIGIN
+# define SST_ORIGIN		GR_ORIGIN_LOWER_LEFT
+#endif
+
+#ifndef SST_SMOOTHING
+# define SST_SMOOTHING		GR_SMOOTHING_ENABLE
+#endif
+
+a527 22
+typedef struct {
+    FxU32 hSyncOn;
+    FxU32 hSyncOff;
+    FxU32 vSyncOn;
+    FxU32 vSyncOff;
+    FxU32 hBackPorch;
+    FxU32 vBackPorch;
+    FxU32 xDimension;
+    FxU32 yDimension;
+    FxU32 memOffset;
+    FxU32 memFifoEntries_1MB;
+    FxU32 memFifoEntries_2MB;
+    FxU32 memFifoEntries_4MB;
+    FxU32 tilesInX_Over2;
+    FxU32 vFifoThreshold;
+    FxBool video16BPPIsOK;
+    FxBool video24BPPIsOK;
+    float clkFreq16bpp;
+    float clkFreq24bpp;
+} sst1VideoTimingStruct;
+extern void grSstVidMode(U32 whichsst, const sst1VideoTimingStruct *timing);
+
+d529 1
+a529 1
+static const sst1VideoTimingStruct t512x256 = {
+d552 1
+a552 1
+static const sst1VideoTimingStruct t512x384 = {
+a596 46
+# endif
+#endif
+
+#if DYNAMIC_VIS_PIX
+# if !defined(DEFAULT_RES_METHOD)
+#  if GLIDE_VERSION <= 203
+#   define DEFAULT_RES_METHOD() do { \
+    VIS_H_PIX = 512; \
+    if (!(READ_RAW_SWITCHES(1)&SW_OPT8)) { \
+	VIS_V_PIX = 256; \
+	SST_RESOLUTION = GR_RESOLUTION_512x256; \
+    } else { \
+	VIS_V_PIX = 384; \
+	SST_RESOLUTION = GR_RESOLUTION_512x384; \
+    } \
+    AN_VIS_COL = VIS_H_PIX/8; \
+    AN_VIS_ROW = VIS_V_PIX/8; \
+    } while (0)
+#  else
+#   define DEFAULT_RES_METHOD() do { \
+    VIS_H_PIX = 512; \
+    if (!(READ_RAW_SWITCHES(1)&SW_OPT8)) { \
+	VIS_V_PIX = 256; \
+	grSstVidMode(0, &t512x256); \
+    } else { \
+	VIS_V_PIX = 384; \
+	grSstVidMode(0, &t512x384); \
+    } \
+    AN_VIS_COL = VIS_H_PIX/8; \
+    AN_VIS_ROW = VIS_V_PIX/8; \
+    } while (0)
+#  endif
+# endif
+#else
+# if !defined(DEFAULT_RES_METHOD)
+#  if GLIDE_VERSION > 203
+#   if VIS_V_PIX == 256
+#    define DEFAULT_RES_METHOD() grSstVidMode(0, &t512x256)
+#   endif
+#   if VIS_V_PIX == 384
+#    define DEFAULT_RES_METHOD() grSstVidMode(0, &t512x384)
+#   endif
+#  endif
+#  if !defined(DEFAULT_RES_METHOD)
+#   define DEFAULT_RES_METHOD() do { ; } while(0)
+#  endif
+@
+
+
+1.60
+log
+@Enable 'wait for button' via a #define.
+@
+text
+@d305 13
+a318 1
+    int first = 0;
+d326 1
+a326 13
+	    if (vid_waitvb(1) == 0) {		/* returns 0 if interrupts are off */
+		eer_hwt();			/* keep this going if interrupts are off */
+		ctl_upd_sw();			/* check switches once in awhile too */
+		++no_ints_cntr;			/* record this fact */
+	    }
+	    if (!first) {
+		while ( SST_BUSY() ) { ; }
+		if ((prc_delay_flags&PRC_DELAY_OPT_TEXT2FB)) sst_text2fb(0);
+		if (prc_delay_flags&PRC_DELAY_OPT_SWAP) sst_bufswap();
+		while ( SST_BUSY() ) { ; }
+		if (prc_delay_flags&PRC_DELAY_OPT_CLEAR) grBufferClear( 0, 0, GR_WDEPTHVALUE_FARTHEST );
+		first = 1;
+	    }
+@
+
+
+1.59
+log
+@Corrected default of DEFAULT_RES_METHOD.
+@
+text
+@d703 1
+a703 1
+#if 0
+@
+
+
+1.58
+log
+@Incorrectly set default of SST_RESOLUTION if not already defined.
+@
+text
+@d693 2
+a694 1
+#  else
+@
+
+
+1.57
+log
+@Updated for GLIDE_2.1.1 and DYNAMIC_VIS_PIX. Video resolution
+is set with a call to the new undocumented function:
+grSstVidMode() instead of requiring glide sources to be
+modified with our arcade monitor timings. The macro
+DEFAULT_RES_METHOD() can be defined in config.mac to
+select and set the default monitor resolution. Use the
+versions in this file for example.
+@
+text
+@d45 5
+a49 1
+#  define SST_RESOLUTION	GR_RESOLUTION_512x256
+@
+
+
+1.56
+log
+@Forgot to #if out the sst_reset_test code.
+@
+text
+@d44 1
+a44 1
+# ifndef SST_RESOLUTION
+d49 5
+d430 1
+a430 6
+# if VIS_V_PIX == 256
+    CPU_SPEED = (((prc_get_count()-CPU_SPEED)/1750+5)/10)*1000000;
+# endif
+# if VIS_V_PIX == 384
+    CPU_SPEED = (((prc_get_count()-CPU_SPEED)/1667+5)/10)*1000000;
+# endif
+d555 140
+d702 1
+a702 12
+#if DYNAMIC_VIS_PIX
+    VIS_H_PIX = 512;
+    if (!(READ_RAW_SWITCHES(1)&SW_OPT8)) {
+	VIS_V_PIX = 256;
+	SST_RESOLUTION = GR_RESOLUTION_512x256;
+    } else {
+	VIS_V_PIX = 384;
+	SST_RESOLUTION = GR_RESOLUTION_512x384;
+    }
+    AN_VIS_COL = VIS_H_PIX/8;
+    AN_VIS_ROW = VIS_V_PIX/8;
+#endif
+d707 1
+@
+
+
+1.55
+log
+@Fixed SST reset code. One has to do more things if one
+hits the h/w reset bit.
+@
+text
+@d31 2
+d529 1
+a529 1
+#if 1
+d1216 1
+a1216 1
+#if 1
+@
+
+
+1.54
+log
+@Fixed debug loop switch sense..
+@
+text
+@d476 15
+a490 1
+    if (been_here) grGlideShutdown();
+d527 1
+a527 1
+#if 0
+d1214 1
+a1214 1
+#if 0
+@
+
+
+1.53
+log
+@Allowed for dynamic resolution. I.E. AN_VIS_COL et. al. can be made
+into ints instead of #defines. On 3dfx systems this is accompolished
+by defining the following in config.mac:
+DEC_CONST DYNAMIC_VIS_PIX 1
+DEC_CONST VIS_H_PIX_MAX whatever
+DEC_CONST VIS_V_PIX_MAX whatever
+After this, AN_VIS_COL, AN_VIS_ROW, VIS_V_PIX, VIS_H_PIX and
+SST_RESOLUTION become "extern int" instead of #defines.
+The new #defines AN_VIS_ROW_MAX and AN_VIS_COL_MAX are
+created (computed from VIS_H_PIX_MAX, VIS_V_PIX_MAX) so
+local arrays can be declared and this is the principle changed
+to this file.
+@
+text
+@d543 1
+a543 5
+    while (1) {
+	U16 sw;
+	sw = INPUTS;
+	if ((sw&SW14) == 0) break;
+    }
+@
+
+
+1.52
+log
+@Forgot to add grGlideShutdown() to sst_reset().
+@
+text
+@d39 6
+a44 2
+#ifndef SST_RESOLUTION
+# define SST_RESOLUTION		GR_RESOLUTION_512x256
+d548 13
+@
+
+
+1.51
+log
+@Commented out the test_sst_reset() function.
+@
+text
+@d471 3
+@
+
+
+1.50
+log
+@Added a sst_reset function.
+@
+text
+@d506 1
+d526 2
+a527 1
+    while (!(ctl_read_sw(SW_NEXT|SW_ACTION))) prc_delay(0);
+d530 1
+d1184 1
+d1186 1
+@
+
+
+1.49
+log
+@Added support for Glide 2.1.1
+@
+text
+@d470 1
+a470 26
+void vid_init() {
+    long options;
+
+#if 0
+    while (1) {
+	U16 sw;
+	sw = INPUTS;
+	if ((sw&SW14) == 0) break;
+    }
+#endif
+
+    sst_memfifo_min = 0xFFFF;
+
+    vid_fields(1);			/* assume normal video mode */
+#if defined(EER_SST_OPT)
+    options = eer_gets(EER_SST_OPT);
+    if ( !options ) {
+	options = sst_opt_memo;
+	eer_puts(EER_SST_OPT,options);
+    } else {
+	sst_opt_memo = options;
+    }
+#else
+    options = sst_opt_memo;
+#endif
+
+d474 1
+d476 1
+d502 54
+a555 1
+    PHX_PUTS("Finished the 3dfx init\r\nTiming V-blank signals\r\n");
+d564 1
+d1181 1
+@
+
+
+1.48
+log
+@Protected reference to WDOG with !NO_WDOG.
+@
+text
+@d496 7
+d508 1
+a508 1
+
+@
+
+
+1.47
+log
+@Added support for agcBufferSwap().
+@
+text
+@d293 1
+a293 1
+#if defined(WDOG) && !BOOT_FROM_DISK
+@
+
+
+1.46
+log
+@Added support for a dynamic CPU_SPEED parameter.
+@
+text
+@a102 1
+
+d110 5
+a114 1
+	grBufferSwap( frames /* pll_data.fields_frame */);
+d116 3
+d120 1
+@
+
+
+1.45
+log
+@Allowed for blinking green led to be conditionalled out.
+@
+text
+@d361 5
+d386 3
+d411 9
+@
+
+
+1.44
+log
+@One more time.
+@
+text
+@d210 1
+a210 1
+#if (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+@
+
+
+1.43
+log
+@Try something to fix Rush's bug.
+@
+text
+@d109 1
+a109 1
+	if (frames < 0) frames = 1;	/* took too long since last time, do it as soon as possible */
+@
+
+
+1.42
+log
+@Removed the Mace hack from sst_vid.c
+@
+text
+@d109 1
+a109 1
+	if (frames < 0) frames = 0;	/* took too long since last time, do it as soon as possible */
+@
+
+
+1.41
+log
+@Added a kick to WDOG in prc_delay().
+@
+text
+@a105 3
+#if GLIDE_VERSION < 203
+	while ( ((*(VU32*)SST_BASE>>28)&7) >= 1 ) { prc_wait_n_usecs(100); } /* do not let there be more than one pending */
+#endif
+d111 1
+a111 5
+#if GLIDE_VERSION < 203
+	grBufferSwap( 1 );
+#else
+	grBufferSwap( pll_data.fields_frame );
+#endif
+a112 3
+#if GLIDE_VERSION < 203
+	grBufferSwap( 0 );
+#else
+a113 1
+#endif
+@
+
+
+1.40
+log
+@Added support for Williams style test button action.
+Added TEST_DEBOUNCE_FRAMES which may be defined in config to override the default of 30.
+@
+text
+@d297 3
+@
+
+
+1.39
+log
+@Renamed wait_n_usecs to prc_wait_n_usecs
+@
+text
+@d14 4
+d187 3
+d194 5
+a198 2
+	if ( ts_been_off > 30) {
+	    if ( ++ts_been_on > 30 ) {
+d205 3
+@
+
+
+1.38
+log
+@Added blinking GRN LED on Flagstaff boards.
+@
+text
+@a97 2
+extern void wait_n_usecs(int);
+
+d103 1
+a103 1
+	while ( ((*(VU32*)SST_BASE>>28)&7) >= 1 ) { wait_n_usecs(100); } /* do not let there be more than one pending */
+@
+
+
+1.37
+log
+@Removed the kick of WDOG in vid_init.
+@
+text
+@d210 1
+a210 1
+#if HOST_BOARD == PHOENIX_AD
+@
+
+
+1.36
+log
+@Added gamma correction cdoe.
+@
+text
+@a324 3
+static void
+dummy_vblank() { WDOG = 0;}
+
+a443 1
+    void (*old_vb)();
+a468 3
+    old_vb = vid_set_vb(dummy_vblank);
+    WDOG = 0;
+
+a484 5
+#if 0 && !NO_ANTIALIAS_MODE
+    PHX_PUTS("Doing grAntialiasMode()\r\n");
+    grAntialiasMode( GR_AAMODE_NONAA );
+#endif
+
+a501 1
+    if ( old_vb ) vid_set_vb(old_vb);
+@
+
+
+1.35
+log
+@Numerous fixes. The timer now runs in sync with Vsync interrupts
+if there are any.
+@
+text
+@d778 1
+d780 7
+a786 6
+#define GAMMA_R		1.4
+#define GAMMA_G		1.4
+#define GAMMA_B 	1.4
+#define GAMMA_PCNT	0.67
+#define GAMMA_BASE	28
+#define GAMMA_GRN_CORR	0.85
+d797 1
+d799 1
+d829 1
+d831 1
+a911 1
+    AGCGamma((U32*)SST_BASE, 1.4, 1.4 * 0.85, 1.4, 0.67, 28);	/* put gamma back to normal */
+@
+
+
+1.34
+log
+@Changed the text in the purity menu display.
+@
+text
+@d154 1
+a154 1
+static void sst_vb_tasks(void) {
+d156 8
+d240 1
+a240 1
+    sst_vb_tasks();
+d251 2
+a252 24
+    do {
+	sc1 = *sst&0x7FF;		/* get number of line currently being displayed */
+	scanline = *sst&0x7FF;
+    } while (sc1 != scanline);    	/* until two reads in a row match values */
+    if (pll->ticks > 4 && scanline > pll->vlines) {	/* if we've marched off the end of visible screen */
+	int dir;
+#if 0
+	dir = pll->vlines+4-scanline;	/* compute difference between actual and desired */
+	if (dir) {
+	    dir *= pll->ticks_line;	/* compute number of ticks to adjust */
+	    dir >>= 4;			/* divide by 16 */
+	    if (dir) {
+		pll->dir = dir;
+		prc_timer_rate(prc_timer_rate(0) + pll->dir);
+	    }
+	}
+#else
+        dir = 0;
+#endif
+    	pll->ticks = 0;			/* reset the tick counter */
+    }
+    pll->prev_scan = scanline;
+#if 1
+    if (--pll->nxt_upd < 0) {
+d257 9
+a265 8
+#else
+    if ((pll->ticks&3) == 0) {
+	cn_irq();			/* handle coins */
+	if (ms4vec) ms4vec();
+    }
+#endif
+    if (pll->no_vsync > 0 && (pll->ticks&15) == 0) {
+	sst_vb_tasks();	/* fake a VB interrupt */
+d398 1
+a398 1
+    pll->fields_sec = BUS_SPEED/field_time;
+d403 2
+d410 1
+a410 1
+	if (lc1 > pll->vlines+4) break; /* assume our fake VB is about 4 lines after visible */
+d416 2
+a417 2
+    pll->ints_upd = ((pll->fields_sec*160)/240+5)/10;
+    pll->no_vsync = -1;			/* signal there are no vsyncs */
+@
+
+
+1.33
+log
+@Added gamma correction in purity menu.
+@
+text
+@d772 5
+a776 5
+    {"  Red   ", RED_MSK},
+    {" Green  ", GRN_MSK},
+    {"  Blue  ", BLU_MSK},
+    {" BRIGHT ", (RED_MSK|GRN_MSK|BLU_MSK)},
+    {" White  ",  (((RED_MSK*13)>>4)&RED_MSK)
+d782 1
+a782 1
+    {"  Grey  ",  (((RED_MSK*9)>>5)&RED_MSK)
+d785 2
+a786 2
+    {"  Ones  ", ALL_LSB},
+    {" Black  ", 0}
+d790 6
+d806 1
+a806 1
+    AGCGamma((U32*)SST_BASE, 1.4, 1.4, 1.4, 0.67, 28);	/* change gamma for white tracking */
+d836 1
+@
+
+
+1.32
+log
+@Moved ctl_upd_sw() to vb_tasks instead of at 4MS intervals.
+@
+text
+@d789 2
+d800 1
+d821 1
+a821 1
+	    txt_str(-1,2,purity_colors[i].text,MNORMAL_PAL); 
+d910 1
+@
+
+
+1.31
+log
+@Called cn_irq() at 4MS intervals.
+@
+text
+@d157 1
+a267 1
+	ctl_upd_sw();
+a273 1
+	ctl_upd_sw();
+d277 2
+a278 2
+    if ((pll->ticks&15) == 0) {
+	if (pll->no_vsync > 0) sst_vb_tasks();	/* fake a VB interrupt */
+@
+
+
+1.30
+log
+@Added blinking GRN LED on Phoenix-AD boards.
+@
+text
+@d266 1
+d269 1
+d273 1
+@
+
+
+1.29
+log
+@Made selftest switch edge sensitive.
+@
+text
+@d201 9
+@
+
+
+1.28
+log
+@FIxed sst_bufswap() for version 2.0b3 of GLIDE.
+@
+text
+@d149 4
+d175 15
+a315 3
+#if B_TEST >= 0
+static int ts_debounce;
+#endif
+a323 11
+#if B_TEST >= 0
+    U32 sw;
+    sw = TEST;
+    if ( (sw & (1<<B_TEST)) == 0 ) {
+	ts_debounce = 0;
+    } else {
+	if ( ++ts_debounce > 8 ) {
+	    prc_reboot();
+	}
+    }
+#endif
+@
+
+
+1.27
+log
+@Conditionalled out the display of the fifo_minimum value.
+@
+text
+@d104 1
+d106 1
+d112 1
+a112 1
+#if 1
+d115 1
+a115 1
+	grSstWriteConfigAll( SSTR_SWAPBUFFERCMD, ( frames << 1 ) | 1 );
+d118 1
+a118 1
+#if 1
+d121 1
+a121 1
+	grSstWriteConfigAll( SSTR_SWAPBUFFERCMD, 0 );
+@
+
+
+1.26
+log
+@Renamed grErrorCallback.
+@
+text
+@a148 1
+    U32 cook;
+d152 16
+a167 3
+    cook = txt_setpos(0);
+    txt_hexnum(-1, AN_VIS_ROW-1, sst_memfifo_min, 4, RJ_ZF, WHT_PALB);
+    txt_setpos(cook);
+@
+
+
+1.25
+log
+@Renamed PCD interrupt to VSY.
+@
+text
+@d431 8
+d440 1
+a440 1
+    
+d460 1
+a460 1
+            GrErrorCallback("main: grSstQueryHardware failed!", FXTRUE);
+d470 1
+a470 1
+            GrErrorCallback("main: grSstOpen failed!", FXTRUE);
+@
+
+
+1.24
+log
+@Replaced all calls to grBufferSwap() to sst_bufswap().
+Added a frame handler.
+@
+text
+@d125 1
+a125 1
+#if !defined(SST_VSYNC_ACK) && defined(B_PIC_PCD)
+d129 1
+a129 1
+    *(VU32*)INTCTL_IE |= 1<<B_PIC_PCD;	/* re-enable vsync interrupts */
+d175 1
+a175 1
+#if defined(B_PIC_PCD)
+d179 1
+a179 1
+    if ( !(ie&(1<<B_PIC_PCD)) ) return;	/* not us */
+d184 1
+a184 1
+    *(VU32*)INTCTL_IE &= ~(1<<B_PIC_PCD);	/* disable VSYNC interrupts */
+d404 2
+a405 2
+#if defined(B_PIC_PCD)
+    prc_set_vec(PCD_INTVEC, sst_vb);
+d409 2
+a410 2
+	*(VU32*)INTCTL_IE &= ~(1<<B_PIC_PCD);	/* disable this in case it starts all by itself */
+	prc_set_vec(PCD_INTVEC, 0);	/* might as well zap this to save time */
+@
+
+
+1.23
+log
+@Corrected the check for VSYNC interrupts.
+@
+text
+@d55 1
+d94 1
+d98 2
+d101 21
+a121 5
+    int oldps;
+    grBufferSwap( 1 );
+    oldps = prc_set_ipl(INTS_OFF);
+    ++pll_data.swap;		/* let interrupt routine know we want to swap buffers */
+    prc_set_ipl(oldps);
+d125 1
+a125 1
+#if defined(B_PIC_PCD)
+d134 12
+d168 4
+a171 6
+    --pll_data.fields_nxt_int;		/* count down */
+    if (pll_data.fields_nxt_int <= 0) {
+	pll_data.fields_nxt_int = pll_data.fields_frame;
+	if (framevec) framevec();	/* call the frame function */
+    }	
+
+d178 1
+a178 1
+    ie = *(VU32*)INTCTL_STS & *(VU32*)INTCTL_IE;
+d181 2
+a182 2
+#if 0
+    *(VU32*)INTCTL_STS = 0;		/* ack the VSYNC interrupt. This doesn't work */
+d186 1
+a186 1
+    vb_tq.delta = 4000;			/* wait about 4 milliseconds */
+d266 1
+a266 1
+		if (prc_delay_flags&PRC_DELAY_OPT_SWAP) grBufferSwap( 1 );
+a343 2
+extern void wait_n_usecs(int);
+
+d401 3
+a404 1
+    *(VU32*)INTCTL_STS = 0;		/* ack any pending VB interrupts */
+d433 1
+d627 1
+a627 1
+    grBufferSwap( 1 );
+d784 1
+a784 1
+	    grBufferSwap( 1 );
+d864 1
+a864 1
+	    grBufferSwap( 1 );
+d1028 1
+a1028 1
+	    grBufferSwap( 1 );
+d1045 1
+a1045 1
+    grBufferSwap( 1 );
+d1071 1
+a1071 1
+	    grBufferSwap( 1 );
+@
+
+
+1.22
+log
+@Fixed some conditional compilation problems.
+@
+text
+@d373 1
+a374 1
+#if defined(B_PIC_PCD)
+a375 1
+#endif
+d378 1
+a378 1
+#if defined(B_PIC_PCD)
+d381 1
+a381 2
+#endif
+	pll->no_vsync = 1;		/* tell timer to take over */
+d385 2
+d390 3
+a446 2
+    time_vb();
+
+d453 3
+@
+
+
+1.21
+log
+@Added a VSYNC interrupt handler. It works, but is not complete.
+Added some test code to display the SST fifo full indicator at VB.
+@
+text
+@d374 1
+a374 1
+#if PCD_INTVEC
+a380 2
+#endif
+#if PCD_INTVEC
+@
+
+
+1.20
+log
+@Fixed color bar/Purity/Convergence menus. Added a "wait for
+sst not busy" before all text2fb's and after all bufferswaps.
+@
+text
+@d29 6
+d69 27
+d105 55
+a159 2
+TimerPll *get_timer_pll(void) {
+    return &pll_data;
+d161 1
+a175 1
+	++pll->field;			/* count it as a field */
+d204 1
+a204 11
+	eer_hwt();			/* once per field, update eeprom */
+#if POT_CNT
+	{ /* Until I find out where to prototype these ... */
+	extern void VBIReadPots();
+	extern void PotsToSwitches();
+	VBIReadPots();
+	PotsToSwitches();
+	} /* ... fom 3/28/96 */
+#endif
+	if (gameint) gameint();		/* call fake vb routine */
+	if (framevec) framevec();	/* this is also a fake frame end */
+a205 1
+    
+d220 2
+d231 1
+a256 24
+/*		vid_fields( frame_rate )
+ *	Establish the frame rate, for such hardware as needs special
+ *	treatment to switch buffers, show the current screen, etc.
+ *	if <frame_rate> < 0, that part of the video (e.g. GXn video RAM)
+ *	will be turned off. Otherwise, <frame_rate> specifies the number
+ *	of fields (vertical traces of the CRT screen) to display for each
+ *	frame (unique visual image) of video. <frame_rate>s from 0..4
+ *	should be supported on any hardware. Video hardwares that do not
+ *	have such a concept can simply return 0.
+ *
+ *	(fields < 0) now means "video generation off", while (fields == 0)
+ *	means "do not wait at all to swap buffers".
+ */
+static int fields_per_frame;
+
+int vid_fields( frame_rate )
+int frame_rate;
+{
+    int retval;
+    retval = fields_per_frame;
+    fields_per_frame = frame_rate;
+    return retval; 
+}
+
+d306 1
+a306 1
+void grErrorCallback(const char *msg, int val) { phx_puts(msg); while(1) __asm__("BREAK"); }
+d314 2
+d370 1
+d372 21
+d400 2
+d413 1
+d417 1
+a417 1
+    phx_puts("Doing grSstQueryHardware() ...\r\n");
+d423 1
+a423 1
+    phx_puts("Doing grSstSelect()\r\n");
+d426 1
+a426 1
+    phx_puts("Doing grSstOpen()\r\n");
+d434 1
+a434 1
+    phx_puts("Doing grAntialiasMode()\r\n");
+d444 1
+a444 1
+    phx_puts("Finished the 3dfx init\r\nTiming V-blank signals\r\n");
+d456 1
+a456 1
+    phx_puts("Exiting vid_init\r\n");
+@
+
+
+1.19
+log
+@Changed grBufferSwap(0) to grBufferSwap(1). This will very likely break
+other stuff, but it will work for the time being.
+@
+text
+@d49 2
+d156 1
+d159 1
+d515 1
+d648 1
+d668 1
+d670 2
+a673 1
+	prc_delay(0);
+d697 1
+d710 2
+a711 1
+	    FxU32 *ptr, *lp;
+d725 1
+a725 1
+	    ptr = grLfbGetWritePtr( GR_BUFFER_BACKBUFFER );
+d728 7
+a734 7
+	    for ( y = 0 ; y < VIS_V_PIX+256 ; ++y ) {
+		lp = ptr + y*VIS_H_PIX/2;
+		for ( x = 0; x < VIS_H_PIX ; x += 2 ) {
+		    if ( (x & 0xF) == 0 || (y & 0xF) == 0 || 
+			( (x & 0xF) == 8 && (y & 0xF) == 8 ) )
+			*lp++ = color;
+		    else *lp++ = 0;
+d742 1
+a742 1
+		txt_clr_str(-1,2,converge_colors[old_i].text,MNORMAL_PAL);
+d745 2
+a746 2
+	    txt_str(-1,2,converge_colors[i].text,MNORMAL_PAL); 
+	    txt_hexnum(-1, 3, color, 8, RJ_ZF, MNORMAL_PAL); 
+d748 1
+d751 1
+d900 2
+a901 1
+	    grBufferClear( 0x00000000, 0, GR_WDEPTHVALUE_FARTHEST );
+d912 1
+a912 2
+	    txt_str(-1, 2, "1AB", GRN_PAL);
+	    if ( format & 1 ) txt_cstr("G",GRN_PAL);
+d915 1
+d928 1
+d932 1
+d955 1
+d958 1
+@
+
+
+1.18
+log
+@Added calls to VBIReadPots and PotsToSwitches protected by POT_CNT in timer_pll.
+@
+text
+@d63 1
+a63 1
+    grBufferSwap( 0 );
+d155 1
+a155 1
+		if (prc_delay_flags&PRC_DELAY_OPT_SWAP) grBufferSwap( 0 );
+d509 1
+a509 1
+    grBufferSwap( 0 );
+d739 1
+a739 1
+	    grBufferSwap( 0 );
+d902 1
+a902 1
+	    grBufferSwap( 0 );
+d917 1
+a917 1
+    grBufferSwap( 0 );
+d941 1
+a941 1
+	    grBufferSwap( 0 );
+@
+
+
+1.17
+log
+@Undid a temporary removal of a buffer clear.\
+@
+text
+@d117 8
+@
+
+
+1.16
+log
+@Removed dead code.
+@
+text
+@a147 1
+#if 0
+a148 1
+#endif
+@
+
+
+1.15
+log
+@Added a prc_delay() at the end of vid_init to allow time for the
+switches to get debounced. This avoids a misread of the S.T.
+switch.
+@
+text
+@d148 1
+d150 1
+@
+
+
+1.14
+log
+@Removed all references to UART code.
+@
+text
+@a197 1
+    WDOG = 0;
+d199 9
+a207 2
+    if ( (TEST & (1<<B_TEST)) == 0 ) ts_debounce = 0;
+    else if ( ++ts_debounce > 8 ) prc_reboot();
+d209 1
+d364 1
+@
+
+
+1.13
+log
+@Removed call to grAntiAliasMode().
+@
+text
+@d233 1
+a233 1
+void grErrorCallback(const char *msg, int val) { UARTputs(2, msg); while(1) breakpoint(); }
+d317 1
+a317 1
+    UARTputs(2, "Doing grSstQueryHardware() ...\r\n");
+d323 1
+a323 1
+    UARTputs(2, "Doing grSstSelect()\r\n");
+d326 1
+a326 1
+    UARTputs(2, "Doing grSstOpen()\r\n");
+d334 1
+a334 1
+    UARTputs(2, "Doing grAntialiasMode()\r\n");
+d344 1
+a344 1
+    UARTputs(2, "Finished the 3dfx init\r\nTiming V-blank signals\r\n");
+d356 1
+a356 1
+    UARTputs(2, "Exiting vid_init\r\n");
+@
+
+
+1.12
+log
+@Changed default SST_RESULTION to be 512x256.
+@
+text
+@d333 1
+a333 1
+#if !NO_ANTIALIAS_MODE
+@
+
+
+1.11
+log
+@Set the ColorCombinFunction and TexComnineFunction at startup.
+@
+text
+@d30 1
+a30 1
+# define SST_RESOLUTION		GR_RESOLUTION_512x384
+d224 1
+d230 1
+@
+
+
+1.10
+log
+@Protected call to grSetAntiAliasMode().
+@
+text
+@d336 6
+@
+
+
+1.9
+log
+@Made the resolution and refresh rate changeable in config.mac.
+@
+text
+@d331 1
+d334 1
+@
+
+
+1.8
+log
+@Changed call to sst_text2fb(1) to sst_text2fb(0).
+@
+text
+@d29 20
+d141 1
+a141 1
+	    if (vid_waitvb(0) == 0) {		/* returns 0 if interrupts are off */
+d325 2
+a326 2
+    if ( !grSstOpen(GR_RESOLUTION_512x384, GR_REFRESH_60Hz, GR_COLORFORMAT_ARGB,
+                  GR_ORIGIN_LOWER_LEFT, GR_SMOOTHING_ENABLE, 2) )
+@
+
+
+1.7
+log
+@FIxed dirty bits bugs
+@
+text
+@d616 1
+a616 1
+	    sst_text2fb(1);
+@
+
+
+1.6
+log
+@Called ms4vec() if there is one.
+@
+text
+@d43 1
+a43 1
+    grBufferSwap( 1 );
+d125 4
+a128 2
+	    if (!first && (prc_delay_flags&PRC_DELAY_OPT_TEXT2FB)) {
+		sst_text2fb(prc_delay_flags&PRC_DELAY_OPT_SWAP);
+d463 1
+a463 1
+    grBufferSwap( 1 );
+d693 1
+a693 1
+	    grBufferSwap( 1 );
+d856 1
+a856 1
+	    grBufferSwap( 1 );
+d871 1
+a871 1
+    grBufferSwap( 1 );
+d895 1
+a895 1
+	    grBufferSwap( 1 );
+@
+
+
+1.5
+log
+@Lots of changes to the timer function.
+@
+text
+@d90 4
+a93 1
+    if ((pll->ticks&3) == 0) ctl_upd_sw();
+@
+
+
+1.4
+log
+@Still messing with timer. Not done yet. Don't expect it to work.
+@
+text
+@d41 9
+d65 1
+a65 2
+#if 0
+    if (scanline < pll->prev_scan) {	/* if there was a VB between this interrupt and the last */
+d68 8
+a75 14
+	pll->cur_scan = scanline;
+	if (pll->field < 2) {		/* game is just starting */
+	    pll->ticks = 0;		/* reset the tick counter */
+	    pll->prev_scan = scanline;	/* remember this scanline */
+	    return;			/* let a couple fields accumulate */
+	}
+	dir = 0;			/* assume no adjustments required */
+	if (pll->ticks != 16) {		/* if fewer than 16 ticks... */
+	    if (pll->ticks < 13) pll->ticks = 13;
+	    if (pll->ticks > 19) pll->ticks = 19;
+	    dir = 5*(16-pll->ticks);	/* speed up/slow down 5% for each count below/above what we want */
+	} else {			/* else exactly on target */
+	    if (scanline > 32) {	/* if not in the VB area */
+		dir = 1;		/* speed up a little */
+d78 2
+a79 9
+	if (dir) {
+	    int new_rate;
+	    pll->dir = dir;
+	    pll->oldrate = prc_timer_rate(0);
+	    pll->newrate = pll->oldrate + (pll->oldrate*dir)/1000;
+#if 1
+	    new_rate = prc_timer_rate(0);
+	    new_rate = new_rate - (new_rate*dir)/1000;
+	    prc_timer_rate(new_rate);
+a80 2
+	}
+	pll->ticks_field = pll->ticks;
+d83 8
+d92 4
+a95 8
+    pll->prev_scan = scanline;
+    if ((pll->ticks&3) == 0) {
+        ctl_upd_sw();			/* about every 4 MS, update controls */
+        if ((pll->ticks&15) == 0) {
+	    eer_hwt();			/* once per field, update eeprom */
+	    if (gameint) gameint();	/* call fake vb routine */
+            if (framevec) framevec();	/* this is also a fake frame end */
+        }
+d118 3
+a120 7
+	    if (vid_waitvb(0) == 0) {
+		eer_hwt();
+		ctl_upd_sw();
+		if (!first && (prc_delay_flags&PRC_DELAY_OPT_TEXT2FB)) {
+		    sst_text2fb(prc_delay_flags&PRC_DELAY_OPT_SWAP);
+		    first = 1;
+		}
+d122 4
+d196 2
+a197 3
+#define NCACHE_READ (300)
+#define LOOP_TIME (NCACHE_READ)	/* guess at nanosecs each loop */
+#define TOO_LONG (17000000L)	/* A field should not take > 17 milliseconds */
+d212 1
+a212 1
+#define VBLANK (*sst&(1<<6))
+a213 1
+#if 0
+d215 3
+a217 4
+    int oldps;
+    U32 time1, time2, lc1, lc2, lc3;
+    U32 start;
+    VU32 *sst;
+a218 1
+    VU32 *timr, *ctl, *lctr;
+d221 2
+a222 2
+    timr = (VU32*)GALILEO_TIMER2;
+    ctl = (VU32*)GALILEO_TIMER_CTL;
+d226 36
+a261 16
+    oldps = prc_set_ipl(INTS_OFF);
+    *ctl &= ~(3<<4);			/* disable the timer/counter */
+    *timr = 0x007FFFFF;			/* init the timer */
+    *ctl |= (3<<4);			/* enable the timer/counter */
+    do {
+	lc1 = *lctr&0x7FF;		/* get number of line currently being displayed */
+	lc2 = *lctr&0x7FF;
+    } while (lc2 != lc1);    		/* until two reads in a row match values */
+    while ((lc2=(*lctr&0x7FF)) == lc1);	/* look for an edge */
+    time1 = *timr;			/* get timer start */
+    while ((lc1=(*lctr&0x7FF)) == lc2);	/* look for another edge */
+    time2 = *timr;			/* record end time */
+    lc1 = *(VU32*)(SST_BASE+0x204);	/* */
+    while (VBLANK) ;			/* wait for VBlank to de-assert */
+    while (!VBLANK) ;			/* wait for VBlank to assert */
+    while (VBLANK) {			/* count how many lines VB is asserted */    
+d263 6
+a268 2
+    prc_set_vec(TIMERPLL_INTVEC, timer_pll);	/* turn on the timer pll */
+    prc_set_ipl(oldps);
+a270 1
+#endif
+a310 1
+#if 0
+a311 1
+#endif
+@
+
+
+1.3
+log
+@Adjusted the pll some more.
+@
+text
+@d39 1
+a39 11
+static volatile struct pll {
+    int prev_scan;
+    int ticks;
+    int field;
+    int ticks_field;
+    int oldrate;
+    int newrate;
+    int dir;
+    int cur_scan;
+    int last_adj;
+} pll_data;
+d41 1
+a41 1
+volatile struct pll *get_timer_pll(void) {
+d46 1
+a46 1
+    volatile struct pll *pll;
+a48 1
+    int dir;
+d56 1
+d58 1
+d90 1
+d216 40
+d284 1
+a284 1
+    if ( !grSstOpen(GR_RESOLUTION_640x480, GR_REFRESH_60Hz, GR_COLORFORMAT_ARGB,
+d293 1
+a293 1
+    UARTputs(2, "Finished the 3dfx init\r\n");
+d295 3
+a297 1
+    prc_set_vec(TIMERPLL_INTVEC, timer_pll);	/* turn on the timer pll */
+d307 1
+@
+
+
+1.2
+log
+@Misc fixes for Phoenix and SST.
+@
+text
+@d48 1
+d75 1
+d77 2
+d81 2
+a82 4
+	    if (scanline < 64) {	/* are we in the VB period? */
+		dir = -1;		/* yep, slowdown a little to sync with the trailing edge */
+	    } else {
+		dir = 1;		/* nope, speed up a little */
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d23 1
+d32 1
+d39 104
+a208 8
+#include <config.h>
+#include <math.h>
+#include <glide.h>
+
+extern char *UARTputs(int, const char *);
+extern void UARTInit(int, int);
+#define ASIC_UART_INIT	(0x0633)
+
+d240 1
+a240 1
+    UARTputs(2, "Doing QueryHdw() ...\r\n");
+d243 1
+a243 1
+	    GrErrorCallback("main: grSstQueryHardware failed!", FXTRUE);
+d246 1
+a246 1
+    UARTputs(2, "Doing select()\r\n");
+d249 1
+a249 1
+    UARTputs(2, "Doing screen open\r\n");
+d251 1
+a251 1
+    		  GR_ORIGIN_LOWER_LEFT, GR_SMOOTHING_ENABLE, 2) )
+d253 1
+a253 1
+	    GrErrorCallback("main: grSstOpen failed!", FXTRUE);
+d256 1
+d259 5
+a263 1
+    grBufferClear( 0xFF00FF00, 0, GR_WDEPTHVALUE_FARTHEST );
+d265 3
+a267 2
+    txt_select(TXT_HOST);		/* default text drawing directly into bitmap */
+    vid_clear();
+a270 2
+
+    UARTputs(2, "Finished the 3dfx init\r\n");
+d277 2
+d290 1
+a290 1
+    FxU32 *ptr, *lp;
+d294 2
+a295 2
+    ul_x = x1;
+    lr_x = x2;
+d300 2
+a301 2
+    ul_y = y1;
+    lr_y = y2;
+a308 1
+    if ( ul_x < 0 ) ul_x = 0;
+d310 5
+a314 10
+    if ( lr_y < 0 ) lr_y = 0;
+    /* We allow any line number that is _physically_ within the
+     * buffer RAM to be written. This allows both display buffers
+     * to be used, and also lets us easily pre-clear the lines that
+     * are used by the VRAM-trick screen-clear.
+     */
+    if ( ul_y >= TOT_V_PIX ) {
+	ul_y = TOT_V_PIX-1;
+	if ( lr_y >= TOT_V_PIX ) lr_y = TOT_V_PIX-1;
+    }
+d326 11
+a336 3
+    grLfbBegin();
+    grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+    grLfbWriteMode(GR_LFBWRITEMODE_555);
+d341 2
+a342 1
+    ptr = grLfbGetWritePtr( GR_BUFFER_BACKBUFFER );
+d375 4
+a378 2
+    grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+    grLfbEnd();
+d382 2
+d386 11
+a396 3
+    for ( y = AN_VIS_ROW-1 ; y >= 0 ; --y ) {
+	/* egregious hack for remote-alphas selftest with ztv board */
+	txt_clr_wid(0,y,AN_VIS_COL);
+d406 3
+a408 4
+    for ( which = 2 ; which > 0 ; --which ) {
+	bm_rect(0, 0, VIS_H_PIX-1, VIS_V_PIX-1, 0, 0);
+	grBufferSwap( 1 );
+    }
+d534 1
+a534 1
+    m_int i,old_i;
+d538 1
+d540 1
+a540 1
+	prc_delay0();
+d550 4
+a553 1
+	    grBufferClear( 0x00000000, 0, GR_WDEPTHVALUE_FARTHEST );
+d560 1
+a560 1
+	    grBufferSwap( 1 );
+d565 1
+d571 1
+a571 1
+    {" Violet ", RED_MSK | BLU_MSK },
+d579 1
+a579 1
+    m_int i,old_i,x,y;
+d581 1
+a581 1
+    int next_line = TOT_H_PIX;
+d585 3
+d598 1
+d600 13
+a612 6
+	    grBufferClear( 0x00000000, 0, GR_WDEPTHVALUE_FARTHEST );
+	    grBufferSwap( 1 );
+	    grBufferClear( 0x00000000, 0, GR_WDEPTHVALUE_FARTHEST );
+	    grLfbBegin();
+	    grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+	    grLfbWriteMode(GR_LFBWRITEMODE_555);
+d616 5
+a620 5
+	    lp = ptr;
+	    for ( y = VIS_V_PIX-1 ; y >= 0 ; --y ) {
+		for ( x = VIS_H_PIX-1 ; x >= 0 ; --x ) {
+		    if ( (x & 7) == 0 || (y & 7) == 0 || 
+			( (x & 7) == 4 && (y & 7) == 4 ) )
+d624 4
+a627 1
+		lp += (next_line - VIS_H_PIX);
+a628 3
+	    grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+	    grLfbEnd();
+	    grBufferSwap( 1 );
+d631 1
+d634 1
+d636 2
+a639 1
+	prc_delay(0);
+d641 1
+d646 1
+a646 1
+ *	paints color bars into ZTV bitmap via direct XBus access.
+d655 1
+a655 4
+int bm_color_bars( mp , display)
+const int *mp;
+int display;
+{
+d710 12
+a721 4
+    grLfbBegin();
+    grLfbBypassMode(GR_LFBBYPASS_ENABLE);
+    grLfbWriteMode(GR_LFBWRITEMODE_555);
+    ptr = grLfbGetWritePtr( GR_BUFFER_FRONTBUFFER );
+d725 1
+a725 1
+    top += (VIS_V_PIX-block_y)*next_line;
+d743 1
+a743 1
+	lp = top + band_x;
+d754 3
+d758 2
+a759 4
+		int pix_idx;
+		lp = (U32 *)((U32) lp ^ display);
+		for ( pix_idx = 0 ; pix_idx < pix_per_band ; ++pix_idx ) {    
+		    lp[pix_idx] = hdw_col;
+d761 1
+a761 2
+		lp = (U32 *)((U32) lp ^ display);
+		lp -= next_line;	/* remember, 0,0 is bottom left */
+d768 4
+a771 2
+    grLfbBypassMode(GR_LFBBYPASS_DISABLE);
+    grLfbEnd();
+d775 1
+a775 3
+STATIC int color_bars( smp )
+const struct menu_d *smp;
+{
+d777 1
+a777 1
+    int do_it,color,format;
+d782 1
+d791 1
+a791 1
+	    xpos = bm_color_bars(&col_bar_desc[0],0);
+d799 1
+a799 3
+	    txt_str(-1, 2, "2AB", GRN_PAL);
+	    if ( format & 1 ) txt_cstr("G",GRN_PAL);
+	    bm_color_bars(&col_bar_desc[0],1);
+d804 1
+d811 1
+a811 1
+    int which, redraw;
+a813 1
+
+d820 1
+d838 1
+d843 1
+d859 3
+a861 1
+    return st_menu(&mon_list[0],sizeof(mon_list[0]),RED_PALB,0);
+a863 4
+
+/*	Other than saving the "Callee-save" registers,
+ *	IRQ processing is now in C.
+ */
+@

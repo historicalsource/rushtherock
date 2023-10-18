@@ -1,0 +1,132 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	95.06.26.23.32.23;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Header file for use with the ascleapio.o Unix library file
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@typedef struct {
+   int socket;		/* socket number */
+   int state;		/* state code */
+} AscleapIO;
+
+#define PARAMS(x) x
+
+/************************************************************
+ * ascleapio_open - opens a network channel to an ASCLEAP
+ */
+ 
+extern AscleapIO *ascleapio_open PARAMS((
+
+/* At entry:
+ */
+	char *host, 	/* ptr to null terminated string containing ASCLEAP's IP name */
+	int port, 	/* IP port number to use */
+	int type));	/* 0 if to create a TCP connection, otherwise creates a UDP connection */
+/*
+ * At exit:
+ *	returns a pointer to an AscleapIO struct (which has been malloc'd)
+ *	or 0 if it couldn't establish the TCP connection (UDP connections cannot fail)
+ */
+
+/************************************************************
+ * ascleapio_close - closes a network channel to an ASCLEAP
+ */
+ 
+extern AscleapIO *ascleapio_close PARAMS((
+
+/* At entry:
+ */
+       AscleapIO *iop));	 /* ptr to AscleapIO struct returned from an ascleapio_open() */
+/*
+ * At exit:
+ *
+ *	will have free'd the AscleapIO struct and returns a 0.
+ */
+ 
+/********************************************************************
+ * ascleapio_rdchkw - wait n seconds for input from ascleap 
+ */
+ 
+extern int  ascleapio_rdchkw PARAMS((
+
+/* At entry:
+ */
+   	AscleapIO *iop,		/* ptr to the AscleapIO struct returned from ascleapio_open() */
+	long seconds,		/* number of seconds to wait for input */
+	long useconds));		/* if seconds == 0, number of microseconds to wait for input */
+/*
+ * At exit:
+ *
+ *	returns 0 if timed out, else returns 1 indicating there is something in the
+ *	read queue. You must do an actual ascleapio_read() to read the data
+ */
+ 
+/********************************************************************
+ * ascleapio_rdchk - check for input from ascleap
+ */
+ 
+extern int ascleapio_rdchk PARAMS((
+
+/* At entry:
+ */
+   	AscleapIO *iop));	/* ptr to the AscleapIO struct returned from ascleapio_open() */
+/*
+ * At exit:
+ *
+ *	returns 1 if data present in the read queue, else returns 0.
+ *	You must do an actual ascleapio_read() to read the data.
+ */
+
+/********************************************************************
+ * ascleapio_read - read data from ascleap
+ */
+ 
+extern int ascleapio_read PARAMS((
+
+/* At entry:
+ */
+   	AscleapIO *iop,		/* ptr to the AscleapIO struct returned from ascleapio_open() */
+	char *buffer,		/* ptr to buffer into which to deposit data */
+	int size));		/* the maximum amount to read (size of buffer) */
+/*
+ * At exit:
+ *
+ *	Returns the number of bytes read. Will block until data present in the read
+ *	queue. Returns a -1 if an error occured, with errno set to the error.
+ */
+ 
+/********************************************************************
+ * ascleapio_write - write data to ascleap
+ */
+ 
+extern int ascleapio_write PARAMS((
+/* At entry:
+ */
+   	AscleapIO *iop,		/* ptr to the AscleapIO struct returned from ascleapio_open() */
+	char *buffer,		/* ptr to buffer containing data to write */
+	int len));		/* the number of bytes to write */
+/*
+ * At exit:
+ *
+ *	Returns the number of bytes written. Will block until there is room in
+ *	the write queue. Returns a -1 if an error occured, with errno set to
+ *	the error.
+ */
+@

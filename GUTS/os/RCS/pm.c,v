@@ -1,0 +1,1181 @@
+head	1.31;
+access;
+symbols
+	RUSH_ROCK_1_0:1.31
+	MACE_1_0e:1.29
+	MACE_1_0d:1.29
+	RUSH_1_06A:1.27
+	AREA_52_00:1.31
+	MACE_1_0a:1.29
+	CJ_206:1.27
+	CJ2_05:1.27
+	CJ2_04:1.25
+	CJ2_03:1.11;
+locks; strict;
+comment	@ * @;
+
+
+1.31
+date	97.07.11.00.30.50;	author shepperd;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	97.07.01.22.40.48;	author albaugh;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	97.04.14.23.06.58;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	97.02.27.04.04.45;	author shepperd;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.11.07.20.38.49;	author albaugh;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.11.04.21.23.12;	author shepperd;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.08.07.23.48.51;	author shepperd;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.08.07.00.08.41;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.05.20.18.25.14;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.05.06.00.56.21;	author forrest;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.04.30.17.10.18;	author shepperd;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.04.27.22.37.52;	author shepperd;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.03.30.02.31.06;	author forrest;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	95.12.13.21.03.01;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	95.12.09.19.49.29;	author shepperd;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	95.11.10.03.04.13;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	95.11.07.23.11.00;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	95.11.07.22.10.03;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	95.10.31.19.38.26;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	95.10.31.02.22.01;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	95.10.09.23.42.50;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	95.09.28.19.26.32;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	95.09.28.18.45.58;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.09.26.21.27.03;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.08.01.20.02.17;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.07.27.23.19.25;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.06.22.23.04.18;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.06.09.22.00.40;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.04.26.22.31.20;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.02.21.21.45.27;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.16.45.18;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Post-mortem dump of errors.
+@
+
+
+1.31
+log
+@Added names to register dump on 4k/5k CPU's.
+Uses PROCESSOR_CLASS instead of -16 in cpp expressions.
+@
+text
+@/*
+ *		pm.c
+ *
+ *		Copyright 1991 Atari Games.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+*/
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id: pm.c,v 1.30 1997/07/01 22:40:48 albaugh Exp shepperd $";
+#endif
+/*
+ *		Display "post mortem" after reset. Borrowing heavily from
+ *	Pete Lipson's trapdump.asm, this file is written in C instead of
+ *	assembly, and is run after the game hardware has been re-initialized.
+ *	Any "crash" is intended to leave a "death note" consisting of a string
+ *	describing the error, the PC where the error occured, and a pointer
+ *	to the stack at the time of the error. All of these should, of course,
+ *	be taken with a grain of salt, since they are by definition the product
+ *	of hardware/software that was not functioning correctly at the time.
+ *
+ */
+
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <eer_defs.h>
+#include <string.h>
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+#ifndef VCR_HOLD_TIME
+#define VCR_HOLD_TIME (120)	/* two minutes or three taps */
+#endif
+
+/*	The variables below have a high probability of being set by an error.
+ *	If any are non-zero, a post-mortem dump is performed. The vcr is
+ *	turned on for VCR_HOLD_TIME seconds to "preserve the evidence", and
+ *	then the variables are cleared and the board "re-booted". This last
+ *	step is needed because the power-on root may have taken some pains
+ *	to avoid over-writing the stack in the case of a post-mortem dump.
+ */
+/*
+ *	The R3K/R4K saves the pm variables in a "struct pm_rxk_str" called pm_data.
+ *	The pm_data variable itself is declared in os_rootrxk.mac. Until this
+ *	scheme can be back patched into the 68k flavor, the members of the
+ *	struct are copied to local pm_ variables at entry to pm_dump.
+ */
+/* 		wlc(buff,str,max)
+ *	Copy string <str> to buffer <buff>, limiting to maximum width <max>.
+ *	We try to break at a "space". returns number of characters of <str>
+ *	it successfully copied. This is only a forward reference because
+ *	of a bug in MRI C that loses the const qualifier on old-style
+ *	definitions.
+ */
+int wlc( char *buff, const char *str, int max);
+
+int pm_validate(struct pm_general *pmptr) {
+    if ( (pmptr->pm_cntr < 0 && pmptr->pm_cntr != -42) )
+    {
+        return 0;			/* not a valid pm */
+    }
+    if ( pmptr->pm_msg == 0 && pmptr->pm_pc == 0 && pmptr->pm_stack == 0 ) {
+        return 0;			/* not a valid pm */
+    }
+    return 1;				/* probably a valid pm */
+}
+
+/* in the absence of any switch input,  hold screen for VCR_HOLD_TIME
+ * seconds or (what amounts to) forever if GUTS_OPT_PM_HOLD is set.
+ * If ACTION or NEXT is _TAPPED_ three times, exit.
+ */
+
+static void hold_pm_display(void) {
+    int taps, timer;
+
+    timer = VCR_HOLD_TIME*60;		/* assume normal timeout */
+#if defined(EER_GUTS_OPT) && defined(GUTS_OPT_PM_HOLD)
+    if ((eer_gets(EER_GUTS_OPT) & GUTS_OPT_PM_HOLD)) timer = 0x7FFFFFFF;
+#endif
+
+    taps = 0;
+    for ( ; --timer > 0 ; ) {
+	prc_delay0();
+	if ( (ctl_read_sw(SW_NEXT|SW_ACTION) & (SW_NEXT|SW_ACTION))
+	   && ++taps >= 3 ) break;
+    }
+}
+
+void pm_dump_param(struct pm_general *pmptr, int cputype, int start_row)
+{
+#ifdef WRAM_ADDR
+    char msgbuf[AN_VIS_COL_MAX+1];
+    int idx,row,col,s_row;
+    int numregs;
+    U32 *regptr;
+
+    if ( (pmptr->pm_cntr < 0 && pmptr->pm_cntr != -42) )
+    {
+        pmptr->pm_cntr = 0;		/* probably a power-on reset with garbage in pm_cntr */
+        pmptr->pm_pc = 0;		/* so clear some stuff */
+        pmptr->pm_stack = 0;
+        pmptr->pm_stkrelative = 0;
+        pmptr->pm_msg = 0;
+        return;			/* and ignore it */
+    }
+#if (COJAG_GAME&COJAG_AREA51)
+    if ( (pmptr->pm_cntr >= EER_RESET) && (pmptr->pm_cntr <= EER_LINKFAIL) ) {
+	eer_p_incs(pmptr->pm_cntr,1);
+	pmptr->pm_cntr = 0;
+    }
+#endif
+    if ( pmptr->pm_msg == 0 && pmptr->pm_pc == 0 && pmptr->pm_stack == 0 ) {
+        pmptr->pm_cntr = 0;
+        return;
+    }
+    row = start_row;
+    start_row += 3;
+#ifdef TEXT_HOST
+    txt_select(TXT_HOST);
+#endif
+    vid_clear();
+    if ( pmptr->pm_msg ) {
+	const char *msg = pmptr->pm_msg;
+	while ( row < start_row ) {
+	    idx = wlc(msgbuf,msg,AN_VIS_COL-1);
+	    txt_str(-1,row,msgbuf,MNORMAL_PAL);
+	    msg += idx;
+	    ++row;
+	}
+    } else {
+	txt_str(-1,row++,"UNKNOWN ERROR",MNORMAL_PAL);
+    }
+
+    txt_str((AN_VIS_COL-3-8-5-8)/2, row, "PC=", MNORMAL_PAL);
+    txt_chexnum(pmptr->pm_pc, 8, RJ_ZF, MNORMAL_PAL);
+    txt_cstr("  SP=",MNORMAL_PAL);
+    txt_chexnum((U32)pmptr->pm_stack, 8, RJ_ZF, MNORMAL_PAL);
+    txt_str((AN_VIS_COL-3-8-8-8)/2, ++row, "SR=", MNORMAL_PAL);
+    txt_chexnum(pmptr->pm_sr, 8, RJ_ZF, MNORMAL_PAL);
+    cputype &= -16;		/* we only care about the major cpu numbers */
+    numregs = 0;
+    if (cputype == MIPS3000 || cputype == MIPS4000) {
+	txt_cstr("  CAUSE=", MNORMAL_PAL);
+	txt_chexnum(pmptr->pm_cause, 8, RJ_ZF, MNORMAL_PAL);
+	txt_str((AN_VIS_COL-9-8)/2, ++row, "BadVAddr=", MNORMAL_PAL);
+	txt_chexnum(pmptr->pm_badvaddr, 8, RJ_ZF, MNORMAL_PAL);
+	numregs = 32;
+    }
+    if (cputype == 0) {		/* 68k */
+	numregs = 16;
+    }
+    if (cputype == ASAP) {
+        numregs = 32;
+    }
+    col = 0;
+    for ( regptr = pmptr->pm_regs, idx = 0 ; idx < numregs ; ++idx ) {
+#if (PROCESSOR&PROCESSOR_CLASS) == MIPS4000
+	static char * const regnames[] = {
+	    "r0=", "at=", "v0=", "v1=", "a0=", "a1=", "a2=", "a3=",
+	    "t0=", "t1=", "t2=", "t3=", "t4=", "t5=", "t6=", "t7=",
+	    "t8=", "t9=", "s0=", "s1=", "s2=", "s3=", "s4=", "s5=",
+	    "s6=", "s7=", "k0=", "k1=", "gp=", "sp=", "fp=", "ra="
+	};
+# define REG_COL_INC (9+3)
+#else
+# define REG_COL_INC (9)
+#endif
+	if ( (idx & 3) == 0 ) {
+	    ++row;
+	    col = 1;
+	} else col += REG_COL_INC;
+#if (PROCESSOR&PROCESSOR_CLASS) == MIPS4000
+	txt_str(col, row, regnames[idx], MNORMAL_PAL);
+	txt_chexnum(*regptr++, 8, RJ_ZF, MNORMAL_PAL);
+#else
+	txt_hexnum(col, row, *regptr++ ,8, RJ_ZF, MNORMAL_PAL);
+#endif
+    }
+    s_row = ++row;
+    col = 0;
+    numregs = 1;
+    if (cputype == ASAP || cputype == MIPS3000 || cputype == MIPS4000) {
+	numregs = (int)pmptr->pm_stack&3;
+    } else if (cputype == 0) {		/* 68k */
+	numregs = (int)pmptr->pm_stack&1;
+    }
+    if (numregs == 0) {
+	U32 *stkrelative, *stack;
+	stkrelative = pmptr->pm_stkrelative;
+	stack = pmptr->pm_stack;
+	while ( stkrelative && stack > pmptr->pm_stklower && stack < pmptr->pm_stkupper ) {
+	    /* stack pointer is within WRAM */
+	    if ( ++row < AN_VIS_ROW-1 ) {
+		txt_str(col,row," *",MNORMAL_PAL);
+		txt_chexnum((unsigned long)stack,8,RJ_ZF,MNORMAL_PAL);
+		txt_cstr(" =",MNORMAL_PAL);
+		txt_chexnum(*stkrelative,8,RJ_ZF,MNORMAL_PAL);
+	    } else {
+		/* hit bottom of screen, go back for another column */
+		row = s_row;
+		if ( (col += 20) >= (AN_VIS_COL-20) ) break;
+	    }
+	    ++stack;
+	    ++stkrelative;
+	}
+    }
+    txt_str(-1,AN_VIS_ROW-1,"THREE TAPS AND YOU'RE OUT",INSTR_PAL);
+#ifdef VCR_RECORD
+    vcr(VCR_RECORD);
+#endif
+    hold_pm_display();
+#ifdef VCR_RECORD
+    vcr(VCR_STOP);
+#endif /* def VCR_RECORD */
+#endif
+    vid_clear();
+    pmptr->pm_msg = 0;
+    pmptr->pm_pc = 0;
+    pmptr->pm_stack = 0;
+    pmptr->pm_stkrelative = 0;
+#ifdef WRAM_ADDR
+    prc_reboot();
+#endif
+}
+
+void pm_dump(void) {
+    extern U32 INIT_SP[], bss_end[];
+    struct pm_general *lclpp;
+
+/* To remain compatible with old 68k and ASAP code... */
+#if ((PROCESSOR&PROCESSOR_CLASS) == 0) || ((PROCESSOR&PROCESSOR_CLASS) == ASAP)	/* 68k or ASAP */
+    extern const char *pm_msg;
+    extern U32 *pm_stack, pm_pc, pm_regs[], pm_sr;
+    extern int pm_cntr;    
+    struct pm_general lclpm;
+    int ii;
+
+    lclpp = &lclpm;
+    lclpp->pm_msg = pm_msg;
+    lclpp->pm_stack = pm_stack;
+    lclpp->pm_stkupper = INIT_SP;
+    lclpp->pm_stklower = bss_end;
+    lclpp->pm_stkrelative = pm_stack;
+    lclpp->pm_cntr = pm_cntr;
+    lclpp->pm_pc = pm_pc;
+    lclpp->pm_sr = pm_sr;
+# if (PROCESSOR&PROCESSOR_CLASS) == 0		/* 68k */
+#  define NREGS 16
+# else
+#  define NREGS 32
+# endif
+    for (ii=0; ii < NREGS; ++ii) lclpp->pm_regs[ii] = pm_regs[ii];
+#else					/* 68k or ASAP */
+    extern struct pm_general pm_data;
+    lclpp = &pm_data;
+
+    lclpp->pm_stkupper = INIT_SP;
+    lclpp->pm_stklower = bss_end;
+    lclpp->pm_stkrelative = lclpp->pm_stack;
+
+#endif					/* 68k or ASAP */
+
+
+    if ( lclpp->pm_cntr <= 0 && lclpp->pm_msg == 0 ) {
+	/* special hack for watchdog reset, or maybe just a
+	 * reset on the bench :-)
+	 */
+	if ( lclpp->pm_cntr == -42
+#ifdef GUTS_OPT_PM_WDOG
+		|| (debug_mode & GUTS_OPT_PM_WDOG)
+#endif
+        ) {
+	    /* this was just prc_reboot having a little fun with us */
+#if ((PROCESSOR&PROCESSOR_CLASS) == 0) || ((PROCESSOR&PROCESSOR_CLASS) == ASAP)	/* 68k or ASAP */
+    	    pm_cntr = 0;
+    	    pm_msg = 0;
+    	    pm_pc = 0;
+    	    pm_stack = 0;
+#else					/* 68k */
+	    lclpp->pm_cntr = 0;
+            lclpp->pm_msg = 0;
+	    lclpp->pm_pc = 0;		/* init the important variables */
+	    lclpp->pm_stack = 0;
+            lclpp->pm_stkrelative = 0;
+#endif
+	    return;
+	}
+	if ( 
+#if (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF) || (HOST_BOARD == SEATTLE) || (HOST_BOARD == VEGAS)
+    	     0				/* debug mode is always on on AD and FLAGSTAFF systems */
+#else
+    	     debug_mode & GUTS_OPT_DBG_SW
+#endif
+           ) {
+	    /* If debug switches are enabled, we are probably on the
+	     * bench and this "watchdog reset" is just somebody
+	     * smacking the button.
+	     */
+	    prc_reboot();
+	} else {
+#ifdef EER_RESET
+	    lclpp->pm_cntr = EER_RESET;
+#endif
+	    lclpp->pm_msg = "WATCHDOG RESET"; 	    
+	}
+    }
+
+    pm_dump_param(lclpp, PROCESSOR, 1);
+
+#if ((PROCESSOR&PROCESSOR_CLASS) == 0) || ((PROCESSOR&PROCESSOR_CLASS) == ASAP)	/* 68k or ASAP */
+    pm_msg = lclpp->pm_msg;
+    pm_stack = lclpp->pm_stack;
+    pm_cntr = lclpp->pm_cntr;
+    pm_pc = lclpp->pm_pc;
+#endif
+}
+
+/* 		wlc(buff,str,max)
+ *	Copy string <str> to buffer <buff>, limiting to maximum width <max>.
+ *	We try to break at a "space". returns number of characters of <str>
+ *	it successfully copied.
+ */
+
+int wlc(buff,str,max)
+char *buff;
+const char *str;
+int max;
+{
+    const char *lp,*last_sp;
+    int idx;
+
+    lp = last_sp = str;
+    idx = 0;
+    while (*lp) {
+	if ( (*lp) == ' ' ) last_sp = lp;
+	buff[idx] = *lp++;
+	if ( ++idx == max ) {
+	    /* running out of room. Trim back to prev space */
+	    int back;
+	    back = lp - last_sp;
+	    if ( back >= idx ) {
+		/* no space in the whole run, hyphenate */
+		buff[idx-1] = '-';
+		--lp;	/* back up to repeat */	    
+	    } else {
+		/* overlay space with E-O-L */
+		idx -= back;
+		lp = last_sp+1;
+	    }
+	    break;
+	}
+    }
+    buff[idx] = '\0';
+    return lp - str;
+}
+@
+
+
+1.30
+log
+@Added RCS ID string
+@
+text
+@d10 1
+a10 1
+const char FILE_ID_NAME[] = "$Id$";
+d163 11
+d177 5
+a181 1
+	} else col += 9;
+d183 1
+d237 1
+a237 1
+#if ((PROCESSOR&-16) == 0) || ((PROCESSOR&-16) == ASAP)	/* 68k or ASAP */
+d253 1
+a253 1
+# if (PROCESSOR&-16) == 0		/* 68k */
+d280 1
+a280 1
+#if ((PROCESSOR&-16) == 0) || ((PROCESSOR&-16) == ASAP)	/* 68k or ASAP */
+d316 1
+a316 1
+#if ((PROCESSOR&-16) == 0) || ((PROCESSOR&-16) == ASAP)	/* 68k or ASAP */
+@
+
+
+1.29
+log
+@Moved pm dump hold into separate function. Conditionalled
+the wait time on contents of GUTS_OPT_PM_HOLD if defined.
+@
+text
+@d8 5
+a12 1
+ *
+@
+
+
+1.28
+log
+@Allowed for dynamic resolution. I.E. AN_VIS_COL et. al. can be made
+into ints instead of #defines. On 3dfx systems this is accompolished
+by defining the following in config.mac:
+DEC_CONST DYNAMIC_VIS_PIX 1
+DEC_CONST VIS_H_PIX_MAX whatever
+DEC_CONST VIS_V_PIX_MAX whatever
+After this, AN_VIS_COL, AN_VIS_ROW, VIS_V_PIX, VIS_H_PIX and
+SST_RESOLUTION become "extern int" instead of #defines.
+The new #defines AN_VIS_ROW_MAX and AN_VIS_COL_MAX are
+created (computed from VIS_H_PIX_MAX, VIS_V_PIX_MAX) so
+local arrays can be declared and this is the principle changed
+to this file.
+@
+text
+@d70 21
+d96 1
+a96 1
+    int	taps,timer,numregs;
+d197 1
+a197 9
+    taps = 0;
+    /* in the absence of any switch input,  hold screen for VCR_HOLD_TIME
+     * seconds. If ACTION or NEXT is _TAPPED_ three times, exit.
+     */
+    for ( timer = VCR_HOLD_TIME*60 ; --timer > 0 ; ) {
+	prc_delay0();
+	if ( (ctl_read_sw(SW_NEXT|SW_ACTION) & (SW_NEXT|SW_ACTION))
+	   && ++taps >= 3 ) break;
+    }
+@
+
+
+1.27
+log
+@INTERIM RELEASE for AREA-51 on Single-board R3K CoJag.
+Some of the most serious bugs have been removed, but
+this file is NOT FINISHED. Bugs related to post-mortem
+dump still live in os_rootr3k.mac and os_shimsr3k.c.
+@
+text
+@d26 7
+d73 1
+a73 1
+    char msgbuf[AN_VIS_COL+1];
+@
+
+
+1.26
+log
+@Added support and detection for SEATTLE and VEGAS host boards.
+@
+text
+@a52 3
+#ifdef EER_RESET
+    if ( pmptr->pm_cntr > EER_RESET+1 || (pmptr->pm_cntr < 0 && pmptr->pm_cntr != -42))
+#else
+a53 1
+#endif
+a70 3
+#ifdef EER_RESET
+    if ( pmptr->pm_cntr > EER_RESET+1 || (pmptr->pm_cntr < 0 && pmptr->pm_cntr != -42))
+#else
+a71 1
+#endif
+d80 2
+a81 1
+    if ( pmptr->pm_cntr > 0 ) {
+d85 1
+d230 1
+a230 1
+    if ( lclpp->pm_cntr < 0 && lclpp->pm_msg == 0 ) {
+@
+
+
+1.25
+log
+@Since the WDOG bit doesn't work on AD and FLAGSTAFF and those
+systems always have DEBUG mode on, it uses only the PM_DUMP
+option in debug_mode to say whether to pm dump WDOG resets.
+@
+text
+@d261 1
+a261 1
+#if HOST_BOARD == PHOENIX_AD || HOST_BOARD == FLAGSTAFF
+@
+
+
+1.24
+log
+@Added specific code for WDOG panic detection on PHOENIX_AD and FLAGSTAFF
+@
+text
+@d262 1
+a262 1
+    	     lclpp->pm_cntr != -41
+@
+
+
+1.23
+log
+@Added a check for GUTS_OPT_PM_WDOG option.
+@
+text
+@d235 1
+d260 7
+a266 1
+	if ( debug_mode & GUTS_OPT_DBG_SW ) {
+@
+
+
+1.22
+log
+@Added conditional SST_RUSH to hack of revision 1.19
+Must undo this later!
+@
+text
+@d239 5
+a243 1
+	if ( lclpp->pm_cntr == -42 ) {
+a258 8
+#if (ZOID_GAME & ZOID_RUSH) || (SST_GAME & SST_RUSH)	/* Against my better judgement, at the ... */
+	    lclpp->pm_cntr = 0;
+            lclpp->pm_msg = 0;
+	    lclpp->pm_pc = 0;		/* init the important variables */
+	    lclpp->pm_stack = 0;
+            lclpp->pm_stkrelative = 0;
+	    prc_reboot();
+#endif				/* ... game team's request - fom 3/29/96 */
+@
+
+
+1.21
+log
+@Removed call to prc_delay_options().
+@
+text
+@d255 1
+a255 1
+#if ZOID_GAME == ZOID_RUSH	/* Against my better judgement, at the ... */
+@
+
+
+1.20
+log
+@Added call to prc_delay_options if SST video so the pm dump shows up.
+@
+text
+@a178 3
+#if VIDEO_BOARD == SST_V && PRC_DELAY_OPT_TEXT2FB
+    prc_delay_options(PRC_DELAY_OPT_TEXT2FB|PRC_DELAY_OPT_SWAP);
+#endif
+@
+
+
+1.19
+log
+@Disabled watchdog reset at Rush team's request, for now.
+Must undo this later!
+@
+text
+@d98 3
+d179 3
+@
+
+
+1.18
+log
+@Fixed the stack dump to not "eat" the stack display so the same
+display would show if pm_dump were aborted before the timeout.
+@
+text
+@d252 8
+@
+
+
+1.17
+log
+@Added a pm_validate function that os_root can call to get a T/F
+indication that there is a valid pm dump.
+@
+text
+@d149 4
+a152 1
+	while ( pmptr->pm_stkrelative && pmptr->pm_stack > pmptr->pm_stklower && pmptr->pm_stack < pmptr->pm_stkupper ) {
+d156 1
+a156 1
+		txt_chexnum((unsigned long)pmptr->pm_stack,8,RJ_ZF,MNORMAL_PAL);
+d158 1
+a158 1
+		txt_chexnum(*pmptr->pm_stkrelative,8,RJ_ZF,MNORMAL_PAL);
+d164 2
+a165 2
+	    ++pmptr->pm_stack;
+	    ++pmptr->pm_stkrelative;
+@
+
+
+1.16
+log
+@Accidentally left in a call to prc_reboot in the pm_dump_param() function.
+@
+text
+@d52 15
+@
+
+
+1.15
+log
+@Made it _compile_ on 68k code. Don't know if it will _work_ on a 68k system yet.
+@
+text
+@a59 26
+    if ( pmptr->pm_cntr < 0 && pmptr->pm_msg == 0 ) {
+	/* special hack for watchdog reset, or maybe just a
+	 * reset on the bench :-)
+	 */
+	if ( pmptr->pm_cntr == -42 ) {
+	    /* this was just prc_reboot having a little fun with us */
+	    pmptr->pm_cntr = 0;
+            pmptr->pm_msg = 0;
+	    pmptr->pm_pc = 0;		/* init the important variables */
+	    pmptr->pm_stack = 0;
+            pmptr->pm_stkrelative = 0;
+	    return;
+	}
+	if ( debug_mode & GUTS_OPT_DBG_SW ) {
+	    /* If debug switches are enabled, we are probably on the
+	     * bench and this "watchdog reset" is just somebody
+	     * smacking the button.
+	     */
+	    prc_reboot();
+	} else {
+#ifdef EER_RESET
+	    pmptr->pm_cntr = EER_RESET;
+#endif
+	    pmptr->pm_msg = "WATCHDOG RESET"; 	    
+	}
+    }
+d179 1
+d182 1
+a182 1
+#if ((PROCESSOR&-16) == 0) || ((PROCESSOR&-16) == ASAP)
+d186 1
+a186 1
+    struct pm_general lclpm, *lclpp;
+d198 45
+a242 4
+#if (PROCESSOR&-16) == 0
+# define NREGS 16
+#else
+# define NREGS 32
+d244 4
+a247 1
+    for (ii=0; ii < NREGS; ++ii) lclpp->pm_regs[ii] = pm_regs[ii];
+d249 2
+a254 8
+
+#else
+/* R3K/R4K code already has the new stuff by default */
+    extern struct pm_general pm_data;
+    pm_data.pm_stkupper = INIT_SP;
+    pm_data.pm_stklower = bss_end;
+    pm_data.pm_stkrelative = pm_data.pm_stack;
+    pm_dump_param(&pm_data, PROCESSOR, 1);
+@
+
+
+1.14
+log
+@Added pm_dump_param() and removed parameters from pm_dump().
+@
+text
+@d208 3
+a210 1
+    extern U32 pm_stack, pm_pc, pm_msg, pm_cntr, pm_regs[];
+@
+
+
+1.13
+log
+@Added some "stack relative" members to the pm_general struct
+@
+text
+@d52 1
+a52 1
+void pm_dump(struct pm_general *pmptr, int cputype, int start_row)
+d200 40
+@
+
+
+1.12
+log
+@Made all the pm variables members of a pm_general struct.
+pm_dump() is now called with a pointer to this struct and
+the processor type and a starting row number.
+@
+text
+@a25 2
+extern unsigned long INIT_SP;
+
+a55 1
+    unsigned long *stk_end;
+d67 1
+d70 1
+d95 1
+a152 1
+    stk_end = &INIT_SP;
+d160 1
+a160 1
+	while ( pmptr->pm_stack > (unsigned long *)WRAM && pmptr->pm_stack < stk_end ) {
+d166 1
+a166 1
+		txt_chexnum(*pmptr->pm_stack,8,RJ_ZF,MNORMAL_PAL);
+d173 1
+d197 1
+@
+
+
+1.11
+log
+@Added a clear of pm_msg in the "power on" sense code.
+@
+text
+@d39 6
+a44 7
+extern const char *pm_msg;
+extern unsigned long *pm_stack,pm_pc,pm_sr,pm_regs[];
+extern long pm_cntr;
+#if ((PROCESSOR&-16) == MIPS3000) || ((PROCESSOR&-16) == MIPS4000)
+extern unsigned long pm_cause, pm_badvaddr;
+#endif
+
+d54 1
+a54 1
+void pm_dump()
+d60 2
+a61 1
+    int	taps,timer;
+d63 1
+a63 1
+    if ( pm_cntr < 0 && pm_msg == 0 ) {
+d67 1
+a67 1
+	if ( pm_cntr == -42 ) {
+d69 3
+a71 3
+	    pm_cntr = 0;
+	    pm_pc = 0;			/* init the important variables */
+	    pm_stack = 0;
+d82 1
+a82 1
+	    pm_cntr = EER_RESET;
+d84 1
+a84 1
+	    pm_msg = "WATCHDOG RESET"; 	    
+d88 1
+a88 1
+    if ( pm_cntr > EER_RESET+1 || (pm_cntr < 0 && pm_cntr != -42))
+d90 1
+a90 1
+    if ( (pm_cntr < 0 && pm_cntr != -42) )
+d93 4
+a96 4
+        pm_cntr = 0;		/* probably a power-on reset with garbage in pm_cntr */
+        pm_pc = 0;		/* so clear some stuff */
+        pm_stack = 0;
+        pm_msg = 0;
+d99 3
+a101 3
+    if ( pm_cntr > 0 ) {
+	eer_p_incs(pm_cntr,1);
+	pm_cntr = 0;
+d103 2
+a104 2
+    if ( pm_msg == 0 && pm_pc == 0 && pm_stack == 0 ) {
+        pm_cntr = 0;
+d107 2
+a108 1
+    row = 1;
+d110 3
+a112 3
+    if ( pm_msg ) {
+	const char *msg = pm_msg;
+	while ( row < 3 ) {
+d123 1
+a123 1
+    txt_chexnum(pm_pc, 8, RJ_ZF, MNORMAL_PAL);
+d125 1
+a125 7
+    txt_chexnum((U32)pm_stack, 8, RJ_ZF, MNORMAL_PAL);
+#if ((PROCESSOR&-16) == ASAP) || ((PROCESSOR&-16) == MIPS3000) || ((PROCESSOR&-16) == MIPS4000)
+#define NUM_REGISTERS	32
+#else
+#define NUM_REGISTERS	16
+#endif
+#if ((PROCESSOR&-16) == MIPS3000) || ((PROCESSOR&-16) == MIPS4000)
+d127 16
+a142 6
+    txt_chexnum(pm_sr, 8, RJ_ZF, MNORMAL_PAL);
+    txt_cstr("  CAUSE=", MNORMAL_PAL);
+    txt_chexnum(pm_cause, 8, RJ_ZF, MNORMAL_PAL);
+    txt_str((AN_VIS_COL-9-8)/2, ++row, "BadVAddr=", MNORMAL_PAL);
+    txt_chexnum(pm_badvaddr, 8, RJ_ZF, MNORMAL_PAL);
+#endif
+d144 1
+a144 1
+    for ( idx = 0 ; idx < NUM_REGISTERS ; ++idx ) {
+d149 1
+a149 1
+	txt_hexnum(col,row,pm_regs[idx],8,RJ_ZF,MNORMAL_PAL);
+d154 20
+a173 14
+#if ((PROCESSOR&-16) == MIPS3000) || ((PROCESSOR&-16) == MIPS4000) || ((PROCESSOR&-16) == ASAP)
+    if (((U32)pm_stack&3) == 0)
+#endif
+    while ( pm_stack > (unsigned long *)WRAM && pm_stack < stk_end ) {
+	/* stack pointer is within WRAM */
+	if ( ++row < AN_VIS_ROW-1 ) {
+	    txt_str(col,row," *",MNORMAL_PAL);
+	    txt_chexnum((unsigned long)pm_stack,8,RJ_ZF,MNORMAL_PAL);
+	    txt_cstr(" =",MNORMAL_PAL);
+	    txt_chexnum(*pm_stack,8,RJ_ZF,MNORMAL_PAL);
+	} else {
+	    /* hit bottom of screen, go back for another column */
+	    row = s_row;
+	    if ( (col += 20) >= (AN_VIS_COL-20) ) break;
+a174 1
+	++pm_stack;
+d194 3
+a196 3
+    pm_msg = 0;
+    pm_pc = 0;
+    pm_stack = 0;
+@
+
+
+1.10
+log
+@Fixed some R3K/R4K error reporting
+@
+text
+@d87 6
+a92 1
+    if ( pm_cntr > EER_RESET+1 || (pm_cntr < 0 && pm_cntr != -42)) {
+d96 1
+@
+
+
+1.9
+log
+@Removed all references to pm_instr
+@
+text
+@d88 4
+a91 1
+        return;			/* probably a power-on reset with garbage in pm_cntr */
+d97 4
+a100 2
+    if ( pm_msg == 0 && pm_pc == 0 && pm_stack == 0 ) return;
+
+d115 4
+a118 4
+    txt_str(4,row,"At PC= ",MNORMAL_PAL);
+    txt_chexnum(pm_pc,8,RJ_ZF,MNORMAL_PAL);
+    txt_cstr(", SP= ",MNORMAL_PAL);
+    txt_chexnum((unsigned long)pm_stack,8,RJ_ZF,MNORMAL_PAL);
+d127 1
+a127 1
+    txt_cstr(", CAUSE=", MNORMAL_PAL);
+@
+
+
+1.8
+log
+@Better validated the pm_cntr variable to identify "real" post mortem
+@
+text
+@d43 1
+a43 1
+extern unsigned long pm_cause, pm_instr;
+d120 6
+a125 6
+    txt_str(4,++row,"  SR= ",MNORMAL_PAL);
+    txt_chexnum(pm_sr,8,RJ_ZF,MNORMAL_PAL);
+    txt_cstr(", CAUSE= ",MNORMAL_PAL);
+    txt_chexnum(pm_cause,8,RJ_ZF,MNORMAL_PAL);
+    txt_str(4,++row,"  Instruction= ",MNORMAL_PAL);
+    txt_chexnum(pm_instr,8,RJ_ZF,MNORMAL_PAL);
+@
+
+
+1.7
+log
+@protect against no definition of VCR_RECORD
+@
+text
+@d87 3
+@
+
+
+1.6
+log
+@fixed typo "if" for "is"
+@
+text
+@d153 1
+d155 1
+d165 1
+d167 1
+@
+
+
+1.5
+log
+@placed string.h after config.h to accomodate size_t kluge.
+This was needed because of gcc's builtin memcpy and memcmp.
+@
+text
+@d156 1
+a156 1
+     * seconds. If ACTION or NEXT if _TAPPED_ three times, exit.
+@
+
+
+1.4
+log
+@added DMS's MIPS extensions. Fixed over-run of stack dump
+@
+text
+@a19 1
+#include <string.h>
+d24 1
+@
+
+
+1.3
+log
+@minor bug fix, don't modify pm_msg in place as we print the
+message. This makes it a little easier to trap panics with
+the analyzer. Also, don't prc_reboot() is WRAM_ADDR is not
+defined, a sop to not-quite-ready ports...
+@
+text
+@d42 3
+a54 1
+
+d70 2
+d111 13
+d125 1
+a125 1
+    for ( idx = 0 ; idx < 16 ; ++idx ) {
+d135 4
+a138 1
+    while ( pm_stack > (unsigned long *)WRAM && pm_stack != stk_end ) {
+d148 1
+a148 1
+	    if ( (col += 20) >= AN_VIS_COL ) break;
+d155 3
+d160 2
+a161 1
+	if ( (ctl_read_sw(SW_NEXT) & SW_NEXT) && ++taps >= 3 ) break;
+@
+
+
+1.2
+log
+@protected against possibility of there being no "WRAM" per se.
+This makes pm.c far less useful, but is needed for multi-stack
+systems like Nucleus.
+@
+text
+@d92 1
+d94 1
+a94 1
+	    idx = wlc(msgbuf,pm_msg,AN_VIS_COL-1);
+d96 1
+a96 1
+	    pm_msg += idx;
+d140 1
+d145 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d55 1
+d144 1
+@

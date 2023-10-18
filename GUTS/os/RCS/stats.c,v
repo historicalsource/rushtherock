@@ -1,0 +1,3805 @@
+head	1.48;
+access
+	avellar
+	albaugh
+	birmingham
+	forrest
+	peplinski
+	shepperd;
+symbols
+	RUSH_ROCK_1_0:1.45
+	RUSH_1_06A:1.43
+	AREA_52_00:1.43
+	CJ_206:1.26
+	CJ2_05:1.26
+	CJ2_04:1.26
+	CJ2_03:1.4;
+locks; strict;
+comment	@ * @;
+
+
+1.48
+date	97.11.26.01.46.53;	author forrest;	state Exp;
+branches;
+next	1.47;
+
+1.47
+date	97.11.07.18.23.12;	author forrest;	state Exp;
+branches;
+next	1.46;
+
+1.46
+date	97.11.07.17.58.16;	author albaugh;	state Exp;
+branches;
+next	1.45;
+
+1.45
+date	97.09.16.23.39.11;	author forrest;	state Exp;
+branches;
+next	1.44;
+
+1.44
+date	97.08.25.16.56.02;	author forrest;	state Exp;
+branches;
+next	1.43;
+
+1.43
+date	97.07.01.23.42.42;	author albaugh;	state Exp;
+branches;
+next	1.42;
+
+1.42
+date	97.05.08.18.00.17;	author forrest;	state Exp;
+branches;
+next	1.41;
+
+1.41
+date	97.05.07.00.08.10;	author albaugh;	state Exp;
+branches;
+next	1.40;
+
+1.40
+date	97.04.18.18.19.14;	author shepperd;	state Exp;
+branches;
+next	1.39;
+
+1.39
+date	97.04.04.20.38.54;	author albaugh;	state Exp;
+branches;
+next	1.38;
+
+1.38
+date	97.03.20.21.03.40;	author albaugh;	state Exp;
+branches;
+next	1.37;
+
+1.37
+date	97.02.27.22.43.12;	author albaugh;	state Exp;
+branches;
+next	1.36;
+
+1.36
+date	97.02.14.20.28.18;	author albaugh;	state Exp;
+branches;
+next	1.35;
+
+1.35
+date	97.02.01.01.29.56;	author shepperd;	state Exp;
+branches;
+next	1.34;
+
+1.34
+date	97.01.24.21.55.18;	author albaugh;	state Exp;
+branches;
+next	1.33;
+
+1.33
+date	97.01.24.00.04.50;	author albaugh;	state Exp;
+branches;
+next	1.32;
+
+1.32
+date	96.12.02.17.15.05;	author forrest;	state Exp;
+branches;
+next	1.31;
+
+1.31
+date	96.11.23.18.55.16;	author forrest;	state Exp;
+branches;
+next	1.30;
+
+1.30
+date	96.11.22.03.48.16;	author shepperd;	state Exp;
+branches;
+next	1.29;
+
+1.29
+date	96.11.22.01.48.14;	author shepperd;	state Exp;
+branches;
+next	1.28;
+
+1.28
+date	96.11.20.22.32.45;	author albaugh;	state Exp;
+branches;
+next	1.27;
+
+1.27
+date	96.11.19.17.00.58;	author albaugh;	state Exp;
+branches;
+next	1.26;
+
+1.26
+date	96.10.01.22.50.30;	author albaugh;	state Exp;
+branches;
+next	1.25;
+
+1.25
+date	96.09.24.22.58.27;	author albaugh;	state Exp;
+branches;
+next	1.24;
+
+1.24
+date	96.09.04.22.46.01;	author shepperd;	state Exp;
+branches;
+next	1.23;
+
+1.23
+date	96.07.31.18.51.41;	author shepperd;	state Exp;
+branches;
+next	1.22;
+
+1.22
+date	96.07.23.19.14.57;	author shepperd;	state Exp;
+branches;
+next	1.21;
+
+1.21
+date	96.07.20.00.33.18;	author albaugh;	state Exp;
+branches;
+next	1.20;
+
+1.20
+date	96.06.20.21.07.32;	author albaugh;	state Exp;
+branches;
+next	1.19;
+
+1.19
+date	96.05.17.16.16.24;	author albaugh;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	96.05.16.19.05.58;	author shepperd;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	96.05.03.20.08.45;	author albaugh;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	96.03.05.22.59.28;	author shepperd;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	96.03.02.03.59.55;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	96.03.01.23.46.49;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.03.01.22.18.07;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.03.01.03.03.27;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.03.01.02.50.48;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.03.01.01.46.26;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.02.01.18.26.20;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	95.11.22.17.32.21;	author albaugh;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	95.11.17.21.40.52;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	95.11.09.22.03.39;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	95.11.01.18.40.39;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	95.10.31.21.56.38;	author albaugh;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.06.19.19.57.30;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.06.14.01.44.21;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.03.11;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@the playpen where EEPROM record-keeping meets bizarre marketing needs.
+@
+
+
+1.48
+log
+@Added New, Cont and Earned Game Times to display.
+@
+text
+@/*	stats.c
+ *		Contains Statistic Routines relating to Game Times & Histograms
+ *	Latest Edit:			18-Jan-1989	Rich Moore
+ *	Later Edit:			01-NOV-1989	John Salwitz
+ *	Later Edit:			18-Jun-1990	Peter Lipson
+ *	Incorporated SIMUL code from BLOOD Aug-1990	Peter Lipson
+ */
+
+/*
+ *	Copyright 1987 ATARI.  Unauthorized reproduction, adaptation,
+ *	distribution, performance or display of this computer
+ *	program or the associated audiovisual work is strictly prohibited.
+ */
+#ifdef FILE_ID_NAME
+const char FILE_ID_NAME[] = "$Id: stats.c,v 1.47 1997/11/07 18:23:12 forrest Exp forrest $";
+#endif
+#include <config.h>
+#include <st_proto.h>
+#include <os_proto.h>
+#include <string.h>
+#include <eer_defs.h>
+/* MEA: We need to find out _why_ this is included, and who needs
+ * for it _not_ to be...
+ *
+ * Part one is answered "AREA 51 needs it to track GMOPT_...", which
+ * is labeled a kluge right there in their stat_map.mac file where
+ * the dirty deed is done. The SST_* games included it because they
+ * wanted access to USER_RECS for the purpose of dumping USER messages.
+ * I (MEA) fixed ShowUserMsgs() to not need this, so I'm trimming
+ * the kluge-list down to AREA_51.
+ */
+#if (COJAG_GAME&COJAG_AREA51)
+#include <stat_defs.h>
+#endif
+
+/* Allow re-definable screen dimensions, by providing a separate
+ * number to dimension string buffers, as distinct from the (possibly
+ * variable) number of visible columns at any given time.
+ */
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+/* Below is far easier than rooting out all the TRUE and FALSE below. Stats.c
+ * is a playpen anyway. MEA 27JUL94
+ */
+#ifndef TRUE
+#define TRUE (1)
+#endif
+#ifndef FALSE
+#define FALSE (0)
+#endif
+
+#define	PRIVATE	static
+
+#define	INCL_MENU	1	/* if DEF'd provide 'fakemenu' menu	*/
+
+static	const char	t_more_stats[] =	"For more stats,";
+
+#ifdef	EER_LINKFAIL
+extern	U32	rxCkErr;
+#endif
+
+/* ::::::::::::::	These change on a per_game basis	::::	*/
+
+#ifndef N_PLAYERS
+#ifdef EER_2PTIME	/* Guard against future RUSH-like games */
+# define N_PLAYERS 	(2)
+#else
+# define N_PLAYERS 	(1)
+#endif
+#endif
+
+/*		SIMUL
+*	Set this TRUE if you have the standard 2 player game where you can
+*	have players enter and exit during the game play.
+*	There is no particular reason to ever set this to zero. Support
+*	for non-SIMUL will disappear in the near future.
+*
+* NOTE	eer_play() and eer_end() will be called with a mask rather than a
+*	player number.
+*/
+#define	SIMUL		TRUE		/* Simultaneous play for all players */
+
+
+/* 		SESSIONS
+*	Set this true if you want to keep "active minutes" and "session count"
+*	in the table of stats.  This also means eer_end() and eer_play() must
+*	be called with "N_PLAYERS" to increment the appropriate counters.
+*
+* NOTE	Only used if SIMUL is set TRUE.
+*/
+#define SESSIONS	1
+
+
+/* The following are "frames per second" and "frames per minute". They are
+*  #defined mainly to assure inclusion of the cast, which avoids a Greenhills
+*  C (1.8.0) bug
+*/
+#define F_PER_S ((U16) 60)
+#define F_PER_M ((U16) 3600)
+
+/* Number of frames in 4 minutes (time to update) */
+#define UPDTIM 	(4*60*60)
+
+/* External Definitions */
+
+extern	const unsigned char	coinmenu[];
+extern	U32	ctl_read_sw();
+
+/* following #defines are an attempt to clarify "structure" of timers[],
+*  which is an array of longwords manipulated by eer_play and eer_end.
+*/
+
+#define	N_TIMERS (N_PLAYERS+1)	    /* one each player plus IDLE time	*/
+
+    U32	time_plgame[N_TIMERS];		/* 0,1..N player(s) game time */
+    U32	time_eachpl[N_PLAYERS+SESSIONS];	/* player 0,1..N game time */
+    U32	time_residue[N_TIMERS+N_PLAYERS+SESSIONS];	/* left over times */
+    U8	oldplaymask;
+
+    U32	updtimer;
+    U32	last_eertc;
+
+/*		output utilities
+*/
+
+PRIVATE void
+timenum(value,width)
+U32 value;
+m_uint width;
+{
+    U16 mins,secs;
+
+    mins = (U16)(value / 60);
+    txt_cdecnum(mins,width-3,LJ_NF,YEL_PAL);
+    txt_cstr(":",YEL_PAL);
+    secs = value - (60 * mins);
+    txt_cdecnum(secs,2,RJ_ZF,YEL_PAL);		/* Write secs		*/
+}
+
+#if (0)
+PRIVATE void
+sayopt()
+{
+    txt_str(-1,AN_VIS_ROW-3,t_msg_next,INSTR_PAL);
+    txt_str(-1,AN_VIS_ROW-2,t_msg_ret_menu,INSTR_PAL);
+}
+#endif
+
+/*		Statistic Gathering
+*	These routines were originally part of xxxEER.C, along with some
+*	much more hardware-dependant routines. Now those routines are in
+*	xxxEER.ASM and these have been moved to this file, to more effectively
+*	modularize things. Anyway, eer_play(), eer_start(), eer_stop, and
+*	eer_end() maintain a set of timers and periodically update the EEPROM
+*	with said timer information.  The other routines in this file are used
+*	to display the info during self-test.  Both sets call on the hardware
+*	dependant routines in xxxEER.ASM.
+*/
+
+
+/*		eer_play(players)
+*	Starts and stops game time accumulation by copying its parameter to the
+*   internal player flag.  This flag contains number of active players.
+*	This routine actually returns a pointer to an array of unsigned longs
+*   named timers[]. For an explanation of this array, see the #defines above.
+*   Just to get you started, the first (T_0PTIME) is time for 0 players,
+*   These timers are used (and sometimes modified) by other routines in this
+*   package, but should not be lightly messed with.
+*
+*  The parameter PLAYMASK is a MASK with bits for each active player -
+*   it could also be a numeric value (0-players, 1-player, 2-players)
+*   in a game where you don't have an arbitrary station running...
+*  NOTE that this is a FREE interpretation, with one of three timers
+*   running depending on whether it's IDLE/1-PLAYER/2-PLAYER; however,
+*   this breaks down for 3-player or multi-player games; you must then
+*   explicitly use, for example, 4 as a parameter when a 3-player game
+*   is running.
+* >>>>>>>>> NOTE:
+* >>>>>>	add a CONFIG option to select which mode??
+*/
+
+U32 *
+eer_play(playmask)		/* (SEE NOTE ABOVE)		*/
+unsigned int playmask;
+{
+    m_uint minutes;
+    unsigned int bump;		/* amount of time (frames) since last call */
+    unsigned int n;		/* # of players (including player "SESSION")*/
+    unsigned int m;		/* copy of old playmask */
+    U32 time;			/* sub-minute time for each player */
+    U32 *tptr;
+
+    bump = last_eertc;				/* oldrtc */
+    bump = (last_eertc = eer_rtc) - bump;	/* Get time since last call */
+
+    /* If a player was enabled, add time since last call */
+
+/* ::::::::::: COUNT EACH ACTIVE PLAYER ::::::::::::::::	*/
+    n = 0;
+    tptr = time_eachpl;
+    for( m = oldplaymask; m != 0; m >>= 1)
+    {
+	if (m & 1)			/* This player active??	*/
+	{
+	    *tptr += bump;
+	    ++n;			/* .. count active players	*/
+	}
+	++tptr;
+    }
+#if SESSIONS
+    if (oldplaymask & (1 << N_PLAYERS))	/* is SESSION counter running?	*/
+	--n;				/* .. counted one too many then	*/
+#endif
+
+    time_plgame[n] += bump;		/* Count time for game class	*/
+
+    if (oldplaymask && playmask == 0)	/* Done with game??		*/
+    {
+#if (0)
+/* This made the assumption that when all players on this machine
+ * finished, the game was over. Unless and until we have distributed
+ * statistics over a net, this is not true of networked games.
+ */
+#ifdef EER_GMS
+					/* If sessions, games means ?	*/
+	eer_incs(EER_GMS,1);		/* .. count it here??		*/
+#endif
+#endif
+	updtimer = UPDTIM;		/* Force an update...		*/
+    }
+
+    /* Also bump time since last update, and do the update if greater than UPDTIM*/
+    if ( (updtimer += bump) >= UPDTIM)
+    {
+	updtimer = 0;			/* reset the update timer */
+
+	/* :: This loop updates N_TIMERS cells starting at EER_0PTIME	*/
+
+	tptr = &time_plgame[0];		/* << FIRST CLASS-OF-GAME TIMER!! */
+	for( n = 0;			/* Scan the timers	*/
+	n < (sizeof(time_plgame)/sizeof(time_plgame[0]));		/* .. all of 'em!!!	*/
+	++n, ++tptr)
+	{
+	    if ( (time = *tptr) > F_PER_M)
+	    {
+		minutes = ul_over_us(time,F_PER_M);
+		/* EEPROM stat gets whole minutes.
+		 * timer in RAM gets left-over fractional minutes.
+		 */
+		*tptr -= minutes * F_PER_M;
+		eer_incs(n + EER_0PTIME,minutes);
+		/* Assumes 0PTIME/1PTIME/2PTIME are contiguous */
+	    }
+	}
+    }
+
+    oldplaymask = playmask;
+    return(&time_plgame[0]);
+}
+
+
+U32 *
+eer_start(player)
+unsigned int player;
+{
+#if SIMUL
+    return(eer_play(oldplaymask | (1 << player)));	/* Turn ON plyr	*/
+#else
+    return eer_play(player);
+#endif
+}
+
+
+U32 *
+eer_stop(player)
+unsigned int player;
+{
+#if SIMUL
+    return(eer_play(oldplaymask & ~(1 << player)));	/* Turn OFF plyr */
+#else
+    return eer_play(0);
+#endif
+}
+
+
+
+/* :::::: End the game either an original or a continuation game...	*/
+/*  NOTE: the CONTIN flag is used as an INDEX to the 'bin' of the time.	*/
+/*	In SIMUL games, it typically is 0 or 1 (NEW or CONTINUE).	*/
+/*									*/
+/*  The TANK convention for continue is:				*/
+/*	0 = new game, (confusion with 2, below)				*/
+/*	1 = paid-for continue						*/
+/*	2 = continued for free (because he won the last one?)		*/
+
+void
+eer_end(player,contflag)
+unsigned int player,contflag;
+{
+    m_uint mins;
+    U32 ttime;
+
+    eer_stop(player);			/* stop AND UPDATE the clocks	*/
+
+    /* ::::: Count the current game as a NEW or CONTINUE or FREE  game	*/
+    /* Here we need to protect against game programmers who refuse to read
+     * os_proto.h.
+     */
+#ifndef MAX_CONTFLAG
+#ifdef EER_FREEGMS
+#define MAX_CONTFLAG (EER_FREEGMS-EER_NEWCOINS)
+#endif
+#endif
+#ifndef MAX_CONTFLAG
+#ifdef EER_CONTCOINS
+#define MAX_CONTFLAG (EER_CONTCOINS-EER_NEWCOINS)
+#endif
+#endif
+#ifndef MAX_CONTFLAG
+#define MAX_CONTFLAG (0)
+#endif
+
+    if ( contflag > MAX_CONTFLAG ) contflag = MAX_CONTFLAG;
+
+#if SST_GAME == SST_RUSH
+# ifdef EER_GMS
+					/* If sessions, games means ?	*/
+	eer_incs(EER_GMS,1);		/* .. count it here??		*/
+# endif
+#endif
+
+#ifdef EER_NEWCOINS
+    if(player != N_PLAYERS)		/* Not a session end...		*/
+    {
+	eer_incs( (contflag + EER_NEWCOINS),1);	/* count a game...	*/
+	/* Assumes NEWCOINS/CONTCOINS/FREEGMS are contiguous			*/
+    }
+#endif
+#if EER_SESSIONS
+    else	/* Ending a SESSION so count it and write all timers	*/
+    {
+	eer_incs(EER_SESSIONS,1);	/* count the end of a session	*/
+    }
+#endif
+    updtimer = UPDTIM;		/* .. force update too..	*/
+
+    /* Now find out how long this player's been playing...		*/
+    /* (NOTE: the PLAYER could be a SESSION)				*/
+    ttime = (time_residue[player] += time_eachpl[player]);
+    if (ttime > F_PER_M)			/* Extract minutes...	*/
+    {
+	mins = ul_over_us(ttime,F_PER_M);
+	time_residue[player] = ttime - (mins * F_PER_M);
+
+#ifdef EER_SESTIM
+    	if ( player == N_PLAYERS )	/* ending the session	*/
+	{
+	    eer_incs(EER_SESTIM,mins);
+	}
+	else	/* Add the player's time to NEW or CONTINUE time...		*/
+#endif
+#ifdef EER_NEWTIM
+	{
+	    eer_incs(contflag + EER_NEWTIM,mins);
+	    /* Assumes NEWTIM/CONTTIM are contiguous */
+	}
+#endif
+    }
+
+    ttime = time_eachpl[player];	/* Get last game's time	*/
+    time_eachpl[player] = 0;		/* Clean his clock	*/
+
+    /* Record the time in the appropriate HISTOGRAM			*/
+
+#if SESSIONS
+    if( player == N_PLAYERS )
+    {
+	ttime = ul_over_us(ttime,F_PER_M);	/* Convert FRAMES to MINS */
+#ifndef TANK
+	/* TANK is counting sessions by games not time (in st_quit_session)	*/
+#ifdef HIST_M_SESTIM
+	eer_tally_hist(HIST_M_SESTIM,ttime);	/* .. and count		*/
+#endif /* HIST_M_SESTIM */
+/* Below is for backward compatibility, slated for demolition Jan '97 MEA */
+#ifdef HIST_SESSION
+	eer_tally_hist(HIST_SESSION,ttime);	/* .. and count		*/
+#endif /* HIST_SESSION */
+
+#endif /* TANK */
+    }
+#endif /* SESSIONS */
+#ifdef HIST_NEWGAME
+#if SESSIONS
+    else
+#endif /* SESSIONS */
+    {
+	ttime = ul_over_us(ttime,F_PER_S);	/* Convert FRAMES to SECS */
+	eer_tally_hist( contflag + HIST_NEWGAME,ttime);
+	/* assumes HIST_NEWGAME/HIST_CONTGAME/HIST_FREEGMS are contiguous */
+    }
+#endif /* HIST_NEWGAME */
+}
+
+#ifdef SPACE
+
+StartWaveTimer()
+{
+    waveTimer = eer_rtc;
+}
+
+
+StopWaveTimer(waveType)
+U16	waveType;
+{
+    U32	ttime;
+    U16	mins;
+
+    ttime = eer_rtc - waveTimer;		/* get frame delta	*/
+
+    ttime = (waveResidue[waveType] += ttime);
+
+    if (ttime > F_PER_M)
+    {
+	mins = ul_over_us(ttime,F_PER_M);
+	waveResidue[waveType] = ttime - (mins * F_PER_M);
+
+	eer_incs(waveType + EER_SOLOTIME,mins);	/* Bump wave time	*/
+	/* Assumes PTIME/GTIME/STIME are contiguous */
+    }
+
+    ttime = ul_over_us(ttime,F_PER_S);		/* Convert FRAMES to SECS */
+    eer_tally_hist(waveType + HIST_SOLOGAME,ttime);
+}
+
+#endif
+
+static	const char barstr[] =
+	     {
+	     AN_SQUARE,					/* full first	*/
+#ifdef AN_BARG
+	     AN_BARG + 1,AN_BARG + 2,AN_BARG + 3, /* least partial...	*/
+	     AN_BARG + 4,AN_BARG + 5,AN_BARG + 6,
+	     AN_BARG + 7,			/* to most partial	*/
+#else
+#ifdef AN_HALFSQ
+	     AN_HALFSQ,
+#endif
+#endif
+	     0					/* terminate string	*/
+	     };
+
+struct hist_menu {
+    char *label;
+    int	(*call)(const struct menu_d *);
+    int tabnum;
+};
+
+#if HIST_TABLES
+/*		show_hist(smp)
+ *	display one histogram, as specified by smp (selected
+ *	menu pointer). This is the primitive to build a
+ *	menu of histograms from.
+ */
+
+PRIVATE int
+show_hist(smp)
+const struct menu_d *smp;
+{
+    char buf[AN_VIS_COL_MAX],*s; 	/* Screen-line buffer		*/
+    int	median,max,total,titlewide,bin,val;
+    int	tblndx;
+    const struct hist_menu *hmp = (const struct hist_menu *)smp;
+
+    tblndx = hmp->tabnum;
+
+    ExitInst(INSTR_PAL);
+    titlewide = eer_hist_title(tblndx,buf,sizeof(buf),&max,&median,barstr);
+    /* Write the title */
+
+    for(bin = 0,total = 0; /* break when done */ ; ++bin)
+    {
+/* "MAGIC" -3 added to kluge for wrap-around bars. I do not know
+ * when the bug was introduced, but this area is slated for major
+ * re-modeling soon, so I'll live with the kluge. 17JUN95 MEA.
+ */
+	val = eer_hist_line(bin,buf,sizeof(buf)-3);
+	if (val < 0)				/* DONE??	*/
+	    break;
+
+	txt_str(2,2 + bin,buf,(bin == median ? RED_PAL : YEL_PAL));
+
+	total += val;		/* Accumulate the totals	*/
+    }
+
+    bin += 3;	/* become a line number				*/
+
+    if ( median >= 0 ) {
+	(void)eer_hist_line(median,buf,sizeof(buf));	/* Get median	*/
+
+	s = strchr(buf,':');		/* See if it's a median type..	*/
+	if (s)				/* YEP! it's meaningful		*/
+	{
+	    *s = '\0';
+	    txt_str(15,bin,"MEDIAN:",RED_PAL);
+	    txt_str(22,bin,buf,GRN_PAL);
+	}
+    }
+
+    txt_str(3,bin,"TOTAL:",GRN_PAL);		/* ALWAYS total		*/
+    txt_decnum(9,bin,total,5,LJ_NF,GRN_PAL);
+
+    while ( (ctl_read_sw(SW_NEXT) & SW_NEXT) == 0 ) prc_delay0();
+    return 0;
+}
+
+#define REGRET_TIME (30)	/* Tenths of a second */
+
+PRIVATE int
+clear_hist(smp)
+struct menu_d *smp;
+{
+    int table,timer;
+    unsigned long ctls;
+
+    timer = REGRET_TIME;
+
+    ExitInst(INSTR_PAL);
+    while ( timer >= 0) {
+	ctls = ctl_read_sw(SW_NEXT);
+	if ( ctls & SW_NEXT ) return 0;
+	if ( ctls & SW_ACTION ) {
+	    /* action held, run timer */
+	    txt_clr_str(-1,5,t_msg_actionh,INSTR_PAL);
+	    txt_clr_str(-1,7,"SECONDS TO CLEAR HISTOGRAMS",INSTR_PAL);
+
+	    txt_str(-1,5,"YOU HAVE",INSTR_PAL);
+	    txt_decnum((AN_VIS_COL-3)/2,6,timer/10,1,RJ_BF,INSTR_PAL);
+	    txt_cstr(".",INSTR_PAL);
+	    txt_cdecnum((timer%10),1,RJ_BF,INSTR_PAL);
+	    txt_str(-1,7,"SECONDS TO CHANGE YOUR MIND",INSTR_PAL);
+	    --timer;
+	} else {
+	    /* action released, say what to do */
+	    txt_clr_str(-1,5,"YOU HAVE",INSTR_PAL);
+	    txt_clr_str(-1,7,"SECONDS TO CHANGE YOUR MIND",INSTR_PAL);
+	    timer = REGRET_TIME;
+	    txt_decnum((AN_VIS_COL-3)/2,6,timer/10,1,RJ_BF,INSTR_PAL);
+	    txt_cstr(".",INSTR_PAL);
+	    txt_cdecnum((timer%10),1,RJ_BF,INSTR_PAL);
+	    txt_str(-1,5,t_msg_actionh,INSTR_PAL);
+	    txt_str(-1,7,"SECONDS TO CLEAR HISTOGRAMS",INSTR_PAL);
+	}
+	prc_delay(6);
+    }
+
+    txt_str(-1,9,"CLEARING ALL",RED_PAL|AN_BIG_SET);
+    txt_str(-1,11,"HISTOGRAMS",RED_PAL|AN_BIG_SET);
+
+#ifdef HIST_TABLES
+    for (table=0; table<HIST_TABLES; ++table)
+	(void) eer_clrhist(table);
+#endif
+
+    prc_delay0();
+    timer = 90;
+    while ( (--timer > 0 || eer_busy() > 1)	/* time left	*/
+    && (ctl_read_sw(SW_NEXT) & SW_NEXT) == 0)	/* no press yet	*/
+	prc_delay0();
+
+    return 0;
+}
+#endif
+
+#if HIST_TABLES
+/*		show_hist_group( start, end )
+ *	Creates and "runs" a menu to display a group of
+ *	histograms. A normal game migh call this with
+ *	start == 0 and end == HIST_TABLES-1, but Hero
+ *	needs more than one screen worth. Returns number
+ *	of last histogram displayed (in case it is
+ *	less than <end>)
+ */
+#ifndef HIST_ROWS_MAX
+#define HIST_ROWS_MAX (AN_VIS_ROW_MAX-8)
+#endif
+#ifndef HIST_ROWS
+#define HIST_ROWS (AN_VIS_ROW-8)
+#endif
+
+/*	Following kluge included solely to get proper instructions
+ *	on multi-page histogram screen. When st_menu() is modified
+ *	to be less aggressive about drawing histograms, and passes
+ *	menu and "reason" to coroutines (future enhancement),
+ *	this will change radically or go away altogether. The whole
+ *	file stats.c is overdue for a re-write, so... MEA 22NOV95
+ */
+static int last_screen;
+
+static int show_hist_coroutine( smp )
+const struct menu_d *smp;
+{
+    int bottom;
+    struct menu_d dummy;
+
+    if ( smp != 0 ) return 0;
+
+    dummy.mn_label = "HISTOGRAMS";
+    dummy.mn_call = 0;
+
+    if ( last_screen ) {
+	bottom = st_frame( &dummy, TITLE_PAL, INSTR_PAL, 0);
+    } else {
+	bottom = st_frame( &dummy, TITLE_PAL, INSTR_PAL, STF_NOEXIT);
+	bottom = st_insn(bottom,"For more histograms",t_msg_next,INSTR_PAL);
+    }
+    bottom = st_insn(bottom, "To show Histogram,", t_msg_action, INSTR_PAL);
+    bottom = st_insn(bottom, "To select Histogram,", t_msg_control, INSTR_PAL);
+    return 0;
+}
+
+static int show_hist_group(start, end, clear)
+int start, end, clear;
+{
+    m_int tblndx,midx;
+    char buf[AN_VIS_COL_MAX*HIST_ROWS_MAX],*s;		/* Screen-line buffer		*/
+    int	titlewide;
+
+    struct hist_menu hmenu[HIST_ROWS_MAX+3];
+
+    s = buf;
+
+    hmenu[0].label = "HISTOGRAMS";
+    hmenu[0].call = show_hist_coroutine;
+
+    tblndx = start;
+    for (midx=1; midx <= HIST_ROWS; )
+    {
+
+	titlewide = eer_hist_title(tblndx,s,AN_VIS_COL-2,0,0,barstr);
+	hmenu[midx].label = s;
+	if ( titlewide <= 0 ) {
+	    strcpy(s,"BOTCHED");
+	}
+	while (*s) ++s;		/* skip to end */
+	++s;			/* and then some */
+	hmenu[midx].call = show_hist;
+	hmenu[midx].tabnum = tblndx;
+	++midx;
+	if ( ++tblndx > end ) break;
+    }
+    if ( clear && ((midx <= HIST_ROWS) || (tblndx > end)) ) {
+	/* Add a menu line to clear all histograms
+	 * This may appear in the normally blank line just
+	 * above the instructions, if the last (or only)
+	 * page of histograms exactly fit.
+	*/
+	hmenu[midx].label = "\nCLEAR ALL HISTOGRAMS";
+	/* If we are wedging this line in to the normally
+	 * blank line _after_ the list of histograms, leave
+	 * out the blank line before it by skipping over
+	 * the '\n'.
+	 */
+	if ( midx > HIST_ROWS ) hmenu[midx].label += 1;
+	hmenu[midx].call = clear_hist;
+	hmenu[midx].tabnum = -1;
+	++midx;
+    }
+    hmenu[midx].label = 0;
+    hmenu[midx].call = 0;
+
+    last_screen =  ( tblndx > end );
+    st_menu((struct menu_d*)hmenu,sizeof(hmenu[0]),MNORMAL_PAL,0);
+    return tblndx;
+}
+#endif
+
+PRIVATE void
+ShowHist(clearFlag)
+int	clearFlag;
+{
+#if HIST_TABLES
+#if (1)
+    int start;
+
+    start = 0;
+    do {
+	start = show_hist_group(start, HIST_TABLES-1, clearFlag);
+    } while ( start < HIST_TABLES-1 );
+#else
+    m_int tblndx,midx;
+    char buf[AN_VIS_COL*HIST_TABLES],*s;		/* Screen-line buffer		*/
+    int	titlewide;
+
+    struct hist_menu hmenu[HIST_TABLES+3];
+
+#ifdef TANK
+    tblndx=HIST_SESSION;
+#else
+    tblndx = 0;
+#endif
+    s = buf;
+
+    hmenu[0].label = "HISTOGRAMS";
+    hmenu[0].call = 0;
+
+    for (midx=1; midx <= HIST_TABLES; ++midx)
+    {
+
+	titlewide = eer_hist_title(tblndx,s,AN_VIS_COL-2,0,0,barstr);
+	hmenu[midx].label = s;
+	while (*s) ++s;		/* skip to end */
+	++s;			/* and then some */
+	hmenu[midx].call = show_hist;
+	hmenu[midx].tabnum = tblndx;
+	if ( ++tblndx >= HIST_TABLES ) break;
+    }
+    if ( clearFlag ) {
+	/* add a menu line to clear all histograms */
+	hmenu[++midx].label = "\nCLEAR ALL HISTOGRAMS";
+	hmenu[midx].call = clear_hist;
+	hmenu[midx].tabnum = -1;
+    }
+    hmenu[++midx].label = 0;
+    hmenu[midx].call = 0;
+
+    st_menu((struct menu_d*)hmenu,sizeof(hmenu[0]),MNORMAL_PAL,0);
+#endif /* (1), old way saved for reference */
+#endif		/* don't bother with SHOW_HIST if none defined		*/
+}
+
+#if (N_PLAYERS > 2)
+U32
+active_mins()
+{
+    unsigned long time;
+    short i,j;
+    time = 0;
+
+    for ( i = (N_PLAYERS - 1) ; i >= 0 ; --i)
+    {
+	/* Kluge a long mul */
+	for ( j = i ; j >= 0 ; --j ) time += eer_gets(EER_0PTIME + 1 + i);
+    }
+    return time;
+}
+#endif
+
+
+/*		General Statistic Display
+*/
+
+/*		avgtim()
+*	Returns the average time per coin.
+*/
+U32
+avgtim()
+{
+    long time,coins,avg;
+    int i;
+
+    coins = cn_total_coins();
+    if ( coins == 0 )
+	return 0;
+
+    time = eer_gets(EER_1PTIME);
+    for ( i = 1 ; i < N_PLAYERS ; ++i ) {
+	time +=  (i+1) * eer_gets(EER_1PTIME+i);
+    }
+
+    avg = time * 60;	/* time in seconds */
+    return(ul_over_us(avg,coins));
+}
+
+#ifdef EER_CUM_COINS
+#  define SUPPORTS_CUMULATIVE (1)
+#else
+#  ifdef EER_CUM_SERVICE
+#    error /* CUM_COINS without CUM_SERVICE is not supported */
+#  else
+#    define SUPPORTS_CUMULATIVE (0)
+#  endif
+#endif
+
+/* ::::: Shows the TOTAL COINS, AVG TIME, and PCT PLAY :::::::::	*/
+/*		.. requires 3 display lines				*/
+PRIVATE void
+sho_avgtim(hpos,vpos)
+short hpos,vpos;
+		/* prints total coins and average time per coin in seconds */
+{
+    long	coins,usetim,tottim;
+    short	useage;
+    int		i;
+#if (COJAG_GAME == COJAG_FISH)
+#ifdef EER_GMS
+    long games = eer_gets(EER_GMS);
+#else
+    long games = 0;
+#endif
+#endif
+#ifdef SPACE
+    usetim = eer_gets(EER_PTIME);			/* total use time */
+#endif
+    for(usetim = 0, i = 0; i < N_PLAYERS; ++i)	/* Get player times	*/
+	usetim += eer_gets(EER_0PTIME + 1 + i);
+
+    tottim = usetim + eer_gets(EER_0PTIME);		/* overall time */
+
+    usetim = (U16)usetim * (U16)100;				/* 100 % */
+
+    if (tottim != 0)						/* carefull */
+	useage = usetim / tottim;
+    else
+	useage = 0;
+
+    txt_str(hpos,vpos+2,"Percentage Play: ",YEL_PAL);
+    txt_cdecnum(useage,11,LJ_NF,YEL_PAL);
+
+    txt_str(hpos+3,vpos,"Total Coins : ",YEL_PAL);
+    txt_cdecnum(coins = cn_total_coins(),11,LJ_NF,YEL_PAL);
+#if SUPPORTS_CUMULATIVE
+    {
+	long cum_coins = cn_cum_coins(0, 0, 0);
+	if ( (coins != cum_coins) && (debug_mode & GUTS_OPT_DEVEL) ) {
+	    U32 old_svc, new_coin, new_svc, old_coin, tot;
+	    int pal = MNORMAL_PAL;
+	    old_coin = cn_cum_coins( &old_svc, &new_coin, &new_svc);
+	    tot = old_coin+new_coin+old_svc+new_svc;
+	    if ( tot != cum_coins ) pal = ERROR_PAL;
+	    txt_cstr(" (",pal);
+	    txt_cdecnum(cum_coins,11,LJ_NF,pal);
+	    if ( tot != cum_coins ) {
+		txt_cstr(" != ",pal);
+		txt_cdecnum(old_coin,11,LJ_NF,pal);
+		txt_cstr("+",pal);
+		txt_cdecnum(old_svc,11,LJ_NF,pal);
+		txt_cstr("+",pal);
+		txt_cdecnum(new_coin,11,LJ_NF,pal);
+		txt_cstr("+",pal);
+		txt_cdecnum(new_svc,11,LJ_NF,pal);
+	    }
+	    txt_cstr(")",pal);
+	}
+    }
+#endif
+    if ( coins != 0 ) {
+	txt_str(hpos+1,vpos+1,"AVG TIME/COIN : ",YEL_PAL);	/* Advances COL	*/
+	timenum(avgtim(),6);
+    }
+#if (COJAG_GAME == COJAG_FISH)
+    if ( games ) {
+	long time;
+	if ( coins == 0 ) txt_str(hpos+1,vpos+1,"AVG TIME/GAME : ",YEL_PAL);
+	else txt_cstr(" /GAME : ",YEL_PAL);
+	time = eer_gets(EER_1PTIME) + 2*eer_gets(EER_2PTIME);
+	timenum((time*60)/games,6);
+    }
+#endif
+}
+
+
+/* ::::: Display the counters, average times, etc...	::::::::;	*/
+
+typedef struct stat_label { char *stat_nm;  U8 stat_ndx; } STAT_STRUCT;
+
+void
+ShowStats(clearFlag)
+int	clearFlag;
+{
+    int	update,i,bottom;
+    static const STAT_STRUCT statNames[] =
+    {
+#ifdef B_BILL
+	/* Guess that this means The WMS harness, so use
+	 * their names.
+	 */
+	{ "Coin1 Coins",EER_CC0 },
+	{ "Coin2 Coins",EER_CC1 },
+#ifdef EER_CC2
+	{ "Coin3 Coins",EER_CC2 },
+#endif
+#ifdef EER_CC3
+	{ "Coin4 Coins",EER_CC3 },
+#endif
+#ifdef EER_CC4
+	{ "Bill value",EER_CC4 },
+#endif
+#else	/* Atari names, two coin inputs */
+	{ "Left Coins",EER_CC0 },
+	{ "Right Coins",EER_CC1 },
+#endif
+	{ "Aux Coins",EER_CCX },
+	{ "Idle Mins",EER_0PTIME },	/* maintained by EER_PLAY	*/
+#if (SST_GAME & SST_HOCKEY)
+	{ "1 Player Mins",EER_1PTIME },
+	{ "2 Player Mins",EER_2PTIME },
+	{ "3 Player Mins",EER_3PTIME },
+	{ "4 Player Mins",EER_4PTIME },
+	{ "New Games",EER_NEWCOINS },
+	{ " Kid Records",EER_KIDRECORDS },
+	{ " Team Records",EER_TEAMRECORDS },
+	{ "Continues",EER_CONTCOINS },
+	{ " Discounted Conts",EER_DISGMS },
+	{ " Free Conts",EER_FREEGMS },
+	{ "1-Player Periods",EER_1PPERIODS },
+	{ "2-Player Periods",EER_2PPERIODS },
+	{ "3-Player Periods",EER_3PPERIODS },
+	{ "4-Player Periods",EER_4PPERIODS },
+	{ "Total Periods",EER_PERIODS },
+	{ "1-Player Games",EER_1PGAMS },
+	{ "2-Player Games",EER_2PGAMS },
+	{ "3-Player Games",EER_3PGAMS },
+	{ "4-Player Games",EER_4PGAMS },
+	{ "Total Games",EER_GMS },
+	{ "Overtime Periods",EER_OVERTIME },
+	{ "Team Play",EER_TEAMPLAY },
+	{ "Head to Head",EER_HEADTOHEAD },
+	{ "Fights",EER_FIGHTS },
+#else
+#ifdef EER_2PTIME
+	{ "1 Player Mins",EER_1PTIME },
+	{ "2 Player Mins",EER_2PTIME },
+#else
+	{ "Play Mins",EER_1PTIME },
+#endif
+#ifdef EER_SESTIM
+	{ "Session Mins",EER_SESTIM },
+#endif
+#ifdef EER_NEWCOINS
+	{ "New Games",EER_NEWCOINS },
+#endif
+#ifdef EER_CONTCOINS
+	{ "Cont Games",EER_CONTCOINS },
+#endif
+#ifdef EER_DRAWS
+#if (COJAG_GAME == COJAG_FISH)
+	{ "Draw Waves",EER_DRAWS },
+#else
+	{ "Draw Rounds",EER_DRAWS },
+#endif
+#endif
+#ifdef EER_FREEGMS
+#if 1	/* Rush & Speed */
+#define WANTS_EARNED_PCT (1)
+	{ "Earned Games",EER_FREEGMS },
+#else
+	{ "Games Won",EER_FREEGMS },
+#endif
+#endif
+#ifdef EER_GMS
+	{ "Total Games",EER_GMS },
+#endif
+#ifdef EER_MIRROR
+	{ "Mirror Games",EER_MIRROR },
+#endif
+#ifdef EER_LINKED
+	{ "Linked Games",EER_LINKED },
+#endif
+
+#ifdef EER_NEWTIM
+	{ "New Game Times",EER_NEWTIM },
+#endif
+#ifdef EER_CONTTIM
+	{ "Cont Game Times",EER_CONTTIM },
+#endif
+#ifdef EER_FREETIM
+	{ "Earned Game Times",EER_FREETIM },
+#endif
+
+#ifdef EER_LEFT_STARTS
+	{ "Left Starts",EER_LEFT_STARTS },
+#endif
+#ifdef EER_LEFT_CONTS
+	{ "Left Continues",EER_LEFT_CONTS },
+#endif
+#ifdef EER_RIGHT_STARTS
+	{ "Right Starts",EER_RIGHT_STARTS },
+#endif
+#ifdef EER_RIGHT_CONTS
+	{ "Right Continues",EER_RIGHT_CONTS },
+#endif
+
+#ifdef EER_SESSIONS
+	{ "Mach. Sessions",EER_SESSIONS },
+#endif
+#ifdef EER_1PGAMS
+	{ "1-Player Games",EER_1PGAMS },
+#endif
+#ifdef EER_2PGAMS
+	{ "2-Player Games",EER_2PGAMS },
+#endif
+#ifdef EER_CHGAMS
+	{ "Challenge Games",EER_CHGAMS },
+#endif
+#ifdef EER_QZGAMS
+	{ "Quiz Games",EER_QZGAMS },
+#endif
+#ifdef EER_JNGAMS
+	{ "Join-ins",EER_JNGAMS },
+#endif
+
+#if (0)
+	{ "3-Player Games",EER_3PGAMS },
+	{ "4-Player Games",EER_4PGAMS },
+	{ "5-Player Games",EER_5PGAMS },
+	{ "6-Player Games",EER_6PGAMS },
+#endif
+#ifdef EER_SECRET0
+	{ "Chow Palace",EER_SECRET0 },
+#endif
+#ifdef EER_SECRET1
+	{ "Head Quarters",EER_SECRET1 },
+#endif
+#ifdef EER_SECRET2
+	{ "Shake Your Booda",EER_SECRET2 },
+#endif
+#ifdef EER_SECRET3
+	{ "Egg-cellent",EER_SECRET3 },
+#endif
+#ifdef EER_SECRET4
+	{ "CRY Mode",EER_SECRET4 },
+#endif
+
+#endif
+#ifdef EER_ERRORS
+# if SST_GAME
+	{ "BRAM read errs",	EER_ERRORS },
+# else
+	{ "Error Count",	EER_ERRORS },
+# endif
+#endif
+	{ 0,	-1 }
+    };
+#define	NUM_STAT_NAMES ((sizeof(statNames)/sizeof(statNames[0]))-1)
+    static const struct menu_d myname = { "STATISTICS",0};
+
+    update = TRUE;
+    bottom = AN_VIS_ROW-2;
+    while (TRUE)
+    {
+	prc_delay0();
+
+	if (clearFlag			/* ::::: CLEAR THE STATS! :::::	*/
+	&& ( (ctl_read_sw(0)&SW_NEXT) && (ctl_read_sw(0)&SW_ACTION) ) )
+	{
+	    while (ctl_read_sw(0) & SW_NEXT)	/* wait till release	*/
+		prc_delay0();
+
+	    /* We used to clear everything from EER_CCO to EER_CNOPT,
+	     * but it makes _much_ more sense to clear all, and only
+	     * the stats that appear on this page.
+	     */
+#if SUPPORTS_CUMULATIVE
+	    /* If this page includes the coin stats, call special
+	     * routine in coin stuff, to add current totals to
+	     * cumulative totals.
+	     */
+	    for ( i = 0 ; statNames[i].stat_nm ; ++i ) {
+		int sidx;
+		sidx = statNames[i].stat_ndx;
+		if ( sidx >= EER_CC0 && sidx <= EER_CCX ) {
+		    cn_clear_coins();	/* Save coins before clearing */
+		    break;
+		}
+	    }
+#endif
+	    for ( i = 0 ; statNames[i].stat_nm ; ++i ) {
+		int sidx;
+		sidx = statNames[i].stat_ndx;
+		eer_puts(sidx,0);
+	    }
+
+#ifdef	EER_RAND
+	    eer_puts(EER_RAND,eer_rtc);	/* seed power-on random seed	*/
+#endif
+	    clearFlag = FALSE;		/* can't clear more than once	*/
+	    vid_clear();
+	    bottom = st_frame(&myname,TITLE_PAL,INSTR_PAL,STF_NOEXIT);
+	    update = TRUE;		/* need to update screen	*/
+	}
+
+	if ((ctl_read_sw(SW_NEXT) & SW_NEXT)
+	&& (ctl_read_sw(0) & SW_ACTION) == 0)
+	    break;
+
+	if (update)			/* Need to draw the stats?	*/
+	{
+	    int	row,width;
+	    U16 stat;
+
+	    row = 3;
+	    width = 0;
+	    for (i=0; i<NUM_STAT_NAMES; ++i)
+	    {
+		int w;
+		w = strlen(statNames[i].stat_nm);
+		if ( width < w ) width = w;
+	    }
+	    for (i=0; i<NUM_STAT_NAMES; ++row,++i)
+	    {
+		int num = statNames[i].stat_ndx;
+
+		txt_str(3,row,statNames[i].stat_nm,GRY_PAL);
+		txt_str(width+3,row,":",GRY_PAL);
+		txt_cdecnum(stat = eer_gets(num),11,LJ_NF,GRY_PAL);
+#ifdef EER_ERRORS
+		if ( num == EER_ERRORS && stat > 75 ) {
+		    /* Pay special attention to EEROM ERROR	*/
+		    txt_str(27,12,"EEPROM ERROR",RED_PAL);
+		}
+#endif
+	    }
+
+	    sho_avgtim(3,++row);	/* Requires 3 lines of display	*/
+#if WANTS_EARNED_PCT
+#ifdef EER_FREEGMS
+#ifdef EER_GMS
+	    {
+		long free,tot;
+		tot = eer_gets(EER_GMS);
+		free = eer_gets(EER_FREEGMS);
+		if ( (tot > 0) && (free >= 0) ) {
+		    /* Both successfully reead, and tot != 0 */
+		    row+=3;
+		    txt_str(3,row,"Earned Ratio   : ",YEL_PAL);
+		    free = (free*100)/tot;
+		    txt_cdecnum(free,3,LJ_NF,YEL_PAL);
+		    txt_cstr("%",YEL_PAL);
+		}
+	    }
+#endif /* EER_GMS */
+#endif /* EER_FREEGMS */
+#endif /* WANTS_EARNED_PCT */
+#if (0)
+	    txt_str(-1,AN_VIS_ROW-3,t_msg_next,INSTR_PAL);
+	    txt_clr_str(-1,AN_VIS_ROW-2,t_msg_ret_menu,INSTR_PAL);
+	    txt_str(-1,AN_VIS_ROW-2,t_more_stats,INSTR_PAL);
+
+	    if (clearFlag)
+	    {
+		txt_str(-1,AN_VIS_ROW-5,t_msg_clear,INSTR_PAL);
+		txt_str(-1,AN_VIS_ROW-4,"to clear ALL statistics",INSTR_PAL);
+	    }
+#else
+	    bottom = st_insn(bottom,t_more_stats,t_msg_next,INSTR_PAL);
+	    if ( clearFlag ) {
+		bottom = st_insn(bottom,"To clear these counters,",t_msg_clear,INSTR_PAL);
+	    }
+#endif
+	    update = FALSE;
+	}
+    }
+    txt_clr_str(27,12,"EEPROM ERROR",RED_PAL);
+}
+
+#if (COJAG_GAME&COJAG_AREA51)
+#ifdef EER_SROOM7
+void
+ShowMaxForceStats(clearFlag)
+int	clearFlag;
+{
+    int	update,i,bottom;
+    static const STAT_STRUCT MFstatNames[] =
+    {
+#ifdef EER_MISSION1
+	{ "Mission 1",EER_MISSION1 },
+#endif
+#ifdef EER_MISSION2
+	{ "Mission 2",EER_MISSION2 },
+#endif
+#ifdef EER_MISSION3
+	{ "Mission 3",EER_MISSION3 },
+#endif
+
+#ifdef EER_SROOM1
+	{ "Secret Room 1",EER_SROOM1 },
+#endif
+#ifdef EER_SROOM2
+	{ "Secret Room 2",EER_SROOM2 },
+#endif
+#ifdef EER_SROOM3
+	{ "Secret Room 3",EER_SROOM3 },
+#endif
+#ifdef EER_SROOM4
+	{ "Secret Room 4",EER_SROOM4 },
+#endif
+#ifdef EER_SROOM5
+	{ "Secret Room 5",EER_SROOM5 },
+#endif
+#ifdef EER_SROOM6
+	{ "Secret Room 6",EER_SROOM6 },
+#endif
+#ifdef EER_SROOM7
+	{ "Secret Room 7",EER_SROOM7 },
+#endif
+#ifdef EER_SROOM8
+	{ "Secret Room 8",EER_SROOM8 },
+#endif
+#ifdef EER_SROOM9
+	{ "Secret Room 9",EER_SROOM9 },
+#endif
+#ifdef EER_SROOM10
+	{ "Secret Room 10",EER_SROOM10 },
+#endif
+#ifdef EER_SROOM11
+	{ "Secret Room 11",EER_SROOM11 },
+#endif
+#ifdef EER_SROOM12
+	{ "Secret Room 12",EER_SROOM12 },
+#endif
+#ifdef EER_SROOM13
+	{ "Secret Room 13",EER_SROOM13 },
+#endif
+#ifdef EER_SROOM14
+	{ "Secret Room 14",EER_SROOM14 },
+#endif
+#ifdef EER_STRMERR
+        { "Streaming Count",EER_STRMERR },
+#endif
+#ifdef EER_RELOADERR
+        { "Reload Count",EER_RELOADERR },
+#endif
+	{ 0,	-1 }
+    };
+#define	NUM_MFSTAT_NAMES ((sizeof(MFstatNames)/sizeof(MFstatNames[0]))-1)
+    static const struct menu_d myname = { "STATISTICS",0};
+
+    update = TRUE;
+    bottom = AN_VIS_ROW-2;
+    while (TRUE)
+    {
+	prc_delay0();
+
+	if (clearFlag			/* ::::: CLEAR THE STATS! :::::	*/
+	&& ( (ctl_read_sw(0)&SW_NEXT) && (ctl_read_sw(0)&SW_ACTION) ))
+	{
+	    while (ctl_read_sw(0) & SW_NEXT)	/* wait till release	*/
+		prc_delay0();
+
+	    /* It makes _much_ more sense to clear all, and only
+	     * the stats that appear on this page.
+	     */
+	    for ( i = 0 ; MFstatNames[i].stat_nm ; ++i ) {
+		int sidx;
+		sidx = MFstatNames[i].stat_ndx;
+		eer_puts(sidx,0);
+	    }
+
+	    clearFlag = FALSE;		/* can't clear more than once	*/
+	    vid_clear();
+	    bottom = st_frame(&myname,TITLE_PAL,INSTR_PAL,STF_NOEXIT);
+	    update = TRUE;		/* need to update screen	*/
+	}
+
+	if ((ctl_read_sw(SW_NEXT) & SW_NEXT)
+	&& (ctl_read_sw(0) & SW_ACTION) == 0)
+	    break;
+
+	if (update)			/* Need to draw the stats?	*/
+	{
+	    int	row,width;
+	    U16 stat;
+
+	    vid_clear();
+	    bottom = st_frame(&myname,TITLE_PAL,INSTR_PAL,0);
+
+	    row = 3;
+	    width = 0;
+	    for (i=0; i<NUM_MFSTAT_NAMES; ++i)
+	    {
+		int w;
+		w = strlen(MFstatNames[i].stat_nm);
+		if ( width < w ) width = w;
+	    }
+	    for (i=0; i<NUM_MFSTAT_NAMES; ++row,++i)
+	    {
+		int num = MFstatNames[i].stat_ndx;
+
+		txt_str(3,row,MFstatNames[i].stat_nm,GRY_PAL);
+		txt_str(width+3,row,":",GRY_PAL);
+		txt_cdecnum(stat = eer_gets(num),11,LJ_NF,GRY_PAL);
+	    }
+
+	    bottom = st_insn(bottom,t_more_stats,t_msg_next,INSTR_PAL);
+	    if ( clearFlag ) {
+		bottom = st_insn(bottom,"To clear these counters,",t_msg_clear,INSTR_PAL);
+	    }
+	    update = FALSE;
+	}
+    }
+}
+#endif /* defined EER_SROOM7, distinguish AREA51 from Max Force */
+#endif /* AREA51, really Max Force */
+
+PRIVATE void
+ShowSysErrs(clearFlag)
+int	clearFlag;
+{
+    int	update,i;
+    static const STAT_STRUCT sysErrNames[] =
+    {
+	{ "WATCH DOG RESETS",		EER_RESET },
+#ifdef EER_WR_RO
+	{ "WRITE TO RO MEM",		EER_WR_RO },
+#endif
+#ifdef EER_RD_NEM
+	{ "READ FROM N.E. MEM",		EER_RD_NEM },
+#endif
+#ifdef EER_WR_NEM
+	{ "WRITE TO N.E. MEM",		EER_WR_NEM },
+#endif
+#ifdef EER_ADRERR_R
+	{ "ADDR ALIGN ON RD", 		EER_ADRERR_R },
+#endif
+#ifdef EER_ADRERR_W
+	{ "ADDR ALIGN ON WR", 		EER_ADRERR_W },
+#endif
+#ifdef EER_BUSERR_I
+	{ "BUS ERR ON I FETCH", 	EER_BUSERR_I },
+#endif
+#ifdef EER_BUSERR_D
+	{ "BUS ERR ON D FETCH", 	EER_BUSERR_D },
+#endif
+#ifdef EER_SYSCALL
+	{ "SYSCALLS",			EER_SYSCALL },
+#endif
+#ifdef EER_BREAKP
+	{ "BREAKPOINTS",		EER_BREAKP },
+#endif
+#ifdef EER_COPROC
+	{ "COPROC UNUSABLE",		EER_COPROC },
+#endif
+#ifdef EER_ARITH
+	{ "ARITHMETIC OVERFLOW",	EER_ARITH },
+#endif
+#ifdef EER_TRAP
+	{ "TRAP EXCEPTIONS",		EER_TRAP },
+#endif
+#ifdef EER_RESERV
+	{ "RESERVED INSTRUCTIONS",	EER_RESERV },
+#endif
+#ifdef EER_FLOAT
+	{ "F. POINT EXCEPTIONS", 	EER_FLOAT },
+#endif
+#ifdef EER_UNDEF
+	{ "UNDEFINED EXECPTIONS",	EER_UNDEF },
+#endif
+#ifdef EER_OVERFL
+	{ "OVERFLOW CHECKS",		EER_OVERFL },
+#endif
+#ifdef EER_RANGE
+	{ "RANGE CHECKS",		EER_RANGE },
+#endif
+#ifdef EER_UHINT
+	{ "UNHANDLED INTERRUPTS",	EER_UHINT },
+#endif
+#ifdef EER_MOVERFL
+	{ "MULTIPLY OVERFLOWS",		EER_MOVERFL },
+#endif
+#ifdef EER_BUSERR
+	{ "BUS ERRORS",			EER_BUSERR },
+#endif
+#ifdef EER_ADRERR
+	{ "ADDRESS ERRORS",		EER_ADRERR },
+#endif
+#ifdef EER_ILGINS
+	{ "ILLEGAL INSTRUCTION",	EER_ILGINS },
+#endif
+#ifdef EER_DVDBY0
+	{ "DIVIDE BY ZERO",		EER_DVDBY0 },
+#endif
+#ifdef EER_CHKINS
+	{ "CHK INSTRUCTION",		EER_CHKINS },
+#endif
+#ifdef EER_TRPVINS
+	{ "TRAPV INSTRUCTION",		EER_TRPVINS },
+#endif
+#ifdef EER_PRVVIOL
+	{ "PRIVELEGE VIOLATION",	EER_PRVVIOL },
+#endif
+#ifdef EER_SNDSLST
+	{ "SOUNDS LOST",		EER_SNDSLST },
+#endif
+#ifdef EER_DATALST
+	{ "DATA FROM CH31 LOST",	EER_DATALST },
+#endif
+#ifdef EER_AUDRESET
+	{ "CAGE RESETS",		EER_AUDRESET },
+#endif
+#ifdef EER_LINKFAIL
+	{ "LINK CHECKSUM ERRORS",	EER_LINKFAIL },
+#endif
+#ifdef EER_DSK_ERR
+	{ "ANY DISK I/O ERROR",		EER_DSK_ERR },
+#endif
+#ifdef EER_DSK_AMNF
+	{ "DISK: ADDR MARK NF",		EER_DSK_AMNF },
+#endif
+#ifdef EER_DSK_TK0NF
+	{ "DISK: TRACK 0 NF",		EER_DSK_TK0NF },
+#endif
+#ifdef EER_DSK_ABORT
+	{ "DISK: COMMAND ABORT",	EER_DSK_ABORT },
+#endif
+#ifdef EER_DSK_IDNF
+	{ "DISK: SECTOR ID NF",		EER_DSK_IDNF },
+#endif
+#ifdef EER_DSK_UNCDTA
+	{ "DISK: UNCORR DATA",		EER_DSK_UNCDTA },
+#endif
+#ifdef EER_DSK_TIMOUT
+	{ "DISK: DVC TIMEOUT",		EER_DSK_TIMOUT },
+#endif
+#ifdef EER_DSK_WERR
+	{ "DISK: WRITE FAULTS",		EER_DSK_WERR },
+#endif
+#ifdef EER_DSK_CORR
+	{ "DISK: CORRECTABLE",		EER_DSK_CORR },
+#endif
+#ifdef EER_FSYS_USEALT
+	{ "FSYS: USED ALT FILE",	EER_FSYS_USEALT },
+#endif
+    };
+#define	NUM_SYSERR_NAMES (sizeof(sysErrNames)/sizeof(sysErrNames[0]))
+    static const struct menu_d myname = { "SYSTEM ERRORS",0};
+
+    int	values[NUM_SYSERR_NAMES];
+    int longest = 0;
+
+    update = 0;
+    for (i=0; i < NUM_SYSERR_NAMES; ++i) {
+	int jj;
+	jj = strlen(sysErrNames[i].stat_nm);
+	if (jj > longest) longest = jj;
+	if ((values[i] = eer_gets(sysErrNames[i].stat_ndx))) ++update;
+    }
+
+    if (update == 0)
+	return;
+
+    while (TRUE)
+    {
+	prc_delay0();
+
+	if ((ctl_read_sw(SW_NEXT) & SW_NEXT)
+	&& (ctl_read_sw(0) & SW_ACTION) == 0)
+	    break;
+
+	if(   (ctl_read_sw(0) & SW_NEXT)		/* left button down?	*/
+	   && (ctl_read_sw(0) & SW_ACTION)		/* right button down?	*/
+	   && clearFlag			/* ::::: CLEAR THE STATS! :::::	*/
+	  )
+	{
+	    while (ctl_read_sw(0) & SW_NEXT)	/* wait till release	*/
+		prc_delay0();
+
+	    for (i = 0; i < NUM_SYSERR_NAMES; ++i) /* clear 'em ALL!	*/
+		eer_puts(i + EER_RESET,values[i] = 0);
+
+	    clearFlag = 0;		/* can't clear more than once	*/
+	    update = 1;			/* need to update screen	*/
+	}
+
+	if (update)		/* display screen text			*/
+	{
+	    int	row, col, bottom;
+
+	    vid_clear();
+	    bottom = st_frame(&myname,TITLE_PAL,INSTR_PAL,0);
+	    row = 3;
+	    col = 4;
+	    for (i=0; i < NUM_SYSERR_NAMES; ++i)
+	    {
+		if ( values[i] ) {	/* reduce the screen clutter */
+		    txt_str(col, row, sysErrNames[i].stat_nm, GRY_PAL);
+		    txt_decnum(col+longest+2, row, values[i], 3, RJ_BF, YEL_PAL);
+		    ++row;
+		    if (row >= bottom - 2) {
+			if ((update <= 2*(bottom-2-3)) && (longest+2+3+3 < AN_VIS_COL/2)) {
+			    col = AN_VIS_COL/2;
+			} else {
+			    col += longest+2+3+3;
+			}
+			row = 3;
+		    }
+		}
+	    }
+
+#if (0)
+	    if (HIST_TABLES)
+	    {
+		txt_str(-1,AN_VIS_ROW-3,t_msg_next,INSTR_PAL);
+		txt_str(-1,AN_VIS_ROW-2,"for histograms",INSTR_PAL);
+	    }
+	    else
+		sayopt();
+#else
+# ifdef HIST_TABLES
+	    bottom = st_insn(bottom,
+	     (HIST_TABLES ? "For histograms," : t_msg_ret_menu),
+	     t_msg_next, INSTR_PAL);
+# endif
+#endif
+
+	    if (clearFlag)
+	    {
+#if (0)
+		txt_str(-1,AN_VIS_ROW-5,t_msg_clear,INSTR_PAL);
+	    	txt_str(-1,AN_VIS_ROW-4,"to clear ALL statistics",INSTR_PAL);
+#else
+		bottom = st_insn(bottom,"To clear these counters,",t_msg_clear,INSTR_PAL);
+#endif
+	    }
+
+
+	    update = 0;
+	}
+    }
+}
+
+
+/* ::::::::: EER_STATS is the main entry point to display histograms	*/
+void
+GameStats(erase)
+int erase;
+{
+    ClearScreen();
+    eer_stats(erase);
+}
+
+#ifdef EER_UREC_IDX
+PRIVATE void ShowUserMsgs(int erase);
+#endif
+
+void
+eer_stats(erase)
+int erase;
+{
+    ShowStats(erase);
+#if (COJAG_GAME&COJAG_AREA51)
+#ifdef EER_SROOM7
+    ShowMaxForceStats(erase);
+#endif /* defined EER_SROOM7, distinguish AREA51 from Max Force */
+#endif /* AREA51, really Max Force */
+#ifdef RELIEF
+    show_time_stats();
+    show_plyr_stats(erase);
+#endif
+    ShowSysErrs(erase);
+#ifdef EER_UREC_IDX
+    ShowUserMsgs(erase);
+#endif
+    ShowHist(erase);
+}
+
+/* ::::: EER_OPT reports and allows setting of the GAME OPTIONS :::::	*/
+
+#ifdef INCL_MENU
+static const unsigned char fakemenu[] =
+/* The default hex switch menu	*/
+"\344MSD X.......\000\
+0\0001\0002\0003\0004\0005\0006\0007\000\
+8\0009\000A\000B\000C\000D\000E\000F\000\
+\304    .X......\000\
+0\0001\0002\0003\0004\0005\0006\0007\000\
+8\0009\000A\000B\000C\000D\000E\000F\000\
+\244    ..X.....\000\
+0\0001\0002\0003\0004\0005\0006\0007\000\
+8\0009\000A\000B\000C\000D\000E\000F\000\
+\204    ...X....\000\
+0\0001\0002\0003\0004\0005\0006\0007\000\
+8\0009\000A\000B\000C\000D\000E\000F\000\
+\144    ....X...\000\
+0\0001\0002\0003\0004\0005\0006\0007\000\
+8\0009\000A\000B\000C\000D\000E\000F\000\
+\104    .....X..\000\
+0\0001\0002\0003\0004\0005\0006\0007\000\
+8\0009\000A\000B\000C\000D\000E\000F\000\
+\044    ......X.\000\
+0\0001\0002\0003\0004\0005\0006\0007\000\
+8\0009\000A\000B\000C\000D\000E\000F\000\
+\004LSD .......X\000\
+0\0001\0002\0003\0004\0005\0006\0007\000\
+8\0009\000A\000B\000C\000D\000E\000F\000";
+#endif
+
+#if (COJAG_GAME == COJAG_AREA51)
+#ifndef GMOPT_LIVES
+#define GMOPT_LIVES (7<<7)
+#endif
+#ifndef GMOPT_DIFFICULTY
+#define GMOPT_DIFFICULTY ((3<<1)|GMOPT_LIVES)
+#endif
+#ifndef GMOPT_RST_HST
+#define GMOPT_RST_HST	 (1<<5)
+#endif
+#ifndef GMOPT_FACT_DEFAULTS
+#define GMOPT_FACT_DEFAULTS (1<<6)
+#endif
+#endif /* (COJAG_GAME == COJAG_AREA51) */
+
+#ifdef __HST_ENT_TYPE_DEFINED
+#if GMOPT_RST_HST | GMOPT_DIFFICULTY
+static void clear_hsts()
+{
+    int rank,table;
+
+    struct hst_ent *zot;
+    vid_clear();
+    txt_str(-1,AN_VIS_ROW/2,"CLEARING HIGH SCORES",RED_PALB|AN_BIG_SET);
+    for ( table = 0 ; ; ++table ) {
+#ifdef HST_SERIAL_NUM
+	if ( table == HST_SERIAL_NUM ) continue;
+#endif
+	if ( eer_hstr(0,table) == 0 ) break;
+	for ( rank = 0 ; ; ++rank ) {
+	    zot = eer_hstr(rank, table);
+	    if ( zot == 0 ) break;
+	    memset(zot,0,sizeof(*zot));
+	    eer_hstw(rank, zot, table);
+	}
+    }
+    prc_delay(30);	/* Make sure they see it */
+    while ( eer_busy() > 1 ) prc_delay(1);
+}
+#endif /* (GMOPT_RST_HST | GMOPT_DIFFICULTY) */
+#endif /* __HST_ENT_TYPE_DEFINED */
+
+void
+eer_opt(menu)		/* The MENU is a pointer to the MENU table	*/
+const unsigned char *menu;
+{
+    U32 old_options,new_options;
+#if (GMOPT_DIFFICULTY|GMOPT_RST_HST)
+    int clr_flg = 0;
+#endif
+    if (menu == 0 && (menu = fakemenu) == 0) return;
+    old_options = eer_gets(EER_GMOPT);
+    new_options = DoOptions(menu,old_options,0);
+
+#if GMOPT_RST_HST
+    /* If they have an option bit to clear High scores, and
+     * they have set it...
+     */
+    if ( new_options & GMOPT_RST_HST ) {
+	clr_flg = 1;
+	new_options &= ~GMOPT_RST_HST;
+    }
+#endif /* defined ( GMOPT_RST_HST ) */
+
+#ifdef GMOPT_FACT_DEFAULTS
+    if ( new_options & GMOPT_FACT_DEFAULTS ) {
+	/* wants to restore factory defaults.
+	 * We check this before the "new == old"
+	 * check so we can catch the case where
+	 * the old options were non-default
+	 * difficulty, hence setting to factory
+	 * defaults changes difficulty.
+	 */
+	new_options = factory_setting(menu);
+    }
+#endif /* defined ( GMOPT_FACT_DEFAULTS ) */
+
+#ifdef GMOPT_DIFFICULTY
+    /* Or if they have manually changed the difficulty...
+     */
+    if ( (new_options ^ old_options) & GMOPT_DIFFICULTY ) {
+	clr_flg = 1;
+    }
+#endif /* defined ( GMOPT_DIFFICULTY ) */
+
+#ifdef __HST_ENT_TYPE_DEFINED
+#if (GMOPT_DIFFICULTY|GMOPT_RST_HST)
+    /* If for any reason they want to clear high scores, do so now.
+     */
+    if ( clr_flg ) clear_hsts();
+#endif /* (GMOPT_DIFFICULTY|GMOPT_RST_HST) */
+#endif /* Has any H.S.Ts to begine with... */
+
+    if ( new_options == old_options ) return;
+    eer_puts(EER_GMOPT,new_options);
+}
+
+
+int
+CoinOptions(smp)
+const struct menu_d *smp;
+{
+    const unsigned char *menu;
+    if ( (menu = pbase->p_coinmenu) == 0 ) menu = coinmenu;
+    eer_puts(EER_CNOPT,DoOptions(menu,eer_gets(EER_CNOPT),SW_EXTRA));
+    return 0;
+}
+
+
+U32
+GetCoinOptions()
+{
+#if (HAS_TWO)
+extern	U16	coin_modes;
+    if ((HDWRCONFIG & (SW_DOUBLE | SW_RIGHT)) == SW_RIGHT) /* LEFT of DOUBLE */
+	coin_modes = Get1WMoveP(COMRAM_cnOpt);
+
+    return (coin_modes);
+#else
+    return (eer_gets(EER_CNOPT));
+#endif
+}
+
+
+int
+PutGameOptions(options)
+U32 	options;
+{
+    int	retVal;
+
+    retVal = eer_puts(EER_GMOPT,options);
+
+#if (HAS_TWO)
+    if ((HDWRCONFIG & (SW_DOUBLE | SW_RIGHT)) == 0) /* RIGHT of DOUBLE	*/
+	Put1WMoveP(options,COMRAM_gmOpt);	/* put opts in COMRAM	*/
+#endif
+    return (retVal);
+}
+
+
+U32
+GetGameOptions()
+{
+#if (HAS_TWO)
+extern	U16	gmopt;
+    if ((HDWRCONFIG & (SW_DOUBLE | SW_RIGHT)) == SW_RIGHT) /* LEFT of DOUBLE */
+	gmopt = Get1WMoveP(COMRAM_gmOpt);
+
+    return (gmopt);
+#else
+    return (eer_gets(EER_GMOPT));
+#endif
+}
+
+#if RELIEF
+
+extern	void	rpm_init(),rpm_off();
+
+void
+card_options()
+{
+    U32 copt;
+
+    txt_str(-1,0,"CARD_DISPENSER",TITLE_PAL + AN_BIG_SET);
+    txt_str(-1,AN_VIS_ROW-6,"Press START to vend ONE CARD",RED_PALB);
+
+    rpm_init();
+
+    card_cntr = 0;
+    card_timr = 0;
+
+    copt = DoOptions(cardmenu,eer_gets(EER_CARDOPT),DEF_CDOPT,SW_EXTRA);
+    eer_puts(EER_CARDOPT,copt);
+
+    rpm_off();
+}
+
+PRIVATE void
+show_time_stats()
+{
+    static STAT_STRUCT timenames[] =
+    {
+	{ "1-Player NEW :", EER_NEWCOINS },
+	{ "1-Player CONT:", EER_CONTCOINS },
+	{ "2-Player NEW :", EER_NEW2COINS },
+	{ "2-Player CONT:", EER_CONT2COINS }
+    };
+#define	NUM_TIMES (sizeof(timenames) / sizeof(timenames[0]))
+
+    int i;
+
+    int row,j;
+
+    txt_str( -1,1,"Statistics for each player position",0);
+/*	   0123456789.123456789.123456789.123456789.12	*/
+/*	      Center player:1234     12345   1234		*/
+    txt_str( 12,3,        "COINS USED - TOT MIN - AVG",0);
+
+    for(row = 5,i = 0; i < NUM_TIMES; ++i,++row)
+    {
+	U16 avgtim,tottim,totcns,mins,secs;
+
+	if(i == 2)		/* Skip a row between TIMES and NEW */
+	    ++row;
+	totcns = eer_gets(timenames[i].stat_ndx);
+#ifdef EER_NEWTIM
+	tottim = eer_gets(timenames[i].stat_ndx + (EER_NEWTIM-EER_NEWCOINS));
+#else
+	tottim = eer_gets(timenames[i].stat_ndx);
+#endif
+	if(totcns)
+	{
+	    avgtim = (U16)((tottim * 60) / totcns);
+	    mins = (U16)(avgtim / 60);
+	    secs = avgtim - (60 * mins);
+	}
+	else
+	{
+	    mins = secs = avgtim = 0;
+	}
+	txt_str(3,row,timenames[i].stat_nm,0);
+	txt_decnum(17,row,totcns,4,RJ_BF,GRN_PAL);
+	txt_decnum(26,row,tottim,5,RJ_BF,GRN_PAL);
+	txt_decnum(34,row,mins,3,RJ_BF,GRN_PAL);
+	txt_str(37,row,":",3,GRN_PAL);
+	txt_decnum(38,row,secs,2,RJ_ZF,GRN_PAL);
+    }
+
+    txt_str(-1,AN_VIS_ROW-3,t_msg_next,INSTR_PAL);
+    txt_str(-1,AN_VIS_ROW-2,t_more_stats,INSTR_PAL);
+
+    while(TRUE)
+    {
+	prc_delay0();
+	if( (ctl_read_sw(SW_NEXT) & SW_NEXT) && (ctl_read_sw(0) & SW_ACTION) == 0)
+	    break;
+    }
+}
+
+void
+show_plyr_stats(clrflag)
+int clrflag;
+{
+    int i;
+    S16 _era,whole;
+    S16 div;
+    S32 sum;
+
+    static STAT_STRUCT statnames[] =
+    {
+	{ "       AT BATS ", EER_AT_BATS },
+	{ "          HITS ", EER_HITS },
+	{ "   RUNS SCORED ", EER_RUNS },
+	{ "        HOMERS ", EER_HOMERS },
+	{ "       TRIPLES ", EER_TRIPLES },
+	{ "       DOUBLES ", EER_DOUBLES },
+	{ "         WALKS ", EER_WALKS },
+	{ "    SACRIFICES ", EER_SACS },
+	{ "PITCHES THROWN ", EER_PITCH },
+	{ "    STRIKEOUTS ", EER_KOS },
+	{ "  RUNS ALLOWED ", EER_ALLOWED },
+	{ "  ALLOWED HITS ", EER_AHITS },
+	{ "WALKS GIVEN UP ", EER_AWALKS },
+	{ "   BATTERS HIT ", EER_HBP },
+	{ " HITTERS FACED ", EER_FACED },
+	{ "     OUTS MADE ", EER_OUTS },
+	{ "  DOUBLE PLAYS ", EER_DPS }
+    };
+
+#define	STATNAME_CNT (sizeof(statnames)/sizeof(statnames[0]))
+
+    i = 1;
+
+    while(TRUE)
+    {
+	if(   (ctl_read_sw(0) & SW_NEXT)		/* left button down?	*/
+	   && (ctl_read_sw(0) & SW_ACTION)		/* right button down?	*/
+	   && clrflag			/* ::::: CLEAR THE STATS! :::::	*/
+	  )
+	{
+	    while(ctl_read_sw(0) & SW_NEXT)		/* wait till release	*/
+		prc_delay0();
+	    for ( i = 0;i < EER_CNOPT; ++i)	/* clear 'em ALL!	*/
+		eer_puts(i,0);
+	    clrflag = 0;
+	    i = 1;
+	}
+
+	if(i)			/* first time through or after clearing */
+	{
+
+	/* ::: Display the stats from 0 to EEROM_ERRORS :::::		*/
+
+	    txt_str(-1,1,"PERFORMANCE STATISTICS",0);
+/*		   0123456789.123456789.123456789.123456789.12	*/
+
+	    for (i = 0; i < STATNAME_CNT; ++i)
+	    {
+		U16 statval;
+
+		statval = eer_gets(statnames[i].stat_ndx);
+		txt_str(1,5 + i,statnames[i].stat_nm,GRN_PAL);
+		txt_decnum(15,5 + i,statval,5,RJ_BF,GRN_PAL);
+	    }
+
+	    /*		256789.123456789.1			*/
+	    txt_str(25,5, " AVG:     .     ",GRN_PAL);
+	    txt_str(25,6, "SLUGGING% .    ",GRN_PAL);
+	    txt_str(25,7, "TOT BASES:      ",GRN_PAL);
+	    txt_str(25,14," ERA:      .    ",GRN_PAL);
+	    txt_str(25,15,"PITCH/AB:  .    ",GRN_PAL);
+
+	    /* Batting average	*/
+
+	    div = eer_gets(EER_AT_BATS);
+	    if(div == 0)
+		div = 1;
+	    whole = (S16)(((S16)eer_gets(EER_HITS) * 1000)/div);
+	    txt_decnum(36,5,whole,3,RJ_ZF,GRN_PAL);
+
+	    /* Slugging percentage & total bases		*/
+
+	    div = eer_gets(EER_AT_BATS);
+	    if(div == 0)
+		div = 1;
+
+	    sum = eer_gets(EER_HITS) + eer_gets(EER_DOUBLES);
+	    sum += 2*eer_gets(EER_TRIPLES) + 3*eer_gets(EER_HOMERS);
+
+	    whole = (S16)((sum * 1000)/div);
+	    txt_decnum(36,6,whole,3,RJ_ZF,GRN_PAL);
+	    txt_decnum(35,7,sum,4,RJ_BF,GRN_PAL);
+
+	    /* ERA	*/
+
+	    div = eer_gets(EER_OUTS);	/* How many outs made?		*/
+	    if(div == 0)
+		div = 1;
+	    _era = (S16)((eer_gets(EER_ALLOWED) * 2700)/div);
+	    whole = (S16)(_era / 100);		/* Runs per 27 outs	*/
+
+	    txt_decnum(34,14,whole,2,RJ_BF,GRN_PAL);
+	    _era -= whole * 100;
+	    txt_decnum(37,14,_era,2,RJ_ZF,GRN_PAL);
+
+	    /* Average number of pitches	*/
+
+	    div = eer_gets(EER_FACED);	/* How many batters faced?	*/
+	    if(div == 0)
+		div = 1;
+	    _era = (S16)((eer_gets(EER_PITCH) * 1000)/div);
+	    whole = (S16)(_era / 1000);		/* pitches per batter	*/
+
+	    txt_decnum(34,15,whole,2,RJ_BF,GRN_PAL);
+	    _era -= whole * 1000;
+	    txt_decnum(37,15,_era,3,RJ_ZF,GRN_PAL);
+
+#if (0)
+	    if (HIST_TABLES)
+	    {
+		txt_str(-1,AN_VIS_ROW-3,t_msg_next,INSTR_PAL);
+		txt_str(-1,AN_VIS_ROW-2,"for histograms",INSTR_PAL);
+	    }
+	    else
+		sayopt();
+#else
+	    bottom = st_insn(bottom,
+	     (HIST_TABLES ? "For histograms," : t_msg_ret_menu),
+	     t_msg_next, INSTR_PAL);
+#endif
+
+	    if (clrflag)
+	    {
+#if (0)
+		txt_str(-1,AN_VIS_ROW-5,t_msg_clear,WHT_PALB);
+	    	txt_str(-1,AN_VIS_ROW-4,"to clear ALL statistics",WHT_PALB);
+#else
+		bottom = st_insn(bottom,"To clear ALL statistics,",t_msg_clear,INSTR_PAL);
+#endif
+
+	    i = 0;
+	}
+	prc_delay0();
+	if( (ctl_read_sw(SW_NEXT) & SW_NEXT) && (ctl_read_sw(0) & SW_ACTION) == 0)
+	    break;
+    }
+}
+
+#endif
+
+#ifdef PEDES
+
+/* PEEDES stat routines:	GAMEID is 0=centipede  1=missile
+
+   st_sessn_start(plyr_code,gameid)	Start specified player(s)
+   st_join_game(wave#)			add a player to a game
+   st_quit_game(plyr_code,wave#)	one of the players died
+
+ */
+
+/* PLYR_CODE 0 = left;  1 = right;  2 = both				*/
+
+st_sessn_start(playnum,gameid)		/* Start specified player(s)	*/
+int playnum,gameid;
+{
+    curgame = gameid;
+
+    eer_incs((gameid ? EER_MISSLSCNT : EER_CENTISCNT),1);
+
+    eer_start(2);			/* Fire up the session		*/
+    if(playnum == 2)
+    {
+	eer_start(0);
+	eer_start(1);
+	eer_incs(EER_CENTIGAME + gameid,2);
+    }
+    else
+    {
+	eer_start(playnum);
+	eer_incs(EER_CENTIGAME + gameid,1);
+    }
+}
+
+/* ST_JOIN_GAME returns FALSE if it's not a valid call			*/
+
+st_join_game(wave)			/* We ASSUME that a game's on	*/
+{
+    if(oldplaymask <= 4 || oldplaymask == 7)	/* BUG??		*/
+	return(FALSE);
+    eer_tally_hist((curgame ? HIST_MISSLJOIN : HIST_CENTIJOIN),wave);
+    eer_play(7);
+    eer_incs(EER_CENTIGAME + curgame,1);
+    return(TRUE);				/* it's alright...	*/
+}
+
+st_quit_game(playndx,wave)		/* one of the players died	*/
+int playndx,wave;
+{
+    if(playndx == 2 || oldplaymask < 4)			/* Both out??	*/
+    {
+	eer_end(0);
+	eer_end(1);
+    }
+    else
+	eer_end(playndx);
+
+    if(oldplaymask <= 4)		/* We're DONE!			*/
+	eer_end(2);			/* .. kill the session		*/
+
+    eer_tally_hist((curgame ? HIST_MISSLWAVE : HIST_CENTIWAVE),wave);
+}
+
+#endif
+
+#ifdef TANK
+
+/* TANK stat routines
+ *
+ *   st_start_session()			Start a session
+ *   st_end_game()			End a game
+ *   st_restart_session()		Restart/continue a session
+ *   st_quit_session()			player walked away
+ *
+ */
+
+void
+st_start_session()	/* Start a session	*/
+{
+	eer_start(N_PLAYERS);		/* Fire up the session	*/
+	eer_start(0);			/* and start the player	*/
+
+	oldCkErrs = rxCkErr;		/* get checksum errors at start of game	*/
+}
+
+int		/* End a game	*/
+st_end_game(contin,players,solo,wins,deaths,rank,AI1,AI2,AI3,AI4,
+		reloads,tank_type,fired,hit,aborted)
+int	contin,players,solo,wins,deaths,rank,AI1,AI2,AI3,AI4;
+int	reloads,tank_type,fired,hit,aborted;
+{
+	eer_incs(EER_GMS,1);		/* .. count Total Games here	*/
+	if ( players  &&  players < 7 )	/* .. count type of session here */
+		eer_incs( EER_1PGAMS + players - 1, 1 );
+
+	if ( players == 1 )	/* SOLO Game	*/
+	{
+		if ( solo	/* only count winning streaks for Solo SESSIONS		*/
+		  && !contin )	/* AND only the first winning streak, i.e. non-continued games	*/
+		{
+			eer_tally_hist( HIST_WINNING, wins );
+		}
+		eer_tally_hist(HIST_HUMAN_RANK,rank);	/* report Human ranking for SOLO games */
+	}
+	else			/* LINKED Game	*/
+	{
+		if ( AI1 )
+			eer_tally_hist(HIST_AI_RANK,0);	/* report AI ranking for LINKED games */
+		if ( AI2 )
+			eer_tally_hist(HIST_AI_RANK,1);	/* report AI ranking for LINKED games */
+		if ( AI3 )
+			eer_tally_hist(HIST_AI_RANK,2);	/* report AI ranking for LINKED games */
+		if ( AI4 )
+			eer_tally_hist(HIST_AI_RANK,3);	/* report AI ranking for LINKED games */
+	}
+
+	eer_tally_hist( HIST_RELOADS, reloads );
+
+	switch( tank_type )
+	{
+	default:
+	case 0:
+		break;
+	case 1:	/* SpeedMEK	*/
+		eer_tally_hist( HIST_SP_RANK, rank );
+#if 0
+		eer_tally_hist( HIST_WEAPONS6, fired );
+		eer_tally_hist( HIST_WEAPONS7, hit );
+#endif
+		break;
+	case 2:	/* StealthMEK	*/
+		eer_tally_hist( HIST_ST_RANK, rank );
+#if 0
+		eer_tally_hist( HIST_WEAPONS4, fired );
+		eer_tally_hist( HIST_WEAPONS5, hit );
+#endif
+		break;
+	case 3:	/* AssaultMEK	*/
+		eer_tally_hist( HIST_AS_RANK, rank );
+#if 0
+		eer_tally_hist( HIST_WEAPONS1, fired );
+		eer_tally_hist( HIST_WEAPONS2, hit );
+		eer_tally_hist( HIST_WEAPONS3, aborted );
+#endif
+		break;
+	case 4:	/* HyperMEK	*/
+		eer_tally_hist( HIST_HP_RANK, rank );
+#if 0
+		eer_tally_hist( HIST_WEAPONS6, fired );
+		eer_tally_hist( HIST_WEAPONS7, hit );
+#endif
+		break;
+	case 5:	/* LurkerMEK	*/
+		eer_tally_hist( HIST_LK_RANK, rank );
+#if 0
+		eer_tally_hist( HIST_WEAPONS4, fired );
+		eer_tally_hist( HIST_WEAPONS5, hit );
+#endif
+		break;
+	case 6:	/* SuicideMEK	*/
+		eer_tally_hist( HIST_SU_RANK, rank );
+#if 0
+		eer_tally_hist( HIST_WEAPONS1, fired );
+		eer_tally_hist( HIST_WEAPONS2, hit );
+		eer_tally_hist( HIST_WEAPONS3, aborted );
+#endif
+		break;
+	}
+
+	eer_tally_hist(HIST_DEATHS,deaths);	/* count deaths per game */
+
+	if(oldplaymask != 3)		/* should have player and session active (i.e. 3)	*/
+		return(FALSE);			/* BUG??		*/
+
+	eer_end(0,contin);		/* end the player	*/
+	eer_play(3);			/* restart timing for player and session	*/
+	return(TRUE);			/* return OK status	*/
+}
+
+
+/*
+ *	By restarting the timing in st_end_game above
+ *	 there is really no need for st_restart_session() below;
+ *	  but I'll leave it here for now.
+ */
+
+int
+st_restart_session()	/* Restart/continue a session	*/
+{
+#if 0
+	if( oldplaymask != (1 << N_PLAYERS) )	/* at this point we should ONLY have session active */
+		return(FALSE);			/* BUG??		*/
+#endif
+
+	eer_play(3);			/* restart timing for player and session	*/
+	return(TRUE);			/* return OK status	*/
+}
+
+int
+st_quit_session(players,games,tourney)		/* the player quit and walked away	*/
+int	players,games,tourney;
+{
+    U16	temp;
+    U32	new_errors;
+
+	temp = TRUE;			/* assume status is OK	*/
+#if 0	/* this condition NO longer occurs, st_end_game() restarts the player timer	*/
+	if(oldplaymask != (1 << N_PLAYERS))		/* Only session should be active	*/
+		temp = FALSE;				/* indicate that there was a problem	*/
+#else
+	eer_stop(0);					/* .. stop the player		*/
+#endif
+	eer_end(N_PLAYERS,0);				/* .. kill the session		*/
+	eer_tally_hist(HIST_SESSION,games);		/* count games per session	*/
+	if ( players == 1 )				/* SOLO Game	*/
+		eer_tally_hist(HIST_TOURNAMENT,tourney-1);	/* count tournament stats	*/
+
+	new_errors = oldCkErrs;
+	new_errors = (oldCkErrs = rxCkErr) - new_errors;
+	eer_incs( EER_LINKFAIL, new_errors );		/* count Link Checksum Errors	*/
+
+	return( temp );
+}
+#endif
+
+#ifdef EER_UREC_IDX
+PRIVATE void ShowUserMsgs(int clearFlag) {
+
+    int	update, ii, bottom, n_recs;
+    static const struct menu_d myname = { "USER MSGS",0};
+    U8 *rcd, tmp[AN_VIS_COL_MAX-3-3+1];
+
+    bottom = st_bottom();
+    update = 1;
+
+    /* Pre-scan to see how many USER_RECS the user asked for,
+     * so this can vary dynamically. That way, we don't have
+     * to include stat_defs.h and/or worry how we spell it
+     * when we develop our _next_ game on DOS...
+     */
+    for ( ii = 0 ; ; ++ii ) {
+	rcd = eer_user_rd(ii, (int *)0);
+	if ( rcd == 0 ) break;
+	eer_user_free(ii);
+    }
+    n_recs = ii;
+
+    while (TRUE)
+    {
+	prc_delay0();
+
+	if ((ctl_read_sw(SW_NEXT) & SW_NEXT)
+	&& (ctl_read_sw(0) & SW_ACTION) == 0)
+	    break;
+
+	if (update)		/* display screen text			*/
+	{
+	    int	row,idx;
+
+	    vid_clear();
+	    bottom = st_frame(&myname,TITLE_PAL,INSTR_PAL,0);
+	    row = 3;
+	    idx = eer_gets(EER_UREC_IDX);
+	    for (ii=0; ii < n_recs; ++row,++ii)
+	    {
+		int jj, ilen;
+		rcd = eer_user_rd(ii, &ilen);
+		if (!rcd) continue;
+		if (ilen > sizeof(tmp)-1) ilen = sizeof(tmp)-1;
+		txt_decnum(2, row, ii, 2, RJ_BF, (idx == ii) ? WHT_PAL:GRY_PAL);
+		txt_cstr(":", GRY_PAL);
+		for (jj=0; jj < ilen; ++jj) {
+		    U8 t;
+		    t = rcd[jj];
+		    if (!t) break;
+		    tmp[jj] = (t >= ' ' && t <= '~') ? t : '.';
+		}
+		tmp[jj] = 0;
+		eer_user_free(ii);		/* this record is not busy anymore */
+		txt_cstr((char *)tmp, GRY_PAL);
+	    }
+
+	    if (clearFlag)
+	    {
+		bottom = st_insn(bottom,"To clear ALL messages,",t_msg_clear,INSTR_PAL);
+	    }
+
+	    update = 0;
+	}
+
+	if(   (ctl_read_sw(0) & SW_NEXT)		/* left button down?	*/
+	   && (ctl_read_sw(0) & SW_ACTION)		/* right button down?	*/
+	   && clearFlag			/* ::::: CLEAR THE STATS! :::::	*/
+	  )
+	{
+	    int howmany = 0;
+	    while (ctl_read_sw(0) & SW_NEXT)	/* wait till release	*/
+		prc_delay0();
+
+	    for (ii = 0; ii < n_recs ; ++ii) {		/* clear 'em ALL!	*/
+		rcd = eer_user_rd(ii, 0);
+		if (rcd && *rcd) {
+		    *rcd = 0;
+		    eer_user_wrt(ii);
+		    ++howmany;
+		} else {
+		    eer_user_free(ii);	/* it's already clear */
+		}
+	    }
+
+	    eer_puts(EER_UREC_IDX, 0);
+
+	    clearFlag = 0;		/* can't clear more than once	*/
+	    update = 1;			/* need to update screen	*/
+
+	    if (howmany) {
+#define USER_MSG "Waiting for writes to complete..."
+		txt_str((AN_VIS_COL-sizeof(USER_MSG)-1-4)/2, bottom-2, USER_MSG, WHT_PAL);
+		for (ii=bottom-1; ii < AN_VIS_ROW-1; ++ii) {
+		    txt_clr_wid(2, ii, AN_VIS_COL-2);
+		}
+		for (ii=90*howmany; ;ii=ii>0?ii-1:0) {
+		    if ( eer_busy() < 2 ) break;
+		    prc_delay(0);
+		    txt_decnum((AN_VIS_COL-sizeof(USER_MSG)-1-4)/2+sizeof(USER_MSG)-1, bottom-2,
+			    ii/60, 4, RJ_BF, WHT_PAL);
+		}
+	    }
+	}
+    }
+}
+#endif
+@
+
+
+1.47
+log
+@Made "Earned Games" default text vs "Games Won"
+@
+text
+@d15 1
+a15 1
+const char FILE_ID_NAME[] = "$Id: stats.c,v 1.46 1997/11/07 17:58:16 albaugh Exp $";
+d963 10
+@
+
+
+1.46
+log
+@Added hook to maintatin lifetime (un-clearable) counts
+of coins and service-button "coins".
+@
+text
+@d15 1
+a15 1
+const char FILE_ID_NAME[] = "$Id: stats.c,v 1.45 1997/09/16 23:39:11 forrest Exp albaugh $";
+d948 1
+a948 1
+#if (SST_GAME & SST_RUSH)
+@
+
+
+1.45
+log
+@Added "Linked Games"
+@
+text
+@d15 1
+a15 1
+const char FILE_ID_NAME[] = "$Id: stats.c,v 1.44 1997/08/25 16:56:02 forrest Exp forrest $";
+d779 9
+d826 25
+d866 1
+a868 2
+/* NOTE: an assumption is made that CNOPT is the LAST EEROM CELL !!!	*/
+
+d1044 2
+a1045 5
+#if (0)
+	    for (i=EER_CC0; i < EER_CNOPT; ++i)	/* clear 'em ALL!	*/
+		eer_puts(i,0);
+#else
+	    /* It makes _much_ more sense to clear all, and only
+d1048 14
+d1067 1
+a1067 1
+#endif
+@
+
+
+1.44
+log
+@Added "Mirror Mode" table entry.
+@
+text
+@d15 1
+a15 1
+const char FILE_ID_NAME[] = "$Id: stats.c,v 1.43 1997/07/01 23:42:42 albaugh Exp forrest $";
+a900 3
+#ifdef EER_MIRROR
+	{ "Mirror Mode",EER_MIRROR },
+#endif
+d924 6
+@
+
+
+1.43
+log
+@Added RCS ID string
+@
+text
+@d15 1
+a15 1
+const char FILE_ID_NAME[] = "$Id$";
+d900 3
+@
+
+
+1.42
+log
+@*** empty log message ***
+@
+text
+@d14 3
+a16 1
+
+@
+
+
+1.41
+log
+@Merge with MACE-based stats.c, including the ability to
+pick screen size dynamically. Also, slightly reduced the
+need to include stat_defs.h, and protected against some
+errors, such as letting N_PLAYERS default to 2 on a 1-Player
+game, Defining a "High Score Reset" bit in game-options
+without having a high-score table, and non-sensical values
+for "continues".
+@
+text
+@d2249 1
+a2250 1
+}
+@
+
+
+1.40
+log
+@Fixed problem caused by some bozo :) who likes to set more
+than one bit in SW_NEXT and SW_ACTION.
+@
+text
+@d20 11
+a30 1
+#if (SST_GAME&(SST_HOCKEY|SST_DMS|SST_MACE))|(COJAG_GAME&COJAG_AREA51)
+d34 11
+d68 1
+d70 2
+d73 1
+d472 1
+a472 1
+    char buf[AN_VIS_COL],*s;		/* Screen-line buffer		*/
+d586 3
+d628 1
+a628 1
+    char buf[AN_VIS_COL*HIST_ROWS],*s;		/* Screen-line buffer		*/
+d631 1
+a631 1
+    struct hist_menu hmenu[HIST_ROWS+3];
+d1474 1
+d1476 1
+d1493 1
+d1495 1
+d1545 1
+d1569 2
+a1570 1
+#endif
+d1615 1
+d1620 2
+a1621 1
+#endif
+d2144 1
+d2146 2
+a2147 2
+#if SST_GAME&(SST_HOCKEY|SST_DMS|SST_MACE) && defined(EER_UREC_IDX)
+    int	update, ii, bottom=AN_VIS_ROW-2;
+d2149 1
+a2149 1
+    U8 *rcd, tmp[AN_VIS_COL-3-3+1];
+d2151 1
+d2154 12
+d2182 1
+a2182 1
+	    for (ii=0; ii < USER_RECS; ++row,++ii)
+a2186 1
+		eer_user_free(ii);		/* this record is not busy anymore */
+d2197 1
+d2218 1
+a2218 1
+	    for (ii = 0; ii < USER_RECS; ++ii) {		/* clear 'em ALL!	*/
+@
+
+
+1.39
+log
+@Added stat counter display for WMS extra coin/bill inputs.
+@
+text
+@d970 1
+a970 1
+	&& (ctl_read_sw(0) & (SW_NEXT | SW_ACTION)) == (SW_NEXT | SW_ACTION))
+d1150 1
+a1150 1
+	&& (ctl_read_sw(0) & (SW_NEXT | SW_ACTION)) == (SW_NEXT | SW_ACTION))
+@
+
+
+1.38
+log
+@Added "Earned Ratio" for RUSH
+@
+text
+@d815 16
+d833 1
+@
+
+
+1.37
+log
+@Allowed AREA51 (and MAX Force) to #include stat_defs.h.
+I (MEA) have no idea why this is not always the case.
+@
+text
+@d868 2
+a869 1
+#if (SST_GAME == SST_RUSH)
+d1013 19
+a1031 1
+
+@
+
+
+1.36
+log
+@Protected definitions for those fields in GMOPT that cause a
+high-score reset.
+@
+text
+@d20 1
+a20 1
+#if SST_GAME&(SST_HOCKEY|SST_DMS|SST_MACE)
+d1084 12
+d1469 1
+a1469 1
+#ifndef GMOPT_RST_HS
+@
+
+
+1.35
+log
+@Renamed message "Error Count" to "BRAM read errs" if SST_GAME.
+@
+text
+@d1451 1
+d1453 2
+d1456 2
+d1459 2
+d1463 1
+@
+
+
+1.34
+log
+@added STRMERR and RELOADERR for MaxForce
+@
+text
+@d934 3
+d938 1
+@
+
+
+1.33
+log
+@Wrap Charlie Grisafi's MaxForce changes so they are
+harmless on other games.
+@
+text
+@d1080 6
+@
+
+
+1.32
+log
+@Added increment of total game counter for SST_RUSH.
+@
+text
+@d877 14
+a931 10
+#ifdef EER_MISSION1
+	{ "Mission 1",EER_MISSION1 },
+#endif
+#ifdef EER_MISSION2
+	{ "Mission 2",EER_MISSION2 },
+#endif
+#ifdef EER_MISSION3
+	{ "Mission 3",EER_MISSION3 },
+#endif
+
+d1031 120
+d1395 5
+@
+
+
+1.31
+log
+@Changed text "Games Won" to "Earned Games" for SST_RUSH.
+@
+text
+@d303 7
+@
+
+
+1.30
+log
+@Added a bazillion more syserr stats (for 4k) and made a feeble
+attempt at showing all those stats on a small screen.
+@
+text
+@d861 3
+d865 1
+@
+
+
+1.29
+log
+@Added reports for DSK and FSYS errors.
+@
+text
+@d1025 57
+d1088 1
+a1088 1
+#ifdef EER_ADRERR
+d1091 1
+a1091 1
+#ifdef EER_ADRERR
+d1094 1
+a1094 1
+#ifdef EER_ADRERR
+d1097 1
+a1097 1
+#ifdef EER_ADRERR
+d1100 1
+a1100 1
+#ifdef EER_ADRERR
+d1103 1
+d1105 2
+d1108 1
+d1116 1
+a1116 1
+	{ "ANY DISK I/O ERROR  ",	EER_DSK_ERR },
+d1119 1
+a1119 1
+	{ "DISK: ADDR MARK NF  ",	EER_DSK_AMNF },
+d1122 1
+a1122 1
+	{ "DISK: TRACK 0 NF    ",	EER_DSK_TK0NF },
+d1125 1
+a1125 1
+	{ "DISK: COMMAND ABORT ",	EER_DSK_ABORT },
+d1128 1
+a1128 1
+	{ "DISK: SECTOR ID NF  ",	EER_DSK_IDNF },
+d1131 1
+a1131 1
+	{ "DISK: UNCORR DATA   ",	EER_DSK_UNCDTA },
+d1134 1
+a1134 1
+	{ "DISK: DVC TIMEOUT   ",	EER_DSK_TIMOUT },
+d1137 1
+a1137 1
+	{ "DISK: WRITE FAULTS  ",	EER_DSK_WERR },
+d1140 1
+a1140 1
+	{ "DISK: CORRECTABLE   ",	EER_DSK_CORR },
+d1143 1
+a1143 1
+	{ "FSYS: USED ALT FILE ",	EER_FSYS_USEALT },
+d1150 1
+d1153 6
+a1158 2
+    for (i=0; i < NUM_SYSERR_NAMES; ++i)
+	update += (values[i] = eer_gets(sysErrNames[i].stat_ndx));
+d1188 1
+a1188 1
+	    int	row,bottom;
+d1193 2
+a1194 1
+	    for (i=0; i < NUM_SYSERR_NAMES; ++row,++i)
+d1196 13
+a1208 2
+		txt_str(4,row,sysErrNames[i].stat_nm,GRY_PAL);
+		txt_decnum(30,row,values[i],3,RJ_BF,YEL_PAL);
+@
+
+
+1.28
+log
+@Added (conditionally) MaxForce "Mission" counters.
+@
+text
+@d1054 30
+@
+
+
+1.27
+log
+@Protect against ludicrous values of contflag in eer_end().
+@
+text
+@d906 11
+@
+
+
+1.26
+log
+@alter show_hist() to defer to eer_hist_title() for
+decision of whether of not median should be displayed.
+This fixes a long-standing bug wherein the "median"
+bar would be red, even on "non-median" histograms.
+@
+text
+@d284 18
+@
+
+
+1.25
+log
+@reconcile with PSX, including deleting bogus trailing whitespace.
+@
+text
+@d450 2
+a451 1
+    (void)eer_hist_line(median,buf,sizeof(buf));	/* Get median	*/
+d453 7
+a459 6
+    s = strchr(buf,':');		/* See if it's a median type..	*/
+    if (s)				/* YEP! it's meaningful		*/
+    {
+	*s = '\0';
+	txt_str(15,bin,"MEDIAN:",RED_PAL);
+	txt_str(22,bin,buf,GRN_PAL);
+@
+
+
+1.24
+log
+@#ifdef'd the last two places where HIST_TABLE was referenced
+unprotected.
+@
+text
+@d10 1
+a10 1
+ *	Copyright 1987 ATARI.  Unauthorized reproduction, adaptation, 
+d12 1
+a12 1
+ *	program or the associated audiovisual work is strictly prohibited. 
+d52 1
+a52 1
+*	have players enter and exit during the game play.  
+d56 1
+a56 1
+* NOTE	eer_play() and eer_end() will be called with a mask rather than a 
+d68 1
+a68 1
+*/	
+d131 2
+a132 2
+*	modularize things. Anyway, eer_play(), eer_start(), eer_stop, and 
+*	eer_end() maintain a set of timers and periodically update the EEPROM 
+d144 1
+a144 1
+*   Just to get you started, the first (T_0PTIME) is time for 0 players, 
+d264 1
+a264 1
+
+d348 1
+a348 1
+#endif
+d428 1
+a428 1
+ 
+d586 1
+a586 1
+	
+d656 1
+a656 1
+	
+d673 1
+a673 1
+ 
+d693 1
+a693 1
+}    
+d714 1
+a714 1
+    for ( i = 1 ; i < N_PLAYERS ; ++i ) { 
+d1073 1
+a1073 1
+	    if (HIST_TABLES) 
+d1302 1
+a1302 1
+
+d1346 1
+a1346 1
+    
+d1427 1
+a1427 1
+	  )  
+d1444 1
+a1444 1
+	    
+d1507 1
+a1507 1
+	    if (HIST_TABLES) 
+d1538 1
+a1538 1
+
+d1661 1
+a1661 1
+	case 1:	/* SpeedMEK	*/		
+d1754 1
+a1754 1
+	
+d1833 1
+a1833 1
+	    
+@
+
+
+1.23
+log
+@Added some Hockey specific displays.
+@
+text
+@d411 1
+d510 1
+d513 1
+d523 1
+d1081 1
+d1085 1
+@
+
+
+1.22
+log
+@Renamed the HOCKEY/MACE specific ZOID specific #if's to SST.
+@
+text
+@d46 3
+a48 1
+#define N_PLAYERS 	(2)
+a196 1
+
+d788 26
+d882 1
+a890 1
+
+d902 1
+d967 1
+a967 1
+	    	txt_str(-1,AN_VIS_ROW-4,"to clear ALL statistics",INSTR_PAL);
+@
+
+
+1.21
+log
+@accomodate games (rage2 on PSX) which do not have stats
+like NEWCOINS, CONTCOINS, ... Also made loops on eer_busy()
+into (eer_busy() > 1), to allow use with new eedrive.c, which
+returns 2 for "really writing" and 1 for "records locked".
+This is needed because of games which do eer_user_read() and
+never release the records.
+@
+text
+@d20 1
+a20 1
+#if ZOID_GAME&(ZOID20_HOCKEY|ZOID20_DMS|ZOID20_MACE)
+d1730 1
+a1730 1
+#if ZOID_GAME&(ZOID20_HOCKEY|ZOID20_DMS|ZOID20_MACE) && defined(EER_UREC_IDX)
+@
+
+
+1.20
+log
+@interim check-in with fixed histogram menu and "clear" only of
+displayed stats.
+@
+text
+@d284 1
+d290 1
+d335 1
+a335 1
+#endif
+d339 1
+a339 1
+#endif
+d341 1
+a341 1
+#endif
+d343 3
+d353 1
+d513 2
+a514 2
+    while ( (--timer > 0 || eer_busy())		/* time left	*/
+    && (ctl_read_sw(SW_NEXT) & SW_NEXT) == 0) /* no press yet	*/
+d796 1
+d798 2
+d801 1
+d1155 1
+a1155 1
+    while ( eer_busy() ) prc_delay(1);
+d1812 1
+a1812 1
+		    if (!eer_busy()) break;
+@
+
+
+1.19
+log
+@Tightened up spacing for AVG TIME line, fixed typo in
+(unused) RELIEF section.
+@
+text
+@d588 6
+a593 2
+    if ( clear && (midx <= HIST_ROWS) ) {
+	/* add a menu line to clear all histograms */
+d595 6
+a808 3
+#if (COJAG_GAME == COJAG_FISH)
+	{ "1-Player Waves",EER_1PGAMS },
+#else
+a810 1
+#endif
+a811 3
+#if (COJAG_GAME == COJAG_FISH)
+	{ "2-Player Waves",EER_2PGAMS },
+#else
+a813 1
+#endif
+a814 3
+#if (COJAG_GAME == COJAG_FISH)
+	{ "Challenge Waves",EER_CHGAMS },
+#else
+d817 5
+d823 1
+d865 1
+a865 1
+
+d868 10
+d913 1
+a913 1
+		    /* The LAST STAT is EEROM ERROR	*/
+d934 1
+a934 1
+		bottom = st_insn(bottom,"To clear ALL statistics,",t_msg_clear,INSTR_PAL);
+d1050 1
+a1050 1
+		bottom = st_insn(bottom,"To clear ALL statistics,",t_msg_clear,INSTR_PAL);
+@
+
+
+1.18
+log
+@Protected references to NEWTIM and SESSIONS.
+@
+text
+@d110 1
+a110 1
+    txt_cdecnum(mins,width-3,RJ_BF,YEL_PAL);
+d746 2
+a747 2
+	if ( coins == 0 ) txt_str(hpos+1,vpos+1,"AVG ",YEL_PAL);
+	txt_cstr(" TIME/GAME : ",YEL_PAL);
+d904 1
+a904 1
+	    sho_avgtim(4,++row);	/* Requires 3 lines of display	*/
+d1298 1
+a1298 1
+	tottim = eer_gets(timenames[i].stat_ndx;
+@
+
+
+1.17
+log
+@Hacks for FISH stats, per NLA
+@
+text
+@d312 1
+d317 1
+d795 1
+d797 1
+d1295 1
+d1297 3
+@
+
+
+1.16
+log
+@Fixed the damn compile time errors.
+@
+text
+@d111 1
+a111 1
+    txt_str(-1,-1,":",YEL_PAL);
+d710 7
+a716 1
+
+d737 13
+a749 6
+
+    if ( coins == 0 )
+	return;
+
+    txt_str(hpos+1,vpos+1,"AVG TIME/COIN : ",YEL_PAL);	/* Advances COL	*/
+    timenum(avgtim(),6);
+d781 3
+d786 1
+d795 3
+d800 1
+d802 3
+d806 8
+@
+
+
+1.15
+log
+@More user record display polish.
+@
+text
+@a1018 1
+#if ZOID_GAME&(ZOID20_HOCKEY|ZOID20_DMS|ZOID20_MACE)
+a1019 1
+#endif
+a1030 1
+#if ZOID_GAME&(ZOID20_HOCKEY|ZOID20_DMS|ZOID20_MACE)
+a1031 1
+#endif
+a1663 1
+#if ZOID_GAME&(ZOID20_HOCKEY|ZOID20_DMS|ZOID20_MACE)
+d1665 1
+d1755 1
+a1756 1
+#endif
+@
+
+
+1.14
+log
+@Added a coutdown on the user message clear.
+@
+text
+@d1670 1
+a1670 1
+    int	update, ii, bottom, didframe;
+a1675 4
+    vid_clear();
+    bottom = st_frame(&myname,TITLE_PAL,INSTR_PAL,0);
+    didframe = 1;
+
+a1683 28
+	if(   (ctl_read_sw(0) & SW_NEXT)		/* left button down?	*/
+	   && (ctl_read_sw(0) & SW_ACTION)		/* right button down?	*/
+	   && clearFlag			/* ::::: CLEAR THE STATS! :::::	*/
+	  )
+	{
+	    while (ctl_read_sw(0) & SW_NEXT)	/* wait till release	*/
+		prc_delay0();
+
+	    for (ii = 0; ii < USER_RECS; ++ii) {		/* clear 'em ALL!	*/
+		rcd = eer_user_rd(ii, 0);
+		if (rcd) *rcd = 0;
+		eer_user_wrt(ii);
+	    }
+	    
+	    eer_puts(EER_UREC_IDX, 0);
+
+	    clearFlag = 0;		/* can't clear more than once	*/
+	    update = 1;			/* need to update screen	*/
+#define USER_MSG "Waiting for writes to complete..."
+	    txt_str((AN_VIS_COL-sizeof(USER_MSG)-1-4)/2, bottom-2, USER_MSG, WHT_PAL);
+	    for (ii=1800; ;ii=ii>0?ii-1:0) {
+		if (!eer_busy()) break;
+		prc_delay(0);
+		txt_decnum((AN_VIS_COL-sizeof(USER_MSG)-1-4)/2+sizeof(USER_MSG)-1, bottom-2,
+			ii/60, 4, RJ_BF, WHT_PAL);
+	    }
+	}
+
+d1688 2
+a1689 5
+	    if (!didframe) {
+		vid_clear();
+		bottom = st_frame(&myname,TITLE_PAL,INSTR_PAL,0);
+	    }
+	    didframe = 0;
+d1717 40
+@
+
+
+1.13
+log
+@Fixed formatting of user msgs display.
+@
+text
+@d1670 1
+a1670 1
+    int	update, ii;
+d1676 4
+d1701 1
+d1706 8
+d1718 1
+a1718 1
+	    int	row,bottom,idx;
+d1720 5
+a1724 2
+	    vid_clear();
+	    bottom = st_frame(&myname,TITLE_PAL,INSTR_PAL,0);
+d1732 1
+@
+
+
+1.12
+log
+@Added more ZOID specific conditionals.
+@
+text
+@d1672 1
+a1672 1
+    U8 *rcd, tmp[AN_VIS_COL-4-3+1];
+d1713 2
+a1714 2
+		int jj;
+		rcd = eer_user_rd(ii, 0);
+d1716 1
+d1718 2
+a1719 2
+		txt_cstr(": ", GRY_PAL);
+		for (jj=0; jj < AN_VIS_COL-4-3; ++jj) {
+d1726 1
+a1726 1
+		txt_cstr((char *)rcd, GRY_PAL);
+@
+
+
+1.11
+log
+@Added some hockey specific code
+@
+text
+@d20 1
+a20 1
+#if ZOID_GAME&ZOID20_HOCKEY
+d1019 1
+a1019 1
+#if ZOID_GAME&ZOID20_HOCKEY
+d1033 1
+a1033 1
+#if ZOID_GAME&ZOID20_HOCKEY
+d1668 1
+a1668 1
+#if ZOID_GAME&ZOID20_HOCKEY
+@
+
+
+1.10
+log
+@Protected some EER_* references.
+@
+text
+@d20 4
+d1019 4
+d1033 3
+d1665 71
+@
+
+
+1.9
+log
+@slit SESSIONS into EER_SESSIONS (count of traditional
+Gauntlet-style sessions) and EER_SESTIM (count of
+traditional Gauntlet-style session _minutes_). Changed
+label to reflect difference between Gauntlet-style
+session (first-player starts until last player ends)
+and Macias-style sessions (player starts until that
+player ends).
+Fixed bug which over-wrote last histogram on a single-screen
+with the "clear all Histograms" line. Added possible
+EER_DRAWS stat for fish.
+@
+text
+@d897 1
+d899 2
+d902 2
+d905 2
+d908 2
+d911 2
+d914 2
+d917 1
+@
+
+
+1.8
+log
+@fixed problem with multi-page histogram display. Prt of this
+fix is a kluge to re-draw instructions, which should be fixed
+in the stats.c re-write, after mods to st_frame() and st_menu()
+in selftest.c
+@
+text
+@d285 1
+a285 1
+#if SESSIONS
+d301 1
+a301 1
+#if SESSIONS
+d325 5
+d332 2
+d567 1
+a567 1
+    for (midx=1; midx <= HIST_ROWS; ++midx)
+d572 3
+d579 1
+d763 3
+d772 1
+a772 1
+	{ "Total Sessions",EER_SESSIONS },
+@
+
+
+1.7
+log
+@Slightly de-tangled conditions for auto-clear of High-Score Table.
+First-cut at allowing more histograms than fit on a single screen.
+@
+text
+@d514 31
+d557 1
+a557 1
+    hmenu[0].call = 0;
+d571 1
+a571 1
+    if ( clear ) {
+d573 1
+a573 1
+	hmenu[++midx].label = "\nCLEAR ALL HISTOGRAMS";
+d576 1
+d578 1
+a578 1
+    hmenu[++midx].label = 0;
+d581 1
+a581 3
+    if ( tblndx <= end ) {
+	st_insn(AN_VIS_ROW-2,"For more histograms",t_msg_next,INSTR_PAL);
+    }
+@
+
+
+1.6
+log
+@fixed slight bug with auto-high-score-clear. It did not
+clear if the difficulty changed as a result of selecting
+"rest to factory defaults" with a current non-default
+difficulty.
+@
+text
+@d501 56
+d562 8
+d607 1
+d1028 1
+d1044 1
+d1054 14
+a1074 13
+#ifdef GMOPT_FACT_DEFAULTS
+    if ( new_options & GMOPT_FACT_DEFAULTS ) {
+	/* wants to restore factory defaults */
+	new_options = factory_setting(menu);
+#if GMOPT_DIFFICULTY
+	/* if the old difficulty was _not_ the default...
+	 */
+	if ( (new_options ^ old_options) & GMOPT_DIFFICULTY ) {
+	    clr_flg = 1;
+	}
+#endif /* ( GMOPT_DIFFICULTY ) */
+    }
+#endif /* defined ( GMOPT_FACT_DEFAULTS ) */
+d1077 1
+a1077 1
+    /* If for any reason they waht to clear high scores, do so now.
+d1081 1
+@
+
+
+1.5
+log
+@Protected the code that uses HST_SERIAL_NUM
+@
+text
+@d972 3
+d978 4
+a981 5
+#ifdef GMOPT_RST_HST
+#ifdef GMOPT_DIFFICULTY
+    if ( (new_options ^ old_options) & GMOPT_DIFFICULTY ) {
+	new_options |= GMOPT_RST_HST;
+    }
+d983 1
+a983 1
+	clear_hsts();
+d986 1
+a986 2
+#endif /* defined ( GMOPT_DIFFICULTY ) */
+#else
+d988 4
+a991 2
+    if ( new_options ^ old_options) & GMOPT_DIFFICULTY ) {
+	clear_hsts();
+a993 1
+#endif /* defined ( GMOPT_RST_HST ) */
+d998 7
+d1006 6
+@
+
+
+1.4
+log
+@misc generalizations, such as use of st_insn(), and auto-sizing
+legends for stats. Added conditional kluges for Area51 stats.
+Added heavily ifdef'd auto-High-Score-Table clear.
+@
+text
+@d936 8
+d952 1
+d954 1
+a964 6
+
+#if (COJAG_GAME == COJAG_AREA51)
+#define GMOPT_LIVES (7<<7)
+#define GMOPT_DIFFICULTY ((3<<1)|GMOPT_LIVES)
+#define GMOPT_RST_HST	 (1<<5)
+#define GMOPT_FACT_DEFAULTS (1<<6)
+@
+
+
+1.3
+log
+@kluge to eliminate wrap-around of histogram bars. This area
+due for major re-work soon.
+@
+text
+@d34 1
+a34 1
+static	const char	t_more_stats[] =	"for more stats";
+d112 1
+d119 1
+a119 1
+
+d323 1
+a323 1
+#if 0
+d408 1
+d457 1
+d639 1
+a639 1
+    int	update,i;
+d642 4
+a645 4
+	{ "Left Coins     :",EER_CC0 },
+	{ "Right Coins    :",EER_CC1 },
+	{ "Aux Coins      :",EER_CCX },
+	{ "Idle Mins      :",EER_0PTIME },	/* maintained by EER_PLAY	*/
+d647 2
+a648 2
+	{ "1 Player Mins  :",EER_1PTIME },
+	{ "2 Player Mins  :",EER_2PTIME },
+d650 1
+a650 1
+	{ "Play Mins      :",EER_1PTIME },
+d653 1
+a653 1
+	{ "Session Mins   :",EER_SESTIM },
+d655 2
+a656 2
+	{ "New Games      :",EER_NEWCOINS },
+	{ "Cont Games     :",EER_CONTCOINS },
+d658 11
+a668 1
+	{ "Games Won      :",EER_FREEGMS },
+a669 4
+	{ "Total Games    :",EER_GMS },
+	{ "Total Sessions :",EER_SESSIONS },
+	{ "1-Player Games :",EER_1PGAMS },
+	{ "2-Player Games :",EER_2PGAMS },
+d671 10
+a680 4
+	{ "3-Player Games :",EER_3PGAMS },
+	{ "4-Player Games :",EER_4PGAMS },
+	{ "5-Player Games :",EER_5PGAMS },
+	{ "6-Player Games :",EER_6PGAMS },
+d682 9
+d692 1
+a692 1
+	{ "Error Count    :",	EER_ERRORS },
+d701 1
+a701 1
+
+d719 1
+a719 1
+	    st_frame(&myname,TITLE_PAL,INSTR_PAL,0);
+d729 1
+a729 1
+	    int	row;
+d733 7
+d743 4
+a746 2
+		txt_str(4,row,statNames[i].stat_nm,GRY_PAL);
+		txt_decnum(21,row,stat = eer_gets(num),11,LJ_NF,GRY_PAL);
+d757 1
+d767 6
+d841 1
+a841 1
+	    int	row;
+d844 1
+a844 1
+	    st_frame(&myname,TITLE_PAL,INSTR_PAL,0);
+d852 1
+a852 6
+	    if (clearFlag)
+	    {
+		txt_str(-1,AN_VIS_ROW-5,t_msg_clear,INSTR_PAL);
+	    	txt_str(-1,AN_VIS_ROW-4,"to clear ALL statistics",INSTR_PAL);
+	    }
+
+d860 16
+d936 27
+d967 1
+a967 1
+
+d969 27
+a995 1
+    eer_puts(EER_GMOPT,DoOptions(menu,eer_gets(EER_GMOPT),SW_EXTRA));
+d1254 1
+a1254 6
+	    if (clrflag)
+	    {
+		txt_str(-1,AN_VIS_ROW-5,t_msg_clear,WHT_PALB);
+	    	txt_str(-1,AN_VIS_ROW-4,"to clear ALL statistics",WHT_PALB);
+	    }
+
+d1262 15
+@
+
+
+1.2
+log
+@Moving toward a more suitable two-player generic STATS setup for CoJag
+@
+text
+@d412 5
+a416 1
+	val = eer_hist_line(bin,buf,sizeof(buf));
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a39 40
+#ifdef RELIEF
+
+static	S16	card_cntr,card_timr;
+#endif
+
+#ifdef RELIEF
+	void    show_time_stats();
+	void    show_plyr_stats();
+
+/* The Menu below is encoded with the LOWEST octal digit being a field-size specifier (1-7) in bits
+ * and the bit-position of the field is in the upper octal digits.
+ *
+ *   E.G.	\043	is a bit-field of 3 bits starting at position D4 in the option word.
+ *			this example specifies a field of up to 8 choices.
+ */
+
+char cardmenu[] =
+"\003Max Cards Per Credit:\000\
+No Cards\000\
+1 Card\000\
+2 Cards\000\
+3 Cards\000\
+4 Cards\000\
+5 Cards\000\
+6 Cards\000\
+7 Cards\000\
+\032Bonus Cards after 9 Innings:\000\
+No bonus cards\000\
+1 after 9 innings\000\
+2 after 9 innings\000\
+3 after 9 innings\000\
+\052Frequency of award\000\
+AUTOMATIC: award max when coin added\000\
+EASY: every run,win, or strikeout\000\
+MED: every run scored or win\000\
+HARD: every home run\000\
+\000\000";
+#endif
+
+
+d42 1
+a42 1
+#define N_PLAYERS 	(1)
+d73 2
+a74 1
+#define UPDTIM 	(4*60*60)	/* Number of frames in 4 minutes (time to update) */
+d87 4
+a90 4
+	U32	time_plgame[N_TIMERS];		/* 0,1..N player(s) game time */
+	U32	time_eachpl[N_PLAYERS+SESSIONS];		/* player 0,1..N game time */
+	U32	time_residue[N_TIMERS+N_PLAYERS+SESSIONS];	/* left over times */
+	U8	oldplaymask;
+d92 2
+a93 6
+	U32	updtimer;
+	U32	last_eertc;
+#ifdef SPACE
+	U32	waveTimer;	/* timer for wave time accum/hist	*/
+	U32	waveResidue[3];	/* timer residue for 3 wave types	*/
+#endif
+a96 1
+extern char col,row;
+a97 1
+
+a111 1
+
+d639 4
+d644 2
+a645 1
+#if (0)
+d650 1
+d652 1
+@

@@ -1,0 +1,685 @@
+head	1.3;
+access;
+symbols
+	CJ_206:1.3
+	CJ2_05:1.3
+	CJ2_04:1.3
+	CJ2_03:1.2;
+locks; strict;
+comment	@ * @;
+
+
+1.3
+date	96.09.25.00.08.24;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.01.31.00.18.29;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.17.14.31;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@more-or-less generic coin handling, 1994 edition :-)
+@
+
+
+1.3
+log
+@Deleted bogus whitespace as part of merge with PSX
+@
+text
+@/*	coin94.c
+ *		Copyright 1988-1994 ATARI GAMES.
+ *	Unauthorized reproduction, adaptation, distribution, performance or
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited
+ */
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <coin.h>
+
+/* Revised:
+*	15-NOV-84 to reflect actual switch positions (aux,left,right)
+*	14-FEB-85 to handle partial credits from bonus coins
+*	26-MAR-85 for DND hardware (four mechs, equal value, separate counts
+*	18-JUN-87 for generic U.S. removed many hardware dependencies
+*	07-DEC-87 moved coinmenu[] into this file.
+*		  converted from separate to common coin chutes.
+*	09-MAR-88 Revised comments to agree with hardware move from
+*		  two center to two rightmost mechs
+*	08-FEB-91 using the whole new scheme
+*	23-JUN-92 as part of the reorganization of the OS
+*	27-AUG-93 as part of CAGE - moving coin stuff to host. (Ed Logg)
+*/
+
+/*			This was coin91.c
+*
+*	Derived from extnd_coin.c (was extended_coin.c, pre-Arium)
+*	The coin-handling stuff extended to a 16-bit coin-mode per meeting
+*	11-JUN-90 (Ray, Downend, Benzler, and Momoda in attendance).
+*
+*	Now modified to handle multi-processor or load/store (ASAP) systems
+*	Where a hazard between IRQ level and mainline is exacerbated.
+*
+*	Coins from the all mechs go into one "account", as with comn_coin.c.
+*	The changes are:
+*	(In extnd_coin)
+*
+*		increased range for game cost (1-8 "unit coins" vs 1-4)
+*
+*		increased and similar range for mults (1-8 vs 1,2 and 1,4,5,6)
+*
+*		fully orthogonal bonus adders (2-9 coins gives 0-3 bonus)
+*		(Per the meeting, "2 gives 2", "2 gives 3" and "3 gives 3"
+*		will not be allowed)
+*
+*		Separate bits for free-play, discount on continue. The latter
+*		can be checked by the game calling cn_discount, which see.
+*
+*		New call cn_credits() which returns usable fractional credits.
+*
+*		new call cn_init() which must be called before any other
+*		routines.
+*
+*	(New with coin90)
+*
+*		Old routine cn_credit(), which used to return credits*12 has
+*		been deleted.
+*
+*		cn_bong() returns != 0 when a new coin has arrived.
+*
+*		No calls to eer_* from IRQ level.
+*
+*		No hazard from interleaved Read-Modify-Write operations.
+*
+*		All this routine's variables are declared here. The System I
+*		practice of "extern"ing them and declaring them in assembly
+*		has been dropped. No program should depend on knowing the
+*		details of this module.
+*
+*		FIRST_MECH and LAST_MECH have been abandoned, in favor of
+*		MECH_ORDER, which maps dibits in deltas to counters.
+*
+*	(New with coin91)
+*
+*		Menu format for the game options and coin options has
+*		been changed. (See stats.c)
+*
+*		cn_credit() can be compile-time configured to reduce
+*		or not reduce the partial credit fraction.
+*
+*		my_cnt.gang set to irq_cnt.gang by cn_init, just in case...
+*
+*		VEND_M	is an index 0-3 that is NOT used in MECH_ORDER.
+*		  - if defined, "click_vendor()" will do a pulse on that output
+*		  pin. This is probably defined in COIN.C
+*
+*	(New in 1993)
+*
+*		Take out old SpaceLords coin routines with capability for one
+*		coin-handling system with two PCBs sharing a common RAM.
+*
+*		Complete change to cn_... names for all coin and vending
+*		routines.
+*
+*		Change MECH_ORDER to go from left to right to match all
+*		other arrays.  I also changed conventions for 4 mech doors
+*		from "Left" to "Right" for the 3rd and 4th mechs to match
+*		the order of the switch inputs, etc.
+*
+*		With CAGE audio no coin processing is done by the audio
+*		processor.  The host will read the coins by calling cn_irq
+*		every 4ms.
+*/
+
+#ifndef __STDC__
+#define const
+#define volatile
+#endif
+
+/*	While keyed on EER_CNOPT, this also serves to get EER_CC0.
+*/
+#ifndef EER_CNOPT
+#include <eer_defs.h>
+#endif
+
+static unsigned char bccnt,bc;
+static unsigned short coins;
+
+/* 	The various options were formerly done with bitfields, but generated
+*	code was horrible _and_ compiler dependant, which clashed with the
+*	idea of menu-driven option setting. The access macros are now in
+*	coin.h to allow fairly clean separation of accounting-type stuff
+*	in this file and whacky re-mappings of switch position to "logical"
+*	mech in xxx_coin.c
+*/
+static unsigned short coin_modes;	/* picked apart with cmode_*() */
+
+/* 	No call to the coin routines is valid until cn_init() has been called.
+*  	The following flag is consulted when in doubt.
+*/
+static unsigned char inited;
+
+
+/*	Number of pending "bongs", that is, the number of coins that have
+*	arrived since last called.
+*/
+static char pending_bongs;
+
+/*  The following is a union to allow a quick check for "something changed".
+*   This will not work if sizeof(long) < 4. I am not losing too much sleep
+*   about that.
+*/
+static volatile union cnct
+{
+    unsigned long gang;		/* counters below, ganged for comparison */
+    unsigned short mine[2];	/* counters below, ganged for comparison */
+    unsigned char ctrs[4];	/* individual counters, one per mech. */
+} irq_cnt;			/* this set is incremented by cn_add_coin() */
+
+static union cnct my_cnt; 	/* this set is incremented by cn_check() */
+
+void cn_add_coin( mech )
+int mech;
+{
+    if ( mech >= 0 && mech < sizeof(irq_cnt.ctrs) && inited ) {
+	++irq_cnt.ctrs[mech];
+	cn_click_counter(mech);
+    }
+}
+
+/*		cn_check()
+*	Checks for any change in the number of coins seen, and propagates
+*	it to credits, coins, bonus coins, etc.  This routine replaces most
+*	of the functionality of cvt_crdt(), and returns non-zero if any
+*	new coins were processed. It _also_ increments pending_bongs if
+*	so. The routine cn_bong() returns the number of pending bongs
+*	(New coins) and clears it.
+*
+*	This routine _MUST_NOT_ be called from interrupt level (you know
+*	who you are!) as it must not be re-entered. it is the single point
+*	where consistency is maintained.
+*/
+int
+cn_check()
+{
+    short i;
+    unsigned short int value,m,bonus;
+
+    if ( !inited ) return 0;	/* ignore coins until cn_init() called */
+
+    /* Check for free play */
+    if (cmode_free(coin_modes)) {
+	coins = 0;
+	return 0;
+    }
+
+    if ( irq_cnt.gang == my_cnt.gang ) return 0;
+
+    /* something has changed. scan the individual counters */
+    while ( irq_cnt.gang != my_cnt.gang )
+    {
+	/* keep doing this in case new coins come in while we are looking or
+	* we need to handle multiple coins on one mech this call. The speed-up
+	* of not doing a multiply by one in the normal case should outweigh
+	* the cost of doing this loop twice once in a blue moon.
+	*/
+	for (i = 3 ; i >= 0 ; --i)
+	{
+	    /* check individual cntrs, "acknowledging" any coins by bumping
+	    *  the corresponding byte of my_cnt;
+	    */
+	    if ( irq_cnt.ctrs[i] == my_cnt.ctrs[i] ) continue; /* no change */
+	    ++my_cnt.ctrs[i];			/* "ack" one coin */
+	    ++pending_bongs;	    		/* keep track for sounds */
+	    value = 1;
+	    /* Handle the Mech multiplier */
+	    eer_incs(i+EER_CC0,1);		/* bump coin count */
+	    if ( i == 1 ) value = cmode_rmul(coin_modes) + 1;
+	    else if ( i == 0 ) value = cmode_lmul(coin_modes) + 1;
+	    coins += value;
+	    bccnt += value;
+	}		/* end for */
+    } /* end while */
+    /* Now deal with the BONUS ADDER */
+    if ((bonus = cmode_award(coin_modes)) != 0) {
+	/* If "award" non-zero, get modulus, aka threshold */
+	m = cmode_thresh(coin_modes)+2;
+	while (bccnt >= m) {
+	    bccnt -= m;
+	    bc += bonus;
+	} /* end while */
+    }
+    return 1;
+}
+
+/*			cn_bong()
+*	returns (and clears) number of pending "bongs", that is, the number
+*	of coins that have arrived since last called. This routine calls
+*	cn_check() to update pending_bongs (and other coin-related stuff),
+*	then returns/clears pending_bongs.
+*/
+int
+cn_bong()
+{
+    int bongs;
+
+    (void) cn_check();
+    bongs = pending_bongs;
+    pending_bongs = 0;
+    return bongs;
+}
+
+/*		cn_init()
+*	gets coin_mode info from eeprom, if possible. returns -1 if it
+*	fails. Sets "inited" if it succeeds. No coins will be accepted
+*	if inited == 0;
+*/
+int
+cn_init()
+{
+    int retval;
+
+    retval = eer_gets(EER_CNOPT);
+    if ( retval >= 0 ) {
+	coin_modes = (unsigned short) retval;
+	my_cnt.gang = irq_cnt.gang;		/* no pending coins	*/
+	inited = 1;
+    }
+    return retval;
+}
+
+/*		cn_discount()
+*	Returns 0 if there is no discount for a continued game, else returns
+*	The default price of such a game ((new_game_price + 1)/2).
+*	(returns -1 if called before cn_init() )
+*/
+int
+cn_discount()
+{
+
+    if ( !inited ) return -1;
+    if (cmode_discnt(coin_modes) == 0 ) {
+	return 0;
+    }
+    return (cmode_cost(coin_modes) + 2) >> 1;
+}
+
+
+/* 		cn_price()
+* 	Return the price of a credit - 0-8 coins,
+*	or -1 if called before cn_init()
+*/
+int
+cn_price()
+{
+
+    if ( !inited ) return -1;
+    if (cmode_free(coin_modes)) return(0);
+    return(cmode_cost(coin_modes)+1);
+}
+
+
+/* 		cn_credits()
+*  Return the current "balance", Because we cannot expect Game programmers to
+*  properly declare this one, and GreenHills is iffy on structure-valued
+*  functions. This returns a signed long which is packed as follows:
+*	D31-16	Whole credits
+*	D15-8	Numerator of partial credits
+*	D7-0	Denominator of partial credits
+*  Returns -1 if called before cn_init();
+*/
+long
+cn_credits()
+{
+    unsigned short credits,nxtcrd,price;
+    unsigned short numer,denom;
+
+    if ( !inited ) return -1;
+
+    /*	Always enough in free play */
+    if ((price = cn_price()) == 0) return(MAX_NEEDED_CREDS << 16);
+
+    (void) cn_check();
+    /*	coins needed for next credit */
+    nxtcrd = price - (coins % price );
+
+    /* The following transfers any bonus coins that would make a difference in
+    *  the number of credits when added to real coins
+    */
+    if ( bc >= nxtcrd ) {
+	bc -= nxtcrd;
+	coins += nxtcrd;
+    }
+
+    /* Now transfer any "whole credits" */
+    while (bc >= price)	{
+	bc -= price;
+	coins += price;
+    }
+
+    if (coins > MAXCOINS) coins = MAXCOINS;	/* Limit accrued coins */
+    credits = coins/price;
+    numer = coins%price;
+    denom = price;
+
+#if (CREDS_REDUCE)
+    /* The vast majority of reducible fractions are even. reduce them */
+    while ( ((denom | numer) & 1) == 0 ) {
+	denom >>= 1;
+	numer >>= 1;
+    }
+
+    /* The only other case (as long a cost is 1-8) is 3/6. Check for it */
+    if ( (numer == 3) && (denom == 6) ) {
+	numer = 1;
+	denom = 2;
+    }
+#endif
+
+    return(credits<<16) | (numer << 8) | (denom);
+}
+
+/* 		cn_continues()
+*   	Return the current credit "balance" as used for continues rather than
+*   	whole games.
+*   	Returns -1 if called before cn_init();
+*/
+long
+cn_continues()
+{
+    m_uint credits,nxtcrd,price;
+    m_uint numer,denom;
+
+    if ( !inited ) return -1;
+    /*	Always enough in free play */
+    if ((price = cn_price()) == 0) return(MAX_NEEDED_CREDS << 16);
+
+    if ( cmode_discnt(coin_modes) ) price = cn_discount();
+    (void) cn_check();
+    /*	coins needed for next credit */
+    nxtcrd = price - (coins % price );
+
+    /* The following transfers any bonus coins that would make a difference in
+    *  the number of credits when added to real coins
+    */
+    if ( bc >= nxtcrd ) {
+	bc -= nxtcrd;
+	coins += nxtcrd;
+    }
+
+    /* Now transfer any "whole credits" */
+    while (bc >= price)	{
+	bc -= price;
+	coins += price;
+    }
+
+    if (coins > MAXCOINS) coins = MAXCOINS;	/* Limit accrued coins */
+    credits = coins/price;
+    numer = coins%price;
+    denom = price;
+
+#if (CREDS_REDUCE)
+    /* The vast majority of reducible fractions are even. reduce them */
+    while ( ((denom | numer) & 1) == 0 ) {
+	denom >>= 1;
+	numer >>= 1;
+    }
+
+    /* The only other case (as long a cost is 1-8) is 3/6. Check for it */
+    if ( (numer << 1) == denom ) {
+	numer = 1;
+	denom = 2;
+    }
+#endif
+
+    return(credits<<16) | (numer << 8) | (denom);
+}
+
+
+/* 		cn_debit(number)
+*  	Subtract the appropriate number of "credits".
+*  	Now that the hazards between IRQ/Mainline have been removed, there is
+*  	no reason this should be in assembly for final
+*/
+int
+cn_debit(number)
+unsigned int number;	/* number of credits to subtract */
+{
+    unsigned short price;
+    unsigned short whole;
+
+    if ( !inited ) return -1;
+    /*	Always enough in free play */
+    if ((price = (short)cn_price() ) == 0) return(1);
+
+    whole = cn_credits() >> 16;
+    if ( whole >= number ) {
+    	coins -= (price * number);
+	return(1);
+    }
+    return(0);
+}
+
+/* 		cn_dbcoin()
+*	Subtract the appropriate number of coins. No longer need we lose any
+*	sleep over this not being in assembly. This routine is provided so
+*	games which give a discount for "continue" can deduct less than one
+*	whole "credit". The recomended number of coins for such a case can
+*	be gotten by calling cn_discount(), which returns 0 to mean:
+*	"no discount, charge a whole credit".
+*/
+int
+cn_dbcoin(number)
+int number;
+{
+
+    if ( !inited ) return -1;
+    if (cn_price() == 0) return(1);	/* Don't mess with free-play */
+
+    (void) cn_check();
+    if (number > (coins + bc) ) {
+	return(0); /* Not enough, even with bonus */
+    }
+
+    /*	first take the bonus coins */
+    while (number > 0 && bc != 0) {
+	--number;
+	bc -= 1;
+    }
+
+    /* Then take any remainder out of real coins */
+    coins -= number;
+
+    return(1);
+}
+
+/*		cn_chkcoin()
+*	Essentially duplicates the checking of cn_dbcoin, without doing
+*	the decrement. Returns 0 if insufficient coins, 1 if sufficient.
+*/
+int
+cn_chkcoin(number)
+int number;
+{
+
+    if ( !inited ) return -1;
+    if (cn_price() == 0) return(1);	/* Don't mess with free-play */
+
+    (void) cn_check();
+
+    if (number > (coins + bc) ) {
+	return(0); /* Not enough, even with bonus */
+    }
+    return(1);
+}
+
+/*		cn_next()
+*	Returns the number of COINS needed to reach one full credit.
+*	Returns zero if a full credit is already available.
+*/
+int
+cn_next(contin)
+int contin;
+{
+    int price;
+
+    if ( !inited ) return -1;
+    if ( (price = cn_price()) == 0) return(0);	/* Don't mess with free-play */
+
+    (void) cn_check();
+
+    if ( contin && cmode_discnt(coin_modes) ) price = cn_discount();
+
+    if ( price <= (coins + bc) ) {
+	return(0); /* plenty, no problem */
+    }
+    return price - (coins + bc);
+}
+
+/*		cn_zap_bonus()
+*	Clear all partial or full bonus coins. This is _supposed_ to be
+*	called at the start (or end) of a game, because mktg lives in fear
+*	that someone, somewhere, will get the benfit of someone elses
+*	partial bonus...
+*/
+void
+cn_zap_bonus()
+{
+    bc = bccnt = 0;
+}
+
+/* 		cn_total_creds()
+*	Returns total credits, which is to say, total coins divided by
+*	current price of a game. Needless to say, this also depends on the
+*	price not having changed since the stats were cleared
+*/
+unsigned long cn_total_creds()
+{
+    unsigned short div;
+    int mode;
+
+    mode = eer_gets(EER_CNOPT);
+    if ( mode < 0 ) return -1;
+
+    if (cmode_free(mode)) return(0);
+    div = cmode_cost(mode)+1;
+    return cn_total_coins()/div;
+}
+
+
+/* 		cn_coins()
+*   	Returns -1 if called before cn_init();
+*   	Returns 0 if called in free play;
+*	else returns the number of credits and bonus credits.
+*/
+int
+cn_coins()
+{
+    int price;
+
+    if ( !inited ) return -1;
+    if ( (price = cn_price()) == 0) return(0);	/* Don't mess with free-play */
+
+    (void) cn_check();
+
+    return (coins + bc);
+}
+
+#ifdef INCL_MENU
+/* The Menu below is encoded per the scheme outlined at dispopt() in stats.c
+*	Since it is actually one string,  no comments can be included.  The
+* 	octal values shown are translated as follows:
+*		\171 represents 1 bit starting at bit #15 (\017,$0F)
+*		\065 represents 5 bits starting at bit #6 (\006,$06)
+*/
+
+const unsigned char coinmenu[] =
+"\171Free Play:\000*No\000Yes\000\
+\161Discount to continue:\000No\000*Yes\000\
+\133Game cost:\000\
+*1 Coin 1 Credit\000\
+2 Coins 1 Credit\000\
+3 Coins 1 Credit\000\
+4 Coins 1 Credit\000\
+5 Coins 1 Credit\000\
+6 Coins 1 Credit\000\
+7 Coins 1 Credit\000\
+8 Coins 1 Credit\000\
+\065Bonus for quantity buy-in:\000\
+*None\0002 coins give 1\000\000\000\
+\0003 coins give 1\0003 coins give 2\000\000\
+\0004 coins give 1\0004 coins give 2\0004 coins give 3\000\
+\0005 coins give 1\0005 coins give 2\0005 coins give 3\000\
+\0006 coins give 1\0006 coins give 2\0006 coins give 3\000\
+\0007 coins give 1\0007 coins give 2\0007 coins give 3\000\
+\0008 coins give 1\0008 coins give 2\0008 coins give 3\000\
+\0009 coins give 1\0009 coins give 2\0009 coins give 3\000\
+\033Right Mech Value:\000\
+*1 Coin Counts as 1 Coin\000\
+1 Coin Counts as 2 Coins\000\
+1 Coin Counts as 3 Coins\000\
+1 Coin Counts as 4 Coins\000\
+1 Coin Counts as 5 Coins\000\
+1 Coin Counts as 6 Coins\000\
+1 Coin Counts as 7 Coins\000\
+1 Coin Counts as 8 Coins\000\
+\003Left Mech Value:\000\
+*1 Coin Counts as 1 Coin\000\
+1 Coin Counts as 2 Coins\000\
+1 Coin Counts as 3 Coins\000\
+1 Coin Counts as 4 Coins\000\
+1 Coin Counts as 5 Coins\000\
+1 Coin Counts as 6 Coins\000\
+1 Coin Counts as 7 Coins\000\
+1 Coin Counts as 8 Coins\000";
+#endif
+@
+
+
+1.2
+log
+@made explicit comparison to zero in one "if" statement. This stifles one
+warning from gcc 2.*
+@
+text
+@d73 1
+a73 1
+*		
+d135 2
+a136 2
+/*	Number of pending "bongs", that is, the number of coins that have 
+*	arrived since last called. 
+d144 1
+a144 1
+static volatile union cnct 
+d229 1
+a229 1
+*	of coins that have arrived since last called. This routine calls 
+d281 2
+a282 2
+* 	Return the price of a credit - 0-8 coins, 
+*	or -1 if called before cn_init() 
+d355 1
+a355 1
+*   	Return the current credit "balance" as used for continues rather than 
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d216 1
+a216 1
+    if (bonus = cmode_award(coin_modes)) {
+@

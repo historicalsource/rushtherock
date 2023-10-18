@@ -1,0 +1,544 @@
+head	1.4;
+access;
+symbols
+	CJ_206:1.4
+	CJ2_05:1.4
+	CJ2_04:1.4
+	CJ2_03:1.4;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	95.09.14.17.46.08;	author birmingham;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.07.18.16.33.53;	author birmingham;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.06.09.00.24.56;	author albaugh;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	94.12.16.16.43.57;	author albaugh;	state Exp;
+branches;
+next	;
+
+
+desc
+@Blitter Control for Jaguar
+@
+
+
+1.4
+log
+@Added code to each blit function which sets A1_CLIP to zero
+just in case the clipping bug documented by Atari Corp. is
+the cause of the garbage pixel(s) seen when copying, clearing,
+etc.
+@
+text
+@/***********************************************************************
+* BLITLIB.C | Blitter Library Functions | Author: Robert M. Birmingham *
+* ==================================================================== *
+* This module contains functions for performing memory operations      *
+* with the Jaguar's Blitter hardware.                                  *
+* ==================================================================== *
+* Copyright 1994, Atari Games.                                         *
+***********************************************************************/
+
+/* the MIPS version of CoJag GUTS places the contents of
+ * jag_defs (Atari Corp names for Jaguar hardware) in config.h,
+ * bracketed by #ifdef NEED_CORP_DEFS. This is to accomodate
+ * the pre-processor hacks the MIPS assembler needs.
+ * The 68K version will be changed to this scheme as time allows,
+ * but for now we key on the first such definition (T2HADDR)
+ * to decide whether to include a separate jag_defs.h.
+ */
+
+#define NEED_CORP_DEFS (1)
+#include <config.h>
+#ifndef T2HADDR
+#include <jag_defs.h>
+#endif
+#include <blit.h>
+#include <blitlib.h>
+
+#define  MAX_PIXELS  (32760)
+
+static const U32 shift_tab[] = { 2, 0, 1, 0 };
+static const U32 pixel_tab[] = { PIXEL8, PIXEL16, PIXEL32 };
+
+
+/*
+** *****************************************
+** blit_clear():
+** Clear memory using the blitter.
+** =========================================
+** Usage:
+**   blit_clear( memptr, numbytes );
+**
+**   U8 *memptr:   ptr to memory to clear.
+**   U32 numbytes: number of bytes to clear.
+**
+** Returns:
+**   Nothing.
+** *****************************************
+*/
+
+void blit_clear( memptr, nbytes )
+U8 *memptr;
+U32 nbytes;
+{
+    U32 pixel_shift;
+    U32 bltpix_size;
+    U32 num_pixels;
+    U32 large_block;
+    U32 small_block;
+
+
+    /* convert host address to Tom address */
+    memptr = (U8 *)H2TADDR( memptr );
+
+    /* convert number of bytes to copy into number of pixels to copy */
+    pixel_shift = shift_tab[ (U32)memptr & 3 ];
+    num_pixels = nbytes >> pixel_shift;
+
+    /* lookup pixel size used for blitter flags register */
+    bltpix_size = pixel_tab[ pixel_shift ];
+
+    /*
+    ** Split the number of pixels to process into two blocks.
+    ** The first block represents the number of times to blit
+    ** MAX_PIXELS (large_block could be zero).  The second
+    ** block represents any remaining pixels, if the total
+    ** number of pixels was not divisible by MAX_PIXELS.
+    */
+
+    large_block = num_pixels / MAX_PIXELS;
+    small_block = num_pixels - large_block;
+
+    /* clear the large block */
+    if( large_block > 0 )
+        {
+        blit_wait();
+        A1_FLAGS = WID3584 | bltpix_size | PITCH1 | XADDPHR;
+        A1_BASE = (U32)memptr & 0xfffffff8;
+        A1_PIXEL = ((U32)memptr & 0x7) >> pixel_shift;
+        A1_STEP = 0;
+        A1_CLIP = 0;
+        B_COUNT = (large_block << 16) | MAX_PIXELS;
+        B_CMD = LFU_ZERO | UPDA1;
+        memptr += (large_block << pixel_shift);
+        }
+
+    /* clear the small block */
+    if( small_block > 0 )
+        {
+        blit_wait();
+        A1_FLAGS = WID3584 | bltpix_size | PITCH1 | XADDPHR;
+        A1_BASE = (U32)memptr & 0xfffffff8;
+        A1_PIXEL = ((U32)memptr & 0x7) >> pixel_shift;
+        A1_STEP = 0;
+        A1_CLIP = 0;
+        B_COUNT = 0x00010000 | small_block;
+        B_CMD = LFU_ZERO | UPDA1;
+        }
+
+}   /* End: blit_clear() */
+
+
+/*
+** ********************************************
+** blit_pattern():
+** Set memory to specified pattern phrase.
+** ============================================
+** Usage:
+**   blit_pattern( memptr, numbytes, pattern );
+**
+**   U8 *memptr:      ptr to memory to set.
+**   U32 numbytes:    number of bytes to set.
+**   PHRASE pattern:  pattern data to set.
+**
+** Returns:
+**   Nothing.
+** ********************************************
+*/
+
+void blit_pattern( memptr, nbytes, pattern )
+U8 *memptr;
+U32 nbytes;
+PHRASE pattern;
+{
+    U32 pixel_shift;
+    U32 bltpix_size;
+    U32 num_pixels;
+    U32 large_block;
+    U32 small_block;
+
+
+    /* convert host address to Tom address */
+    memptr = (U8 *)H2TADDR( memptr );
+
+    /* convert number of bytes to copy into number of pixels to copy */
+    pixel_shift = shift_tab[ (U32)memptr & 3 ];
+    num_pixels = nbytes >> pixel_shift;
+
+    /* lookup pixel size used for blitter flags register */
+    bltpix_size = pixel_tab[ pixel_shift ];
+
+    /*
+    ** Split the number of pixels to process into two blocks.
+    ** The first block represents the number of times to blit
+    ** MAX_PIXELS (large_block could be zero).  The second
+    ** block represents any remaining pixels, if the total
+    ** number of pixels was not divisible by MAX_PIXELS.
+    */
+
+    large_block = num_pixels / MAX_PIXELS;
+    small_block = num_pixels - large_block;
+
+    /* set the large block */
+    if( large_block > 0 )
+        {
+        blit_wait();
+        A1_FLAGS = WID3584 | bltpix_size | PITCH1 | XADDPHR;
+        A1_BASE = (U32)memptr & 0xfffffff8;
+        A1_PIXEL = ((U32)memptr & 0x7) >> pixel_shift;
+        A1_STEP = 0;
+        A1_CLIP = 0;
+        B_COUNT = (large_block << 16) | MAX_PIXELS;
+        B_PATD1 = pattern.hi32;
+        B_PATD2 = pattern.lo32;
+        B_CMD = PATDSEL | UPDA1;
+        memptr += (large_block << pixel_shift);
+        }
+
+    /* set the small block */
+    if( small_block > 0 )
+        {
+        blit_wait();
+        A1_FLAGS = WID3584 | bltpix_size | PITCH1 | XADDPHR;
+        A1_BASE = (U32)memptr & 0xfffffff8;
+        A1_PIXEL = ((U32)memptr & 0x7) >> pixel_shift;
+        A1_STEP = 0;
+        A1_CLIP = 0;
+        B_COUNT = 0x00010000 | small_block;
+        B_PATD1 = pattern.hi32;
+        B_PATD2 = pattern.lo32;
+        B_CMD = PATDSEL | UPDA1;
+        }
+
+}   /* End: blit_pattern() */
+
+
+/*
+** **********************************************
+** blit_copy():
+** Copy a block of memory using the blitter.
+** ==============================================
+** Usage:
+**   blit_copy( dstptr, srcptr, numbytes );
+**
+**   U8 *dstptr:    ptr to destination memory.
+**   U8 *srcptr:    ptr to source memory.
+**   U32 numbytes:  number of phrases to copy.
+**
+** Returns:
+**   Nothing.
+** **********************************************
+*/
+
+void blit_copy( dstptr, srcptr, nbytes )
+U8 *dstptr;
+U8 *srcptr;
+U32 nbytes;
+{
+    U32 pixel_shift;
+    U32 num_pixels;
+    U32 blit_flags;
+    U32 large_block;
+    U32 small_block;
+    U32 spixel;
+    U32 dpixel;
+
+
+    /* convert host addresses to Tom addresses */
+    srcptr = (U8 *)H2TADDR( srcptr );
+    dstptr = (U8 *)H2TADDR( dstptr );
+
+    /* convert number of bytes to copy into number of pixels to copy */
+    pixel_shift = shift_tab[ (U32)srcptr & 3 ];
+    num_pixels = nbytes >> pixel_shift;
+
+    /* set value used for both source and dest FLAGS register */
+    blit_flags = WID3584 | pixel_tab[pixel_shift] | PITCH1 | XADDPHR;
+
+    /*
+    ** Split the number of pixels to process into two blocks.
+    ** The first block represents the number of times to blit
+    ** MAX_PIXELS (large_block could be zero).  The second
+    ** block represents any remaining pixels, if the total
+    ** number of pixels was not divisible by MAX_PIXELS.
+    */
+
+    num_pixels = nbytes >> pixel_shift;
+    large_block = num_pixels / MAX_PIXELS;
+    small_block = num_pixels - large_block;
+
+    /* set up the blitter's destination registers */
+    if( large_block > 0 )
+        {
+        blit_wait();
+
+        /* set up the blitter's source registers */
+        A2_FLAGS = blit_flags;
+        A2_BASE = (U32)srcptr & 0xfffffff8;
+        A2_PIXEL = spixel = ((U32)srcptr & 0x7) >> pixel_shift;
+        A2_STEP = 0;
+
+        /* set up the blitter's destination registers */
+        A1_FLAGS = blit_flags;
+        A1_BASE = (U32)dstptr & 0xfffffff8L;
+        A1_PIXEL = dpixel = ((U32)dstptr & 0x7) >> pixel_shift;
+        A1_STEP = 0;
+        A1_CLIP = 0;
+
+        B_COUNT = (large_block << 16) | MAX_PIXELS;
+
+        if( spixel > dpixel )
+            B_CMD = SRCEN|SRCENX|LFU_REPLACE;
+        else
+            B_CMD = SRCEN|LFU_REPLACE;
+ 
+        srcptr += (large_block << pixel_shift);
+        dstptr += (large_block << pixel_shift);
+        }
+
+    if( small_block > 0 )
+        {
+        blit_wait();
+
+        /* set up the blitter's source registers */
+        A2_FLAGS = blit_flags;
+        A2_BASE = (U32)srcptr & 0xfffffff8;
+        A2_PIXEL = spixel = ((U32)srcptr & 0x7) >> pixel_shift;
+        A2_STEP = 0;
+
+        /* set up the blitter's destination registers */
+        A1_FLAGS = blit_flags;
+        A1_BASE = (U32)dstptr & 0xfffffff8L;
+        A1_PIXEL = dpixel = ((U32)dstptr & 0x7) >> pixel_shift;
+        A1_STEP = 0;
+        A1_CLIP = 0;
+
+        B_COUNT = 0x00010000 | small_block;
+
+        if( spixel > dpixel )
+            B_CMD = SRCEN|SRCENX|LFU_REPLACE;
+        else
+            B_CMD = SRCEN|LFU_REPLACE;
+        }
+
+}   /* End: blit_copy() */
+
+
+/*
+** *********************************
+** blit_status():
+** Return the status of the blitter.
+** =================================
+** Usage:
+**   status = blit_status();
+**
+** Returns:
+**   32 bit status of blitter.
+** *********************************
+*/
+
+
+U32 blit_status( void )
+{
+    return( B_CMD );
+
+}   /* End: blit_status() */
+
+
+/*
+** *********************************
+** blit_wait():
+** Waits until the blitter is idle.
+** =================================
+** Usage:
+**   blit_wait();
+**
+** Returns:
+**   Nothing.
+** *********************************
+*/
+
+void blit_wait( void )
+{
+    while( !(blit_status() & 0x00000001L) );
+}
+
+/*************************************************************************
+* End of file: BLITLIB.C                                                 *
+*************************************************************************/
+@
+
+
+1.3
+log
+@Rewrote all blit functions to process as much data as possible
+at one time. Previously, the block was processed in smaller
+sections.  This could result in a small improvement in speed.
+@
+text
+@d89 1
+d103 1
+d169 1
+d185 1
+d265 1
+d293 1
+@
+
+
+1.2
+log
+@added kluge for MIPS or 68k style includes (jag_defs)
+@
+text
+@d9 1
+d18 1
+a52 5
+    static const U32 shift_tab[] = { 2, 0, 1, 0 };
+    static const U32 pixel_tab[] = { PIXEL8, PIXEL16, PIXEL32 };
+
+    U32 num_pixels;
+    U32 rem_pixels;
+d55 3
+d65 1
+a65 1
+    rem_pixels = nbytes >> pixel_shift;
+d70 35
+a104 20
+    while( rem_pixels > 0 )
+          {
+          blit_wait();
+
+          /* calc. number of pixels to blit in this block */
+          num_pixels = (rem_pixels < MAX_PIXELS) ? rem_pixels : MAX_PIXELS;
+
+          /* set up the blitter's destination registers */
+          A1_FLAGS = WID3584 | bltpix_size | PITCH1 | XADDPHR;
+          A1_BASE = (U32)memptr & 0xfffffff8;
+          A1_PIXEL = ((U32)memptr & 0x7) >> pixel_shift;
+          A1_STEP = 0;
+          B_COUNT = 0x00010000 | num_pixels;
+          B_PATD1 = 0x0;
+          B_PATD2 = 0x0;
+          B_CMD = PATDSEL | UPDA1;
+ 
+          memptr += (num_pixels << pixel_shift);
+          rem_pixels -= num_pixels;
+          }
+d119 1
+a119 1
+**   PHRASE *pattern: pattern data to set.
+a130 5
+    static const U32 shift_tab[] = { 2, 0, 1, 0 };
+    static const U32 pixel_tab[] = { PIXEL8, PIXEL16, PIXEL32 };
+
+    U32 num_pixels;
+    U32 rem_pixels;
+d133 3
+d141 1
+a141 1
+    /* convert number of bytes to set into number of pixels to copy */
+d143 1
+a143 1
+    rem_pixels = nbytes >> pixel_shift;
+d148 39
+a186 20
+    while( rem_pixels > 0 )
+          {
+          blit_wait();
+
+          /* calc. number of pixels to blit in this block */
+          num_pixels = (rem_pixels < MAX_PIXELS) ? rem_pixels : MAX_PIXELS;
+
+          /* set up the blitter's destination registers */
+          A1_FLAGS = WID3584 | bltpix_size | PITCH1 | XADDPHR;
+          A1_BASE = (U32)memptr & 0xfffffff8;
+          A1_PIXEL = ((U32)memptr & 0x7) >> pixel_shift;
+          A1_STEP = 0;
+          B_COUNT = 0x00010000 | num_pixels;
+          B_PATD1 = pattern.hi32;
+          B_PATD2 = pattern.lo32;
+          B_CMD = PATDSEL | UPDA1;
+ 
+          memptr += (num_pixels << pixel_shift);
+          rem_pixels -= num_pixels;
+          }
+d213 5
+a219 4
+    U32 num_pixels;
+    U32 rem_pixels;
+    U32 pixel_shift;
+    U32 blit_flags;
+d228 1
+a228 1
+    rem_pixels = nbytes >> pixel_shift;
+d233 35
+a267 25
+    while( rem_pixels > 0 )
+          {
+          blit_wait();
+
+          /* calc. number of pixels to blit in this block */
+          num_pixels = (rem_pixels < MAX_PIXELS) ? rem_pixels : MAX_PIXELS;
+
+          /* set up the blitter's source registers */
+          A2_FLAGS = blit_flags;
+          A2_BASE = (U32)srcptr & 0xfffffff8;
+          A2_PIXEL = spixel = ((U32)srcptr & 0x7) >> pixel_shift;
+          A2_STEP = 0;
+ 
+          /* set up the blitter's destination registers */
+          A1_FLAGS = blit_flags;
+          A1_BASE = (U32)dstptr & 0xfffffff8L;
+          A1_PIXEL = dpixel = ((U32)dstptr & 0x7) >> pixel_shift;
+          A1_STEP = 0;
+
+          B_COUNT = 0x00010000 | num_pixels;
+
+          if( spixel | dpixel )
+              B_CMD = SRCEN|SRCENX|LFU_REPLACE;
+          else
+              B_CMD = SRCEN|LFU_REPLACE;
+d269 27
+a295 4
+          srcptr += (num_pixels << pixel_shift);
+          dstptr += (num_pixels << pixel_shift);
+          rem_pixels -= num_pixels;
+          }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d9 9
+a17 1
+
+d19 1
+d21 1
+@

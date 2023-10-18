@@ -1,0 +1,98 @@
+head	1.4;
+access;
+symbols
+	MACE_1_0e:1.2
+	MACE_1_0d:1.2
+	RUSH_1_06A:1.1
+	AREA_52_00:1.2
+	MACE_1_0a:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.4
+date	97.09.23.19.57.47;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	97.09.23.17.40.20;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	97.07.01.20.40.44;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.07.27.22.01.50;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@This file is required to use the Cygnus/IDT math library functions.
+@
+
+
+1.4
+log
+@Allowed the #include <reent.h> so the compiler doesn't complain
+about an empty source file.
+@
+text
+@/* $Id: reent.c,v 1.3 1997/09/23 17:40:20 shepperd Exp shepperd $ */
+
+#include <reent.h>
+
+#if 0	/* The functionality of this file has been moved to mallocr.c */
+
+static struct _reent inpure_data;
+struct _reent *_impure_ptr;
+
+void reent_init() {    
+   inpure_data._stdin = &inpure_data.__sf[0];
+   inpure_data._stdout = &inpure_data.__sf[1]; 
+   inpure_data._stderr = &inpure_data.__sf[2];
+   inpure_data._next = 1;
+   _impure_ptr = &inpure_data;  
+}
+#endif
+@
+
+
+1.3
+log
+@Nulled out this file in case people forget to remove it from Makefile.
+@
+text
+@d1 1
+a1 1
+/* $Id: reent.c,v 1.2 1997/07/01 20:40:44 shepperd Exp shepperd $ */
+d3 2
+a5 1
+#include <reent.h>
+@
+
+
+1.2
+log
+@Added an $Id$ to comment fields to get file version numbers.
+@
+text
+@d1 1
+a1 1
+/* $Id$ */
+d3 1
+d16 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 2
+@

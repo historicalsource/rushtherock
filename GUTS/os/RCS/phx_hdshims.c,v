@@ -1,0 +1,976 @@
+head	1.16;
+access;
+symbols
+	RUSH_ROCK_1_0:1.16
+	RUSH_ROCK_1_0epst:1.16
+	MACE_1_0e:1.16
+	MACE_1_0d:1.16
+	RUSH_1_06A:1.12
+	AREA_52_00:1.16
+	MACE_1_0a:1.16;
+locks; strict;
+comment	@ * @;
+
+
+1.16
+date	97.03.07.02.12.51;	author albaugh;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	97.02.27.04.04.45;	author shepperd;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	97.01.31.02.42.52;	author shepperd;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	96.12.21.03.20.49;	author shepperd;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	96.12.06.02.26.25;	author shepperd;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	96.12.05.00.41.30;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.11.27.06.45.34;	author shepperd;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.11.27.05.39.27;	author shepperd;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.11.20.00.18.48;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.11.16.03.59.34;	author shepperd;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.11.15.04.27.20;	author shepperd;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.11.14.23.36.30;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.11.14.07.49.38;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.11.05.23.19.41;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.11.04.22.26.39;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.10.26.18.01.04;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Temporary shims for Thomas's hd functions.
+@
+
+
+1.16
+log
+@Changed all #ifs for MACE to MACE or JUKO. Starting
+to split the two games.
+@
+text
+@/************************** Things we need ***************************
+`ChangeToMole'		x
+`ForceMoleToStop'	x
+`NumLSN'		x
+`Read_Sectors'		x
+`Write_Sectors'		x
+`InitMole'		x
+`AllowMoleInGame'	x
+`WrFile'		x
+`HDStart'		x
+`RdFile'
+`read_file_section'
+ **********************************************************************/
+
+#include <config.h>
+#include <os_proto.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdio.h>
+#include <fcntl.h>
+#define QIO_LOCAL_DEFINES	1
+#include <qio.h>
+#include <nsprintf.h>
+#include <fsys.h>
+
+#ifndef AN_VIS_COL_MAX
+# define AN_VIS_COL_MAX AN_VIS_COL
+#endif
+#ifndef AN_VIS_ROW_MAX
+# define AN_VIS_ROW_MAX AN_VIS_ROW
+#endif
+
+#if USE_BUFFERED_IO
+#include <errno.h>
+#endif
+
+#if defined(WDOG) && !NO_EER_WRITE && !NO_WDOG
+# define KICK_WDOG() WDOG = 0
+#else
+# define KICK_WDOG() do { ; } while (0)
+#endif
+
+U32 NumLSN;
+
+int WrFileSegment(void) {
+    return 0;
+}
+
+int ide_check_devstat(void) {
+    return 0;
+}
+
+#if SHIM_VFPRINTF_R
+int _vfprintf_r (struct _reent *re, FILE *fp, const char *ctl, __VALIST va) {
+    return 0;
+}
+#endif
+
+#if SHIM_VFPRINTF
+int vfprintf ( FILE *fp, const char *ctl, __VALIST va) {
+    return 0;
+}
+#endif
+
+int Read_Sectors(U32 * readbuf, U32 lsn, U32 num_sectors) {
+    return 0;
+}
+
+int Write_Sectors(U32 * readbuf, U32 lsn, U32 num_sectors) {
+    return 0;
+}
+
+void InitMole(void) {
+    return;
+}
+
+void AllowMoleInGame(void) {
+    return;
+}
+
+void ChangeToMole(void) {
+    return;
+}
+
+void ForceMoleToStop(void) {
+    return;
+}
+
+int HDStart(void) {
+    static int been_here;
+    extern void ide_init(void);
+#if INCLUDE_HDDNL
+    extern void hddnlInit(void);
+#endif
+
+    if (!been_here) {
+	int sts;
+	been_here = 1;
+	ide_init();
+	sts = fsys_mountw("/rd0", "/d0");
+	if (QIO_ERR_CODE(sts)) {
+	    char msg[AN_VIS_COL_MAX];
+	    qio_errmsg(sts, msg, sizeof(msg));
+	    for (sts=AN_VIS_ROW/2-2; sts < AN_VIS_ROW/2+4; ++sts) {
+		txt_clr_wid(0, sts, AN_VIS_COL);
+	    }
+	    vid_clear();
+	    prc_delay_options(7);
+	    txt_str(-1, AN_VIS_ROW/2, "Error mounting filesystem", WHT_PAL);
+	    txt_str(-1, AN_VIS_ROW/2+2, msg, YEL_PAL);
+	    while (1) prc_delay(0);
+	}
+#if INCLUDE_HDDNL
+	hddnlInit();
+#endif
+    }
+    return 0;
+}
+	
+static void dump_errors(const char *title, const char *name, int err) {
+    int old;
+    char emsg[AN_VIS_COL_MAX];
+
+    qio_errmsg(err, emsg, sizeof(emsg));
+    old = prc_delay_options(7);
+    txt_str(1, AN_VIS_ROW/2, title, WHT_PAL);
+    txt_cstr(": Error reading file:", WHT_PAL);
+    txt_cstr(name, GRN_PAL);
+    txt_str(1, AN_VIS_ROW/2+2, emsg, YEL_PAL);
+    while (1) prc_delay(0);
+    prc_delay_options(old);
+    return;
+}
+
+static char *open_file(const char *path_str, const char *filename, QioIOQ *ioq,
+    			FsysOpenT *ot, int mode) {
+    int ii;
+    char *s, *new;
+
+    s = strchr(path_str, ':');
+    if (s) path_str = s+1;
+    ii = strlen(path_str) + strlen(filename) + 2 + 3 + 1;
+    s = new = QIOmalloc(ii);
+    if (!s) {
+	ii = prc_delay_options(7);
+	txt_str(1, AN_VIS_ROW/2, "open_file:", WHT_PAL);
+	txt_cstr(" Ran out of memory while trying to open:", YEL_PAL);
+	txt_str(1, AN_VIS_ROW/2+2, "/d0", GRN_PAL);
+	txt_cstr(path_str, GRN_PAL);
+	txt_cstr("/", GRN_PAL);
+	txt_cstr(filename, GRN_PAL);
+	while (1) prc_delay(0);
+	prc_delay_options(ii);
+    }	
+    strcpy(s, "/d0");
+    s += 3;
+    if (*path_str != '/') *s++ = '/';
+    strcpy(s, path_str);
+    s += strlen(path_str);
+    if (*filename != '/') *s++ = '/';
+    strcpy(s, filename);
+    ot->spc.path = new;
+    ot->spc.mode = mode;
+    ot->fid = 0;
+    ii = qio_openspc(ioq, &ot->spc);
+    while (!ii) {
+	ii = ioq->iostatus;
+	KICK_WDOG();
+    }
+    if (QIO_ERR_CODE(ioq->iostatus)) dump_errors("RdFile", new, ii);
+    return new;
+}
+
+static void chk_size(int alloc, U32 max_len, char *task, char *name) {
+    int old;
+    if (alloc > max_len) {		/* oops, file won't fit into memory */
+	old = prc_delay_options(7);
+	txt_str(1, AN_VIS_ROW/2, task, WHT_PAL);
+	txt_str(1, AN_VIS_ROW/2, " buffer too small for ", WHT_PAL);
+	txt_cstr(name, GRN_PAL);
+	txt_str(1, AN_VIS_ROW/2+2, "Available: ", WHT_PAL);
+	txt_cdecnum(max_len, 9, RJ_BF, GRN_PAL);
+	txt_cstr("  Need: ", WHT_PAL);
+	txt_cdecnum(alloc, 9, RJ_BF, GRN_PAL);
+	while (1) prc_delay(0);
+	prc_delay_options(old);
+    }
+#if 0
+    old = prc_delay_options(7);
+    txt_str(1, AN_VIS_ROW/2, task, WHT_PAL);
+    txt_cstr(" reading ", WHT_PAL);
+    txt_cstr(name, GRN_PAL);
+    txt_str(1, AN_VIS_ROW/2+2, "Available: ", WHT_PAL);
+    txt_cdecnum(max_len, 9, RJ_BF, GRN_PAL);
+    txt_cstr("  Need: ", WHT_PAL);
+    txt_cdecnum(alloc, 9, RJ_BF, GRN_PAL);
+    prc_delay(120);
+    txt_clr_wid(0, AN_VIS_ROW/2, AN_VIS_COL);
+    txt_clr_wid(0, AN_VIS_ROW/2+2, AN_VIS_COL);
+    prc_delay_options(old);
+#endif
+
+}
+
+#if INCLUDE_HDDNL
+extern void hddnl_check(int);
+#endif
+
+int RdFile(const char * path_str, const char * filename, U32 max_len, U32 * dest) {
+    QioIOQ *ioq;
+    FsysOpenT opnt;
+    char *b;
+    int ii, accum=0;
+
+#if INCLUDE_HDDNL
+    hddnl_check(1);			/* say it's unsafe to do hddnl now */
+#endif
+    max_len &= -512;			/* round size down size to multiple of 512 */
+    ioq = qio_getioq();
+    ioq->timeout = 5000000;		/* roughly a 5 second timeout */
+    b = open_file(path_str, filename, ioq, &opnt, O_RDONLY);
+    if (max_len) chk_size(opnt.eof, max_len, "RdFile", b);
+    while (1) {
+	ii = qio_read(ioq, dest, opnt.eof);
+	while (!ii) { 
+	    ii = ioq->iostatus;
+	    KICK_WDOG();
+	}
+	accum += ioq->iocount;
+	if (QIO_ERR_CODE(ii)) {
+	    if (ii == QIO_EOF) break;	/* EOF is a legit error to get */
+#if (SST_GAME & (SST_MACE|SST_JUKO))
+	    if (opnt.copies == 1) {
+		accum += 512;			/* include bad sector in total */
+		memset((char *)dest + ioq->iocount, 0, 512); /* zero the bad sector */
+		dest += (ioq->iocount+512)/sizeof(U32);	/* advance pointer */
+		opnt.eof -= ioq->iocount+512;	/* reduce total by how much we've read so far */
+		if (opnt.eof <= 0) break;	/* done */
+		ii = qio_lseek(ioq, accum, SEEK_SET); /* seek to one passed bad sector */
+		while (!ii) { 
+		    ii = ioq->iostatus;
+		    KICK_WDOG();
+		}
+		if (!QIO_ERR_CODE(ii)) continue; /* if seek worked, continue */
+	    }
+#endif
+	    dump_errors("RdFile", b, ii);
+	}
+	break;
+    }
+    ii = qio_close(ioq);
+    while (!ii) { 
+	KICK_WDOG();
+	ii = ioq->iostatus;
+    }
+    if (QIO_ERR_CODE(ii)) {
+#if (SST_GAME & (SST_MACE|SST_JUKO))
+	if (opnt.copies > 1)
+#endif
+	    dump_errors("RdFile", b, ii);
+    }
+    qio_freeioq(ioq);
+    QIOfree(b);
+#if INCLUDE_HDDNL
+    hddnl_check(0);			/* say it's safe to do hddnl now */
+#endif
+    return accum;
+}
+
+void WrFile(const char * path_str, const char * filename, U32 len, U32 * src) {
+    QioIOQ *ioq;
+    FsysOpenT opnt;
+    char *b;
+    int ii;
+
+#if INCLUDE_HDDNL
+    hddnl_check(1);			/* say it's unsafe to do hddnl now */
+#endif
+    ioq = qio_getioq();
+    ioq->timeout = 5000000;		/* roughly a 5 second timeout */
+    b = open_file(path_str, filename, ioq, &opnt, O_WRONLY);
+    ii = qio_write(ioq, src, len);
+    while (!ii) { 
+	ii = ioq->iostatus;
+	KICK_WDOG();
+    }
+    if (QIO_ERR_CODE(ioq->iostatus)) dump_errors("WrFile", b, ii);
+    ii = ioq->iocount;
+    qio_close(ioq);
+    while (!ioq->iostatus) { 
+	KICK_WDOG();
+    }
+    qio_freeioq(ioq);
+    QIOfree(b);
+#if INCLUDE_HDDNL
+    hddnl_check(0);			/* say it's safe to do hddnl now */
+#endif
+    return;
+}
+
+/*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+*
+*       Read any section from a file
+*         Upon entry: path_str -> path name to file
+*                     filename -> name of file to read from
+*                     start -> byte offset to start reading from
+*                     max_len -> number of bytes to read
+*                     dest -> pointer to mem space where data will be saved
+*         Upon exit: returned -> number of bytes actually read               */
+
+int read_file_section (const char * path_str, const char * filename, U32 start, U32 max_len, U32 * dest) {
+    QioIOQ *ioq;
+    FsysOpenT opnt;
+    char *b;
+    int ii, sts;
+
+#if INCLUDE_HDDNL
+    hddnl_check(1);			/* say it's unsafe to do hddnl now */
+#endif
+    ioq = qio_getioq();
+    ioq->timeout = 5000000;		/* roughly 5 second timeout */
+    b = open_file(path_str, filename, ioq, &opnt, O_RDONLY);
+
+    if ((start&511)) {
+#if USE_BUFFERED_IO && defined(JUNK_POOL_SIZE) && JUNK_POOL_SIZE
+	FILE *ifp;
+	ifp = fdopen(ioq->file, "r");
+	ii = fseek(ifp, start, SEEK_SET);
+	ii = fread((char *)dest, 1, max_len, ifp);
+	if (ii < 0) {
+#if (SST_GAME & (SST_MACE|SST_JUKO))
+	    if (opnt.copies == 1) {
+		ii = max_len;
+	    } else {
+#endif
+		int old;
+#if INCLUDE_HDDNL
+		hddnl_check(0);			/* say it's safe to do hddnl now */
+#endif
+		old = prc_delay_options(7);
+		txt_str(1, AN_VIS_ROW/2, "read_file_section - error reading file:", WHT_PAL);
+		txt_str(1, AN_VIS_ROW/2+1, "While trying to read ", WHT_PAL);
+		txt_str(1, AN_VIS_ROW/2+1, b, GRN_PAL);
+		qio_errmsg(errno, (char *)dest, max_len);
+		txt_str(1, AN_VIS_ROW/2+2, (char *)dest, YEL_PAL);
+		while (1) prc_delay(0);
+		prc_delay_options(old);
+#if (SST_GAME & (SST_MACE|SST_JUKO))
+	    }
+#endif
+	}
+	fclose(ifp);
+	ioq->complete = 0;
+	qio_close(ioq);
+	qio_freeioq(ioq);
+	QIOfree(b);
+#if INCLUDE_HDDNL
+	hddnl_check(0);			/* say it's safe to do hddnl now */
+#endif
+	return ii;
+#else
+	int old;
+
+#if INCLUDE_HDDNL
+	hddnl_check(0);			/* say it's safe to do hddnl now */
+#endif
+	old = prc_delay_options(7);
+	txt_str(1, AN_VIS_ROW/2, "RdFile - seek to non-sector aligned addr ", WHT_PAL);
+	txt_cdecnum(start, 9, RJ_BF, RED_PAL);
+	txt_str(1, AN_VIS_ROW/2+1, "While trying to read ", WHT_PAL);
+	txt_cstr(b, GRN_PAL);
+	while (1) prc_delay(0);
+	prc_delay_options(old);
+#endif
+    }
+    max_len &= -512;			/* round size down size to multiple of 512 */
+    ii = qio_lseek(ioq, start, SEEK_SET);
+    while (!ii) {
+	ii = ioq->iostatus;
+	KICK_WDOG();
+    }
+    if (QIO_ERR_CODE(ii)) {
+#if (SST_GAME & (SST_MACE|SST_JUKO))
+	if (opnt.copies > 1) 
+#endif
+	    dump_errors("read_file_section", b, ii);
+    } else {
+	int accum = 0;
+	if (start < opnt.eof) {
+	    if (max_len > opnt.eof-start) max_len = ((opnt.eof - start)+511)&-512;
+	    while (1) {
+		ii = qio_read(ioq, dest, max_len);
+		while (!ii) {
+		    ii = ioq->iostatus;
+		    KICK_WDOG();
+		}
+		accum += ioq->iocount;
+		if (QIO_ERR_CODE(ii)) {
+		    if (ii == QIO_EOF) break;	/* EOF is a legit error */
+#if (SST_GAME & (SST_MACE|SST_JUKO))
+		    if (opnt.copies == 1) {
+			accum += 512;		/* accumulate size of bad sector too */
+			memset((char *)dest + ioq->iocount, 0, 512); /* zero the bad sector */
+			dest += (ioq->iocount+512)/sizeof(U32);
+			max_len -= ioq->iocount+512;	/* reduce max available */
+			if (max_len <= 0) break;	/* done */
+			ii = qio_lseek(ioq, accum + start, SEEK_SET);
+			while (!ii) {
+			    ii = ioq->iostatus;
+			    KICK_WDOG();
+			}
+			if (!QIO_ERR_CODE(ii)) continue; /* keep reading */
+		    }
+#endif
+		    dump_errors("read_file_section", b, ii);
+		}
+		break;
+	    }
+	}
+	ii = accum;
+    }
+    sts = qio_close(ioq);
+    while (!sts) { 
+	sts = ioq->iostatus;
+	KICK_WDOG();
+    }
+    if (QIO_ERR_CODE(sts)) {
+#if (SST_GAME & (SST_MACE|SST_JUKO))
+	if (opnt.copies > 1)
+#endif
+	    dump_errors("read_file_section", b, sts);
+    }
+    qio_freeioq(ioq);
+    QIOfree(b);
+#if INCLUDE_HDDNL
+    hddnl_check(0);			/* say it's safe to do hddnl now */
+#endif
+    return ii;
+}
+
+@
+
+
+1.15
+log
+@Allowed for dynamic resolution. I.E. AN_VIS_COL et. al. can be made
+into ints instead of #defines. On 3dfx systems this is accompolished
+by defining the following in config.mac:
+DEC_CONST DYNAMIC_VIS_PIX 1
+DEC_CONST VIS_H_PIX_MAX whatever
+DEC_CONST VIS_V_PIX_MAX whatever
+After this, AN_VIS_COL, AN_VIS_ROW, VIS_V_PIX, VIS_H_PIX and
+SST_RESOLUTION become "extern int" instead of #defines.
+The new #defines AN_VIS_ROW_MAX and AN_VIS_COL_MAX are
+created (computed from VIS_H_PIX_MAX, VIS_V_PIX_MAX) so
+local arrays can be declared and this is the principle changed
+to this file.
+@
+text
+@d232 1
+a232 1
+#if SST_GAME == SST_MACE
+d257 1
+a257 1
+#if SST_GAME == SST_MACE
+d331 1
+a331 1
+#if SST_GAME == SST_MACE
+d348 1
+a348 1
+#if SST_GAME == SST_MACE
+d383 1
+a383 1
+#if SST_GAME == SST_MACE
+d400 1
+a400 1
+#if SST_GAME == SST_MACE
+d428 1
+a428 1
+#if SST_GAME == SST_MACE
+@
+
+
+1.14
+log
+@Changed all references to WDOG to the macro KICK_WDOG().
+@
+text
+@d26 7
+d102 1
+a102 1
+	    char msg[AN_VIS_COL];
+d122 1
+a122 1
+    char emsg[AN_VIS_COL];
+@
+
+
+1.13
+log
+@Added some MACE specific requests that disk read errors not
+die if there is only one copy of a file present.
+@
+text
+@d30 6
+d161 1
+a161 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+	WDOG = 0;
+#endif
+d220 1
+a220 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+	    WDOG = 0;
+#endif
+d235 1
+a235 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+		    WDOG = 0;
+#endif
+d246 1
+a246 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+	WDOG = 0;
+#endif
+d278 1
+a278 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+	WDOG = 0;
+#endif
+d284 1
+a284 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+	WDOG = 0;
+#endif
+d373 1
+a373 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+	WDOG = 0;
+#endif
+d388 1
+a388 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+		    WDOG = 0;
+#endif
+d403 1
+a403 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+			    WDOG = 0;
+#endif
+d418 1
+a418 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+	WDOG = 0;
+#endif
+@
+
+
+1.12
+log
+@Call hddnl_check() at appropriate places.
+@
+text
+@d202 1
+a202 1
+    int ii;
+d212 33
+a244 1
+    ii = qio_read(ioq, dest, opnt.eof);
+a245 1
+	ii = ioq->iostatus;
+d249 1
+d251 3
+a253 6
+    if (QIO_ERR_CODE(ioq->iostatus)) dump_errors("RdFile", b, ii);
+    ii = ioq->iocount;
+    qio_close(ioq);
+    while (!ioq->iostatus) { 
+#if defined(WDOG) && !BOOT_FROM_DISK
+	WDOG = 0;
+d255 1
+d262 1
+a262 1
+    return ii;
+d330 6
+a335 1
+	    int old;
+d337 12
+a348 1
+	    hddnl_check(0);			/* say it's unsafe to do hddnl now */
+a349 8
+	    old = prc_delay_options(7);
+	    txt_str(1, AN_VIS_ROW/2, "read_file_section - error reading file:", WHT_PAL);
+	    txt_str(1, AN_VIS_ROW/2+1, "While trying to read ", WHT_PAL);
+	    txt_str(1, AN_VIS_ROW/2+1, b, GRN_PAL);
+	    qio_errmsg(errno, (char *)dest, max_len);
+	    txt_str(1, AN_VIS_ROW/2+2, (char *)dest, YEL_PAL);
+	    while (1) prc_delay(0);
+	    prc_delay_options(old);
+d383 30
+a412 7
+    if (QIO_ERR_CODE(ii)) dump_errors("read_file_section", b, ii);
+    ii = 0;
+    if (start < opnt.eof) {
+	if (max_len > opnt.eof-start) max_len = ((opnt.eof - start)+511)&-512;
+	ii = qio_read(ioq, dest, max_len);
+	while (!ii) {
+	    ii = ioq->iostatus;
+d414 1
+a414 1
+	    WDOG = 0;
+d416 10
+a425 3
+        }
+	if (QIO_ERR_CODE(ioq->iostatus)) dump_errors("read_file_section", b, ii);
+	ii = ioq->iocount;
+d434 6
+a439 1
+    if (QIO_ERR_CODE(sts)) dump_errors("read_file_section", b, sts);
+@
+
+
+1.11
+log
+@Added part 1 of support for hddnl.
+@
+text
+@d194 4
+d204 3
+d229 3
+d241 3
+d264 3
+d286 3
+d301 3
+d318 3
+d325 3
+d369 3
+@
+
+
+1.10
+log
+@Added a WrFile() function.
+@
+text
+@a77 1
+
+d79 2
+a80 3
+#if 0
+    extern void fsys_init(void);
+    extern int fsys_mountw(const char *phys, const char *virt);
+d100 3
+@
+
+
+1.9
+log
+@Added option to use buffered I/O if pointers are misaligned.
+@
+text
+@a59 4
+void WrFile(const char * path_str, const char * filename, U32 len, U32 * src) {
+    return;
+}
+
+d121 2
+a122 1
+static char *open_file(const char *path_str, const char *filename, QioIOQ *ioq, FsysOpenT *ot) {
+d149 1
+a149 1
+    ot->spc.mode = O_RDONLY;
+d202 1
+a202 1
+    b = open_file(path_str, filename, ioq, &opnt);
+d224 29
+d271 1
+a271 1
+    b = open_file(path_str, filename, ioq, &opnt);
+@
+
+
+1.8
+log
+@Moved the contents of qio_errs.h into qio.h and removed all
+references to qio_errs.h.
+@
+text
+@d26 4
+d133 11
+a242 1
+    max_len &= -512;			/* round size down size to multiple of 512 */
+d246 1
+d248 23
+d280 1
+d282 1
+@
+
+
+1.7
+log
+@Added more watchdog kicks.
+@
+text
+@a22 1
+#include <qio_errs.h>
+@
+
+
+1.6
+log
+@Added watchdog kicker in wait loops.
+@
+text
+@d141 6
+a146 1
+    while (!ii) { ii = ioq->iostatus; }
+a181 11
+#if defined(WDOG) && !BOOT_FROM_DISK
+static void kick_the_dog(void *arg) {
+    struct tq *tq;
+
+    WDOG = 0;			/* kick the dog */
+    tq = (struct tq *)arg;
+    tq->delta = 500000;		/* 500,000 usecs or 0.5 secs */
+    tq_ins(tq);			/* requeue ourself */
+}
+#endif
+    
+a186 9
+#if defined(WDOG) && !BOOT_FROM_DISK
+    struct tq timer;
+
+    timer.next = timer.que = 0;
+    timer.func = kick_the_dog;
+    timer.vars = (void *)&timer;
+    timer.delta = 500000;
+    tq_ins(&timer);
+#endif
+d194 6
+a199 1
+    while (!ii) { ii = ioq->iostatus; }
+d203 5
+a207 1
+    while (!ioq->iostatus) { ; }
+a209 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+    tq_del(&timer);
+#endif
+a228 10
+#if defined(WDOG) && !BOOT_FROM_DISK
+    struct tq timer;
+
+    timer.next = timer.que = 0;
+    timer.func = kick_the_dog;
+    timer.vars = (void *)&timer;
+    timer.delta = 500000;
+    tq_ins(&timer);
+#endif
+
+a235 4
+#if defined(WDOG) && !BOOT_FROM_DISK
+	WDOG = 0;
+	tq_del(&timer);
+#endif
+d245 6
+a250 1
+    while (!ii) { ii = ioq->iostatus; }
+d256 6
+a261 1
+	while (!ii) { ii = ioq->iostatus; }
+d266 6
+a271 1
+    while (!sts) { sts = ioq->iostatus; }
+a274 3
+#if defined(WDOG) && !BOOT_FROM_DISK
+    tq_del(&timer);
+#endif
+@
+
+
+1.5
+log
+@Spits out error message if mount fails.
+@
+text
+@d177 11
+d193 9
+d205 1
+d216 3
+d238 10
+d250 1
+d254 5
+d283 3
+@
+
+
+1.4
+log
+@Misc fix.
+@
+text
+@d80 2
+a82 1
+    extern void ide_init(void);
+d84 1
+d87 1
+d90 13
+a102 1
+	fsys_mountw("/rd0", "/d0");
+@
+
+
+1.3
+log
+@Misc fixes.
+@
+text
+@d217 1
+a217 1
+	if (max_len > opnt.eof-start) max_len = opnt.eof - start;
+@
+
+
+1.2
+log
+@Protected vfprintf and vfprintf_r.
+@
+text
+@d92 1
+a92 1
+static void dump_errors(const char *title, const char *name, QioIOQ *ioq) {
+d96 1
+a96 1
+    qio_errmsg(ioq->iostatus, emsg, sizeof(emsg));
+d126 2
+a127 2
+    while (!ioq->iostatus) { ; }
+    if (QIO_ERR_CODE(ioq->iostatus)) dump_errors("RdFile", new, ioq);
+d173 2
+a174 2
+    while (!ioq->iostatus) { ; }
+    if (QIO_ERR_CODE(ioq->iostatus)) dump_errors("RdFile", b, ioq);
+d197 1
+a197 1
+    int ii;
+d213 2
+a214 2
+    while (!ioq->iostatus) { ; }
+    if (QIO_ERR_CODE(ioq->iostatus)) dump_errors("read_file_section", b, ioq);
+d219 2
+a220 2
+	while (!ioq->iostatus) { ; }
+	if (QIO_ERR_CODE(ioq->iostatus)) dump_errors("read_file_section", b, ioq);
+d223 3
+a225 3
+    qio_close(ioq);
+    while (!ioq->iostatus) { ; }
+    if (QIO_ERR_CODE(ioq->iostatus)) dump_errors("read_file_section", b, ioq);
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d37 1
+d41 7
+@

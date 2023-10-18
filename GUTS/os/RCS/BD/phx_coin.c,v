@@ -1,0 +1,2325 @@
+head	1.11;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.11
+date	96.10.15.23.59.50;	author shepperd;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	96.10.15.22.38.52;	author albaugh;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	96.10.15.21.49.47;	author albaugh;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	96.10.15.21.39.42;	author shepperd;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	96.10.15.21.27.40;	author albaugh;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	96.10.14.21.30.51;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.10.11.23.10.59;	author albaugh;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.10.11.19.04.42;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.10.11.18.42.28;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	96.10.11.04.19.22;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.10.11.01.39.42;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Custom coin routine for hockey.
+@
+
+
+1.11
+log
+@Changed defaults. Added Four player discount.
+@
+text
+@/*	phx_coin.c
+ *		Copyright 1988-1996 ATARI GAMES.
+ *	Unauthorized reproduction, adaptation, distribution, performance or
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited
+ *
+ *	Last minute changes to merged gel_coin.c and coin94.c. These
+ *	are intended to accomodate the "Export Model" Wayne Gretsky
+ *	Hockey, and will be further modified before general release.
+ *
+ *	The #if's related to CoJag and PHOENIX are intended to allow
+ *	testing on the CoJag stack that MEA has access to, not to imply
+ *	anything about suitability for general use.
+ */
+#include <config.h>
+#include <os_proto.h>
+#include <st_proto.h>
+#include <coin.h>
+/*	While keyed on EER_CNOPT, this also serves to get EER_CC0.
+*/
+#ifndef EER_CNOPT
+#include <eer_defs.h>
+#endif
+/* Revised:
+*	15-NOV-84 to reflect actual switch positions (aux,left,right)
+*	14-FEB-85 to handle partial credits from bonus coins
+*	26-MAR-85 for DND hardware (four mechs, equal value, separate counts
+*	18-JUN-87 for generic U.S. removed many hardware dependencies
+*	07-DEC-87 moved coinmenu[] into this file.
+*		  converted from separate to common coin chutes.
+*	09-MAR-88 Revised comments to agree with hardware move from
+*		  two center to two rightmost mechs
+*	08-FEB-91 using the whole new scheme
+*	23-JUN-92 as part of the reorganization of the OS
+*	27-AUG-93 as part of CAGE - moving coin stuff to host. (Ed Logg)
+*	08-OCT-96 For Gretsky Hockey, per WMS mandate (MEA)
+*/
+
+/*			This was coin91.c, then coin94.c
+*
+*	Derived from extnd_coin.c (was extended_coin.c, pre-Arium)
+*	The coin-handling stuff extended to a 16-bit coin-mode per meeting
+*	11-JUN-90 (Ray, Downend, Benzler, and Momoda in attendance).
+*
+*	Now modified to handle multi-processor or load/store (ASAP) systems
+*	Where a hazard between IRQ level and mainline is exacerbated.
+*
+*	Coins from the all mechs go into one "account", as with comn_coin.c.
+*	The changes are:
+*	(In extnd_coin)
+*
+*		increased range for game cost (1-8 "unit coins" vs 1-4)
+*
+*		increased and similar range for mults (1-8 vs 1,2 and 1,4,5,6)
+*
+*		fully orthogonal bonus adders (2-9 coins gives 0-3 bonus)
+*		(Per the meeting, "2 gives 2", "2 gives 3" and "3 gives 3"
+*		will not be allowed)
+*
+*		Separate bits for free-play, discount on continue. The latter
+*		can be checked by the game calling cn_discount, which see.
+*
+*		New call cn_credits() which returns usable fractional credits.
+*
+*		new call cn_init() which must be called before any other
+*		routines.
+*
+*	(New with coin90)
+*
+*		Old routine cn_credit(), which used to return credits*12 has
+*		been deleted.
+*
+*		cn_bong() returns != 0 when a new coin has arrived.
+*
+*		No calls to eer_* from IRQ level.
+*
+*		No hazard from interleaved Read-Modify-Write operations.
+*
+*		All this routine's variables are declared here. The System I
+*		practice of "extern"ing them and declaring them in assembly
+*		has been dropped. No program should depend on knowing the
+*		details of this module.
+*
+*		FIRST_MECH and LAST_MECH have been abandoned, in favor of
+*		MECH_ORDER, which maps dibits in deltas to counters.
+*
+*	(New with coin91)
+*
+*		Menu format for the game options and coin options has
+*		been changed. (See stats.c)
+*
+*		cn_credit() can be compile-time configured to reduce
+*		or not reduce the partial credit fraction.
+*
+*		my_cnt.gang set to irq_cnt.gang by cn_init, just in case...
+*
+*		VEND_M	is an index 0-3 that is NOT used in MECH_ORDER.
+*		  - if defined, "click_vendor()" will do a pulse on that output
+*		  pin. This is probably defined in COIN.C
+*
+*	(New in 1993)
+*
+*		Take out old SpaceLords coin routines with capability for one
+*		coin-handling system with two PCBs sharing a common RAM.
+*
+*		Complete change to cn_... names for all coin and vending
+*		routines.
+*
+*		Change MECH_ORDER to go from left to right to match all
+*		other arrays.  I also changed conventions for 4 mech doors
+*		from "Left" to "Right" for the 3rd and 4th mechs to match
+*		the order of the switch inputs, etc.
+*
+*		With CAGE audio no coin processing is done by the audio
+*		processor.  The host will read the coins by calling cn_irq
+*		every 4ms.
+*
+*	(New in 1996)
+*
+*		WMS wants six different coin-like inputs: One bill-acceptor,
+*		one "credit switch", and four actual coin inputs. Except
+*		for the credit switch, each needs its own multiplier.
+*		That, plus the push for "seperate purses" from an operator
+*		lead to expanding the coin options to 32 bits, and a
+*		re-vamping of the coin option screen, which is now in
+*		this file. I have also moved the default coin-detection
+*		into this file, for convenience in debug. It may stay
+*		here after this file becomes coin96.c, or not.
+*/
+
+#ifndef __STDC__
+#define const
+#define volatile
+#endif
+
+/*	MEA moved the accessor macros back into this file
+ *	on 10OCT96, as part of a last-minute change to accomodate
+ *	Export Hockey. DMS added the computed CMODE_xxx_P and
+ *	CMODE_xxx_S, and MEA added the OPT_CODE_xxx. The sorry
+ *	excuse for a macro processor that is cpp will not allow
+ *	us to check these for consistency, but at least they are
+ *	here in one place, so we have some hope of keeping the
+ *	accessor macros and the menu in sync.
+*/
+
+#undef MAXCOINS
+#define MAXCOINS	50
+
+#define CMODE_FREE_P	0		/* free play position */
+#define CMODE_FREE_S	1		/* free play number of bits */
+#define OPT_CODE_FREE "\001"
+#define CMODE_DISCNT_P	(CMODE_FREE_S+CMODE_FREE_P)	/* discount position */
+#if (0)
+/* Previously, we had a single bit "Discount to continue".
+ */
+#define CMODE_DISCNT_S	1		/* discount number of bits */
+#define OPT_CODE_DISCNT "\011"
+#define CMODE_COST_P	(CMODE_DISCNT_S+CMODE_DISCNT_P)
+#define CMODE_COST_S	4		/* cost number of bits */
+#define OPT_CODE_COST "\024"
+#define CMODE_BONUS_P	(CMODE_COST_S+CMODE_COST_P)
+#define CMODE_BONUS_S	5		/* bonus options, from table */
+#define OPT_CODE_BONUS "\065"
+#define CMODE_CNTVAL_P	(CMODE_BONUS_S+CMODE_BONUS_P)
+#else
+#define CMODE_DISCNT_S	4		/* discounted price of a continue */
+#define OPT_CODE_DISCNT "\014"
+#define CMODE_COST_P	(CMODE_DISCNT_S+CMODE_DISCNT_P)
+#define CMODE_COST_S	4		/* cost number of bits */
+#define OPT_CODE_COST "\054"
+#define CMODE_BONUS_P	(CMODE_COST_S+CMODE_COST_P)
+#define CMODE_BONUS_S	5		/* bonus options, from table */
+#define OPT_CODE_BONUS "\115"
+#define CMODE_MULTPLYR_P 16 /* (CMODE_BONUS_S+CMODE_BONUS_P) */ /* 16 for us mere mortals */
+#define CMODE_MULTPLYR_S 1
+#define OPT_CODE_MULTPLYR "\201"
+#endif
+
+/* New scheme uses separate word (EER_CNVAL) for
+ * Mech-multipliers.
+ */
+#undef CMODE_CNTVAL_P
+#define CMODE_CNTVAL_P 0
+#define CMODE_CNTVAL_S	1
+#define OPT_CODE_CNTVAL "\001"
+#define CMODE_COIN1_P	(CMODE_CNTVAL_S+CMODE_CNTVAL_P)
+#define CMODE_COIN_S	4
+#define OPT_CODE_COIN1 "\014"
+#define CMODE_COIN2_P	(CMODE_COIN_S+CMODE_COIN1_P)
+#define OPT_CODE_COIN2 "\054"
+#define CMODE_COIN3_P	(CMODE_COIN_S+CMODE_COIN2_P)
+#define OPT_CODE_COIN3 "\114"
+#define CMODE_COIN4_P	(CMODE_COIN_S+CMODE_COIN3_P)
+#define OPT_CODE_COIN4 "\154"
+#define CMODE_BILL_P	(CMODE_COIN_S+CMODE_COIN4_P)
+#define OPT_CODE_BILL "\214"
+
+#if ((CMODE_BILL_P+CMODE_COIN_S) > 32)
+# error Too many bits in coin word
+#endif
+
+#ifdef CMODE_BONUS_P
+#define BONUS_DEF(thresh,award) (((thresh)<<4)|(award))
+const U8 bonustab[] = {
+BONUS_DEF(0,0), BONUS_DEF(2,1),
+BONUS_DEF(3,1), BONUS_DEF(3,2),
+BONUS_DEF(4,1), BONUS_DEF(4,2),
+BONUS_DEF(5,1), BONUS_DEF(5,2), BONUS_DEF(5,3),
+BONUS_DEF(6,1), BONUS_DEF(6,2), BONUS_DEF(6,3),
+BONUS_DEF(7,1), BONUS_DEF(7,2), BONUS_DEF(7,3), BONUS_DEF(7,4),
+BONUS_DEF(8,1), BONUS_DEF(8,2), BONUS_DEF(8,3), BONUS_DEF(8,4),
+BONUS_DEF(9,1), BONUS_DEF(9,2), BONUS_DEF(9,3), BONUS_DEF(9,4),
+BONUS_DEF(9,5),
+BONUS_DEF(10,1), BONUS_DEF(10,2), BONUS_DEF(10,3), BONUS_DEF(10,4),
+BONUS_DEF(10,5)
+};
+#endif
+
+#undef cmode_free
+#define cmode_free(x) ((x >> CMODE_FREE_P)&((1<<CMODE_FREE_S)-1))
+#undef cmode_discnt
+#define cmode_discnt(x) ((x >> CMODE_DISCNT_P)&((1<<CMODE_DISCNT_S)-1))
+#undef cmode_cost
+#define cmode_cost(x) ((x >> CMODE_COST_P)&((1<<CMODE_COST_S)-1))
+#undef cmode_thresh
+#ifdef CMODE_BONUS_P
+#define cmode_thresh(x) \
+ (bonustab[(x >> CMODE_BONUS_P)&((1<<CMODE_BONUS_S)-1)]>>4)
+#undef cmode_award
+#define cmode_award(x) \
+ (bonustab[(x >> CMODE_BONUS_P)&((1<<CMODE_BONUS_S)-1)]&0xF)
+#else
+/* Old-style, but with "+2" brought into macro. */
+#undef cmode_thresh
+#define cmode_thresh(x) (((x >> CMODE_THRESH_P)&((1<<CMODE_THRESH_S)-1))+2)
+#undef cmode_award
+#define cmode_award(x) ((x >> CMODE_AWARD_P)&((1<<CMODE_AWARD_S)-1))
+#endif
+#define cmode_cntval(x) ((x >> CMODE_CNTVAL_P)&((1<<CMODE_CNTVAL_S)-1))
+
+#if (HOST_BOARD == PHOENIX) || (HOST_BOARD == PHOENIX_AD) || (HOST_BOARD == FLAGSTAFF)
+#undef COUNTER_ON
+#define COUNTER_ON(x) do { *(VU32*)IO_METER = 0x10; *(VU32*)IO_METER = 1; } while (0)
+#undef COUNTER_OFF
+#define COUNTER_OFF(x) do { *(VU32*)IO_METER = 0x10; *(VU32*)IO_METER = 0; } while (0)
+#endif /* Phoenix */
+
+#ifdef COJAG_GAME
+/*
+* >>--> NOW setup the electric mech control macros <<<<<
+*
+*	You must #define COUNTER_ON,COUNTER_OFF if we want 680x0
+*	to run EMCounters (see COIN91)
+*
+***  EXAMPLE: Define this way for two mechs:
+*
+*	COUNTER_ON(x)	prc_mod_latch(x < 2 ? LM_CNT_RGT : LM_CNT_LFT);
+*	COUNTER_OFF(x)	prc_mod_latch(x < 2 ? ~LM_CNT_RGT : ~LM_CNT_LFT);
+*
+*  The following alternative uses an array of BIT MASKS that will be
+*   set/cleared into the latch word.  The values in the array come
+*   from definitions in CONFIG.MAC.  NOTE that the fourth 'coin counter'
+*   actually is the CARD VENDOR in this example.
+*
+*	The indices of EMC_MAP correspond to the VALUES of the switch
+*	#DEFINEitions.  For example, if LFT_M is defined as (0) then
+*	the first (zeroth) entry in EMC_MAP defines the bit to click
+*	for his mech.  If you DON'T redefine the values for LFT_M or
+*	RGT_M (which you SHOULDN'T do anyway!) then you'll be fine.
+*/
+#ifndef LM_EMC_L
+#define LM_EMC_L (0)
+#endif
+#ifndef LM_EMC_R
+#define LM_EMC_R (0)
+#endif
+
+static const unsigned short emc_map[] = {
+    LM_EMC_L,
+#ifdef LM_EMC_LC
+    LM_EMC_LC,		/* Left-Center is next if we have it */
+#endif
+#ifdef LM_EMC_RC
+    LM_EMC_RC,		/* Right-Center is next if we have it */
+#endif
+    LM_EMC_R,		/* Right is last used counter */
+    0,0			/* Two zeroes for insurance */
+};
+
+extern int cojag_rev;
+/* The following thoroughgoing botch is neccesitated by yet another case
+ * of the hardware designer changing the bit definitions for no good reason,
+ * _AND_ requiring auto-detect and dynamic re-configuration for the two (so
+ * far) hardware revisions.
+ */
+#ifdef CM_EMC_L
+
+/*
+ * Extended again to handle two _more_ possibilities. I threw in the towel
+ * and made them subroutines. (MEA 11JUN96)
+ */
+/* Rev 4 (Silencer) moves EM counters again, this time to
+ * COJAG_2_CF_REG bits.
+ */ 
+static const unsigned char emc_map4[] = {
+    CM_EMC_L,
+#ifdef CM_EMC_LC
+    CM_EMC_LC,		/* Left-Center is next if we have it */
+#endif
+#ifdef CM_EMC_RC
+    CM_EMC_RC,		/* Right-Center is next if we have it */
+#endif
+    CM_EMC_R,		/* Right is last used counter */
+    0,0			/* Two zeroes for insurance */
+};
+
+static void counter_on(i)
+int i;
+{
+    int old_ipl;
+
+    if ( cojag_rev < 4 ) {
+	/* Up to Silencer, Coin counters were on the
+	 * write-only latch that prc_mod_latch()
+	 * diddles. Precisly _where_ could vary.
+	 */
+	int bit = emc_map[i];
+	if ( cojag_rev > 1 ) bit <<= 4;
+	prc_mod_latch(bit);
+    } else {
+	/* Silencer moves them to the read-write latch
+	 * at COJAG_2_CF_REG (I think, Brian says
+	 * "XBUS_SLOt3+B70000" in his memo, but says
+	 * COJAG_2_CF_REG in person. Since the former
+	 * not a valid address, I'll go with the latter.
+	 */
+	old_ipl = prc_set_ipl(INTS_OFF);
+	COJAG_2_CF_REG |= emc_map4[i];
+	prc_set_ipl(old_ipl);
+    }
+}
+
+static void counter_off(i)
+int i;
+{
+    int old_ipl;
+
+    if ( cojag_rev < 4 ) {
+	/* Up to Silencer, Coin counters were on the
+	 * write-only latch that prc_mod_latch()
+	 * diddles. Precisly _where_ could vary.
+	 */
+	int bit = emc_map[i];
+	if ( cojag_rev > 1 ) bit <<= 4;
+	prc_mod_latch(~bit);
+    } else {
+	/* Silencer moves them to the read-write latch
+	 * at COJAG_2_CF_REG (I think, Brian says
+	 * "XBUS_SLOt3+B70000" in his memo, but says
+	 * COJAG_2_CF_REG in person. Since the former
+	 * not a valid address, I'll go with the latter.
+	 */
+	old_ipl = prc_set_ipl(INTS_OFF);
+	COJAG_2_CF_REG &= ~emc_map4[i];
+	prc_set_ipl(old_ipl);
+    }
+}
+#define COUNTER_ON(i) counter_on(i)
+#define COUNTER_OFF(i) counter_off(i)
+#else /* COJAG, but not CM_EMC_L, so not above REV 2 */
+#define COUNTER_ON(i) \
+  prc_mod_latch( (emc_map[i]<<((cojag_rev-1)<<2)) ) /* turn on Electro-mech */
+#define COUNTER_OFF(i) \
+  prc_mod_latch( ~(emc_map[i]<<((cojag_rev-1)<<2)) ) /* turn off Electro-mech */
+#endif /* def'd CM_EMC_L */
+#else /* Not CoJag */
+#ifndef COUNTER_ON
+#define COUNTER_ON(i) prc_mod_latch(emc_map[i])	/* turn on Electro-mech */
+#define COUNTER_OFF(i) prc_mod_latch(~emc_map[i]) /* turn off Eectro-mech */
+#endif 
+#endif /* def'd COJAG_GAME */
+
+#ifndef B_COIN1
+#ifdef B_COINL
+#define B_COIN1 B_COINL
+#endif
+#endif
+#ifndef B_COIN2
+#ifdef B_COINR
+#define B_COIN2 B_COINR
+#endif
+#endif
+#ifndef B_BILLS
+#ifdef B_DOLLAR
+#define B_BILLS B_DOLLAR
+#endif
+#endif
+#ifndef B_CREDIT
+#ifdef BC_AUX_RGT
+#define B_CREDIT BC_AUX_RGT
+#else
+#ifdef BC_AUX_LFT
+#define B_CREDIT BC_AUX_LFT
+#endif /* def'd AUX_LFT */
+#endif /* def'd AUX_RGT */
+#endif /* ndef'd B_CREDIT */
+
+/*---------------------------------------------------------------------*
+ *	Configuation. Since _everything_ seems to be "up for grabs"	*
+ *	nowadays, we use a table to thread our way from "logical mech"	*
+ *	to physical-bit, to stat-to-bump, to E.M. Counter to click, to	*
+ *	"Value".							*
+ *---------------------------------------------------------------------*/
+
+static const struct cn_desc {
+    const char *name;
+    /* Following are <0 if the particular parameter does not apply */
+    signed char bit;		/* Bit in CN_STATUS for this mech */
+    signed char emctr;		/* Mechanical counter to bump */
+    signed char mult_shf;	/* Where to find "Mech multiplier" */
+    signed char stat_off;	/* add to EER_CC0 to log in EEPROM */
+} my_cn_desc[] = {
+#ifdef B_COIN1
+    { "Mech 1", B_COIN1,
+        0,
+	CMODE_COIN1_P, 0
+    },
+#endif
+#ifdef B_COIN2
+    { "Mech 2", B_COIN2,
+	0,
+	CMODE_COIN2_P, 1
+    },
+#endif
+#ifdef B_COIN3
+    { "Mech 3", B_COIN3, 
+	0,
+	CMODE_COIN3_P, 2
+    },	
+#endif
+#ifdef B_COIN4
+    { "Mech 4", B_COIN4, 
+	0,
+	CMODE_COIN4_P, 3
+    },	
+#endif
+#ifdef B_BILLS
+    { "BILLS", B_BILLS,
+	0,
+	CMODE_BILL_P, 4
+    },	
+#endif
+    { "Service", B_CREDIT, 
+	-1,
+	-1,5
+    },	
+    { 0, -1, -1, -1, -1 }
+};
+
+/*---------------------------------------------------------------------*
+ *	Electro-mechanical counter drive, lifted from cj_coin.c		*
+ *	As soon as this works, we need to hack it some more to allow	*
+ *	more than 15 queued pulses.					*
+ *---------------------------------------------------------------------*/
+
+#ifdef COUNTER_ON
+/*	Each byte of cctim is conceptually two nybbles. The upper contains 
+*	a "pulse timer" that counts from Fx to 0x, turning the corresponding 
+*	counter on for Fx-8x and off for 7x to 0x. The bottom nybble contains 
+*	up to 15 "queued" pulses.  There is no check for overflow.
+*/
+
+static unsigned short cctim[4];
+
+/*		cn_coin_counters(), cn_emc_drive()
+*	The following stuff added to deal with "host"-driven electromechanical
+*	counters. This was first done on BATMAN. The user needs to define
+*	two macros: COUNTER_ON and COUNTER_OFF that do the appropriate
+*	magic to turn the specified counter on or off respectively. The
+*	array cctim contains "timers" for up to four mechs. Any
+*	mapping from mech number to electro-mechanical counter is up to
+*	the aforemention macros. 
+*
+*	This routine must be called every 16ms.  
+*
+*	Coin counts may be lost if the number of coins exceeds 16 while the
+*	counter is busy counting earlier counts.
+*
+*	The first name (cn_coin_counters()) is retained as a "stub" for
+*	harmless operation with games which insist on calling it directly.
+*	The new name (cn_emc_drive()) is the actual routine, and should
+*	only be called from erc_vbex() or cn_irq() (but not both) at the
+*	correct interval (16 milliseconds).
+*/
+void cn_coin_counters() { return; }
+static void
+cn_emc_drive()
+{
+    int i,timeval,pending;
+
+    pending = -1;
+
+    for ( i = 0 ; i < 4 ; ++i ) 
+    {
+	if ( (timeval = cctim[i]) != 0 ) 
+	{
+	    pending = i;
+	    if ( (timeval -= 0x1000) < 0 ) continue;
+	    cctim[i] = timeval;
+	    if ( (timeval & 0xF000) == 0x7000 ) COUNTER_OFF(i);
+	    return;
+	}
+    }
+    if ( pending >= 0 ) 
+    {
+	/* no running timer, but we have (at least) one pending.
+	*  decrement both nybbles to start timer
+	*/
+	cctim[pending] += 0xEFFF;
+	COUNTER_ON(pending);
+    }
+    return;
+}
+
+/* 		cn_click_counter()
+*	This routine "queues" a pulse to drive an electro-mechanical coin
+*	counter.
+*/
+void 
+cn_click_counter
+PARMS((
+    unsigned int mech
+))
+{
+    int old_ipl;
+    int counter_num;
+
+    if ( mech >= n_elts(my_cn_desc) ) return;
+    counter_num = my_cn_desc[mech].emctr;
+    if ( counter_num < 0 ) return;
+    if ( counter_num >= n_elts(cctim) ) return;
+    old_ipl = prc_set_ipl(INTS_OFF);
+    if((cctim[counter_num] & 0xFFF) != 0xFFF)
+	++cctim[counter_num];	/* Trigger a pulse on a coin-mech line	*/
+    prc_set_ipl(old_ipl);
+}
+
+/* 		cn_click_vendor()
+*	This routine drives a coin counter like vendor as defined by the 
+*	definition VEND_M if there is one.
+*/
+#ifdef	VEND_M
+void 
+cn_click_vendor()
+{
+#if (0)
+    /* With mapping now the responsibility of my_cn_desc, we don't
+     * dare...
+     */
+    cn_click_counter(VEND_M);
+#endif
+}
+#endif	/* def VEND_M */
+#else
+void cn_coin_counters() { return;}
+
+/* 		cn_click_counter()
+*	This routine "queues" a pulse to drive an electro-mechanical coin
+*	counter.
+*/
+void 
+cn_click_counter
+PARMS((
+    unsigned int counter_num
+)){;}
+#endif
+
+
+/*		erc_vbex()
+ *	A "compatibility hack". This is the only routine that should be
+ *	called from the game Vblank routine. For the case of host-read
+ *	coind switches and host-driven coin counters, we just run the
+ *	electro-mechanical coin-counter drivers and do the EEPROM stuff.
+ *	This actually should be part of cn_irq() (4millisecond IRQ)
+ *	processing, but politics intrudes...
+ */
+
+/* !!! */
+void erc_vbex ()
+{
+#if (0)
+	cn_emc_drive();
+#endif
+}
+
+/*---------------------------------------------------------------------*
+ *	Detection of coins. This is pretty much lifted from gel_coin.c	*
+ *---------------------------------------------------------------------*/
+
+/*	These are used to read coin inputs every 4mSec, and uses the basic 
+*	validation of coin pulses. The criteria are the same as the 6502
+*  	coin routine.  A valid coin is a 16-800 mSec contact closure preceded
+*  	and followed by at least 33 mSec of contact open. Bounce at the edges
+*  	of these periods is ignored, but the 16mSec minimum must be 4 solid 
+*	samples.
+*/
+#define ON_MAX		200		/* samples @@ 4mSec = 800 mSec */
+#define	ON_MIN		4		/* samples @@ 4mSec = 16 mSec */
+#define	OFF_MIN		8		/* samples @@ 4mSec = 33 mSec */
+
+/*		cn_irq()
+*
+*	This routine looks at the coin inputs every 4mSec, and does the
+*  	basic validation of coin pulses. The criteria are the same as the 6502
+*  	coin routine.  A valid coin is a 16-800 mSec contact closure preceded
+*  	and followed by at least 33 mSec of contact open. Bounce at the edges
+*  	of these periods is ignored, but the 16mSec minimum must be 4 solid 
+*	samples.  This routine replaces the assembly program and cn_cvt_crdt().
+*
+*	cn_add_coin() will ignore input if cn_init() has not been run
+*	(inited == 0)
+*/
+
+void
+cn_irq()
+{
+#ifdef CN_STATUS
+    short i,m,coins;
+    static unsigned char cnon[n_elts(my_cn_desc)];
+    static unsigned char cnoff[n_elts(my_cn_desc)];
+    static int divsor;
+
+    coins = CN_STATUS;
+
+    for ( i = 0; i < n_elts(my_cn_desc); ++i ) 
+    {
+	m = my_cn_desc[i].bit;
+
+	if ( m < 0 ) continue; /* not real mech */
+	
+	if ( (coins&(1<<m)) == 0)	/* coin present */
+	{
+	    cnoff[i] = 0;		/* clear off counter */
+	    if (cnon[i] != 0)		/* decrement on counter */
+		--cnon[i];
+	}
+	else 				/* coin absent */
+	{
+	    cnoff[i] += 1;	    	/* increase off counter */
+	    if (cnon[i] >= (ON_MAX-ON_MIN) /* not on long enough */
+	    || cnon[i] == 0)		/* or on too long */
+	    {
+		cnon[i] = ON_MAX;	/* restart coin check */
+	    }
+	    else if (cnoff[i] >= OFF_MIN) /* off long enough */
+	    {
+		/* a valid coin is detected */
+		cn_add_coin(i);		/* add a coin */
+		cnon[i] = ON_MAX;	/* start next coin */
+	    }		
+	}
+    }
+    if ( (++divsor & 7) == 0 ) cn_emc_drive();
+#endif
+}
+
+
+/*		cn_total_coins()
+*	Returns total _value_ of coins recorded in EEPROM. This _assumes_
+*	that the mech-multipliers have not been changed since the stats
+*	were cleared.
+*/
+unsigned long cn_total_coins()
+{
+    unsigned long coins,value;
+    m_int i;
+    int stat,mult;
+    long mode;
+    U32 seen;
+
+#ifdef EER_CNVAL
+    mode = eer_gets(EER_CNVAL);
+#else
+    mode = eer_gets(EER_CNOPT);
+#endif
+    /* Now that we use all 32 bits of EER_CNOPT, we need to be more
+     * specific about our error detection. We used to bail on any
+     * value < 0, now we check for the explicit error return "-1".
+     * Since several of the fields of EER_CNOPT have unused codes,
+     * this is an impossible value for a legitimate set of coin
+     * options.
+    */
+    if ( mode == -1L ) return -1;
+
+    coins = 0;
+    seen = 0;
+
+    /* Scan the available stats, multiplying each "counter" by
+     * the appropriate multiplier. This assumes the multiplier 
+     * has not changed since the counters were cleared.
+     * If the stats have already been multiplied, as
+     * determined by the _current_ setting of cmode_cntval,
+     * don't multiply them again.
+    */
+    for (i = 0; i < n_elts(my_cn_desc)-1 ; ++i) 
+    {
+	stat = my_cn_desc[i].stat_off;
+	/* If there is no statistic for this "logical mech",
+	 * or if the statistic has already been added to the
+	 * total, skip it. This should check that we don't
+	 * have to mechs that share a stat, but not a multiplier.
+	 */
+	if ( stat < 0 ) continue;
+	if ( seen & (1<<stat) ) continue;
+	seen |= (1<<stat);
+	value = eer_gets(EER_CC0+stat);
+	if ( !cmode_cntval(mode) ) {
+	    mult = my_cn_desc[i].mult_shf;
+	    if ( mult >= 0 ) {
+		mult = ((mode >> mult) & 0xF)+1;
+		value *= mult;
+	    }
+	}
+	coins += value;
+    }
+    return coins;
+}
+
+static unsigned char bccnt,bc;
+static unsigned short coins;
+
+/* 	The various options were formerly done with bitfields, but generated
+*	code was horrible _and_ compiler dependant, which clashed with the
+*	idea of menu-driven option setting. The access macros are now in
+*	coin.h to allow fairly clean separation of accounting-type stuff
+*	in this file and whacky re-mappings of switch position to "logical"
+*	mech in xxx_coin.c
+*/
+static unsigned long coin_modes;	/* picked apart with cmode_*() */
+#ifdef EER_CNVAL
+static unsigned long coin_vals;		/* Ditto, until we sort this out. */
+#define COIN_VALS coin_vals
+#else
+#define COIN_VALS coin_modes
+#endif
+/* 	No call to the coin routines is valid until cn_init() has been called.
+*  	The following flag is consulted when in doubt.
+*/
+static unsigned char inited;
+
+
+/*	Number of pending "bongs", that is, the number of coins that have
+*	arrived since last called.
+*/
+static char pending_bongs;
+
+/*  The following is a union to allow a quick check for "something changed".
+*   This will not work if sizeof(long) < 4. I am not losing too much sleep
+*   about that.
+*/
+static volatile union cnct
+{
+    unsigned long gang[2];	/* counters below, ganged for comparison */
+    unsigned char ctrs[8];	/* individual counters, one per mech. */
+} irq_cnt;			/* this set is incremented by cn_add_coin() */
+
+static union cnct my_cnt; 	/* this set is incremented by cn_check() */
+
+static int last_closure;
+
+void cn_add_coin( mech )
+int mech;
+{
+    if ( mech >= 0 && mech < sizeof(irq_cnt.ctrs) && inited ) {
+	++irq_cnt.ctrs[mech];
+	if ( !cmode_cntval(COIN_VALS) ) cn_click_counter(mech);
+    } else last_closure = mech+1;
+}
+
+/*		cn_check()
+*	Checks for any change in the number of coins seen, and propagates
+*	it to credits, coins, bonus coins, etc.  This routine replaces most
+*	of the functionality of cvt_crdt(), and returns non-zero if any
+*	new coins were processed. It _also_ increments pending_bongs if
+*	so. The routine cn_bong() returns the number of pending bongs
+*	(New coins) and clears it.
+*
+*	This routine _MUST_NOT_ be called from interrupt level (you know
+*	who you are!) as it must not be re-entered. it is the single point
+*	where consistency is maintained.
+*/
+int
+cn_check()
+{
+    short i,changes;
+    unsigned short int value,m,bonus;
+
+    if ( !inited ) return 0;	/* ignore coins until cn_init() called */
+
+    /* Check for free play */
+    if (cmode_free(coin_modes)) {
+	coins = 0;
+	return 0;
+    }
+
+    changes = 0;
+
+    if ( irq_cnt.gang[0] == my_cnt.gang[0]
+      && irq_cnt.gang[1] == my_cnt.gang[1]) return 0;
+
+    /* something has changed. scan the individual counters */
+    do
+    {
+	/* keep doing this in case new coins come in while we are looking or
+	* we need to handle multiple coins on one mech this call. The speed-up
+	* of not doing a multiply by one in the normal case should outweigh
+	* the cost of doing this loop twice once in a blue moon.
+	*/
+	changes = 0;
+	i = 3;
+	if ( irq_cnt.gang[1] != my_cnt.gang[1] ) i = 7;
+	for (  ; i >= 0 ; --i)
+	{
+	    /* check individual cntrs, "acknowledging" any coins by bumping
+	    *  the corresponding byte of my_cnt;
+	    */
+	    int stat,mult;
+
+	    if ( irq_cnt.ctrs[i] == my_cnt.ctrs[i] ) continue; /* no change */
+	    ++my_cnt.ctrs[i];			/* "ack" one coin */
+	    ++pending_bongs;	    		/* keep track for sounds */
+	    ++changes;
+	    value = 1;
+	    /* Handle the Mech multiplier */
+	    mult = my_cn_desc[i].mult_shf;
+	    if ( mult >= 0 ) {
+		mult = (( COIN_VALS >> mult ) & 0xF) + 1;
+		value *= mult;
+	    }
+	    /* Keep track of the stats.
+	     */
+	    stat = my_cn_desc[i].stat_off;
+	    if ( stat >= 0 ) {
+		if ( cmode_cntval(COIN_VALS) ) {
+		    eer_incs(stat+EER_CC0,value);/* bump coin total */
+		} else {
+		    eer_incs(stat+EER_CC0,1);	/* bump coin count */
+		}
+	    }
+	    coins += value;
+	    bccnt += value;
+	    if ( cmode_cntval(COIN_VALS) ) {
+		while ( value-- ) cn_click_counter(i);
+	    }
+	}		/* end for */
+    } while ( changes );
+    /* Now deal with the BONUS ADDER */
+    if ((bonus = cmode_award(coin_modes)) != 0) {
+	/* If "award" non-zero, get modulus, aka threshold */
+	m = cmode_thresh(coin_modes);
+	while (bccnt >= m) {
+	    bccnt -= m;
+	    bc += bonus;
+	} /* end while */
+    }
+    return 1;
+}
+
+/*			cn_bong()
+*	returns (and clears) number of pending "bongs", that is, the number
+*	of coins that have arrived since last called. This routine calls
+*	cn_check() to update pending_bongs (and other coin-related stuff),
+*	then returns/clears pending_bongs.
+*/
+int
+cn_bong()
+{
+    int bongs;
+
+    (void) cn_check();
+    bongs = pending_bongs;
+    pending_bongs = 0;
+    return bongs;
+}
+
+/*		cn_init()
+*	gets coin_mode info from eeprom, if possible. returns -1 if it
+*	fails. Sets "inited" if it succeeds. No coins will be accepted
+*	if inited == 0;
+*/
+int
+cn_init()
+{
+    long retval;
+
+#ifdef EER_CNVAL
+    retval = eer_gets(EER_CNVAL);
+    if ( retval == -1L ) return retval;
+    coin_vals = retval;
+#endif
+    retval = eer_gets(EER_CNOPT);
+    /* Now that we use all 32 bits of EER_CNOPT, we need to be more
+     * specific about our error detection. We used to bail on any
+     * value < 0, now we check for the explicit error return "-1".
+     * Since several of the fields of EER_CNOPT have unused codes,
+     * this is an impossible value for a legitimate set of coin
+     * options.
+    */
+    if ( retval != -1L ) {
+	coin_modes = retval;
+	my_cnt = irq_cnt;		/* no pending coins	*/
+	inited = 1;
+    }
+    return retval;
+}
+
+/*		cn_discount()
+*	Returns 0 if there is no discount for a continued game, else returns
+*	The default price of such a game ((new_game_price + 1)/2).
+*	(returns -1 if called before cn_init() )
+*/
+int
+cn_discount()
+{
+    int cont_cost;
+    if ( !inited ) return -1;
+    cont_cost = cmode_discnt(coin_modes);
+
+#if CMODE_DISCNT_S == 1
+    if (cont_cost == 0 ) {
+	return 0;
+    }
+    return (cmode_cost(coin_modes) + 2) >> 1;
+#else
+    if ( cont_cost == cmode_cost(coin_modes) ) return 0;
+    return cont_cost+1;
+#endif
+}
+
+
+/* 		cn_price()
+* 	Return the price of a credit - 0-16(?) coins,
+*	or -1 if called before cn_init()
+*/
+int
+cn_price()
+{
+
+    if ( !inited ) return -1;
+    if (cmode_free(coin_modes)) return(0);
+    return(cmode_cost(coin_modes)+1);
+}
+
+
+/* 		cn_credits()
+*  Return the current "balance", Because we cannot expect Game programmers to
+*  properly declare this one, and GreenHills is iffy on structure-valued
+*  functions. This returns a signed long which is packed as follows:
+*	D31-16	Whole credits
+*	D15-8	Numerator of partial credits
+*	D7-0	Denominator of partial credits
+*  Returns -1 if called before cn_init();
+*/
+long
+cn_credits()
+{
+    unsigned short credits,nxtcrd,price;
+    unsigned short numer,denom;
+
+    if ( !inited ) return -1;
+
+    price = cn_price();
+    /*	Always enough in free play */
+    if ( price == 0 ) return(MAX_NEEDED_CREDS << 16);
+
+    (void) cn_check();
+    /*	coins needed for next credit */
+    nxtcrd = price - (coins % price );
+
+    /* The following transfers any bonus coins that would make a difference in
+    *  the number of credits when added to real coins
+    */
+    if ( bc >= nxtcrd ) {
+	bc -= nxtcrd;
+	coins += nxtcrd;
+    }
+
+    /* Now transfer any "whole credits" */
+    while (bc >= price)	{
+	bc -= price;
+	coins += price;
+    }
+
+    if (coins > MAXCOINS) coins = MAXCOINS;	/* Limit accrued coins */
+    credits = coins/price;
+    numer = coins%price;
+    denom = price;
+
+#if (CREDS_REDUCE)
+    /* The vast majority of reducible fractions are even. reduce them */
+    while ( ((denom | numer) & 1) == 0 ) {
+	denom >>= 1;
+	numer >>= 1;
+    }
+
+    /* The only other case (as long a cost is 1-8) is 3/6. Check for it */
+    if ( (numer == 3) && (denom == 6) ) {
+	numer = 1;
+	denom = 2;
+    }
+#endif
+
+    return(credits<<16) | (numer << 8) | (denom);
+}
+
+/* 		cn_continues()
+*   	Return the current credit "balance" as used for continues rather than
+*   	whole games.
+*   	Returns -1 if called before cn_init();
+*/
+long
+cn_continues()
+{
+    m_uint credits,nxtcrd,price;
+    m_uint numer,denom;
+
+    if ( !inited ) return -1;
+    /*	Always enough in free play */
+    if ( cmode_free(coin_modes) ) return(MAX_NEEDED_CREDS << 16);
+    price = cn_discount();
+    if ( price == 0 ) price = cn_price();
+
+    (void) cn_check();
+    /*	coins needed for next credit */
+    nxtcrd = price - (coins % price );
+
+    /* The following transfers any bonus coins that would make a difference in
+    *  the number of credits when added to real coins
+    */
+    if ( bc >= nxtcrd ) {
+	bc -= nxtcrd;
+	coins += nxtcrd;
+    }
+
+    /* Now transfer any "whole credits" */
+    while (bc >= price)	{
+	bc -= price;
+	coins += price;
+    }
+
+    if (coins > MAXCOINS) coins = MAXCOINS;	/* Limit accrued coins */
+    credits = coins/price;
+    numer = coins%price;
+    denom = price;
+
+#if (CREDS_REDUCE)
+    /* The vast majority of reducible fractions are even. reduce them */
+    while ( ((denom | numer) & 1) == 0 ) {
+	denom >>= 1;
+	numer >>= 1;
+    }
+
+    /* The only other case (as long a cost is 1-8) is 3/6. Check for it */
+    if ( (numer << 1) == denom ) {
+	numer = 1;
+	denom = 2;
+    }
+#endif
+
+    return(credits<<16) | (numer << 8) | (denom);
+}
+
+
+/* 		cn_debit(number)
+*  	Subtract the appropriate number of "credits".
+*  	Now that the hazards between IRQ/Mainline have been removed, there is
+*  	no reason this should be in assembly for final
+*/
+int
+cn_debit(number)
+unsigned int number;	/* number of credits to subtract */
+{
+    unsigned short price;
+    unsigned short whole;
+
+    if ( !inited ) return -1;
+    /*	Always enough in free play */
+    price = cn_price();
+    if ( price == 0 ) return(1);
+
+    whole = cn_credits() >> 16;
+    if ( whole >= number ) {
+    	coins -= (price * number);
+	return(1);
+    }
+    return(0);
+}
+
+/* 		cn_dbcoin()
+*	Subtract the appropriate number of coins. No longer need we lose any
+*	sleep over this not being in assembly. This routine is provided so
+*	games which give a discount for "continue" can deduct less than one
+*	whole "credit". The recomended number of coins for such a case can
+*	be gotten by calling cn_discount(), which returns 0 to mean:
+*	"no discount, charge a whole credit".
+*/
+int
+cn_dbcoin(number)
+int number;
+{
+
+    if ( !inited ) return -1;
+    if ( cmode_free(coin_modes) ) return(1);	/* Don't mess with free-play */
+
+    (void) cn_check();
+    if (number > (coins + bc) ) {
+	return(0); /* Not enough, even with bonus */
+    }
+
+    /*	first take the bonus coins */
+    while (number > 0 && bc != 0) {
+	--number;
+	bc -= 1;
+    }
+
+    /* Then take any remainder out of real coins */
+    coins -= number;
+
+    return(1);
+}
+
+/*		cn_chkcoin()
+*	Essentially duplicates the checking of cn_dbcoin, without doing
+*	the decrement. Returns 0 if insufficient coins, 1 if sufficient.
+*/
+int
+cn_chkcoin(number)
+int number;
+{
+
+    if ( !inited ) return -1;
+    if ( cmode_free(coin_modes) ) return(1);	/* Don't mess with free-play */
+
+    (void) cn_check();
+
+    if (number > (coins + bc) ) {
+	return(0); /* Not enough, even with bonus */
+    }
+    return(1);
+}
+
+/*		cn_next()
+*	Returns the number of COINS needed to reach one full credit.
+*	Returns zero if a full credit is already available.
+*/
+int
+cn_next(contin)
+int contin;
+{
+    int price;
+
+    if ( !inited ) return -1;
+    if ( cmode_free(coin_modes) ) return(0);	/* Don't mess with free-play */
+
+    (void) cn_check();
+    price = 0;
+    if ( contin ) price = cn_discount();
+    /* If either not a continue, or continues the same price,
+     * use "start price".
+     */
+    if ( price == 0 ) price = cn_price();
+    if ( price <= (coins + bc) ) {
+	return(0); /* plenty, no problem */
+    }
+    return price - (coins + bc);
+}
+
+/*		cn_zap_bonus()
+*	Clear all partial or full bonus coins. This is _supposed_ to be
+*	called at the start (or end) of a game, because mktg lives in fear
+*	that someone, somewhere, will get the benfit of someone elses
+*	partial bonus...
+*/
+void
+cn_zap_bonus()
+{
+    bc = bccnt = 0;
+}
+
+/* 		cn_total_creds()
+*	Returns total credits, which is to say, total coins divided by
+*	current price of a game. Needless to say, this also depends on the
+*	price not having changed since the stats were cleared
+*/
+unsigned long cn_total_creds()
+{
+    unsigned short div;
+    long mode;
+
+    mode = eer_gets(EER_CNOPT);
+    /* Now that we use all 32 bits of EER_CNOPT, we need to be more
+     * specific about our error detection. We used to bail on any
+     * value < 0, now we check for the explicit error return "-1".
+     * Since several of the fields of EER_CNOPT have unused codes,
+     * this is an impossible value for a legitimate set of coin
+     * options.
+    */
+    if ( mode != -1L ) return -1;
+
+    if (cmode_free(mode)) return(0);
+    div = cmode_cost(mode)+1;
+    return cn_total_coins()/div;
+}
+
+
+/* 		cn_coins()
+*   	Returns -1 if called before cn_init();
+*   	Returns 0 if called in free play;
+*	else returns the number of credits and bonus credits.
+*/
+int
+cn_coins()
+{
+
+    if ( !inited ) return -1;
+    if ( cmode_free(coin_modes) ) return(0);	/* Don't mess with free-play */
+
+    (void) cn_check();
+
+    return (coins + bc);
+}
+
+/* #ifdef below (INCL_MENU) deleted because it makes the conditional
+ * split/merge of price versus mech-mults too twisty.
+ */
+
+/* #ifdef INCL_MENU */
+
+/* The Menu below is encoded per the scheme outlined at dispopt() in stats.c
+*	On the (Possibly unwarranted) assumption that we will not
+*	be going back to pre-ANSI C, I have altered it to use ANSI
+*	string-concatentation, which allows the selective inclusion
+*	of multipliers for mechs which may or may not exist.
+*
+*	The octal values shown are translated as follows:
+*		\171 represents 1 bit starting at bit #15 (\017,$0F)
+*		\065 represents 5 bits starting at bit #6 (\006,$06)
+*/
+const unsigned char coinmenu[] =
+OPT_CODE_FREE	"Free Play:\000*No\000Yes\000"
+#if CMODE_DISCNT_S == 1
+OPT_CODE_DISCNT	"Discount to continue:\000No\000*Yes\000"
+OPT_CODE_COST	"Game cost:\000"
+"*1 Coin 1 Credit\000"
+"2 Coins 1 Credit\000"
+"3 Coins 1 Credit\000"
+"4 Coins 1 Credit\000"
+"5 Coins 1 Credit\000"
+"6 Coins 1 Credit\000"
+"7 Coins 1 Credit\000"
+"8 Coins 1 Credit\000"
+"9 Coins 1 Credit\000"
+"10 Coins 1 Credit\0\0\0\0\0\0\0"
+#else
+OPT_CODE_COST	"Game cost to start:\000"
+"*1 Coin\000"
+"2 Coins\000"
+"3 Coins\000"
+"4 Coins\000"
+"5 Coins\000"
+"6 Coins\000"
+"7 Coins\000"
+"8 Coins\000"
+"9 Coins\000"
+"10 Coins\0\0\0\0\0\0\0"
+OPT_CODE_DISCNT	"Game cost to continue:\000"
+"*1 Coin\000"
+"2 Coins\000"
+"3 Coins\000"
+"4 Coins\000"
+"5 Coins\000"
+"6 Coins\000"
+"7 Coins\000"
+"8 Coins\000"
+"9 Coins\000"
+"10 Coins\0\0\0\0\0\0\0"
+#endif
+OPT_CODE_BONUS	"Bonus for quantity buy-in:\000"
+#ifndef CMODE_BONUS_P
+/* Old-style fully-orthogonal bonus threshold/award */
+"*None\0002 coins give 1\000\000\000"
+"\0003 coins give 1\0003 coins give 2\000\000"
+"\0004 coins give 1\0004 coins give 2\0004 coins give 3\000"
+"\0005 coins give 1\0005 coins give 2\0005 coins give 3\000"
+"\0006 coins give 1\0006 coins give 2\0006 coins give 3\000"
+"\0007 coins give 1\0007 coins give 2\0007 coins give 3\000"
+"\0008 coins give 1\0008 coins give 2\0008 coins give 3\000"
+"\0009 coins give 1\0009 coins give 2\0009 coins give 3\000"
+#else
+/* New style, table of bonuses */
+"*None\0"
+#undef BONUS_DEF
+#define BONUS_DEF(thresh,award) #thresh " coins give " #award "\0"
+BONUS_DEF(2,1)
+BONUS_DEF(3,1) BONUS_DEF(3,2)
+BONUS_DEF(4,1) BONUS_DEF(4,2)
+BONUS_DEF(5,1) BONUS_DEF(5,2) BONUS_DEF(5,3)
+BONUS_DEF(6,1) BONUS_DEF(6,2) BONUS_DEF(6,3)
+BONUS_DEF(7,1) BONUS_DEF(7,2) BONUS_DEF(7,3) BONUS_DEF(7,4)
+BONUS_DEF(8,1) BONUS_DEF(8,2) BONUS_DEF(8,3) BONUS_DEF(8,4)
+BONUS_DEF(9,1) BONUS_DEF(9,2) BONUS_DEF(9,3) BONUS_DEF(9,4)
+BONUS_DEF(9,5)
+BONUS_DEF(10,1) BONUS_DEF(10,2) BONUS_DEF(10,3) BONUS_DEF(10,4)
+BONUS_DEF(10,5)
+"\0\0"
+#endif
+
+#if (SST_GAME & SST_HOCKEY)
+OPT_CODE_MULTPLYR "Four player discount:\000"
+"No\0*Yes\0"
+#endif
+
+/* Even if we don't have a separate "value" option,
+ * we split here.
+ */
+"";
+static const unsigned char val_menu[] = 
+
+OPT_CODE_COIN1	"Each Mech 1 pulse worth:\000"
+"*1 Coin\000"
+"2 Coins\000"
+"3 Coins\000"
+"4 Coins\000"
+"5 Coins\000"
+"6 Coins\000"
+"7 Coins\000"
+"8 Coins\000"
+"9 Coins\000"
+"10 Coins\0\0\0\0\0\0\0"
+OPT_CODE_COIN2	"Each Mech 2 pulse worth:\000"
+"*1 Coin\000"
+"2 Coins\000"
+"3 Coins\000"
+"4 Coins\000"
+"5 Coins\000"
+"6 Coins\000"
+"7 Coins\000"
+"8 Coins\000"
+"9 Coins\000"
+"10 Coins\0\0\0\0\0\0\0"
+#ifdef B_COIN3
+OPT_CODE_COIN3 "Each Mech 3 pulse worth:\000"
+"*1 Coin\000"
+"2 Coins\000"
+"3 Coins\000"
+"4 Coins\000"
+"5 Coins\000"
+"6 Coins\000"
+"7 Coins\000"
+"8 Coins\000"
+"9 Coins\000"
+"10 Coins\0\0\0\0\0\0\0"
+#endif
+#ifdef B_COIN4
+OPT_CODE_COIN4 "Each Mech 4 pulse worth:\000"
+"*1 Coin\000"
+"2 Coins\000"
+"3 Coins\000"
+"4 Coins\000"
+"5 Coins\000"
+"6 Coins\000"
+"7 Coins\000"
+"8 Coins\000"
+"9 Coins\000"
+"10 Coins\0\0\0\0\0\0\0"
+#endif
+#ifdef B_DOLLAR
+OPT_CODE_BILL	"Each Bill pulse worth:\000"
+"*1 Coin\000"
+"2 Coins\000"
+"3 Coins\000"
+"4 Coins\000"
+"5 Coins\000"
+"6 Coins\000"
+"7 Coins\000"
+"8 Coins\000"
+"9 Coins\000"
+"10 Coins\0\0\0\0\0\0\0"
+#endif
+OPT_CODE_CNTVAL	"Stats and Counters count:\0"
+"Pulses\0"
+"*Coins\0"
+;
+/*----------------------------------------------------------------------*
+*	The following is a first-cut version of new coin-configuration	*
+*	screen. We "insert" our own callback, but call the default	*
+*	control callback						*
+*----------------------------------------------------------------------*/
+
+/* Bits in CallBack State */
+#define CBS_WATCH (1)
+#define CBS_VAL	(2)
+#define CBS_OPT (4)
+#define CBS_SET_MARGIN (8)
+
+struct cn_cb_vars {
+    U8 state;
+    U8 prev_sw;
+    U16 seen;
+    int (*normal_callback)( struct opt_menu_state *mnp);
+    void *his_vars;
+};
+
+#define STAT_LINE (3)
+#define STAT_LINES (4)	/* Including leading */
+
+/*	mech_stat(), a "lemma" to display current mech names
+ *	and mults.
+ */
+static void mech_stat(struct opt_menu_state *mnp)
+{
+    int sel_sw;
+    int mult;
+    int idx,col,tot_cols;
+    int pal;
+    const char *name;
+    struct cn_cb_vars *my_vars;
+    int stat_line;
+
+    my_vars = (struct cn_cb_vars *)mnp->cb_vars;
+
+    sel_sw = last_closure - 1;
+    tot_cols = 2;	/* For margins */
+    for ( idx = 0 ; idx < n_elts(my_cn_desc) ; ++idx ) {
+	name = my_cn_desc[idx].name;
+	if ( name == 0 ) break;
+	tot_cols += txt_width(name,MNORMAL_PAL)+2;
+    }
+    if ( tot_cols > AN_VIS_COL ) return;
+    stat_line = mnp->margin_t-STAT_LINES;
+#if (0)
+    /* Re-enable this to check any changes to bonus-multiplier
+     * table.
+     */
+    txt_decnum(2,2,cmode_thresh(mnp->bits),2,LJ_NF,MNORMAL_PAL);
+    txt_cstr(" gives ",MNORMAL_PAL);
+    txt_cdecnum(cmode_award(mnp->bits),1,RJ_ZF,MNORMAL_PAL);
+#endif
+    col = (AN_VIS_COL - tot_cols)/2;
+    txt_str(-1,stat_line,"Activate mech to test. Current status:", MNORMAL_PAL);
+    for ( idx = 0 ; idx < n_elts(my_cn_desc) ; ++idx ) {
+	name = my_cn_desc[idx].name;
+	if ( name == 0 ) break;
+	pal = MNORMAL_PAL;
+	txt_clr_str(col,stat_line+1,name,MNORMAL_PAL);
+	if ( my_vars->seen & (1<<idx) ) pal = GRN_PAL;
+	if ( idx == sel_sw ) {
+	    pal = MHILITE_PAL;
+	    my_vars->seen |= (1<<idx);
+	}
+	txt_str(col,stat_line+1,name,pal);
+	mult = my_cn_desc[idx].mult_shf;
+	if ( mult >= 0 ) {
+	    mult = ((mnp->bits >> mult)&0xF)+1;
+	}
+	if ( mult > 1 ) {
+	    txt_str(col+1,stat_line+2,"x",MNORMAL_PAL);
+	    txt_cdecnum(mult,2,LJ_BF,MNORMAL_PAL);
+	} else txt_clr_str(col+1,stat_line+2,"x15",MNORMAL_PAL);
+	col += txt_width(name,MNORMAL_PAL)+2;
+    }
+}
+
+static int cn_callback(struct opt_menu_state *mnp)
+{
+    int sel_sw,old_sw;
+    int rval;
+    struct cn_cb_vars *my_vars;
+
+    my_vars = mnp->cb_vars;
+
+    /* First do the default callback,
+     * to handle normal controls. If they want to do
+     * anything, just leave ourselves a note to re-paint
+     * on the next call...
+     */
+    rval = my_vars->normal_callback( mnp );
+    if ( rval != M_ACT_NONE ) {
+	/* might change mult, or move menu,
+	 * so re-paint when we get a chance.
+	 */
+	my_vars->state |= CBS_WATCH;
+	return rval;
+    }
+
+    /* On our very first call, we might need to
+     * move the whole menu down, to accomodate
+     * the mech status. Re-draw if so.
+     */
+    if ( my_vars->state & CBS_SET_MARGIN ) {
+	mnp->margin_t += STAT_LINES;
+	my_vars->state &= ~CBS_SET_MARGIN;
+	return M_ACT_REDRAW;
+    }
+
+    /* If no change in normal controls, look for
+     * changes on coin inputs.
+     */
+    if ( my_vars->state & CBS_VAL ) {
+	sel_sw = last_closure - 1;
+	old_sw = my_vars->prev_sw - 1;
+	if ( my_vars->state & CBS_WATCH ) {
+	    mech_stat(mnp);
+	    my_vars->state &= ~CBS_WATCH;
+	}
+	if ( sel_sw != old_sw ) {
+	    mech_stat(mnp);
+	    if ( sel_sw >= 0
+		&& sel_sw < n_elts(my_cn_desc)
+		&& my_cn_desc[sel_sw].name )
+	    {
+		int mult;
+		mult = my_cn_desc[sel_sw].mult_shf;
+		if ( mult >= 0 ) {
+		    /* This coin input has a multiplier associated
+		     * with it. Select the option that sets it.
+		     */
+		    int idx,opt_shf;
+		    for ( idx = 0 ; idx < mnp->n_items ; ++idx ) {
+			opt_shf = mnp->items[idx][0] >> 3;
+			if ( mult == opt_shf && (mnp->items[idx][0]&7) == 4 ) {
+			    /* Looks like a mech-mult */
+#ifndef EER_CNVAL
+			    if ( !cmode_free(mnp->bits) )
+#endif
+			    {
+				mnp->select = idx;
+			    }
+			    rval = M_ACT_REDRAW;
+			}
+		    }
+		}
+		my_vars->prev_sw = sel_sw+1;
+	    }
+	}
+    }
+    if ( my_vars->state & CBS_OPT ) {
+	if ( cmode_free(mnp->bits) && mnp->n_items > 1 ) {
+	    mnp->n_items = 1;
+	    mnp->select = 0;
+	    mnp->top = 0;
+	    rval = M_ACT_REDRAW;
+	}
+	if ( !cmode_free(mnp->bits) && mnp->n_items == 1 ) {
+	    int idx;
+	    for ( idx = 1 ; idx < MAX_OPT_ITEMS ; ++idx ) {
+		if ( mnp->items[idx] == 0 ) break;
+	    }
+	    mnp->n_items = idx;
+	    mnp->select = 0;
+	    mnp->top = 0;
+	    rval = M_ACT_REDRAW;
+	}
+    }
+    return rval;
+}
+
+/* :::::: FINDOPT scans through the given MENU STRUCTURE and :::::::	*/
+/*	skips the appropriate number of fields				*/
+/*	RETURNS 0 if no entry for that field				*/
+/*	This is an exact duplicate of the code in menus.c, included	*/
+/*	here for the transitional kluge to use the game's coin-menu	*/
+/*	if, and only if, it is "new style", deduced by the inclusion	*/
+/*	of a field _above_ Bit 15.					*/
+
+static const U8 *
+findopt(menu,field)
+const U8 *menu;
+int field;
+{
+    m_int count;
+    U8 c;
+    const U8 *trail = menu;
+
+    if ( field < 0 ) return 0;
+
+    for ( ; field >= 0 ; --field)
+    {
+	trail = menu;
+	if (*menu == 0) break;	/* zero length in header, end of menu	*/
+	c = *menu++;
+	count = 1 << ( c & 7 ); /* number of choices */
+	if ( *menu == '?' ) {
+	    /* this field should only be available during development
+	     * and/or when enabled via "secret handshake"
+	     */
+	    ++menu;
+#ifdef DEBUG
+	    if ( (debug_mode & GUTS_OPT_DEVEL) == 0 )
+#endif
+		++field;
+	}
+	for ( ; count >= 0 ; --count )	     /* Skip title and choices*/
+	    while (*menu++);
+    }
+
+    if (*trail == '\0')		/* zero length in header, end of menu	*/
+	return(0);
+    return(trail);
+}
+
+static int cn_setup(smp)
+const struct menu_d *smp;
+{
+    U32 value;
+    const unsigned char *menu;
+    struct cn_cb_vars cb_vars;
+    const char *myname;
+    int bottom;
+
+    int field;
+
+    inited = 0;		/* In case we popped in from game play */
+
+    myname = smp->mn_label;
+    if ( *myname == '\n' ) ++myname;
+    if ( *myname == 'P' ) {
+	/* Pricing options, only one set so far...
+	 */
+	menu = pbase->p_coinmenu;
+	/* Code below attempts to detect when game switches
+	 * to new-style coin options, and use game menu.
+	 */
+	if ( menu ) {
+	    const U8 *fld_def;
+	    for ( field = 0 ; ; ++field ) {
+		fld_def = findopt(menu,field);
+		if ( fld_def == 0 ) break;
+		if ( (*fld_def >> 3) > 15 ) break;
+	    }
+	    if ( fld_def == 0 ) menu = 0;
+	}
+	if ( menu == 0 ) {
+	    menu = coinmenu;
+	}
+	bottom = st_frame(smp,TITLE_PAL,INSTR_PAL,STF_NOEXIT);
+#ifdef EER_CNVAL
+	/* If we have a separate "stat" for coin-mech values,
+	 * we do not want to include them in this menu.
+	 */
+	cb_vars.state = CBS_WATCH|CBS_OPT;
+#else
+	cb_vars.state = CBS_WATCH|CBS_OPT|CBS_VAL|CBS_SET_MARGIN;
+#endif
+	bottom = st_insn(bottom,t_msg_save_ret, t_msg_next, INSTR_PAL);
+	bottom = st_insn(bottom,t_msg_restore, t_msg_action, INSTR_PAL);
+	value = eer_gets(EER_CNOPT);
+	cb_vars.seen = 0;
+	cb_vars.prev_sw = 0;
+	cb_vars.normal_callback = st_opt_callback();
+	value = st_optmenu(menu, value, STAT_LINE, bottom-1, cn_callback, &cb_vars);
+	eer_puts(EER_CNOPT,value);
+    }
+    else if ( *myname == 'M' ) {
+	bottom = st_frame(smp,TITLE_PAL,INSTR_PAL,STF_NOEXIT);
+	bottom = st_insn(bottom,t_msg_save_ret, t_msg_next, INSTR_PAL);
+	bottom = st_insn(bottom,t_msg_restore, t_msg_action, INSTR_PAL);
+#ifdef EER_CNVAL
+	value = eer_gets(EER_CNVAL);
+#else
+	value = eer_gets(EER_CNOPT);
+#endif
+	cb_vars.state = CBS_WATCH|CBS_VAL|CBS_SET_MARGIN;
+	cb_vars.seen = 0;
+	cb_vars.prev_sw = 0;
+	cb_vars.normal_callback = st_opt_callback();
+	value = st_optmenu(val_menu, value, STAT_LINE,
+	  bottom-1, cn_callback, &cb_vars);
+#ifdef EER_CNVAL
+	value = eer_puts(EER_CNVAL,value);
+#else
+	value = eer_gets(EER_CNOPT,value);
+#endif
+    }
+    return 0;
+}
+
+static int
+GameOptions(smp)
+const struct menu_d *smp;
+{
+    eer_opt(pbase->p_optmenu);
+    return 0;
+}
+
+/*		cn_config()
+ *	This is the new "coin options" screen. Actually, It
+ *	changes form based on a variety of things. It looks
+ *	at the label in the struct menu_d its parameter
+ *	specifies, and either presents a menu, possibly
+ *	including the GAME options, or it calls cn_setup()
+ *	directly.
+ */
+int cn_config(smp)
+const struct menu_d *smp;
+{
+
+    struct menu_d opt_menu[4];
+    const char *myname;
+    int idx;
+
+    myname = smp->mn_label;
+    if ( *myname == '\n' ) ++myname;
+
+    /* Build a menu of screens we could run:
+     * GAME OPTIONS (optional)
+     * PRICE OPTIONS (Basic pricing of game)
+     * MECH SETUP  (Multipliers and counters)
+     */
+    idx = 0;
+    opt_menu[idx].mn_label = (char *)myname;
+    opt_menu[idx].mn_call = 0;
+    if ( *myname == 'O' ) {
+	/* Operator Options, rather than Coin Options,
+	 * so include GAME OPTIONS in the menu.
+	 */
+	opt_menu[++idx].mn_label = "GAME OPTIONS";
+	opt_menu[idx].mn_call = GameOptions;
+    }
+    opt_menu[++idx].mn_label = "\nPRICING OPTIONS";
+    opt_menu[idx].mn_call = cn_setup;
+    if ( *myname == 'P' ) return cn_setup(opt_menu+idx);
+    opt_menu[++idx].mn_label = "\nMECH SETUP";
+    opt_menu[idx].mn_call = cn_setup;
+    if ( *myname == 'M' ) return cn_setup(opt_menu+idx);
+    opt_menu[++idx].mn_label = 0;
+    opt_menu[idx].mn_call = 0;
+
+    return st_menu(opt_menu,sizeof(opt_menu[0]),MNORMAL_PAL, 0);
+}
+
+@
+
+
+1.10
+log
+@Replaced single-bit "Discount to continue" with
+separate contimue price.
+@
+text
+@d146 3
+d174 3
+a176 1
+#define CMODE_CNTVAL_P	(CMODE_BONUS_S+CMODE_BONUS_P)
+d178 1
+a178 18
+#ifndef EER_CNVAL
+/* Previous scheme packed mech-multipliers into same
+ * word as other coin options.
+ */
+#define CMODE_CNTVAL_S	1
+#define OPT_CODE_CNTVAL "\131"
+#define CMODE_COIN1_P	(CMODE_CNTVAL_S+CMODE_CNTVAL_P)
+#define CMODE_COIN_S	4
+#define OPT_CODE_COIN1 "\144"
+#define CMODE_COIN2_P	(CMODE_COIN_S+CMODE_COIN1_P)
+#define OPT_CODE_COIN2 "\204"
+#define CMODE_COIN3_P	(CMODE_COIN_S+CMODE_COIN2_P)
+#define OPT_CODE_COIN3 "\244"
+#define CMODE_COIN4_P	(CMODE_COIN_S+CMODE_COIN3_P)
+#define OPT_CODE_COIN4 "\304"
+#define CMODE_BILL_P	(CMODE_COIN_S+CMODE_COIN4_P)
+#define OPT_CODE_BILL "\344"
+#else
+d197 1
+a197 1
+#endif
+d1318 5
+d1379 1
+a1379 1
+"1 Coin\000"
+d1382 1
+a1382 1
+"*4 Coins\000"
+@
+
+
+1.9
+log
+@Don't check for free-play on auto-select of Mech-mults,
+if the mech-mults are in a separate word.
+@
+text
+@d150 3
+d158 2
+a159 5
+#if (0)
+#define CMODE_THRESH_P	(CMODE_COST_S+CMODE_COST_P)
+#define CMODE_THRESH_S	3		/* bonus threshold */
+#define CMODE_AWARD_P	(CMODE_THRESH_S+CMODE_THRESH_P)
+#define CMODE_AWARD_S	2
+d161 1
+a161 1
+#define CMODE_CNTVAL_P	(CMODE_AWARD_S+CMODE_AWARD_P)
+d163 5
+d170 1
+a170 1
+#define OPT_CODE_BONUS "\065"
+d232 1
+a232 1
+#define cmode_free(x) (x & 0x1)
+d234 1
+a234 1
+#define cmode_discnt(x) (x & 0x2)
+d937 3
+d941 2
+a942 2
+    if ( !inited ) return -1;
+    if (cmode_discnt(coin_modes) == 0 ) {
+d946 4
+d984 1
+d986 1
+a986 1
+    if ((price = cn_price()) == 0) return(MAX_NEEDED_CREDS << 16);
+d1041 3
+a1043 1
+    if ((price = cn_price()) == 0) return(MAX_NEEDED_CREDS << 16);
+a1044 1
+    if ( cmode_discnt(coin_modes) ) price = cn_discount();
+d1100 2
+a1101 1
+    if ((price = (short)cn_price() ) == 0) return(1);
+d1125 1
+a1125 1
+    if (cn_price() == 0) return(1);	/* Don't mess with free-play */
+d1154 1
+a1154 1
+    if (cn_price() == 0) return(1);	/* Don't mess with free-play */
+d1175 1
+a1175 1
+    if ( (price = cn_price()) == 0) return(0);	/* Don't mess with free-play */
+d1178 6
+a1183 3
+
+    if ( contin && cmode_discnt(coin_modes) ) price = cn_discount();
+
+a1235 1
+    int price;
+d1238 1
+a1238 1
+    if ( (price = cn_price()) == 0) return(0);	/* Don't mess with free-play */
+d1263 1
+d1276 24
+@
+
+
+1.8
+log
+@Minor compiler complaints fixed.
+@
+text
+@d1498 4
+a1501 1
+			    if ( !cmode_free(mnp->bits) ) {
+@
+
+
+1.7
+log
+@Split menu screens for basic pricing and mech
+multipliers. Lots of little changes.
+@
+text
+@d384 1
+d387 1
+@
+
+
+1.6
+log
+@Change to table-driven "bonus-adder".
+@
+text
+@a23 1
+
+d168 4
+d185 20
+d686 3
+d690 1
+d745 6
+a750 2
+
+
+d781 1
+a781 1
+	if ( !cmode_cntval(coin_modes) ) cn_click_counter(mech);
+d842 1
+a842 1
+		mult = (( coin_modes >> mult ) & 0xF) + 1;
+d849 1
+a849 1
+		if ( cmode_cntval(coin_modes) ) {
+d857 1
+a857 1
+	    if ( cmode_cntval(coin_modes) ) {
+d901 5
+d1226 6
+a1231 1
+#ifdef INCL_MENU
+d1286 6
+d1314 1
+d1326 2
+d1339 1
+a1356 1
+#endif
+d1363 13
+a1375 1
+static int (*normal_callback)( struct opt_menu_state *mnp);
+d1378 1
+d1390 4
+a1393 1
+    static int seen;
+d1403 1
+d1413 1
+a1413 1
+    txt_str(-1,STAT_LINE,"Activate mech to test. Current status:", MNORMAL_PAL);
+d1418 2
+a1419 2
+	txt_clr_str(col,STAT_LINE+1,name,MNORMAL_PAL);
+	if ( seen & (1<<idx) ) pal = GRN_PAL;
+d1422 1
+a1422 1
+	    seen |= (1<<idx);
+d1424 1
+a1424 1
+	txt_str(col,STAT_LINE+1,name,pal);
+d1430 1
+a1430 1
+	    txt_str(col+1,STAT_LINE+2,"x",MNORMAL_PAL);
+d1432 1
+a1432 1
+	} else txt_clr_str(col+1,STAT_LINE+2,"x15",MNORMAL_PAL);
+a1436 1
+static int watch_it;
+a1438 1
+    static int prev_sw;
+d1441 1
+d1443 1
+a1443 1
+    if ( !normal_callback ) normal_callback = st_opt_callback();
+d1445 6
+a1450 1
+    rval = normal_callback( mnp );
+d1452 2
+a1453 2
+	/* might change mult, so re-paint when
+	 * we get a chance.
+d1455 1
+a1455 1
+	watch_it = 1;
+d1459 41
+a1499 25
+    sel_sw = last_closure - 1;
+    old_sw = prev_sw - 1;
+    if ( watch_it ) {
+	mech_stat(mnp);
+	watch_it = 0;
+    }
+    if ( sel_sw != old_sw ) {
+	mech_stat(mnp);
+	if ( sel_sw >= 0
+	    && sel_sw < n_elts(my_cn_desc)
+	    && my_cn_desc[sel_sw].name )
+	{
+	    int mult;
+	    mult = my_cn_desc[sel_sw].mult_shf;
+	    if ( mult >= 0 ) {
+		/* This coin input has a multiplier associated
+		 * with it. Select the option that sets it.
+		 */
+		int idx,opt_shf;
+		for ( idx = 0 ; idx < mnp->n_items ; ++idx ) {
+		    opt_shf = mnp->items[idx][0] >> 3;
+		    if ( mult == opt_shf && (mnp->items[idx][0]&7) == 4 ) {
+			/* Looks like a mech-mult */
+			if ( !cmode_free(mnp->bits) ) {
+			    mnp->select = idx;
+a1500 1
+			rval = M_ACT_REDRAW;
+d1503 1
+a1504 1
+	    prev_sw = sel_sw+1;
+d1507 16
+a1522 10
+    if ( cmode_free(mnp->bits) && mnp->n_items > 1 ) {
+	mnp->n_items = 1;
+	mnp->select = 0;
+	mnp->top = 0;
+	rval = M_ACT_REDRAW;
+    }
+    if ( !cmode_free(mnp->bits) && mnp->n_items == 1 ) {
+	int idx;
+	for ( idx = 1 ; idx < MAX_OPT_ITEMS ; ++idx ) {
+	    if ( mnp->items[idx] == 0 ) break;
+a1523 4
+	mnp->n_items = idx;
+	mnp->select = 0;
+	mnp->top = 0;
+	rval = M_ACT_REDRAW;
+d1572 1
+a1572 1
+int cn_config(smp)
+d1577 2
+d1585 20
+a1604 10
+    menu = pbase->p_coinmenu;
+    /* Code below attempts to detect when game switches
+     * to new-style coin options, and use game menu.
+     */
+    if ( menu ) {
+	const U8 *fld_def;
+	for ( field = 0 ; ; ++field ) {
+	    fld_def = findopt(menu,field);
+	    if ( fld_def == 0 ) break;
+	    if ( (*fld_def >> 3) > 15 ) break;
+d1606 38
+a1643 1
+	if ( fld_def == 0 ) menu = 0;
+d1645 44
+a1688 2
+    if ( menu == 0 ) {
+	menu = coinmenu;
+d1690 10
+a1699 8
+    bottom = st_frame(smp,TITLE_PAL,INSTR_PAL,STF_NOEXIT);
+    bottom = st_insn(bottom,t_msg_save_ret, t_msg_next, INSTR_PAL);
+    bottom = st_insn(bottom,t_msg_restore, t_msg_action, INSTR_PAL);
+    value = eer_gets(EER_CNOPT);
+    watch_it = 1;
+    value = st_optmenu(menu, value, STAT_LINE+4, bottom-1, cn_callback);
+    eer_puts(EER_CNOPT,value);
+    return 0;
+d1701 1
+@
+
+
+1.5
+log
+@Added conditioanlcompilation kluges to allow test-compilation
+in CoJag directory. Added validation for game coin-menu, to
+allow transition without re-compile of lib.
+@
+text
+@d156 1
+d163 6
+d186 17
+d210 10
+a219 1
+#define cmode_thresh(x) ((x >> CMODE_THRESH_P)&((1<<CMODE_THRESH_S)-1))
+d222 1
+d834 1
+a834 1
+	m = cmode_thresh(coin_modes)+2;
+d1216 2
+d1226 19
+d1337 8
+a1344 1
+
+d1346 1
+a1346 1
+    txt_str(col,STAT_LINE,"Activate mech to test. Current status:", MNORMAL_PAL);
+@
+
+
+1.4
+log
+@Fixed bug in multiplier display, mech_stat().
+@
+text
+@d10 4
+d191 1
+d196 1
+d198 158
+d371 2
+a372 2
+#ifdef B_COINL
+    { "Mech 1", B_COINL, 
+d377 2
+a378 2
+#ifdef B_COINR
+    { "Mech 2", B_COINR, 
+d383 1
+d388 2
+d394 3
+a396 1
+    { "BILLS", B_DOLLAR,
+d400 1
+d1378 44
+d1429 2
+d1432 17
+a1448 5
+#if (0)
+    if ( (menu = pbase->p_coinmenu) == 0 ) menu = coinmenu;
+#else
+    menu = coinmenu;
+#endif
+@
+
+
+1.3
+log
+@Better check for errors from eer_gets(EER_CNOPT).
+Added #defines for field-definitions in menu (OPT_CODE_xxx)
+to help keep menu and accessor macros in sync. Don't show
+"x1" in mech_stat().
+@
+text
+@a1130 1
+	    mult = ((mnp->bits >> mult)&0xF)+1;
+@
+
+
+1.2
+log
+@Some misc stuff.
+@
+text
+@d135 6
+a140 1
+ *	Export Hockey.
+d145 1
+d148 1
+d151 1
+d156 1
+d159 1
+d162 1
+d164 1
+d166 1
+d168 1
+d170 1
+d460 8
+a467 1
+    if ( mode < 0 ) return -1;
+d664 1
+a664 1
+    int retval;
+d667 8
+a674 1
+    if ( retval >= 0 ) {
+d700 1
+a700 1
+* 	Return the price of a credit - 0-8 coins,
+d950 1
+a950 1
+    int mode;
+d953 8
+a960 1
+    if ( mode < 0 ) return -1;
+a996 1
+#define OLD_LABELS (0)
+d998 3
+a1000 3
+"\001Free Play:\000*No\000Yes\000"
+"\011Discount to continue:\000No\000*Yes\000"
+"\024Game cost:\000"
+d1011 1
+a1011 1
+"\065Bonus for quantity buy-in:\000"
+d1020 1
+a1020 1
+"\144Each Mech 1 pulse worth:\000"
+d1031 1
+a1031 1
+"\204Each Mech 2 pulse worth:\000"
+d1042 1
+a1042 1
+"\244Each Mech 3 pulse worth:\000"
+d1053 1
+a1053 1
+"\304Each Mech 4 pulse worth:\000"
+d1065 1
+a1065 1
+"\344Each Bill pulse worth:\000"
+d1077 1
+a1077 1
+"\131Stats and Counters count:\0"
+d1129 3
+d1134 1
+a1134 1
+	}
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d138 22
+d165 1
+a165 1
+#define cmode_cost(x) ((x >> 2)&7)
+d167 1
+a167 1
+#define cmode_thresh(x) ((x >> 5)&7)
+d169 2
+a170 2
+#define cmode_award(x) ((x >> 8)&3)
+#define cmode_cntval(x) ((x>>10)&1)
+d195 1
+a195 1
+	013,0
+d201 1
+a201 1
+	017,1
+d206 1
+a206 1
+	023,2
+d210 1
+a210 1
+	027,3
+d214 1
+a214 1
+	033,4
+d965 1
+a965 1
+"\023Game cost:\000"
+d974 3
+a976 1
+"\055Bonus for quantity buy-in:\000"
+d985 1
+a985 1
+"\134Each Mech 1 pulse worth:\000"
+d996 1
+a996 1
+"\174Each Mech 2 pulse worth:\000"
+d1007 1
+a1007 1
+"\234Each Mech 3 pulse worth:\000"
+d1018 1
+a1018 1
+"\274Each Mech 4 pulse worth:\000"
+d1030 1
+a1030 1
+"\334Each Bill pulse worth:\000"
+d1042 1
+a1042 1
+"\121Stats and Counters count:\0"
+d1079 1
+a1079 1
+    txt_str(col,STAT_LINE,"Mech status:",MNORMAL_PAL);
+@

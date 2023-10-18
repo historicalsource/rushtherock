@@ -1,0 +1,129 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	96.05.07.20.25.10;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	96.04.24.01.11.57;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Dummy functions to null out IDE from GUTS.
+@
+
+
+1.2
+log
+@Added stubs for Phoenix flavors of the ide routines.
+@
+text
+@/*		ide_stubs.c
+ *
+ *	This file contains stubs for the IDE interfaces and exists simply
+ *	to eleminate the undefined globals one will get when linking with the
+ *	OS w/o IDE code in it.
+ *
+ *		Copyright 1996 Atari Games, Corp.
+ *	Unauthorized reproduction, adaptation, distribution, performance or 
+ *	display of this computer program or the associated audiovisual work
+ *	is strictly prohibited.
+ */
+
+#include <config.h>
+
+#if HOST_BOARD == PHOENIX
+int ide_init( void) { return -1; }
+int ide_set_device( int dev ) { return dev; }
+int ide_reset( void) { return 1; }
+int ide_identify( U32 *buf ) { return 1; }
+int ide_check_devstat( void) { return IDE_ERB_ABORTCMD; }
+U32 ide_get_rdstatus( void ) { return 1; }
+U32 ide_get_errstatus( void ) { return 1; }
+int ide_get_rpm( void) { return 0; }
+int ide_get_hdinfo( U16 *heads, U16 *cyls, U16 *sects) {
+    if (heads) *heads = 0;
+    if (cyls) *cyls = 0;
+    if (sects) *sects = 0;
+    return 0;
+}
+int ide_hread_sectors(U32 *buf, int head, int cyl, int snum, int scnt) { return 1; }
+int ide_write_sectors(U32 *buf, int head, int cyl, int snum, int scnt) { return 1; }
+int ide_test( const struct menu_d *smp ) { return 1; }
+
+#else
+
+U16 ide_init( void ) {
+    return 0xFFFF;
+}
+
+void ide_reset( void ) {
+    return;
+}
+
+U8 ide_identify( U32 *readbuf ) {
+    return 0;
+}
+
+U16 ide_check_devstat( void ) {
+    return 0xFFFF;
+}
+
+U32 ide_get_rdstatus( void ) {
+    return 0;
+}
+
+U32 ide_get_errstatus( void ) {
+    return 0;
+}
+
+U16 ide_get_rpm( void ) {
+    return 0;
+}
+
+int ide_get_hdinfo( U16 *nheads, U16 *ncylinders, U16 *nsectors ) {
+    if (nheads) *nheads = 0;
+    if (ncylinders) *ncylinders = 0;
+    if (nsectors) *nsectors = 0;
+    return 0;
+}
+
+U32 ide_calc_checksum( U8 *bufptr, int numbytes ) {
+    return 0;
+}
+
+U8 ide_read_sectors( U32 *rbuf, int head, int cyl, int snum, int scnt ) {
+    return 0;
+}
+
+U8 ide_gread_sectors( U32 *rbuf, int head, int cyl, int snum, int scnt ) {
+    return 0;
+}
+
+U8 ide_hread_sectors( U32 *rbuf, int head, int cyl, int snum, int scnt ) {
+    return 0;
+}
+
+U8 ide_write_sectors( U32 *wbuf, int head, int cyl, int snum, int scnt ) {
+    return 0;
+}
+#endif
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d15 21
+d90 1
+@

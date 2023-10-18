@@ -1,0 +1,156 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	95.11.20.22.37.00;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.11.20.22.15.28;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@File loader support routine for remote MIB stats gathering.
+@
+
+
+1.2
+log
+@Fixed some complaints about %d's needing to be %ld's.
+@
+text
+@#include <stdio.h>
+#include <ctype.h>
+#include "mib_print.h"
+#include "eer_defs.h"
+
+
+#define MAXLINE 255
+
+static char line[MAXLINE],*lp;
+
+int gbyte()
+{
+    register int x;
+    register char c;
+    c = *lp++;
+    if ( isalpha(c) ) c = (c & 0xf) + 9 + '0';
+    x = (c - '0') << 4;
+    c = *lp++;
+    if ( isalpha(c) ) c = (c & 0xf) + 9 + '0';
+    x |= (c - '0');
+    return x;
+}
+
+unsigned long gvar()
+{
+    unsigned long x;
+    register int len;
+    register char c;
+
+    x = 0;
+    c = *lp++;
+    if ( isalpha(c) ) len = (c & 0xf) + 9;
+    else len = c - '0';
+    for ( ; len ; --len ) {
+	x <<= 4;
+	c = *lp++;
+	if ( isalpha(c) ) c = (c & 0xf) + 9 + '0';
+	x |= c - '0';
+    }
+    return x;
+}
+
+/*		memload()
+*	Reads .hex file from infile, loading it into the simulated memory.
+*/
+int
+memload(infile,mode)
+FILE *infile;
+int mode;		/* 0 means binary, != 0 means TekHex */
+{
+    unsigned long addr;
+    int c,cksum,cnt;
+    unsigned long data;
+
+   if ( mode ) {
+       while ( (lp = fgets(line,MAXLINE,infile)) != 0 ) {
+	   if ( *lp++ != '%' ) continue;
+	   cnt = gbyte();
+	   c = *lp++;		/* save type code */
+	   cksum = gbyte();
+	   addr = (cnt >> 4) + (cnt & 0xf); /* use addr as temp for checksum check */
+	   addr += (c - '0');
+	   while ( (c = *lp++) && (c != '\n') ) {
+	       if      ( isdigit(c) ) c -= '0';
+	       else if ( isupper(c) ) c -= ('A' - 10);
+	       else if ( islower(c) ) c -= ('a' - 40);
+	       else if ( c == '.' )  c = 38;
+	       else if ( c >= '_' )  c = 39;
+	       addr += c;
+	   }
+	   if ( (addr & 0xff) != cksum ) {
+	       fprintf(stderr,"checksum error, expected %x got %lx\n", cksum, addr);
+	       fputs(line,stderr);
+	       return(0);
+	   }
+	   lp = &line[6];
+	   c = line[3];
+	   if ( c == '8' ) return(1);		/* terminating record */
+	   else if ( c == '6' ) {
+	       /* hex record */
+	       addr = gvar();
+	       cnt -= lp - &line[1];
+	       if ( cnt & 1 ) {
+		   fprintf(stderr,"odd number of nybbles (%d) in:\n",cnt);
+		   fputs(line,stderr);
+		   return 0;
+	       }
+	       if ( cnt == 0 ) {
+		   fprintf(stderr,"no data bytes in:\n%s",line);
+		   return 0;
+	       }
+	       cnt >>= 1;
+	       for ( ; cnt > 0 ; --cnt) {
+		   data = gbyte();
+		   put_byte(addr++,data);
+	       }	/* end for (bytes in record) */
+	   }	/* end if hex record */
+       }		/* end while lines in file */
+   } else {
+      /* binary */
+       unsigned char eeprom[EEPROM_SIZE];
+       int ii;
+       if (fread(eeprom, 1, EEPROM_SIZE, infile) != EEPROM_SIZE) {
+	  extern void exit();
+	  sprintf((char *)eeprom, "Unable to read %d bytes from input", EEPROM_SIZE);
+	  perror((char *)eeprom);
+	  fclose(infile);
+	  exit(2);
+       }
+       for (ii=0, addr=0; ii < EEPROM_SIZE; ++ii, ++addr) put_byte(addr, eeprom[ii]);
+    }
+    return 1;
+}
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d56 1
+a56 1
+       while ( lp = fgets(line,MAXLINE,infile) ) {
+d72 1
+a72 1
+	       fprintf(stderr,"checksum error, expected %x got %x\n",cksum,addr);
+@

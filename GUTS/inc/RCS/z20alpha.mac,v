@@ -1,0 +1,233 @@
+head	1.2;
+access;
+symbols;
+locks; strict;
+comment	@;; @;
+
+
+1.2
+date	95.10.02.18.04.35;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.09.27.18.11.05;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@Zoid 20 color, palette, alphanumeric, playfield, etc. defines.
+@
+
+
+1.2
+log
+@Changed the palette values to match the RGB numbering
+@
+text
+@.if not_defined,_Z20ALPHA_MAC_
+_Z20ALPHA_MAC_ == 0
+ .if not_defined, ZTV_VERS
+	HEX_CONST ZTV_VERS	2
+ .endc
+; >>-> Set appropriately for your game
+	HEX_CONST VIS_H_PIX	512.	< horizontal screen resolution	>
+	HEX_CONST TOT_H_PIX	512.	< pixel count to next line	>
+	HEX_CONST VIS_V_PIX	384.	< vertical screen resolution	>
+	HEX_CONST TOT_V_PIX	1024.	< Total vertical screen size	>
+;
+REM <	Color pair constants>
+; >>-> Set appropriately for your game.
+ .if	lt,ZTV_VERS-2
+; values below (0x400, 0x10, 1) are for ZTV with 6-6-4 RGB
+	HEX_CONST RED_LSB	0x0400		< RED gun LSB		>
+	HEX_CONST GRN_LSB	0x0010		< GREEN gun LSB		>
+	HEX_CONST BLU_LSB	0x0001		< BLUE gun LSB		>
+	HEX_CONST ALL_LSB	<RED_LSB | GRN_LSB | BLU_LSB>
+;	HEX_CONST INTEN_MSK	0x8000		< INTENSITY MASK	>
+ .endc
+ .if	eq,ZTV_VERS-2
+; values below (0x400, 0x20, 1) are for ZTV2 with 5-5-5 RGB
+	HEX_CONST RED_LSB	0x0400		< RED gun LSB		>
+	HEX_CONST GRN_LSB	0x0020		< GREEN gun LSB		>
+	HEX_CONST BLU_LSB	0x0001		< BLUE gun LSB		>
+	HEX_CONST ALL_LSB	<RED_LSB | GRN_LSB | BLU_LSB>
+;	HEX_CONST INTEN_MSK	0x8000		< INTENSITY MASK	>
+ .endc
+; >>-> Set appropriately for your game.
+ .if	lt,ZTV_VERS-2
+; values below are for ZTV with 6-6-4 RGB
+	HEX_CONST RED_MSK	0xFC00		< RED INTENSITY MASK	>
+	HEX_CONST GRN_MSK	0x03F0		< GREEN INTENSITY MASK	>
+	HEX_CONST BLU_MSK	0x000F		< BLUE INTENSITY MASK	>
+	HEX_CONST RED_SHF	10.		< RED INTENSITY SHIFT	>
+	HEX_CONST GRN_SHF	4		< GREEN INTENSITY SHIFT	>
+	HEX_CONST BLU_SHF	0		< BLUE INTENSITY SHIFT	>
+ .endc
+ .if	eq,ZTV_VERS-2
+; values below are for ZTV2 with 5-5-5 RGB
+	HEX_CONST RED_MSK	0x7C00		< RED INTENSITY MASK	>
+	HEX_CONST GRN_MSK	0x03E0		< GREEN INTENSITY MASK	>
+	HEX_CONST BLU_MSK	0x001F		< BLUE INTENSITY MASK	>
+	HEX_CONST RED_SHF	10.		< RED INTENSITY SHIFT	>
+	HEX_CONST GRN_SHF	5		< GREEN INTENSITY SHIFT	>
+	HEX_CONST BLU_SHF	0		< BLUE INTENSITY SHIFT	>
+ .endc
+; >>-> These are derived, sometimes badly...
+	HEX_CONST ALL_MSK	<RED_MSK | GRN_MSK | BLU_MSK>
+	HEX_CONST BITS_PER_GUN	4		< (KLUGE) # of bits/gun	>
+;
+	HEX_CONST YEL_MSK	<RED_MSK | GRN_MSK>
+	HEX_CONST CYN_MSK	<GRN_MSK | BLU_MSK>
+	HEX_CONST VIO_MSK	<RED_MSK | BLU_MSK>
+	HEX_CONST RED_QTR	((RED_MSK+RED_LSB)>>2)
+	HEX_CONST GRN_QTR	((GRN_MSK+GRN_LSB)>>2)
+	HEX_CONST BLU_QTR	((BLU_MSK+BLU_LSB)>>2)
+	HEX_CONST WHT_FUL	(ALL_MSK-RED_QTR-GRN_QTR-BLU_QTR)
+	HEX_CONST SLT_FUL	(ALL_MSK-(2*(RED_QTR+GRN_QTR+BLU_QTR)))
+	HEX_CONST GRY_FUL	(ALL_MSK-(3*(RED_QTR+GRN_QTR+BLU_QTR)))
+	HEX_CONST GRY_BAK	(GRY_FUL<<16.)
+;
+	HEX_CONST BLK_SLT	SLT_FUL		< Slate on black	>
+	HEX_CONST BLK_WHT	WHT_FUL		< White on black	>
+	HEX_CONST BLK_YEL	YEL_MSK		< Yellow on Black	>
+	HEX_CONST BLK_RED	RED_MSK		< Red on black		>
+	HEX_CONST BLK_GRN	GRN_MSK		< Green on Black	>
+	HEX_CONST BLK_CYN	CYN_MSK		< Cyan on black		>
+	HEX_CONST BLK_VIO	VIO_MSK		< Violet on black	>
+	HEX_CONST BLK_BLU	BLU_MSK		< Blue on black		>
+	HEX_CONST GRY_SLT	<GRY_BAK + SLT_FUL>
+	HEX_CONST GRY_WHT	<GRY_BAK + WHT_FUL>
+	HEX_CONST GRY_YEL 	<GRY_BAK + YEL_MSK>
+	HEX_CONST GRY_RED	<GRY_BAK + RED_MSK>
+	HEX_CONST GRY_GRN	<GRY_BAK + GRN_MSK>
+	HEX_CONST GRY_CYN	<GRY_BAK + CYN_MSK>
+	HEX_CONST GRY_VIO	<GRY_BAK + VIO_MSK>
+	HEX_CONST GRY_BLU	<GRY_BAK + BLU_MSK>
+
+;
+; NOTE: much of the code that uses the NXT_ROW or NXT_COL relies on the fact
+;	that the step-size is given in BYTES and the data size is WORDS of
+;	exactly two bytes.  This is done because pointer arithmetic is scaled
+;	in C by the data size but isn't scaled at all in the assembled modules.
+;       We should examine the uses of these constants with an eye to either
+;	having them generated differently by MACPP or having a scale factor
+;	explicitly declared.  We might also explictly define an ORIENTATION
+;	(vertical or horizontal).  For now, note that the orientation is
+;	VERTICAL (sequential addresses display vertically) if AN_NEXT_ROW
+;	is equal to "sizeof(some-data-pointer)".
+;
+REM <	Alpha size, count, and stamp constants>
+; >>-> GAME SPECIFIC, below is ZTV medium-res
+	HEX_CONST AN_TOT_COL	0x40	< AN total stamps horiz.	>
+	HEX_CONST AN_TOT_ROW	0x40	< AN total stamps vert.		>
+	HEX_CONST AN_VIS_COL	0x40	< AN visible stamps horiz.	>
+	HEX_CONST AN_VIS_ROW	0x30	< AN visible stamps vert.	>
+	HEX_CONST AN_TOT_SIZ	<AN_TOT_COL * AN_TOT_ROW>
+	HEX_CONST AN_NXT_COL	0x04	< AN offset to next horz. stamp (bytes)	>
+	HEX_CONST AN_NXT_ROW	(-0x100) < AN offset to next vert. stamp (bytes)	>
+	HEX_CONST AN_RC_BUMP	((AN_NXT_ROW<<16.)+AN_NXT_COL)	< ROW-COLUMN BUMP CONST	>
+;
+	HEX_CONST AN_A_STMP	0x41	< code for 'A' stamp		>
+	HEX_CONST AN_SQUARE	0x2E	< AN stamp # completely filled	>
+	HEX_CONST AN_BORDER	AN_SQUARE
+	HEX_CONST AN_VOL_BAR	0x166	< AN stamp for volume stamp	>
+;
+	HEX_CONST BGBIT		0x8000
+	HEX_CONST AN_PAL_MSK	0x7C00
+	HEX_CONST AN_PAL_SHF	0xA
+	HEX_CONST AN_NXT_PAL	(1<<AN_PAL_SHF)
+	HEX_CONST GRY_PAL	0		< GREY is palette 0	>
+	HEX_CONST GRY_PALB	(GRY_PAL|BGBIT)
+	HEX_CONST BLU_PAL	(1<<AN_PAL_SHF)	< BLUE is palette 1	>
+	HEX_CONST BLU_PALB	(BLU_PAL|BGBIT)
+	HEX_CONST GRN_PAL	(2<<AN_PAL_SHF)	< GREEN is palette 2	>
+	HEX_CONST GRN_PALB	(GRN_PAL|BGBIT)
+	HEX_CONST CYN_PAL	(3<<AN_PAL_SHF)	< CYAN is palette 3	>
+	HEX_CONST CYN_PALB	(CYN_PAL|BGBIT)
+	HEX_CONST RED_PAL	(4<<AN_PAL_SHF)	< RED is palette 4	>
+	HEX_CONST RED_PALB	(RED_PAL|BGBIT)
+	HEX_CONST VIO_PAL	(5<<AN_PAL_SHF)	< VIOLET is palette 5	>
+	HEX_CONST VIO_PALB	(VIO_PAL|BGBIT)
+	HEX_CONST YEL_PAL	(6<<AN_PAL_SHF)	< YELLOW is palette 6	>
+	HEX_CONST YEL_PALB	(YEL_PAL|BGBIT)
+	HEX_CONST WHT_PAL	(7<<AN_PAL_SHF)	< WHITE is palette 7	>
+	HEX_CONST WHT_PALB	(WHT_PAL|BGBIT)
+;
+	HEX_CONST BOLD_FONT	(1)
+	HEX_CONST UL_FONT	(2)
+	HEX_CONST REVERSE_FONT	(4)
+	HEX_CONST NORMAL_FONT	(0)
+	HEX_CONST MNORMAL_PAL NORMAL_FONT
+	HEX_CONST TITLE_PAL	RED_PALB
+	HEX_CONST INSTR_PAL	GRN_PALB
+	HEX_CONST BORDER_PAL	RED_PAL
+	HEX_CONST VERSION_PAL	CYN_PALB
+	HEX_CONST MHILITE_PAL	YEL_PALB
+	HEX_CONST MNORMAL_PAL	GRY_PAL
+	HEX_CONST ERROR_PAL	RED_PALB
+;
+REMB
+REMM <	Playfield size, count, and stamp constants>
+REMM <  On ZTV1, PF and AN are the same, 64x48 8x8 stamp "overlay" screen>
+REME
+	HEX_CONST PF_BIT_DEPTH	8
+	HEX_CONST PF_CNT	1	< Number of playfields		>
+	HEX_CONST PF_SEP_PAL	0	< PF palettes in parallel RAM	>
+	HEX_CONST PF_PALS	0x80
+	HEX_CONST PF_PAL_SEP	(((1<<PF_BIT_DEPTH)))
+	HEX_CONST PF_PAL_SHF	24.
+	HEX_CONST PF_PAL_MSK	((PF_PALS-1)<<PF_PAL_SHF)
+	HEX_CONST PF_STMP_CNT	32768.	< PF total stamps in 2Meg ROM	>
+	HEX_CONST PF_TOT_COL	0x40	< PF total stamps horiz.	>
+	HEX_CONST PF_TOT_ROW	0x40	< PF total stamps vert.		>
+	HEX_CONST PF_TOT_SIZ	<PF_TOT_COL * PF_TOT_ROW>
+	HEX_CONST PF_VIS_COL	0x40	< PF visible stamps horiz.	>
+	HEX_CONST PF_VIS_ROW	0x30	< PF visible stamps vert.	>
+	HEX_CONST PF_NXT_COL	0x04	< PF offset to next horz. stamp (bytes)	>
+	HEX_CONST PF_NXT_ROW	(-0x100) < PF offset to next vert. stamp (bytes)	>
+	HEX_CONST PF_BLANK	0x00	< PF stamp # for blank		>
+	HEX_CONST PF_COLOR0	0x00	< PF stamp # for color 0 solid	>
+	HEX_CONST PF_CROSSHTCH	0x227	< PF stamp # for crosshatch display (convergence)	>
+	HEX_CONST PF_CH_COLOR	3	< color index of crosshatch	>
+;
+	HEX_CONST PF_PAL0	(0<<PF_PAL_SHF)
+	HEX_CONST PF_PAL1	(1<<PF_PAL_SHF)
+	HEX_CONST PF_PAL2	(2<<PF_PAL_SHF)
+	HEX_CONST PF_PAL3	(3<<PF_PAL_SHF)
+;
+REM <	MESSAGE ROUTINE CONFIGURATION>
+	HEX_CONST MAX_MESS	3	< maximum # of special message types	>
+	HEX_CONST BIG_CHAR	0x0080	< BIG character bit offset		>
+	HEX_CONST COLMSK	<BGBIT | AN_PAL_MSK>	< palette mask+bgbit	>
+	HEX_CONST SETMSK	0x0003	< character set mask	>
+	HEX_CONST AN_SET0	0x0000		
+	HEX_CONST AN_SET1	0x0001
+	HEX_CONST AN_SET2	0x0002
+;	HEX_CONST AN_BIG_SET	0x0003
+	HEX_CONST AN_BIG_SET	0x0004 < Cannot match, No Big alphas yet>
+;
+.endc
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d115 3
+a117 7
+	HEX_CONST WHT_PAL	(1<<AN_PAL_SHF)	< WHITE is palette 1	>
+	HEX_CONST WHT_PALB	(WHT_PAL|BGBIT)
+	HEX_CONST YEL_PAL	(2<<AN_PAL_SHF)	< YELLOW is palette 2	>
+	HEX_CONST YEL_PALB	(YEL_PAL|BGBIT)
+	HEX_CONST RED_PAL	(3<<AN_PAL_SHF)	< RED is palette 3	>
+	HEX_CONST RED_PALB	(RED_PAL|BGBIT)
+	HEX_CONST GRN_PAL	(4<<AN_PAL_SHF)	< GREEN is palette 4	>
+d119 1
+a119 1
+	HEX_CONST CYN_PAL	(5<<AN_PAL_SHF)	< CYAN is palette 5	>
+d121 8
+@

@@ -1,0 +1,192 @@
+head	1.4;
+access;
+symbols
+	CJ2_05:1.3;
+locks; strict;
+comment	@;; @;
+
+
+1.4
+date	96.11.19.22.29.33;	author grisafi;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	95.06.23.20.59.07;	author albaugh;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.04.27.23.37.33;	author birmingham;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.04.18.21.46.46;	author mckee;	state Exp;
+branches;
+next	;
+
+
+desc
+@host-board dependant definitions for the auto-generated config.h.
+This version for the EC020x32 host board, which is the second-rev
+Motorola EC020-based host, now featuring a 32-bit wide X-Bus
+@
+
+
+1.4
+log
+@added HEX_CONST for XBUS3_LVL
+@
+text
+@;
+;	ec020cj.macconfig.mac
+;
+;	description of the Motorola 68EC020-based host board, as used
+;	with CoJag. Unlike the MIPS and ASAP host boards, the EC020 does
+;	not have enough address lines to implement the XBUS spec. For this
+;	reason, the XBUS_SLOTn definitions below need to "know" what the
+;	"target" hardware is. Currently, this file supports Zoid and Cojag
+;
+;	Project:	CoJag (and Zoid, for backward compatibility)
+;	Date:		February 1995
+;	Team:		Mike Albaugh
+;
+;
+; >>->  Define your processor and other hardware features
+;
+	HEX_CONST ANSI_OK	1		< developed under ANSI	>
+	HEX_CONST PROCESSOR	M68EC020	< processor to run on	>
+	HEX_CONST JMP_OPCODE	0x4EF9		< 680xx JMP.L opcode	>
+;
+; Little-endian processors do not offset bytes and words. So far,
+; ASAP is the only one
+	HEX_CONST BIG_ENDIAN	1		< Bit zero is not in byte zero>
+; 68Ks have hard-wired correspondance from IRQ request to priority level
+	HEX_CONST HDW_IRQ_PRIORITY 2		< No software shuffle of IRQ>
+	HEX_CONST PROC_QUIRKS (BIG_ENDIAN|HDW_IRQ_PRIORITY)
+  .if	df,ZOID_GAME
+; The EC020X32 has a twisted slot scheme. The following is the mapping 
+; documented for Zoid10
+	HEX_CONST XBUS_SLOT0 0xFF000000	<EC020x32 host decodes>
+	HEX_CONST XBUS_SLOT1 0xFF400000
+	HEX_CONST XBUS_SLOT2 0xFF800000
+	HEX_CONST XBUS_SLOT3 0xFFC00000
+	HEX_CONST XBUS_SLOT4 0xFF380000
+	HEX_CONST XBUS_SLOT5 0xFF300000
+	HEX_CONST XBUS_SLOT6 0xFF280000
+	HEX_CONST XBUS_SLOT7 0xFF200000
+  .endc
+  .if	df,COJAG_GAME
+; The EC020X32 has a twisted slot scheme. The following is the mapping 
+; documented for Cojag (Rev. 2, you don't want to know about Rev. 1)
+	HEX_CONST XBUS_SLOT0 0xFF800000	<EC020x32 host decodes>
+	HEX_CONST XBUS_SLOT1 0xFFC00000	<Unused>
+	HEX_CONST XBUS_SLOT2 0xFF000000	<Cojag board, also FFD00000-FFFFFFFF>
+	HEX_CONST XBUS_SLOT3 0xFFB70000	<Config latch, shared SRAM>
+	HEX_CONST XBUS_SLOT4 0xFFB00000	<Unused>
+	HEX_CONST XBUS_SLOT5 0xFFAC0000	<XIO, XCOMM>
+	HEX_CONST XBUS_SLOT6 0xFFA80000 <Could be CAGE>
+	HEX_CONST XBUS_SLOT7 0xFFC80000 <CoJag Config and Shared RAM>
+	HEX_CONST XBUS3_LVL 6 <XBUS 3 Interrupt on 68k IPL6>
+ .endc
+; Big-Endian Byte offset is 32 (or 64) - (bit offset)>>3
+	HEX_CONST SHORT0_OFFS 2
+	HEX_CONST SHORT16_OFFS 0
+	HEX_CONST BYTE0_OFFS 3
+	HEX_CONST BYTE8_OFFS 2
+	HEX_CONST BYTE16_OFFS 1
+	HEX_CONST BYTE24_OFFS 0
+;
+REM <	The following are for use by assembly files, because MOTO has no .ifdef>
+	HEX_CONST	MACROS_MOTO	LANG_ASM
+	HEX_CONST	MACROS_MAC68K	LANG_MAC
+;
+REM <	Actual Type Declarations>
+ .if ne,ANSI_OK
+	TYPE	VS32	<volatile long> 4
+	TYPE	VS16	<volatile short> 2
+	TYPE	VS8	<volatile char> 1
+	TYPE	VU32	<volatile unsigned long> 4
+	TYPE	VU16	<volatile unsigned short> 2
+	TYPE	VU8	<volatile unsigned char> 1
+ .endc
+ .if eq,ANSI_OK
+	TYPE	VS32	< long> 4
+	TYPE	VS16	< short> 2
+	TYPE	VS8	< char> 1
+	TYPE	VU32	< unsigned long> 4
+	TYPE	VU16	< unsigned short> 2
+	TYPE	VU8	< unsigned char> 1
+ .endc
+	TYPE	m_int	<int> 4 
+	TYPE	m_uint	<unsigned int> 4
+	TYPE	U8	<unsigned char> 1
+ .if ne,ANSI_OK
+	TYPE	S8	<signed char> 1
+ .iff
+	TYPE	S8	<char> 1
+ .endc
+	TYPE	U16	<unsigned short> 2
+	TYPE	S16	<short> 2
+	TYPE	U32	<unsigned long> 4
+	TYPE	S32	<long> 4
+; CPU32 (ec020x32 card)
+ .if	df,ZOID_GAME
+	VAR	CPU_INP VU32	XBUS_SLOT0+0x230000 < Diag switches on CPU card>
+	HEX_CONST B_CPU_VSYNC	3		< D3 is VSYNC from XBUS >
+ .endc
+	VAR	WDOG VU32	XBUS_SLOT0+0x230000 < Diag switches on CPU card>
+	VAR	UNLK_EP	VU16	XBUS_SLOT0+0x240000 < EEPROM UNLOCK STROBE >
+	VAR	CPU_TIMER VU32	XBUS_SLOT0+0x250000 < 1-4 ms timer	>
+	VAR	CPU_INTACK VU32	XBUS_SLOT0+0x240000 < ACK timer irq with read>
+REM <	SELFTEST common definitions>
+	HEX_CONST INTS_OFF	0x2700	< Value for all IRQs disabled>
+	HEX_CONST INTS_ON	0x2000	< Value for all IRQs enabled>
+REM <	Work RAM>
+	ARRAY	WRAM,	U32, XBUS_SLOT0+0x200000, <0x8000> < Working RAM	>
+;
+REM <	EEPROM>
+ .ifndf EEPROM_SIZE
+	EEPROM_SIZE == 512 ; Guaranteed minimum
+ .endc
+	ARRAY	EEPROM	U8	XBUS_SLOT0+0x220000 EEPROM_SIZE < Really BatRAM	>
+;
+REM <			EOF				>
+;
+
+@
+
+
+1.3
+log
+@declared EEPROM as array, to smooth over inclusion of config.h
+in eedrive.c
+@
+text
+@d50 2
+a51 1
+  .endc
+@
+
+
+1.2
+log
+@corrected definition of XBUS_SLOT3
+@
+text
+@d108 4
+a111 1
+	ADDR	EEPROM	U8	XBUS_SLOT0+0x220000 < Really BatRAM	>
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d45 1
+a45 1
+	HEX_CONST XBUS_SLOT3 0xFFB80000	<Unused>
+@

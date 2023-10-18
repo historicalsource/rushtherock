@@ -1,0 +1,462 @@
+head	1.7;
+access;
+symbols;
+locks
+	forrest:1.7; strict;
+comment	@ * @;
+
+
+1.7
+date	97.11.13.00.59.26;	author forrest;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	97.08.25.20.43.08;	author albaugh;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	96.09.21.03.34.45;	author shepperd;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	96.07.29.20.46.46;	author shepperd;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	96.03.02.03.33.24;	author shepperd;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	95.11.20.22.37.00;	author shepperd;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	95.11.20.22.16.02;	author shepperd;	state Exp;
+branches;
+next	;
+
+
+desc
+@MIB stats printer routine.
+@
+
+
+1.7
+log
+@Added function LtToString() to print times in the
+High Score Table if MIB_USES_LtToString (CAL SPEED)
+@
+text
+@/*
+ * Copyright 1993 Atari Games
+ * Unauthorized reproduction, adaptation, distribution, performance or
+ * display of this computer program or the associated audiovisual work is
+ * strictly prohibited.
+ * 
+ */
+/*		mib_print.c
+ *	A "harness" to coordinate loading a .hex file image of an EEPROM
+ *	(code in hexload.c) and print out its contents in human-or-spreadsheet
+ *	readable form.
+ */
+
+#include <os_proto.h>
+#include <ctype.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mib_print.h>
+#include <eer_defs.h>
+#include <stat_defs.h>
+#define DEBUG_DEFAULT (1)
+#define DEBUG_MAX (3)
+
+#undef DEF_CTR
+#undef DEF_OPT
+#define DEF_CTR(Home_size,Home_posn,Run_posn,label) label,
+#define DEF_OPT(Home_size,Home_posn,Run_posn,label) label,
+#define DESC_HISTOGRAM(bins,first,later,legend,posn,ram_offs,len,sibs)/* nada */
+#define DESC_HST(Total_ents,Perm_ents,Score_bytes,Init_bytes,posn,ram_offs,len)
+#define DESC_USER(posn,ram_posn,len) /* nothing */
+
+void prc_panic( const char *msg )
+{
+    fprintf(stderr,"%s\a\n",msg);
+    exit (EXIT_FAILURE);
+}
+
+const char *stat_names[] = {
+#include <stat_map.h>
+    0
+};
+
+int align_shift;	/* defaults to STRIDE */
+
+int byte_offset;
+
+int debug;
+
+void usage(const char *me, const char *msg, int retval)
+{
+    if ( msg ) fprintf(stderr,"\n%s",msg);
+    fprintf(stderr,"\nusage: %s [-s#] <infile>\n",me ? me : "mib_print");
+    fputs("\t-s\tspecify \"stride\" for eeprom, for testing\n",stderr);
+    exit(retval);
+}
+
+extern unsigned char EEPROM[];
+
+static void dump_ee(int first, int last)
+{
+    int idx,byte;
+
+    for ( byte = 0 ; byte < 4 ; ++byte ) {
+	fprintf(stdout,"\n%d)",byte);
+	for ( idx = first ; idx <= last ; ++idx ) {
+	    fprintf(stdout," %02X",EEPROM[(idx << STRIDE)+byte] & 0xFF);
+	}
+    }
+    fputs("\n",stdout);
+}
+
+#ifndef AN_VIS_COL
+#define AN_VIS_COL (42)
+#endif
+
+#ifndef HIST_TABLES
+#define HIST_TABLES (0)
+#endif
+
+#if HIST_TABLES
+static const char barstr[] = " ";
+#endif
+
+void
+show_histograms(FILE *outfile)
+{
+#if HIST_TABLES
+    int tblndx;
+    char buf[AN_VIS_COL],*s;		/* Screen-line buffer		*/
+    int	median,max,total,titlewide,bin,val;
+
+    for (tblndx=0; tblndx<HIST_TABLES; ++tblndx)
+    {
+
+	titlewide = eer_hist_title(tblndx,buf,sizeof(buf),&max,&median,barstr);
+	fprintf(outfile,"\t%s\n",buf);
+
+	for(bin = 0,total = 0; /* break when done */ ; ++bin)
+	{
+	    val = eer_hist_line(bin,buf,sizeof(buf));
+	    if (val < 0)				/* DONE??	*/
+		break;
+	    s = buf+strlen(buf);
+	    while ( --s >= buf ) {
+		/* trim trailing blanks */
+		if (*s != ' ' ) break;
+	    }
+	    if ( s >= buf ) {
+		s[1] = '\0';
+		while (s >= buf) {
+		    if (!isprint(*s)) *s = '#';
+		    --s;
+		}
+	    }
+
+	    fprintf(outfile,"%c%s\n",(bin == median) ? '*' : ' ',buf);
+
+	    total += val;		/* Accumulate the totals	*/
+	}
+
+
+	fprintf(outfile,"TOTAL: %d",total);		/* ALWAYS total	*/
+
+
+	if ( median >= 0 )			/* YEP! it's meaningful		*/
+	{
+	    /* Median, if meaningful. Find out what to call it by
+	     * re-getting the line, and trimming it to the legend.
+	     */
+	    (void)eer_hist_line(median,buf,sizeof(buf));
+	    s = strchr(buf,':');
+	    if ( s ) *s = '\0';			/* "Cork" after line legend */
+	    fprintf(outfile," MEDIAN: %s",buf);
+	}
+
+	fputs("\n",outfile);
+    }
+#endif
+}
+
+#ifdef MIB_USES_LtToString
+#if    MIB_USES_LtToString
+/*************************************************************************/
+/* given a lap time ( in number of frames, at fps frames per second ), */
+/* and a pointer to an output string, */
+/* return a string suitable for printing - (M:SS:HH) */
+/*************************************************************************/
+#define LFPS 60  /*  calculate using 60th of a second for consistency  */
+
+void
+LtToString( int time, char *dptr )
+{
+int  tmp;
+    tmp = time / (LFPS * 60 ) ; /* minutes */
+    if ( tmp > 9 )              /* NO POSSIBLE WAY minutes could be > 9 */
+        *dptr++ = '9';
+    else
+        *dptr++ = (char)('0' + tmp);
+    *dptr++ = ':';           /* Colon (:) */
+
+    time -= tmp * ( LFPS * 60 );
+    tmp = time / LFPS;          /* seconds */
+    *dptr++ = (char)('0' + tmp / 10);
+    *dptr++ = (char)('0' + tmp % 10);    
+    *dptr++ = ':';           /* Colon (:) */
+
+    time -= tmp * LFPS ;            /* 60ths of a second */
+    time  = (time * 100) /LFPS;
+    *dptr++ = (char)('0' + time / 10);
+    *dptr++ = (char)('0' + time % 10);
+    *dptr   = 0;
+}
+#endif	/* if    MIB_USES_LtToString */
+#endif	/* ifdef MIB_USES_LtToString */
+
+static void show_h_s_t(FILE *outfile)
+{
+#ifdef HST_TABLES
+    struct hst_ent *ep;
+    int tbl,idx;
+    
+    for ( tbl = 0 ; tbl < HST_TABLES ; ++tbl ) {
+	fprintf(outfile,"\n\tHigh Score Table");
+	if ( HST_TABLES > 1 ) {
+	    fprintf(outfile," #%d",tbl+1);
+	}
+	fputs("\n",outfile);
+	for ( idx = 0 ; ; ++idx ) {
+	    ep = eer_hstr(idx,tbl);
+	    if ( ep == 0 ) break;
+#ifdef MIB_USES_LtToString
+#if    MIB_USES_LtToString
+	    {
+	     char buff[10];
+	     LtToString( MIB_USES_LtToString - ep->score, buff );
+	     fprintf(outfile,"\n%2d) %s %s",idx+1, buff, ep->initials);
+	    }
+#else	/* if    MIB_USES_LtToString */
+	    fprintf(outfile,"\n%2d) %8ld %s",idx+1, ep->score, ep->initials);
+#endif	/* if    MIB_USES_LtToString */
+#else	/* ifdef MIB_USES_LtToString */
+	    fprintf(outfile,"\n%2d) %8ld %s",idx+1, ep->score, ep->initials);
+#endif	/* ifdef MIB_USES_LtToString */
+	}
+	fputs("\n",outfile);
+    }
+    return;
+#endif
+}
+
+static void show_user(FILE *outfile)
+{
+#if defined(USER_RECS) && defined(EER_UREC_IDX)
+    unsigned char *rcd, *tmp=0;
+    int idx, ii, tlen=0;
+    
+    idx = eer_gets(EER_UREC_IDX);
+    fprintf(outfile,"\n\t%d user records\n", USER_RECS);
+    for ( ii = 0 ; ii < USER_RECS ; ++ii ) {
+	int jj, ilen;
+	fprintf(outfile, "%c%2d: ", ii==idx?'*':' ', ii);
+	rcd = eer_user_rd(ii, &ilen);
+	if (ilen && rcd) {
+	    if (ilen > tlen) {
+		tmp = realloc(tmp, ilen+2);
+		if (!tmp) {
+		    fprintf(outfile, "Ran out of memory realloc'ing %d\n", ilen+2);
+		    exit (2);
+		}
+	    }
+	    for (jj=0; jj < ilen; ++jj) {
+		unsigned char c;
+		c = rcd[jj];
+		if (!c) break;
+		tmp[jj] = isprint(c)?c:'.';
+	    }
+	    tmp[jj] = 0;
+	    fputs((char *)tmp, outfile);
+	}
+	fputs("\n",outfile);
+    }
+    if (tmp) free(tmp);
+    return;
+#endif
+}
+
+int
+main(int argc, char **argv)
+{
+    int stride = 0 /* STRIDE */;
+    int idx;
+    const char *in_name = 0;		/* name of input file */
+    const char *myname;			/* name of program */
+    char	*lp,*rp;
+    FILE *infile;
+
+    if ( argc < 2 ) usage(argv[0],"",EXIT_SUCCESS);
+    myname = *argv++;
+    while ( --argc ) {
+	lp = *argv++;
+	if ( lp[0] == '-' && isalpha(lp[1]) ) {
+	    switch (lp[1]) {
+		case 's' : {
+		    stride = strtol((lp+=2),&rp,10);
+		    if ( lp == rp || stride < 0 || stride > 2 ) {
+			usage(myname,"Bad Stride",EXIT_FAILURE);
+		    }
+		    break;
+		}
+		case 'b' : {
+		    byte_offset = strtol((lp+=2),&rp,10);
+		    if ( lp == rp || byte_offset < 0 || byte_offset > 3 ) {
+			usage(myname,"Bad Byte Offset",EXIT_FAILURE);
+		    }
+		    break;
+		}
+		case 'd' : {
+		    debug = strtol((lp+=2),&rp,10);
+		    if ( lp == rp ) debug = DEBUG_DEFAULT;
+		    if ( debug < 0 || debug > DEBUG_MAX ) {
+			fprintf(stderr,"\nDebug values range from 0 to %d\n",
+			  DEBUG_MAX);
+			debug = (debug < 0 ) ? 0 : DEBUG_MAX;
+		    }
+		    break;
+		}
+		default :
+		    fprintf(stderr,"Unknown switch \"%s\"",lp);
+		    usage(myname,"",EXIT_FAILURE);
+	    } /* end switch */
+	    continue;
+	} /* end if -[alphas] */
+	else if ( in_name == 0 ) in_name = lp;
+	else usage(myname,"Too many args",EXIT_FAILURE);
+    }
+    align_shift = stride;
+    if ( in_name == 0 ) infile = stdin;
+    else {
+	infile = fopen(in_name,"r");
+	if ( infile == 0 ) {
+	    int save_err = errno;
+	    perror(in_name);
+	    usage(myname,"",save_err);
+	}
+    }
+    
+    memload(infile,!!strstr(in_name,".hex"));
+    if ( debug > 1 ) dump_ee(0,20);
+    eer_init();
+
+    /* dump the basic stats */
+    for ( idx = 0 ; stat_names[idx] != 0 ; ++idx ) {
+	unsigned long val;
+	val = eer_gets(idx);
+	fprintf(stdout,"%ld %s\n",val,stat_names[idx]);
+    }
+
+    /* now the histograms */
+    show_histograms(stdout);
+
+    /* now the High Score table */
+    show_h_s_t(stdout);
+
+    /* now the user records */
+    show_user(stdout);
+
+    return EXIT_SUCCESS;
+}
+@
+
+
+1.6
+log
+@Made handling of median match stats.c.
+@
+text
+@d143 35
+d193 11
+d205 1
+@
+
+
+1.5
+log
+@Conditionalled out HIST stuff if HIST_TABLES <= 0.
+@
+text
+@a125 1
+	(void)eer_hist_line(median,buf,sizeof(buf));	/* Get median	*/
+d127 1
+a127 2
+	s = strchr(buf,':');		/* See if it's a median type..	*/
+	if (s)				/* YEP! it's meaningful		*/
+d129 6
+a134 1
+	    *s = '\0';
+@
+
+
+1.4
+log
+@Made stride default to 0.
+@
+text
+@d82 1
+d84 2
+d89 1
+d137 1
+@
+
+
+1.3
+log
+@Added user record dumper.
+@
+text
+@d197 1
+a197 1
+    int stride = STRIDE;
+@
+
+
+1.2
+log
+@Fixed some complaints about %d's needing to be %ld's.
+@
+text
+@d21 1
+d106 7
+a112 1
+	    if ( s >= buf ) s[1] = '\0';
+d158 36
+d270 3
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d219 1
+a219 1
+	fprintf(stdout,"%d %s\n",val,stat_names[idx]);
+@
